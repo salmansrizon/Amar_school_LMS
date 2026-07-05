@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>উপস্থিতি জব মনিটর · Attendance Job Monitor — Super Admin</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../shared/design-system.css">
+<script src="../shared/app.js" defer></script>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="mark">A</span><span>Super Admin</span></div>
+    <nav>
+      <a class="nav-item active" href="schools-list.html"><span data-i18n="bn">স্কুলসমূহ</span><span data-i18n="en">Schools</span></a>
+      <a class="nav-item" href="dealers-list.html"><span data-i18n="bn">ডিলার</span><span data-i18n="en">Dealers</span></a>
+      <a class="nav-item" href="gov-officials-list.html"><span data-i18n="bn">সরকারি কর্মকর্তা</span><span data-i18n="en">Government Officials</span></a>
+      <a class="nav-item" href="codes-list.html"><span data-i18n="bn">সাবস্ক্রিপশন কোড</span><span data-i18n="en">Subscription Codes</span></a>
+      <a class="nav-item" href="locations-tree.html"><span data-i18n="bn">টেরিটরি ও লোকেশন</span><span data-i18n="en">Territory & Locations</span></a>
+      <a class="nav-item" href="vendor-accounting-ledger.html"><span data-i18n="bn">ভেন্ডর হিসাব</span><span data-i18n="en">Vendor Accounting</span></a>
+      <a class="nav-item" href="vendor-sms-compose.html"><span data-i18n="bn">ভেন্ডর এসএমএস</span><span data-i18n="en">Vendor SMS</span></a>
+      <a class="nav-item" href="central-holiday-calendar.html"><span data-i18n="bn">কেন্দ্রীয় ছুটির তালিকা</span><span data-i18n="en">Central Off-Day</span></a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="title"><span data-i18n="bn">উপস্থিতি জব মনিটর</span><span data-i18n="en">Attendance Job Monitor</span></div>
+      <div class="actions">
+        <a class="btn btn-secondary btn-sm" href="../index.html" title="Home">🏠</a>
+        <a class="btn btn-secondary btn-sm" href="../sitemap.html" title="Sitemap">📋</a>
+        <a class="btn btn-secondary btn-sm" href="schools-list.html">&larr; <span data-i18n="bn">স্কুল তালিকা</span><span data-i18n="en">Schools list</span></a>
+        <div class="lang-switch">
+          <button data-lang-btn="bn" onclick="setLang('bn')">বাং</button>
+          <button data-lang-btn="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="theme-switch">
+          <button data-theme-btn="light" onclick="setTheme('light')">☀</button>
+          <button data-theme-btn="dark" onclick="setTheme('dark')">☾</button>
+          <button data-theme-btn="system" onclick="setTheme('system')">Auto</button>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+
+      <div class="card mb-4" style="background:var(--info-bg); border-color:var(--info-border);">
+        <p style="margin:0; font-size:var(--text-sm); color:var(--info-fg);">
+          <span data-i18n="bn">এটি একটি নির্ধারিত দৈনিক ব্যাচ জব — লাইভ/রিয়েল-টাইম প্রক্রিয়া নয়। প্রতিটি স্কুলের কাঁচা RFID ট্যাপ ইভেন্ট প্রতিদিন একবার প্রক্রিয়া করে চূড়ান্ত উপস্থিতি রেকর্ডে রূপান্তরিত হয়।</span>
+          <span data-i18n="en">This is a scheduled daily batch job — not a live/real-time process. Raw RFID tap events across every School are converted into finalized attendance records once per day.</span>
+        </p>
+      </div>
+
+      <div class="kpi-grid" style="grid-template-columns: repeat(4,1fr);">
+        <div class="kpi-card">
+          <div class="label"><span data-i18n="bn">সর্বশেষ রান</span><span data-i18n="en">Last Run</span></div>
+          <div class="value" style="font-size:var(--text-lg);"><span data-i18n="bn">আজ, ভোর ০২:০০</span><span data-i18n="en">Today, 02:00 AM</span></div>
+          <div class="delta"><span class="badge badge-success"><span data-i18n="bn">সফল</span><span data-i18n="en">Success</span></span></div>
+        </div>
+        <div class="kpi-card">
+          <div class="label"><span data-i18n="bn">পরবর্তী রান</span><span data-i18n="en">Next Run</span></div>
+          <div class="value" style="font-size:var(--text-lg);"><span data-i18n="bn">প্রায় ১৮ ঘণ্টা পর</span><span data-i18n="en">In ~18 hours</span></div>
+          <div class="delta text-secondary"><span data-i18n="bn">আগামীকাল, ভোর ০২:০০</span><span data-i18n="en">Tomorrow, 02:00 AM</span></div>
+        </div>
+        <div class="kpi-card">
+          <div class="label"><span data-i18n="bn">প্রক্রিয়াকৃত ইভেন্ট</span><span data-i18n="en">Events Processed</span></div>
+          <div class="value">48,210</div>
+        </div>
+        <div class="kpi-card">
+          <div class="label"><span data-i18n="bn">ব্যর্থতা</span><span data-i18n="en">Failures</span></div>
+          <div class="value">3</div>
+          <div class="delta"><span class="badge badge-warning"><span data-i18n="bn">পর্যালোচনা প্রয়োজন</span><span data-i18n="en">Needs review</span></span></div>
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <input class="search-input" type="text" placeholder="স্কুল দিয়ে খুঁজুন · Search by School">
+        <button class="btn btn-secondary"><span data-i18n="bn">রান লগ রিফ্রেশ করুন</span><span data-i18n="en">Refresh Run Log</span></button>
+      </div>
+
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th><span data-i18n="bn">স্কুল</span><span data-i18n="en">School</span></th>
+            <th><span data-i18n="bn">ইনপুট ইভেন্ট</span><span data-i18n="en">Events In</span></th>
+            <th><span data-i18n="bn">চূড়ান্ত রেকর্ড</span><span data-i18n="en">Records Out</span></th>
+            <th><span data-i18n="bn">অবস্থা</span><span data-i18n="en">Status</span></th>
+            <th><span data-i18n="bn">ত্রুটি</span><span data-i18n="en">Errors</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Adarsha High School</td>
+            <td>612</td>
+            <td>306</td>
+            <td><span class="badge badge-success"><span data-i18n="bn">সফল</span><span data-i18n="en">Success</span></span></td>
+            <td><span class="text-secondary">—</span></td>
+          </tr>
+          <tr>
+            <td>Green Valley School & College</td>
+            <td>488</td>
+            <td>244</td>
+            <td><span class="badge badge-success"><span data-i18n="bn">সফল</span><span data-i18n="en">Success</span></span></td>
+            <td><span class="text-secondary">—</span></td>
+          </tr>
+          <tr>
+            <td>Shapla Girls' School</td>
+            <td>210</td>
+            <td>198</td>
+            <td><span class="badge badge-warning"><span data-i18n="bn">আংশিক</span><span data-i18n="en">Partial</span></span></td>
+            <td><span data-i18n="bn">৩টি ডিভাইস টাইমস্ট্যাম্প যাচাই ব্যর্থ</span><span data-i18n="en">3 device timestamps failed validation</span></td>
+          </tr>
+          <tr>
+            <td>Notun Din Trial School</td>
+            <td>0</td>
+            <td>0</td>
+            <td><span class="badge badge-neutral"><span data-i18n="bn">RFID নিষ্ক্রিয়</span><span data-i18n="en">RFID disabled</span></span></td>
+            <td><span class="text-secondary">—</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

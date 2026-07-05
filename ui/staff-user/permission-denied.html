@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>অনুমতি নেই · Permission Denied — Amar School Management</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../shared/design-system.css">
+<script src="../shared/app.js" defer></script>
+<style>
+  body { min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+  .denied-box { max-width: 420px; width: 100%; text-align: center; padding: var(--space-8) var(--space-6); }
+  .denied-box .icon {
+    width: 56px; height: 56px; margin: 0 auto var(--space-4);
+    border-radius: var(--radius-lg); background: var(--danger-bg); color: var(--danger-fg);
+    display: flex; align-items: center; justify-content: center; font-size: var(--text-2xl); font-weight: 700;
+  }
+  .denied-box h1 { font-size: var(--text-lg); margin: 0 0 var(--space-2); }
+  .denied-box p { color: var(--text-secondary); font-size: var(--text-sm); margin: 0 0 var(--space-6); }
+  .denied-box .switches { display: flex; justify-content: center; gap: var(--space-2); margin-bottom: var(--space-6); }
+</style>
+</head>
+<body>
+
+<div class="denied-box card">
+  <div class="switches">
+    <div class="lang-switch">
+      <button data-lang-btn="bn" onclick="setLang('bn')">বাং</button>
+      <button data-lang-btn="en" onclick="setLang('en')">EN</button>
+    </div>
+  </div>
+
+  <div class="icon">!</div>
+
+  <h1>
+    <span data-i18n="bn">আপনার এই পাতা দেখার অনুমতি নেই</span>
+    <span data-i18n="en">You don't have permission to view this page</span>
+  </h1>
+  <p>
+    <span data-i18n="bn">School Owner এই স্ক্রিনটি আপনার স্টাফ অ্যাকাউন্টের জন্য অনুমোদন করেননি। প্রবেশাধিকার প্রয়োজন হলে অনুগ্রহ করে আপনার School Owner-এর সাথে যোগাযোগ করুন।</span>
+    <span data-i18n="en">Your School Owner has not granted your staff account access to this screen. Please contact your School Owner if you need access.</span>
+  </p>
+
+  <a class="btn btn-primary" href="dashboard.html">
+    <span data-i18n="bn">ড্যাশবোর্ডে ফিরে যান</span>
+    <span data-i18n="en">Back to Dashboard</span>
+  </a>
+  <div style="margin-top: var(--space-4); font-size: var(--text-xs);">
+    <a href="../index.html">&larr; <span data-i18n="bn">হোম পেজে ফিরুন</span><span data-i18n="en">Back to Home</span></a>
+  </div>
+</div>
+
+</body>
+</html>

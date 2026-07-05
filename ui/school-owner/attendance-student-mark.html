@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>শিক্ষার্থী উপস্থিতি · Mark Student Attendance — Amar School Management</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../shared/design-system.css">
+<script src="../shared/app.js" defer></script>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="mark">A</span><span>Amar School</span></div>
+    <nav>
+      <a class="nav-item" href="../school-owner/dashboard.html"><span data-i18n="bn">ড্যাশবোর্ড</span><span data-i18n="en">Dashboard</span></a>
+      <a class="nav-item" href="../school-owner/students-list.html"><span data-i18n="bn">শিক্ষার্থী</span><span data-i18n="en">Students</span></a>
+      <a class="nav-item" href="../school-owner/employees-list.html"><span data-i18n="bn">কর্মচারী</span><span data-i18n="en">Employees</span></a>
+      <a class="nav-item active" href="../school-owner/attendance-student-mark.html"><span data-i18n="bn">উপস্থিতি</span><span data-i18n="en">Attendance</span></a>
+      <a class="nav-item" href="../school-owner/classes-list.html"><span data-i18n="bn">শ্রেণি ও পাঠ্যক্রম</span><span data-i18n="en">Class & Curriculum</span></a>
+      <a class="nav-item" href="../school-owner/exams-list.html"><span data-i18n="bn">পরীক্ষা ও ফলাফল</span><span data-i18n="en">Exams & Results</span></a>
+      <a class="nav-item" href="../school-owner/fee-collection.html"><span data-i18n="bn">হিসাব ও ফি</span><span data-i18n="en">Accounting & Fees</span></a>
+      <a class="nav-item" href="../school-owner/sms-compose.html"><span data-i18n="bn">এসএমএস</span><span data-i18n="en">SMS</span></a>
+      <a class="nav-item" href="../school-owner/notices-list.html"><span data-i18n="bn">প্রকাশনা</span><span data-i18n="en">Publishing</span></a>
+      <a class="nav-item" href="../school-owner/feedback-inbox.html"><span data-i18n="bn">মতামত</span><span data-i18n="en">Feedback</span></a>
+      <a class="nav-item" href="../school-owner/staff-permissions.html"><span data-i18n="bn">স্টাফ অনুমতি</span><span data-i18n="en">Staff Permissions</span></a>
+      <a class="nav-item" href="../school-owner/institute-profile.html"><span data-i18n="bn">প্রতিষ্ঠান সেটআপ</span><span data-i18n="en">Institute Setup</span></a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="title"><span data-i18n="bn">শিক্ষার্থী উপস্থিতি — হাজিরা নিন</span><span data-i18n="en">Student Attendance — Mark</span></div>
+      <div class="actions">
+        <div class="lang-switch">
+          <button data-lang-btn="bn" onclick="setLang('bn')">বাং</button>
+          <button data-lang-btn="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="theme-switch">
+          <button data-theme-btn="light" onclick="setTheme('light')">☀</button>
+          <button data-theme-btn="dark" onclick="setTheme('dark')">☾</button>
+          <button data-theme-btn="system" onclick="setTheme('system')">Auto</button>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+
+      <div class="tabs">
+        <a href="attendance-student-mark.html" class="active"><span data-i18n="bn">শিক্ষার্থী হাজিরা</span><span data-i18n="en">Mark Attendance</span></a>
+        <a href="attendance-book.html"><span data-i18n="bn">হাজিরা খাতা</span><span data-i18n="en">Attendance Book</span></a>
+        <a href="attendance-employee.html"><span data-i18n="bn">কর্মচারী উপস্থিতি</span><span data-i18n="en">Employee Attendance</span></a>
+        <a href="leave-management.html"><span data-i18n="bn">ছুটি ব্যবস্থাপনা</span><span data-i18n="en">Leave Management</span></a>
+        <a href="off-day-calendar.html"><span data-i18n="bn">ছুটির দিন ক্যালেন্ডার</span><span data-i18n="en">Off-Day Calendar</span></a>
+        <a href="rfid-card-assignment.html"><span data-i18n="bn">RFID কার্ড</span><span data-i18n="en">RFID Card</span></a>
+      </div>
+
+      <div class="card mb-4">
+        <div class="form-grid">
+          <div class="field">
+            <label><span data-i18n="bn">শ্রেণি</span><span data-i18n="en">Class</span></label>
+            <select><option selected>Class 8</option><option>Class 9</option><option>Class 10</option></select>
+          </div>
+          <div class="field">
+            <label><span data-i18n="bn">শাখা</span><span data-i18n="en">Section</span></label>
+            <select><option selected>A</option><option>B</option></select>
+          </div>
+          <div class="field">
+            <label><span data-i18n="bn">শিফট</span><span data-i18n="en">Shift</span></label>
+            <select><option selected><span data-i18n="bn">সকাল</span><span data-i18n="en">Morning</span></option><option><span data-i18n="bn">দিবা</span><span data-i18n="en">Day</span></option></select>
+          </div>
+          <div class="field">
+            <label><span data-i18n="bn">তারিখ</span><span data-i18n="en">Date</span></label>
+            <input type="date" value="2026-07-05">
+          </div>
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <div class="text-secondary" style="font-size:var(--text-sm);">
+          <span data-i18n="bn">মোট ৫ জন শিক্ষার্থী</span><span data-i18n="en">5 students total</span>
+        </div>
+        <div class="flex gap-2">
+          <button class="btn btn-secondary btn-sm"><span data-i18n="bn">সকলকে উপস্থিত করুন</span><span data-i18n="en">Mark All Present</span></button>
+          <button class="btn btn-secondary btn-sm"><span data-i18n="bn">সকলকে অনুপস্থিত করুন</span><span data-i18n="en">Mark All Absent</span></button>
+        </div>
+      </div>
+
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th><span data-i18n="bn">রোল</span><span data-i18n="en">Roll</span></th>
+            <th><span data-i18n="bn">নাম</span><span data-i18n="en">Name</span></th>
+            <th><span data-i18n="bn">উপস্থিত</span><span data-i18n="en">Present</span></th>
+            <th><span data-i18n="bn">অনুপস্থিত</span><span data-i18n="en">Absent</span></th>
+            <th><span data-i18n="bn">অনুপস্থিতির কারণ</span><span data-i18n="en">Absence Cause</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>০১</td>
+            <td>রাকিব হাসান</td>
+            <td><input type="radio" name="att-1" checked></td>
+            <td><input type="radio" name="att-1"></td>
+            <td><input type="text" style="width:100%;" disabled placeholder="—"></td>
+          </tr>
+          <tr>
+            <td>০২</td>
+            <td>তামিম ইকবাল</td>
+            <td><input type="radio" name="att-2" checked></td>
+            <td><input type="radio" name="att-2"></td>
+            <td><input type="text" style="width:100%;" disabled placeholder="—"></td>
+          </tr>
+          <tr>
+            <td>০৩</td>
+            <td>সাদিয়া ইসলাম</td>
+            <td><input type="radio" name="att-3"></td>
+            <td><input type="radio" name="att-3" checked></td>
+            <td><input type="text" style="width:100%;" value="জ্বর, মায়ের ফোন কল"></td>
+          </tr>
+          <tr>
+            <td>০৪</td>
+            <td>ফাহিম চৌধুরী</td>
+            <td><input type="radio" name="att-4" checked></td>
+            <td><input type="radio" name="att-4"></td>
+            <td><input type="text" style="width:100%;" disabled placeholder="—"></td>
+          </tr>
+          <tr>
+            <td>০৫</td>
+            <td>নুসরাত জাহান</td>
+            <td><input type="radio" name="att-5" checked></td>
+            <td><input type="radio" name="att-5"></td>
+            <td><input type="text" style="width:100%;" disabled placeholder="—"></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="card" style="margin-top: var(--space-4);">
+        <p class="locked-note mt-0">
+          <span data-i18n="bn">দ্রষ্টব্যঃ যেসব শিক্ষার্থীর RFID কার্ড দিয়ে হাজিরা নেওয়া হয়, একই দিনে একাধিকবার ট্যাপ করলে সেগুলো একটিমাত্র রেকর্ডে একত্রিত হয় — সবচেয়ে প্রথম ট্যাপ প্রবেশ (entry) এবং সবচেয়ে শেষ ট্যাপ প্রস্থান (exit) হিসেবে গণ্য হয়; মাঝের ট্যাপগুলো (যেমন টিফিন বিরতি) উপেক্ষা করা হয়।</span>
+          <span data-i18n="en">Note: for students marked via RFID card tap, multiple taps on the same day reconcile into one record — the earliest tap becomes entry and the latest becomes exit; any taps in between (e.g. a lunch-break tap) are discarded as noise.</span>
+        </p>
+      </div>
+
+      <div class="flex justify-between" style="margin-top: var(--space-4);">
+        <span></span>
+        <button class="btn btn-primary"><span data-i18n="bn">হাজিরা সংরক্ষণ করুন</span><span data-i18n="en">Save Attendance</span></button>
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>আচরণ লগ · Behaviour Log — Amar School Management</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../shared/design-system.css">
+<script src="../shared/app.js" defer></script>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="mark">A</span><span>Amar School</span></div>
+    <nav>
+      <a class="nav-item" href="../school-owner/dashboard.html"><span data-i18n="bn">ড্যাশবোর্ড</span><span data-i18n="en">Dashboard</span></a>
+      <a class="nav-item active" href="../school-owner/students-list.html"><span data-i18n="bn">শিক্ষার্থী</span><span data-i18n="en">Students</span></a>
+      <a class="nav-item" href="../school-owner/employees-list.html"><span data-i18n="bn">কর্মচারী</span><span data-i18n="en">Employees</span></a>
+      <a class="nav-item" href="../school-owner/attendance-student-mark.html"><span data-i18n="bn">উপস্থিতি</span><span data-i18n="en">Attendance</span></a>
+      <a class="nav-item" href="../school-owner/classes-list.html"><span data-i18n="bn">শ্রেণি ও পাঠ্যক্রম</span><span data-i18n="en">Class & Curriculum</span></a>
+      <a class="nav-item" href="../school-owner/exams-list.html"><span data-i18n="bn">পরীক্ষা ও ফলাফল</span><span data-i18n="en">Exams & Results</span></a>
+      <a class="nav-item" href="../school-owner/fee-collection.html"><span data-i18n="bn">হিসাব ও ফি</span><span data-i18n="en">Accounting & Fees</span></a>
+      <a class="nav-item" href="../school-owner/sms-compose.html"><span data-i18n="bn">এসএমএস</span><span data-i18n="en">SMS</span></a>
+      <a class="nav-item" href="../school-owner/notices-list.html"><span data-i18n="bn">প্রকাশনা</span><span data-i18n="en">Publishing</span></a>
+      <a class="nav-item" href="../school-owner/feedback-inbox.html"><span data-i18n="bn">মতামত</span><span data-i18n="en">Feedback</span></a>
+      <a class="nav-item" href="../school-owner/staff-permissions.html"><span data-i18n="bn">স্টাফ অনুমতি</span><span data-i18n="en">Staff Permissions</span></a>
+      <a class="nav-item" href="../school-owner/institute-profile.html"><span data-i18n="bn">প্রতিষ্ঠান সেটআপ</span><span data-i18n="en">Institute Setup</span></a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="title"><span data-i18n="bn">আচরণ লগ — রাকিব হাসান</span><span data-i18n="en">Behaviour Log — Rakib Hasan</span></div>
+      <div class="actions">
+        <div class="lang-switch">
+          <button data-lang-btn="bn" onclick="setLang('bn')">বাং</button>
+          <button data-lang-btn="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="theme-switch">
+          <button data-theme-btn="light" onclick="setTheme('light')">☀</button>
+          <button data-theme-btn="dark" onclick="setTheme('dark')">☾</button>
+          <button data-theme-btn="system" onclick="setTheme('system')">Auto</button>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+
+      <div class="toolbar">
+        <div class="text-secondary" style="font-size:var(--text-sm);">
+          <a href="student-detail.html">&larr; <span data-i18n="bn">প্রোফাইলে ফিরুন</span><span data-i18n="en">Back to Profile</span></a>
+        </div>
+        <button class="btn btn-primary">+ <span data-i18n="bn">নতুন এন্ট্রি</span><span data-i18n="en">New Entry</span></button>
+      </div>
+
+      <div class="card mb-4">
+        <div class="flex justify-between items-center mb-4">
+          <div>
+            <span class="badge badge-success">5</span>
+            <span style="margin-left: var(--space-2);"><span data-i18n="bn">রিমাইন্ড তারিখঃ</span><span data-i18n="en">Remind date:</span> ১৫/০৭/২০২৬</span>
+          </div>
+          <div class="text-secondary" style="font-size:var(--text-xs);"><span data-i18n="bn">তৈরি হয়েছে:</span><span data-i18n="en">Created:</span> আজ, ১০:৩০ AM</div>
+        </div>
+        <p class="mt-0">ক্লাসে মনোযোগী ও সহপাঠীদের সহায়তা করে। শিক্ষকের প্রশংসা পেয়েছে।</p>
+        <div class="flex gap-2">
+          <button class="btn btn-secondary btn-sm"><span data-i18n="bn">সম্পাদনা</span><span data-i18n="en">Edit</span></button>
+          <button class="btn btn-secondary btn-sm"><span data-i18n="bn">মুছুন</span><span data-i18n="en">Delete</span></button>
+        </div>
+      </div>
+
+      <div class="card mb-4">
+        <div class="flex justify-between items-center mb-4">
+          <div>
+            <span class="badge badge-warning">3</span>
+            <span style="margin-left: var(--space-2);"><span data-i18n="bn">রিমাইন্ড তারিখঃ</span><span data-i18n="en">Remind date:</span> ০৮/০৭/২০২৬</span>
+          </div>
+          <div class="text-secondary" style="font-size:var(--text-xs);"><span data-i18n="bn">তৈরি হয়েছে:</span><span data-i18n="en">Created:</span> গতকাল, ০৪:১৫ PM</div>
+        </div>
+        <p class="mt-0">হোমওয়ার্ক জমা দিতে দেরি করেছে, সতর্ক করা হয়েছে।</p>
+        <div class="flex gap-2">
+          <button class="btn btn-secondary btn-sm"><span data-i18n="bn">সম্পাদনা</span><span data-i18n="en">Edit</span></button>
+          <button class="btn btn-secondary btn-sm"><span data-i18n="bn">মুছুন</span><span data-i18n="en">Delete</span></button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="flex justify-between items-center mb-4">
+          <div>
+            <span class="badge badge-danger">1</span>
+            <span style="margin-left: var(--space-2);"><span data-i18n="bn">সংঘটনের তারিখ (উল্লেখিত):</span><span data-i18n="en">Incident date (as noted):</span> ২৮/০৬/২০২৬</span>
+          </div>
+          <div class="text-secondary" style="font-size:var(--text-xs);"><span data-i18n="bn">তৈরি হয়েছে:</span><span data-i18n="en">Created:</span> ২৯/০৬/২০২৬, ১১:০০ AM</div>
+        </div>
+        <p class="mt-0">সহপাঠীর সাথে বিতর্কে জড়িয়েছিল, ক্লাস শিক্ষক হস্তক্ষেপ করেছেন।</p>
+        <div class="flex gap-2 items-center">
+          <button class="btn btn-secondary btn-sm" disabled><span data-i18n="bn">সম্পাদনা</span><span data-i18n="en">Edit</span></button>
+          <button class="btn btn-secondary btn-sm" disabled><span data-i18n="bn">মুছুন</span><span data-i18n="en">Delete</span></button>
+          <span class="locked-note">
+            <span data-i18n="bn">এই এন্ট্রিটি তৈরির ৩ দিন পর স্বয়ংক্রিয়ভাবে লক হয়ে গেছে — সংঘটনের তারিখ নয়, তৈরির সময়ের ভিত্তিতে (এন্ট্রির উল্লেখিত সংঘটনের তারিখ একটি free-text মন্তব্য মাত্র, নির্ভরযোগ্য নয়)।</span>
+            <span data-i18n="en">Locked automatically 3 days after it was created — anchored to creation time, not the incident date noted above (the incident date is free text and not a trustworthy anchor).</span>
+          </span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

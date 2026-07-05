@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>কর্মচারী উপস্থিতি · Employee Attendance — Amar School Management</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../shared/design-system.css">
+<script src="../shared/app.js" defer></script>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="mark">A</span><span>Amar School</span></div>
+    <nav>
+      <a class="nav-item" href="../school-owner/dashboard.html"><span data-i18n="bn">ড্যাশবোর্ড</span><span data-i18n="en">Dashboard</span></a>
+      <a class="nav-item" href="../school-owner/students-list.html"><span data-i18n="bn">শিক্ষার্থী</span><span data-i18n="en">Students</span></a>
+      <a class="nav-item" href="../school-owner/employees-list.html"><span data-i18n="bn">কর্মচারী</span><span data-i18n="en">Employees</span></a>
+      <a class="nav-item active" href="../school-owner/attendance-student-mark.html"><span data-i18n="bn">উপস্থিতি</span><span data-i18n="en">Attendance</span></a>
+      <a class="nav-item" href="../school-owner/classes-list.html"><span data-i18n="bn">শ্রেণি ও পাঠ্যক্রম</span><span data-i18n="en">Class & Curriculum</span></a>
+      <a class="nav-item" href="../school-owner/exams-list.html"><span data-i18n="bn">পরীক্ষা ও ফলাফল</span><span data-i18n="en">Exams & Results</span></a>
+      <a class="nav-item" href="../school-owner/fee-collection.html"><span data-i18n="bn">হিসাব ও ফি</span><span data-i18n="en">Accounting & Fees</span></a>
+      <a class="nav-item" href="../school-owner/sms-compose.html"><span data-i18n="bn">এসএমএস</span><span data-i18n="en">SMS</span></a>
+      <a class="nav-item" href="../school-owner/notices-list.html"><span data-i18n="bn">প্রকাশনা</span><span data-i18n="en">Publishing</span></a>
+      <a class="nav-item" href="../school-owner/feedback-inbox.html"><span data-i18n="bn">মতামত</span><span data-i18n="en">Feedback</span></a>
+      <a class="nav-item" href="../school-owner/staff-permissions.html"><span data-i18n="bn">স্টাফ অনুমতি</span><span data-i18n="en">Staff Permissions</span></a>
+      <a class="nav-item" href="../school-owner/institute-profile.html"><span data-i18n="bn">প্রতিষ্ঠান সেটআপ</span><span data-i18n="en">Institute Setup</span></a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="title"><span data-i18n="bn">কর্মচারী উপস্থিতি</span><span data-i18n="en">Employee Attendance</span></div>
+      <div class="actions">
+        <div class="lang-switch">
+          <button data-lang-btn="bn" onclick="setLang('bn')">বাং</button>
+          <button data-lang-btn="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="theme-switch">
+          <button data-theme-btn="light" onclick="setTheme('light')">☀</button>
+          <button data-theme-btn="dark" onclick="setTheme('dark')">☾</button>
+          <button data-theme-btn="system" onclick="setTheme('system')">Auto</button>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+
+      <div class="tabs">
+        <a href="attendance-student-mark.html"><span data-i18n="bn">শিক্ষার্থী হাজিরা</span><span data-i18n="en">Mark Attendance</span></a>
+        <a href="attendance-book.html"><span data-i18n="bn">হাজিরা খাতা</span><span data-i18n="en">Attendance Book</span></a>
+        <a href="attendance-employee.html" class="active"><span data-i18n="bn">কর্মচারী উপস্থিতি</span><span data-i18n="en">Employee Attendance</span></a>
+        <a href="leave-management.html"><span data-i18n="bn">ছুটি ব্যবস্থাপনা</span><span data-i18n="en">Leave Management</span></a>
+        <a href="off-day-calendar.html"><span data-i18n="bn">ছুটির দিন ক্যালেন্ডার</span><span data-i18n="en">Off-Day Calendar</span></a>
+        <a href="rfid-card-assignment.html"><span data-i18n="bn">RFID কার্ড</span><span data-i18n="en">RFID Card</span></a>
+      </div>
+
+      <div class="toolbar">
+        <input class="search-input" type="text" placeholder="নাম দিয়ে খুঁজুন · Search by name">
+        <input type="date" value="2026-07-05">
+      </div>
+
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th><span data-i18n="bn">নাম</span><span data-i18n="en">Name</span></th>
+            <th><span data-i18n="bn">প্রবেশ</span><span data-i18n="en">In</span></th>
+            <th><span data-i18n="bn">প্রস্থান</span><span data-i18n="en">Out</span></th>
+            <th><span data-i18n="bn">স্ট্যাটাস</span><span data-i18n="en">Status</span></th>
+            <th><span data-i18n="bn">প্রযোজ্য গ্রেস</span><span data-i18n="en">Applied Grace</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>সুমাইয়া আক্তার</td>
+            <td>08:05 AM</td>
+            <td>04:32 PM</td>
+            <td><span class="badge badge-success"><span data-i18n="bn">সময়মতো প্রবেশ / সময়মতো প্রস্থান</span><span data-i18n="en">On-time In / On-time Out</span></span></td>
+            <td class="text-secondary" style="font-size:var(--text-xs);">20 min (<span data-i18n="bn">ব্যক্তিগত ওভাররাইড</span><span data-i18n="en">individual override</span>)</td>
+          </tr>
+          <tr>
+            <td>মোঃ আরিফুল ইসলাম</td>
+            <td>08:18 AM</td>
+            <td>04:00 PM</td>
+            <td><span class="badge badge-warning"><span data-i18n="bn">সময়মতো প্রবেশ / আগাম প্রস্থান</span><span data-i18n="en">On-time In / Early Out</span></span></td>
+            <td class="text-secondary" style="font-size:var(--text-xs);">15 min (<span data-i18n="bn">বিভাগ</span><span data-i18n="en">category</span>)</td>
+          </tr>
+          <tr>
+            <td>মোছাঃ শারমিন সুলতানা</td>
+            <td>09:10 AM</td>
+            <td>05:05 PM</td>
+            <td><span class="badge badge-warning"><span data-i18n="bn">বিলম্বে প্রবেশ / সময়মতো প্রস্থান</span><span data-i18n="en">Late In / On-time Out</span></span></td>
+            <td class="text-secondary" style="font-size:var(--text-xs);">12 min (<span data-i18n="bn">শিফট</span><span data-i18n="en">shift</span>)</td>
+          </tr>
+          <tr>
+            <td>মোঃ জসিম উদ্দিন</td>
+            <td>09:20 AM</td>
+            <td>03:40 PM</td>
+            <td><span class="badge badge-danger"><span data-i18n="bn">বিলম্বে প্রবেশ / আগাম প্রস্থান</span><span data-i18n="en">Late In / Early Out</span></span></td>
+            <td class="text-secondary" style="font-size:var(--text-xs);">10 min (<span data-i18n="bn">গ্লোবাল ডিফল্ট</span><span data-i18n="en">global default</span>)</td>
+          </tr>
+          <tr>
+            <td>মোছাঃ ফারজানা ইয়াসমিন</td>
+            <td>—</td>
+            <td>—</td>
+            <td><span class="badge badge-danger"><span data-i18n="bn">অনুপস্থিত</span><span data-i18n="en">Absent</span></span></td>
+            <td class="text-secondary" style="font-size:var(--text-xs);">—</td>
+          </tr>
+          <tr>
+            <td>মোঃ কামরুল হাসান</td>
+            <td>—</td>
+            <td>—</td>
+            <td><span class="badge badge-info"><span data-i18n="bn">ছুটিতে</span><span data-i18n="en">On Leave</span></span></td>
+            <td class="text-secondary" style="font-size:var(--text-xs);">—</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="card" style="margin-top: var(--space-4);">
+        <p class="locked-note mt-0">
+          <span data-i18n="bn">উদাহরণঃ সুমাইয়া আক্তারের ক্ষেত্রে গ্লোবাল (10), বিভাগ (15), শিফট (12) ও ব্যক্তিগত ওভাররাইড (20) মিনিট প্রযোজ্য — কার্যকর গ্রেস সবসময় এই মানগুলোর মধ্যে সর্বোচ্চটি, তাই এখানে 20 মিনিট প্রযোজ্য হয়েছে, কড়া/ছোট মান নয়।</span>
+          <span data-i18n="en">Example: for Sumaiya Akter, global (10), category (15), shift (12) and individual override (20) minutes are all applicable — the effective grace is always the MAX of these, so 20 minutes applied here, never the stricter/smaller value.</span>
+        </p>
+        <p class="locked-note mt-0" style="margin-top: var(--space-2);">
+          <span data-i18n="bn">RFID দিয়ে হাজিরা নেওয়া কর্মচারীদের জন্যও একই দিনে একাধিক ট্যাপ একটি রেকর্ডে একত্রিত হয় — প্রথম ট্যাপ প্রবেশ, শেষ ট্যাপ প্রস্থান।</span>
+          <span data-i18n="en">For employees marked via RFID, same-day taps also reconcile into one record — earliest tap = entry, latest tap = exit.</span>
+        </p>
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

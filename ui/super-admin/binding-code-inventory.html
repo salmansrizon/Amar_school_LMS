@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>বাইন্ডিং কোড ইনভেন্টরি · Binding Code Inventory — Super Admin</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../shared/design-system.css">
+<script src="../shared/app.js" defer></script>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="mark">A</span><span>Super Admin</span></div>
+    <nav>
+      <a class="nav-item" href="schools-list.html"><span data-i18n="bn">স্কুলসমূহ</span><span data-i18n="en">Schools</span></a>
+      <a class="nav-item" href="dealers-list.html"><span data-i18n="bn">ডিলার</span><span data-i18n="en">Dealers</span></a>
+      <a class="nav-item" href="gov-officials-list.html"><span data-i18n="bn">সরকারি কর্মকর্তা</span><span data-i18n="en">Government Officials</span></a>
+      <a class="nav-item" href="codes-list.html"><span data-i18n="bn">সাবস্ক্রিপশন কোড</span><span data-i18n="en">Subscription Codes</span></a>
+      <a class="nav-item" href="locations-tree.html"><span data-i18n="bn">টেরিটরি ও লোকেশন</span><span data-i18n="en">Territory & Locations</span></a>
+      <a class="nav-item active" href="vendor-accounting-ledger.html"><span data-i18n="bn">ভেন্ডর হিসাব</span><span data-i18n="en">Vendor Accounting</span></a>
+      <a class="nav-item" href="vendor-sms-compose.html"><span data-i18n="bn">ভেন্ডর এসএমএস</span><span data-i18n="en">Vendor SMS</span></a>
+      <a class="nav-item" href="central-holiday-calendar.html"><span data-i18n="bn">কেন্দ্রীয় ছুটির তালিকা</span><span data-i18n="en">Central Off-Day</span></a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="title"><span data-i18n="bn">বাইন্ডিং কোড ইনভেন্টরি</span><span data-i18n="en">Binding Code Inventory</span></div>
+      <div class="actions">
+        <a class="btn btn-secondary btn-sm" href="../index.html" title="Home">🏠</a>
+        <a class="btn btn-secondary btn-sm" href="../sitemap.html" title="Sitemap">📋</a>
+        <a class="btn btn-secondary btn-sm" href="vendor-accounting-ledger.html">&larr; <span data-i18n="bn">ভেন্ডর হিসাব</span><span data-i18n="en">Vendor Accounting</span></a>
+        <div class="lang-switch">
+          <button data-lang-btn="bn" onclick="setLang('bn')">বাং</button>
+          <button data-lang-btn="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="theme-switch">
+          <button data-theme-btn="light" onclick="setTheme('light')">☀</button>
+          <button data-theme-btn="dark" onclick="setTheme('dark')">☾</button>
+          <button data-theme-btn="system" onclick="setTheme('system')">Auto</button>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+
+      <p class="text-secondary" style="font-size:var(--text-sm); max-width:640px;">
+        <span data-i18n="bn">RFID কার্ড ও মেশিনের মতো ফিজিক্যাল সম্পদ স্কুলে হস্তান্তরের জন্য ব্যাচ বাইন্ডিং-কোড ইনভেন্টরি ব্যবস্থা।</span>
+        <span data-i18n="en">Batch binding-code inventory mechanism for transferring physical assets (RFID cards/machines) to Schools.</span>
+      </p>
+
+      <div class="toolbar">
+        <input class="search-input" type="text" placeholder="ব্যাচ আইডি বা স্কুল দিয়ে খুঁজুন · Search by batch ID or School">
+        <div class="flex gap-2">
+          <select class="search-input" style="min-width:150px;">
+            <option><span data-i18n="bn">সকল অবস্থা</span><span data-i18n="en">All statuses</span></option>
+            <option><span data-i18n="bn">স্টকে আছে</span><span data-i18n="en">In Stock</span></option>
+            <option><span data-i18n="bn">হস্তান্তরিত</span><span data-i18n="en">Transferred</span></option>
+          </select>
+          <a class="btn btn-primary" href="#"><span data-i18n="bn">+ নতুন ব্যাচ</span><span data-i18n="en">+ Add Batch</span></a>
+        </div>
+      </div>
+
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th><span data-i18n="bn">ব্যাচ আইডি</span><span data-i18n="en">Batch ID</span></th>
+            <th><span data-i18n="bn">আইটেম ধরন</span><span data-i18n="en">Item Type</span></th>
+            <th><span data-i18n="bn">পরিমাণ</span><span data-i18n="en">Quantity</span></th>
+            <th><span data-i18n="bn">অবস্থা</span><span data-i18n="en">Status</span></th>
+            <th><span data-i18n="bn">হস্তান্তর — স্কুল</span><span data-i18n="en">Transferred To</span></th>
+            <th><span data-i18n="bn">কার্যক্রম</span><span data-i18n="en">Actions</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>BC-2026-014</td>
+            <td><span data-i18n="bn">RFID কার্ড</span><span data-i18n="en">RFID Card</span></td>
+            <td>200</td>
+            <td><span class="badge badge-neutral"><span data-i18n="bn">স্টকে আছে</span><span data-i18n="en">In Stock</span></span></td>
+            <td><span class="text-secondary">—</span></td>
+            <td><button class="btn btn-secondary btn-sm"><span data-i18n="bn">স্কুলে হস্তান্তর</span><span data-i18n="en">Transfer to School</span></button></td>
+          </tr>
+          <tr>
+            <td>BC-2026-013</td>
+            <td><span data-i18n="bn">অ্যাটেন্ডেন্স মেশিন</span><span data-i18n="en">Attendance Machine</span></td>
+            <td>5</td>
+            <td><span class="badge badge-success"><span data-i18n="bn">হস্তান্তরিত</span><span data-i18n="en">Transferred</span></span></td>
+            <td>Adarsha High School</td>
+            <td><button class="btn btn-secondary btn-sm" disabled title="Already transferred"><span data-i18n="bn">স্কুলে হস্তান্তর</span><span data-i18n="en">Transfer to School</span></button></td>
+          </tr>
+          <tr>
+            <td>BC-2026-012</td>
+            <td><span data-i18n="bn">RFID কার্ড</span><span data-i18n="en">RFID Card</span></td>
+            <td>150</td>
+            <td><span class="badge badge-success"><span data-i18n="bn">হস্তান্তরিত</span><span data-i18n="en">Transferred</span></span></td>
+            <td>Green Valley School & College</td>
+            <td><button class="btn btn-secondary btn-sm" disabled title="Already transferred"><span data-i18n="bn">স্কুলে হস্তান্তর</span><span data-i18n="en">Transfer to School</span></button></td>
+          </tr>
+          <tr>
+            <td>BC-2026-011</td>
+            <td><span data-i18n="bn">RFID কার্ড</span><span data-i18n="en">RFID Card</span></td>
+            <td>100</td>
+            <td><span class="badge badge-neutral"><span data-i18n="bn">স্টকে আছে</span><span data-i18n="en">In Stock</span></span></td>
+            <td><span class="text-secondary">—</span></td>
+            <td><button class="btn btn-secondary btn-sm"><span data-i18n="bn">স্কুলে হস্তান্তর</span><span data-i18n="en">Transfer to School</span></button></td>
+          </tr>
+        </tbody>
+      </table>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

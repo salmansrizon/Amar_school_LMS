@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>পরীক্ষা তালিকা · Exams List — Amar School Management</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../shared/design-system.css">
+<script src="../shared/app.js" defer></script>
+<style>
+  .action-disabled { color: var(--gray-400); font-size: var(--text-xs); cursor: not-allowed; }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="mark">A</span><span>Amar School</span></div>
+    <nav>
+      <a class="nav-item" href="../school-owner/dashboard.html"><span data-i18n="bn">ড্যাশবোর্ড</span><span data-i18n="en">Dashboard</span></a>
+      <a class="nav-item" href="../school-owner/students-list.html"><span data-i18n="bn">শিক্ষার্থী</span><span data-i18n="en">Students</span></a>
+      <a class="nav-item" href="../school-owner/employees-list.html"><span data-i18n="bn">কর্মচারী</span><span data-i18n="en">Employees</span></a>
+      <a class="nav-item" href="../school-owner/attendance-student-mark.html"><span data-i18n="bn">উপস্থিতি</span><span data-i18n="en">Attendance</span></a>
+      <a class="nav-item" href="../school-owner/classes-list.html"><span data-i18n="bn">শ্রেণি ও পাঠ্যক্রম</span><span data-i18n="en">Class & Curriculum</span></a>
+      <a class="nav-item active" href="../school-owner/exams-list.html"><span data-i18n="bn">পরীক্ষা ও ফলাফল</span><span data-i18n="en">Exams & Results</span></a>
+      <a class="nav-item" href="../school-owner/fee-collection.html"><span data-i18n="bn">হিসাব ও ফি</span><span data-i18n="en">Accounting & Fees</span></a>
+      <a class="nav-item" href="../school-owner/sms-compose.html"><span data-i18n="bn">এসএমএস</span><span data-i18n="en">SMS</span></a>
+      <a class="nav-item" href="../school-owner/notices-list.html"><span data-i18n="bn">প্রকাশনা</span><span data-i18n="en">Publishing</span></a>
+      <a class="nav-item" href="../school-owner/feedback-inbox.html"><span data-i18n="bn">মতামত</span><span data-i18n="en">Feedback</span></a>
+      <a class="nav-item" href="../school-owner/staff-permissions.html"><span data-i18n="bn">স্টাফ অনুমতি</span><span data-i18n="en">Staff Permissions</span></a>
+      <a class="nav-item" href="../school-owner/institute-profile.html"><span data-i18n="bn">প্রতিষ্ঠান সেটআপ</span><span data-i18n="en">Institute Setup</span></a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="title"><span data-i18n="bn">পরীক্ষা তালিকা</span><span data-i18n="en">Exams List</span></div>
+      <div class="actions">
+        <div class="lang-switch">
+          <button data-lang-btn="bn" onclick="setLang('bn')">বাং</button>
+          <button data-lang-btn="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="theme-switch">
+          <button data-theme-btn="light" onclick="setTheme('light')">☀</button>
+          <button data-theme-btn="dark" onclick="setTheme('dark')">☾</button>
+          <button data-theme-btn="system" onclick="setTheme('system')">Auto</button>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+
+      <div class="toolbar">
+        <input class="search-input" type="text" placeholder="পরীক্ষার নাম খুঁজুন · Search exam name">
+        <div class="flex gap-2">
+          <select class="search-input" style="min-width:140px;">
+            <option><span data-i18n="bn">সকল শ্রেণি</span><span data-i18n="en">All Classes</span></option>
+          </select>
+          <select class="search-input" style="min-width:120px;">
+            <option><span data-i18n="bn">সকল অবস্থা</span><span data-i18n="en">All Status</span></option>
+          </select>
+          <a class="btn btn-primary" href="exam-setup.html"><span data-i18n="bn">+ নতুন পরীক্ষা</span><span data-i18n="en">+ New Exam</span></a>
+        </div>
+      </div>
+
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th><span data-i18n="bn">পরীক্ষার নাম</span><span data-i18n="en">Exam Name</span></th>
+            <th><span data-i18n="bn">শ্রেণি</span><span data-i18n="en">Class</span></th>
+            <th><span data-i18n="bn">শিক্ষাবর্ষ</span><span data-i18n="en">Academic Year</span></th>
+            <th><span data-i18n="bn">শুরুর তারিখ</span><span data-i18n="en">Start Date</span></th>
+            <th><span data-i18n="bn">অবস্থা</span><span data-i18n="en">Status</span></th>
+            <th><span data-i18n="bn">কার্যক্রম</span><span data-i18n="en">Actions</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span data-i18n="bn">বার্ষিক পরীক্ষা ২০২৫</span><span data-i18n="en">Annual Examination 2025</span></td>
+            <td><span data-i18n="bn">অষ্টম শ্রেণি - A</span><span data-i18n="en">Class 8 - A</span></td>
+            <td>2025</td>
+            <td>১০ ডিসেম্বর ২০২৫</td>
+            <td><span class="badge badge-success"><span data-i18n="bn">চলমান</span><span data-i18n="en">Open</span></span></td>
+            <td class="flex gap-2">
+              <a class="btn btn-secondary btn-sm" href="exam-setup.html"><span data-i18n="bn">সম্পাদনা</span><span data-i18n="en">Edit</span></a>
+              <a class="btn btn-secondary btn-sm" href="seat-plan.html"><span data-i18n="bn">সিট প্ল্যান</span><span data-i18n="en">Seat Plan</span></a>
+              <a class="btn btn-secondary btn-sm" href="marks-entry.html"><span data-i18n="bn">নম্বর এন্ট্রি</span><span data-i18n="en">Marks Entry</span></a>
+              <a class="btn btn-secondary btn-sm" href="result-book.html"><span data-i18n="bn">ফলাফল</span><span data-i18n="en">Result</span></a>
+              <a class="btn btn-danger btn-sm" href="exam-close-confirm-modal.html"><span data-i18n="bn">পরীক্ষা বন্ধ করুন</span><span data-i18n="en">Close Exam</span></a>
+            </td>
+          </tr>
+          <tr>
+            <td><span data-i18n="bn">অর্ধ-বার্ষিক পরীক্ষা ২০২৫</span><span data-i18n="en">Half-Yearly Examination 2025</span></td>
+            <td><span data-i18n="bn">ষষ্ঠ শ্রেণি - A</span><span data-i18n="en">Class 6 - A</span></td>
+            <td>2025</td>
+            <td>০৫ জুলাই ২০২৫</td>
+            <td><span class="badge badge-success"><span data-i18n="bn">চলমান</span><span data-i18n="en">Open</span></span></td>
+            <td class="flex gap-2">
+              <a class="btn btn-secondary btn-sm" href="exam-setup.html"><span data-i18n="bn">সম্পাদনা</span><span data-i18n="en">Edit</span></a>
+              <a class="btn btn-secondary btn-sm" href="seat-plan.html"><span data-i18n="bn">সিট প্ল্যান</span><span data-i18n="en">Seat Plan</span></a>
+              <a class="btn btn-secondary btn-sm" href="marks-entry.html"><span data-i18n="bn">নম্বর এন্ট্রি</span><span data-i18n="en">Marks Entry</span></a>
+              <a class="btn btn-secondary btn-sm" href="result-book.html"><span data-i18n="bn">ফলাফল</span><span data-i18n="en">Result</span></a>
+              <a class="btn btn-danger btn-sm" href="exam-close-confirm-modal.html"><span data-i18n="bn">পরীক্ষা বন্ধ করুন</span><span data-i18n="en">Close Exam</span></a>
+            </td>
+          </tr>
+          <tr>
+            <td><span data-i18n="bn">প্রথম সাময়িক পরীক্ষা ২০২৫</span><span data-i18n="en">First Term Examination 2025</span></td>
+            <td><span data-i18n="bn">নবম শ্রেণি - A</span><span data-i18n="en">Class 9 - A</span></td>
+            <td>2025</td>
+            <td>১২ মার্চ ২০২৫</td>
+            <td><span class="badge badge-neutral"><span data-i18n="bn">বন্ধ</span><span data-i18n="en">Closed</span></span></td>
+            <td class="flex gap-2 items-center">
+              <a class="btn btn-secondary btn-sm" href="result-book.html"><span data-i18n="bn">ফলাফল দেখুন</span><span data-i18n="en">View Result</span></a>
+              <span class="action-disabled" title="পরীক্ষা বন্ধ থাকায় সম্পাদনা করা যাবে না · Locked — closed exams cannot be edited">
+                <span data-i18n="bn">সম্পাদনা</span><span data-i18n="en">Edit</span>
+              </span>
+              <span class="action-disabled" title="পরীক্ষা বন্ধ থাকায় সিট প্ল্যান পরিবর্তন করা যাবে না · Locked — seat plan is final">
+                <span data-i18n="bn">সিট প্ল্যান</span><span data-i18n="en">Seat Plan</span>
+              </span>
+              <span class="action-disabled" title="পরীক্ষা বন্ধ থাকায় নম্বর এন্ট্রি করা যাবে না · Locked — marks entry is final">
+                <span data-i18n="bn">নম্বর এন্ট্রি</span><span data-i18n="en">Marks Entry</span>
+              </span>
+              <span class="action-disabled" title="বন্ধ পরীক্ষা মুছে ফেলা যায় না · Closed exams cannot be deleted">
+                <span data-i18n="bn">মুছুন</span><span data-i18n="en">Delete</span>
+              </span>
+            </td>
+          </tr>
+          <tr>
+            <td><span data-i18n="bn">নির্বাচনী পরীক্ষা ২০২৪</span><span data-i18n="en">Selection (Test) Examination 2024</span></td>
+            <td><span data-i18n="bn">দশম শ্রেণি - B</span><span data-i18n="en">Class 10 - B</span></td>
+            <td>2024</td>
+            <td>০৩ নভেম্বর ২০২৪</td>
+            <td><span class="badge badge-neutral"><span data-i18n="bn">বন্ধ</span><span data-i18n="en">Closed</span></span></td>
+            <td class="flex gap-2 items-center">
+              <a class="btn btn-secondary btn-sm" href="result-book.html"><span data-i18n="bn">ফলাফল দেখুন</span><span data-i18n="en">View Result</span></a>
+              <span class="action-disabled" title="পরীক্ষা বন্ধ থাকায় সম্পাদনা করা যাবে না · Locked — closed exams cannot be edited">
+                <span data-i18n="bn">সম্পাদনা</span><span data-i18n="en">Edit</span>
+              </span>
+              <span class="action-disabled" title="পরীক্ষা বন্ধ থাকায় সিট প্ল্যান পরিবর্তন করা যাবে না · Locked — seat plan is final">
+                <span data-i18n="bn">সিট প্ল্যান</span><span data-i18n="en">Seat Plan</span>
+              </span>
+              <span class="action-disabled" title="পরীক্ষা বন্ধ থাকায় নম্বর এন্ট্রি করা যাবে না · Locked — marks entry is final">
+                <span data-i18n="bn">নম্বর এন্ট্রি</span><span data-i18n="en">Marks Entry</span>
+              </span>
+              <span class="action-disabled" title="বন্ধ পরীক্ষা মুছে ফেলা যায় না · Closed exams cannot be deleted">
+                <span data-i18n="bn">মুছুন</span><span data-i18n="en">Delete</span>
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p class="text-secondary" style="font-size: var(--text-xs); margin-top: var(--space-3);">
+        <span data-i18n="bn">দ্রষ্টব্য: পরীক্ষা একবার বন্ধ করা হলে তা স্থায়ীভাবে বন্ধ থাকবে — কোনো ব্যবহারকারীর জন্যই পুনরায় খোলার সুযোগ নেই। এটি অনুমতি-নির্ভর সীমাবদ্ধতা নয়, একটি নিয়মতান্ত্রিক সিদ্ধান্ত।</span>
+        <span data-i18n="en">Note: once an exam is closed, it stays closed permanently for every user with normal access to this screen — there is no reopen path for anyone. This is not a permission-gated restriction.</span>
+      </p>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

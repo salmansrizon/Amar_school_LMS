@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>ভূমিকা নির্বাচন · Role Selection — Amar School Management</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="shared/design-system.css">
+<script src="shared/app.js" defer></script>
+<style>
+  body { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--brand-900), var(--brand-600)); padding: var(--space-4); }
+  .routing-shell { width: 100%; max-width: 800px; background: var(--bg-page); border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-md); }
+  .routing-header { background: var(--bg-surface); padding: var(--space-6); text-align: center; border-bottom: 1px solid var(--border-default); }
+  .routing-header h1 { margin: 0 0 var(--space-1); font-size: var(--text-2xl); }
+  .routing-header p { margin: 0; color: var(--text-secondary); font-size: var(--text-sm); }
+  .routing-body { padding: var(--space-6); }
+  .routing-body .note { background: var(--info-bg); color: var(--info-fg); padding: var(--space-3) var(--space-4); border-radius: var(--radius-md); font-size: var(--text-sm); margin-bottom: var(--space-5); border: 1px solid var(--info-border); }
+  .role-option { display: flex; align-items: center; gap: var(--space-4); padding: var(--space-4); border: 1px solid var(--border-default); border-radius: var(--radius-lg); margin-bottom: var(--space-3); text-decoration: none; color: inherit; transition: box-shadow 0.2s, border-color 0.2s; cursor: pointer; }
+  .role-option:hover { box-shadow: var(--shadow-md); border-color: var(--accent); }
+  .role-option .icon { width: 44px; height: 44px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-size: var(--text-lg); font-weight: 700; color: white; flex-shrink: 0; }
+  .role-option .info { flex: 1; }
+  .role-option .info h3 { margin: 0 0 2px; font-size: var(--text-base); }
+  .role-option .info p { margin: 0; font-size: var(--text-xs); color: var(--text-secondary); }
+  .role-option .arrow { color: var(--text-secondary); font-size: var(--text-lg); }
+  .routing-footer { text-align: center; padding: var(--space-4); border-top: 1px solid var(--border-default); background: var(--bg-surface); font-size: var(--text-xs); color: var(--text-secondary); }
+  .switches { display: flex; justify-content: flex-end; gap: var(--space-2); margin-bottom: var(--space-4); }
+</style>
+</head>
+<body>
+
+<div class="routing-shell">
+  <div class="routing-header">
+    <div class="switches">
+      <div class="lang-switch">
+        <button data-lang-btn="bn" onclick="setLang('bn')">বাং</button>
+        <button data-lang-btn="en" onclick="setLang('en')">EN</button>
+      </div>
+      <div class="theme-switch">
+        <button data-theme-btn="light" onclick="setTheme('light')">☀</button>
+        <button data-theme-btn="dark" onclick="setTheme('dark')">☾</button>
+        <button data-theme-btn="system" onclick="setTheme('system')">Auto</button>
+      </div>
+    </div>
+    <h1>
+      <span data-i18n="bn">আপনার ভূমিকা নির্বাচন করুন</span>
+      <span data-i18n="en">Select Your Role</span>
+    </h1>
+    <p>
+      <span data-i18n="bn">লগইনের পর ভূমিকা অনুযায়ী পাতা নির্ধারিত হয় (ADR 0003)</span>
+      <span data-i18n="en">After login, your role determines what you see next (ADR 0003)</span>
+    </p>
+  </div>
+
+  <div class="routing-body">
+    <div class="note">
+      <span data-i18n="bn">একটি লগইন পেজ থেকে সব ভূমিকায় প্রবেশ করা যায়। নিচের বিকল্পগুলি সিমুলেটেড রাউটিং — বাস্তব অ্যাপে লগইন করার পর স্বয়ংক্রিয়ভাবে নির্ধারিত হবে।</span>
+      <span data-i18n="en">A single login page serves all roles. The options below simulate role routing — in the real app, the destination is determined automatically after login.</span>
+    </div>
+
+    <a class="role-option" href="school-owner/dashboard.html">
+      <div class="icon" style="background:var(--brand-600);">S</div>
+      <div class="info">
+        <h3>School Owner</h3>
+        <p><span data-i18n="bn">প্রতিষ্ঠানের পূর্ণ অ্যাক্সেস — সব মডিউল, সব ডেটা</span><span data-i18n="en">Full school access — all modules, all data</span></p>
+      </div>
+      <div class="arrow">&rarr;</div>
+    </a>
+
+    <a class="role-option" href="staff-user/dashboard.html">
+      <div class="icon" style="background:var(--success-fg);">T</div>
+      <div class="info">
+        <h3>Staff User</h3>
+        <p><span data-i18n="bn">সীমিত অনুমতি — শুধুমাত্র School Owner-এর দেওয়া মডিউল</span><span data-i18n="en">Limited permissions — only modules granted by School Owner</span></p>
+      </div>
+      <div class="arrow">&rarr;</div>
+    </a>
+
+    <a class="role-option" href="dealer/dashboard.html">
+      <div class="icon" style="background:var(--warning-fg);">D</div>
+      <div class="info">
+        <h3>Dealer</h3>
+        <p><span data-i18n="bn">টেরিটরি-ভিত্তিক স্কুল ব্যবস্থাপনা ও সাবস্ক্রিপশন কোড বিক্রয়</span><span data-i18n="en">Territory-based school management and code sales</span></p>
+      </div>
+      <div class="arrow">&rarr;</div>
+    </a>
+
+    <a class="role-option" href="gov-official/dashboard.html">
+      <div class="icon" style="background:var(--info-fg);">G</div>
+      <div class="info">
+        <h3>Government Official</h3>
+        <p><span data-i18n="bn">শুধুমাত্র পঠনযোগ্য তত্ত্বাবধান — এখতিয়ারভুক্ত সব প্রতিষ্ঠান</span><span data-i18n="en">Read-only oversight — all institutes in jurisdiction</span></p>
+      </div>
+      <div class="arrow">&rarr;</div>
+    </a>
+
+    <a class="role-option" href="super-admin/schools-list.html">
+      <div class="icon" style="background:var(--danger-fg);">A</div>
+      <div class="info">
+        <h3>Super Admin</h3>
+        <p><span data-i18n="bn">পূর্ণ ভেন্ডর নিয়ন্ত্রণ — স্কুল, ডিলার, কোড ও হিসাব</span><span data-i18n="en">Full vendor control — schools, dealers, codes, and accounting</span></p>
+      </div>
+      <div class="arrow">&rarr;</div>
+    </a>
+  </div>
+
+  <div class="routing-footer">
+    <a href="index.html">&larr; <span data-i18n="bn">মূল পাতায় ফিরুন</span><span data-i18n="en">Back to Home</span></a>
+    &nbsp;·&nbsp;
+    <a href="login.html"><span data-i18n="bn">লগইন পেজ</span><span data-i18n="en">Login Page</span></a>
+    &nbsp;·&nbsp;
+    <a href="sitemap.html"><span data-i18n="bn">সাইটম্যাপ</span><span data-i18n="en">Sitemap</span></a>
+  </div>
+</div>
+
+</body>
+</html>

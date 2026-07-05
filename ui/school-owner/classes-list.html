@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>শ্রেণি ও পাঠ্যক্রম · Class &amp; Curriculum — Amar School Management</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../shared/design-system.css">
+<script src="../shared/app.js" defer></script>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="mark">A</span><span>Amar School</span></div>
+    <nav>
+      <a class="nav-item" href="../school-owner/dashboard.html"><span data-i18n="bn">ড্যাশবোর্ড</span><span data-i18n="en">Dashboard</span></a>
+      <a class="nav-item" href="../school-owner/students-list.html"><span data-i18n="bn">শিক্ষার্থী</span><span data-i18n="en">Students</span></a>
+      <a class="nav-item" href="../school-owner/employees-list.html"><span data-i18n="bn">কর্মচারী</span><span data-i18n="en">Employees</span></a>
+      <a class="nav-item" href="../school-owner/attendance-student-mark.html"><span data-i18n="bn">উপস্থিতি</span><span data-i18n="en">Attendance</span></a>
+      <a class="nav-item active" href="../school-owner/classes-list.html"><span data-i18n="bn">শ্রেণি ও পাঠ্যক্রম</span><span data-i18n="en">Class & Curriculum</span></a>
+      <a class="nav-item" href="../school-owner/exams-list.html"><span data-i18n="bn">পরীক্ষা ও ফলাফল</span><span data-i18n="en">Exams & Results</span></a>
+      <a class="nav-item" href="../school-owner/fee-collection.html"><span data-i18n="bn">হিসাব ও ফি</span><span data-i18n="en">Accounting & Fees</span></a>
+      <a class="nav-item" href="../school-owner/sms-compose.html"><span data-i18n="bn">এসএমএস</span><span data-i18n="en">SMS</span></a>
+      <a class="nav-item" href="../school-owner/notices-list.html"><span data-i18n="bn">প্রকাশনা</span><span data-i18n="en">Publishing</span></a>
+      <a class="nav-item" href="../school-owner/feedback-inbox.html"><span data-i18n="bn">মতামত</span><span data-i18n="en">Feedback</span></a>
+      <a class="nav-item" href="../school-owner/staff-permissions.html"><span data-i18n="bn">স্টাফ অনুমতি</span><span data-i18n="en">Staff Permissions</span></a>
+      <a class="nav-item" href="../school-owner/institute-profile.html"><span data-i18n="bn">প্রতিষ্ঠান সেটআপ</span><span data-i18n="en">Institute Setup</span></a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="title"><span data-i18n="bn">শ্রেণি ও পাঠ্যক্রম</span><span data-i18n="en">Class &amp; Curriculum</span></div>
+      <div class="actions">
+        <div class="lang-switch">
+          <button data-lang-btn="bn" onclick="setLang('bn')">বাং</button>
+          <button data-lang-btn="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="theme-switch">
+          <button data-theme-btn="light" onclick="setTheme('light')">☀</button>
+          <button data-theme-btn="dark" onclick="setTheme('dark')">☾</button>
+          <button data-theme-btn="system" onclick="setTheme('system')">Auto</button>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+
+      <div class="tabs">
+        <a class="active" href="#classes"><span data-i18n="bn">শ্রেণিসমূহ</span><span data-i18n="en">Classes</span></a>
+        <a href="#rooms"><span data-i18n="bn">কক্ষসমূহ</span><span data-i18n="en">Rooms</span></a>
+        <a href="#subjects"><span data-i18n="bn">বিষয়সমূহ</span><span data-i18n="en">Subjects</span></a>
+      </div>
+
+      <div id="classes">
+        <div class="toolbar">
+          <input class="search-input" type="text" placeholder="শ্রেণি খুঁজুন · Search classes">
+          <div class="flex gap-2">
+            <select class="search-input" style="min-width:160px;">
+              <option><span data-i18n="bn">সকল শিক্ষাস্তর</span><span data-i18n="en">All Education Levels</span></option>
+            </select>
+            <button class="btn btn-primary"><span data-i18n="bn">+ শ্রেণি যোগ করুন</span><span data-i18n="en">+ Add Class</span></button>
+          </div>
+        </div>
+        <table class="data-table mb-4">
+          <thead>
+            <tr>
+              <th><span data-i18n="bn">শ্রেণি</span><span data-i18n="en">Class</span></th>
+              <th><span data-i18n="bn">শাখা</span><span data-i18n="en">Section</span></th>
+              <th><span data-i18n="bn">শিক্ষাস্তর</span><span data-i18n="en">Education Level</span></th>
+              <th><span data-i18n="bn">গ্রুপ/বিভাগ</span><span data-i18n="en">Group/Department</span></th>
+              <th><span data-i18n="bn">শিক্ষার্থী সংখ্যা</span><span data-i18n="en">Students</span></th>
+              <th><span data-i18n="bn">কার্যক্রম</span><span data-i18n="en">Actions</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span data-i18n="bn">ষষ্ঠ শ্রেণি</span><span data-i18n="en">Class 6</span></td>
+              <td>A</td>
+              <td><span data-i18n="bn">নিম্ন মাধ্যমিক</span><span data-i18n="en">Junior Secondary</span></td>
+              <td><span class="text-secondary">—</span></td>
+              <td>52</td>
+              <td class="flex gap-2">
+                <a class="btn btn-secondary btn-sm" href="class-routine-builder.html"><span data-i18n="bn">রুটিন</span><span data-i18n="en">Routine</span></a>
+                <a class="btn btn-secondary btn-sm" href="syllabus-upload.html"><span data-i18n="bn">সিলেবাস</span><span data-i18n="en">Syllabus</span></a>
+              </td>
+            </tr>
+            <tr>
+              <td><span data-i18n="bn">সপ্তম শ্রেণি</span><span data-i18n="en">Class 7</span></td>
+              <td>A</td>
+              <td><span data-i18n="bn">নিম্ন মাধ্যমিক</span><span data-i18n="en">Junior Secondary</span></td>
+              <td><span class="text-secondary">—</span></td>
+              <td>48</td>
+              <td class="flex gap-2">
+                <a class="btn btn-secondary btn-sm" href="class-routine-builder.html"><span data-i18n="bn">রুটিন</span><span data-i18n="en">Routine</span></a>
+                <a class="btn btn-secondary btn-sm" href="syllabus-upload.html"><span data-i18n="bn">সিলেবাস</span><span data-i18n="en">Syllabus</span></a>
+              </td>
+            </tr>
+            <tr>
+              <td><span data-i18n="bn">অষ্টম শ্রেণি</span><span data-i18n="en">Class 8</span></td>
+              <td>A</td>
+              <td><span data-i18n="bn">মাধ্যমিক</span><span data-i18n="en">Secondary</span></td>
+              <td><span class="text-secondary">—</span></td>
+              <td>50</td>
+              <td class="flex gap-2">
+                <a class="btn btn-secondary btn-sm" href="class-routine-builder.html"><span data-i18n="bn">রুটিন</span><span data-i18n="en">Routine</span></a>
+                <a class="btn btn-secondary btn-sm" href="syllabus-upload.html"><span data-i18n="bn">সিলেবাস</span><span data-i18n="en">Syllabus</span></a>
+              </td>
+            </tr>
+            <tr>
+              <td><span data-i18n="bn">নবম শ্রেণি</span><span data-i18n="en">Class 9</span></td>
+              <td>A</td>
+              <td><span data-i18n="bn">মাধ্যমিক</span><span data-i18n="en">Secondary</span></td>
+              <td><span data-i18n="bn">বিজ্ঞান</span><span data-i18n="en">Science</span></td>
+              <td>44</td>
+              <td class="flex gap-2">
+                <a class="btn btn-secondary btn-sm" href="class-routine-builder.html"><span data-i18n="bn">রুটিন</span><span data-i18n="en">Routine</span></a>
+                <a class="btn btn-secondary btn-sm" href="syllabus-upload.html"><span data-i18n="bn">সিলেবাস</span><span data-i18n="en">Syllabus</span></a>
+              </td>
+            </tr>
+            <tr>
+              <td><span data-i18n="bn">দশম শ্রেণি</span><span data-i18n="en">Class 10</span></td>
+              <td>B</td>
+              <td><span data-i18n="bn">মাধ্যমিক</span><span data-i18n="en">Secondary</span></td>
+              <td><span data-i18n="bn">মানবিক</span><span data-i18n="en">Humanities</span></td>
+              <td>39</td>
+              <td class="flex gap-2">
+                <a class="btn btn-secondary btn-sm" href="class-routine-builder.html"><span data-i18n="bn">রুটিন</span><span data-i18n="en">Routine</span></a>
+                <a class="btn btn-secondary btn-sm" href="syllabus-upload.html"><span data-i18n="bn">সিলেবাস</span><span data-i18n="en">Syllabus</span></a>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div id="rooms">
+        <div class="toolbar">
+          <div class="topbar-sub" style="font-weight:600;"><span data-i18n="bn">কক্ষ তালিকা</span><span data-i18n="en">Room List</span></div>
+          <button class="btn btn-primary btn-sm"><span data-i18n="bn">+ কক্ষ যোগ করুন</span><span data-i18n="en">+ Add Room</span></button>
+        </div>
+        <table class="data-table mb-4">
+          <thead>
+            <tr>
+              <th><span data-i18n="bn">কক্ষ</span><span data-i18n="en">Room</span></th>
+              <th><span data-i18n="bn">ধারণক্ষমতা</span><span data-i18n="en">Capacity</span></th>
+              <th><span data-i18n="bn">অবস্থা</span><span data-i18n="en">Status</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><span data-i18n="bn">রুম ১০১</span><span data-i18n="en">Room 101</span></td><td>40</td><td><span class="badge badge-success"><span data-i18n="bn">সচল</span><span data-i18n="en">Active</span></span></td></tr>
+            <tr><td><span data-i18n="bn">রুম ১০২</span><span data-i18n="en">Room 102</span></td><td>35</td><td><span class="badge badge-success"><span data-i18n="bn">সচল</span><span data-i18n="en">Active</span></span></td></tr>
+            <tr><td><span data-i18n="bn">রুম ২০১</span><span data-i18n="en">Room 201</span></td><td>45</td><td><span class="badge badge-success"><span data-i18n="bn">সচল</span><span data-i18n="en">Active</span></span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div id="subjects">
+        <div class="toolbar">
+          <div class="topbar-sub" style="font-weight:600;"><span data-i18n="bn">বিষয় তালিকা</span><span data-i18n="en">Subject List</span></div>
+          <button class="btn btn-primary btn-sm"><span data-i18n="bn">+ বিষয় যোগ করুন</span><span data-i18n="en">+ Add Subject</span></button>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th><span data-i18n="bn">বিষয়</span><span data-i18n="en">Subject</span></th>
+              <th><span data-i18n="bn">শ্রেণি</span><span data-i18n="en">Class</span></th>
+              <th><span data-i18n="bn">তত্ত্বীয়</span><span data-i18n="en">Theory</span></th>
+              <th><span data-i18n="bn">এমসিকিউ</span><span data-i18n="en">MCQ</span></th>
+              <th><span data-i18n="bn">ব্যবহারিক</span><span data-i18n="en">Practical</span></th>
+              <th><span data-i18n="bn">একাধিক পত্র</span><span data-i18n="en">Multi-paper</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span data-i18n="bn">বাংলা</span><span data-i18n="en">Bangla</span></td>
+              <td><span data-i18n="bn">অষ্টম শ্রেণি</span><span data-i18n="en">Class 8</span></td>
+              <td>70</td><td>—</td><td>—</td>
+              <td><span class="badge badge-info"><span data-i18n="bn">পত্র ১ ও ২</span><span data-i18n="en">Paper 1 &amp; 2</span></span></td>
+            </tr>
+            <tr>
+              <td><span data-i18n="bn">ইংরেজি</span><span data-i18n="en">English</span></td>
+              <td><span data-i18n="bn">অষ্টম শ্রেণি</span><span data-i18n="en">Class 8</span></td>
+              <td>70</td><td>—</td><td>—</td>
+              <td><span class="badge badge-info"><span data-i18n="bn">পত্র ১ ও ২</span><span data-i18n="en">Paper 1 &amp; 2</span></span></td>
+            </tr>
+            <tr>
+              <td><span data-i18n="bn">গণিত</span><span data-i18n="en">Mathematics</span></td>
+              <td><span data-i18n="bn">অষ্টম শ্রেণি</span><span data-i18n="en">Class 8</span></td>
+              <td>100</td><td>—</td><td>—</td>
+              <td><span class="badge badge-neutral"><span data-i18n="bn">একক পত্র</span><span data-i18n="en">Single</span></span></td>
+            </tr>
+            <tr>
+              <td><span data-i18n="bn">বিজ্ঞান</span><span data-i18n="en">Science</span></td>
+              <td><span data-i18n="bn">অষ্টম শ্রেণি</span><span data-i18n="en">Class 8</span></td>
+              <td>50</td><td>25</td><td>25</td>
+              <td><span class="badge badge-neutral"><span data-i18n="bn">একক পত্র</span><span data-i18n="en">Single</span></span></td>
+            </tr>
+            <tr>
+              <td><span data-i18n="bn">তথ্য ও যোগাযোগ প্রযুক্তি</span><span data-i18n="en">ICT</span></td>
+              <td><span data-i18n="bn">অষ্টম শ্রেণি</span><span data-i18n="en">Class 8</span></td>
+              <td>25</td><td>—</td><td>25</td>
+              <td><span class="badge badge-neutral"><span data-i18n="bn">একক পত্র</span><span data-i18n="en">Single</span></span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

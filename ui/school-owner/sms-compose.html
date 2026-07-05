@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>এসএমএস পাঠান · Compose SMS — Amar School Management</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../shared/design-system.css">
+<script src="../shared/app.js" defer></script>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="mark">A</span><span>Amar School</span></div>
+    <nav>
+      <a class="nav-item" href="../school-owner/dashboard.html"><span data-i18n="bn">ড্যাশবোর্ড</span><span data-i18n="en">Dashboard</span></a>
+      <a class="nav-item" href="../school-owner/students-list.html"><span data-i18n="bn">শিক্ষার্থী</span><span data-i18n="en">Students</span></a>
+      <a class="nav-item" href="../school-owner/employees-list.html"><span data-i18n="bn">কর্মচারী</span><span data-i18n="en">Employees</span></a>
+      <a class="nav-item" href="../school-owner/attendance-student-mark.html"><span data-i18n="bn">উপস্থিতি</span><span data-i18n="en">Attendance</span></a>
+      <a class="nav-item" href="../school-owner/classes-list.html"><span data-i18n="bn">শ্রেণি ও পাঠ্যক্রম</span><span data-i18n="en">Class & Curriculum</span></a>
+      <a class="nav-item" href="../school-owner/exams-list.html"><span data-i18n="bn">পরীক্ষা ও ফলাফল</span><span data-i18n="en">Exams & Results</span></a>
+      <a class="nav-item" href="../school-owner/fee-collection.html"><span data-i18n="bn">হিসাব ও ফি</span><span data-i18n="en">Accounting & Fees</span></a>
+      <a class="nav-item active" href="../school-owner/sms-compose.html"><span data-i18n="bn">এসএমএস</span><span data-i18n="en">SMS</span></a>
+      <a class="nav-item" href="../school-owner/notices-list.html"><span data-i18n="bn">প্রকাশনা</span><span data-i18n="en">Publishing</span></a>
+      <a class="nav-item" href="../school-owner/feedback-inbox.html"><span data-i18n="bn">মতামত</span><span data-i18n="en">Feedback</span></a>
+      <a class="nav-item" href="../school-owner/staff-permissions.html"><span data-i18n="bn">স্টাফ অনুমতি</span><span data-i18n="en">Staff Permissions</span></a>
+      <a class="nav-item" href="../school-owner/institute-profile.html"><span data-i18n="bn">প্রতিষ্ঠান সেটআপ</span><span data-i18n="en">Institute Setup</span></a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="title"><span data-i18n="bn">এসএমএস পাঠান</span><span data-i18n="en">Compose SMS</span></div>
+      <div class="actions">
+        <div class="lang-switch">
+          <button data-lang-btn="bn" onclick="setLang('bn')">বাং</button>
+          <button data-lang-btn="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="theme-switch">
+          <button data-theme-btn="light" onclick="setTheme('light')">☀</button>
+          <button data-theme-btn="dark" onclick="setTheme('dark')">☾</button>
+          <button data-theme-btn="system" onclick="setTheme('system')">Auto</button>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+
+      <div class="tabs">
+        <a href="sms-compose.html" class="active"><span data-i18n="bn">রচনা করুন</span><span data-i18n="en">Compose</span></a>
+        <a href="sms-absence-rules.html"><span data-i18n="bn">অনুপস্থিতি নিয়ম</span><span data-i18n="en">Absence Rules</span></a>
+        <a href="sms-log.html"><span data-i18n="bn">পাঠানোর লগ</span><span data-i18n="en">Send Log</span></a>
+      </div>
+
+      <div class="card mb-4">
+        <h3 class="mt-0"><span data-i18n="bn">প্রাপক গ্রুপ</span><span data-i18n="en">Recipient Group</span></h3>
+        <div class="form-grid">
+          <div class="field">
+            <label><span data-i18n="bn">ভিত্তি</span><span data-i18n="en">Build recipients by</span></label>
+            <select>
+              <option><span>শ্রেণি/শিফট/শাখা · Class/Shift/Section</span></option>
+              <option><span>শিক্ষক/স্টাফ/ব্যবস্থাপনা গ্রুপ · Teacher/Staff/Management Group</span></option>
+              <option><span>ম্যানুয়াল নম্বর · Manual Numbers</span></option>
+            </select>
+          </div>
+          <div class="field">
+            <label><span data-i18n="bn">শ্রেণি</span><span data-i18n="en">Class</span></label>
+            <select><option>৬ষ্ঠ শ্রেণি · Class 6</option></select>
+          </div>
+          <div class="field">
+            <label><span data-i18n="bn">শিফট</span><span data-i18n="en">Shift</span></label>
+            <select><option>সকাল · Morning</option></select>
+          </div>
+          <div class="field">
+            <label><span data-i18n="bn">শাখা</span><span data-i18n="en">Section</span></label>
+            <select><option>সকল শাখা · All Sections</option></select>
+          </div>
+          <div class="field field-full">
+            <label><span data-i18n="bn">ম্যানুয়াল নম্বর (ঐচ্ছিক, কমা দিয়ে আলাদা)</span><span data-i18n="en">Manual Numbers (optional, comma separated)</span></label>
+            <input type="text" placeholder="01711xxxxxx, 01911xxxxxx">
+          </div>
+        </div>
+        <p class="text-secondary" style="font-size: var(--text-xs);">
+          <span data-i18n="bn">আনুমানিক প্রাপক: ৪২ জন</span><span data-i18n="en">Estimated recipients: 42</span>
+        </p>
+      </div>
+
+      <div class="card">
+        <h3 class="mt-0"><span data-i18n="bn">বার্তা</span><span data-i18n="en">Message</span></h3>
+        <div class="field field-full">
+          <textarea id="sms-text" rows="5" oninput="
+            var t=document.getElementById('sms-text').value;
+            var len=t.length;
+            var seg=len===0?0:(len<=160?1:Math.ceil(len/153));
+            document.getElementById('char-count').textContent=len+'/160';
+            document.getElementById('seg-count-bn').textContent=seg+' এসএমএস অংশ';
+            document.getElementById('seg-count-en').textContent=seg+' SMS segment(s)';
+          ">আগামীকাল ১০ জুলাই বার্ষিক ক্রীড়া প্রতিযোগিতার কারণে বিদ্যালয় সকাল ৯টায় শুরু হবে।</textarea>
+        </div>
+        <p class="text-secondary" style="font-size: var(--text-xs);">
+          <span id="char-count">72/160</span> <span data-i18n="bn">অক্ষর</span><span data-i18n="en">characters</span> ·
+          <span id="seg-count-bn" data-i18n="bn">১ এসএমএস অংশ</span><span id="seg-count-en" data-i18n="en">1 SMS segment</span>
+        </p>
+        <div class="flex gap-2">
+          <button class="btn btn-primary"><span data-i18n="bn">এখনই পাঠান</span><span data-i18n="en">Send Now</span></button>
+          <button class="btn btn-secondary"><span data-i18n="bn">খসড়া সংরক্ষণ</span><span data-i18n="en">Save Draft</span></button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>বার্ষিক ক্রীড়া প্রতিযোগিতা ২০২৬ · Annual Sports Day 2026 — Amar School Management</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../shared/design-system.css">
+<script src="../shared/app.js" defer></script>
+<style>
+  .img-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: var(--space-3); }
+  .img-cell { position: relative; }
+  .img-thumb {
+    height: 100px; border-radius: var(--radius-md); background: var(--bg-surface-alt);
+    border: 1px solid var(--border-default); display: flex; align-items: center; justify-content: center;
+    font-size: var(--text-xl); color: var(--text-secondary);
+  }
+  .img-delete {
+    position: absolute; top: 4px; right: 4px; width: 22px; height: 22px; border-radius: var(--radius-sm);
+    background: var(--bg-surface); border: 1px solid var(--border-strong); color: var(--danger-fg);
+    font-size: var(--text-xs); cursor: pointer; display: flex; align-items: center; justify-content: center;
+  }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="mark">A</span><span>Amar School</span></div>
+    <nav>
+      <a class="nav-item" href="../school-owner/dashboard.html"><span data-i18n="bn">ড্যাশবোর্ড</span><span data-i18n="en">Dashboard</span></a>
+      <a class="nav-item" href="../school-owner/students-list.html"><span data-i18n="bn">শিক্ষার্থী</span><span data-i18n="en">Students</span></a>
+      <a class="nav-item" href="../school-owner/employees-list.html"><span data-i18n="bn">কর্মচারী</span><span data-i18n="en">Employees</span></a>
+      <a class="nav-item" href="../school-owner/attendance-student-mark.html"><span data-i18n="bn">উপস্থিতি</span><span data-i18n="en">Attendance</span></a>
+      <a class="nav-item" href="../school-owner/classes-list.html"><span data-i18n="bn">শ্রেণি ও পাঠ্যক্রম</span><span data-i18n="en">Class & Curriculum</span></a>
+      <a class="nav-item" href="../school-owner/exams-list.html"><span data-i18n="bn">পরীক্ষা ও ফলাফল</span><span data-i18n="en">Exams & Results</span></a>
+      <a class="nav-item" href="../school-owner/fee-collection.html"><span data-i18n="bn">হিসাব ও ফি</span><span data-i18n="en">Accounting & Fees</span></a>
+      <a class="nav-item" href="../school-owner/sms-compose.html"><span data-i18n="bn">এসএমএস</span><span data-i18n="en">SMS</span></a>
+      <a class="nav-item active" href="../school-owner/notices-list.html"><span data-i18n="bn">প্রকাশনা</span><span data-i18n="en">Publishing</span></a>
+      <a class="nav-item" href="../school-owner/feedback-inbox.html"><span data-i18n="bn">মতামত</span><span data-i18n="en">Feedback</span></a>
+      <a class="nav-item" href="../school-owner/staff-permissions.html"><span data-i18n="bn">স্টাফ অনুমতি</span><span data-i18n="en">Staff Permissions</span></a>
+      <a class="nav-item" href="../school-owner/institute-profile.html"><span data-i18n="bn">প্রতিষ্ঠান সেটআপ</span><span data-i18n="en">Institute Setup</span></a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="title"><span data-i18n="bn">বার্ষিক ক্রীড়া প্রতিযোগিতা ২০২৬</span><span data-i18n="en">Annual Sports Day 2026</span></div>
+      <div class="actions">
+        <div class="lang-switch">
+          <button data-lang-btn="bn" onclick="setLang('bn')">বাং</button>
+          <button data-lang-btn="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="theme-switch">
+          <button data-theme-btn="light" onclick="setTheme('light')">☀</button>
+          <button data-theme-btn="dark" onclick="setTheme('dark')">☾</button>
+          <button data-theme-btn="system" onclick="setTheme('system')">Auto</button>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+
+      <p><a href="gallery-albums.html">&larr; <span data-i18n="bn">সকল অ্যালবাম</span><span data-i18n="en">All Albums</span></a></p>
+
+      <div class="toolbar">
+        <div>
+          <span class="badge badge-info"><span data-i18n="bn">১২/২০ ছবি</span><span data-i18n="en">12/20 photos</span></span>
+          <span class="text-secondary" style="font-size: var(--text-xs); margin-left: var(--space-2);">
+            <span data-i18n="bn">প্রতি ছবির সর্বোচ্চ আকার: ১ এমবি</span><span data-i18n="en">Max size per photo: 1MB</span>
+          </span>
+        </div>
+        <button class="btn btn-primary"><span data-i18n="bn">+ ছবি আপলোড করুন</span><span data-i18n="en">+ Upload Photos</span></button>
+      </div>
+
+      <div class="img-grid">
+        <div class="img-cell"><div class="img-thumb">📷</div><button class="img-delete">✕</button></div>
+        <div class="img-cell"><div class="img-thumb">📷</div><button class="img-delete">✕</button></div>
+        <div class="img-cell"><div class="img-thumb">📷</div><button class="img-delete">✕</button></div>
+        <div class="img-cell"><div class="img-thumb">📷</div><button class="img-delete">✕</button></div>
+        <div class="img-cell"><div class="img-thumb">📷</div><button class="img-delete">✕</button></div>
+        <div class="img-cell"><div class="img-thumb">📷</div><button class="img-delete">✕</button></div>
+        <div class="img-cell"><div class="img-thumb">📷</div><button class="img-delete">✕</button></div>
+        <div class="img-cell"><div class="img-thumb">📷</div><button class="img-delete">✕</button></div>
+        <div class="img-cell"><div class="img-thumb">📷</div><button class="img-delete">✕</button></div>
+        <div class="img-cell"><div class="img-thumb">📷</div><button class="img-delete">✕</button></div>
+        <div class="img-cell"><div class="img-thumb">📷</div><button class="img-delete">✕</button></div>
+        <div class="img-cell"><div class="img-thumb">📷</div><button class="img-delete">✕</button></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

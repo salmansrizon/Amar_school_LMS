@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>সরকারি কর্মকর্তা বিস্তারিত · Government Official Detail — Super Admin</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../shared/design-system.css">
+<script src="../shared/app.js" defer></script>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="mark">A</span><span>Super Admin</span></div>
+    <nav>
+      <a class="nav-item" href="schools-list.html"><span data-i18n="bn">স্কুলসমূহ</span><span data-i18n="en">Schools</span></a>
+      <a class="nav-item" href="dealers-list.html"><span data-i18n="bn">ডিলার</span><span data-i18n="en">Dealers</span></a>
+      <a class="nav-item active" href="gov-officials-list.html"><span data-i18n="bn">সরকারি কর্মকর্তা</span><span data-i18n="en">Government Officials</span></a>
+      <a class="nav-item" href="codes-list.html"><span data-i18n="bn">সাবস্ক্রিপশন কোড</span><span data-i18n="en">Subscription Codes</span></a>
+      <a class="nav-item" href="locations-tree.html"><span data-i18n="bn">টেরিটরি ও লোকেশন</span><span data-i18n="en">Territory & Locations</span></a>
+      <a class="nav-item" href="vendor-accounting-ledger.html"><span data-i18n="bn">ভেন্ডর হিসাব</span><span data-i18n="en">Vendor Accounting</span></a>
+      <a class="nav-item" href="vendor-sms-compose.html"><span data-i18n="bn">ভেন্ডর এসএমএস</span><span data-i18n="en">Vendor SMS</span></a>
+      <a class="nav-item" href="central-holiday-calendar.html"><span data-i18n="bn">কেন্দ্রীয় ছুটির তালিকা</span><span data-i18n="en">Central Off-Day</span></a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="title">Md. Aminul Islam</div>
+      <div class="actions">
+        <a class="btn btn-secondary btn-sm" href="../index.html" title="Home">🏠</a>
+        <a class="btn btn-secondary btn-sm" href="../sitemap.html" title="Sitemap">📋</a>
+        <a class="btn btn-secondary btn-sm" href="gov-officials-list.html">&larr; <span data-i18n="bn">কর্মকর্তা তালিকা</span><span data-i18n="en">Officials list</span></a>
+        <div class="lang-switch">
+          <button data-lang-btn="bn" onclick="setLang('bn')">বাং</button>
+          <button data-lang-btn="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="theme-switch">
+          <button data-theme-btn="light" onclick="setTheme('light')">☀</button>
+          <button data-theme-btn="dark" onclick="setTheme('dark')">☾</button>
+          <button data-theme-btn="system" onclick="setTheme('system')">Auto</button>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+
+      <div class="card mb-4">
+        <h3 class="mt-0"><span data-i18n="bn">প্রোফাইল</span><span data-i18n="en">Profile</span></h3>
+        <div class="form-grid">
+          <div class="field"><label><span data-i18n="bn">নাম</span><span data-i18n="en">Name</span></label><input type="text" value="Md. Aminul Islam"></div>
+          <div class="field"><label><span data-i18n="bn">পদবি</span><span data-i18n="en">Designation</span></label>
+            <select>
+              <option selected><span data-i18n="bn">উপজেলা শিক্ষা কর্মকর্তা (UPEO)</span><span data-i18n="en">Upazila Education Officer (UPEO)</span></option>
+              <option><span data-i18n="bn">জেলা শিক্ষা কর্মকর্তা (DEO)</span><span data-i18n="en">District Education Officer (DEO)</span></option>
+              <option><span data-i18n="bn">জেলা প্রশাসক (DC)</span><span data-i18n="en">Deputy Commissioner (DC)</span></option>
+              <option><span data-i18n="bn">শিক্ষা সচিব</span><span data-i18n="en">Education Secretary</span></option>
+            </select>
+          </div>
+          <div class="field"><label><span data-i18n="bn">শিক্ষা স্তর পরিসীমা</span><span data-i18n="en">Education-Level Scope</span></label>
+            <select>
+              <option><span data-i18n="bn">সকল স্তর</span><span data-i18n="en">All levels</span></option>
+              <option selected><span data-i18n="bn">মাধ্যমিক ও উচ্চ মাধ্যমিক</span><span data-i18n="en">Secondary & Higher Secondary</span></option>
+              <option><span data-i18n="bn">প্রাথমিক</span><span data-i18n="en">Primary</span></option>
+            </select>
+          </div>
+          <div class="field"><label><span data-i18n="bn">অবস্থা</span><span data-i18n="en">Status</span></label>
+            <div><span class="badge badge-success"><span data-i18n="bn">সক্রিয়</span><span data-i18n="en">Active</span></span></div>
+          </div>
+        </div>
+        <div class="flex gap-2" style="margin-top:var(--space-4);">
+          <button class="btn btn-primary"><span data-i18n="bn">সংরক্ষণ করুন</span><span data-i18n="en">Save Changes</span></button>
+          <button class="btn btn-danger"><span data-i18n="bn">ব্লক করুন</span><span data-i18n="en">Block Official</span></button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="mt-0"><span data-i18n="bn">টেরিটরি বরাদ্দ</span><span data-i18n="en">Territory Assignments</span></h3>
+          <button class="btn btn-secondary btn-sm"><span data-i18n="bn">+ বরাদ্দ যোগ করুন</span><span data-i18n="en">+ Add Assignment</span></button>
+        </div>
+
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th><span data-i18n="bn">পরিসীমা</span><span data-i18n="en">Scope</span></th>
+              <th><span data-i18n="bn">টিয়ার</span><span data-i18n="en">Tier</span></th>
+              <th><span data-i18n="bn">বরাদ্দের তারিখ</span><span data-i18n="en">Assigned On</span></th>
+              <th><span data-i18n="bn">কার্যক্রম</span><span data-i18n="en">Actions</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span data-i18n="bn">মিরপুর উপজেলা</span><span data-i18n="en">Mirpur Upazila</span> <span class="text-secondary">(Dhaka)</span></td>
+              <td><span class="badge badge-neutral"><span data-i18n="bn">উপজেলা পর্যায়</span><span data-i18n="en">Upazila-level</span></span></td>
+              <td>2023-08-15</td>
+              <td><button class="btn btn-secondary btn-sm"><span data-i18n="bn">সরান</span><span data-i18n="en">Remove</span></button></td>
+            </tr>
+            <tr>
+              <td><span data-i18n="bn">ঢাকা জেলা</span><span data-i18n="en">Dhaka District</span></td>
+              <td><span class="badge badge-neutral"><span data-i18n="bn">জেলা পর্যায়</span><span data-i18n="en">District-level</span></span></td>
+              <td>2025-01-05</td>
+              <td><button class="btn btn-secondary btn-sm"><span data-i18n="bn">সরান</span><span data-i18n="en">Remove</span></button></td>
+            </tr>
+            <tr>
+              <td><span data-i18n="bn">শাপলা বালিকা বিদ্যালয়</span><span data-i18n="en">Shapla Girls' School</span> <span class="text-secondary">(Bogura — out of jurisdiction)</span></td>
+              <td><span class="badge badge-extended"><span data-i18n="bn">এক্সটেন্ডেড অ্যাক্সেস</span><span data-i18n="en">Extended access</span></span></td>
+              <td>2025-12-02</td>
+              <td><button class="btn btn-secondary btn-sm"><span data-i18n="bn">সরান</span><span data-i18n="en">Remove</span></button></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <p class="locked-note" style="margin-top:var(--space-3);">
+          <span data-i18n="bn">টিয়ার হলো প্রতিটি বরাদ্দের নিজস্ব বৈশিষ্ট্য, কর্মকর্তার সামগ্রিক একক মান নয়। এটি শুধুই বর্ণনামূলক/সাংগঠনিক — কোনো মূল্য বা অনুমতিকে প্রভাবিত করে না। "এক্সটেন্ডেড অ্যাক্সেস" সারিটি এখতিয়ারের বাইরের একক স্কুলে সরাসরি বরাদ্দ, তাই জবাবদিহিতার স্বার্থে এটি সবসময় আলাদাভাবে চিহ্নিত রাখা হয় — কখনো নীরবে মিশে যায় না।</span>
+          <span data-i18n="en">Tier is a property of each individual assignment, not one value on the Official as a whole. It is descriptive/organizational only — it does not affect permissions. The "Extended access" row is an out-of-jurisdiction single-School grant, always visually flagged given the oversight/accountability expectation on this role — never silently indistinguishable from an in-territory School.</span>
+        </p>
+      </div>
+
+      <div class="card" style="margin-top:var(--space-5);">
+        <h3 class="mt-0"><span data-i18n="bn">অ্যাক্সেস</span><span data-i18n="en">Access</span></h3>
+        <p class="text-secondary" style="font-size:var(--text-sm);">
+          <span data-i18n="bn">এই ভূমিকা সম্পূর্ণভাবে রিড-অনলি — উপরের এখতিয়ারের মধ্যে থাকা যেকোনো স্কুলের উপস্থিতি, পরীক্ষা, ফি সারাংশ, গ্যালারি, মতামত ও সিলেবাসে ড্রিল-ডাউন করা যায়, কোনো সম্পাদনা অপশন নেই।</span>
+          <span data-i18n="en">This role is entirely read-only — full drill-down into any School's attendance, exams, fees summary, gallery, feedback, and syllabus within the jurisdiction above, with no edit affordances anywhere.</span>
+        </p>
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

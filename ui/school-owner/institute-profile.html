@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>প্রতিষ্ঠান প্রোফাইল · Institute Profile — Amar School Management</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../shared/design-system.css">
+<script src="../shared/app.js" defer></script>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="mark">A</span><span>Amar School</span></div>
+    <nav>
+      <a class="nav-item" href="../school-owner/dashboard.html"><span data-i18n="bn">ড্যাশবোর্ড</span><span data-i18n="en">Dashboard</span></a>
+      <a class="nav-item" href="../school-owner/students-list.html"><span data-i18n="bn">শিক্ষার্থী</span><span data-i18n="en">Students</span></a>
+      <a class="nav-item" href="../school-owner/employees-list.html"><span data-i18n="bn">কর্মচারী</span><span data-i18n="en">Employees</span></a>
+      <a class="nav-item" href="../school-owner/attendance-student-mark.html"><span data-i18n="bn">উপস্থিতি</span><span data-i18n="en">Attendance</span></a>
+      <a class="nav-item" href="../school-owner/classes-list.html"><span data-i18n="bn">শ্রেণি ও পাঠ্যক্রম</span><span data-i18n="en">Class & Curriculum</span></a>
+      <a class="nav-item" href="../school-owner/exams-list.html"><span data-i18n="bn">পরীক্ষা ও ফলাফল</span><span data-i18n="en">Exams & Results</span></a>
+      <a class="nav-item" href="../school-owner/fee-collection.html"><span data-i18n="bn">হিসাব ও ফি</span><span data-i18n="en">Accounting & Fees</span></a>
+      <a class="nav-item" href="../school-owner/sms-compose.html"><span data-i18n="bn">এসএমএস</span><span data-i18n="en">SMS</span></a>
+      <a class="nav-item" href="../school-owner/notices-list.html"><span data-i18n="bn">প্রকাশনা</span><span data-i18n="en">Publishing</span></a>
+      <a class="nav-item" href="../school-owner/feedback-inbox.html"><span data-i18n="bn">মতামত</span><span data-i18n="en">Feedback</span></a>
+      <a class="nav-item" href="../school-owner/staff-permissions.html"><span data-i18n="bn">স্টাফ অনুমতি</span><span data-i18n="en">Staff Permissions</span></a>
+      <a class="nav-item active" href="../school-owner/institute-profile.html"><span data-i18n="bn">প্রতিষ্ঠান সেটআপ</span><span data-i18n="en">Institute Setup</span></a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="title"><span data-i18n="bn">প্রতিষ্ঠান প্রোফাইল</span><span data-i18n="en">Institute Profile</span></div>
+      <div class="actions">
+        <div class="lang-switch">
+          <button data-lang-btn="bn" onclick="setLang('bn')">বাং</button>
+          <button data-lang-btn="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="theme-switch">
+          <button data-theme-btn="light" onclick="setTheme('light')">☀</button>
+          <button data-theme-btn="dark" onclick="setTheme('dark')">☾</button>
+          <button data-theme-btn="system" onclick="setTheme('system')">Auto</button>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+
+      <div class="tabs">
+        <a href="institute-profile.html" class="active"><span data-i18n="bn">প্রতিষ্ঠান প্রোফাইল</span><span data-i18n="en">Institute Profile</span></a>
+        <a href="activity-checklist.html"><span data-i18n="bn">দৈনিক চেকলিস্ট</span><span data-i18n="en">Activity Checklist</span></a>
+        <a href="logistics-index.html"><span data-i18n="bn">লজিস্টিক্স ইনডেক্স</span><span data-i18n="en">Logistics Index</span></a>
+        <a href="blank-templates.html"><span data-i18n="bn">খালি টেমপ্লেট</span><span data-i18n="en">Blank Templates</span></a>
+      </div>
+
+      <div class="card mb-4">
+        <h3 class="mt-0"><span data-i18n="bn">মৌলিক তথ্য</span><span data-i18n="en">Basic Information</span></h3>
+        <div class="form-grid">
+          <div class="field field-full">
+            <label><span data-i18n="bn">প্রতিষ্ঠানের নাম</span><span data-i18n="en">Institute Name</span></label>
+            <input type="text" value="আমার স্কুল উচ্চ বিদ্যালয় · Amar School High School">
+          </div>
+          <div class="field">
+            <label><span data-i18n="bn">ইনস্টিটিউট কোড</span><span data-i18n="en">Institute Code</span></label>
+            <input type="text" value="ASH-0142">
+          </div>
+          <div class="field">
+            <label><span data-i18n="bn">EIIN নম্বর</span><span data-i18n="en">EIIN No.</span></label>
+            <input type="text" value="123456">
+          </div>
+          <div class="field">
+            <label><span data-i18n="bn">এমপিও তালিকাভুক্তি</span><span data-i18n="en">MPO Enlistment</span></label>
+            <select><option><span>হ্যাঁ · Yes</span></option><option><span>না · No</span></option></select>
+          </div>
+          <div class="field">
+            <label><span data-i18n="bn">এমপিও কোড</span><span data-i18n="en">MPO Code</span></label>
+            <input type="text" value="MPO-88213">
+          </div>
+          <div class="field">
+            <label><span data-i18n="bn">সেন্টার কোড</span><span data-i18n="en">Center Code</span></label>
+            <input type="text" value="CTR-0071">
+          </div>
+          <div class="field">
+            <label><span data-i18n="bn">ক্লাস্টার</span><span data-i18n="en">Cluster</span></label>
+            <select><option><span>ক্লাস্টার — উত্তর অঞ্চল · Cluster — North Zone</span></option></select>
+          </div>
+        </div>
+      </div>
+
+      <div class="card mb-4">
+        <h3 class="mt-0"><span data-i18n="bn">ঠিকানা</span><span data-i18n="en">Address</span></h3>
+        <div class="form-grid">
+          <div class="field">
+            <label><span data-i18n="bn">বিভাগ</span><span data-i18n="en">Division</span></label>
+            <select><option>ঢাকা · Dhaka</option></select>
+          </div>
+          <div class="field">
+            <label><span data-i18n="bn">জেলা</span><span data-i18n="en">District</span></label>
+            <select><option>গাজীপুর · Gazipur</option></select>
+          </div>
+          <div class="field">
+            <label><span data-i18n="bn">উপজেলা</span><span data-i18n="en">Upazila</span></label>
+            <select><option>কালিয়াকৈর · Kaliakair</option></select>
+          </div>
+          <div class="field">
+            <label><span data-i18n="bn">ইউনিয়ন</span><span data-i18n="en">Union</span></label>
+            <select><option>মৌচাক · Mouchak</option></select>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 class="mt-0"><span data-i18n="bn">শিক্ষা স্তর প্রদত্ত</span><span data-i18n="en">Education Levels Offered</span></h3>
+        <div class="flex gap-3" style="flex-wrap: wrap;">
+          <label class="flex items-center gap-2"><input type="checkbox" checked> <span data-i18n="bn">প্রাথমিক</span><span data-i18n="en">Primary</span></label>
+          <label class="flex items-center gap-2"><input type="checkbox" checked> <span data-i18n="bn">মাধ্যমিক</span><span data-i18n="en">Secondary</span></label>
+          <label class="flex items-center gap-2"><input type="checkbox"> <span data-i18n="bn">উচ্চ মাধ্যমিক</span><span data-i18n="en">Higher Secondary</span></label>
+          <label class="flex items-center gap-2"><input type="checkbox"> <span data-i18n="bn">মাদ্রাসা</span><span data-i18n="en">Madrasah</span></label>
+        </div>
+        <div class="flex gap-2" style="margin-top: var(--space-5);">
+          <button class="btn btn-primary"><span data-i18n="bn">সংরক্ষণ করুন</span><span data-i18n="en">Save</span></button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

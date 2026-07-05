@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>প্রমোশন ও রোল ট্রান্সফার · Promotion & Transfer — Amar School Management</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../shared/design-system.css">
+<script src="../shared/app.js" defer></script>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="mark">A</span><span>Amar School</span></div>
+    <nav>
+      <a class="nav-item" href="../school-owner/dashboard.html"><span data-i18n="bn">ড্যাশবোর্ড</span><span data-i18n="en">Dashboard</span></a>
+      <a class="nav-item" href="../school-owner/students-list.html"><span data-i18n="bn">শিক্ষার্থী</span><span data-i18n="en">Students</span></a>
+      <a class="nav-item" href="../school-owner/employees-list.html"><span data-i18n="bn">কর্মচারী</span><span data-i18n="en">Employees</span></a>
+      <a class="nav-item" href="../school-owner/attendance-student-mark.html"><span data-i18n="bn">উপস্থিতি</span><span data-i18n="en">Attendance</span></a>
+      <a class="nav-item" href="../school-owner/classes-list.html"><span data-i18n="bn">শ্রেণি ও পাঠ্যক্রম</span><span data-i18n="en">Class & Curriculum</span></a>
+      <a class="nav-item active" href="../school-owner/exams-list.html"><span data-i18n="bn">পরীক্ষা ও ফলাফল</span><span data-i18n="en">Exams & Results</span></a>
+      <a class="nav-item" href="../school-owner/fee-collection.html"><span data-i18n="bn">হিসাব ও ফি</span><span data-i18n="en">Accounting & Fees</span></a>
+      <a class="nav-item" href="../school-owner/sms-compose.html"><span data-i18n="bn">এসএমএস</span><span data-i18n="en">SMS</span></a>
+      <a class="nav-item" href="../school-owner/notices-list.html"><span data-i18n="bn">প্রকাশনা</span><span data-i18n="en">Publishing</span></a>
+      <a class="nav-item" href="../school-owner/feedback-inbox.html"><span data-i18n="bn">মতামত</span><span data-i18n="en">Feedback</span></a>
+      <a class="nav-item" href="../school-owner/staff-permissions.html"><span data-i18n="bn">স্টাফ অনুমতি</span><span data-i18n="en">Staff Permissions</span></a>
+      <a class="nav-item" href="../school-owner/institute-profile.html"><span data-i18n="bn">প্রতিষ্ঠান সেটআপ</span><span data-i18n="en">Institute Setup</span></a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="title"><span data-i18n="bn">প্রমোশন ও রোল ট্রান্সফার</span><span data-i18n="en">Promotion &amp; Roll Transfer</span></div>
+      <div class="actions">
+        <div class="lang-switch">
+          <button data-lang-btn="bn" onclick="setLang('bn')">বাং</button>
+          <button data-lang-btn="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="theme-switch">
+          <button data-theme-btn="light" onclick="setTheme('light')">☀</button>
+          <button data-theme-btn="dark" onclick="setTheme('dark')">☾</button>
+          <button data-theme-btn="system" onclick="setTheme('system')">Auto</button>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+
+      <div class="toolbar">
+        <div class="flex gap-2">
+          <select class="search-input" style="min-width:220px;">
+            <option><span data-i18n="bn">বার্ষিক পরীক্ষা ২০২৫ - অষ্টম শ্রেণি A</span><span data-i18n="en">Annual Examination 2025 - Class 8 A</span></option>
+          </select>
+          <select class="search-input" style="min-width:160px;">
+            <option><span data-i18n="bn">পরবর্তী শ্রেণি: নবম - A</span><span data-i18n="en">Promote to: Class 9 - A</span></option>
+          </select>
+        </div>
+        <div class="flex gap-2">
+          <a class="btn btn-secondary" href="result-book.html"><span data-i18n="bn">ফলাফল বই</span><span data-i18n="en">Result Book</span></a>
+          <button class="btn btn-primary"><span data-i18n="bn">নির্বাচিতদের প্রমোট করুন</span><span data-i18n="en">Promote Selected</span></button>
+        </div>
+      </div>
+
+      <table class="data-table mb-4">
+        <thead>
+          <tr>
+            <th><input type="checkbox"></th>
+            <th><span data-i18n="bn">বর্তমান রোল</span><span data-i18n="en">Current Roll</span></th>
+            <th><span data-i18n="bn">নাম</span><span data-i18n="en">Name</span></th>
+            <th><span data-i18n="bn">ফলাফল</span><span data-i18n="en">Result</span></th>
+            <th><span data-i18n="bn">নতুন শ্রেণি</span><span data-i18n="en">New Class</span></th>
+            <th><span data-i18n="bn">নতুন রোল</span><span data-i18n="en">New Roll</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><input type="checkbox" checked></td>
+            <td>01</td>
+            <td><span data-i18n="bn">মোঃ ইমরান হোসেন</span><span data-i18n="en">Md. Imran Hossain</span></td>
+            <td><span class="badge badge-success"><span data-i18n="bn">উত্তীর্ণ</span><span data-i18n="en">Pass</span></span></td>
+            <td><span data-i18n="bn">নবম - A</span><span data-i18n="en">Class 9 - A</span></td>
+            <td><input type="text" class="search-input" style="min-width: 60px; width: 60px;" value="01"></td>
+          </tr>
+          <tr>
+            <td><input type="checkbox" checked></td>
+            <td>02</td>
+            <td><span data-i18n="bn">ফাতেমা আক্তার</span><span data-i18n="en">Fatema Akter</span></td>
+            <td><span class="badge badge-success"><span data-i18n="bn">উত্তীর্ণ</span><span data-i18n="en">Pass</span></span></td>
+            <td><span data-i18n="bn">নবম - A</span><span data-i18n="en">Class 9 - A</span></td>
+            <td><input type="text" class="search-input" style="min-width: 60px; width: 60px;" value="02"></td>
+          </tr>
+          <tr>
+            <td><input type="checkbox" disabled></td>
+            <td>04</td>
+            <td><span data-i18n="bn">সুমাইয়া ইসলাম</span><span data-i18n="en">Sumaiya Islam</span></td>
+            <td><span class="badge badge-danger"><span data-i18n="bn">অনুত্তীর্ণ</span><span data-i18n="en">Fail</span></span></td>
+            <td><span data-i18n="bn">অষ্টম - A (পুনরাবৃত্তি)</span><span data-i18n="en">Class 8 - A (Repeat)</span></td>
+            <td class="text-secondary">—</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3><span data-i18n="bn">উত্তীর্ণ ব্যাচ — "পুরাতন করুন"</span><span data-i18n="en">Graduating Batch — "Make Old"</span></h3>
+      <p class="text-secondary" style="font-size: var(--text-xs); margin-top: 0;">
+        <span data-i18n="bn">দশম শ্রেণির যেসব শিক্ষার্থী পাশ করেছে তাদের নির্বাচন করে "পুরাতন" তালিকায় সরিয়ে নিন — এটি Old Students আর্কাইভে যুক্ত হবে।</span>
+        <span data-i18n="en">Select graduating Class 10 students to move to the "Old Students" archive.</span>
+      </p>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th><input type="checkbox"></th>
+            <th><span data-i18n="bn">রোল</span><span data-i18n="en">Roll</span></th>
+            <th><span data-i18n="bn">নাম</span><span data-i18n="en">Name</span></th>
+            <th><span data-i18n="bn">শ্রেণি</span><span data-i18n="en">Class</span></th>
+            <th><span data-i18n="bn">ফলাফল</span><span data-i18n="en">Result</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><input type="checkbox" checked></td>
+            <td>12</td>
+            <td><span data-i18n="bn">নাদিয়া ইসলাম</span><span data-i18n="en">Nadia Islam</span></td>
+            <td><span data-i18n="bn">দশম - B</span><span data-i18n="en">Class 10 - B</span></td>
+            <td><span class="badge badge-success"><span data-i18n="bn">উত্তীর্ণ</span><span data-i18n="en">Pass</span></span></td>
+          </tr>
+          <tr>
+            <td><input type="checkbox" checked></td>
+            <td>13</td>
+            <td><span data-i18n="bn">আরিফুল ইসলাম</span><span data-i18n="en">Ariful Islam</span></td>
+            <td><span data-i18n="bn">দশম - B</span><span data-i18n="en">Class 10 - B</span></td>
+            <td><span class="badge badge-success"><span data-i18n="bn">উত্তীর্ণ</span><span data-i18n="en">Pass</span></span></td>
+          </tr>
+        </tbody>
+      </table>
+      <button class="btn btn-secondary" style="margin-top: var(--space-4);"><span data-i18n="bn">নির্বাচিতদের পুরাতন করুন</span><span data-i18n="en">Make Old — Selected</span></button>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

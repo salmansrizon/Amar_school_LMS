@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>দৈনিক কার্যক্রম চেকলিস্ট · Activity Checklist — Amar School Management</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../shared/design-system.css">
+<script src="../shared/app.js" defer></script>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="mark">A</span><span>Amar School</span></div>
+    <nav>
+      <a class="nav-item" href="../school-owner/dashboard.html"><span data-i18n="bn">ড্যাশবোর্ড</span><span data-i18n="en">Dashboard</span></a>
+      <a class="nav-item" href="../school-owner/students-list.html"><span data-i18n="bn">শিক্ষার্থী</span><span data-i18n="en">Students</span></a>
+      <a class="nav-item" href="../school-owner/employees-list.html"><span data-i18n="bn">কর্মচারী</span><span data-i18n="en">Employees</span></a>
+      <a class="nav-item" href="../school-owner/attendance-student-mark.html"><span data-i18n="bn">উপস্থিতি</span><span data-i18n="en">Attendance</span></a>
+      <a class="nav-item" href="../school-owner/classes-list.html"><span data-i18n="bn">শ্রেণি ও পাঠ্যক্রম</span><span data-i18n="en">Class & Curriculum</span></a>
+      <a class="nav-item" href="../school-owner/exams-list.html"><span data-i18n="bn">পরীক্ষা ও ফলাফল</span><span data-i18n="en">Exams & Results</span></a>
+      <a class="nav-item" href="../school-owner/fee-collection.html"><span data-i18n="bn">হিসাব ও ফি</span><span data-i18n="en">Accounting & Fees</span></a>
+      <a class="nav-item" href="../school-owner/sms-compose.html"><span data-i18n="bn">এসএমএস</span><span data-i18n="en">SMS</span></a>
+      <a class="nav-item" href="../school-owner/notices-list.html"><span data-i18n="bn">প্রকাশনা</span><span data-i18n="en">Publishing</span></a>
+      <a class="nav-item" href="../school-owner/feedback-inbox.html"><span data-i18n="bn">মতামত</span><span data-i18n="en">Feedback</span></a>
+      <a class="nav-item" href="../school-owner/staff-permissions.html"><span data-i18n="bn">স্টাফ অনুমতি</span><span data-i18n="en">Staff Permissions</span></a>
+      <a class="nav-item active" href="../school-owner/institute-profile.html"><span data-i18n="bn">প্রতিষ্ঠান সেটআপ</span><span data-i18n="en">Institute Setup</span></a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="title"><span data-i18n="bn">দৈনিক কার্যক্রম চেকলিস্ট</span><span data-i18n="en">Activity Checklist</span></div>
+      <div class="actions">
+        <div class="lang-switch">
+          <button data-lang-btn="bn" onclick="setLang('bn')">বাং</button>
+          <button data-lang-btn="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="theme-switch">
+          <button data-theme-btn="light" onclick="setTheme('light')">☀</button>
+          <button data-theme-btn="dark" onclick="setTheme('dark')">☾</button>
+          <button data-theme-btn="system" onclick="setTheme('system')">Auto</button>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+
+      <div class="tabs">
+        <a href="institute-profile.html"><span data-i18n="bn">প্রতিষ্ঠান প্রোফাইল</span><span data-i18n="en">Institute Profile</span></a>
+        <a href="activity-checklist.html" class="active"><span data-i18n="bn">দৈনিক চেকলিস্ট</span><span data-i18n="en">Activity Checklist</span></a>
+        <a href="logistics-index.html"><span data-i18n="bn">লজিস্টিক্স ইনডেক্স</span><span data-i18n="en">Logistics Index</span></a>
+        <a href="blank-templates.html"><span data-i18n="bn">খালি টেমপ্লেট</span><span data-i18n="en">Blank Templates</span></a>
+      </div>
+
+      <div class="card mb-4">
+        <h3 class="mt-0"><span data-i18n="bn">আজকের চেকলিস্ট — ০৫ জুলাই ২০২৬</span><span data-i18n="en">Today's Checklist — 05 July 2026</span></h3>
+        <div class="form-grid" style="grid-template-columns: 1fr;">
+          <label class="flex items-center gap-2"><input type="checkbox" checked> <span data-i18n="bn">পতাকা উত্তোলন করা হয়েছে</span><span data-i18n="en">Flag hoisted</span></label>
+          <label class="flex items-center gap-2"><input type="checkbox" checked> <span data-i18n="bn">জাতীয় সংগীত পরিবেশিত হয়েছে</span><span data-i18n="en">National anthem rendered</span></label>
+          <label class="flex items-center gap-2"><input type="checkbox" checked> <span data-i18n="bn">সমাবেশ অনুষ্ঠিত হয়েছে</span><span data-i18n="en">Assembly held</span></label>
+          <label class="flex items-center gap-2"><input type="checkbox"> <span data-i18n="bn">সময়মতো ক্লাস শুরু হয়েছে</span><span data-i18n="en">Classes started on time</span></label>
+          <label class="flex items-center gap-2"><input type="checkbox" checked> <span data-i18n="bn">প্রাঙ্গণ পরিষ্কার করা হয়েছে</span><span data-i18n="en">Premises cleaned</span></label>
+        </div>
+        <button class="btn btn-primary" style="margin-top: var(--space-4);"><span data-i18n="bn">সংরক্ষণ করুন</span><span data-i18n="en">Save</span></button>
+      </div>
+
+      <div class="card">
+        <div class="toolbar">
+          <h3 class="mt-0"><span data-i18n="bn">তারিখ পরিসীমা রিপোর্ট</span><span data-i18n="en">Date Range Report</span></h3>
+          <div class="flex gap-2 items-center">
+            <input type="date" value="2026-07-01" style="height:var(--control-h); border:1px solid var(--border-strong); border-radius:var(--radius-sm); padding:0 var(--space-3); font-family:inherit;">
+            <input type="date" value="2026-07-05" style="height:var(--control-h); border:1px solid var(--border-strong); border-radius:var(--radius-sm); padding:0 var(--space-3); font-family:inherit;">
+            <button class="btn btn-secondary btn-sm"><span data-i18n="bn">প্রয়োগ করুন</span><span data-i18n="en">Apply</span></button>
+          </div>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th><span data-i18n="bn">তারিখ</span><span data-i18n="en">Date</span></th>
+              <th><span data-i18n="bn">সম্পন্ন</span><span data-i18n="en">Completed</span></th>
+              <th><span data-i18n="bn">অবস্থা</span><span data-i18n="en">Status</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>০৫ জুলাই ২০২৬</td>
+              <td>৪/৫</td>
+              <td><span class="badge badge-warning"><span data-i18n="bn">আংশিক</span><span data-i18n="en">Partial</span></span></td>
+            </tr>
+            <tr>
+              <td>০৪ জুলাই ২০২৬</td>
+              <td>৫/৫</td>
+              <td><span class="badge badge-success"><span data-i18n="bn">সম্পূর্ণ</span><span data-i18n="en">Complete</span></span></td>
+            </tr>
+            <tr>
+              <td>০৩ জুলাই ২০২৬</td>
+              <td>৫/৫</td>
+              <td><span class="badge badge-success"><span data-i18n="bn">সম্পূর্ণ</span><span data-i18n="en">Complete</span></span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

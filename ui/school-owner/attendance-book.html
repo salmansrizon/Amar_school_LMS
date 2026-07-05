@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>হাজিরা খাতা · Attendance Book — Amar School Management</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../shared/design-system.css">
+<script src="../shared/app.js" defer></script>
+<style>
+  .print-page {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    padding: var(--space-6);
+    max-width: 100%;
+    overflow-x: auto;
+  }
+  .print-page .masthead { text-align:center; margin-bottom: var(--space-4); }
+  .reg-grid { border-collapse: collapse; font-size: var(--text-xs); white-space: nowrap; }
+  .reg-grid th, .reg-grid td { border: 1px solid var(--border-default); padding: 2px 6px; text-align:center; }
+  .reg-grid th.name-col, .reg-grid td.name-col { text-align:left; min-width: 120px; }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="mark">A</span><span>Amar School</span></div>
+    <nav>
+      <a class="nav-item" href="../school-owner/dashboard.html"><span data-i18n="bn">ড্যাশবোর্ড</span><span data-i18n="en">Dashboard</span></a>
+      <a class="nav-item" href="../school-owner/students-list.html"><span data-i18n="bn">শিক্ষার্থী</span><span data-i18n="en">Students</span></a>
+      <a class="nav-item" href="../school-owner/employees-list.html"><span data-i18n="bn">কর্মচারী</span><span data-i18n="en">Employees</span></a>
+      <a class="nav-item active" href="../school-owner/attendance-student-mark.html"><span data-i18n="bn">উপস্থিতি</span><span data-i18n="en">Attendance</span></a>
+      <a class="nav-item" href="../school-owner/classes-list.html"><span data-i18n="bn">শ্রেণি ও পাঠ্যক্রম</span><span data-i18n="en">Class & Curriculum</span></a>
+      <a class="nav-item" href="../school-owner/exams-list.html"><span data-i18n="bn">পরীক্ষা ও ফলাফল</span><span data-i18n="en">Exams & Results</span></a>
+      <a class="nav-item" href="../school-owner/fee-collection.html"><span data-i18n="bn">হিসাব ও ফি</span><span data-i18n="en">Accounting & Fees</span></a>
+      <a class="nav-item" href="../school-owner/sms-compose.html"><span data-i18n="bn">এসএমএস</span><span data-i18n="en">SMS</span></a>
+      <a class="nav-item" href="../school-owner/notices-list.html"><span data-i18n="bn">প্রকাশনা</span><span data-i18n="en">Publishing</span></a>
+      <a class="nav-item" href="../school-owner/feedback-inbox.html"><span data-i18n="bn">মতামত</span><span data-i18n="en">Feedback</span></a>
+      <a class="nav-item" href="../school-owner/staff-permissions.html"><span data-i18n="bn">স্টাফ অনুমতি</span><span data-i18n="en">Staff Permissions</span></a>
+      <a class="nav-item" href="../school-owner/institute-profile.html"><span data-i18n="bn">প্রতিষ্ঠান সেটআপ</span><span data-i18n="en">Institute Setup</span></a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="title"><span data-i18n="bn">হাজিরা খাতা — মাসিক রেজিস্টার</span><span data-i18n="en">Attendance Book — Monthly Register</span></div>
+      <div class="actions">
+        <div class="lang-switch">
+          <button data-lang-btn="bn" onclick="setLang('bn')">বাং</button>
+          <button data-lang-btn="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="theme-switch">
+          <button data-theme-btn="light" onclick="setTheme('light')">☀</button>
+          <button data-theme-btn="dark" onclick="setTheme('dark')">☾</button>
+          <button data-theme-btn="system" onclick="setTheme('system')">Auto</button>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+
+      <div class="tabs">
+        <a href="attendance-student-mark.html"><span data-i18n="bn">শিক্ষার্থী হাজিরা</span><span data-i18n="en">Mark Attendance</span></a>
+        <a href="attendance-book.html" class="active"><span data-i18n="bn">হাজিরা খাতা</span><span data-i18n="en">Attendance Book</span></a>
+        <a href="attendance-employee.html"><span data-i18n="bn">কর্মচারী উপস্থিতি</span><span data-i18n="en">Employee Attendance</span></a>
+        <a href="leave-management.html"><span data-i18n="bn">ছুটি ব্যবস্থাপনা</span><span data-i18n="en">Leave Management</span></a>
+        <a href="off-day-calendar.html"><span data-i18n="bn">ছুটির দিন ক্যালেন্ডার</span><span data-i18n="en">Off-Day Calendar</span></a>
+        <a href="rfid-card-assignment.html"><span data-i18n="bn">RFID কার্ড</span><span data-i18n="en">RFID Card</span></a>
+      </div>
+
+      <div class="toolbar">
+        <div class="flex gap-2 items-center">
+          <select style="height:var(--control-h); border:1px solid var(--border-strong); border-radius:var(--radius-sm); padding:0 var(--space-3); background:var(--bg-surface); font-family:inherit; font-size:var(--text-sm);">
+            <option selected>Class 8 / A</option>
+            <option>Class 9 / A</option>
+          </select>
+          <select style="height:var(--control-h); border:1px solid var(--border-strong); border-radius:var(--radius-sm); padding:0 var(--space-3); background:var(--bg-surface); font-family:inherit; font-size:var(--text-sm);">
+            <option selected><span data-i18n="bn">জুলাই ২০২৬</span><span data-i18n="en">July 2026</span></option>
+          </select>
+        </div>
+        <div class="flex gap-2">
+          <button class="btn btn-secondary btn-sm active"><span data-i18n="bn">পূর্ণকৃত</span><span data-i18n="en">Filled</span></button>
+          <button class="btn btn-secondary btn-sm"><span data-i18n="bn">খালি (প্রিন্টের জন্য)</span><span data-i18n="en">Blank (for print)</span></button>
+          <button class="btn btn-primary btn-sm"><span data-i18n="bn">প্রিন্ট</span><span data-i18n="en">Print</span></button>
+        </div>
+      </div>
+
+      <div class="print-page">
+        <div class="masthead">
+          <div style="font-weight:700; font-size: var(--text-lg);"><span data-i18n="bn">বাসাইল উচ্চ বিদ্যালয়</span><span data-i18n="en">Basail High School</span></div>
+          <div class="text-secondary" style="font-size:var(--text-xs);">
+            <span data-i18n="bn">মাসিক হাজিরা রেজিস্টার — শ্রেণি ৮, শাখা এ — জুলাই ২০২৬</span>
+            <span data-i18n="en">Monthly Attendance Register — Class 8, Section A — July 2026</span>
+          </div>
+        </div>
+        <table class="reg-grid">
+          <thead>
+            <tr>
+              <th class="name-col"><span data-i18n="bn">নাম</span><span data-i18n="en">Name</span></th>
+              <th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th><th>10</th>
+              <th>11</th><th>12</th><th>13</th><th>14</th><th>15</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="name-col">০১ রাকিব হাসান</td>
+              <td>P</td><td>P</td><td>P</td><td>P</td><td>A</td><td>P</td><td>P</td><td>P</td><td>P</td><td>P</td>
+              <td>P</td><td>P</td><td>P</td><td>P</td><td>P</td>
+            </tr>
+            <tr>
+              <td class="name-col">০২ তামিম ইকবাল</td>
+              <td>P</td><td>P</td><td>P</td><td>P</td><td>P</td><td>P</td><td>A</td><td>P</td><td>P</td><td>P</td>
+              <td>P</td><td>P</td><td>P</td><td>P</td><td>P</td>
+            </tr>
+            <tr>
+              <td class="name-col">০৩ সাদিয়া ইসলাম</td>
+              <td>P</td><td>A</td><td>P</td><td>P</td><td>P</td><td>P</td><td>P</td><td>P</td><td>P</td><td>P</td>
+              <td>P</td><td>P</td><td>P</td><td>P</td><td>P</td>
+            </tr>
+            <tr>
+              <td class="name-col">০৪ ফাহিম চৌধুরী</td>
+              <td>P</td><td>P</td><td>P</td><td>P</td><td>P</td><td>P</td><td>P</td><td>P</td><td>A</td><td>P</td>
+              <td>P</td><td>P</td><td>P</td><td>P</td><td>P</td>
+            </tr>
+            <tr>
+              <td class="name-col">০৫ নুসরাত জাহান</td>
+              <td>P</td><td>P</td><td>P</td><td>P</td><td>P</td><td>P</td><td>P</td><td>P</td><td>P</td><td>P</td>
+              <td>P</td><td>A</td><td>P</td><td>P</td><td>P</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="text-secondary" style="font-size:var(--text-xs); margin-top: var(--space-3);">
+          <span data-i18n="bn">P = উপস্থিত, A = অনুপস্থিত। শুধুমাত্র প্রথম ১৫ দিন দেখানো হয়েছে (নমুনা)।</span>
+          <span data-i18n="en">P = Present, A = Absent. Only first 15 days shown (sample).</span>
+        </p>
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

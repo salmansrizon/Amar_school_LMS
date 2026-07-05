@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>ভাউচার · Vouchers — Amar School Management</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../shared/design-system.css">
+<script src="../shared/app.js" defer></script>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="mark">A</span><span>Amar School</span></div>
+    <nav>
+      <a class="nav-item" href="../school-owner/dashboard.html"><span data-i18n="bn">ড্যাশবোর্ড</span><span data-i18n="en">Dashboard</span></a>
+      <a class="nav-item" href="../school-owner/students-list.html"><span data-i18n="bn">শিক্ষার্থী</span><span data-i18n="en">Students</span></a>
+      <a class="nav-item" href="../school-owner/employees-list.html"><span data-i18n="bn">কর্মচারী</span><span data-i18n="en">Employees</span></a>
+      <a class="nav-item" href="../school-owner/attendance-student-mark.html"><span data-i18n="bn">উপস্থিতি</span><span data-i18n="en">Attendance</span></a>
+      <a class="nav-item" href="../school-owner/classes-list.html"><span data-i18n="bn">শ্রেণি ও পাঠ্যক্রম</span><span data-i18n="en">Class & Curriculum</span></a>
+      <a class="nav-item" href="../school-owner/exams-list.html"><span data-i18n="bn">পরীক্ষা ও ফলাফল</span><span data-i18n="en">Exams & Results</span></a>
+      <a class="nav-item active" href="../school-owner/fee-collection.html"><span data-i18n="bn">হিসাব ও ফি</span><span data-i18n="en">Accounting & Fees</span></a>
+      <a class="nav-item" href="../school-owner/sms-compose.html"><span data-i18n="bn">এসএমএস</span><span data-i18n="en">SMS</span></a>
+      <a class="nav-item" href="../school-owner/notices-list.html"><span data-i18n="bn">প্রকাশনা</span><span data-i18n="en">Publishing</span></a>
+      <a class="nav-item" href="../school-owner/feedback-inbox.html"><span data-i18n="bn">মতামত</span><span data-i18n="en">Feedback</span></a>
+      <a class="nav-item" href="../school-owner/staff-permissions.html"><span data-i18n="bn">স্টাফ অনুমতি</span><span data-i18n="en">Staff Permissions</span></a>
+      <a class="nav-item" href="../school-owner/institute-profile.html"><span data-i18n="bn">প্রতিষ্ঠান সেটআপ</span><span data-i18n="en">Institute Setup</span></a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="title"><span data-i18n="bn">ভাউচার</span><span data-i18n="en">Vouchers</span></div>
+      <div class="actions">
+        <div class="lang-switch">
+          <button data-lang-btn="bn" onclick="setLang('bn')">বাং</button>
+          <button data-lang-btn="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="theme-switch">
+          <button data-theme-btn="light" onclick="setTheme('light')">☀</button>
+          <button data-theme-btn="dark" onclick="setTheme('dark')">☾</button>
+          <button data-theme-btn="system" onclick="setTheme('system')">Auto</button>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+
+      <div class="tabs">
+        <a href="fee-structures.html"><span data-i18n="bn">ফি কাঠামো</span><span data-i18n="en">Fee Structures</span></a>
+        <a href="fee-collection.html"><span data-i18n="bn">ফি আদায়</span><span data-i18n="en">Fee Collection</span></a>
+        <a href="vouchers-list.html" class="active"><span data-i18n="bn">ভাউচার</span><span data-i18n="en">Vouchers</span></a>
+        <a href="asset-register.html"><span data-i18n="bn">সম্পদ রেজিস্টার</span><span data-i18n="en">Asset Register</span></a>
+        <a href="bank-cash-accounts.html"><span data-i18n="bn">ব্যাংক ও নগদ</span><span data-i18n="en">Bank & Cash</span></a>
+        <a href="director-capital.html"><span data-i18n="bn">পরিচালকের মূলধন</span><span data-i18n="en">Director Capital</span></a>
+        <a href="general-ledger.html"><span data-i18n="bn">সাধারণ খতিয়ান</span><span data-i18n="en">General Ledger</span></a>
+      </div>
+
+      <div class="toolbar">
+        <div class="flex gap-2 items-center">
+          <input class="search-input" type="text" placeholder="ভাউচার নং বা বিবরণ খুঁজুন · Search voucher no or description">
+          <select style="height:var(--control-h); border:1px solid var(--border-strong); border-radius:var(--radius-sm); padding:0 var(--space-3); font-family:inherit; background:var(--bg-surface); color:var(--text-primary);">
+            <option><span>সকল প্রকার · All Types</span></option>
+            <option><span>আয় · Income</span></option>
+            <option><span>ব্যয় · Expense</span></option>
+          </select>
+          <input type="date" style="height:var(--control-h); border:1px solid var(--border-strong); border-radius:var(--radius-sm); padding:0 var(--space-3); font-family:inherit;">
+          <input type="date" style="height:var(--control-h); border:1px solid var(--border-strong); border-radius:var(--radius-sm); padding:0 var(--space-3); font-family:inherit;">
+        </div>
+        <button class="btn btn-primary"><span data-i18n="bn">+ নতুন ভাউচার</span><span data-i18n="en">+ New Voucher</span></button>
+      </div>
+
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th><span data-i18n="bn">ভাউচার নং</span><span data-i18n="en">Voucher No</span></th>
+            <th><span data-i18n="bn">তারিখ</span><span data-i18n="en">Date</span></th>
+            <th><span data-i18n="bn">প্রকার</span><span data-i18n="en">Type</span></th>
+            <th><span data-i18n="bn">বিবরণ</span><span data-i18n="en">Description</span></th>
+            <th><span data-i18n="bn">পরিমাণ</span><span data-i18n="en">Amount</span></th>
+            <th><span data-i18n="bn">সংযুক্তি</span><span data-i18n="en">Attachment</span></th>
+            <th><span data-i18n="bn">কার্যক্রম</span><span data-i18n="en">Action</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>VCH-2026-0142</td>
+            <td>০৩ জুলাই ২০২৬</td>
+            <td><span class="badge badge-info"><span data-i18n="bn">আয়</span><span data-i18n="en">Income</span></span></td>
+            <td>ভর্তি ফি জমা · Admission fee deposit</td>
+            <td>৳ ১৫,০০০</td>
+            <td>📎 <span data-i18n="bn">রসিদ.pdf</span><span data-i18n="en">receipt.pdf</span></td>
+            <td><a class="btn btn-sm btn-secondary" href="#"><span data-i18n="bn">দেখুন</span><span data-i18n="en">View</span></a></td>
+          </tr>
+          <tr>
+            <td>VCH-2026-0143</td>
+            <td>০৪ জুলাই ২০২৬</td>
+            <td><span class="badge badge-neutral"><span data-i18n="bn">ব্যয়</span><span data-i18n="en">Expense</span></span></td>
+            <td>বিদ্যুৎ বিল · Electricity bill</td>
+            <td>৳ ৪,৮০০</td>
+            <td><span class="text-secondary">— <span data-i18n="bn">নেই</span><span data-i18n="en">None</span></span></td>
+            <td><a class="btn btn-sm btn-secondary" href="#"><span data-i18n="bn">দেখুন</span><span data-i18n="en">View</span></a></td>
+          </tr>
+          <tr>
+            <td>VCH-2026-0144</td>
+            <td>০৫ জুলাই ২০২৬</td>
+            <td><span class="badge badge-neutral"><span data-i18n="bn">ব্যয়</span><span data-i18n="en">Expense</span></span></td>
+            <td>স্টেশনারি ক্রয় · Stationery purchase</td>
+            <td>৳ ১,২৫০</td>
+            <td>📎 <span data-i18n="bn">চালান.jpg</span><span data-i18n="en">invoice.jpg</span></td>
+            <td><a class="btn btn-sm btn-secondary" href="#"><span data-i18n="bn">দেখুন</span><span data-i18n="en">View</span></a></td>
+          </tr>
+        </tbody>
+      </table>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

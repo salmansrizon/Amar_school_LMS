@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>ব্যাংক ও নগদ হিসাব · Bank & Cash Accounts — Amar School Management</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../shared/design-system.css">
+<script src="../shared/app.js" defer></script>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="mark">A</span><span>Amar School</span></div>
+    <nav>
+      <a class="nav-item" href="../school-owner/dashboard.html"><span data-i18n="bn">ড্যাশবোর্ড</span><span data-i18n="en">Dashboard</span></a>
+      <a class="nav-item" href="../school-owner/students-list.html"><span data-i18n="bn">শিক্ষার্থী</span><span data-i18n="en">Students</span></a>
+      <a class="nav-item" href="../school-owner/employees-list.html"><span data-i18n="bn">কর্মচারী</span><span data-i18n="en">Employees</span></a>
+      <a class="nav-item" href="../school-owner/attendance-student-mark.html"><span data-i18n="bn">উপস্থিতি</span><span data-i18n="en">Attendance</span></a>
+      <a class="nav-item" href="../school-owner/classes-list.html"><span data-i18n="bn">শ্রেণি ও পাঠ্যক্রম</span><span data-i18n="en">Class & Curriculum</span></a>
+      <a class="nav-item" href="../school-owner/exams-list.html"><span data-i18n="bn">পরীক্ষা ও ফলাফল</span><span data-i18n="en">Exams & Results</span></a>
+      <a class="nav-item active" href="../school-owner/fee-collection.html"><span data-i18n="bn">হিসাব ও ফি</span><span data-i18n="en">Accounting & Fees</span></a>
+      <a class="nav-item" href="../school-owner/sms-compose.html"><span data-i18n="bn">এসএমএস</span><span data-i18n="en">SMS</span></a>
+      <a class="nav-item" href="../school-owner/notices-list.html"><span data-i18n="bn">প্রকাশনা</span><span data-i18n="en">Publishing</span></a>
+      <a class="nav-item" href="../school-owner/feedback-inbox.html"><span data-i18n="bn">মতামত</span><span data-i18n="en">Feedback</span></a>
+      <a class="nav-item" href="../school-owner/staff-permissions.html"><span data-i18n="bn">স্টাফ অনুমতি</span><span data-i18n="en">Staff Permissions</span></a>
+      <a class="nav-item" href="../school-owner/institute-profile.html"><span data-i18n="bn">প্রতিষ্ঠান সেটআপ</span><span data-i18n="en">Institute Setup</span></a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="title"><span data-i18n="bn">ব্যাংক ও নগদ হিসাব</span><span data-i18n="en">Bank & Cash Accounts</span></div>
+      <div class="actions">
+        <div class="lang-switch">
+          <button data-lang-btn="bn" onclick="setLang('bn')">বাং</button>
+          <button data-lang-btn="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="theme-switch">
+          <button data-theme-btn="light" onclick="setTheme('light')">☀</button>
+          <button data-theme-btn="dark" onclick="setTheme('dark')">☾</button>
+          <button data-theme-btn="system" onclick="setTheme('system')">Auto</button>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+
+      <div class="tabs">
+        <a href="fee-structures.html"><span data-i18n="bn">ফি কাঠামো</span><span data-i18n="en">Fee Structures</span></a>
+        <a href="fee-collection.html"><span data-i18n="bn">ফি আদায়</span><span data-i18n="en">Fee Collection</span></a>
+        <a href="vouchers-list.html"><span data-i18n="bn">ভাউচার</span><span data-i18n="en">Vouchers</span></a>
+        <a href="asset-register.html"><span data-i18n="bn">সম্পদ রেজিস্টার</span><span data-i18n="en">Asset Register</span></a>
+        <a href="bank-cash-accounts.html" class="active"><span data-i18n="bn">ব্যাংক ও নগদ</span><span data-i18n="en">Bank & Cash</span></a>
+        <a href="director-capital.html"><span data-i18n="bn">পরিচালকের মূলধন</span><span data-i18n="en">Director Capital</span></a>
+        <a href="general-ledger.html"><span data-i18n="bn">সাধারণ খতিয়ান</span><span data-i18n="en">General Ledger</span></a>
+      </div>
+
+      <div class="toolbar">
+        <div></div>
+        <button class="btn btn-primary"><span data-i18n="bn">+ নতুন হিসাব</span><span data-i18n="en">+ New Account</span></button>
+      </div>
+
+      <table class="data-table mb-4">
+        <thead>
+          <tr>
+            <th><span data-i18n="bn">হিসাবের নাম</span><span data-i18n="en">Account Name</span></th>
+            <th><span data-i18n="bn">প্রকার</span><span data-i18n="en">Type</span></th>
+            <th><span data-i18n="bn">ব্যালেন্স</span><span data-i18n="en">Balance</span></th>
+            <th><span data-i18n="bn">কার্যক্রম</span><span data-i18n="en">Action</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span data-i18n="bn">নগদ তহবিল</span><span data-i18n="en">Cash Fund</span></td>
+            <td><span class="badge badge-neutral"><span data-i18n="bn">নগদ</span><span data-i18n="en">Cash</span></span></td>
+            <td>৳ ৩২,৫০০</td>
+            <td class="flex gap-2">
+              <button class="btn btn-sm btn-secondary"><span data-i18n="bn">জমা</span><span data-i18n="en">Deposit</span></button>
+              <button class="btn btn-sm btn-secondary" onclick="document.getElementById('withdraw-form').scrollIntoView({behavior:'smooth'})"><span data-i18n="bn">উত্তোলন</span><span data-i18n="en">Withdraw</span></button>
+            </td>
+          </tr>
+          <tr>
+            <td><span data-i18n="bn">ইসলামী ব্যাংক — চলতি হিসাব</span><span data-i18n="en">Islami Bank — Current A/C</span></td>
+            <td><span class="badge badge-info"><span data-i18n="bn">ব্যাংক</span><span data-i18n="en">Bank</span></span></td>
+            <td>৳ ২,১৪,০০০</td>
+            <td class="flex gap-2">
+              <button class="btn btn-sm btn-secondary"><span data-i18n="bn">জমা</span><span data-i18n="en">Deposit</span></button>
+              <button class="btn btn-sm btn-secondary"><span data-i18n="bn">উত্তোলন</span><span data-i18n="en">Withdraw</span></button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Negative/insufficient-balance guard demo -->
+      <div class="card" id="withdraw-form">
+        <h3 class="mt-0"><span data-i18n="bn">উত্তোলন করুন — নগদ তহবিল</span><span data-i18n="en">Withdraw — Cash Fund</span></h3>
+        <p class="text-secondary" style="margin-top:-8px;"><span data-i18n="bn">বর্তমান ব্যালেন্স: ৳ ৩২,৫০০</span><span data-i18n="en">Current balance: Tk 32,500</span></p>
+        <div class="form-grid">
+          <div class="field">
+            <label><span data-i18n="bn">উত্তোলনের পরিমাণ</span><span data-i18n="en">Withdraw Amount</span></label>
+            <input type="text" value="৳ ৫০,০০০">
+            <span style="font-size: var(--text-xs); color: var(--danger-fg);">
+              <span data-i18n="bn">উত্তোলনযোগ্য পরিমাণ বর্তমান ব্যালেন্স অতিক্রম করছে — সর্বোচ্চ ৳ ৩২,৫০০ পর্যন্ত উত্তোলন করা যাবে।</span>
+              <span data-i18n="en">Withdrawal amount exceeds the current balance — you can withdraw up to Tk 32,500.</span>
+            </span>
+          </div>
+          <div class="field">
+            <label><span data-i18n="bn">কারণ</span><span data-i18n="en">Reason</span></label>
+            <input type="text" placeholder="ঐচ্ছিক · optional">
+          </div>
+        </div>
+        <div class="flex gap-2" style="margin-top: var(--space-4);">
+          <button class="btn btn-primary" disabled style="opacity:0.5; cursor:not-allowed;"><span data-i18n="bn">উত্তোলন নিশ্চিত করুন</span><span data-i18n="en">Confirm Withdraw</span></button>
+          <button class="btn btn-secondary"><span data-i18n="bn">বাতিল</span><span data-i18n="en">Cancel</span></button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

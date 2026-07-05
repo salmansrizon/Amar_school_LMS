@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>Amar School Management — প্ল্যাটফর্ম</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="shared/design-system.css">
+<script src="shared/app.js" defer></script>
+<style>
+  .landing-hero { background: linear-gradient(135deg, var(--brand-900), var(--brand-600)); color: white; padding: var(--space-8) var(--space-6); text-align: center; }
+  .landing-hero h1 { font-size: 2.5rem; margin: 0 0 var(--space-2); }
+  .landing-hero p { font-size: var(--text-lg); opacity: 0.85; margin: 0 0 var(--space-6); max-width: 600px; margin-left: auto; margin-right: auto; }
+  .landing-hero .brand { display: flex; align-items: center; justify-content: center; gap: var(--space-2); font-weight: 700; font-size: var(--text-xl); margin-bottom: var(--space-6); }
+  .landing-hero .brand .mark { width: 36px; height: 36px; border-radius: var(--radius-sm); background: white; color: var(--brand-700); display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: var(--text-lg); }
+  .role-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: var(--space-4); max-width: 900px; margin: 0 auto; padding: var(--space-6); }
+  .role-card { background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: var(--radius-lg); padding: var(--space-5); text-align: center; transition: box-shadow 0.2s, transform 0.2s; }
+  .role-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+  .role-card .icon { width: 48px; height: 48px; border-radius: var(--radius-lg); margin: 0 auto var(--space-3); display: flex; align-items: center; justify-content: center; font-size: var(--text-xl); font-weight: 700; color: white; }
+  .role-card h3 { margin: 0 0 var(--space-1); font-size: var(--text-lg); }
+  .role-card p { font-size: var(--text-sm); color: var(--text-secondary); margin: 0 0 var(--space-4); }
+  .role-card .badge { margin-bottom: var(--space-3); }
+  .section-title { text-align: center; font-size: var(--text-xl); font-weight: 600; margin: var(--space-8) 0 var(--space-4); }
+  .footer-links { text-align: center; padding: var(--space-6); font-size: var(--text-sm); color: var(--text-secondary); border-top: 1px solid var(--border-default); }
+  .footer-links a { margin: 0 var(--space-2); }
+  .quick-links { max-width: 900px; margin: 0 auto; padding: 0 var(--space-6) var(--space-6); display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--space-3); }
+  .quick-links a { display: block; padding: var(--space-2) var(--space-3); background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: var(--radius-sm); text-decoration: none; font-size: var(--text-sm); color: var(--text-primary); }
+  .quick-links a:hover { background: var(--bg-surface-alt); border-color: var(--accent); }
+</style>
+</head>
+<body>
+
+<div class="landing-hero">
+  <div class="brand"><span class="mark">A</span><span>Amar School Management</span></div>
+  <h1>
+    <span data-i18n="bn">শিক্ষা প্রতিষ্ঠান পরিচালনা, এক জায়গায়</span>
+    <span data-i18n="en">School Management, All in One Place</span>
+  </h1>
+  <p>
+    <span data-i18n="bn">শিক্ষার্থী, শিক্ষক, উপস্থিতি, পরীক্ষা, হিসাব ও আরও অনেক কিছু — একটি আধুনিক প্ল্যাটফর্মে।</span>
+    <span data-i18n="en">Students, staff, attendance, exams, accounts, and more — on one modern platform.</span>
+  </p>
+  <div style="display:flex; gap: var(--space-3); justify-content: center; flex-wrap: wrap;">
+    <a class="btn btn-primary" href="login.html" style="background:white; color:var(--brand-700);">
+      <span data-i18n="bn">লগইন করুন</span><span data-i18n="en">Log In</span>
+    </a>
+    <a class="btn btn-secondary" href="role-routing.html" style="border-color:rgba(255,255,255,0.3); color:white;">
+      <span data-i18n="bn">ভূমিকা নির্বাচন করুন</span><span data-i18n="en">Select a Role</span>
+    </a>
+  </div>
+</div>
+
+<h2 class="section-title">
+  <span data-i18n="bn">ভূমিকা অনুযায়ী ড্যাশবোর্ড</span>
+  <span data-i18n="en">Dashboards by Role</span>
+</h2>
+<div class="role-grid">
+  <div class="role-card">
+    <div class="icon" style="background:var(--brand-600);">S</div>
+    <span class="badge badge-neutral"><span data-i18n="bn">স্কুল</span><span data-i18n="en">School</span></span>
+    <h3><span data-i18n="bn">School Owner</span><span data-i18n="en">School Owner</span></h3>
+    <p><span data-i18n="bn">প্রতিষ্ঠানের পূর্ণ অ্যাক্সেস — শিক্ষার্থী, কর্মচারী, উপস্থিতি, পরীক্ষা, হিসাব ও সেটআপ</span><span data-i18n="en">Full school access — students, employees, attendance, exams, accounts, and setup</span></p>
+    <a class="btn btn-primary" href="school-owner/dashboard.html">
+      <span data-i18n="bn">ড্যাশবোর্ড খুলুন</span><span data-i18n="en">Open Dashboard</span>
+    </a>
+  </div>
+
+  <div class="role-card">
+    <div class="icon" style="background:var(--success-fg);">T</div>
+    <span class="badge badge-neutral"><span data-i18n="bn">স্কুল</span><span data-i18n="en">School</span></span>
+    <h3><span data-i18n="bn">Staff User</span><span data-i18n="en">Staff User</span></h3>
+    <p><span data-i18n="bn">সীমিত অনুমতি — School Owner-এর নির্ধারিত মডিউলগুলিতে অ্যাক্সেস</span><span data-i18n="en">Limited permissions — access only to modules granted by the School Owner</span></p>
+    <a class="btn btn-secondary" href="staff-user/dashboard.html">
+      <span data-i18n="bn">ড্যাশবোর্ড খুলুন</span><span data-i18n="en">Open Dashboard</span>
+    </a>
+  </div>
+
+  <div class="role-card">
+    <div class="icon" style="background:var(--warning-fg);">D</div>
+    <span class="badge badge-neutral"><span data-i18n="bn">বিক্রেতা</span><span data-i18n="en">Reseller</span></span>
+    <h3><span data-i18n="bn">Dealer</span><span data-i18n="en">Dealer</span></h3>
+    <p><span data-i18n="bn">টেরিটরি-ভিত্তিক স্কুল তালিকা, সাবস্ক্রিপশন কোড ক্রয় ও ব্যবস্থাপনা</span><span data-i18n="en">Territory-based school list, purchase and manage subscription codes</span></p>
+    <a class="btn btn-secondary" href="dealer/dashboard.html">
+      <span data-i18n="bn">ড্যাশবোর্ড খুলুন</span><span data-i18n="en">Open Dashboard</span>
+    </a>
+  </div>
+
+  <div class="role-card">
+    <div class="icon" style="background:var(--info-fg);">G</div>
+    <span class="badge badge-neutral"><span data-i18n="bn">সরকার</span><span data-i18n="en">Government</span></span>
+    <h3><span data-i18n="bn">Government Official</span><span data-i18n="en">Government Official</span></h3>
+    <p><span data-i18n="bn">শুধুমাত্র পঠনযোগ্য তত্ত্বাবধান — এখতিয়ারভুক্ত সব প্রতিষ্ঠানের ড্যাশবোর্ড ও রিপোর্ট</span><span data-i18n="en">Read-only oversight — dashboards and reports for all institutes in jurisdiction</span></p>
+    <a class="btn btn-secondary" href="gov-official/dashboard.html">
+      <span data-i18n="bn">ড্যাশবোর্ড খুলুন</span><span data-i18n="en">Open Dashboard</span>
+    </a>
+  </div>
+
+  <div class="role-card">
+    <div class="icon" style="background:var(--danger-fg);">A</div>
+    <span class="badge badge-neutral"><span data-i18n="bn">ভেন্ডর</span><span data-i18n="en">Vendor</span></span>
+    <h3><span data-i18n="bn">Super Admin</span><span data-i18n="en">Super Admin</span></h3>
+    <p><span data-i18n="bn">পূর্ণ নিয়ন্ত্রণ — স্কুল, ডিলার, সরকারি কর্মকর্তা, কোড ও ভেন্ডর হিসাব ব্যবস্থাপনা</span><span data-i18n="en">Full control — manage schools, dealers, officials, codes, and vendor accounting</span></p>
+    <a class="btn btn-secondary" href="super-admin/schools-list.html">
+      <span data-i18n="bn">প্যানেল খুলুন</span><span data-i18n="en">Open Panel</span>
+    </a>
+  </div>
+</div>
+
+<h2 class="section-title">
+  <span data-i18n="bn">দ্রুত লিঙ্ক</span>
+  <span data-i18n="en">Quick Links</span>
+</h2>
+<div class="quick-links">
+  <a href="login.html"><span data-i18n="bn">লগইন</span><span data-i18n="en">Login</span></a>
+  <a href="role-routing.html"><span data-i18n="bn">ভূমিকা রাউটিং</span><span data-i18n="en">Role Routing</span></a>
+  <a href="sitemap.html"><span data-i18n="bn">সাইটম্যাপ</span><span data-i18n="en">Sitemap</span></a>
+  <a href="school-owner/dashboard.html"><span data-i18n="bn">School Owner ড্যাশবোর্ড</span><span data-i18n="en">School Owner Dashboard</span></a>
+  <a href="staff-user/dashboard.html"><span data-i18n="bn">Staff User ড্যাশবোর্ড</span><span data-i18n="en">Staff User Dashboard</span></a>
+  <a href="dealer/dashboard.html"><span data-i18n="bn">Dealer ড্যাশবোর্ড</span><span data-i18n="en">Dealer Dashboard</span></a>
+  <a href="gov-official/dashboard.html"><span data-i18n="bn">Government Official ড্যাশবোর্ড</span><span data-i18n="en">Government Official Dashboard</span></a>
+  <a href="super-admin/schools-list.html"><span data-i18n="bn">Super Admin প্যানেল</span><span data-i18n="en">Super Admin Panel</span></a>
+</div>
+
+<div class="footer-links">
+  <span data-i18n="bn">Amar School Management — ওয়েব রিবিল্ড</span>
+  <span data-i18n="en">Amar School Management — Web Rebuild</span>
+  &nbsp;·&nbsp;
+  <a href="sitemap.html"><span data-i18n="bn">সমস্ত পাতা</span><span data-i18n="en">All Pages</span></a>
+  &nbsp;·&nbsp;
+  <a href="../docs/ARCHITECTURE.md"><span data-i18n="bn">আর্কিটেকচার ডক্স</span><span data-i18n="en">Architecture Docs</span></a>
+  &nbsp;·&nbsp;
+  <a href="../docs/PRD.md">PRD</a>
+</div>
+
+</body>
+</html>

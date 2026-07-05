@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>শিক্ষার্থীর প্রোফাইল · Student Profile — Amar School Management</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../shared/design-system.css">
+<script src="../shared/app.js" defer></script>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="mark">A</span><span>Amar School</span></div>
+    <nav>
+      <a class="nav-item" href="../school-owner/dashboard.html"><span data-i18n="bn">ড্যাশবোর্ড</span><span data-i18n="en">Dashboard</span></a>
+      <a class="nav-item active" href="../school-owner/students-list.html"><span data-i18n="bn">শিক্ষার্থী</span><span data-i18n="en">Students</span></a>
+      <a class="nav-item" href="../school-owner/employees-list.html"><span data-i18n="bn">কর্মচারী</span><span data-i18n="en">Employees</span></a>
+      <a class="nav-item" href="../school-owner/attendance-student-mark.html"><span data-i18n="bn">উপস্থিতি</span><span data-i18n="en">Attendance</span></a>
+      <a class="nav-item" href="../school-owner/classes-list.html"><span data-i18n="bn">শ্রেণি ও পাঠ্যক্রম</span><span data-i18n="en">Class & Curriculum</span></a>
+      <a class="nav-item" href="../school-owner/exams-list.html"><span data-i18n="bn">পরীক্ষা ও ফলাফল</span><span data-i18n="en">Exams & Results</span></a>
+      <a class="nav-item" href="../school-owner/fee-collection.html"><span data-i18n="bn">হিসাব ও ফি</span><span data-i18n="en">Accounting & Fees</span></a>
+      <a class="nav-item" href="../school-owner/sms-compose.html"><span data-i18n="bn">এসএমএস</span><span data-i18n="en">SMS</span></a>
+      <a class="nav-item" href="../school-owner/notices-list.html"><span data-i18n="bn">প্রকাশনা</span><span data-i18n="en">Publishing</span></a>
+      <a class="nav-item" href="../school-owner/feedback-inbox.html"><span data-i18n="bn">মতামত</span><span data-i18n="en">Feedback</span></a>
+      <a class="nav-item" href="../school-owner/staff-permissions.html"><span data-i18n="bn">স্টাফ অনুমতি</span><span data-i18n="en">Staff Permissions</span></a>
+      <a class="nav-item" href="../school-owner/institute-profile.html"><span data-i18n="bn">প্রতিষ্ঠান সেটআপ</span><span data-i18n="en">Institute Setup</span></a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="title"><span data-i18n="bn">শিক্ষার্থীর প্রোফাইল — রাকিব হাসান</span><span data-i18n="en">Student Profile — Rakib Hasan</span></div>
+      <div class="actions">
+        <div class="lang-switch">
+          <button data-lang-btn="bn" onclick="setLang('bn')">বাং</button>
+          <button data-lang-btn="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="theme-switch">
+          <button data-theme-btn="light" onclick="setTheme('light')">☀</button>
+          <button data-theme-btn="dark" onclick="setTheme('dark')">☾</button>
+          <button data-theme-btn="system" onclick="setTheme('system')">Auto</button>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+
+      <div class="flex justify-between items-center mb-4">
+        <div class="flex gap-2 items-center">
+          <span class="badge badge-success"><span data-i18n="bn">সক্রিয়</span><span data-i18n="en">Active</span></span>
+          <span class="text-secondary">Roll ০১ · Class 8 / A</span>
+        </div>
+        <div class="flex gap-2">
+          <a class="btn btn-secondary" href="student-transfer-modal.html"><span data-i18n="bn">শ্রেণি/শিফট স্থানান্তর</span><span data-i18n="en">Transfer Class/Shift</span></a>
+          <a class="btn btn-secondary" href="student-behaviour-log.html"><span data-i18n="bn">আচরণ লগ দেখুন</span><span data-i18n="en">View Behaviour Log</span></a>
+        </div>
+      </div>
+
+      <div class="tabs">
+        <a href="#identity" class="active"><span data-i18n="bn">পরিচিতি</span><span data-i18n="en">Identity</span></a>
+        <a href="#address"><span data-i18n="bn">ঠিকানা</span><span data-i18n="en">Address</span></a>
+        <a href="#guardian"><span data-i18n="bn">অভিভাবক</span><span data-i18n="en">Guardian</span></a>
+        <a href="#benefits"><span data-i18n="bn">সুবিধা</span><span data-i18n="en">Benefits</span></a>
+        <a href="#transfer"><span data-i18n="bn">পূর্ববর্তী প্রতিষ্ঠান</span><span data-i18n="en">Previous Institute</span></a>
+        <a href="#siblings"><span data-i18n="bn">ভাইবোন</span><span data-i18n="en">Siblings</span></a>
+        <a href="#behaviour"><span data-i18n="bn">আচরণ লগ</span><span data-i18n="en">Behaviour Log</span></a>
+      </div>
+
+      <div style="display:grid; grid-template-columns: 160px 1fr; gap: var(--space-6);">
+        <div class="card" style="text-align:center;">
+          <div style="width:120px;height:120px;border-radius:var(--radius-md);background:var(--bg-surface-alt);border:1px dashed var(--border-strong);display:flex;align-items:center;justify-content:center;margin:0 auto var(--space-2);color:var(--text-secondary);font-size:var(--text-xs);">
+            <span data-i18n="bn">ছবি</span><span data-i18n="en">Photo</span>
+          </div>
+          <div class="text-secondary" style="font-size:var(--text-xs);">Roll ০১</div>
+        </div>
+
+        <div>
+          <section id="identity" class="card mb-4">
+            <h3 class="mt-0"><span data-i18n="bn">পরিচিতি</span><span data-i18n="en">Identity</span></h3>
+            <div class="form-grid">
+              <div class="field"><label><span data-i18n="bn">নাম (বাংলা)</span><span data-i18n="en">Name (Bangla)</span></label><input value="রাকিব হাসান" disabled></div>
+              <div class="field"><label><span data-i18n="bn">নাম (ইংরেজি)</span><span data-i18n="en">Name (English)</span></label><input value="Rakib Hasan" disabled></div>
+              <div class="field"><label><span data-i18n="bn">জন্ম তারিখ</span><span data-i18n="en">Date of Birth</span></label><input value="১২/০৩/২০১১" disabled></div>
+              <div class="field"><label><span data-i18n="bn">লিঙ্গ</span><span data-i18n="en">Gender</span></label><input value="পুরুষ · Male" disabled></div>
+              <div class="field"><label><span data-i18n="bn">শ্রেণি/শাখা/শিফট</span><span data-i18n="en">Class/Section/Shift</span></label><input value="Class 8 / A / Morning" disabled></div>
+              <div class="field"><label><span data-i18n="bn">রোল নম্বর</span><span data-i18n="en">Roll Number</span></label><input value="০১" disabled></div>
+            </div>
+          </section>
+
+          <section id="address" class="card mb-4">
+            <h3 class="mt-0"><span data-i18n="bn">ঠিকানা</span><span data-i18n="en">Address</span></h3>
+            <div class="form-grid">
+              <div class="field"><label><span data-i18n="bn">গ্রাম</span><span data-i18n="en">Village</span></label><input value="বাসাইল" disabled></div>
+              <div class="field"><label><span data-i18n="bn">ইউনিয়ন</span><span data-i18n="en">Union</span></label><input value="কাউলজানী" disabled></div>
+              <div class="field"><label><span data-i18n="bn">উপজেলা</span><span data-i18n="en">Upazila</span></label><input value="বাসাইল" disabled></div>
+              <div class="field"><label><span data-i18n="bn">জেলা</span><span data-i18n="en">District</span></label><input value="টাঙ্গাইল" disabled></div>
+            </div>
+          </section>
+
+          <section id="guardian" class="card mb-4">
+            <h3 class="mt-0"><span data-i18n="bn">অভিভাবক তথ্য</span><span data-i18n="en">Guardian Info</span></h3>
+            <div class="form-grid">
+              <div class="field"><label><span data-i18n="bn">অভিভাবকের নাম</span><span data-i18n="en">Guardian Name</span></label><input value="মোঃ আব্দুল হাসান" disabled></div>
+              <div class="field"><label><span data-i18n="bn">সম্পর্ক</span><span data-i18n="en">Relation</span></label><input value="পিতা · Father" disabled></div>
+              <div class="field"><label><span data-i18n="bn">মোবাইল নম্বর</span><span data-i18n="en">Mobile Number</span></label><input value="০১৭xxxxxxxx" disabled></div>
+              <div class="field"><label><span data-i18n="bn">পেশা</span><span data-i18n="en">Occupation</span></label><input value="ব্যবসায়ী · Businessman" disabled></div>
+            </div>
+          </section>
+
+          <section id="benefits" class="card mb-4">
+            <h3 class="mt-0"><span data-i18n="bn">সুবিধা সংক্রান্ত পতাকা</span><span data-i18n="en">Benefit Flags</span></h3>
+            <div class="flex gap-3">
+              <span class="badge badge-info"><span data-i18n="bn">মুক্তিযোদ্ধা সন্তান</span><span data-i18n="en">Freedom Fighter Child</span></span>
+              <span class="badge badge-neutral"><span data-i18n="bn">আদিবাসী নয়</span><span data-i18n="en">Not Indigenous</span></span>
+            </div>
+          </section>
+
+          <section id="transfer" class="card mb-4">
+            <h3 class="mt-0"><span data-i18n="bn">পূর্ববর্তী প্রতিষ্ঠান / স্থানান্তর তথ্য</span><span data-i18n="en">Previous Institute / Transfer Info</span></h3>
+            <div class="form-grid">
+              <div class="field"><label><span data-i18n="bn">পূর্ববর্তী প্রতিষ্ঠানের নাম</span><span data-i18n="en">Previous Institute Name</span></label><input value="বাসাইল সরকারি প্রাথমিক বিদ্যালয়" disabled></div>
+              <div class="field"><label><span data-i18n="bn">স্থানান্তরের তারিখ</span><span data-i18n="en">Transfer Date</span></label><input value="০৫/০১/২০২৩" disabled></div>
+            </div>
+            <p class="text-secondary" style="font-size:var(--text-xs); margin-top: var(--space-2);">
+              <span data-i18n="bn">সম্পূর্ণ স্থানান্তর ইতিহাসের জন্য দেখুন</span><span data-i18n="en">See full transfer history on</span>
+              <a href="student-transfer-modal.html">student-transfer-modal.html</a>
+            </p>
+          </section>
+
+          <section id="siblings" class="card mb-4">
+            <h3 class="mt-0"><span data-i18n="bn">ভাইবোনের তথ্য</span><span data-i18n="en">Sibling Info</span></h3>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th><span data-i18n="bn">নাম</span><span data-i18n="en">Name</span></th>
+                  <th><span data-i18n="bn">রোল</span><span data-i18n="en">Roll</span></th>
+                  <th><span data-i18n="bn">শ্রেণি</span><span data-i18n="en">Class</span></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>তাসনিম হাসান</td><td>১২</td><td>Class 5 / B</td></tr>
+              </tbody>
+            </table>
+          </section>
+
+          <section id="behaviour" class="card">
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="mt-0"><span data-i18n="bn">আচরণ লগ (সাম্প্রতিক)</span><span data-i18n="en">Behaviour Log (recent)</span></h3>
+              <a class="btn btn-secondary btn-sm" href="student-behaviour-log.html"><span data-i18n="bn">সম্পূর্ণ লগ দেখুন</span><span data-i18n="en">View Full Log</span></a>
+            </div>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th><span data-i18n="bn">নোট</span><span data-i18n="en">Note</span></th>
+                  <th><span data-i18n="bn">রেটিং</span><span data-i18n="en">Rating</span></th>
+                  <th><span data-i18n="bn">তৈরির সময়</span><span data-i18n="en">Created</span></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>ক্লাসে মনোযোগী ও সহপাঠীদের সহায়তা করে</td>
+                  <td><span class="badge badge-success">5</span></td>
+                  <td><span data-i18n="bn">আজ, ১০:৩০ AM</span><span data-i18n="en">Today, 10:30 AM</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </section>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

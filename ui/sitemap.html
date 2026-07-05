@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>সাইটম্যাপ · Sitemap — Amar School Management</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="shared/design-system.css">
+<script src="shared/app.js" defer></script>
+<style>
+  body { padding: var(--space-6); max-width: 1200px; margin: 0 auto; }
+  .sitemap-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-6); flex-wrap: wrap; gap: var(--space-3); }
+  .sitemap-header h1 { margin: 0; font-size: var(--text-2xl); }
+  .sitemap-header .subtitle { color: var(--text-secondary); font-size: var(--text-sm); width: 100%; margin-top: -8px; }
+  .role-section { margin-bottom: var(--space-6); }
+  .role-section h2 { font-size: var(--text-lg); margin: 0 0 var(--space-3); padding-bottom: var(--space-2); border-bottom: 2px solid var(--border-default); display: flex; align-items: center; gap: var(--space-2); }
+  .role-section h2 .badge { font-size: var(--text-xs); }
+  .page-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: var(--space-2); }
+  .page-grid a { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-3); background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: var(--radius-sm); text-decoration: none; font-size: var(--text-sm); color: var(--text-primary); }
+  .page-grid a:hover { background: var(--bg-surface-alt); border-color: var(--accent); }
+  .page-grid a .page-icon { width: 20px; text-align: center; color: var(--text-secondary); }
+  .page-grid a .page-count { margin-left: auto; font-size: var(--text-xs); color: var(--text-secondary); }
+  .stats-bar { display: flex; gap: var(--space-4); margin-bottom: var(--space-6); flex-wrap: wrap; }
+  .stat { background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: var(--space-3) var(--space-4); display: flex; align-items: center; gap: var(--space-2); font-size: var(--text-sm); }
+  .stat strong { font-size: var(--text-lg); }
+</style>
+</head>
+<body>
+
+<div class="sitemap-header">
+  <div>
+    <h1>
+      <span data-i18n="bn">সাইটম্যাপ</span>
+      <span data-i18n="en">Sitemap</span>
+    </h1>
+    <div class="subtitle">
+      <span data-i18n="bn">Amar School Management — ওয়েব রিবিল্ডের সব পাতা</span>
+      <span data-i18n="en">Amar School Management — Web Rebuild — all pages</span>
+    </div>
+  </div>
+  <div class="flex gap-2">
+    <div class="lang-switch">
+      <button data-lang-btn="bn" onclick="setLang('bn')">বাং</button>
+      <button data-lang-btn="en" onclick="setLang('en')">EN</button>
+    </div>
+    <div class="theme-switch">
+      <button data-theme-btn="light" onclick="setTheme('light')">☀</button>
+      <button data-theme-btn="dark" onclick="setTheme('dark')">☾</button>
+      <button data-theme-btn="system" onclick="setTheme('system')">Auto</button>
+    </div>
+  </div>
+</div>
+
+<div class="stats-bar">
+  <div class="stat"><strong>5</strong> <span data-i18n="bn">ভূমিকা</span><span data-i18n="en">Roles</span></div>
+  <div class="stat"><strong>50+</strong> <span data-i18n="bn">পাতা</span><span data-i18n="en">Pages</span></div>
+  <div class="stat"><strong>2</strong> <span data-i18n="bn">শেয়ার্ড ফাইল</span><span data-i18n="en">Shared Files</span></div>
+</div>
+
+<!-- ====== GLOBAL PAGES ====== -->
+<div class="role-section">
+  <h2>
+    <span data-i18n="bn">গ্লোবাল পাতা</span><span data-i18n="en">Global Pages</span>
+    <span class="badge badge-neutral">3</span>
+  </h2>
+  <div class="page-grid">
+    <a href="index.html"><span class="page-icon">🏠</span> <span data-i18n="bn">হোম পেজ</span><span data-i18n="en">Home Page</span> <span class="page-count">index.html</span></a>
+    <a href="login.html"><span class="page-icon">🔐</span> <span data-i18n="bn">লগইন</span><span data-i18n="en">Login</span> <span class="page-count">login.html</span></a>
+    <a href="role-routing.html"><span class="page-icon">🔄</span> <span data-i18n="bn">ভূমিকা রাউটিং</span><span data-i18n="en">Role Routing</span> <span class="page-count">role-routing.html</span></a>
+  </div>
+</div>
+
+<!-- ====== SCHOOL OWNER ====== -->
+<div class="role-section">
+  <h2>
+    <span class="badge badge-neutral" style="background:var(--brand-500);color:white;">School Owner</span>
+    <span data-i18n="bn">স্কুল মালিক</span><span data-i18n="en">School Owner</span>
+    <span class="badge badge-neutral">40</span>
+  </h2>
+  <div class="page-grid">
+    <a href="school-owner/dashboard.html"><span class="page-icon">📊</span> <span data-i18n="bn">ড্যাশবোর্ড</span><span data-i18n="en">Dashboard</span> <span class="page-count">dashboard.html</span></a>
+    <a href="school-owner/students-list.html"><span class="page-icon">👨‍🎓</span> <span data-i18n="bn">শিক্ষার্থী তালিকা</span><span data-i18n="en">Students List</span> <span class="page-count">students-list.html</span></a>
+    <a href="school-owner/student-admission-form.html"><span class="page-icon">➕</span> <span data-i18n="bn">নতুন ভর্তি</span><span data-i18n="en">New Admission</span> <span class="page-count">student-admission-form.html</span></a>
+    <a href="school-owner/student-detail.html"><span class="page-icon">👤</span> <span data-i18n="bn">শিক্ষার্থী বিস্তারিত</span><span data-i18n="en">Student Detail</span> <span class="page-count">student-detail.html</span></a>
+    <a href="school-owner/students-archive.html"><span class="page-icon">📦</span> <span data-i18n="bn">পুরাতন শিক্ষার্থী</span><span data-i18n="en">Students Archive</span> <span class="page-count">students-archive.html</span></a>
+    <a href="school-owner/student-transfer-modal.html"><span class="page-icon">🔄</span> <span data-i18n="bn">শিক্ষার্থী স্থানান্তর</span><span data-i18n="en">Student Transfer</span> <span class="page-count">student-transfer-modal.html</span></a>
+    <a href="school-owner/student-behaviour-log.html"><span class="page-icon">📝</span> <span data-i18n="bn">আচরণ লগ</span><span data-i18n="en">Behaviour Log</span> <span class="page-count">student-behaviour-log.html</span></a>
+    <a href="school-owner/employees-list.html"><span class="page-icon">👥</span> <span data-i18n="bn">কর্মচারী তালিকা</span><span data-i18n="en">Employees List</span> <span class="page-count">employees-list.html</span></a>
+    <a href="school-owner/employee-create-form.html"><span class="page-icon">➕</span> <span data-i18n="bn">নতুন কর্মচারী</span><span data-i18n="en">New Employee</span> <span class="page-count">employee-create-form.html</span></a>
+    <a href="school-owner/employee-detail.html"><span class="page-icon">👤</span> <span data-i18n="bn">কর্মচারী বিস্তারিত</span><span data-i18n="en">Employee Detail</span> <span class="page-count">employee-detail.html</span></a>
+    <a href="school-owner/employees-archive.html"><span class="page-icon">📦</span> <span data-i18n="bn">পুরাতন কর্মচারী</span><span data-i18n="en">Employees Archive</span> <span class="page-count">employees-archive.html</span></a>
+    <a href="school-owner/attendance-student-mark.html"><span class="page-icon">✅</span> <span data-i18n="bn">শিক্ষার্থী উপস্থিতি</span><span data-i18n="en">Student Attendance</span> <span class="page-count">attendance-student-mark.html</span></a>
+    <a href="school-owner/attendance-employee.html"><span class="page-icon">✅</span> <span data-i18n="bn">কর্মচারী উপস্থিতি</span><span data-i18n="en">Employee Attendance</span> <span class="page-count">attendance-employee.html</span></a>
+    <a href="school-owner/attendance-book.html"><span class="page-icon">📖</span> <span data-i18n="bn">উপস্থিতি বই</span><span data-i18n="en">Attendance Book</span> <span class="page-count">attendance-book.html</span></a>
+    <a href="school-owner/classes-list.html"><span class="page-icon">🏫</span> <span data-i18n="bn">শ্রেণি তালিকা</span><span data-i18n="en">Classes List</span> <span class="page-count">classes-list.html</span></a>
+    <a href="school-owner/class-routine-builder.html"><span class="page-icon">📅</span> <span data-i18n="bn">রুটিন বিল্ডার</span><span data-i18n="en">Routine Builder</span> <span class="page-count">class-routine-builder.html</span></a>
+    <a href="school-owner/exams-list.html"><span class="page-icon">📋</span> <span data-i18n="bn">পরীক্ষা তালিকা</span><span data-i18n="en">Exams List</span> <span class="page-count">exams-list.html</span></a>
+    <a href="school-owner/exam-setup.html"><span class="page-icon">⚙️</span> <span data-i18n="bn">পরীক্ষা সেটআপ</span><span data-i18n="en">Exam Setup</span> <span class="page-count">exam-setup.html</span></a>
+    <a href="school-owner/exam-routine.html"><span class="page-icon">📅</span> <span data-i18n="bn">পরীক্ষা রুটিন</span><span data-i18n="en">Exam Routine</span> <span class="page-count">exam-routine.html</span></a>
+    <a href="school-owner/seat-plan.html"><span class="page-icon">💺</span> <span data-i18n="bn">সিট প্ল্যান</span><span data-i18n="en">Seat Plan</span> <span class="page-count">seat-plan.html</span></a>
+    <a href="school-owner/marks-entry.html"><span class="page-icon">✏️</span> <span data-i18n="bn">নম্বর প্রবেশ</span><span data-i18n="en">Marks Entry</span> <span class="page-count">marks-entry.html</span></a>
+    <a href="school-owner/mark-sheet-preview.html"><span class="page-icon">📄</span> <span data-i18n="bn">মার্কশিট প্রিভিউ</span><span data-i18n="en">Mark Sheet Preview</span> <span class="page-count">mark-sheet-preview.html</span></a>
+    <a href="school-owner/result-book.html"><span class="page-icon">📊</span> <span data-i18n="bn">রেজাল্ট বুক</span><span data-i18n="en">Result Book</span> <span class="page-count">result-book.html</span></a>
+    <a href="school-owner/result-inquiry.html"><span class="page-icon">🔍</span> <span data-i18n="bn">রেজাল্ট অনুসন্ধান</span><span data-i18n="en">Result Inquiry</span> <span class="page-count">result-inquiry.html</span></a>
+    <a href="school-owner/progress-report-preview.html"><span class="page-icon">📈</span> <span data-i18n="bn">প্রগ্রেস রিপোর্ট</span><span data-i18n="en">Progress Report</span> <span class="page-count">progress-report-preview.html</span></a>
+    <a href="school-owner/admit-card-preview.html"><span class="page-icon">🎫</span> <span data-i18n="bn">অ্যাডমিট কার্ড</span><span data-i18n="en">Admit Card</span> <span class="page-count">admit-card-preview.html</span></a>
+    <a href="school-owner/promotion-transfer.html"><span class="page-icon">⬆️</span> <span data-i18n="bn">প্রমোশন/ট্রান্সফার</span><span data-i18n="en">Promotion/Transfer</span> <span class="page-count">promotion-transfer.html</span></a>
+    <a href="school-owner/fee-collection.html"><span class="page-icon">💰</span> <span data-i18n="bn">ফি কালেকশন</span><span data-i18n="en">Fee Collection</span> <span class="page-count">fee-collection.html</span></a>
+    <a href="school-owner/fee-collection-edit-modal.html"><span class="page-icon">✏️</span> <span data-i18n="bn">ফি এডিট মডেল</span><span data-i18n="en">Fee Edit Modal</span> <span class="page-count">fee-collection-edit-modal.html</span></a>
+    <a href="school-owner/fee-structures.html"><span class="page-icon">🏷️</span> <span data-i18n="bn">ফি স্ট্রাকচার</span><span data-i18n="en">Fee Structures</span> <span class="page-count">fee-structures.html</span></a>
+    <a href="school-owner/bank-cash-accounts.html"><span class="page-icon">🏦</span> <span data-i18n="bn">ব্যাংক/নগদ হিসাব</span><span data-i18n="en">Bank/Cash Accounts</span> <span class="page-count">bank-cash-accounts.html</span></a>
+    <a href="school-owner/general-ledger.html"><span class="page-icon">📒</span> <span data-i18n="bn">জেনারেল লেজার</span><span data-i18n="en">General Ledger</span> <span class="page-count">general-ledger.html</span></a>
+    <a href="school-owner/vouchers-list.html"><span class="page-icon">🧾</span> <span data-i18n="bn">ভাউচার তালিকা</span><span data-i18n="en">Vouchers List</span> <span class="page-count">vouchers-list.html</span></a>
+    <a href="school-owner/director-capital.html"><span class="page-icon">📊</span> <span data-i18n="bn">পরিচালক মূলধন</span><span data-i18n="en">Director Capital</span> <span class="page-count">director-capital.html</span></a>
+    <a href="school-owner/sms-compose.html"><span class="page-icon">📱</span> <span data-i18n="bn">এসএমএস কম্পোজ</span><span data-i18n="en">SMS Compose</span> <span class="page-count">sms-compose.html</span></a>
+    <a href="school-owner/sms-log.html"><span class="page-icon">📋</span> <span data-i18n="bn">এসএমএস লগ</span><span data-i18n="en">SMS Log</span> <span class="page-count">sms-log.html</span></a>
+    <a href="school-owner/sms-absence-rules.html"><span class="page-icon">⚙️</span> <span data-i18n="bn">অনুপস্থিতি এসএমএস নিয়ম</span><span data-i18n="en">Absence SMS Rules</span> <span class="page-count">sms-absence-rules.html</span></a>
+    <a href="school-owner/notices-list.html"><span class="page-icon">📢</span> <span data-i18n="bn">নোটিশ তালিকা</span><span data-i18n="en">Notices List</span> <span class="page-count">notices-list.html</span></a>
+    <a href="school-owner/notice-create.html"><span class="page-icon">➕</span> <span data-i18n="bn">নতুন নোটিশ</span><span data-i18n="en">New Notice</span> <span class="page-count">notice-create.html</span></a>
+    <a href="school-owner/gallery-albums.html"><span class="page-icon">🖼️</span> <span data-i18n="bn">গ্যালারি অ্যালবাম</span><span data-i18n="en">Gallery Albums</span> <span class="page-count">gallery-albums.html</span></a>
+    <a href="school-owner/gallery-album-detail.html"><span class="page-icon">🖼️</span> <span data-i18n="bn">গ্যালারি অ্যালবাম বিস্তারিত</span><span data-i18n="en">Gallery Album Detail</span> <span class="page-count">gallery-album-detail.html</span></a>
+    <a href="school-owner/feedback-inbox.html"><span class="page-icon">💬</span> <span data-i18n="bn">মতামত ইনবক্স</span><span data-i18n="en">Feedback Inbox</span> <span class="page-count">feedback-inbox.html</span></a>
+    <a href="school-owner/feedback-ratings.html"><span class="page-icon">⭐</span> <span data-i18n="bn">মতামত রেটিং</span><span data-i18n="en">Feedback Ratings</span> <span class="page-count">feedback-ratings.html</span></a>
+    <a href="school-owner/staff-permissions.html"><span class="page-icon">🔑</span> <span data-i18n="bn">স্টাফ অনুমতি</span><span data-i18n="en">Staff Permissions</span> <span class="page-count">staff-permissions.html</span></a>
+    <a href="school-owner/institute-profile.html"><span class="page-icon">🏛️</span> <span data-i18n="bn">প্রতিষ্ঠান সেটআপ</span><span data-i18n="en">Institute Setup</span> <span class="page-count">institute-profile.html</span></a>
+    <a href="school-owner/leave-management.html"><span class="page-icon">🏖️</span> <span data-i18n="bn">ছুটি ব্যবস্থাপনা</span><span data-i18n="en">Leave Management</span> <span class="page-count">leave-management.html</span></a>
+    <a href="school-owner/off-day-calendar.html"><span class="page-icon">📅</span> <span data-i18n="bn">অফ-ডে ক্যালেন্ডার</span><span data-i18n="en">Off-Day Calendar</span> <span class="page-count">off-day-calendar.html</span></a>
+    <a href="school-owner/activity-checklist.html"><span class="page-icon">✅</span> <span data-i18n="bn">অ্যাক্টিভিটি চেকলিস্ট</span><span data-i18n="en">Activity Checklist</span> <span class="page-count">activity-checklist.html</span></a>
+    <a href="school-owner/rfid-card-assignment.html"><span class="page-icon">💳</span> <span data-i18n="bn">RFID কার্ড অ্যাসাইনমেন্ট</span><span data-i18n="en">RFID Card Assignment</span> <span class="page-count">rfid-card-assignment.html</span></a>
+    <a href="school-owner/syllabus-upload.html"><span class="page-icon">📚</span> <span data-i18n="bn">সিলেবাস আপলোড</span><span data-i18n="en">Syllabus Upload</span> <span class="page-count">syllabus-upload.html</span></a>
+    <a href="school-owner/logistics-index.html"><span class="page-icon">📦</span> <span data-i18n="bn">লজিস্টিকস</span><span data-i18n="en">Logistics</span> <span class="page-count">logistics-index.html</span></a>
+    <a href="school-owner/asset-register.html"><span class="page-icon">📋</span> <span data-i18n="bn">সম্পদ রেজিস্টার</span><span data-i18n="en">Asset Register</span> <span class="page-count">asset-register.html</span></a>
+    <a href="school-owner/blank-templates.html"><span class="page-icon">📄</span> <span data-i18n="bn">ব্ল্যাঙ্ক টেমপ্লেট</span><span data-i18n="en">Blank Templates</span> <span class="page-count">blank-templates.html</span></a>
+    <a href="school-owner/exam-close-confirm-modal.html"><span class="page-icon">🔒</span> <span data-i18n="bn">পরীক্ষা বন্ধ নিশ্চিতকরণ</span><span data-i18n="en">Exam Close Confirm</span> <span class="page-count">exam-close-confirm-modal.html</span></a>
+  </div>
+</div>
+
+<!-- ====== STAFF USER ====== -->
+<div class="role-section">
+  <h2>
+    <span class="badge badge-neutral" style="background:var(--success-fg);color:white;">Staff User</span>
+    <span data-i18n="bn">স্টাফ ইউজার</span><span data-i18n="en">Staff User</span>
+    <span class="badge badge-neutral">2</span>
+  </h2>
+  <div class="page-grid">
+    <a href="staff-user/dashboard.html"><span class="page-icon">📊</span> <span data-i18n="bn">ড্যাশবোর্ড</span><span data-i18n="en">Dashboard</span> <span class="page-count">dashboard.html</span></a>
+    <a href="staff-user/permission-denied.html"><span class="page-icon">🚫</span> <span data-i18n="bn">অনুমতি নেই</span><span data-i18n="en">Permission Denied</span> <span class="page-count">permission-denied.html</span></a>
+  </div>
+</div>
+
+<!-- ====== DEALER ====== -->
+<div class="role-section">
+  <h2>
+    <span class="badge badge-neutral" style="background:var(--warning-fg);color:white;">Dealer</span>
+    <span data-i18n="bn">ডিলার</span><span data-i18n="en">Dealer</span>
+    <span class="badge badge-neutral">2</span>
+  </h2>
+  <div class="page-grid">
+    <a href="dealer/dashboard.html"><span class="page-icon">📊</span> <span data-i18n="bn">ড্যাশবোর্ড</span><span data-i18n="en">Dashboard</span> <span class="page-count">dashboard.html</span></a>
+    <a href="dealer/code-purchase.html"><span class="page-icon">💳</span> <span data-i18n="bn">কোড ক্রয়</span><span data-i18n="en">Purchase Codes</span> <span class="page-count">code-purchase.html</span></a>
+  </div>
+</div>
+
+<!-- ====== GOVERNMENT OFFICIAL ====== -->
+<div class="role-section">
+  <h2>
+    <span class="badge badge-neutral" style="background:var(--info-fg);color:white;">Gov Official</span>
+    <span data-i18n="bn">সরকারি কর্মকর্তা</span><span data-i18n="en">Government Official</span>
+    <span class="badge badge-neutral">3</span>
+  </h2>
+  <div class="page-grid">
+    <a href="gov-official/dashboard.html"><span class="page-icon">📊</span> <span data-i18n="bn">ড্যাশবোর্ড</span><span data-i18n="en">Dashboard</span> <span class="page-count">dashboard.html</span></a>
+    <a href="gov-official/performance-reports.html"><span class="page-icon">📈</span> <span data-i18n="bn">পারফরম্যান্স রিপোর্ট</span><span data-i18n="en">Performance Reports</span> <span class="page-count">performance-reports.html</span></a>
+    <a href="gov-official/school-drilldown.html"><span class="page-icon">🔍</span> <span data-i18n="bn">প্রতিষ্ঠান বিস্তারিত</span><span data-i18n="en">Institute Drilldown</span> <span class="page-count">school-drilldown.html</span></a>
+  </div>
+</div>
+
+<!-- ====== SUPER ADMIN ====== -->
+<div class="role-section">
+  <h2>
+    <span class="badge badge-neutral" style="background:var(--danger-fg);color:white;">Super Admin</span>
+    <span data-i18n="bn">সুপার অ্যাডমিন</span><span data-i18n="en">Super Admin</span>
+    <span class="badge badge-neutral">14</span>
+  </h2>
+  <div class="page-grid">
+    <a href="super-admin/schools-list.html"><span class="page-icon">🏫</span> <span data-i18n="bn">স্কুল তালিকা</span><span data-i18n="en">Schools List</span> <span class="page-count">schools-list.html</span></a>
+    <a href="super-admin/school-detail-admin.html"><span class="page-icon">🏛️</span> <span data-i18n="bn">স্কুল বিস্তারিত</span><span data-i18n="en">School Detail</span> <span class="page-count">school-detail-admin.html</span></a>
+    <a href="super-admin/dealers-list.html"><span class="page-icon">👥</span> <span data-i18n="bn">ডিলার তালিকা</span><span data-i18n="en">Dealers List</span> <span class="page-count">dealers-list.html</span></a>
+    <a href="super-admin/dealer-detail.html"><span class="page-icon">👤</span> <span data-i18n="bn">ডিলার বিস্তারিত</span><span data-i18n="en">Dealer Detail</span> <span class="page-count">dealer-detail.html</span></a>
+    <a href="super-admin/gov-officials-list.html"><span class="page-icon">👥</span> <span data-i18n="bn">সরকারি কর্মকর্তা তালিকা</span><span data-i18n="en">Officials List</span> <span class="page-count">gov-officials-list.html</span></a>
+    <a href="super-admin/gov-official-detail.html"><span class="page-icon">👤</span> <span data-i18n="bn">সরকারি কর্মকর্তা বিস্তারিত</span><span data-i18n="en">Official Detail</span> <span class="page-count">gov-official-detail.html</span></a>
+    <a href="super-admin/codes-list.html"><span class="page-icon">🔑</span> <span data-i18n="bn">সাবস্ক্রিপশন কোড তালিকা</span><span data-i18n="en">Codes List</span> <span class="page-count">codes-list.html</span></a>
+    <a href="super-admin/codes-batch-generate.html"><span class="page-icon">➕</span> <span data-i18n="bn">ব্যাচ কোড তৈরি</span><span data-i18n="en">Batch Generate Codes</span> <span class="page-count">codes-batch-generate.html</span></a>
+    <a href="super-admin/binding-code-inventory.html"><span class="page-icon">📦</span> <span data-i18n="bn">বাইন্ডিং কোড ইনভেন্টরি</span><span data-i18n="en">Binding Code Inventory</span> <span class="page-count">binding-code-inventory.html</span></a>
+    <a href="super-admin/locations-tree.html"><span class="page-icon">🌳</span> <span data-i18n="bn">টেরিটরি ও লোকেশন</span><span data-i18n="en">Territory & Locations</span> <span class="page-count">locations-tree.html</span></a>
+    <a href="super-admin/clusters.html"><span class="page-icon">📁</span> <span data-i18n="bn">ক্লাস্টার</span><span data-i18n="en">Clusters</span> <span class="page-count">clusters.html</span></a>
+    <a href="super-admin/vendor-accounting-ledger.html"><span class="page-icon">📒</span> <span data-i18n="bn">ভেন্ডর হিসাব</span><span data-i18n="en">Vendor Accounting</span> <span class="page-count">vendor-accounting-ledger.html</span></a>
+    <a href="super-admin/vendor-sms-compose.html"><span class="page-icon">📱</span> <span data-i18n="bn">ভেন্ডর এসএমএস</span><span data-i18n="en">Vendor SMS</span> <span class="page-count">vendor-sms-compose.html</span></a>
+    <a href="super-admin/central-holiday-calendar.html"><span class="page-icon">📅</span> <span data-i18n="bn">কেন্দ্রীয় ছুটির তালিকা</span><span data-i18n="en">Central Off-Day</span> <span class="page-count">central-holiday-calendar.html</span></a>
+    <a href="super-admin/attendance-job-monitor.html"><span class="page-icon">⚙️</span> <span data-i18n="bn">উপস্থিতি জব মনিটর</span><span data-i18n="en">Attendance Job Monitor</span> <span class="page-count">attendance-job-monitor.html</span></a>
+  </div>
+</div>
+
+<!-- ====== SHARED ====== -->
+<div class="role-section">
+  <h2>
+    <span data-i18n="bn">শেয়ার্ড ফাইল</span><span data-i18n="en">Shared Files</span>
+    <span class="badge badge-neutral">2</span>
+  </h2>
+  <div class="page-grid">
+    <a href="shared/design-system.css"><span class="page-icon">🎨</span> <span data-i18n="bn">ডিজাইন সিস্টেম</span><span data-i18n="en">Design System</span> <span class="page-count">design-system.css</span></a>
+    <a href="shared/app.js"><span class="page-icon">⚡</span> <span data-i18n="bn">শেয়ার্ড জাভাস্ক্রিপ্ট</span><span data-i18n="en">Shared JavaScript</span> <span class="page-count">app.js</span></a>
+  </div>
+</div>
+
+<div style="text-align:center; padding: var(--space-6); border-top: 1px solid var(--border-default); margin-top: var(--space-6);">
+  <a href="index.html">&larr; <span data-i18n="bn">হোম পেজে ফিরুন</span><span data-i18n="en">Back to Home</span></a>
+  &nbsp;·&nbsp;
+  <a href="role-routing.html"><span data-i18n="bn">ভূমিকা রাউটিং</span><span data-i18n="en">Role Routing</span></a>
+  &nbsp;·&nbsp;
+  <a href="login.html"><span data-i18n="bn">লগইন</span><span data-i18n="en">Login</span></a>
+</div>
+
+</body>
+</html>

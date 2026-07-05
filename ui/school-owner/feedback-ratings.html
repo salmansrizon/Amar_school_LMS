@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>রেটিং ড্যাশবোর্ড · Feedback Ratings — Amar School Management</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../shared/design-system.css">
+<script src="../shared/app.js" defer></script>
+<style>
+  .bar-row { display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-2); font-size: var(--text-sm); }
+  .bar-label { width: 110px; flex-shrink: 0; }
+  .bar-track { flex: 1; height: 10px; border-radius: var(--radius-sm); background: var(--bg-surface-alt); overflow: hidden; }
+  .bar-fill { height: 100%; background: var(--brand-400); }
+  .bar-value { width: 48px; text-align: right; flex-shrink: 0; color: var(--text-secondary); }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="mark">A</span><span>Amar School</span></div>
+    <nav>
+      <a class="nav-item" href="../school-owner/dashboard.html"><span data-i18n="bn">ড্যাশবোর্ড</span><span data-i18n="en">Dashboard</span></a>
+      <a class="nav-item" href="../school-owner/students-list.html"><span data-i18n="bn">শিক্ষার্থী</span><span data-i18n="en">Students</span></a>
+      <a class="nav-item" href="../school-owner/employees-list.html"><span data-i18n="bn">কর্মচারী</span><span data-i18n="en">Employees</span></a>
+      <a class="nav-item" href="../school-owner/attendance-student-mark.html"><span data-i18n="bn">উপস্থিতি</span><span data-i18n="en">Attendance</span></a>
+      <a class="nav-item" href="../school-owner/classes-list.html"><span data-i18n="bn">শ্রেণি ও পাঠ্যক্রম</span><span data-i18n="en">Class & Curriculum</span></a>
+      <a class="nav-item" href="../school-owner/exams-list.html"><span data-i18n="bn">পরীক্ষা ও ফলাফল</span><span data-i18n="en">Exams & Results</span></a>
+      <a class="nav-item" href="../school-owner/fee-collection.html"><span data-i18n="bn">হিসাব ও ফি</span><span data-i18n="en">Accounting & Fees</span></a>
+      <a class="nav-item" href="../school-owner/sms-compose.html"><span data-i18n="bn">এসএমএস</span><span data-i18n="en">SMS</span></a>
+      <a class="nav-item" href="../school-owner/notices-list.html"><span data-i18n="bn">প্রকাশনা</span><span data-i18n="en">Publishing</span></a>
+      <a class="nav-item active" href="../school-owner/feedback-inbox.html"><span data-i18n="bn">মতামত</span><span data-i18n="en">Feedback</span></a>
+      <a class="nav-item" href="../school-owner/staff-permissions.html"><span data-i18n="bn">স্টাফ অনুমতি</span><span data-i18n="en">Staff Permissions</span></a>
+      <a class="nav-item" href="../school-owner/institute-profile.html"><span data-i18n="bn">প্রতিষ্ঠান সেটআপ</span><span data-i18n="en">Institute Setup</span></a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="title"><span data-i18n="bn">রেটিং ড্যাশবোর্ড</span><span data-i18n="en">Ratings Dashboard</span></div>
+      <div class="actions">
+        <div class="lang-switch">
+          <button data-lang-btn="bn" onclick="setLang('bn')">বাং</button>
+          <button data-lang-btn="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="theme-switch">
+          <button data-theme-btn="light" onclick="setTheme('light')">☀</button>
+          <button data-theme-btn="dark" onclick="setTheme('dark')">☾</button>
+          <button data-theme-btn="system" onclick="setTheme('system')">Auto</button>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+
+      <div class="tabs">
+        <a href="feedback-inbox.html"><span data-i18n="bn">ইনবক্স</span><span data-i18n="en">Inbox</span></a>
+        <a href="feedback-ratings.html" class="active"><span data-i18n="bn">রেটিং ড্যাশবোর্ড</span><span data-i18n="en">Ratings Dashboard</span></a>
+      </div>
+
+      <div class="kpi-grid" style="grid-template-columns: repeat(3, 1fr);">
+        <div class="kpi-card">
+          <div class="label"><span data-i18n="bn">গড় রেটিং</span><span data-i18n="en">Average Rating</span></div>
+          <div class="value">৪.৩ / ৫</div>
+        </div>
+        <div class="kpi-card">
+          <div class="label"><span data-i18n="bn">মোট প্রতিক্রিয়া</span><span data-i18n="en">Total Responses</span></div>
+          <div class="value">২১৮</div>
+        </div>
+        <div class="kpi-card">
+          <div class="label"><span data-i18n="bn">সাড়াদানের হার</span><span data-i18n="en">Response Rate</span></div>
+          <div class="value">৬৭%</div>
+        </div>
+      </div>
+
+      <div class="card mb-4">
+        <h3 class="mt-0"><span data-i18n="bn">রেটিং বিভাজন</span><span data-i18n="en">Rating Distribution</span></h3>
+        <div class="bar-row"><div class="bar-label">৫ <span data-i18n="bn">তারা</span><span data-i18n="en">stars</span></div><div class="bar-track"><div class="bar-fill" style="width: 58%;"></div></div><div class="bar-value">৫৮%</div></div>
+        <div class="bar-row"><div class="bar-label">৪ <span data-i18n="bn">তারা</span><span data-i18n="en">stars</span></div><div class="bar-track"><div class="bar-fill" style="width: 24%;"></div></div><div class="bar-value">২৪%</div></div>
+        <div class="bar-row"><div class="bar-label">৩ <span data-i18n="bn">তারা</span><span data-i18n="en">stars</span></div><div class="bar-track"><div class="bar-fill" style="width: 11%;"></div></div><div class="bar-value">১১%</div></div>
+        <div class="bar-row"><div class="bar-label">২ <span data-i18n="bn">তারা</span><span data-i18n="en">stars</span></div><div class="bar-track"><div class="bar-fill" style="width: 5%;"></div></div><div class="bar-value">৫%</div></div>
+        <div class="bar-row"><div class="bar-label">১ <span data-i18n="bn">তারা</span><span data-i18n="en">star</span></div><div class="bar-track"><div class="bar-fill" style="width: 2%;"></div></div><div class="bar-value">২%</div></div>
+      </div>
+
+      <div class="card">
+        <h3 class="mt-0"><span data-i18n="bn">বিভাগ অনুযায়ী গড়</span><span data-i18n="en">Average by Category</span></h3>
+        <div class="bar-row"><div class="bar-label"><span data-i18n="bn">শিক্ষাদান</span><span data-i18n="en">Teaching</span></div><div class="bar-track"><div class="bar-fill" style="width: 88%;"></div></div><div class="bar-value">৪.৪</div></div>
+        <div class="bar-row"><div class="bar-label"><span data-i18n="bn">সুযোগ-সুবিধা</span><span data-i18n="en">Facilities</span></div><div class="bar-track"><div class="bar-fill" style="width: 76%;"></div></div><div class="bar-value">৩.৮</div></div>
+        <div class="bar-row"><div class="bar-label"><span data-i18n="bn">যোগাযোগ</span><span data-i18n="en">Communication</span></div><div class="bar-track"><div class="bar-fill" style="width: 82%;"></div></div><div class="bar-value">৪.১</div></div>
+        <div class="bar-row"><div class="bar-label"><span data-i18n="bn">নিরাপত্তা</span><span data-i18n="en">Safety</span></div><div class="bar-track"><div class="bar-fill" style="width: 90%;"></div></div><div class="bar-value">৪.৫</div></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

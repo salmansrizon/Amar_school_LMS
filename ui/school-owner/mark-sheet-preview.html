@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>মার্কশিট প্রিভিউ · Mark Sheet Preview — Amar School Management</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../shared/design-system.css">
+<script src="../shared/app.js" defer></script>
+<style>
+  .print-page-wrap { display: flex; justify-content: center; padding: var(--space-6); }
+  .print-page { width: 100%; max-width: 760px; background: var(--bg-surface); border: 1px solid var(--border-strong); border-radius: var(--radius-md); box-shadow: var(--shadow-md); padding: var(--space-8); }
+  .print-header { text-align: center; border-bottom: 2px solid var(--border-strong); padding-bottom: var(--space-4); margin-bottom: var(--space-4); }
+  .print-header .institute-name { font-size: var(--text-xl); font-weight: 700; }
+  .print-header .institute-meta { font-size: var(--text-xs); color: var(--text-secondary); margin-top: 2px; }
+  .print-header .doc-title { margin-top: var(--space-3); font-size: var(--text-lg); font-weight: 600; color: var(--accent); }
+  .student-info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-2) var(--space-6); margin-bottom: var(--space-5); font-size: var(--text-sm); }
+  .student-info-grid .row { display: flex; justify-content: space-between; border-bottom: 1px dashed var(--border-default); padding-bottom: 2px; }
+  .student-info-grid .row .label { color: var(--text-secondary); }
+  .grade-panel-footer { display: flex; justify-content: flex-end; gap: var(--space-6); margin-top: var(--space-3); font-size: var(--text-sm); font-weight: 600; }
+  .qr-footer-row { display: flex; align-items: center; justify-content: space-between; margin-top: var(--space-6); padding-top: var(--space-4); border-top: 1px solid var(--border-default); }
+  .qr-box { width: 84px; height: 84px; border: 1px dashed var(--border-strong); display: flex; align-items: center; justify-content: center; font-size: var(--text-xs); color: var(--text-secondary); text-align: center; border-radius: var(--radius-sm); }
+  .powered-by { font-size: var(--text-xs); color: var(--text-secondary); text-align: center; margin-top: var(--space-4); }
+  .signature-row { display: flex; justify-content: space-between; margin-top: var(--space-8); font-size: var(--text-xs); }
+  .signature-row .sig { text-align: center; width: 160px; border-top: 1px solid var(--border-strong); padding-top: 4px; }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="mark">A</span><span>Amar School</span></div>
+    <nav>
+      <a class="nav-item" href="../school-owner/dashboard.html"><span data-i18n="bn">ড্যাশবোর্ড</span><span data-i18n="en">Dashboard</span></a>
+      <a class="nav-item" href="../school-owner/students-list.html"><span data-i18n="bn">শিক্ষার্থী</span><span data-i18n="en">Students</span></a>
+      <a class="nav-item" href="../school-owner/employees-list.html"><span data-i18n="bn">কর্মচারী</span><span data-i18n="en">Employees</span></a>
+      <a class="nav-item" href="../school-owner/attendance-student-mark.html"><span data-i18n="bn">উপস্থিতি</span><span data-i18n="en">Attendance</span></a>
+      <a class="nav-item" href="../school-owner/classes-list.html"><span data-i18n="bn">শ্রেণি ও পাঠ্যক্রম</span><span data-i18n="en">Class & Curriculum</span></a>
+      <a class="nav-item active" href="../school-owner/exams-list.html"><span data-i18n="bn">পরীক্ষা ও ফলাফল</span><span data-i18n="en">Exams & Results</span></a>
+      <a class="nav-item" href="../school-owner/fee-collection.html"><span data-i18n="bn">হিসাব ও ফি</span><span data-i18n="en">Accounting & Fees</span></a>
+      <a class="nav-item" href="../school-owner/sms-compose.html"><span data-i18n="bn">এসএমএস</span><span data-i18n="en">SMS</span></a>
+      <a class="nav-item" href="../school-owner/notices-list.html"><span data-i18n="bn">প্রকাশনা</span><span data-i18n="en">Publishing</span></a>
+      <a class="nav-item" href="../school-owner/feedback-inbox.html"><span data-i18n="bn">মতামত</span><span data-i18n="en">Feedback</span></a>
+      <a class="nav-item" href="../school-owner/staff-permissions.html"><span data-i18n="bn">স্টাফ অনুমতি</span><span data-i18n="en">Staff Permissions</span></a>
+      <a class="nav-item" href="../school-owner/institute-profile.html"><span data-i18n="bn">প্রতিষ্ঠান সেটআপ</span><span data-i18n="en">Institute Setup</span></a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="title"><span data-i18n="bn">মার্কশিট প্রিভিউ</span><span data-i18n="en">Mark Sheet Preview</span></div>
+      <div class="actions">
+        <select class="search-input" style="min-width:150px;">
+          <option><span data-i18n="bn">টেমপ্লেট ১</span><span data-i18n="en">Template 1</span></option>
+          <option><span data-i18n="bn">টেমপ্লেট ২</span><span data-i18n="en">Template 2</span></option>
+          <option><span data-i18n="bn">টেমপ্লেট ৩</span><span data-i18n="en">Template 3</span></option>
+        </select>
+        <a class="btn btn-secondary btn-sm" href="result-book.html"><span data-i18n="bn">ফলাফল বইতে ফিরুন</span><span data-i18n="en">Back to Result Book</span></a>
+        <button class="btn btn-primary btn-sm"><span data-i18n="bn">প্রিন্ট করুন</span><span data-i18n="en">Print</span></button>
+      </div>
+    </div>
+    <div class="content">
+      <div class="print-page-wrap">
+        <div class="print-page">
+
+          <div class="print-header">
+            <div class="institute-name"><span data-i18n="bn">আদর্শ উচ্চ বিদ্যালয়</span><span data-i18n="en">Adarsha High School</span></div>
+            <div class="institute-meta">
+              <span data-i18n="bn">গ্রাম: রায়পুর, ডাকঘর: রায়পুর, উপজেলা: সদর, জেলা: কুমিল্লা</span>
+              <span data-i18n="en">Village: Raipur, Post: Raipur, Upazila: Sadar, District: Cumilla</span>
+              &nbsp;·&nbsp; EIIN: 123456 &nbsp;·&nbsp; MPO: 987654321
+            </div>
+            <div class="doc-title"><span data-i18n="bn">মার্কশিট — বার্ষিক পরীক্ষা ২০২৫</span><span data-i18n="en">Mark Sheet — Annual Examination 2025</span></div>
+          </div>
+
+          <div class="student-info-grid">
+            <div class="row"><span class="label"><span data-i18n="bn">শিক্ষার্থীর নাম</span><span data-i18n="en">Student Name</span></span><span><span data-i18n="bn">মোঃ ইমরান হোসেন</span><span data-i18n="en">Md. Imran Hossain</span></span></div>
+            <div class="row"><span class="label"><span data-i18n="bn">রোল নম্বর</span><span data-i18n="en">Roll No.</span></span><span>01</span></div>
+            <div class="row"><span class="label"><span data-i18n="bn">শ্রেণি / শাখা</span><span data-i18n="en">Class / Section</span></span><span><span data-i18n="bn">অষ্টম / A</span><span data-i18n="en">Class 8 / A</span></span></div>
+            <div class="row"><span class="label"><span data-i18n="bn">পিতার নাম</span><span data-i18n="en">Father's Name</span></span><span><span data-i18n="bn">মোঃ কামাল হোসেন</span><span data-i18n="en">Md. Kamal Hossain</span></span></div>
+          </div>
+
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th><span data-i18n="bn">বিষয়</span><span data-i18n="en">Subject</span></th>
+                <th><span data-i18n="bn">পূর্ণমান</span><span data-i18n="en">Full Marks</span></th>
+                <th><span data-i18n="bn">প্রাপ্ত নম্বর</span><span data-i18n="en">Marks Obtained</span></th>
+                <th><span data-i18n="bn">গ্রেড</span><span data-i18n="en">Grade</span></th>
+                <th>GPA</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td><span data-i18n="bn">বাংলা</span><span data-i18n="en">Bangla</span></td><td>100</td><td>88</td><td><span class="badge badge-success">A+</span></td><td>5.00</td></tr>
+              <tr><td><span data-i18n="bn">ইংরেজি</span><span data-i18n="en">English</span></td><td>100</td><td>82</td><td><span class="badge badge-success">A+</span></td><td>5.00</td></tr>
+              <tr><td><span data-i18n="bn">গণিত</span><span data-i18n="en">Mathematics</span></td><td>100</td><td>95</td><td><span class="badge badge-success">A+</span></td><td>5.00</td></tr>
+              <tr><td><span data-i18n="bn">বিজ্ঞান</span><span data-i18n="en">Science</span></td><td>100</td><td>91</td><td><span class="badge badge-success">A+</span></td><td>5.00</td></tr>
+              <tr><td><span data-i18n="bn">সামাজিক বিজ্ঞান</span><span data-i18n="en">Social Science</span></td><td>100</td><td>78</td><td><span class="badge badge-success">A</span></td><td>4.00</td></tr>
+              <tr><td><span data-i18n="bn">তথ্য ও যোগাযোগ প্রযুক্তি</span><span data-i18n="en">ICT</span></td><td>50</td><td>44</td><td><span class="badge badge-success">A+</span></td><td>5.00</td></tr>
+              <tr><td><span data-i18n="bn">ধর্ম শিক্ষা</span><span data-i18n="en">Religious Studies</span></td><td>100</td><td>84</td><td><span class="badge badge-success">A+</span></td><td>5.00</td></tr>
+            </tbody>
+          </table>
+
+          <div class="grade-panel-footer">
+            <span><span data-i18n="bn">মোট প্রাপ্ত নম্বর:</span><span data-i18n="en">Total Marks:</span> 612 / 650</span>
+            <span><span data-i18n="bn">সর্বমোট GPA:</span><span data-i18n="en">Overall GPA:</span> 5.00</span>
+            <span><span class="badge badge-success"><span data-i18n="bn">উত্তীর্ণ</span><span data-i18n="en">Pass</span></span></span>
+          </div>
+
+          <div class="signature-row">
+            <span class="sig"><span data-i18n="bn">শ্রেণি শিক্ষক</span><span data-i18n="en">Class Teacher</span></span>
+            <span class="sig"><span data-i18n="bn">পরীক্ষা নিয়ন্ত্রক</span><span data-i18n="en">Controller of Examinations</span></span>
+            <span class="sig"><span data-i18n="bn">প্রধান শিক্ষক</span><span data-i18n="en">Head Teacher</span></span>
+          </div>
+
+          <div class="qr-footer-row">
+            <div class="qr-box"><span data-i18n="bn">QR কোড</span><span data-i18n="en">QR Code</span></div>
+            <div class="powered-by">
+              <span data-i18n="bn">Amar School Management দ্বারা পরিচালিত</span>
+              <span data-i18n="en">Powered by Amar School Management</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>শ্রেণি/শিফট স্থানান্তর · Transfer Class/Shift — Amar School Management</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../shared/design-system.css">
+<script src="../shared/app.js" defer></script>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="mark">A</span><span>Amar School</span></div>
+    <nav>
+      <a class="nav-item" href="../school-owner/dashboard.html"><span data-i18n="bn">ড্যাশবোর্ড</span><span data-i18n="en">Dashboard</span></a>
+      <a class="nav-item active" href="../school-owner/students-list.html"><span data-i18n="bn">শিক্ষার্থী</span><span data-i18n="en">Students</span></a>
+      <a class="nav-item" href="../school-owner/employees-list.html"><span data-i18n="bn">কর্মচারী</span><span data-i18n="en">Employees</span></a>
+      <a class="nav-item" href="../school-owner/attendance-student-mark.html"><span data-i18n="bn">উপস্থিতি</span><span data-i18n="en">Attendance</span></a>
+      <a class="nav-item" href="../school-owner/classes-list.html"><span data-i18n="bn">শ্রেণি ও পাঠ্যক্রম</span><span data-i18n="en">Class & Curriculum</span></a>
+      <a class="nav-item" href="../school-owner/exams-list.html"><span data-i18n="bn">পরীক্ষা ও ফলাফল</span><span data-i18n="en">Exams & Results</span></a>
+      <a class="nav-item" href="../school-owner/fee-collection.html"><span data-i18n="bn">হিসাব ও ফি</span><span data-i18n="en">Accounting & Fees</span></a>
+      <a class="nav-item" href="../school-owner/sms-compose.html"><span data-i18n="bn">এসএমএস</span><span data-i18n="en">SMS</span></a>
+      <a class="nav-item" href="../school-owner/notices-list.html"><span data-i18n="bn">প্রকাশনা</span><span data-i18n="en">Publishing</span></a>
+      <a class="nav-item" href="../school-owner/feedback-inbox.html"><span data-i18n="bn">মতামত</span><span data-i18n="en">Feedback</span></a>
+      <a class="nav-item" href="../school-owner/staff-permissions.html"><span data-i18n="bn">স্টাফ অনুমতি</span><span data-i18n="en">Staff Permissions</span></a>
+      <a class="nav-item" href="../school-owner/institute-profile.html"><span data-i18n="bn">প্রতিষ্ঠান সেটআপ</span><span data-i18n="en">Institute Setup</span></a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="title"><span data-i18n="bn">শ্রেণি/শিফট স্থানান্তর — রাকিব হাসান</span><span data-i18n="en">Transfer Class/Shift — Rakib Hasan</span></div>
+      <div class="actions">
+        <div class="lang-switch">
+          <button data-lang-btn="bn" onclick="setLang('bn')">বাং</button>
+          <button data-lang-btn="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="theme-switch">
+          <button data-theme-btn="light" onclick="setTheme('light')">☀</button>
+          <button data-theme-btn="dark" onclick="setTheme('dark')">☾</button>
+          <button data-theme-btn="system" onclick="setTheme('system')">Auto</button>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+
+      <p class="text-secondary"><a href="student-detail.html">&larr; <span data-i18n="bn">প্রোফাইলে ফিরুন</span><span data-i18n="en">Back to Profile</span></a></p>
+
+      <div class="card">
+        <h3 class="mt-0"><span data-i18n="bn">স্থানান্তর ইতিহাস</span><span data-i18n="en">Transfer History</span></h3>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th><span data-i18n="bn">তারিখ</span><span data-i18n="en">Date</span></th>
+              <th><span data-i18n="bn">পূর্বের শ্রেণি/শাখা/শিফট</span><span data-i18n="en">From Class/Section/Shift</span></th>
+              <th><span data-i18n="bn">নতুন শ্রেণি/শাখা/শিফট</span><span data-i18n="en">To Class/Section/Shift</span></th>
+              <th><span data-i18n="bn">কারণ</span><span data-i18n="en">Reason</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>০১/০১/২০২৬</td>
+              <td>Class 7 / A / Morning</td>
+              <td>Class 8 / A / Morning</td>
+              <td><span data-i18n="bn">বার্ষিক উত্তরণ</span><span data-i18n="en">Annual promotion</span></td>
+            </tr>
+            <tr>
+              <td>১০/০৬/২০২৪</td>
+              <td>Class 7 / B / Day</td>
+              <td>Class 7 / A / Morning</td>
+              <td><span data-i18n="bn">অভিভাবকের অনুরোধ</span><span data-i18n="en">Guardian request</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop">
+  <div class="modal">
+    <h3><span data-i18n="bn">শ্রেণি/শিফট স্থানান্তর করুন</span><span data-i18n="en">Transfer Class / Shift</span></h3>
+    <p class="text-secondary" style="font-size: var(--text-sm); margin-top:-8px;">
+      <span data-i18n="bn">শিক্ষার্থীঃ রাকিব হাসান (রোল ০১, বর্তমানে Class 8 / A)</span>
+      <span data-i18n="en">Student: Rakib Hasan (Roll 01, currently Class 8 / A)</span>
+    </p>
+    <div class="form-grid">
+      <div class="field">
+        <label><span data-i18n="bn">নতুন শ্রেণি</span><span data-i18n="en">New Class</span></label>
+        <select><option>Class 8</option><option selected>Class 9</option><option>Class 10</option></select>
+      </div>
+      <div class="field">
+        <label><span data-i18n="bn">নতুন শাখা</span><span data-i18n="en">New Section</span></label>
+        <select><option selected>A</option><option>B</option></select>
+      </div>
+      <div class="field field-full">
+        <label><span data-i18n="bn">নতুন শিফট</span><span data-i18n="en">New Shift</span></label>
+        <select><option selected><span data-i18n="bn">সকাল</span><span data-i18n="en">Morning</span></option><option><span data-i18n="bn">দিবা</span><span data-i18n="en">Day</span></option></select>
+      </div>
+      <div class="field field-full">
+        <label><span data-i18n="bn">কারণ</span><span data-i18n="en">Reason</span></label>
+        <textarea rows="2" placeholder="ঐচ্ছিক মন্তব্য · optional note"></textarea>
+      </div>
+    </div>
+    <div class="flex gap-2 justify-between mb-4" style="margin-top: var(--space-4);">
+      <a class="btn btn-secondary" href="student-detail.html"><span data-i18n="bn">বাতিল</span><span data-i18n="en">Cancel</span></a>
+      <button class="btn btn-primary"><span data-i18n="bn">স্থানান্তর নিশ্চিত করুন</span><span data-i18n="en">Confirm Transfer</span></button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

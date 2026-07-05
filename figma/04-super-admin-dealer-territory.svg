@@ -1,0 +1,121 @@
+<svg width="1440" height="900" viewBox="0 0 1440 900" xmlns="http://www.w3.org/2000/svg" font-family="Hind Siliguri, Noto Sans Bengali, Arial, sans-serif">
+  <rect x="0" y="0" width="1440" height="900" fill="#f8fafc"/>
+
+  <!-- ===== Sidebar (Super Admin) ===== -->
+  <rect x="0" y="0" width="232" height="900" fill="#0f172a"/>
+  <g>
+    <rect x="16" y="20" width="26" height="26" rx="6" fill="#8b5cf6"/>
+    <text x="24" y="38" font-size="13" font-weight="700" fill="#ffffff">A</text>
+    <text x="52" y="39" font-size="16" font-weight="700" fill="#ffffff">Super Admin</text>
+  </g>
+  <g font-size="13">
+    <text x="26" y="98"  fill="#cbd5e1">স্কুলসমূহ (Schools)</text>
+
+    <rect x="12" y="110" width="208" height="34" rx="4" fill="#7c3aed"/>
+    <text x="26" y="132" fill="#ffffff">ডিলার (Dealers)</text>
+
+    <text x="26" y="166" fill="#cbd5e1">সরকারি কর্মকর্তা (Gov. Officials)</text>
+    <text x="26" y="200" fill="#cbd5e1">সাবস্ক্রিপশন কোড (Codes)</text>
+    <text x="26" y="234" fill="#cbd5e1">টেরিটরি ও লোকেশন</text>
+    <text x="26" y="268" fill="#cbd5e1">ভেন্ডর হিসাব (Accounting)</text>
+    <text x="26" y="302" fill="#cbd5e1">ভেন্ডর এসএমএস</text>
+    <text x="26" y="336" fill="#cbd5e1">কেন্দ্রীয় ছুটির তালিকা</text>
+  </g>
+
+  <!-- ===== Topbar ===== -->
+  <rect x="232" y="0" width="1208" height="60" fill="#ffffff" stroke="#e2e8f0"/>
+  <text x="264" y="38" font-size="20" font-weight="600" fill="#0f172a">ডিলার বিস্তারিত · Dealer Detail</text>
+  <g font-size="12" font-weight="600">
+    <rect x="1180" y="16" width="80" height="28" rx="6" fill="#ffffff" stroke="#e2e8f0"/>
+    <rect x="1180" y="16" width="40" height="28" rx="6" fill="#7c3aed"/>
+    <text x="1191" y="34" fill="#ffffff">বাং</text>
+    <text x="1230" y="34" fill="#334155">EN</text>
+  </g>
+
+  <!-- ===== Dealer profile card ===== -->
+  <rect x="264" y="80" width="1144" height="96" rx="10" fill="#ffffff" stroke="#e2e8f0"/>
+  <circle cx="316" cy="128" r="28" fill="#ede9fe"/>
+  <text x="303" y="134" font-size="16" fill="#7c3aed" font-weight="700">করি</text>
+  <text x="360" y="118" font-size="17" font-weight="700" fill="#0f172a">করিম ট্রেডার্স · Karim Traders</text>
+  <text x="360" y="140" font-size="12" fill="#64748b">ডিলার আইডি: D-00231 · +8801XXXXXXXXX · যোগদান: জানুয়ারি ২০২৫</text>
+  <rect x="360" y="150" width="90" height="20" rx="4" fill="#dcfce7" stroke="#86efac"/>
+  <text x="374" y="164" font-size="11" fill="#15803d" font-weight="700">সক্রিয় · Active</text>
+
+  <rect x="1220" y="112" width="150" height="40" rx="6" fill="#7c3aed"/>
+  <text x="1240" y="137" font-size="13" font-weight="600" fill="#ffffff">+ টেরিটরি যোগ</text>
+
+  <!-- ===== Territory assignments ===== -->
+  <text x="264" y="216" font-size="15" font-weight="600" fill="#0f172a">টেরিটরি অ্যাসাইনমেন্ট · Territory Assignments</text>
+  <text x="264" y="236" font-size="12" fill="#64748b">একাধিক টেরিটরি ধারণ করা যায়, প্রতিটির নিজস্ব টায়ার (বর্ণনামূলক মাত্র) · Multiple assignments allowed, each independently tiered (descriptive only — CONTEXT.md)</text>
+
+  <rect x="264" y="252" width="1144" height="36" fill="#f1f5f9" stroke="#e2e8f0"/>
+  <g font-size="11" fill="#64748b" font-weight="600">
+    <text x="280"  y="275">অবস্থান / স্কুল · LOCATION / SCHOOL</text>
+    <text x="640"  y="275">টায়ার · TIER</text>
+    <text x="820"  y="275">ধরন · TYPE</text>
+    <text x="1000" y="275">স্কুল সংখ্যা · SCHOOLS</text>
+    <text x="1220" y="275">অ্যাকশন</text>
+  </g>
+
+  <g font-size="13">
+    <!-- row 1: Union tier -->
+    <rect x="264" y="288" width="1144" height="40" fill="#ffffff" stroke="#e2e8f0"/>
+    <text x="280" y="313" fill="#0f172a">বকশীগঞ্জ ইউনিয়ন · Bakshiganj Union</text>
+    <rect x="640" y="298" width="110" height="22" rx="4" fill="#f5f3ff" stroke="#c4b5fd"/>
+    <text x="654" y="313" font-size="11" fill="#6d28d9" font-weight="700">Union Dealer</text>
+    <text x="820" y="313" fill="#64748b">লোকেশন-ভিত্তিক</text>
+    <text x="1000" y="313" fill="#0f172a">১২</text>
+    <text x="1220" y="313" fill="#b91c1c" font-size="12">সরান · Remove</text>
+
+    <!-- row 2: District tier (different tier, same dealer) -->
+    <rect x="264" y="328" width="1144" height="40" fill="#ffffff" stroke="#e2e8f0"/>
+    <text x="280" y="353" fill="#0f172a">জামালপুর জেলা · Jamalpur District</text>
+    <rect x="640" y="338" width="110" height="22" rx="4" fill="#f5f3ff" stroke="#c4b5fd"/>
+    <text x="654" y="353" font-size="11" fill="#6d28d9" font-weight="700">Zilla Dealer</text>
+    <text x="820" y="353" fill="#64748b">লোকেশন-ভিত্তিক</text>
+    <text x="1000" y="353" fill="#0f172a">৪৭</text>
+    <text x="1220" y="353" fill="#b91c1c" font-size="12">সরান · Remove</text>
+
+    <!-- row 3: extended school access -->
+    <rect x="264" y="368" width="1144" height="40" fill="#ffffff" stroke="#e2e8f0"/>
+    <text x="280" y="393" fill="#0f172a">গ্রীনভিউ হাই স্কুল · Greenview High School</text>
+    <rect x="640" y="378" width="60" height="22" rx="4" fill="#f1f5f9" stroke="#e2e8f0"/>
+    <text x="652" y="393" font-size="11" fill="#64748b">—</text>
+    <rect x="820" y="378" width="150" height="22" rx="4" fill="#f5f3ff" stroke="#c4b5fd"/>
+    <text x="834" y="393" font-size="11" fill="#6d28d9" font-weight="700">Extended access</text>
+    <text x="1000" y="393" fill="#0f172a">১</text>
+    <text x="1220" y="393" fill="#b91c1c" font-size="12">সরান · Remove</text>
+  </g>
+
+  <text x="264" y="450" font-size="11" fill="#94a3b8">Extended access = same assignment mechanism as a location-scoped row, just school_id instead of location_id — always visually flagged (badge), never blended in silently.</text>
+
+  <!-- ===== Schools reached (aggregated) ===== -->
+  <text x="264" y="500" font-size="15" font-weight="600" fill="#0f172a">অ্যাক্সেসযোগ্য স্কুল (একত্রিত) · Reachable Schools (aggregated)</text>
+  <rect x="264" y="516" width="1144" height="36" fill="#f1f5f9" stroke="#e2e8f0"/>
+  <g font-size="11" fill="#64748b" font-weight="600">
+    <text x="280"  y="539">স্কুলের নাম · SCHOOL</text>
+    <text x="640"  y="539">উৎস · VIA</text>
+    <text x="900"  y="539">সাবস্ক্রিপশন · SUBSCRIPTION</text>
+  </g>
+  <g font-size="13">
+    <rect x="264" y="552" width="1144" height="36" fill="#ffffff" stroke="#e2e8f0"/>
+    <text x="280" y="575" fill="#0f172a">আল-ফালাহ স্কুল</text>
+    <text x="640" y="575" fill="#64748b">বকশীগঞ্জ ইউনিয়ন</text>
+    <rect x="900" y="560" width="70" height="20" rx="4" fill="#dcfce7" stroke="#86efac"/>
+    <text x="910" y="574" font-size="11" fill="#15803d" font-weight="700">Active</text>
+
+    <rect x="264" y="588" width="1144" height="36" fill="#ffffff" stroke="#e2e8f0"/>
+    <text x="280" y="611" fill="#0f172a">নূরানী মডেল স্কুল</text>
+    <text x="640" y="611" fill="#64748b">জামালপুর জেলা</text>
+    <rect x="900" y="596" width="70" height="20" rx="4" fill="#fef3c7" stroke="#fcd34d"/>
+    <text x="910" y="610" font-size="11" fill="#b45309" font-weight="700">Trial</text>
+
+    <rect x="264" y="624" width="1144" height="36" fill="#ffffff" stroke="#e2e8f0"/>
+    <text x="280" y="647" fill="#0f172a">গ্রীনভিউ হাই স্কুল</text>
+    <text x="640" y="647" fill="#64748b">—</text>
+    <rect x="740" y="632" width="150" height="20" rx="4" fill="#f5f3ff" stroke="#c4b5fd"/>
+    <text x="754" y="646" font-size="11" fill="#6d28d9" font-weight="700">Extended access</text>
+    <rect x="900" y="632" width="70" height="20" rx="4" fill="#dcfce7" stroke="#86efac"/>
+    <text x="910" y="646" font-size="11" fill="#15803d" font-weight="700">Active</text>
+  </g>
+</svg>

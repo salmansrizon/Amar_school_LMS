@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>স্টাফ অনুমতি · Staff Permissions — Amar School Management</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../shared/design-system.css">
+<script src="../shared/app.js" defer></script>
+<style>
+  .perm-group { margin-bottom: var(--space-5); }
+  .perm-group-title {
+    font-size: var(--text-xs); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+    color: var(--text-secondary); margin-bottom: var(--space-2); padding-bottom: var(--space-1);
+    border-bottom: 1px solid var(--border-default);
+  }
+  .perm-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: var(--space-2) var(--space-1); border-bottom: 1px solid var(--border-default);
+    font-size: var(--text-sm);
+  }
+  .perm-row:last-child { border-bottom: none; }
+  /* Simple boolean switch — page-scoped style, not part of the shared design system component set */
+  .switch { position: relative; display: inline-block; width: 38px; height: 20px; flex-shrink: 0; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .switch .slider {
+    position: absolute; inset: 0; background: var(--border-strong); border-radius: 999px; cursor: pointer; transition: 0.15s;
+  }
+  .switch .slider::before {
+    content: ""; position: absolute; width: 14px; height: 14px; left: 3px; top: 3px;
+    background: var(--bg-surface); border-radius: 50%; transition: 0.15s;
+  }
+  .switch input:checked + .slider { background: var(--accent); }
+  .switch input:checked + .slider::before { transform: translateX(18px); }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="mark">A</span><span>Amar School</span></div>
+    <nav>
+      <a class="nav-item" href="../school-owner/dashboard.html"><span data-i18n="bn">ড্যাশবোর্ড</span><span data-i18n="en">Dashboard</span></a>
+      <a class="nav-item" href="../school-owner/students-list.html"><span data-i18n="bn">শিক্ষার্থী</span><span data-i18n="en">Students</span></a>
+      <a class="nav-item" href="../school-owner/employees-list.html"><span data-i18n="bn">কর্মচারী</span><span data-i18n="en">Employees</span></a>
+      <a class="nav-item" href="../school-owner/attendance-student-mark.html"><span data-i18n="bn">উপস্থিতি</span><span data-i18n="en">Attendance</span></a>
+      <a class="nav-item" href="../school-owner/classes-list.html"><span data-i18n="bn">শ্রেণি ও পাঠ্যক্রম</span><span data-i18n="en">Class & Curriculum</span></a>
+      <a class="nav-item" href="../school-owner/exams-list.html"><span data-i18n="bn">পরীক্ষা ও ফলাফল</span><span data-i18n="en">Exams & Results</span></a>
+      <a class="nav-item" href="../school-owner/fee-collection.html"><span data-i18n="bn">হিসাব ও ফি</span><span data-i18n="en">Accounting & Fees</span></a>
+      <a class="nav-item" href="../school-owner/sms-compose.html"><span data-i18n="bn">এসএমএস</span><span data-i18n="en">SMS</span></a>
+      <a class="nav-item" href="../school-owner/notices-list.html"><span data-i18n="bn">প্রকাশনা</span><span data-i18n="en">Publishing</span></a>
+      <a class="nav-item" href="../school-owner/feedback-inbox.html"><span data-i18n="bn">মতামত</span><span data-i18n="en">Feedback</span></a>
+      <a class="nav-item active" href="../school-owner/staff-permissions.html"><span data-i18n="bn">স্টাফ অনুমতি</span><span data-i18n="en">Staff Permissions</span></a>
+      <a class="nav-item" href="../school-owner/institute-profile.html"><span data-i18n="bn">প্রতিষ্ঠান সেটআপ</span><span data-i18n="en">Institute Setup</span></a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="title"><span data-i18n="bn">স্টাফ অনুমতি</span><span data-i18n="en">Staff Permissions</span></div>
+      <div class="actions">
+        <div class="lang-switch">
+          <button data-lang-btn="bn" onclick="setLang('bn')">বাং</button>
+          <button data-lang-btn="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="theme-switch">
+          <button data-theme-btn="light" onclick="setTheme('light')">☀</button>
+          <button data-theme-btn="dark" onclick="setTheme('dark')">☾</button>
+          <button data-theme-btn="system" onclick="setTheme('system')">Auto</button>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+
+      <div class="card mb-4">
+        <div class="form-grid">
+          <div class="field">
+            <label><span data-i18n="bn">স্টাফ ইউজার নির্বাচন করুন</span><span data-i18n="en">Select Staff User</span></label>
+            <select>
+              <option><span>নাসিম হোসেন (হিসাব সহকারী) · Nasim Hossain (Accounts Assistant)</span></option>
+              <option><span>ফারজানা ইয়াসমিন (অফিস সহকারী) · Farzana Yeasmin (Office Assistant)</span></option>
+              <option><span>রফিকুল ইসলাম (শিক্ষক) · Rafiqul Islam (Teacher)</span></option>
+            </select>
+          </div>
+          <div class="field">
+            <label><span data-i18n="bn">লগইন ইমেইল</span><span data-i18n="en">Login Email</span></label>
+            <input type="text" value="nasim.accounts@example-school.edu.bd" disabled>
+          </div>
+        </div>
+        <p class="text-secondary" style="font-size: var(--text-xs); margin-bottom: 0;">
+          <span data-i18n="bn">এই তালিকাই একমাত্র সত্যের উৎস — প্রতিটি স্ক্রিন/মডিউল হয় সম্পূর্ণ প্রবেশযোগ্য অথবা সম্পূর্ণ অপ্রবেশযোগ্য। দেখা/সম্পাদনা/মুছে ফেলার জন্য আলাদা অনুমতি নেই।</span>
+          <span data-i18n="en">This list is the single source of truth — each screen/module is either fully accessible or fully inaccessible. There is no separate view/edit/delete sub-permission.</span>
+        </p>
+      </div>
+
+      <div class="card">
+
+        <div class="perm-group">
+          <div class="perm-group-title"><span data-i18n="bn">শিক্ষার্থী</span><span data-i18n="en">Students</span></div>
+          <div class="perm-row"><span><span data-i18n="bn">শিক্ষার্থী তালিকা</span><span data-i18n="en">Students List</span></span><label class="switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="perm-row"><span><span data-i18n="bn">শিক্ষার্থী বিস্তারিত / ভর্তি</span><span data-i18n="en">Student Detail / Admission</span></span><label class="switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="perm-row"><span><span data-i18n="bn">আচরণ লগ</span><span data-i18n="en">Behaviour Log</span></span><label class="switch"><input type="checkbox"><span class="slider"></span></label></div>
+          <div class="perm-row"><span><span data-i18n="bn">পুরাতন শিক্ষার্থী / স্থানান্তর</span><span data-i18n="en">Old Students / Transfer</span></span><label class="switch"><input type="checkbox"><span class="slider"></span></label></div>
+        </div>
+
+        <div class="perm-group">
+          <div class="perm-group-title"><span data-i18n="bn">কর্মচারী</span><span data-i18n="en">Employees</span></div>
+          <div class="perm-row"><span><span data-i18n="bn">কর্মচারী তালিকা</span><span data-i18n="en">Employees List</span></span><label class="switch"><input type="checkbox"><span class="slider"></span></label></div>
+          <div class="perm-row"><span><span data-i18n="bn">কর্মচারী বিস্তারিত</span><span data-i18n="en">Employee Detail</span></span><label class="switch"><input type="checkbox"><span class="slider"></span></label></div>
+          <div class="perm-row"><span><span data-i18n="bn">পুরাতন কর্মচারী</span><span data-i18n="en">Old Employees</span></span><label class="switch"><input type="checkbox"><span class="slider"></span></label></div>
+        </div>
+
+        <div class="perm-group">
+          <div class="perm-group-title"><span data-i18n="bn">উপস্থিতি</span><span data-i18n="en">Attendance</span></div>
+          <div class="perm-row"><span><span data-i18n="bn">শিক্ষার্থী উপস্থিতি</span><span data-i18n="en">Student Attendance</span></span><label class="switch"><input type="checkbox"><span class="slider"></span></label></div>
+          <div class="perm-row"><span><span data-i18n="bn">উপস্থিতি বই</span><span data-i18n="en">Attendance Book</span></span><label class="switch"><input type="checkbox"><span class="slider"></span></label></div>
+          <div class="perm-row"><span><span data-i18n="bn">কর্মচারী উপস্থিতি</span><span data-i18n="en">Employee Attendance</span></span><label class="switch"><input type="checkbox"><span class="slider"></span></label></div>
+          <div class="perm-row"><span><span data-i18n="bn">ছুটি ব্যবস্থাপনা</span><span data-i18n="en">Leave Management</span></span><label class="switch"><input type="checkbox"><span class="slider"></span></label></div>
+          <div class="perm-row"><span><span data-i18n="bn">ছুটির ক্যালেন্ডার</span><span data-i18n="en">Off-Day Calendar</span></span><label class="switch"><input type="checkbox"><span class="slider"></span></label></div>
+          <div class="perm-row"><span><span data-i18n="bn">আরএফআইডি কার্ড বরাদ্দ</span><span data-i18n="en">RFID Card Assignment</span></span><label class="switch"><input type="checkbox"><span class="slider"></span></label></div>
+        </div>
+
+        <div class="perm-group">
+          <div class="perm-group-title"><span data-i18n="bn">শ্রেণি ও পাঠ্যক্রম</span><span data-i18n="en">Class & Curriculum</span></div>
+          <div class="perm-row"><span><span data-i18n="bn">শ্রেণি তালিকা</span><span data-i18n="en">Classes</span></span><label class="switch"><input type="checkbox"><span class="slider"></span></label></div>
+          <div class="perm-row"><span><span data-i18n="bn">রুটিন নির্মাতা</span><span data-i18n="en">Class Routine Builder</span></span><label class="switch"><input type="checkbox"><span class="slider"></span></label></div>
+          <div class="perm-row"><span><span data-i18n="bn">সিলেবাস আপলোড</span><span data-i18n="en">Syllabus Upload</span></span><label class="switch"><input type="checkbox"><span class="slider"></span></label></div>
+        </div>
+
+        <div class="perm-group">
+          <div class="perm-group-title"><span data-i18n="bn">পরীক্ষা ও ফলাফল</span><span data-i18n="en">Exams & Results</span></div>
+          <div class="perm-row"><span><span data-i18n="bn">পরীক্ষা তালিকা</span><span data-i18n="en">Exams List</span></span><label class="switch"><input type="checkbox"><span class="slider"></span></label></div>
+          <div class="perm-row"><span><span data-i18n="bn">পরীক্ষা সেটআপ</span><span data-i18n="en">Exam Setup</span></span><label class="switch"><input type="checkbox"><span class="slider"></span></label></div>
+          <div class="perm-row"><span><span data-i18n="bn">সিট প্ল্যান</span><span data-i18n="en">Seat Plan</span></span><label class="switch"><input type="checkbox"><span class="slider"></span></label></div>
+          <div class="perm-row"><span><span data-i18n="bn">নম্বর এন্ট্রি</span><span data-i18n="en">Marks Entry</span></span><label class="switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="perm-row"><span><span data-i18n="bn">ফলাফল বই / অনুসন্ধান</span><span data-i18n="en">Result Book / Inquiry</span></span><label class="switch"><input type="checkbox"><span class="slider"></span></label></div>
+          <div class="perm-row"><span><span data-i18n="bn">প্রমোশন / স্থানান্তর</span><span data-i18n="en">Promotion / Transfer</span></span><label class="switch"><input type="checkbox"><span class="slider"></span></label></div>
+        </div>
+
+        <div class="perm-group">
+          <div class="perm-group-title"><span data-i18n="bn">হিসাব ও ফি</span><span data-i18n="en">Accounting & Fees</span></div>
+          <div class="perm-row"><span><span data-i18n="bn">ফি কাঠামো</span><span data-i18n="en">Fee Structures</span></span><label class="switch"><input type="checkbox"><span class="slider"></span></label></div>
+          <div class="perm-row"><span><span data-i18n="bn">ফি আদায়</span><span data-i18n="en">Fee Collection</span></span><label class="switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="perm-row"><span><span data-i18n="bn">ভাউচার</span><span data-i18n="en">Vouchers</span></span><label class="switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="perm-row"><span><span data-i18n="bn">সম্পদ রেজিস্টার</span><span data-i18n="en">Asset Register</span></span><label class="switch"><input type="checkbox"><span class="slider"></span></label></div>
+          <div class="perm-row"><span><span data-i18n="bn">ব্যাংক ও নগদ হিসাব</span><span data-i18n="en">Bank & Cash Accounts</span></span><label class="switch"><input type="checkbox"><span class="slider"></span></label></div>
+          <div class="perm-row"><span><span data-i18n="bn">পরিচালকের মূলধন</span><span data-i18n="en">Director Capital</span></span><label class="switch"><input type="checkbox"><span class="slider"></span></label></div>
+          <div class="perm-row"><span><span data-i18n="bn">সাধারণ খতিয়ান</span><span data-i18n="en">General Ledger</span></span><label class="switch"><input type="checkbox"><span class="slider"></span></label></div>
+        </div>
+
+        <div class="perm-group">
+          <div class="perm-group-title"><span data-i18n="bn">এসএমএস</span><span data-i18n="en">SMS</span></div>
+          <div class="perm-row"><span><span data-i18n="bn">এসএমএস রচনা</span><span data-i18n="en">Compose SMS</span></span><label class="switch"><input type="checkbox"><span class="slider"></span></label></div>
+          <div class="perm-row"><span><span data-i18n="bn">অনুপস্থিতি নিয়ম</span><span data-i18n="en">Absence Rules</span></span><label class="switch"><input type="checkbox"><span class="slider"></span></label></div>
+          <div class="perm-row"><span><span data-i18n="bn">এসএমএস লগ</span><span data-i18n="en">SMS Log</span></span><label class="switch"><input type="checkbox"><span class="slider"></span></label></div>
+        </div>
+
+        <div class="perm-group">
+          <div class="perm-group-title"><span data-i18n="bn">প্রকাশনা</span><span data-i18n="en">Publishing</span></div>
+          <div class="perm-row"><span><span data-i18n="bn">নোটিশ / বাড়ির কাজ / পাঠ পরিকল্পনা</span><span data-i18n="en">Notices / Homework / Lesson Plans</span></span><label class="switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="perm-row"><span><span data-i18n="bn">গ্যালারি অ্যালবাম</span><span data-i18n="en">Gallery Albums</span></span><label class="switch"><input type="checkbox"><span class="slider"></span></label></div>
+        </div>
+
+        <div class="perm-group">
+          <div class="perm-group-title"><span data-i18n="bn">মতামত</span><span data-i18n="en">Feedback</span></div>
+          <div class="perm-row"><span><span data-i18n="bn">মতামত ইনবক্স</span><span data-i18n="en">Feedback Inbox</span></span><label class="switch"><input type="checkbox"><span class="slider"></span></label></div>
+          <div class="perm-row"><span><span data-i18n="bn">রেটিং ড্যাশবোর্ড</span><span data-i18n="en">Feedback Ratings</span></span><label class="switch"><input type="checkbox"><span class="slider"></span></label></div>
+        </div>
+
+        <div class="perm-group">
+          <div class="perm-group-title"><span data-i18n="bn">প্রতিষ্ঠান সেটআপ</span><span data-i18n="en">Institute Setup</span></div>
+          <div class="perm-row"><span><span data-i18n="bn">প্রতিষ্ঠান প্রোফাইল</span><span data-i18n="en">Institute Profile</span></span><label class="switch"><input type="checkbox"><span class="slider"></span></label></div>
+          <div class="perm-row"><span><span data-i18n="bn">দৈনিক কার্যক্রম চেকলিস্ট</span><span data-i18n="en">Activity Checklist</span></span><label class="switch"><input type="checkbox"><span class="slider"></span></label></div>
+          <div class="perm-row"><span><span data-i18n="bn">লজিস্টিক্স ইনডেক্স</span><span data-i18n="en">Logistics Index</span></span><label class="switch"><input type="checkbox"><span class="slider"></span></label></div>
+          <div class="perm-row"><span><span data-i18n="bn">খালি টেমপ্লেট</span><span data-i18n="en">Blank Templates</span></span><label class="switch"><input type="checkbox"><span class="slider"></span></label></div>
+          <div class="perm-row"><span><span data-i18n="bn">স্টাফ অনুমতি</span><span data-i18n="en">Staff Permissions</span></span><label class="switch"><input type="checkbox"><span class="slider"></span></label></div>
+        </div>
+
+        <div class="flex gap-2" style="margin-top: var(--space-4);">
+          <button class="btn btn-primary"><span data-i18n="bn">অনুমতি সংরক্ষণ করুন</span><span data-i18n="en">Save Permissions</span></button>
+          <button class="btn btn-secondary"><span data-i18n="bn">বাতিল</span><span data-i18n="en">Cancel</span></button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

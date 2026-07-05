@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>কেন্দ্রীয় ছুটির তালিকা · Central Off-Day Calendar — Super Admin</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../shared/design-system.css">
+<script src="../shared/app.js" defer></script>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="mark">A</span><span>Super Admin</span></div>
+    <nav>
+      <a class="nav-item" href="schools-list.html"><span data-i18n="bn">স্কুলসমূহ</span><span data-i18n="en">Schools</span></a>
+      <a class="nav-item" href="dealers-list.html"><span data-i18n="bn">ডিলার</span><span data-i18n="en">Dealers</span></a>
+      <a class="nav-item" href="gov-officials-list.html"><span data-i18n="bn">সরকারি কর্মকর্তা</span><span data-i18n="en">Government Officials</span></a>
+      <a class="nav-item" href="codes-list.html"><span data-i18n="bn">সাবস্ক্রিপশন কোড</span><span data-i18n="en">Subscription Codes</span></a>
+      <a class="nav-item" href="locations-tree.html"><span data-i18n="bn">টেরিটরি ও লোকেশন</span><span data-i18n="en">Territory & Locations</span></a>
+      <a class="nav-item" href="vendor-accounting-ledger.html"><span data-i18n="bn">ভেন্ডর হিসাব</span><span data-i18n="en">Vendor Accounting</span></a>
+      <a class="nav-item" href="vendor-sms-compose.html"><span data-i18n="bn">ভেন্ডর এসএমএস</span><span data-i18n="en">Vendor SMS</span></a>
+      <a class="nav-item active" href="central-holiday-calendar.html"><span data-i18n="bn">কেন্দ্রীয় ছুটির তালিকা</span><span data-i18n="en">Central Off-Day</span></a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="title"><span data-i18n="bn">কেন্দ্রীয় ছুটির তালিকা</span><span data-i18n="en">Central Off-Day Calendar</span></div>
+      <div class="actions">
+        <a class="btn btn-secondary btn-sm" href="../index.html" title="Home">🏠</a>
+        <a class="btn btn-secondary btn-sm" href="../sitemap.html" title="Sitemap">📋</a>
+        <div class="lang-switch">
+          <button data-lang-btn="bn" onclick="setLang('bn')">বাং</button>
+          <button data-lang-btn="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="theme-switch">
+          <button data-theme-btn="light" onclick="setTheme('light')">☀</button>
+          <button data-theme-btn="dark" onclick="setTheme('dark')">☾</button>
+          <button data-theme-btn="system" onclick="setTheme('system')">Auto</button>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+
+      <p class="text-secondary" style="font-size:var(--text-sm); max-width:640px;">
+        <span data-i18n="bn">Super Admin এই বাৎসরিক কেন্দ্রীয় তালিকা রক্ষণাবেক্ষণ করে; প্রতিটি স্কুল চাইলে চলতি বছরের তালিকাটি নিজস্ব ছুটির ক্যালেন্ডারে টেনে (পুল) নিতে পারে।</span>
+        <span data-i18n="en">Super Admin maintains this yearly central list; individual Schools pull the current year's list into their own off-day calendar on demand.</span>
+      </p>
+
+      <div class="toolbar">
+        <select class="search-input" style="min-width:120px;">
+          <option>2026</option>
+          <option>2025</option>
+        </select>
+        <a class="btn btn-primary" href="#"><span data-i18n="bn">+ ছুটি যোগ করুন</span><span data-i18n="en">+ Add Holiday</span></a>
+      </div>
+
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th><span data-i18n="bn">তারিখ</span><span data-i18n="en">Date</span></th>
+            <th><span data-i18n="bn">উপলক্ষ (বাংলা)</span><span data-i18n="en">Occasion (Bangla)</span></th>
+            <th><span data-i18n="bn">উপলক্ষ (ইংরেজি)</span><span data-i18n="en">Occasion (English)</span></th>
+            <th><span data-i18n="bn">ধরন</span><span data-i18n="en">Type</span></th>
+            <th><span data-i18n="bn">কার্যক্রম</span><span data-i18n="en">Actions</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>2026-02-21</td>
+            <td>শহীদ দিবস ও আন্তর্জাতিক মাতৃভাষা দিবস</td>
+            <td>Language Martyrs' Day</td>
+            <td><span class="badge badge-info"><span data-i18n="bn">সরকারি</span><span data-i18n="en">Government</span></span></td>
+            <td><button class="btn btn-secondary btn-sm"><span data-i18n="bn">সম্পাদনা</span><span data-i18n="en">Edit</span></button> <button class="btn btn-danger btn-sm"><span data-i18n="bn">মুছুন</span><span data-i18n="en">Delete</span></button></td>
+          </tr>
+          <tr>
+            <td>2026-03-26</td>
+            <td>স্বাধীনতা দিবস</td>
+            <td>Independence Day</td>
+            <td><span class="badge badge-info"><span data-i18n="bn">সরকারি</span><span data-i18n="en">Government</span></span></td>
+            <td><button class="btn btn-secondary btn-sm"><span data-i18n="bn">সম্পাদনা</span><span data-i18n="en">Edit</span></button> <button class="btn btn-danger btn-sm"><span data-i18n="bn">মুছুন</span><span data-i18n="en">Delete</span></button></td>
+          </tr>
+          <tr>
+            <td>2026-04-14</td>
+            <td>পহেলা বৈশাখ</td>
+            <td>Bengali New Year</td>
+            <td><span class="badge badge-warning"><span data-i18n="bn">সাংস্কৃতিক</span><span data-i18n="en">Cultural</span></span></td>
+            <td><button class="btn btn-secondary btn-sm"><span data-i18n="bn">সম্পাদনা</span><span data-i18n="en">Edit</span></button> <button class="btn btn-danger btn-sm"><span data-i18n="bn">মুছুন</span><span data-i18n="en">Delete</span></button></td>
+          </tr>
+          <tr>
+            <td>2026-05-01</td>
+            <td>মে দিবস</td>
+            <td>May Day</td>
+            <td><span class="badge badge-neutral"><span data-i18n="bn">অন্যান্য</span><span data-i18n="en">Other</span></span></td>
+            <td><button class="btn btn-secondary btn-sm"><span data-i18n="bn">সম্পাদনা</span><span data-i18n="en">Edit</span></button> <button class="btn btn-danger btn-sm"><span data-i18n="bn">মুছুন</span><span data-i18n="en">Delete</span></button></td>
+          </tr>
+          <tr>
+            <td>2026-12-16</td>
+            <td>বিজয় দিবস</td>
+            <td>Victory Day</td>
+            <td><span class="badge badge-info"><span data-i18n="bn">সরকারি</span><span data-i18n="en">Government</span></span></td>
+            <td><button class="btn btn-secondary btn-sm"><span data-i18n="bn">সম্পাদনা</span><span data-i18n="en">Edit</span></button> <button class="btn btn-danger btn-sm"><span data-i18n="bn">মুছুন</span><span data-i18n="en">Delete</span></button></td>
+          </tr>
+        </tbody>
+      </table>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>পারফরম্যান্স রিপোর্ট · Performance Reports — Government Official</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../shared/design-system.css">
+<script src="../shared/app.js" defer></script>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="mark">G</span><span>Government Official</span></div>
+    <nav>
+      <a class="nav-item" href="dashboard.html"><span data-i18n="bn">ড্যাশবোর্ড</span><span data-i18n="en">Dashboard</span></a>
+      <a class="nav-item" href="dashboard.html#institutes"><span data-i18n="bn">প্রতিষ্ঠান তালিকা</span><span data-i18n="en">Institute List</span></a>
+      <a class="nav-item active" href="performance-reports.html"><span data-i18n="bn">পারফরম্যান্স রিপোর্ট</span><span data-i18n="en">Performance Reports</span></a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="title"><span data-i18n="bn">পারফরম্যান্স রিপোর্ট</span><span data-i18n="en">Performance Reports</span></div>
+      <div class="actions">
+        <a class="btn btn-secondary btn-sm" href="../index.html" title="Home">🏠</a>
+        <a class="btn btn-secondary btn-sm" href="../sitemap.html" title="Sitemap">📋</a>
+        <div class="lang-switch">
+          <button data-lang-btn="bn" onclick="setLang('bn')">বাং</button>
+          <button data-lang-btn="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="theme-switch">
+          <button data-theme-btn="light" onclick="setTheme('light')">☀</button>
+          <button data-theme-btn="dark" onclick="setTheme('dark')">☾</button>
+          <button data-theme-btn="system" onclick="setTheme('system')">Auto</button>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+
+      <div class="card mb-4">
+        <div class="flex items-center gap-3" style="flex-wrap: wrap;">
+          <div class="field" style="margin:0;">
+            <label><span data-i18n="bn">শুরুর তারিখ</span><span data-i18n="en">From</span></label>
+            <input type="date" value="2026-06-01">
+          </div>
+          <div class="field" style="margin:0;">
+            <label><span data-i18n="bn">শেষের তারিখ</span><span data-i18n="en">To</span></label>
+            <input type="date" value="2026-07-05">
+          </div>
+          <div class="field" style="margin:0;">
+            <label><span data-i18n="bn">উপজেলা</span><span data-i18n="en">Upazila</span></label>
+            <select>
+              <option><span data-i18n="bn">সকল</span></option>
+              <option>All</option>
+              <option>Savar Upazila</option>
+              <option>Dhamrai Upazila</option>
+            </select>
+          </div>
+          <button class="btn btn-secondary" style="align-self:flex-end;"><span data-i18n="bn">প্রয়োগ করুন</span><span data-i18n="en">Apply</span></button>
+        </div>
+      </div>
+
+      <div class="card mb-4">
+        <h3 class="mt-0"><span data-i18n="bn">প্রতিষ্ঠান-পর্যায়ের উপস্থিতি পারফরম্যান্স</span><span data-i18n="en">Institute-level Attendance Performance</span></h3>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th><span data-i18n="bn">প্রতিষ্ঠান</span><span data-i18n="en">Institute</span></th>
+              <th><span data-i18n="bn">উপজেলা</span><span data-i18n="en">Upazila</span></th>
+              <th><span data-i18n="bn">গড় উপস্থিতি</span><span data-i18n="en">Avg. Attendance</span></th>
+              <th><span data-i18n="bn">উপস্থিত দিন</span><span data-i18n="en">Present Days</span></th>
+              <th><span data-i18n="bn">অনুপস্থিত দিন</span><span data-i18n="en">Absent Days</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span data-i18n="bn">সাভার সরকারি উচ্চ বিদ্যালয়</span><span data-i18n="en">Savar Government High School</span></td>
+              <td><span data-i18n="bn">সাভার</span><span data-i18n="en">Savar</span></td>
+              <td><span class="badge badge-success">95.1%</span></td>
+              <td>28</td>
+              <td>2</td>
+            </tr>
+            <tr>
+              <td><span data-i18n="bn">ধামরাই বালিকা বিদ্যালয়</span><span data-i18n="en">Dhamrai Girls' School</span></td>
+              <td><span data-i18n="bn">ধামরাই</span><span data-i18n="en">Dhamrai</span></td>
+              <td><span class="badge badge-warning">88.4%</span></td>
+              <td>26</td>
+              <td>4</td>
+            </tr>
+            <tr>
+              <td><span data-i18n="bn">আশুলিয়া আদর্শ উচ্চ বিদ্যালয়</span><span data-i18n="en">Ashulia Model High School</span></td>
+              <td><span data-i18n="bn">সাভার</span><span data-i18n="en">Savar</span></td>
+              <td><span class="badge badge-success">92.7%</span></td>
+              <td>27</td>
+              <td>3</td>
+            </tr>
+            <tr>
+              <td><span data-i18n="bn">উত্তরা মডেল কলেজ</span><span data-i18n="en">Uttara Model College</span> <span class="badge badge-extended" style="margin-left:4px;"><span data-i18n="bn">এক্সটেন্ডেড</span><span data-i18n="en">Extended</span></span></td>
+              <td><span data-i18n="bn">উত্তরা (এখতিয়ারের বাইরে)</span><span data-i18n="en">Uttara (outside jurisdiction)</span></td>
+              <td><span class="badge badge-danger">78.9%</span></td>
+              <td>22</td>
+              <td>8</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <h3 class="mt-0"><span data-i18n="bn">কর্মচারী-পর্যায়ের উপস্থিতি পারফরম্যান্স</span><span data-i18n="en">Employee-level Attendance Performance</span></h3>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th><span data-i18n="bn">কর্মচারীর নাম</span><span data-i18n="en">Employee</span></th>
+              <th><span data-i18n="bn">প্রতিষ্ঠান</span><span data-i18n="en">Institute</span></th>
+              <th><span data-i18n="bn">গড় উপস্থিতি</span><span data-i18n="en">Avg. Attendance</span></th>
+              <th><span data-i18n="bn">দেরি</span><span data-i18n="en">Late Count</span></th>
+              <th><span data-i18n="bn">অনুপস্থিতি</span><span data-i18n="en">Absences</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span data-i18n="bn">মোঃ রফিকুল ইসলাম</span><span data-i18n="en">Md. Rafiqul Islam</span></td>
+              <td><span data-i18n="bn">সাভার সরকারি উচ্চ বিদ্যালয়</span><span data-i18n="en">Savar Government High School</span></td>
+              <td><span class="badge badge-success">98.2%</span></td>
+              <td>1</td>
+              <td>0</td>
+            </tr>
+            <tr>
+              <td><span data-i18n="bn">নাসরিন সুলতানা</span><span data-i18n="en">Nasrin Sultana</span></td>
+              <td><span data-i18n="bn">ধামরাই বালিকা বিদ্যালয়</span><span data-i18n="en">Dhamrai Girls' School</span></td>
+              <td><span class="badge badge-warning">86.5%</span></td>
+              <td>5</td>
+              <td>2</td>
+            </tr>
+            <tr>
+              <td><span data-i18n="bn">আব্দুল করিম</span><span data-i18n="en">Abdul Karim</span></td>
+              <td><span data-i18n="bn">আশুলিয়া আদর্শ উচ্চ বিদ্যালয়</span><span data-i18n="en">Ashulia Model High School</span></td>
+              <td><span class="badge badge-success">94.0%</span></td>
+              <td>2</td>
+              <td>1</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

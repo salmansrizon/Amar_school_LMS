@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>ছুটির দিন ক্যালেন্ডার · Off-Day Calendar — Amar School Management</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../shared/design-system.css">
+<script src="../shared/app.js" defer></script>
+<style>
+  .cal-grid { display:grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-4); }
+  .cal-month { border:1px solid var(--border-default); border-radius: var(--radius-md); padding: var(--space-3); background: var(--bg-surface); }
+  .cal-month h4 { margin: 0 0 var(--space-2); font-size: var(--text-sm); text-align:center; }
+  .cal-days { display:grid; grid-template-columns: repeat(7, 1fr); gap: 2px; font-size: var(--text-xs); }
+  .cal-days span { text-align:center; padding: 3px 0; border-radius: var(--radius-sm); }
+  .cal-days .off { background: var(--danger-bg); color: var(--danger-fg); font-weight:600; }
+  .cal-days .significant { background: var(--info-bg); color: var(--info-fg); font-weight:600; }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="mark">A</span><span>Amar School</span></div>
+    <nav>
+      <a class="nav-item" href="../school-owner/dashboard.html"><span data-i18n="bn">ড্যাশবোর্ড</span><span data-i18n="en">Dashboard</span></a>
+      <a class="nav-item" href="../school-owner/students-list.html"><span data-i18n="bn">শিক্ষার্থী</span><span data-i18n="en">Students</span></a>
+      <a class="nav-item" href="../school-owner/employees-list.html"><span data-i18n="bn">কর্মচারী</span><span data-i18n="en">Employees</span></a>
+      <a class="nav-item active" href="../school-owner/attendance-student-mark.html"><span data-i18n="bn">উপস্থিতি</span><span data-i18n="en">Attendance</span></a>
+      <a class="nav-item" href="../school-owner/classes-list.html"><span data-i18n="bn">শ্রেণি ও পাঠ্যক্রম</span><span data-i18n="en">Class & Curriculum</span></a>
+      <a class="nav-item" href="../school-owner/exams-list.html"><span data-i18n="bn">পরীক্ষা ও ফলাফল</span><span data-i18n="en">Exams & Results</span></a>
+      <a class="nav-item" href="../school-owner/fee-collection.html"><span data-i18n="bn">হিসাব ও ফি</span><span data-i18n="en">Accounting & Fees</span></a>
+      <a class="nav-item" href="../school-owner/sms-compose.html"><span data-i18n="bn">এসএমএস</span><span data-i18n="en">SMS</span></a>
+      <a class="nav-item" href="../school-owner/notices-list.html"><span data-i18n="bn">প্রকাশনা</span><span data-i18n="en">Publishing</span></a>
+      <a class="nav-item" href="../school-owner/feedback-inbox.html"><span data-i18n="bn">মতামত</span><span data-i18n="en">Feedback</span></a>
+      <a class="nav-item" href="../school-owner/staff-permissions.html"><span data-i18n="bn">স্টাফ অনুমতি</span><span data-i18n="en">Staff Permissions</span></a>
+      <a class="nav-item" href="../school-owner/institute-profile.html"><span data-i18n="bn">প্রতিষ্ঠান সেটআপ</span><span data-i18n="en">Institute Setup</span></a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="title"><span data-i18n="bn">ছুটির দিন ক্যালেন্ডার — ২০২৬</span><span data-i18n="en">Off-Day Calendar — 2026</span></div>
+      <div class="actions">
+        <div class="lang-switch">
+          <button data-lang-btn="bn" onclick="setLang('bn')">বাং</button>
+          <button data-lang-btn="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="theme-switch">
+          <button data-theme-btn="light" onclick="setTheme('light')">☀</button>
+          <button data-theme-btn="dark" onclick="setTheme('dark')">☾</button>
+          <button data-theme-btn="system" onclick="setTheme('system')">Auto</button>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+
+      <div class="tabs">
+        <a href="attendance-student-mark.html"><span data-i18n="bn">শিক্ষার্থী হাজিরা</span><span data-i18n="en">Mark Attendance</span></a>
+        <a href="attendance-book.html"><span data-i18n="bn">হাজিরা খাতা</span><span data-i18n="en">Attendance Book</span></a>
+        <a href="attendance-employee.html"><span data-i18n="bn">কর্মচারী উপস্থিতি</span><span data-i18n="en">Employee Attendance</span></a>
+        <a href="leave-management.html"><span data-i18n="bn">ছুটি ব্যবস্থাপনা</span><span data-i18n="en">Leave Management</span></a>
+        <a href="off-day-calendar.html" class="active"><span data-i18n="bn">ছুটির দিন ক্যালেন্ডার</span><span data-i18n="en">Off-Day Calendar</span></a>
+        <a href="rfid-card-assignment.html"><span data-i18n="bn">RFID কার্ড</span><span data-i18n="en">RFID Card</span></a>
+      </div>
+
+      <div class="toolbar">
+        <div class="flex gap-3 items-center">
+          <span class="flex gap-2 items-center"><span class="badge badge-danger">&nbsp;</span> <span data-i18n="bn">সাধারণ ছুটি</span><span data-i18n="en">Regular Off-Day</span></span>
+          <span class="flex gap-2 items-center"><span class="badge badge-info">&nbsp;</span> <span data-i18n="bn">গুরুত্বপূর্ণ দিন</span><span data-i18n="en">Significant Day</span></span>
+        </div>
+        <button class="btn btn-primary"><span data-i18n="bn">কেন্দ্রীয় তালিকা থেকে টেনে আনুন</span><span data-i18n="en">Pull from Central List</span></button>
+      </div>
+
+      <div class="cal-grid">
+        <div class="cal-month">
+          <h4><span data-i18n="bn">জানুয়ারি</span><span data-i18n="en">January</span></h4>
+          <div class="cal-days">
+            <span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span class="off">Sa</span>
+            <span></span><span>1</span><span>2</span><span>3</span><span>4</span><span class="significant">5</span><span class="off">6</span>
+            <span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span><span class="off">13</span>
+          </div>
+          <p class="text-secondary" style="font-size:var(--text-xs); margin-bottom:0;">২৬ <span data-i18n="bn">মার্চ — স্বাধীনতা দিবস (গুরুত্বপূর্ণ)</span><span data-i18n="en">Mar 26 — Independence Day (significant)</span></p>
+        </div>
+        <div class="cal-month">
+          <h4><span data-i18n="bn">ফেব্রুয়ারি</span><span data-i18n="en">February</span></h4>
+          <div class="cal-days">
+            <span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span class="off">Sa</span>
+            <span>1</span><span>2</span><span class="significant">3</span><span>4</span><span>5</span><span>6</span><span class="off">7</span>
+          </div>
+          <p class="text-secondary" style="font-size:var(--text-xs); margin-bottom:0;">২১ <span data-i18n="bn">ফেব্রুয়ারি — শহীদ দিবস (গুরুত্বপূর্ণ)</span><span data-i18n="en">Feb 21 — Language Martyrs' Day (significant)</span></p>
+        </div>
+        <div class="cal-month">
+          <h4><span data-i18n="bn">মার্চ</span><span data-i18n="en">March</span></h4>
+          <div class="cal-days">
+            <span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span class="off">Sa</span>
+            <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span class="significant">26</span><span class="off">7</span>
+          </div>
+        </div>
+        <div class="cal-month">
+          <h4><span data-i18n="bn">এপ্রিল</span><span data-i18n="en">April</span></h4>
+          <div class="cal-days">
+            <span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span class="off">Sa</span>
+            <span></span><span>1</span><span>2</span><span class="significant">14</span><span>4</span><span>5</span><span class="off">6</span>
+          </div>
+          <p class="text-secondary" style="font-size:var(--text-xs); margin-bottom:0;">১৪ <span data-i18n="bn">এপ্রিল — পহেলা বৈশাখ (গুরুত্বপূর্ণ)</span><span data-i18n="en">Apr 14 — Bengali New Year (significant)</span></p>
+        </div>
+      </div>
+
+      <p class="text-secondary" style="font-size:var(--text-xs); margin-top: var(--space-4);">
+        <span data-i18n="bn">প্রতি শনিবার নিয়মিত সাপ্তাহিক ছুটি হিসেবে চিহ্নিত। প্রতিষ্ঠান-নির্দিষ্ট অতিরিক্ত ছুটি এখানে যোগ করা যাবে; গুরুত্বপূর্ণ দিনগুলো কেন্দ্রীয় তালিকা থেকে টেনে আনা যায়।</span>
+        <span data-i18n="en">Every Saturday marked as the regular weekly off-day. Institute-specific extra off-days can be added here; significant days can be pulled from the central Super Admin list.</span>
+      </p>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

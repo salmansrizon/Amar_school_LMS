@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>পুরাতন শিক্ষার্থী · Old Students — Amar School Management</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../shared/design-system.css">
+<script src="../shared/app.js" defer></script>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="mark">A</span><span>Amar School</span></div>
+    <nav>
+      <a class="nav-item" href="../school-owner/dashboard.html"><span data-i18n="bn">ড্যাশবোর্ড</span><span data-i18n="en">Dashboard</span></a>
+      <a class="nav-item active" href="../school-owner/students-list.html"><span data-i18n="bn">শিক্ষার্থী</span><span data-i18n="en">Students</span></a>
+      <a class="nav-item" href="../school-owner/employees-list.html"><span data-i18n="bn">কর্মচারী</span><span data-i18n="en">Employees</span></a>
+      <a class="nav-item" href="../school-owner/attendance-student-mark.html"><span data-i18n="bn">উপস্থিতি</span><span data-i18n="en">Attendance</span></a>
+      <a class="nav-item" href="../school-owner/classes-list.html"><span data-i18n="bn">শ্রেণি ও পাঠ্যক্রম</span><span data-i18n="en">Class & Curriculum</span></a>
+      <a class="nav-item" href="../school-owner/exams-list.html"><span data-i18n="bn">পরীক্ষা ও ফলাফল</span><span data-i18n="en">Exams & Results</span></a>
+      <a class="nav-item" href="../school-owner/fee-collection.html"><span data-i18n="bn">হিসাব ও ফি</span><span data-i18n="en">Accounting & Fees</span></a>
+      <a class="nav-item" href="../school-owner/sms-compose.html"><span data-i18n="bn">এসএমএস</span><span data-i18n="en">SMS</span></a>
+      <a class="nav-item" href="../school-owner/notices-list.html"><span data-i18n="bn">প্রকাশনা</span><span data-i18n="en">Publishing</span></a>
+      <a class="nav-item" href="../school-owner/feedback-inbox.html"><span data-i18n="bn">মতামত</span><span data-i18n="en">Feedback</span></a>
+      <a class="nav-item" href="../school-owner/staff-permissions.html"><span data-i18n="bn">স্টাফ অনুমতি</span><span data-i18n="en">Staff Permissions</span></a>
+      <a class="nav-item" href="../school-owner/institute-profile.html"><span data-i18n="bn">প্রতিষ্ঠান সেটআপ</span><span data-i18n="en">Institute Setup</span></a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="title"><span data-i18n="bn">পুরাতন শিক্ষার্থী</span><span data-i18n="en">Old Students</span></div>
+      <div class="actions">
+        <div class="lang-switch">
+          <button data-lang-btn="bn" onclick="setLang('bn')">বাং</button>
+          <button data-lang-btn="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="theme-switch">
+          <button data-theme-btn="light" onclick="setTheme('light')">☀</button>
+          <button data-theme-btn="dark" onclick="setTheme('dark')">☾</button>
+          <button data-theme-btn="system" onclick="setTheme('system')">Auto</button>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+
+      <div class="toolbar">
+        <input class="search-input" type="text" placeholder="নাম বা রোল দিয়ে খুঁজুন · Search by name or roll">
+        <a class="btn btn-secondary" href="students-list.html"><span data-i18n="bn">সক্রিয় শিক্ষার্থী তালিকা</span><span data-i18n="en">Active Students List</span></a>
+      </div>
+
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th><span data-i18n="bn">রোল</span><span data-i18n="en">Roll</span></th>
+            <th><span data-i18n="bn">নাম</span><span data-i18n="en">Name</span></th>
+            <th><span data-i18n="bn">শেষ শ্রেণি/শাখা</span><span data-i18n="en">Last Class/Section</span></th>
+            <th><span data-i18n="bn">অভিভাবক</span><span data-i18n="en">Guardian</span></th>
+            <th><span data-i18n="bn">আর্কাইভের তারিখ</span><span data-i18n="en">Archived On</span></th>
+            <th><span data-i18n="bn">অবস্থা</span><span data-i18n="en">Status</span></th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>০৫</td>
+            <td>নুসরাত জাহান</td>
+            <td>Class 10 / A</td>
+            <td>মোঃ শফিকুল ইসলাম</td>
+            <td>০১/০১/২০২৬</td>
+            <td><span class="badge badge-neutral"><span data-i18n="bn">পুরাতন শিক্ষার্থী</span><span data-i18n="en">Old Student</span></span></td>
+            <td class="flex gap-2">
+              <a href="student-detail.html?id=5"><span data-i18n="bn">দেখুন</span><span data-i18n="en">View</span></a>
+              <button class="btn btn-secondary btn-sm"><span data-i18n="bn">পুনরুদ্ধার</span><span data-i18n="en">Restore</span></button>
+            </td>
+          </tr>
+          <tr>
+            <td>১১</td>
+            <td>ইমরান হোসেন</td>
+            <td>Class 10 / B</td>
+            <td>মোঃ জাহাঙ্গীর আলম</td>
+            <td>১৫/১২/২০২৫</td>
+            <td><span class="badge badge-neutral"><span data-i18n="bn">পুরাতন শিক্ষার্থী</span><span data-i18n="en">Old Student</span></span></td>
+            <td class="flex gap-2">
+              <a href="student-detail.html?id=11"><span data-i18n="bn">দেখুন</span><span data-i18n="en">View</span></a>
+              <button class="btn btn-secondary btn-sm"><span data-i18n="bn">পুনরুদ্ধার</span><span data-i18n="en">Restore</span></button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

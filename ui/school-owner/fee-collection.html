@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>ফি আদায় · Fee Collection — Amar School Management</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../shared/design-system.css">
+<script src="../shared/app.js" defer></script>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="mark">A</span><span>Amar School</span></div>
+    <nav>
+      <a class="nav-item" href="../school-owner/dashboard.html"><span data-i18n="bn">ড্যাশবোর্ড</span><span data-i18n="en">Dashboard</span></a>
+      <a class="nav-item" href="../school-owner/students-list.html"><span data-i18n="bn">শিক্ষার্থী</span><span data-i18n="en">Students</span></a>
+      <a class="nav-item" href="../school-owner/employees-list.html"><span data-i18n="bn">কর্মচারী</span><span data-i18n="en">Employees</span></a>
+      <a class="nav-item" href="../school-owner/attendance-student-mark.html"><span data-i18n="bn">উপস্থিতি</span><span data-i18n="en">Attendance</span></a>
+      <a class="nav-item" href="../school-owner/classes-list.html"><span data-i18n="bn">শ্রেণি ও পাঠ্যক্রম</span><span data-i18n="en">Class & Curriculum</span></a>
+      <a class="nav-item" href="../school-owner/exams-list.html"><span data-i18n="bn">পরীক্ষা ও ফলাফল</span><span data-i18n="en">Exams & Results</span></a>
+      <a class="nav-item active" href="../school-owner/fee-collection.html"><span data-i18n="bn">হিসাব ও ফি</span><span data-i18n="en">Accounting & Fees</span></a>
+      <a class="nav-item" href="../school-owner/sms-compose.html"><span data-i18n="bn">এসএমএস</span><span data-i18n="en">SMS</span></a>
+      <a class="nav-item" href="../school-owner/notices-list.html"><span data-i18n="bn">প্রকাশনা</span><span data-i18n="en">Publishing</span></a>
+      <a class="nav-item" href="../school-owner/feedback-inbox.html"><span data-i18n="bn">মতামত</span><span data-i18n="en">Feedback</span></a>
+      <a class="nav-item" href="../school-owner/staff-permissions.html"><span data-i18n="bn">স্টাফ অনুমতি</span><span data-i18n="en">Staff Permissions</span></a>
+      <a class="nav-item" href="../school-owner/institute-profile.html"><span data-i18n="bn">প্রতিষ্ঠান সেটআপ</span><span data-i18n="en">Institute Setup</span></a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="title"><span data-i18n="bn">ফি আদায়</span><span data-i18n="en">Fee Collection</span></div>
+      <div class="actions">
+        <div class="lang-switch">
+          <button data-lang-btn="bn" onclick="setLang('bn')">বাং</button>
+          <button data-lang-btn="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="theme-switch">
+          <button data-theme-btn="light" onclick="setTheme('light')">☀</button>
+          <button data-theme-btn="dark" onclick="setTheme('dark')">☾</button>
+          <button data-theme-btn="system" onclick="setTheme('system')">Auto</button>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+
+      <div class="tabs">
+        <a href="fee-structures.html"><span data-i18n="bn">ফি কাঠামো</span><span data-i18n="en">Fee Structures</span></a>
+        <a href="fee-collection.html" class="active"><span data-i18n="bn">ফি আদায়</span><span data-i18n="en">Fee Collection</span></a>
+        <a href="vouchers-list.html"><span data-i18n="bn">ভাউচার</span><span data-i18n="en">Vouchers</span></a>
+        <a href="asset-register.html"><span data-i18n="bn">সম্পদ রেজিস্টার</span><span data-i18n="en">Asset Register</span></a>
+        <a href="bank-cash-accounts.html"><span data-i18n="bn">ব্যাংক ও নগদ</span><span data-i18n="en">Bank & Cash</span></a>
+        <a href="director-capital.html"><span data-i18n="bn">পরিচালকের মূলধন</span><span data-i18n="en">Director Capital</span></a>
+        <a href="general-ledger.html"><span data-i18n="bn">সাধারণ খতিয়ান</span><span data-i18n="en">General Ledger</span></a>
+      </div>
+
+      <div class="toolbar">
+        <div class="flex gap-2 items-center">
+          <input class="search-input" type="text" placeholder="রোল বা নাম দিয়ে খুঁজুন · Search by roll or name">
+          <select class="field" style="height:var(--control-h); border:1px solid var(--border-strong); border-radius:var(--radius-sm); padding:0 var(--space-3); font-family:inherit; background:var(--bg-surface); color:var(--text-primary);">
+            <option><span data-i18n="bn">শ্রেণি: ৬ষ্ঠ</span><span data-i18n="en">Class: 6</span></option>
+          </select>
+          <select style="height:var(--control-h); border:1px solid var(--border-strong); border-radius:var(--radius-sm); padding:0 var(--space-3); font-family:inherit; background:var(--bg-surface); color:var(--text-primary);">
+            <option>জুলাই · July 2026</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" onclick="document.getElementById('collect-form').scrollIntoView({behavior:'smooth'})">
+          <span data-i18n="bn">+ নতুন ফি আদায়</span><span data-i18n="en">+ Collect Fee</span>
+        </button>
+      </div>
+
+      <table class="data-table mb-4">
+        <thead>
+          <tr>
+            <th><span data-i18n="bn">রোল</span><span data-i18n="en">Roll</span></th>
+            <th><span data-i18n="bn">নাম</span><span data-i18n="en">Name</span></th>
+            <th><span data-i18n="bn">শ্রেণি/শাখা</span><span data-i18n="en">Class/Section</span></th>
+            <th><span data-i18n="bn">মাস</span><span data-i18n="en">Month</span></th>
+            <th><span data-i18n="bn">অবস্থা</span><span data-i18n="en">Status</span></th>
+            <th><span data-i18n="bn">কার্যক্রম</span><span data-i18n="en">Action</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>০৭</td>
+            <td>মাহিন রহমান<br><span class="text-secondary">Mahin Rahman</span></td>
+            <td>৬ষ্ঠ / এ</td>
+            <td>জুলাই ২০২৬ · Jul 2026</td>
+            <td><span class="badge badge-warning"><span data-i18n="bn">আদায় হয়নি</span><span data-i18n="en">Not Collected</span></span></td>
+            <td><a class="btn btn-sm btn-primary" href="#collect-form"><span data-i18n="bn">আদায় করুন</span><span data-i18n="en">Collect</span></a></td>
+          </tr>
+          <tr style="background:var(--warning-bg);">
+            <td>১২</td>
+            <td>সাদিয়া ইসলাম<br><span class="text-secondary">Sadia Islam</span></td>
+            <td>৬ষ্ঠ / এ</td>
+            <td>জুলাই ২০২৬ · Jul 2026</td>
+            <td><span class="badge badge-success"><span data-i18n="bn">আদায় হয়েছে</span><span data-i18n="en">Collected</span></span></td>
+            <td>
+              <a class="btn btn-sm btn-secondary" href="fee-collection-edit-modal.html">
+                <span data-i18n="bn">সম্পাদনা করুন</span><span data-i18n="en">Edit record</span>
+              </a>
+            </td>
+          </tr>
+          <tr>
+            <td>১৯</td>
+            <td>তানভীর আহমেদ<br><span class="text-secondary">Tanvir Ahmed</span></td>
+            <td>৬ষ্ঠ / বি</td>
+            <td>জুলাই ২০২৬ · Jul 2026</td>
+            <td><span class="badge badge-warning"><span data-i18n="bn">আদায় হয়নি</span><span data-i18n="en">Not Collected</span></span></td>
+            <td><a class="btn btn-sm btn-primary" href="#collect-form"><span data-i18n="bn">আদায় করুন</span><span data-i18n="en">Collect</span></a></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Duplicate-record redirect state: resolved rule — this is not a generic error -->
+      <div class="card mb-4" style="border-color: var(--warning-border); background: var(--warning-bg);">
+        <div class="flex items-center justify-between">
+          <div>
+            <div style="font-weight:600; color: var(--warning-fg);">
+              <span data-i18n="bn">সাদিয়া ইসলাম — জুলাই ২০২৬: এই মাসের পেমেন্ট তথ্য ইতিমধ্যে আছে, সম্পাদনা করুন</span>
+              <span data-i18n="en">Sadia Islam — Jul 2026: This month already has a payment record — please edit</span>
+            </div>
+            <div class="text-secondary" style="font-size: var(--text-xs); margin-top: 4px;">
+              <span data-i18n="bn">প্রতি শিক্ষার্থীর প্রতি মাসে শুধুমাত্র একটি ফি আদায় রেকর্ড থাকতে পারে — নতুন পেমেন্ট যোগ না করে বিদ্যমান রেকর্ডের সর্বমোট পরিমাণ সম্পাদনা করা হয়।</span>
+              <span data-i18n="en">Only one Fee Collection Record can exist per student per month — a further payment edits the existing record's cumulative totals rather than adding a new one.</span>
+            </div>
+          </div>
+          <a class="btn btn-primary" href="fee-collection-edit-modal.html">
+            <span data-i18n="bn">রেকর্ড সম্পাদনা করুন</span><span data-i18n="en">Edit Record</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Normal case: no existing record — full collection form -->
+      <div class="card" id="collect-form">
+        <h3 class="mt-0"><span data-i18n="bn">ফি আদায় করুন — মাহিন রহমান (রোল ০৭)</span><span data-i18n="en">Collect Fee — Mahin Rahman (Roll 07)</span></h3>
+        <p class="text-secondary" style="margin-top:-8px;"><span data-i18n="bn">৬ষ্ঠ শ্রেণি / শাখা এ · জুলাই ২০২৬</span><span data-i18n="en">Class 6 / Section A · July 2026</span></p>
+
+        <div class="form-grid">
+          <div class="field">
+            <label><span data-i18n="bn">ফি (নির্ধারিত)</span><span data-i18n="en">Fee Amount</span></label>
+            <input type="text" value="৳ ১,২০০">
+          </div>
+          <div class="field">
+            <label><span data-i18n="bn">জরিমানা</span><span data-i18n="en">Fine</span></label>
+            <input type="text" value="৳ ০">
+          </div>
+          <div class="field">
+            <label><span data-i18n="bn">বৃত্তি/ছাড়</span><span data-i18n="en">Scholarship / Discount</span></label>
+            <input type="text" value="৳ ২০০">
+          </div>
+          <div class="field">
+            <label><span data-i18n="bn">প্রদেয় মোট</span><span data-i18n="en">Total Payable</span></label>
+            <input type="text" value="৳ ১,০০০" disabled>
+          </div>
+          <div class="field">
+            <label><span data-i18n="bn">পেমেন্ট পদ্ধতি</span><span data-i18n="en">Payment Method</span></label>
+            <select>
+              <option><span>নগদ · Cash</span></option>
+              <option><span>চেক · Cheque</span></option>
+              <option><span>ব্যাংক · Bank</span></option>
+            </select>
+          </div>
+          <div class="field">
+            <label><span data-i18n="bn">প্রাপ্ত পরিমাণ</span><span data-i18n="en">Received Amount</span></label>
+            <input type="text" value="৳ ১,০০০">
+          </div>
+          <div class="field">
+            <label><span data-i18n="bn">বকেয়া</span><span data-i18n="en">Due Amount</span></label>
+            <input type="text" value="৳ ০" disabled>
+          </div>
+          <div class="field field-full">
+            <label><span data-i18n="bn">নোট</span><span data-i18n="en">Note</span></label>
+            <input type="text" placeholder="ঐচ্ছিক · optional">
+          </div>
+        </div>
+
+        <div class="flex gap-2" style="margin-top: var(--space-4);">
+          <button class="btn btn-primary"><span data-i18n="bn">আদায় করুন ও রসিদ ছাপুন</span><span data-i18n="en">Collect & Print Receipt</span></button>
+          <button class="btn btn-secondary"><span data-i18n="bn">বাতিল</span><span data-i18n="en">Cancel</span></button>
+        </div>
+      </div>
+
+      <div class="card mt-0" style="margin-top: var(--space-4);">
+        <h3 class="mt-0"><span data-i18n="bn">রসিদ পূর্বরূপ</span><span data-i18n="en">Receipt Preview</span></h3>
+        <div style="border: 1px dashed var(--border-strong); border-radius: var(--radius-md); padding: var(--space-4);">
+          <div class="flex justify-between">
+            <strong>আমার স্কুল উচ্চ বিদ্যালয় · Amar School High School</strong>
+            <span class="text-secondary">রসিদ নং · Receipt No: FC-2026-0714</span>
+          </div>
+          <p><span data-i18n="bn">শিক্ষার্থী: মাহিন রহমান, রোল ০৭, ৬ষ্ঠ শ্রেণি/এ</span><span data-i18n="en">Student: Mahin Rahman, Roll 07, Class 6/A</span></p>
+          <p><span data-i18n="bn">প্রাপ্ত পরিমাণ: ৳ ১,০০০</span><span data-i18n="en">Amount Received: Tk 1,000</span></p>
+          <p class="text-secondary" style="font-style: italic;">
+            <span data-i18n="bn">কথায়: এক হাজার টাকা মাত্র</span>
+            <span data-i18n="en">In words: One Thousand Taka Only</span>
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

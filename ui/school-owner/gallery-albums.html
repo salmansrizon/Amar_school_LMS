@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>গ্যালারি অ্যালবাম · Gallery Albums — Amar School Management</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../shared/design-system.css">
+<script src="../shared/app.js" defer></script>
+<style>
+  .album-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-4); }
+  .album-card { display: block; text-decoration: none; color: var(--text-primary); }
+  .album-cover {
+    height: 120px; border-radius: var(--radius-md) var(--radius-md) 0 0;
+    background: var(--bg-surface-alt); border: 1px solid var(--border-default); border-bottom: none;
+    display: flex; align-items: center; justify-content: center; font-size: var(--text-2xl); color: var(--text-secondary);
+  }
+  .album-body { border: 1px solid var(--border-default); border-top: none; border-radius: 0 0 var(--radius-md) var(--radius-md); padding: var(--space-3); }
+  .album-title { font-weight: 600; font-size: var(--text-sm); margin-bottom: 2px; }
+  .album-count { font-size: var(--text-xs); }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="mark">A</span><span>Amar School</span></div>
+    <nav>
+      <a class="nav-item" href="../school-owner/dashboard.html"><span data-i18n="bn">ড্যাশবোর্ড</span><span data-i18n="en">Dashboard</span></a>
+      <a class="nav-item" href="../school-owner/students-list.html"><span data-i18n="bn">শিক্ষার্থী</span><span data-i18n="en">Students</span></a>
+      <a class="nav-item" href="../school-owner/employees-list.html"><span data-i18n="bn">কর্মচারী</span><span data-i18n="en">Employees</span></a>
+      <a class="nav-item" href="../school-owner/attendance-student-mark.html"><span data-i18n="bn">উপস্থিতি</span><span data-i18n="en">Attendance</span></a>
+      <a class="nav-item" href="../school-owner/classes-list.html"><span data-i18n="bn">শ্রেণি ও পাঠ্যক্রম</span><span data-i18n="en">Class & Curriculum</span></a>
+      <a class="nav-item" href="../school-owner/exams-list.html"><span data-i18n="bn">পরীক্ষা ও ফলাফল</span><span data-i18n="en">Exams & Results</span></a>
+      <a class="nav-item" href="../school-owner/fee-collection.html"><span data-i18n="bn">হিসাব ও ফি</span><span data-i18n="en">Accounting & Fees</span></a>
+      <a class="nav-item" href="../school-owner/sms-compose.html"><span data-i18n="bn">এসএমএস</span><span data-i18n="en">SMS</span></a>
+      <a class="nav-item active" href="../school-owner/notices-list.html"><span data-i18n="bn">প্রকাশনা</span><span data-i18n="en">Publishing</span></a>
+      <a class="nav-item" href="../school-owner/feedback-inbox.html"><span data-i18n="bn">মতামত</span><span data-i18n="en">Feedback</span></a>
+      <a class="nav-item" href="../school-owner/staff-permissions.html"><span data-i18n="bn">স্টাফ অনুমতি</span><span data-i18n="en">Staff Permissions</span></a>
+      <a class="nav-item" href="../school-owner/institute-profile.html"><span data-i18n="bn">প্রতিষ্ঠান সেটআপ</span><span data-i18n="en">Institute Setup</span></a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="title"><span data-i18n="bn">গ্যালারি অ্যালবাম</span><span data-i18n="en">Gallery Albums</span></div>
+      <div class="actions">
+        <div class="lang-switch">
+          <button data-lang-btn="bn" onclick="setLang('bn')">বাং</button>
+          <button data-lang-btn="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="theme-switch">
+          <button data-theme-btn="light" onclick="setTheme('light')">☀</button>
+          <button data-theme-btn="dark" onclick="setTheme('dark')">☾</button>
+          <button data-theme-btn="system" onclick="setTheme('system')">Auto</button>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+
+      <div class="tabs">
+        <a href="notices-list.html"><span data-i18n="bn">তালিকা</span><span data-i18n="en">List</span></a>
+        <a href="notice-create.html"><span data-i18n="bn">নতুন তৈরি করুন</span><span data-i18n="en">Create</span></a>
+        <a href="gallery-albums.html" class="active"><span data-i18n="bn">গ্যালারি অ্যালবাম</span><span data-i18n="en">Gallery Albums</span></a>
+      </div>
+
+      <div class="toolbar">
+        <input class="search-input" type="text" placeholder="অ্যালবাম খুঁজুন · Search album">
+        <button class="btn btn-primary"><span data-i18n="bn">+ নতুন অ্যালবাম</span><span data-i18n="en">+ New Album</span></button>
+      </div>
+
+      <div class="album-grid">
+        <a class="album-card" href="gallery-album-detail.html">
+          <div class="album-cover">🖼️</div>
+          <div class="album-body">
+            <div class="album-title"><span data-i18n="bn">বার্ষিক ক্রীড়া প্রতিযোগিতা ২০২৬</span><span data-i18n="en">Annual Sports Day 2026</span></div>
+            <div class="album-count text-secondary">
+              <span data-i18n="bn">১২/২০ ছবি</span><span data-i18n="en"> · 12/20 photos</span>
+            </div>
+          </div>
+        </a>
+        <a class="album-card" href="gallery-album-detail.html">
+          <div class="album-cover">🖼️</div>
+          <div class="album-body">
+            <div class="album-title"><span data-i18n="bn">বিজ্ঞান মেলা ২০২৬</span><span data-i18n="en">Science Fair 2026</span></div>
+            <div class="album-count text-secondary">
+              <span data-i18n="bn">২০/২০ ছবি</span><span data-i18n="en"> · 20/20 photos</span>
+            </div>
+            <div style="margin-top:4px;"><span class="badge badge-warning"><span data-i18n="bn">পূর্ণ</span><span data-i18n="en">Full</span></span></div>
+          </div>
+        </a>
+        <a class="album-card" href="gallery-album-detail.html">
+          <div class="album-cover">🖼️</div>
+          <div class="album-body">
+            <div class="album-title"><span data-i18n="bn">বার্ষিক পুরস্কার বিতরণী</span><span data-i18n="en">Annual Prize Giving</span></div>
+            <div class="album-count text-secondary">
+              <span data-i18n="bn">৫/২০ ছবি</span><span data-i18n="en"> · 5/20 photos</span>
+            </div>
+          </div>
+        </a>
+        <a class="album-card" href="gallery-album-detail.html">
+          <div class="album-cover">🖼️</div>
+          <div class="album-body">
+            <div class="album-title"><span data-i18n="bn">নবীন বরণ অনুষ্ঠান</span><span data-i18n="en">Freshers' Welcome</span></div>
+            <div class="album-count text-secondary">
+              <span data-i18n="bn">৮/২০ ছবি</span><span data-i18n="en"> · 8/20 photos</span>
+            </div>
+          </div>
+        </a>
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

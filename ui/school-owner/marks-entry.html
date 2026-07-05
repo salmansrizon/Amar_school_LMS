@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>নম্বর এন্ট্রি · Marks Entry — Amar School Management</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../shared/design-system.css">
+<script src="../shared/app.js" defer></script>
+<style>
+  .marks-input { width: 64px; height: 1.75rem; padding: 0 var(--space-2); border: 1px solid var(--border-strong); border-radius: var(--radius-sm); background: var(--bg-surface); color: var(--text-primary); font-family: inherit; font-size: var(--text-sm); text-align: center; }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="mark">A</span><span>Amar School</span></div>
+    <nav>
+      <a class="nav-item" href="../school-owner/dashboard.html"><span data-i18n="bn">ড্যাশবোর্ড</span><span data-i18n="en">Dashboard</span></a>
+      <a class="nav-item" href="../school-owner/students-list.html"><span data-i18n="bn">শিক্ষার্থী</span><span data-i18n="en">Students</span></a>
+      <a class="nav-item" href="../school-owner/employees-list.html"><span data-i18n="bn">কর্মচারী</span><span data-i18n="en">Employees</span></a>
+      <a class="nav-item" href="../school-owner/attendance-student-mark.html"><span data-i18n="bn">উপস্থিতি</span><span data-i18n="en">Attendance</span></a>
+      <a class="nav-item" href="../school-owner/classes-list.html"><span data-i18n="bn">শ্রেণি ও পাঠ্যক্রম</span><span data-i18n="en">Class & Curriculum</span></a>
+      <a class="nav-item active" href="../school-owner/exams-list.html"><span data-i18n="bn">পরীক্ষা ও ফলাফল</span><span data-i18n="en">Exams & Results</span></a>
+      <a class="nav-item" href="../school-owner/fee-collection.html"><span data-i18n="bn">হিসাব ও ফি</span><span data-i18n="en">Accounting & Fees</span></a>
+      <a class="nav-item" href="../school-owner/sms-compose.html"><span data-i18n="bn">এসএমএস</span><span data-i18n="en">SMS</span></a>
+      <a class="nav-item" href="../school-owner/notices-list.html"><span data-i18n="bn">প্রকাশনা</span><span data-i18n="en">Publishing</span></a>
+      <a class="nav-item" href="../school-owner/feedback-inbox.html"><span data-i18n="bn">মতামত</span><span data-i18n="en">Feedback</span></a>
+      <a class="nav-item" href="../school-owner/staff-permissions.html"><span data-i18n="bn">স্টাফ অনুমতি</span><span data-i18n="en">Staff Permissions</span></a>
+      <a class="nav-item" href="../school-owner/institute-profile.html"><span data-i18n="bn">প্রতিষ্ঠান সেটআপ</span><span data-i18n="en">Institute Setup</span></a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="title"><span data-i18n="bn">নম্বর এন্ট্রি</span><span data-i18n="en">Marks Entry</span></div>
+      <div class="actions">
+        <div class="lang-switch">
+          <button data-lang-btn="bn" onclick="setLang('bn')">বাং</button>
+          <button data-lang-btn="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="theme-switch">
+          <button data-theme-btn="light" onclick="setTheme('light')">☀</button>
+          <button data-theme-btn="dark" onclick="setTheme('dark')">☾</button>
+          <button data-theme-btn="system" onclick="setTheme('system')">Auto</button>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+
+      <div class="toolbar">
+        <div class="flex gap-2">
+          <select class="search-input" style="min-width:200px;">
+            <option><span data-i18n="bn">বার্ষিক পরীক্ষা ২০২৫ - অষ্টম শ্রেণি A</span><span data-i18n="en">Annual Examination 2025 - Class 8 A</span></option>
+          </select>
+          <select class="search-input" style="min-width:140px;">
+            <option><span data-i18n="bn">বিজ্ঞান</span><span data-i18n="en">Science</span></option>
+            <option><span data-i18n="bn">বাংলা</span><span data-i18n="en">Bangla</span></option>
+            <option><span data-i18n="bn">গণিত</span><span data-i18n="en">Mathematics</span></option>
+          </select>
+        </div>
+        <div class="flex gap-2">
+          <a class="btn btn-secondary" href="exam-setup.html"><span data-i18n="bn">পরীক্ষা সেটআপ</span><span data-i18n="en">Exam Setup</span></a>
+          <button class="btn btn-primary"><span data-i18n="bn">সংরক্ষণ করুন</span><span data-i18n="en">Save</span></button>
+        </div>
+      </div>
+
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th><span data-i18n="bn">রোল</span><span data-i18n="en">Roll</span></th>
+            <th><span data-i18n="bn">নাম</span><span data-i18n="en">Name</span></th>
+            <th><span data-i18n="bn">তত্ত্বীয় (৫০)</span><span data-i18n="en">Theory (50)</span></th>
+            <th><span data-i18n="bn">এমসিকিউ (২৫)</span><span data-i18n="en">MCQ (25)</span></th>
+            <th><span data-i18n="bn">ব্যবহারিক (২৫)</span><span data-i18n="en">Practical (25)</span></th>
+            <th><span data-i18n="bn">মোট</span><span data-i18n="en">Total</span></th>
+            <th><span data-i18n="bn">গ্রেড</span><span data-i18n="en">Grade</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>01</td>
+            <td><span data-i18n="bn">মোঃ ইমরান হোসেন</span><span data-i18n="en">Md. Imran Hossain</span></td>
+            <td><input class="marks-input" type="number" value="45" max="50"></td>
+            <td><input class="marks-input" type="number" value="22" max="25"></td>
+            <td><input class="marks-input" type="number" value="24" max="25"></td>
+            <td><strong>91</strong></td>
+            <td><span class="badge badge-success">A+</span></td>
+          </tr>
+          <tr>
+            <td>02</td>
+            <td><span data-i18n="bn">ফাতেমা আক্তার</span><span data-i18n="en">Fatema Akter</span></td>
+            <td><input class="marks-input" type="number" value="40" max="50"></td>
+            <td><input class="marks-input" type="number" value="20" max="25"></td>
+            <td><input class="marks-input" type="number" value="21" max="25"></td>
+            <td><strong>81</strong></td>
+            <td><span class="badge badge-success">A+</span></td>
+          </tr>
+          <tr>
+            <td>03</td>
+            <td><span data-i18n="bn">রাকিব হাসান</span><span data-i18n="en">Rakib Hasan</span></td>
+            <td><input class="marks-input" type="number" value="18" max="50"></td>
+            <td><input class="marks-input" type="number" value="10" max="25"></td>
+            <td><input class="marks-input" type="number" value="12" max="25"></td>
+            <td><strong>40</strong></td>
+            <td><span class="badge badge-warning">C</span></td>
+          </tr>
+          <tr>
+            <td>04</td>
+            <td><span data-i18n="bn">সুমাইয়া ইসলাম</span><span data-i18n="en">Sumaiya Islam</span></td>
+            <td><input class="marks-input" type="number" value="10" max="50"></td>
+            <td><input class="marks-input" type="number" value="8" max="25"></td>
+            <td><input class="marks-input" type="number" value="9" max="25"></td>
+            <td><strong>27</strong></td>
+            <td><span class="badge badge-danger">F</span></td>
+          </tr>
+          <tr>
+            <td>05</td>
+            <td><span data-i18n="bn">তানভীর আহমেদ</span><span data-i18n="en">Tanvir Ahmed</span></td>
+            <td><input class="marks-input" type="number" value="38" max="50"></td>
+            <td><input class="marks-input" type="number" value="19" max="25"></td>
+            <td><input class="marks-input" type="number" value="20" max="25"></td>
+            <td><strong>77</strong></td>
+            <td><span class="badge badge-success">A</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p class="text-secondary" style="font-size: var(--text-xs); margin-top: var(--space-3);">
+        <span data-i18n="bn">নম্বর স্বয়ংক্রিয়ভাবে যোগ হয়ে মোট ও গ্রেড গণনা করে। এই বিষয়ের এন্ট্রি সম্পন্ন হলে পরবর্তী বিষয় নির্বাচন করুন।</span>
+        <span data-i18n="en">Totals and grades are computed automatically as marks are entered. Select the next subject from the dropdown above once this one is complete.</span>
+      </p>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

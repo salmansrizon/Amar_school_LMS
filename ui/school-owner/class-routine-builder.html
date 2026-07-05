@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>ক্লাস রুটিন তৈরি · Class Routine Builder — Amar School Management</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../shared/design-system.css">
+<script src="../shared/app.js" defer></script>
+<style>
+  .routine-table td, .routine-table th { text-align: center; }
+  .routine-cell { display: flex; flex-direction: column; gap: 2px; font-size: var(--text-xs); }
+  .routine-cell .subj { font-weight: 600; font-size: var(--text-sm); }
+  .routine-cell.conflict { background: var(--danger-bg); border-radius: var(--radius-sm); padding: var(--space-1); }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="mark">A</span><span>Amar School</span></div>
+    <nav>
+      <a class="nav-item" href="../school-owner/dashboard.html"><span data-i18n="bn">ড্যাশবোর্ড</span><span data-i18n="en">Dashboard</span></a>
+      <a class="nav-item" href="../school-owner/students-list.html"><span data-i18n="bn">শিক্ষার্থী</span><span data-i18n="en">Students</span></a>
+      <a class="nav-item" href="../school-owner/employees-list.html"><span data-i18n="bn">কর্মচারী</span><span data-i18n="en">Employees</span></a>
+      <a class="nav-item" href="../school-owner/attendance-student-mark.html"><span data-i18n="bn">উপস্থিতি</span><span data-i18n="en">Attendance</span></a>
+      <a class="nav-item active" href="../school-owner/classes-list.html"><span data-i18n="bn">শ্রেণি ও পাঠ্যক্রম</span><span data-i18n="en">Class & Curriculum</span></a>
+      <a class="nav-item" href="../school-owner/exams-list.html"><span data-i18n="bn">পরীক্ষা ও ফলাফল</span><span data-i18n="en">Exams & Results</span></a>
+      <a class="nav-item" href="../school-owner/fee-collection.html"><span data-i18n="bn">হিসাব ও ফি</span><span data-i18n="en">Accounting & Fees</span></a>
+      <a class="nav-item" href="../school-owner/sms-compose.html"><span data-i18n="bn">এসএমএস</span><span data-i18n="en">SMS</span></a>
+      <a class="nav-item" href="../school-owner/notices-list.html"><span data-i18n="bn">প্রকাশনা</span><span data-i18n="en">Publishing</span></a>
+      <a class="nav-item" href="../school-owner/feedback-inbox.html"><span data-i18n="bn">মতামত</span><span data-i18n="en">Feedback</span></a>
+      <a class="nav-item" href="../school-owner/staff-permissions.html"><span data-i18n="bn">স্টাফ অনুমতি</span><span data-i18n="en">Staff Permissions</span></a>
+      <a class="nav-item" href="../school-owner/institute-profile.html"><span data-i18n="bn">প্রতিষ্ঠান সেটআপ</span><span data-i18n="en">Institute Setup</span></a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="title"><span data-i18n="bn">ক্লাস রুটিন তৈরি</span><span data-i18n="en">Class Routine Builder</span></div>
+      <div class="actions">
+        <div class="lang-switch">
+          <button data-lang-btn="bn" onclick="setLang('bn')">বাং</button>
+          <button data-lang-btn="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="theme-switch">
+          <button data-theme-btn="light" onclick="setTheme('light')">☀</button>
+          <button data-theme-btn="dark" onclick="setTheme('dark')">☾</button>
+          <button data-theme-btn="system" onclick="setTheme('system')">Auto</button>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+
+      <div class="toolbar">
+        <div class="flex gap-2">
+          <select class="search-input" style="min-width:160px;">
+            <option><span data-i18n="bn">অষ্টম শ্রেণি - A</span><span data-i18n="en">Class 8 - A</span></option>
+          </select>
+        </div>
+        <div class="flex gap-2 items-center">
+          <span class="badge badge-danger"><span data-i18n="bn">১টি দ্বন্দ্ব পাওয়া গেছে</span><span data-i18n="en">1 conflict found</span></span>
+          <a class="btn btn-secondary" href="../school-owner/classes-list.html"><span data-i18n="bn">বাতিল</span><span data-i18n="en">Cancel</span></a>
+          <button class="btn btn-primary"><span data-i18n="bn">প্রকাশ করুন</span><span data-i18n="en">Publish</span></button>
+        </div>
+      </div>
+
+      <table class="data-table routine-table">
+        <thead>
+          <tr>
+            <th><span data-i18n="bn">পিরিয়ড</span><span data-i18n="en">Period</span></th>
+            <th><span data-i18n="bn">রবি</span><span data-i18n="en">Sun</span></th>
+            <th><span data-i18n="bn">সোম</span><span data-i18n="en">Mon</span></th>
+            <th><span data-i18n="bn">মঙ্গল</span><span data-i18n="en">Tue</span></th>
+            <th><span data-i18n="bn">বুধ</span><span data-i18n="en">Wed</span></th>
+            <th><span data-i18n="bn">বৃহঃ</span><span data-i18n="en">Thu</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span data-i18n="bn">১ম</span><span data-i18n="en">1st</span> <span class="text-secondary">৯:০০-৯:৪৫</span></td>
+            <td><div class="routine-cell"><span class="subj"><span data-i18n="bn">বাংলা</span><span data-i18n="en">Bangla</span></span><span data-i18n="bn">রফিকুল ইসলাম · রুম ১০১</span><span data-i18n="en">Rafiqul Islam · Room 101</span></div></td>
+            <td><div class="routine-cell"><span class="subj"><span data-i18n="bn">গণিত</span><span data-i18n="en">Math</span></span><span data-i18n="bn">সালমা আক্তার · রুম ১০১</span><span data-i18n="en">Salma Akter · Room 101</span></div></td>
+            <td><div class="routine-cell"><span class="subj"><span data-i18n="bn">ইংরেজি</span><span data-i18n="en">English</span></span><span data-i18n="bn">নাসরিন সুলতানা · রুম ১০১</span><span data-i18n="en">Nasrin Sultana · Room 101</span></div></td>
+            <td><div class="routine-cell"><span class="subj"><span data-i18n="bn">বিজ্ঞান</span><span data-i18n="en">Science</span></span><span data-i18n="bn">করিম উদ্দিন · রুম ১০১</span><span data-i18n="en">Karim Uddin · Room 101</span></div></td>
+            <td><div class="routine-cell"><span class="subj"><span data-i18n="bn">বাংলা</span><span data-i18n="en">Bangla</span></span><span data-i18n="bn">রফিকুল ইসলাম · রুম ১০১</span><span data-i18n="en">Rafiqul Islam · Room 101</span></div></td>
+          </tr>
+          <tr>
+            <td><span data-i18n="bn">২য়</span><span data-i18n="en">2nd</span> <span class="text-secondary">৯:৪৫-১০:৩০</span></td>
+            <td><div class="routine-cell"><span class="subj"><span data-i18n="bn">গণিত</span><span data-i18n="en">Math</span></span><span data-i18n="bn">সালমা আক্তার · রুম ১০১</span><span data-i18n="en">Salma Akter · Room 101</span></div></td>
+            <td><div class="routine-cell conflict"><span class="subj"><span data-i18n="bn">ইংরেজি</span><span data-i18n="en">English</span></span><span data-i18n="bn">নাসরিন সুলতানা · রুম ১০২</span><span data-i18n="en">Nasrin Sultana · Room 102</span><span class="badge badge-danger"><span data-i18n="bn">শিক্ষক দ্বন্দ্ব</span><span data-i18n="en">Teacher conflict</span></span></div></td>
+            <td><div class="routine-cell"><span class="subj"><span data-i18n="bn">বিজ্ঞান</span><span data-i18n="en">Science</span></span><span data-i18n="bn">করিম উদ্দিন · রুম ১০১</span><span data-i18n="en">Karim Uddin · Room 101</span></div></td>
+            <td><div class="routine-cell"><span class="subj"><span data-i18n="bn">বাংলা</span><span data-i18n="en">Bangla</span></span><span data-i18n="bn">রফিকুল ইসলাম · রুম ১০১</span><span data-i18n="en">Rafiqul Islam · Room 101</span></div></td>
+            <td><div class="routine-cell"><span class="subj"><span data-i18n="bn">গণিত</span><span data-i18n="en">Math</span></span><span data-i18n="bn">সালমা আক্তার · রুম ১০১</span><span data-i18n="en">Salma Akter · Room 101</span></div></td>
+          </tr>
+          <tr>
+            <td><span data-i18n="bn">৩য়</span><span data-i18n="en">3rd</span> <span class="text-secondary">১০:৩০-১১:১৫</span></td>
+            <td><div class="routine-cell"><span class="subj"><span data-i18n="bn">সামাজিক বিজ্ঞান</span><span data-i18n="en">Social Science</span></span><span data-i18n="bn">করিম উদ্দিন · রুম ১০১</span><span data-i18n="en">Karim Uddin · Room 101</span></div></td>
+            <td><div class="routine-cell"><span class="subj"><span data-i18n="bn">তথ্য ও যোগাযোগ প্রযুক্তি</span><span data-i18n="en">ICT</span></span><span data-i18n="bn">রফিকুল ইসলাম · কম্পিউটার ল্যাব</span><span data-i18n="en">Rafiqul Islam · Computer Lab</span></div></td>
+            <td><div class="routine-cell"><span class="subj"><span data-i18n="bn">বাংলা</span><span data-i18n="en">Bangla</span></span><span data-i18n="bn">রফিকুল ইসলাম · রুম ১০১</span><span data-i18n="en">Rafiqul Islam · Room 101</span></div></td>
+            <td><div class="routine-cell"><span class="subj"><span data-i18n="bn">ধর্ম শিক্ষা</span><span data-i18n="en">Religious Studies</span></span><span data-i18n="bn">নাসরিন সুলতানা · রুম ১০১</span><span data-i18n="en">Nasrin Sultana · Room 101</span></div></td>
+            <td><div class="routine-cell"><span class="subj"><span data-i18n="bn">ইংরেজি</span><span data-i18n="en">English</span></span><span data-i18n="bn">নাসরিন সুলতানা · রুম ১০১</span><span data-i18n="en">Nasrin Sultana · Room 101</span></div></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p class="text-secondary" style="font-size: var(--text-xs); margin-top: var(--space-3);">
+        <span data-i18n="bn">দ্বন্দ্বপূর্ণ কক্ষ/শিক্ষক লাল রঙে চিহ্নিত। প্রকাশ করার আগে সব দ্বন্দ্ব সমাধান করুন।</span>
+        <span data-i18n="en">Conflicting room/teacher assignments are flagged in red. Resolve all conflicts before publishing.</span>
+      </p>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

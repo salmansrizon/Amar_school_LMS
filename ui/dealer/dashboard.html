@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>ড্যাশবোর্ড · Dashboard — Dealer Portal</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../shared/design-system.css">
+<script src="../shared/app.js" defer></script>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="mark">D</span><span>Dealer Portal</span></div>
+    <nav>
+      <a class="nav-item active" href="dashboard.html"><span data-i18n="bn">ড্যাশবোর্ড</span><span data-i18n="en">Dashboard</span></a>
+      <a class="nav-item" href="dashboard.html#schools"><span data-i18n="bn">আমার স্কুল</span><span data-i18n="en">My Schools</span></a>
+      <a class="nav-item" href="code-purchase.html"><span data-i18n="bn">কোড ক্রয়</span><span data-i18n="en">Purchase Codes</span></a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="title"><span data-i18n="bn">ড্যাশবোর্ড</span><span data-i18n="en">Dashboard</span></div>
+      <div class="actions">
+        <a class="btn btn-secondary btn-sm" href="../index.html" title="Home">🏠</a>
+        <a class="btn btn-secondary btn-sm" href="../sitemap.html" title="Sitemap">📋</a>
+        <div class="lang-switch">
+          <button data-lang-btn="bn" onclick="setLang('bn')">বাং</button>
+          <button data-lang-btn="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="theme-switch">
+          <button data-theme-btn="light" onclick="setTheme('light')">☀</button>
+          <button data-theme-btn="dark" onclick="setTheme('dark')">☾</button>
+          <button data-theme-btn="system" onclick="setTheme('system')">Auto</button>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="label"><span data-i18n="bn">টেরিটরির স্কুল</span><span data-i18n="en">Schools in Territory</span></div>
+          <div class="value">27</div>
+          <div class="delta text-secondary"><span data-i18n="bn">৩টি টেরিটরি অ্যাসাইনমেন্ট জুড়ে</span><span data-i18n="en">across 3 territory assignments</span></div>
+        </div>
+        <div class="kpi-card">
+          <div class="label"><span data-i18n="bn">এক্সটেন্ডেড অ্যাক্সেস স্কুল</span><span data-i18n="en">Extended-access Schools</span></div>
+          <div class="value">1</div>
+          <div class="delta text-secondary"><span data-i18n="bn">টেরিটরির বাইরে পৃথকভাবে অনুমোদিত</span><span data-i18n="en">granted individually, outside territory</span></div>
+        </div>
+        <div class="kpi-card">
+          <div class="label"><span data-i18n="bn">বিক্রিত কোড (এই মাসে)</span><span data-i18n="en">Codes Sold (this month)</span></div>
+          <div class="value">64</div>
+          <div class="delta text-secondary"><span data-i18n="bn">৩টি ব্যাচে</span><span data-i18n="en">across 3 batches</span></div>
+        </div>
+        <div class="kpi-card">
+          <div class="label"><span data-i18n="bn">সুপার অ্যাডমিন অনুমোদনের অপেক্ষায়</span><span data-i18n="en">Pending Super Admin Approval</span></div>
+          <div class="value">1</div>
+          <div class="delta text-secondary"><span data-i18n="bn">১টি ব্যাচ</span><span data-i18n="en">1 batch</span></div>
+        </div>
+      </div>
+
+      <div class="card mb-4">
+        <h3 class="mt-0"><span data-i18n="bn">আমার টেরিটরি অ্যাসাইনমেন্ট</span><span data-i18n="en">My Territory Assignments</span></h3>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th><span data-i18n="bn">লোকেশন / স্কুল</span><span data-i18n="en">Location / School</span></th>
+              <th><span data-i18n="bn">ধরন</span><span data-i18n="en">Type</span></th>
+              <th><span data-i18n="bn">টিয়ার</span><span data-i18n="en">Tier</span></th>
+              <th><span data-i18n="bn">স্কুল সংখ্যা</span><span data-i18n="en">Schools Covered</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span data-i18n="bn">কুমিল্লা জেলা</span><span data-i18n="en">Cumilla District</span></td>
+              <td><span class="badge badge-neutral"><span data-i18n="bn">লোকেশন-ভিত্তিক</span><span data-i18n="en">Location-based</span></span></td>
+              <td><span data-i18n="bn">জেলা ডিলার</span><span data-i18n="en">Zilla Dealer</span></td>
+              <td>18</td>
+            </tr>
+            <tr>
+              <td><span data-i18n="bn">দেবিদ্বার উপজেলা</span><span data-i18n="en">Debidwar Upazila</span></td>
+              <td><span class="badge badge-neutral"><span data-i18n="bn">লোকেশন-ভিত্তিক</span><span data-i18n="en">Location-based</span></span></td>
+              <td><span data-i18n="bn">উপজেলা ডিলার</span><span data-i18n="en">Upazila Dealer</span></td>
+              <td>8</td>
+            </tr>
+            <tr>
+              <td><span data-i18n="bn">আদর্শ উচ্চ বিদ্যালয়, সাভার</span><span data-i18n="en">Adarsha High School, Savar</span></td>
+              <td><span class="badge badge-extended"><span data-i18n="bn">এক্সটেন্ডেড অ্যাক্সেস</span><span data-i18n="en">Extended Access</span></span></td>
+              <td><span data-i18n="bn">প্রযোজ্য নয়</span><span data-i18n="en">n/a</span></td>
+              <td>1</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div id="schools" class="card">
+        <div class="toolbar">
+          <h3 class="mt-0"><span data-i18n="bn">আমার স্কুল (সকল টেরিটরি জুড়ে)</span><span data-i18n="en">My Schools (aggregated across all territories)</span></h3>
+          <div class="flex gap-2">
+            <input class="search-input" type="text" placeholder="স্কুল খুঁজুন · Search schools">
+            <a class="btn btn-primary" href="code-purchase.html"><span data-i18n="bn">কোড ব্যাচ ক্রয়</span><span data-i18n="en">Purchase Code Batch</span></a>
+          </div>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th><span data-i18n="bn">স্কুলের নাম</span><span data-i18n="en">School Name</span></th>
+              <th>EIIN</th>
+              <th><span data-i18n="bn">লোকেশন</span><span data-i18n="en">Location</span></th>
+              <th><span data-i18n="bn">অ্যাক্সেসের ধরন</span><span data-i18n="en">Access Type</span></th>
+              <th><span data-i18n="bn">সাবস্ক্রিপশন</span><span data-i18n="en">Subscription</span></th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span data-i18n="bn">কুমিল্লা মডেল স্কুল অ্যান্ড কলেজ</span><span data-i18n="en">Cumilla Model School & College</span></td>
+              <td>112233</td>
+              <td><span data-i18n="bn">কুমিল্লা জেলা</span><span data-i18n="en">Cumilla District</span></td>
+              <td><span class="badge badge-neutral"><span data-i18n="bn">টেরিটরি</span><span data-i18n="en">Territory</span></span></td>
+              <td><span class="badge badge-success"><span data-i18n="bn">সক্রিয়</span><span data-i18n="en">Active</span></span></td>
+              <td><a href="code-purchase.html"><span data-i18n="bn">কোড কিনুন</span><span data-i18n="en">Buy Codes</span></a></td>
+            </tr>
+            <tr>
+              <td><span data-i18n="bn">দেবিদ্বার উচ্চ বিদ্যালয়</span><span data-i18n="en">Debidwar High School</span></td>
+              <td>114455</td>
+              <td><span data-i18n="bn">দেবিদ্বার উপজেলা</span><span data-i18n="en">Debidwar Upazila</span></td>
+              <td><span class="badge badge-neutral"><span data-i18n="bn">টেরিটরি</span><span data-i18n="en">Territory</span></span></td>
+              <td><span class="badge badge-info"><span data-i18n="bn">ট্রায়াল</span><span data-i18n="en">Trial</span></span></td>
+              <td><a href="code-purchase.html"><span data-i18n="bn">কোড কিনুন</span><span data-i18n="en">Buy Codes</span></a></td>
+            </tr>
+            <tr>
+              <td><span data-i18n="bn">বরুড়া গার্লস হাই স্কুল</span><span data-i18n="en">Barura Girls' High School</span></td>
+              <td>113321</td>
+              <td><span data-i18n="bn">কুমিল্লা জেলা</span><span data-i18n="en">Cumilla District</span></td>
+              <td><span class="badge badge-neutral"><span data-i18n="bn">টেরিটরি</span><span data-i18n="en">Territory</span></span></td>
+              <td><span class="badge badge-danger"><span data-i18n="bn">মেয়াদোত্তীর্ণ</span><span data-i18n="en">Expired</span></span></td>
+              <td><a href="code-purchase.html"><span data-i18n="bn">কোড কিনুন</span><span data-i18n="en">Buy Codes</span></a></td>
+            </tr>
+            <tr>
+              <td><span data-i18n="bn">সাচার উচ্চ বিদ্যালয়</span><span data-i18n="en">Sachar High School</span></td>
+              <td>115007</td>
+              <td><span data-i18n="bn">দেবিদ্বার উপজেলা</span><span data-i18n="en">Debidwar Upazila</span></td>
+              <td><span class="badge badge-neutral"><span data-i18n="bn">টেরিটরি</span><span data-i18n="en">Territory</span></span></td>
+              <td><span class="badge badge-success"><span data-i18n="bn">সক্রিয়</span><span data-i18n="en">Active</span></span></td>
+              <td><a href="code-purchase.html"><span data-i18n="bn">কোড কিনুন</span><span data-i18n="en">Buy Codes</span></a></td>
+            </tr>
+            <tr>
+              <td><span data-i18n="bn">আদর্শ উচ্চ বিদ্যালয়, সাভার</span><span data-i18n="en">Adarsha High School, Savar</span></td>
+              <td>119876</td>
+              <td><span data-i18n="bn">সাভার, ঢাকা জেলা (টেরিটরির বাইরে)</span><span data-i18n="en">Savar, Dhaka District (out of territory)</span></td>
+              <td><span class="badge badge-extended"><span data-i18n="bn">এক্সটেন্ডেড অ্যাক্সেস</span><span data-i18n="en">Extended Access</span></span></td>
+              <td><span class="badge badge-success"><span data-i18n="bn">সক্রিয়</span><span data-i18n="en">Active</span></span></td>
+              <td><a href="code-purchase.html"><span data-i18n="bn">কোড কিনুন</span><span data-i18n="en">Buy Codes</span></a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

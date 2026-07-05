@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>ড্যাশবোর্ড · Dashboard — Amar School Management</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../shared/design-system.css">
+<script src="../shared/app.js" defer></script>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="mark">A</span><span>Amar School</span></div>
+    <nav>
+      <a class="nav-item active" href="../school-owner/dashboard.html"><span data-i18n="bn">ড্যাশবোর্ড</span><span data-i18n="en">Dashboard</span></a>
+      <a class="nav-item" href="../school-owner/students-list.html"><span data-i18n="bn">শিক্ষার্থী</span><span data-i18n="en">Students</span></a>
+      <a class="nav-item" href="../school-owner/employees-list.html"><span data-i18n="bn">কর্মচারী</span><span data-i18n="en">Employees</span></a>
+      <a class="nav-item" href="../school-owner/attendance-student-mark.html"><span data-i18n="bn">উপস্থিতি</span><span data-i18n="en">Attendance</span></a>
+      <a class="nav-item" href="../school-owner/classes-list.html"><span data-i18n="bn">শ্রেণি ও পাঠ্যক্রম</span><span data-i18n="en">Class & Curriculum</span></a>
+      <a class="nav-item" href="../school-owner/exams-list.html"><span data-i18n="bn">পরীক্ষা ও ফলাফল</span><span data-i18n="en">Exams & Results</span></a>
+      <a class="nav-item" href="../school-owner/fee-collection.html"><span data-i18n="bn">হিসাব ও ফি</span><span data-i18n="en">Accounting & Fees</span></a>
+      <a class="nav-item" href="../school-owner/sms-compose.html"><span data-i18n="bn">এসএমএস</span><span data-i18n="en">SMS</span></a>
+      <a class="nav-item" href="../school-owner/notices-list.html"><span data-i18n="bn">প্রকাশনা</span><span data-i18n="en">Publishing</span></a>
+      <a class="nav-item" href="../school-owner/feedback-inbox.html"><span data-i18n="bn">মতামত</span><span data-i18n="en">Feedback</span></a>
+      <a class="nav-item" href="../school-owner/staff-permissions.html"><span data-i18n="bn">স্টাফ অনুমতি</span><span data-i18n="en">Staff Permissions</span></a>
+      <a class="nav-item" href="../school-owner/institute-profile.html"><span data-i18n="bn">প্রতিষ্ঠান সেটআপ</span><span data-i18n="en">Institute Setup</span></a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="title"><span data-i18n="bn">ড্যাশবোর্ড</span><span data-i18n="en">Dashboard</span></div>
+      <div class="actions">
+        <a class="btn btn-secondary btn-sm" href="../index.html" title="Home">🏠</a>
+        <a class="btn btn-secondary btn-sm" href="../sitemap.html" title="Sitemap">📋</a>
+        <div class="lang-switch">
+          <button data-lang-btn="bn" onclick="setLang('bn')">বাং</button>
+          <button data-lang-btn="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="theme-switch">
+          <button data-theme-btn="light" onclick="setTheme('light')">☀</button>
+          <button data-theme-btn="dark" onclick="setTheme('dark')">☾</button>
+          <button data-theme-btn="system" onclick="setTheme('system')">Auto</button>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="label"><span data-i18n="bn">মোট শিক্ষার্থী</span><span data-i18n="en">Total Students</span></div>
+          <div class="value">1,248</div>
+          <div class="delta text-secondary"><span data-i18n="bn">সক্রিয় শিক্ষার্থী</span><span data-i18n="en">active students</span></div>
+        </div>
+        <div class="kpi-card">
+          <div class="label"><span data-i18n="bn">মোট কর্মচারী</span><span data-i18n="en">Total Employees</span></div>
+          <div class="value">86</div>
+          <div class="delta text-secondary"><span data-i18n="bn">শিক্ষক ও স্টাফ</span><span data-i18n="en">teachers &amp; staff</span></div>
+        </div>
+        <div class="kpi-card">
+          <div class="label"><span data-i18n="bn">আজকের উপস্থিতি</span><span data-i18n="en">Attendance Today</span></div>
+          <div class="value">94.2%</div>
+          <div class="delta"><span class="badge badge-success"><span data-i18n="bn">স্বাভাবিক</span><span data-i18n="en">Normal</span></span></div>
+        </div>
+        <div class="kpi-card">
+          <div class="label"><span data-i18n="bn">সাবস্ক্রিপশন স্ট্যাটাস</span><span data-i18n="en">Subscription Status</span></div>
+          <div class="value" style="font-size: var(--text-lg);">
+            <span class="badge badge-success"><span data-i18n="bn">সক্রিয়</span><span data-i18n="en">Active</span></span>
+          </div>
+          <div class="delta text-secondary"><span data-i18n="bn">মেয়াদ শেষ: ৩১ ডিসেম্বর ২০২৬</span><span data-i18n="en">expires 31 Dec 2026</span></div>
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns: 2fr 1fr; gap: var(--space-4); align-items:start;">
+        <div class="card">
+          <h3 class="mt-0"><span data-i18n="bn">সাম্প্রতিক কার্যক্রম</span><span data-i18n="en">Recent Activity</span></h3>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th><span data-i18n="bn">সময়</span><span data-i18n="en">Time</span></th>
+                <th><span data-i18n="bn">বিবরণ</span><span data-i18n="en">Description</span></th>
+                <th><span data-i18n="bn">ধরন</span><span data-i18n="en">Type</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>০৯:১২ AM</td>
+                <td><span data-i18n="bn">রাকিব হাসান — নতুন ভর্তি সম্পন্ন</span><span data-i18n="en">New admission completed — Rakib Hasan</span></td>
+                <td><span class="badge badge-info"><span data-i18n="bn">ভর্তি</span><span data-i18n="en">Admission</span></span></td>
+              </tr>
+              <tr>
+                <td>০৮:৪৫ AM</td>
+                <td><span data-i18n="bn">শিক্ষক সুমাইয়া আক্তার — বিলম্বে প্রবেশ</span><span data-i18n="en">Employee Sumaiya Akter — late entry recorded</span></td>
+                <td><span class="badge badge-warning"><span data-i18n="bn">উপস্থিতি</span><span data-i18n="en">Attendance</span></span></td>
+              </tr>
+              <tr>
+                <td>০৮:৩০ AM</td>
+                <td><span data-i18n="bn">শ্রেণি ৮, শাখা এ — উপস্থিতি হাজিরা সম্পন্ন</span><span data-i18n="en">Attendance marked for Class 8, Section A</span></td>
+                <td><span class="badge badge-success"><span data-i18n="bn">উপস্থিতি</span><span data-i18n="en">Attendance</span></span></td>
+              </tr>
+              <tr>
+                <td><span data-i18n="bn">গতকাল</span><span data-i18n="en">Yesterday</span></td>
+                <td><span data-i18n="bn">তামিম ইকবাল — আচরণ লগ যোগ করা হয়েছে</span><span data-i18n="en">Behaviour Log entry added — Tamim Iqbal</span></td>
+                <td><span class="badge badge-neutral"><span data-i18n="bn">আচরণ লগ</span><span data-i18n="en">Behaviour Log</span></span></td>
+              </tr>
+              <tr>
+                <td><span data-i18n="bn">গতকাল</span><span data-i18n="en">Yesterday</span></td>
+                <td><span data-i18n="bn">মোঃ করিম — ছুটির আবেদন অনুমোদিত</span><span data-i18n="en">Leave request approved — Md. Karim</span></td>
+                <td><span class="badge badge-info"><span data-i18n="bn">ছুটি</span><span data-i18n="en">Leave</span></span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="card">
+          <h3 class="mt-0"><span data-i18n="bn">দ্রুত পদক্ষেপ</span><span data-i18n="en">Quick Actions</span></h3>
+          <div class="flex" style="flex-direction:column; gap: var(--space-2);">
+            <a class="btn btn-primary" href="student-admission-form.html"><span data-i18n="bn">+ নতুন শিক্ষার্থী ভর্তি</span><span data-i18n="en">+ New Student Admission</span></a>
+            <a class="btn btn-secondary" href="employee-create-form.html"><span data-i18n="bn">+ নতুন কর্মচারী</span><span data-i18n="en">+ New Employee</span></a>
+            <a class="btn btn-secondary" href="attendance-student-mark.html"><span data-i18n="bn">উপস্থিতি নিন (শিক্ষার্থী)</span><span data-i18n="en">Mark Student Attendance</span></a>
+            <a class="btn btn-secondary" href="attendance-employee.html"><span data-i18n="bn">উপস্থিতি দেখুন (কর্মচারী)</span><span data-i18n="en">View Employee Attendance</span></a>
+            <a class="btn btn-secondary" href="leave-management.html"><span data-i18n="bn">ছুটির আবেদন পরিচালনা</span><span data-i18n="en">Manage Leave Requests</span></a>
+            <a class="btn btn-secondary" href="rfid-card-assignment.html"><span data-i18n="bn">RFID কার্ড বরাদ্দ</span><span data-i18n="en">Assign RFID Card</span></a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

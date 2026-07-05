@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>মতামত ইনবক্স · Feedback Inbox — Amar School Management</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../shared/design-system.css">
+<script src="../shared/app.js" defer></script>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="mark">A</span><span>Amar School</span></div>
+    <nav>
+      <a class="nav-item" href="../school-owner/dashboard.html"><span data-i18n="bn">ড্যাশবোর্ড</span><span data-i18n="en">Dashboard</span></a>
+      <a class="nav-item" href="../school-owner/students-list.html"><span data-i18n="bn">শিক্ষার্থী</span><span data-i18n="en">Students</span></a>
+      <a class="nav-item" href="../school-owner/employees-list.html"><span data-i18n="bn">কর্মচারী</span><span data-i18n="en">Employees</span></a>
+      <a class="nav-item" href="../school-owner/attendance-student-mark.html"><span data-i18n="bn">উপস্থিতি</span><span data-i18n="en">Attendance</span></a>
+      <a class="nav-item" href="../school-owner/classes-list.html"><span data-i18n="bn">শ্রেণি ও পাঠ্যক্রম</span><span data-i18n="en">Class & Curriculum</span></a>
+      <a class="nav-item" href="../school-owner/exams-list.html"><span data-i18n="bn">পরীক্ষা ও ফলাফল</span><span data-i18n="en">Exams & Results</span></a>
+      <a class="nav-item" href="../school-owner/fee-collection.html"><span data-i18n="bn">হিসাব ও ফি</span><span data-i18n="en">Accounting & Fees</span></a>
+      <a class="nav-item" href="../school-owner/sms-compose.html"><span data-i18n="bn">এসএমএস</span><span data-i18n="en">SMS</span></a>
+      <a class="nav-item" href="../school-owner/notices-list.html"><span data-i18n="bn">প্রকাশনা</span><span data-i18n="en">Publishing</span></a>
+      <a class="nav-item active" href="../school-owner/feedback-inbox.html"><span data-i18n="bn">মতামত</span><span data-i18n="en">Feedback</span></a>
+      <a class="nav-item" href="../school-owner/staff-permissions.html"><span data-i18n="bn">স্টাফ অনুমতি</span><span data-i18n="en">Staff Permissions</span></a>
+      <a class="nav-item" href="../school-owner/institute-profile.html"><span data-i18n="bn">প্রতিষ্ঠান সেটআপ</span><span data-i18n="en">Institute Setup</span></a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="title"><span data-i18n="bn">মতামত ইনবক্স</span><span data-i18n="en">Feedback Inbox</span></div>
+      <div class="actions">
+        <div class="lang-switch">
+          <button data-lang-btn="bn" onclick="setLang('bn')">বাং</button>
+          <button data-lang-btn="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="theme-switch">
+          <button data-theme-btn="light" onclick="setTheme('light')">☀</button>
+          <button data-theme-btn="dark" onclick="setTheme('dark')">☾</button>
+          <button data-theme-btn="system" onclick="setTheme('system')">Auto</button>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+
+      <div class="tabs">
+        <a href="feedback-inbox.html" class="active"><span data-i18n="bn">ইনবক্স</span><span data-i18n="en">Inbox</span></a>
+        <a href="feedback-ratings.html"><span data-i18n="bn">রেটিং ড্যাশবোর্ড</span><span data-i18n="en">Ratings Dashboard</span></a>
+      </div>
+
+      <div class="toolbar">
+        <div class="flex gap-2 items-center">
+          <input class="search-input" type="text" placeholder="প্রেরক বা বিষয় খুঁজুন · Search sender or subject">
+          <select style="height:var(--control-h); border:1px solid var(--border-strong); border-radius:var(--radius-sm); padding:0 var(--space-3); font-family:inherit; background:var(--bg-surface); color:var(--text-primary);">
+            <option><span>সকল অবস্থা · All Status</span></option>
+            <option><span>অপঠিত · Unread</span></option>
+            <option><span>পঠিত · Read</span></option>
+            <option><span>উত্তর দেওয়া · Answered</span></option>
+          </select>
+        </div>
+      </div>
+
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th><span data-i18n="bn">প্রেরক</span><span data-i18n="en">Sender</span></th>
+            <th><span data-i18n="bn">বিষয়</span><span data-i18n="en">Subject</span></th>
+            <th><span data-i18n="bn">তারিখ</span><span data-i18n="en">Date</span></th>
+            <th><span data-i18n="bn">অবস্থা</span><span data-i18n="en">Status</span></th>
+            <th><span data-i18n="bn">কার্যক্রম</span><span data-i18n="en">Action</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>রহিমা বেগম (অভিভাবক) · Rahima Begum (Guardian)</td>
+            <td class="text-secondary"><span data-i18n="bn">ভর্তি প্রক্রিয়া নিয়ে প্রশ্ন...</span><span data-i18n="en">Question about admission process...</span></td>
+            <td>০৪ জুলাই ২০২৬</td>
+            <td><span class="badge badge-warning"><span data-i18n="bn">অপঠিত</span><span data-i18n="en">Unread</span></span></td>
+            <td><button class="btn btn-sm btn-primary"><span data-i18n="bn">উত্তর দিন</span><span data-i18n="en">Reply</span></button></td>
+          </tr>
+          <tr>
+            <td>করিম উদ্দিন · Karim Uddin</td>
+            <td class="text-secondary"><span data-i18n="bn">শ্রেণিকক্ষের পাখা নষ্ট...</span><span data-i18n="en">Classroom fan not working...</span></td>
+            <td>০৩ জুলাই ২০২৬</td>
+            <td><span class="badge badge-neutral"><span data-i18n="bn">পঠিত</span><span data-i18n="en">Read</span></span></td>
+            <td><button class="btn btn-sm btn-primary"><span data-i18n="bn">উত্তর দিন</span><span data-i18n="en">Reply</span></button></td>
+          </tr>
+          <tr>
+            <td>নাসরিন আক্তার · Nasrin Akter</td>
+            <td class="text-secondary"><span data-i18n="bn">পরিবহন সেবা প্রশংসা</span><span data-i18n="en">Appreciation for transport service</span></td>
+            <td>০১ জুলাই ২০২৬</td>
+            <td><span class="badge badge-success"><span data-i18n="bn">উত্তর দেওয়া</span><span data-i18n="en">Answered</span></span></td>
+            <td><button class="btn btn-sm btn-secondary"><span data-i18n="bn">দেখুন</span><span data-i18n="en">View</span></button></td>
+          </tr>
+        </tbody>
+      </table>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>ফি রেকর্ড সম্পাদনা · Edit Fee Record — Amar School Management</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../shared/design-system.css">
+<script src="../shared/app.js" defer></script>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="mark">A</span><span>Amar School</span></div>
+    <nav>
+      <a class="nav-item" href="../school-owner/dashboard.html"><span data-i18n="bn">ড্যাশবোর্ড</span><span data-i18n="en">Dashboard</span></a>
+      <a class="nav-item" href="../school-owner/students-list.html"><span data-i18n="bn">শিক্ষার্থী</span><span data-i18n="en">Students</span></a>
+      <a class="nav-item" href="../school-owner/employees-list.html"><span data-i18n="bn">কর্মচারী</span><span data-i18n="en">Employees</span></a>
+      <a class="nav-item" href="../school-owner/attendance-student-mark.html"><span data-i18n="bn">উপস্থিতি</span><span data-i18n="en">Attendance</span></a>
+      <a class="nav-item" href="../school-owner/classes-list.html"><span data-i18n="bn">শ্রেণি ও পাঠ্যক্রম</span><span data-i18n="en">Class & Curriculum</span></a>
+      <a class="nav-item" href="../school-owner/exams-list.html"><span data-i18n="bn">পরীক্ষা ও ফলাফল</span><span data-i18n="en">Exams & Results</span></a>
+      <a class="nav-item active" href="../school-owner/fee-collection.html"><span data-i18n="bn">হিসাব ও ফি</span><span data-i18n="en">Accounting & Fees</span></a>
+      <a class="nav-item" href="../school-owner/sms-compose.html"><span data-i18n="bn">এসএমএস</span><span data-i18n="en">SMS</span></a>
+      <a class="nav-item" href="../school-owner/notices-list.html"><span data-i18n="bn">প্রকাশনা</span><span data-i18n="en">Publishing</span></a>
+      <a class="nav-item" href="../school-owner/feedback-inbox.html"><span data-i18n="bn">মতামত</span><span data-i18n="en">Feedback</span></a>
+      <a class="nav-item" href="../school-owner/staff-permissions.html"><span data-i18n="bn">স্টাফ অনুমতি</span><span data-i18n="en">Staff Permissions</span></a>
+      <a class="nav-item" href="../school-owner/institute-profile.html"><span data-i18n="bn">প্রতিষ্ঠান সেটআপ</span><span data-i18n="en">Institute Setup</span></a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="title"><span data-i18n="bn">ফি আদায়</span><span data-i18n="en">Fee Collection</span></div>
+      <div class="actions">
+        <div class="lang-switch">
+          <button data-lang-btn="bn" onclick="setLang('bn')">বাং</button>
+          <button data-lang-btn="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="theme-switch">
+          <button data-theme-btn="light" onclick="setTheme('light')">☀</button>
+          <button data-theme-btn="dark" onclick="setTheme('dark')">☾</button>
+          <button data-theme-btn="system" onclick="setTheme('system')">Auto</button>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+      <p class="text-secondary"><span data-i18n="bn">পটভূমি: ফি আদায় তালিকা (এই মোডাল একটি বিদ্যমান রেকর্ড সম্পাদনার অবস্থা দেখাচ্ছে)</span><span data-i18n="en">Background: Fee Collection list (this modal demonstrates the edit-existing-record state)</span></p>
+
+      <div class="modal-backdrop" style="position: static; padding: 0; justify-content: flex-start; background: transparent;">
+        <div class="modal" style="max-width: 560px;">
+          <h3><span data-i18n="bn">ফি রেকর্ড সম্পাদনা — সাদিয়া ইসলাম</span><span data-i18n="en">Edit Fee Record — Sadia Islam</span></h3>
+          <p class="text-secondary" style="margin-top:-8px; font-size: var(--text-sm);">
+            <span data-i18n="bn">রোল ১২ · ৬ষ্ঠ শ্রেণি/এ · জুলাই ২০২৬</span>
+            <span data-i18n="en">Roll 12 · Class 6/A · July 2026</span>
+          </p>
+
+          <div class="card mb-4" style="background: var(--info-bg); border-color: var(--info-border);">
+            <span style="color: var(--info-fg); font-size: var(--text-xs);">
+              <span data-i18n="bn">এই রেকর্ডের সর্বমোট (কিউমুলেটিভ) জমাকৃত পরিমাণ সম্পাদনা করা হচ্ছে। প্রতিটি পুরনো পেমেন্টের আলাদা তালিকা রাখা হয় না — শুধু বর্তমান মোট থাকে।</span>
+              <span data-i18n="en">You are editing this record's running/cumulative totals. There is no list of individual past payments underneath it — only the current totals are kept.</span>
+            </span>
+          </div>
+
+          <div class="form-grid">
+            <div class="field">
+              <label><span data-i18n="bn">সর্বমোট জমাকৃত ফি (pay_amount)</span><span data-i18n="en">Cumulative Paid Amount (pay_amount)</span></label>
+              <input type="text" value="৳ ১,০০০">
+            </div>
+            <div class="field">
+              <label><span data-i18n="bn">সর্বমোট জরিমানা</span><span data-i18n="en">Cumulative Fine Amount</span></label>
+              <input type="text" value="৳ ০">
+            </div>
+            <div class="field">
+              <label><span data-i18n="bn">সর্বমোট বৃত্তি/ছাড় (adjust_amount)</span><span data-i18n="en">Cumulative Scholarship/Discount (adjust_amount)</span></label>
+              <input type="text" value="৳ ২০০">
+            </div>
+            <div class="field">
+              <label><span data-i18n="bn">সর্বমোট বকেয়া (due_amount)</span><span data-i18n="en">Cumulative Due Amount (due_amount)</span></label>
+              <input type="text" value="৳ ০">
+            </div>
+          </div>
+
+          <div class="flex gap-2 justify-between" style="margin-top: var(--space-5);">
+            <a class="btn btn-secondary" href="fee-collection.html"><span data-i18n="bn">বাতিল</span><span data-i18n="en">Cancel</span></a>
+            <button class="btn btn-primary"><span data-i18n="bn">পরিবর্তন সংরক্ষণ করুন</span><span data-i18n="en">Save Changes</span></button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>কর্মচারীর প্রোফাইল · Employee Profile — Amar School Management</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../shared/design-system.css">
+<script src="../shared/app.js" defer></script>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="mark">A</span><span>Amar School</span></div>
+    <nav>
+      <a class="nav-item" href="../school-owner/dashboard.html"><span data-i18n="bn">ড্যাশবোর্ড</span><span data-i18n="en">Dashboard</span></a>
+      <a class="nav-item" href="../school-owner/students-list.html"><span data-i18n="bn">শিক্ষার্থী</span><span data-i18n="en">Students</span></a>
+      <a class="nav-item active" href="../school-owner/employees-list.html"><span data-i18n="bn">কর্মচারী</span><span data-i18n="en">Employees</span></a>
+      <a class="nav-item" href="../school-owner/attendance-student-mark.html"><span data-i18n="bn">উপস্থিতি</span><span data-i18n="en">Attendance</span></a>
+      <a class="nav-item" href="../school-owner/classes-list.html"><span data-i18n="bn">শ্রেণি ও পাঠ্যক্রম</span><span data-i18n="en">Class & Curriculum</span></a>
+      <a class="nav-item" href="../school-owner/exams-list.html"><span data-i18n="bn">পরীক্ষা ও ফলাফল</span><span data-i18n="en">Exams & Results</span></a>
+      <a class="nav-item" href="../school-owner/fee-collection.html"><span data-i18n="bn">হিসাব ও ফি</span><span data-i18n="en">Accounting & Fees</span></a>
+      <a class="nav-item" href="../school-owner/sms-compose.html"><span data-i18n="bn">এসএমএস</span><span data-i18n="en">SMS</span></a>
+      <a class="nav-item" href="../school-owner/notices-list.html"><span data-i18n="bn">প্রকাশনা</span><span data-i18n="en">Publishing</span></a>
+      <a class="nav-item" href="../school-owner/feedback-inbox.html"><span data-i18n="bn">মতামত</span><span data-i18n="en">Feedback</span></a>
+      <a class="nav-item" href="../school-owner/staff-permissions.html"><span data-i18n="bn">স্টাফ অনুমতি</span><span data-i18n="en">Staff Permissions</span></a>
+      <a class="nav-item" href="../school-owner/institute-profile.html"><span data-i18n="bn">প্রতিষ্ঠান সেটআপ</span><span data-i18n="en">Institute Setup</span></a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="title"><span data-i18n="bn">কর্মচারীর প্রোফাইল — সুমাইয়া আক্তার</span><span data-i18n="en">Employee Profile — Sumaiya Akter</span></div>
+      <div class="actions">
+        <div class="lang-switch">
+          <button data-lang-btn="bn" onclick="setLang('bn')">বাং</button>
+          <button data-lang-btn="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="theme-switch">
+          <button data-theme-btn="light" onclick="setTheme('light')">☀</button>
+          <button data-theme-btn="dark" onclick="setTheme('dark')">☾</button>
+          <button data-theme-btn="system" onclick="setTheme('system')">Auto</button>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+
+      <div class="flex justify-between items-center mb-4">
+        <span class="badge badge-success"><span data-i18n="bn">সক্রিয়</span><span data-i18n="en">Active</span></span>
+        <a class="btn btn-secondary" href="employees-list.html">&larr; <span data-i18n="bn">তালিকায় ফিরুন</span><span data-i18n="en">Back to List</span></a>
+      </div>
+
+      <div class="tabs">
+        <a href="#identity" class="active"><span data-i18n="bn">পরিচিতি</span><span data-i18n="en">Identity</span></a>
+        <a href="#bank"><span data-i18n="bn">ব্যাংক তথ্য</span><span data-i18n="en">Bank Info</span></a>
+        <a href="#category"><span data-i18n="bn">বিভাগ ও যোগ্যতা</span><span data-i18n="en">Category & Qualification</span></a>
+        <a href="#subject"><span data-i18n="bn">বিষয় ও শিফট</span><span data-i18n="en">Subject & Shift</span></a>
+        <a href="#grace"><span data-i18n="bn">গ্রেস উইন্ডো</span><span data-i18n="en">Grace Window</span></a>
+      </div>
+
+      <section id="identity" class="card mb-4">
+        <h3 class="mt-0"><span data-i18n="bn">পরিচিতি</span><span data-i18n="en">Identity</span></h3>
+        <div class="form-grid">
+          <div class="field"><label><span data-i18n="bn">নাম</span><span data-i18n="en">Name</span></label><input value="সুমাইয়া আক্তার" disabled></div>
+          <div class="field"><label><span data-i18n="bn">মোবাইল</span><span data-i18n="en">Mobile</span></label><input value="০১৭xxxxxxxx" disabled></div>
+          <div class="field"><label><span data-i18n="bn">জন্ম তারিখ</span><span data-i18n="en">Date of Birth</span></label><input value="০৫/০৪/১৯৯০" disabled></div>
+          <div class="field"><label><span data-i18n="bn">যোগদানের তারিখ</span><span data-i18n="en">Joining Date</span></label><input value="১০/০১/২০১৮" disabled></div>
+        </div>
+      </section>
+
+      <section id="bank" class="card mb-4">
+        <h3 class="mt-0"><span data-i18n="bn">ব্যাংক তথ্য</span><span data-i18n="en">Bank Info</span></h3>
+        <div class="form-grid">
+          <div class="field"><label><span data-i18n="bn">ব্যাংকের নাম</span><span data-i18n="en">Bank Name</span></label><input value="Sonali Bank" disabled></div>
+          <div class="field"><label><span data-i18n="bn">শাখা</span><span data-i18n="en">Branch</span></label><input value="বাসাইল শাখা" disabled></div>
+          <div class="field"><label><span data-i18n="bn">হিসাব নম্বর</span><span data-i18n="en">Account Number</span></label><input value="20xxxxxxxx" disabled></div>
+        </div>
+      </section>
+
+      <section id="category" class="card mb-4">
+        <h3 class="mt-0"><span data-i18n="bn">বিভাগ ও যোগ্যতা</span><span data-i18n="en">Category & Qualification</span></h3>
+        <div class="form-grid">
+          <div class="field"><label><span data-i18n="bn">বিভাগ</span><span data-i18n="en">Category</span></label><input value="শিক্ষক · Teacher" disabled></div>
+          <div class="field"><label><span data-i18n="bn">যোগ্যতা</span><span data-i18n="en">Qualification</span></label><input value="M.A., B.Ed." disabled></div>
+          <div class="field"><label><span data-i18n="bn">ডিপার্টমেন্ট</span><span data-i18n="en">Department</span></label><input value="বাংলা বিভাগ · Bangla Dept." disabled></div>
+        </div>
+      </section>
+
+      <section id="subject" class="card mb-4">
+        <h3 class="mt-0"><span data-i18n="bn">বিষয় ও শিফট</span><span data-i18n="en">Subject & Shift</span></h3>
+        <div class="form-grid">
+          <div class="field"><label><span data-i18n="bn">পাঠদানকৃত বিষয়</span><span data-i18n="en">Subject Taught</span></label><input value="বাংলা ১ম ও ২য় পত্র" disabled></div>
+          <div class="field"><label><span data-i18n="bn">শিফট</span><span data-i18n="en">Shift</span></label><input value="সকাল ও দিবা (Multi-shift) · Morning &amp; Day" disabled></div>
+        </div>
+      </section>
+
+      <section id="grace" class="card">
+        <h3 class="mt-0"><span data-i18n="bn">অফিস-টাইম ও কনসিডারেবল গ্রেস উইন্ডো</span><span data-i18n="en">Office-Time & Considerable Grace Window</span></h3>
+        <p class="text-secondary" style="font-size:var(--text-sm);">
+          <span data-i18n="bn">একাধিক প্রযোজ্য মান থাকলে কার্যকর গ্রেস সবসময় সর্বোচ্চ (max) মান — কখনো কড়া/ছোট মান নয়।</span>
+          <span data-i18n="en">When more than one applicable value exists, the effective grace is always the MAX across them — never the stricter/smaller one.</span>
+        </p>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th><span data-i18n="bn">স্তর</span><span data-i18n="en">Level</span></th>
+              <th><span data-i18n="bn">গ্রেস মিনিট</span><span data-i18n="en">Grace Minutes</span></th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span data-i18n="bn">গ্লোবাল ডিফল্ট</span><span data-i18n="en">Global Default</span></td>
+              <td>10 <span data-i18n="bn">মিনিট</span><span data-i18n="en">min</span></td>
+              <td></td>
+            </tr>
+            <tr>
+              <td><span data-i18n="bn">বিভাগ (শিক্ষক)</span><span data-i18n="en">Category (Teacher)</span></td>
+              <td>15 <span data-i18n="bn">মিনিট</span><span data-i18n="en">min</span></td>
+              <td></td>
+            </tr>
+            <tr>
+              <td><span data-i18n="bn">শিফট (সকাল)</span><span data-i18n="en">Shift (Morning)</span></td>
+              <td>12 <span data-i18n="bn">মিনিট</span><span data-i18n="en">min</span></td>
+              <td></td>
+            </tr>
+            <tr style="font-weight:600;">
+              <td><span data-i18n="bn">ব্যক্তিগত ওভাররাইড</span><span data-i18n="en">Individual Override</span></td>
+              <td>20 <span data-i18n="bn">মিনিট</span><span data-i18n="en">min</span></td>
+              <td><span class="badge badge-info"><span data-i18n="bn">জয়ী (সর্বোচ্চ মান)</span><span data-i18n="en">Winning (max value)</span></span></td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="locked-note" style="margin-top: var(--space-3);">
+          <span data-i18n="bn">এই কর্মচারীর জন্য কার্যকর গ্রেস উইন্ডো = 20 মিনিট (ব্যক্তিগত ওভাররাইড), কারণ এটি চারটি প্রযোজ্য মানের মধ্যে সর্বোচ্চ।</span>
+          <span data-i18n="en">Effective grace window for this employee = 20 minutes (individual override), since it is the maximum of all four applicable values.</span>
+        </p>
+      </section>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

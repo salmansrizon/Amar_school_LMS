@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>ড্যাশবোর্ড · Dashboard — Government Official</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../shared/design-system.css">
+<script src="../shared/app.js" defer></script>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="mark">G</span><span>Government Official</span></div>
+    <nav>
+      <a class="nav-item active" href="dashboard.html"><span data-i18n="bn">ড্যাশবোর্ড</span><span data-i18n="en">Dashboard</span></a>
+      <a class="nav-item" href="dashboard.html#institutes"><span data-i18n="bn">প্রতিষ্ঠান তালিকা</span><span data-i18n="en">Institute List</span></a>
+      <a class="nav-item" href="performance-reports.html"><span data-i18n="bn">পারফরম্যান্স রিপোর্ট</span><span data-i18n="en">Performance Reports</span></a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="title"><span data-i18n="bn">ড্যাশবোর্ড</span><span data-i18n="en">Dashboard</span></div>
+      <div class="actions">
+        <a class="btn btn-secondary btn-sm" href="../index.html" title="Home">🏠</a>
+        <a class="btn btn-secondary btn-sm" href="../sitemap.html" title="Sitemap">📋</a>
+        <div class="lang-switch">
+          <button data-lang-btn="bn" onclick="setLang('bn')">বাং</button>
+          <button data-lang-btn="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="theme-switch">
+          <button data-theme-btn="light" onclick="setTheme('light')">☀</button>
+          <button data-theme-btn="dark" onclick="setTheme('dark')">☾</button>
+          <button data-theme-btn="system" onclick="setTheme('system')">Auto</button>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+
+      <div class="card mb-4">
+        <span class="badge badge-info"><span data-i18n="bn">শুধুমাত্র পঠনযোগ্য তত্ত্বাবধান অ্যাকাউন্ট</span><span data-i18n="en">Read-only oversight account</span></span>
+        <span class="text-secondary" style="margin-left: var(--space-2); font-size: var(--text-xs);">
+          <span data-i18n="bn">উপজেলা শিক্ষা কর্মকর্তা · ঢাকা বিভাগ</span>
+          <span data-i18n="en">Upazila Education Officer · Dhaka Division</span>
+        </span>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="label"><span data-i18n="bn">প্রতিষ্ঠান</span><span data-i18n="en">Institutes</span></div>
+          <div class="value">142</div>
+          <div class="delta text-secondary"><span data-i18n="bn">এখতিয়ারভুক্ত এলাকায়</span><span data-i18n="en">within jurisdiction</span></div>
+        </div>
+        <div class="kpi-card">
+          <div class="label"><span data-i18n="bn">মোট শিক্ষার্থী</span><span data-i18n="en">Total Students</span></div>
+          <div class="value">38,760</div>
+          <div class="delta text-secondary"><span data-i18n="bn">১৪২টি প্রতিষ্ঠান জুড়ে</span><span data-i18n="en">across 142 institutes</span></div>
+        </div>
+        <div class="kpi-card">
+          <div class="label"><span data-i18n="bn">মোট কর্মচারী</span><span data-i18n="en">Total Employees</span></div>
+          <div class="value">2,914</div>
+          <div class="delta text-secondary"><span data-i18n="bn">শিক্ষক ও অন্যান্য কর্মচারী</span><span data-i18n="en">teaching & non-teaching staff</span></div>
+        </div>
+        <div class="kpi-card">
+          <div class="label"><span data-i18n="bn">এক্সটেন্ডেড অ্যাক্সেস প্রতিষ্ঠান</span><span data-i18n="en">Extended-access Institutes</span></div>
+          <div class="value">2</div>
+          <div class="delta text-secondary"><span data-i18n="bn">এখতিয়ারের বাইরে পৃথকভাবে অনুমোদিত</span><span data-i18n="en">granted individually, outside jurisdiction</span></div>
+        </div>
+      </div>
+
+      <div id="institutes" class="card">
+        <div class="toolbar">
+          <h3 class="mt-0"><span data-i18n="bn">প্রতিষ্ঠান তালিকা</span><span data-i18n="en">Institute List</span></h3>
+          <div class="flex gap-2">
+            <input class="search-input" type="text" placeholder="প্রতিষ্ঠান বা EIIN খুঁজুন · Search institute or EIIN">
+            <select class="search-input" style="min-width:160px;">
+              <option><span data-i18n="bn">সকল উপজেলা</span></option>
+              <option>All Upazilas</option>
+              <option>Savar Upazila</option>
+              <option>Dhamrai Upazila</option>
+            </select>
+            <select class="search-input" style="min-width:160px;">
+              <option><span data-i18n="bn">সকল শিক্ষা স্তর</span></option>
+              <option>All Education Levels</option>
+              <option>Primary</option>
+              <option>Secondary</option>
+              <option>Higher Secondary</option>
+            </select>
+          </div>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th><span data-i18n="bn">প্রতিষ্ঠানের নাম</span><span data-i18n="en">Institute Name</span></th>
+              <th>EIIN</th>
+              <th><span data-i18n="bn">লোকেশন</span><span data-i18n="en">Location</span></th>
+              <th><span data-i18n="bn">শিক্ষার্থী</span><span data-i18n="en">Students</span></th>
+              <th><span data-i18n="bn">কর্মচারী</span><span data-i18n="en">Employees</span></th>
+              <th><span data-i18n="bn">অ্যাক্সেসের ধরন</span><span data-i18n="en">Access Type</span></th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span data-i18n="bn">সাভার সরকারি উচ্চ বিদ্যালয়</span><span data-i18n="en">Savar Government High School</span></td>
+              <td>221145</td>
+              <td><span data-i18n="bn">সাভার উপজেলা</span><span data-i18n="en">Savar Upazila</span></td>
+              <td>1,240</td>
+              <td>62</td>
+              <td><span class="badge badge-neutral"><span data-i18n="bn">এখতিয়ার</span><span data-i18n="en">Jurisdiction</span></span></td>
+              <td><a href="school-drilldown.html"><span data-i18n="bn">বিস্তারিত দেখুন</span><span data-i18n="en">View Details</span></a></td>
+            </tr>
+            <tr>
+              <td><span data-i18n="bn">ধামরাই বালিকা বিদ্যালয়</span><span data-i18n="en">Dhamrai Girls' School</span></td>
+              <td>221876</td>
+              <td><span data-i18n="bn">ধামরাই উপজেলা</span><span data-i18n="en">Dhamrai Upazila</span></td>
+              <td>980</td>
+              <td>48</td>
+              <td><span class="badge badge-neutral"><span data-i18n="bn">এখতিয়ার</span><span data-i18n="en">Jurisdiction</span></span></td>
+              <td><a href="school-drilldown.html"><span data-i18n="bn">বিস্তারিত দেখুন</span><span data-i18n="en">View Details</span></a></td>
+            </tr>
+            <tr>
+              <td><span data-i18n="bn">আশুলিয়া আদর্শ উচ্চ বিদ্যালয়</span><span data-i18n="en">Ashulia Model High School</span></td>
+              <td>223012</td>
+              <td><span data-i18n="bn">সাভার উপজেলা</span><span data-i18n="en">Savar Upazila</span></td>
+              <td>1,560</td>
+              <td>71</td>
+              <td><span class="badge badge-neutral"><span data-i18n="bn">এখতিয়ার</span><span data-i18n="en">Jurisdiction</span></span></td>
+              <td><a href="school-drilldown.html"><span data-i18n="bn">বিস্তারিত দেখুন</span><span data-i18n="en">View Details</span></a></td>
+            </tr>
+            <tr>
+              <td><span data-i18n="bn">উত্তরা মডেল কলেজ</span><span data-i18n="en">Uttara Model College</span></td>
+              <td>229944</td>
+              <td><span data-i18n="bn">উত্তরা, ঢাকা জেলা (এখতিয়ারের বাইরে)</span><span data-i18n="en">Uttara, Dhaka District (outside jurisdiction)</span></td>
+              <td>2,105</td>
+              <td>96</td>
+              <td><span class="badge badge-extended"><span data-i18n="bn">এক্সটেন্ডেড অ্যাক্সেস</span><span data-i18n="en">Extended Access</span></span></td>
+              <td><a href="school-drilldown.html"><span data-i18n="bn">বিস্তারিত দেখুন</span><span data-i18n="en">View Details</span></a></td>
+            </tr>
+            <tr>
+              <td><span data-i18n="bn">মিরপুর ক্যান্টনমেন্ট স্কুল</span><span data-i18n="en">Mirpur Cantonment School</span></td>
+              <td>230501</td>
+              <td><span data-i18n="bn">মিরপুর, ঢাকা জেলা (এখতিয়ারের বাইরে)</span><span data-i18n="en">Mirpur, Dhaka District (outside jurisdiction)</span></td>
+              <td>1,830</td>
+              <td>84</td>
+              <td><span class="badge badge-extended"><span data-i18n="bn">এক্সটেন্ডেড অ্যাক্সেস</span><span data-i18n="en">Extended Access</span></span></td>
+              <td><a href="school-drilldown.html"><span data-i18n="bn">বিস্তারিত দেখুন</span><span data-i18n="en">View Details</span></a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

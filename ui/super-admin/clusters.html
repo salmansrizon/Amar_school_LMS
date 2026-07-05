@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>ক্লাস্টার · Clusters — Super Admin</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../shared/design-system.css">
+<script src="../shared/app.js" defer></script>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="mark">A</span><span>Super Admin</span></div>
+    <nav>
+      <a class="nav-item" href="schools-list.html"><span data-i18n="bn">স্কুলসমূহ</span><span data-i18n="en">Schools</span></a>
+      <a class="nav-item" href="dealers-list.html"><span data-i18n="bn">ডিলার</span><span data-i18n="en">Dealers</span></a>
+      <a class="nav-item" href="gov-officials-list.html"><span data-i18n="bn">সরকারি কর্মকর্তা</span><span data-i18n="en">Government Officials</span></a>
+      <a class="nav-item" href="codes-list.html"><span data-i18n="bn">সাবস্ক্রিপশন কোড</span><span data-i18n="en">Subscription Codes</span></a>
+      <a class="nav-item active" href="locations-tree.html"><span data-i18n="bn">টেরিটরি ও লোকেশন</span><span data-i18n="en">Territory & Locations</span></a>
+      <a class="nav-item" href="vendor-accounting-ledger.html"><span data-i18n="bn">ভেন্ডর হিসাব</span><span data-i18n="en">Vendor Accounting</span></a>
+      <a class="nav-item" href="vendor-sms-compose.html"><span data-i18n="bn">ভেন্ডর এসএমএস</span><span data-i18n="en">Vendor SMS</span></a>
+      <a class="nav-item" href="central-holiday-calendar.html"><span data-i18n="bn">কেন্দ্রীয় ছুটির তালিকা</span><span data-i18n="en">Central Off-Day</span></a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="title"><span data-i18n="bn">ক্লাস্টার</span><span data-i18n="en">Clusters</span></div>
+      <div class="actions">
+        <a class="btn btn-secondary btn-sm" href="../index.html" title="Home">🏠</a>
+        <a class="btn btn-secondary btn-sm" href="../sitemap.html" title="Sitemap">📋</a>
+        <a class="btn btn-secondary btn-sm" href="locations-tree.html">&larr; <span data-i18n="bn">টেরিটরি ও লোকেশন</span><span data-i18n="en">Territory & Locations</span></a>
+        <div class="lang-switch">
+          <button data-lang-btn="bn" onclick="setLang('bn')">বাং</button>
+          <button data-lang-btn="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="theme-switch">
+          <button data-theme-btn="light" onclick="setTheme('light')">☀</button>
+          <button data-theme-btn="dark" onclick="setTheme('dark')">☾</button>
+          <button data-theme-btn="system" onclick="setTheme('system')">Auto</button>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+
+      <p class="text-secondary" style="font-size:var(--text-sm); max-width:640px;">
+        <span data-i18n="bn">ক্লাস্টার হলো একটি লোকেশন নোডের অধীনে স্কুলগুলোর নামযুক্ত গ্রুপিং — রিপোর্টিং ও সংগঠনের জন্য।</span>
+        <span data-i18n="en">Clusters are named groupings of Schools within a location node, used for reporting/organization.</span>
+      </p>
+
+      <div class="toolbar">
+        <input class="search-input" type="text" placeholder="ক্লাস্টার খুঁজুন · Search a cluster">
+        <a class="btn btn-primary" href="#"><span data-i18n="bn">+ নতুন ক্লাস্টার</span><span data-i18n="en">+ Create Cluster</span></a>
+      </div>
+
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th><span data-i18n="bn">ক্লাস্টারের নাম</span><span data-i18n="en">Cluster Name</span></th>
+            <th><span data-i18n="bn">লোকেশন পরিসীমা</span><span data-i18n="en">Location Scope</span></th>
+            <th><span data-i18n="bn">সদস্য স্কুল</span><span data-i18n="en">Member Schools</span></th>
+            <th><span data-i18n="bn">কার্যক্রম</span><span data-i18n="en">Actions</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span data-i18n="bn">মিরপুর সদর ক্লাস্টার</span><span data-i18n="en">Mirpur Sadar Cluster</span></td>
+            <td>Mirpur Sadar Union, Dhaka</td>
+            <td>9</td>
+            <td>
+              <button class="btn btn-secondary btn-sm"><span data-i18n="bn">সদস্য দেখুন</span><span data-i18n="en">View Members</span></button>
+              <button class="btn btn-secondary btn-sm"><span data-i18n="bn">সম্পাদনা</span><span data-i18n="en">Edit</span></button>
+            </td>
+          </tr>
+          <tr>
+            <td><span data-i18n="bn">সাভার শিক্ষা ক্লাস্টার</span><span data-i18n="en">Savar Education Cluster</span></td>
+            <td>Savar Upazila, Dhaka</td>
+            <td>13</td>
+            <td>
+              <button class="btn btn-secondary btn-sm"><span data-i18n="bn">সদস্য দেখুন</span><span data-i18n="en">View Members</span></button>
+              <button class="btn btn-secondary btn-sm"><span data-i18n="bn">সম্পাদনা</span><span data-i18n="en">Edit</span></button>
+            </td>
+          </tr>
+          <tr>
+            <td><span data-i18n="bn">রংপুর সদর ক্লাস্টার</span><span data-i18n="en">Rangpur Sadar Cluster</span></td>
+            <td>Rangpur Division</td>
+            <td>31</td>
+            <td>
+              <button class="btn btn-secondary btn-sm"><span data-i18n="bn">সদস্য দেখুন</span><span data-i18n="en">View Members</span></button>
+              <button class="btn btn-secondary btn-sm"><span data-i18n="bn">সম্পাদনা</span><span data-i18n="en">Edit</span></button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

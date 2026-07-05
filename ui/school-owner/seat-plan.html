@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>সিট প্ল্যান · Seat Plan — Amar School Management</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../shared/design-system.css">
+<script src="../shared/app.js" defer></script>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="mark">A</span><span>Amar School</span></div>
+    <nav>
+      <a class="nav-item" href="../school-owner/dashboard.html"><span data-i18n="bn">ড্যাশবোর্ড</span><span data-i18n="en">Dashboard</span></a>
+      <a class="nav-item" href="../school-owner/students-list.html"><span data-i18n="bn">শিক্ষার্থী</span><span data-i18n="en">Students</span></a>
+      <a class="nav-item" href="../school-owner/employees-list.html"><span data-i18n="bn">কর্মচারী</span><span data-i18n="en">Employees</span></a>
+      <a class="nav-item" href="../school-owner/attendance-student-mark.html"><span data-i18n="bn">উপস্থিতি</span><span data-i18n="en">Attendance</span></a>
+      <a class="nav-item" href="../school-owner/classes-list.html"><span data-i18n="bn">শ্রেণি ও পাঠ্যক্রম</span><span data-i18n="en">Class & Curriculum</span></a>
+      <a class="nav-item active" href="../school-owner/exams-list.html"><span data-i18n="bn">পরীক্ষা ও ফলাফল</span><span data-i18n="en">Exams & Results</span></a>
+      <a class="nav-item" href="../school-owner/fee-collection.html"><span data-i18n="bn">হিসাব ও ফি</span><span data-i18n="en">Accounting & Fees</span></a>
+      <a class="nav-item" href="../school-owner/sms-compose.html"><span data-i18n="bn">এসএমএস</span><span data-i18n="en">SMS</span></a>
+      <a class="nav-item" href="../school-owner/notices-list.html"><span data-i18n="bn">প্রকাশনা</span><span data-i18n="en">Publishing</span></a>
+      <a class="nav-item" href="../school-owner/feedback-inbox.html"><span data-i18n="bn">মতামত</span><span data-i18n="en">Feedback</span></a>
+      <a class="nav-item" href="../school-owner/staff-permissions.html"><span data-i18n="bn">স্টাফ অনুমতি</span><span data-i18n="en">Staff Permissions</span></a>
+      <a class="nav-item" href="../school-owner/institute-profile.html"><span data-i18n="bn">প্রতিষ্ঠান সেটআপ</span><span data-i18n="en">Institute Setup</span></a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="title"><span data-i18n="bn">সিট প্ল্যান</span><span data-i18n="en">Seat Plan</span></div>
+      <div class="actions">
+        <div class="lang-switch">
+          <button data-lang-btn="bn" onclick="setLang('bn')">বাং</button>
+          <button data-lang-btn="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="theme-switch">
+          <button data-theme-btn="light" onclick="setTheme('light')">☀</button>
+          <button data-theme-btn="dark" onclick="setTheme('dark')">☾</button>
+          <button data-theme-btn="system" onclick="setTheme('system')">Auto</button>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+
+      <div class="toolbar">
+        <select class="search-input" style="min-width:220px;">
+          <option><span data-i18n="bn">বার্ষিক পরীক্ষা ২০২৫ - অষ্টম শ্রেণি A</span><span data-i18n="en">Annual Examination 2025 - Class 8 A</span></option>
+        </select>
+        <div class="flex gap-2">
+          <button class="btn btn-secondary"><span data-i18n="bn">স্বয়ংক্রিয় সিট প্ল্যান তৈরি করুন</span><span data-i18n="en">Generate Seat Plan</span></button>
+          <button class="btn btn-primary" disabled title="সংঘর্ষ সমাধান না হওয়া পর্যন্ত প্রকাশ করা যাবে না · Cannot publish until the range conflict is resolved">
+            <span data-i18n="bn">প্রকাশ করুন</span><span data-i18n="en">Publish</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="card mb-4" style="background: var(--danger-bg); border-color: var(--danger-border);">
+        <div class="flex items-center gap-2 mb-4" style="margin-bottom: var(--space-2);">
+          <span class="badge badge-danger"><span data-i18n="bn">রোল রেঞ্জ সংঘর্ষ</span><span data-i18n="en">Duplicate Range Warning</span></span>
+        </div>
+        <p class="mt-0" style="color: var(--danger-fg); font-size: var(--text-sm);">
+          <span data-i18n="bn">রুম ১০১ (রোল ০১–৩০) এবং রুম ১০২ (রোল ২৫–৫৫) এর রোল রেঞ্জ পরস্পর ওভারল্যাপ করছে (রোল ২৫–৩০)। প্রকাশ করার আগে অবশ্যই রেঞ্জ সংশোধন করুন।</span>
+          <span data-i18n="en">The roll ranges for Room 101 (roll 01–30) and Room 102 (roll 25–55) overlap (roll 25–30). Correct the ranges before publishing.</span>
+        </p>
+      </div>
+
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th><span data-i18n="bn">কক্ষ</span><span data-i18n="en">Room</span></th>
+            <th><span data-i18n="bn">ধারণক্ষমতা</span><span data-i18n="en">Capacity</span></th>
+            <th><span data-i18n="bn">বরাদ্দকৃত রোল রেঞ্জ</span><span data-i18n="en">Assigned Roll Range</span></th>
+            <th><span data-i18n="bn">শিক্ষার্থী সংখ্যা</span><span data-i18n="en">Student Count</span></th>
+            <th><span data-i18n="bn">অবস্থা</span><span data-i18n="en">Status</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span data-i18n="bn">রুম ১০১</span><span data-i18n="en">Room 101</span></td>
+            <td>40</td>
+            <td>রোল ০১ – ৩০ <span class="text-secondary">(Roll 01–30)</span></td>
+            <td>30</td>
+            <td><span class="badge badge-danger"><span data-i18n="bn">সংঘর্ষ</span><span data-i18n="en">Overlap</span></span></td>
+          </tr>
+          <tr>
+            <td><span data-i18n="bn">রুম ১০২</span><span data-i18n="en">Room 102</span></td>
+            <td>35</td>
+            <td>রোল ২৫ – ৫৫ <span class="text-secondary">(Roll 25–55)</span></td>
+            <td>31</td>
+            <td><span class="badge badge-danger"><span data-i18n="bn">সংঘর্ষ</span><span data-i18n="en">Overlap</span></span></td>
+          </tr>
+          <tr>
+            <td><span data-i18n="bn">রুম ২০১</span><span data-i18n="en">Room 201</span></td>
+            <td>45</td>
+            <td>রোল ৫৬ – ৯০ <span class="text-secondary">(Roll 56–90)</span></td>
+            <td>35</td>
+            <td><span class="badge badge-success"><span data-i18n="bn">ঠিক আছে</span><span data-i18n="en">OK</span></span></td>
+          </tr>
+        </tbody>
+      </table>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

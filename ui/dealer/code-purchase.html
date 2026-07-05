@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>কোড ক্রয় · Purchase Codes — Dealer Portal</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../shared/design-system.css">
+<script src="../shared/app.js" defer></script>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="mark">D</span><span>Dealer Portal</span></div>
+    <nav>
+      <a class="nav-item" href="dashboard.html"><span data-i18n="bn">ড্যাশবোর্ড</span><span data-i18n="en">Dashboard</span></a>
+      <a class="nav-item" href="dashboard.html#schools"><span data-i18n="bn">আমার স্কুল</span><span data-i18n="en">My Schools</span></a>
+      <a class="nav-item active" href="code-purchase.html"><span data-i18n="bn">কোড ক্রয়</span><span data-i18n="en">Purchase Codes</span></a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="title"><span data-i18n="bn">কোড ক্রয়</span><span data-i18n="en">Purchase Codes</span></div>
+      <div class="actions">
+        <a class="btn btn-secondary btn-sm" href="../index.html" title="Home">🏠</a>
+        <a class="btn btn-secondary btn-sm" href="../sitemap.html" title="Sitemap">📋</a>
+        <div class="lang-switch">
+          <button data-lang-btn="bn" onclick="setLang('bn')">বাং</button>
+          <button data-lang-btn="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="theme-switch">
+          <button data-theme-btn="light" onclick="setTheme('light')">☀</button>
+          <button data-theme-btn="dark" onclick="setTheme('dark')">☾</button>
+          <button data-theme-btn="system" onclick="setTheme('system')">Auto</button>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+
+      <div class="card mb-4">
+        <h3 class="mt-0"><span data-i18n="bn">নতুন কোড ব্যাচের অনুরোধ</span><span data-i18n="en">Request a New Code Batch</span></h3>
+        <p class="text-secondary" style="margin-top:-8px;">
+          <span data-i18n="bn">অনলাইন পেমেন্ট গেটওয়ে এখনো নেই — অনুরোধ জমা দেওয়ার পর সুপার অ্যাডমিন যাচাই করে ম্যানুয়ালি অনুমোদন করবেন।</span>
+          <span data-i18n="en">There is no live online payment gateway yet — after you submit a request, a Super Admin manually verifies payment and approves it.</span>
+        </p>
+        <form onsubmit="return false;">
+          <div class="form-grid">
+            <div class="field">
+              <label><span data-i18n="bn">স্কুল নির্বাচন করুন</span><span data-i18n="en">Select School</span></label>
+              <select>
+                <option><span data-i18n="bn">কুমিল্লা মডেল স্কুল অ্যান্ড কলেজ</span></option>
+                <option>Cumilla Model School &amp; College</option>
+                <option>Debidwar High School</option>
+                <option>Barura Girls' High School</option>
+                <option>Sachar High School</option>
+                <option>Adarsha High School, Savar (Extended)</option>
+              </select>
+            </div>
+            <div class="field">
+              <label><span data-i18n="bn">কোড সংখ্যা (১–৫০)</span><span data-i18n="en">Number of Codes (1–50)</span></label>
+              <input type="number" min="1" max="50" value="5">
+            </div>
+            <div class="field">
+              <label><span data-i18n="bn">মেয়াদ (মাস)</span><span data-i18n="en">Validity (months)</span></label>
+              <select>
+                <option>1</option>
+                <option selected>12</option>
+                <option>24</option>
+              </select>
+            </div>
+            <div class="field">
+              <label><span data-i18n="bn">প্রতি কোডের মূল্য</span><span data-i18n="en">Price per Code</span></label>
+              <input type="text" value="৳ ১,৫০০ · BDT 1,500" disabled>
+            </div>
+            <div class="field field-full">
+              <label><span data-i18n="bn">নোট (ঐচ্ছিক)</span><span data-i18n="en">Note (optional)</span></label>
+              <textarea rows="2" placeholder="পেমেন্ট রেফারেন্স বা মন্তব্য · Payment reference or remarks"></textarea>
+            </div>
+          </div>
+          <div class="flex gap-3 mb-4" style="margin-top: var(--space-4);">
+            <button class="btn btn-primary" type="submit"><span data-i18n="bn">অনুমোদনের জন্য জমা দিন</span><span data-i18n="en">Submit for Approval</span></button>
+            <button class="btn btn-secondary" type="reset"><span data-i18n="bn">রিসেট</span><span data-i18n="en">Reset</span></button>
+          </div>
+        </form>
+      </div>
+
+      <div class="card">
+        <div class="toolbar">
+          <h3 class="mt-0"><span data-i18n="bn">ক্রয় ইতিহাস</span><span data-i18n="en">Purchase History</span></h3>
+          <input class="search-input" type="text" placeholder="ব্যাচ আইডি বা স্কুল খুঁজুন · Search batch ID or school">
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th><span data-i18n="bn">ব্যাচ আইডি</span><span data-i18n="en">Batch ID</span></th>
+              <th><span data-i18n="bn">স্কুল</span><span data-i18n="en">School</span></th>
+              <th><span data-i18n="bn">কোড সংখ্যা</span><span data-i18n="en">Codes</span></th>
+              <th><span data-i18n="bn">মেয়াদ</span><span data-i18n="en">Validity</span></th>
+              <th><span data-i18n="bn">তারিখ</span><span data-i18n="en">Date</span></th>
+              <th><span data-i18n="bn">অবস্থা</span><span data-i18n="en">Status</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>BATCH-2026-0143</td>
+              <td><span data-i18n="bn">দেবিদ্বার উচ্চ বিদ্যালয়</span><span data-i18n="en">Debidwar High School</span></td>
+              <td>10</td>
+              <td><span data-i18n="bn">১২ মাস</span><span data-i18n="en">12 months</span></td>
+              <td>২০২৬-০৭-০৩ <span data-i18n="en">· 2026-07-03</span></td>
+              <td><span class="badge badge-warning"><span data-i18n="bn">সুপার অ্যাডমিন অনুমোদনের অপেক্ষায়</span><span data-i18n="en">Pending Super Admin Approval</span></span></td>
+            </tr>
+            <tr>
+              <td>BATCH-2026-0121</td>
+              <td><span data-i18n="bn">কুমিল্লা মডেল স্কুল অ্যান্ড কলেজ</span><span data-i18n="en">Cumilla Model School &amp; College</span></td>
+              <td>24</td>
+              <td><span data-i18n="bn">১২ মাস</span><span data-i18n="en">12 months</span></td>
+              <td>২০২৬-০৬-২১ <span data-i18n="en">· 2026-06-21</span></td>
+              <td><span class="badge badge-success"><span data-i18n="bn">অনুমোদিত ও সরবরাহকৃত</span><span data-i18n="en">Approved & Issued</span></span></td>
+            </tr>
+            <tr>
+              <td>BATCH-2026-0098</td>
+              <td><span data-i18n="bn">সাচার উচ্চ বিদ্যালয়</span><span data-i18n="en">Sachar High School</span></td>
+              <td>30</td>
+              <td><span data-i18n="bn">২৪ মাস</span><span data-i18n="en">24 months</span></td>
+              <td>২০২৬-০৫-০৯ <span data-i18n="en">· 2026-05-09</span></td>
+              <td><span class="badge badge-success"><span data-i18n="bn">অনুমোদিত ও সরবরাহকৃত</span><span data-i18n="en">Approved & Issued</span></span></td>
+            </tr>
+            <tr>
+              <td>BATCH-2026-0076</td>
+              <td><span data-i18n="bn">বরুড়া গার্লস হাই স্কুল</span><span data-i18n="en">Barura Girls' High School</span></td>
+              <td>5</td>
+              <td><span data-i18n="bn">১ মাস</span><span data-i18n="en">1 month</span></td>
+              <td>২০২৬-০৪-১৫ <span data-i18n="en">· 2026-04-15</span></td>
+              <td><span class="badge badge-danger"><span data-i18n="bn">প্রত্যাখ্যাত</span><span data-i18n="en">Rejected</span></span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

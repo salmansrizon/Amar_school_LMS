@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>নতুন কর্মচারী · New Employee — Amar School Management</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../shared/design-system.css">
+<script src="../shared/app.js" defer></script>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="mark">A</span><span>Amar School</span></div>
+    <nav>
+      <a class="nav-item" href="../school-owner/dashboard.html"><span data-i18n="bn">ড্যাশবোর্ড</span><span data-i18n="en">Dashboard</span></a>
+      <a class="nav-item" href="../school-owner/students-list.html"><span data-i18n="bn">শিক্ষার্থী</span><span data-i18n="en">Students</span></a>
+      <a class="nav-item active" href="../school-owner/employees-list.html"><span data-i18n="bn">কর্মচারী</span><span data-i18n="en">Employees</span></a>
+      <a class="nav-item" href="../school-owner/attendance-student-mark.html"><span data-i18n="bn">উপস্থিতি</span><span data-i18n="en">Attendance</span></a>
+      <a class="nav-item" href="../school-owner/classes-list.html"><span data-i18n="bn">শ্রেণি ও পাঠ্যক্রম</span><span data-i18n="en">Class & Curriculum</span></a>
+      <a class="nav-item" href="../school-owner/exams-list.html"><span data-i18n="bn">পরীক্ষা ও ফলাফল</span><span data-i18n="en">Exams & Results</span></a>
+      <a class="nav-item" href="../school-owner/fee-collection.html"><span data-i18n="bn">হিসাব ও ফি</span><span data-i18n="en">Accounting & Fees</span></a>
+      <a class="nav-item" href="../school-owner/sms-compose.html"><span data-i18n="bn">এসএমএস</span><span data-i18n="en">SMS</span></a>
+      <a class="nav-item" href="../school-owner/notices-list.html"><span data-i18n="bn">প্রকাশনা</span><span data-i18n="en">Publishing</span></a>
+      <a class="nav-item" href="../school-owner/feedback-inbox.html"><span data-i18n="bn">মতামত</span><span data-i18n="en">Feedback</span></a>
+      <a class="nav-item" href="../school-owner/staff-permissions.html"><span data-i18n="bn">স্টাফ অনুমতি</span><span data-i18n="en">Staff Permissions</span></a>
+      <a class="nav-item" href="../school-owner/institute-profile.html"><span data-i18n="bn">প্রতিষ্ঠান সেটআপ</span><span data-i18n="en">Institute Setup</span></a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="title"><span data-i18n="bn">নতুন কর্মচারী তৈরি করুন</span><span data-i18n="en">Create New Employee</span></div>
+      <div class="actions">
+        <div class="lang-switch">
+          <button data-lang-btn="bn" onclick="setLang('bn')">বাং</button>
+          <button data-lang-btn="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="theme-switch">
+          <button data-theme-btn="light" onclick="setTheme('light')">☀</button>
+          <button data-theme-btn="dark" onclick="setTheme('dark')">☾</button>
+          <button data-theme-btn="system" onclick="setTheme('system')">Auto</button>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+
+      <form onsubmit="return false;">
+        <div class="card mb-4">
+          <h3 class="mt-0"><span data-i18n="bn">পরিচিতি</span><span data-i18n="en">Identity</span></h3>
+          <div class="form-grid">
+            <div class="field"><label><span data-i18n="bn">নাম</span><span data-i18n="en">Full Name</span></label><input type="text"></div>
+            <div class="field"><label><span data-i18n="bn">মোবাইল</span><span data-i18n="en">Mobile</span></label><input type="text" placeholder="01xxxxxxxxx"></div>
+            <div class="field"><label><span data-i18n="bn">জন্ম তারিখ</span><span data-i18n="en">Date of Birth</span></label><input type="date"></div>
+            <div class="field"><label><span data-i18n="bn">যোগদানের তারিখ</span><span data-i18n="en">Joining Date</span></label><input type="date"></div>
+          </div>
+        </div>
+
+        <div class="card mb-4">
+          <h3 class="mt-0"><span data-i18n="bn">ব্যাংক তথ্য</span><span data-i18n="en">Bank Info</span></h3>
+          <div class="form-grid">
+            <div class="field"><label><span data-i18n="bn">ব্যাংকের নাম</span><span data-i18n="en">Bank Name</span></label><input type="text"></div>
+            <div class="field"><label><span data-i18n="bn">শাখা</span><span data-i18n="en">Branch</span></label><input type="text"></div>
+            <div class="field"><label><span data-i18n="bn">হিসাব নম্বর</span><span data-i18n="en">Account Number</span></label><input type="text"></div>
+          </div>
+        </div>
+
+        <div class="card mb-4">
+          <h3 class="mt-0"><span data-i18n="bn">বিভাগ ও যোগ্যতা</span><span data-i18n="en">Category & Qualification</span></h3>
+          <div class="form-grid">
+            <div class="field">
+              <label><span data-i18n="bn">বিভাগ</span><span data-i18n="en">Category</span></label>
+              <select><option><span data-i18n="bn">শিক্ষক</span><span data-i18n="en">Teacher</span></option><option><span data-i18n="bn">অফিস স্টাফ</span><span data-i18n="en">Office Staff</span></option><option><span data-i18n="bn">নিরাপত্তা কর্মী</span><span data-i18n="en">Security</span></option></select>
+            </div>
+            <div class="field"><label><span data-i18n="bn">যোগ্যতা</span><span data-i18n="en">Qualification</span></label><input type="text"></div>
+            <div class="field"><label><span data-i18n="bn">ডিপার্টমেন্ট</span><span data-i18n="en">Department</span></label><input type="text"></div>
+          </div>
+        </div>
+
+        <div class="card mb-4">
+          <h3 class="mt-0"><span data-i18n="bn">বিষয় ও শিফট</span><span data-i18n="en">Subject & Shift</span></h3>
+          <div class="form-grid">
+            <div class="field"><label><span data-i18n="bn">পাঠদানকৃত বিষয়</span><span data-i18n="en">Subject Taught</span></label><input type="text"></div>
+            <div class="field">
+              <label><span data-i18n="bn">শিফট</span><span data-i18n="en">Shift</span></label>
+              <select><option><span data-i18n="bn">সকাল</span><span data-i18n="en">Morning</span></option><option><span data-i18n="bn">দিবা</span><span data-i18n="en">Day</span></option></select>
+            </div>
+          </div>
+        </div>
+
+        <div class="card mb-4">
+          <h3 class="mt-0"><span data-i18n="bn">ব্যক্তিগত গ্রেস উইন্ডো ওভাররাইড (ঐচ্ছিক)</span><span data-i18n="en">Individual Grace Window Override (optional)</span></h3>
+          <p class="text-secondary" style="font-size:var(--text-sm);">
+            <span data-i18n="bn">খালি রাখলে গ্লোবাল/বিভাগ/শিফট মানের মধ্যে সর্বোচ্চটি প্রযোজ্য হবে।</span>
+            <span data-i18n="en">If left blank, the max of global/category/shift values applies.</span>
+          </p>
+          <div class="form-grid">
+            <div class="field"><label><span data-i18n="bn">ওভাররাইড গ্রেস (মিনিট)</span><span data-i18n="en">Override Grace (minutes)</span></label><input type="number" placeholder="e.g. 20"></div>
+          </div>
+        </div>
+
+        <div class="flex gap-2 justify-between">
+          <a class="btn btn-secondary" href="employees-list.html"><span data-i18n="bn">বাতিল</span><span data-i18n="en">Cancel</span></a>
+          <button class="btn btn-primary" type="submit"><span data-i18n="bn">কর্মচারী সংরক্ষণ করুন</span><span data-i18n="en">Save Employee</span></button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

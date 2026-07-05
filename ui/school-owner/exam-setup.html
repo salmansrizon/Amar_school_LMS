@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>পরীক্ষা সেটআপ · Exam Setup — Amar School Management</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../shared/design-system.css">
+<script src="../shared/app.js" defer></script>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="mark">A</span><span>Amar School</span></div>
+    <nav>
+      <a class="nav-item" href="../school-owner/dashboard.html"><span data-i18n="bn">ড্যাশবোর্ড</span><span data-i18n="en">Dashboard</span></a>
+      <a class="nav-item" href="../school-owner/students-list.html"><span data-i18n="bn">শিক্ষার্থী</span><span data-i18n="en">Students</span></a>
+      <a class="nav-item" href="../school-owner/employees-list.html"><span data-i18n="bn">কর্মচারী</span><span data-i18n="en">Employees</span></a>
+      <a class="nav-item" href="../school-owner/attendance-student-mark.html"><span data-i18n="bn">উপস্থিতি</span><span data-i18n="en">Attendance</span></a>
+      <a class="nav-item" href="../school-owner/classes-list.html"><span data-i18n="bn">শ্রেণি ও পাঠ্যক্রম</span><span data-i18n="en">Class & Curriculum</span></a>
+      <a class="nav-item active" href="../school-owner/exams-list.html"><span data-i18n="bn">পরীক্ষা ও ফলাফল</span><span data-i18n="en">Exams & Results</span></a>
+      <a class="nav-item" href="../school-owner/fee-collection.html"><span data-i18n="bn">হিসাব ও ফি</span><span data-i18n="en">Accounting & Fees</span></a>
+      <a class="nav-item" href="../school-owner/sms-compose.html"><span data-i18n="bn">এসএমএস</span><span data-i18n="en">SMS</span></a>
+      <a class="nav-item" href="../school-owner/notices-list.html"><span data-i18n="bn">প্রকাশনা</span><span data-i18n="en">Publishing</span></a>
+      <a class="nav-item" href="../school-owner/feedback-inbox.html"><span data-i18n="bn">মতামত</span><span data-i18n="en">Feedback</span></a>
+      <a class="nav-item" href="../school-owner/staff-permissions.html"><span data-i18n="bn">স্টাফ অনুমতি</span><span data-i18n="en">Staff Permissions</span></a>
+      <a class="nav-item" href="../school-owner/institute-profile.html"><span data-i18n="bn">প্রতিষ্ঠান সেটআপ</span><span data-i18n="en">Institute Setup</span></a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="title"><span data-i18n="bn">পরীক্ষা সেটআপ</span><span data-i18n="en">Exam Setup</span> — <span data-i18n="bn">বার্ষিক পরীক্ষা ২০২৫</span><span data-i18n="en">Annual Examination 2025</span></div>
+      <div class="actions">
+        <div class="lang-switch">
+          <button data-lang-btn="bn" onclick="setLang('bn')">বাং</button>
+          <button data-lang-btn="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="theme-switch">
+          <button data-theme-btn="light" onclick="setTheme('light')">☀</button>
+          <button data-theme-btn="dark" onclick="setTheme('dark')">☾</button>
+          <button data-theme-btn="system" onclick="setTheme('system')">Auto</button>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+
+      <div class="flex justify-between items-center mb-4">
+        <span class="badge badge-success"><span data-i18n="bn">চলমান</span><span data-i18n="en">Open</span></span>
+        <div class="flex gap-2">
+          <a class="btn btn-secondary" href="exams-list.html"><span data-i18n="bn">তালিকায় ফিরুন</span><span data-i18n="en">Back to List</span></a>
+          <a class="btn btn-secondary" href="exam-routine.html"><span data-i18n="bn">পরীক্ষার রুটিন</span><span data-i18n="en">Exam Routine</span></a>
+          <a class="btn btn-danger" href="exam-close-confirm-modal.html"><span data-i18n="bn">পরীক্ষা বন্ধ করুন</span><span data-i18n="en">Close Exam</span></a>
+        </div>
+      </div>
+
+      <div class="card mb-4">
+        <h3 class="mt-0"><span data-i18n="bn">মূল তথ্য</span><span data-i18n="en">Basic Info</span></h3>
+        <div class="form-grid">
+          <div class="field">
+            <label><span data-i18n="bn">পরীক্ষার নাম</span><span data-i18n="en">Exam Name</span></label>
+            <input type="text" value="বার্ষিক পরীক্ষা ২০২৫">
+          </div>
+          <div class="field">
+            <label><span data-i18n="bn">শ্রেণি</span><span data-i18n="en">Class</span></label>
+            <select><option><span data-i18n="bn">অষ্টম শ্রেণি - A</span><span data-i18n="en">Class 8 - A</span></option></select>
+          </div>
+          <div class="field">
+            <label><span data-i18n="bn">শিক্ষাবর্ষ</span><span data-i18n="en">Academic Year</span></label>
+            <input type="text" value="2025">
+          </div>
+          <div class="field">
+            <label><span data-i18n="bn">শুরুর তারিখ</span><span data-i18n="en">Start Date</span></label>
+            <input type="text" value="১০ ডিসেম্বর ২০২৫">
+          </div>
+        </div>
+      </div>
+
+      <div class="card mb-4">
+        <h3 class="mt-0"><span data-i18n="bn">গ্রেডিং স্কিম</span><span data-i18n="en">Grading Scheme</span></h3>
+        <div class="form-grid">
+          <div class="field">
+            <label><span data-i18n="bn">স্কিমের ধরন</span><span data-i18n="en">Scheme Type</span></label>
+            <select>
+              <option><span data-i18n="bn">গ্রেড পয়েন্ট (GPA)</span><span data-i18n="en">Grade Point (GPA)</span></option>
+              <option><span data-i18n="bn">অক্ষর গ্রেড (Letter)</span><span data-i18n="en">Letter Grade</span></option>
+              <option><span data-i18n="bn">সাংখ্যিক (Numeric)</span><span data-i18n="en">Numeric</span></option>
+            </select>
+          </div>
+          <div class="field">
+            <label><span data-i18n="bn">উত্তীর্ণ নম্বর (%)</span><span data-i18n="en">Pass Mark (%)</span></label>
+            <input type="text" value="33">
+          </div>
+          <div class="field">
+            <label><span data-i18n="bn">উত্তীর্ণের নিয়ম</span><span data-i18n="en">Pass-Rule Strategy</span></label>
+            <select>
+              <option><span data-i18n="bn">প্রতিটি বিষয়ে পৃথকভাবে উত্তীর্ণ হতে হবে</span><span data-i18n="en">Must pass each subject individually</span></option>
+              <option><span data-i18n="bn">সমষ্টিগত গড় ভিত্তিক</span><span data-i18n="en">Combined weighted-average basis</span></option>
+              <option><span data-i18n="bn">ঐচ্ছিক বিষয়ে শর্তসাপেক্ষ উত্তীর্ণ</span><span data-i18n="en">Optional-subject conditional auto-pass</span></option>
+            </select>
+          </div>
+          <div class="field">
+            <label><span data-i18n="bn">বিষয় গ্রুপ একত্রীকরণ</span><span data-i18n="en">Combine Subject Groups</span></label>
+            <select>
+              <option><span data-i18n="bn">সক্রিয়</span><span data-i18n="en">Enabled</span></option>
+              <option><span data-i18n="bn">নিষ্ক্রিয়</span><span data-i18n="en">Disabled</span></option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 class="mt-0"><span data-i18n="bn">বিষয়-শিক্ষক বরাদ্দ</span><span data-i18n="en">Subject-Teacher Assignment</span></h3>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th><span data-i18n="bn">বিষয়</span><span data-i18n="en">Subject</span></th>
+              <th><span data-i18n="bn">পরীক্ষক শিক্ষক</span><span data-i18n="en">Assigned Teacher</span></th>
+              <th><span data-i18n="bn">তত্ত্বীয়</span><span data-i18n="en">Theory</span></th>
+              <th><span data-i18n="bn">এমসিকিউ</span><span data-i18n="en">MCQ</span></th>
+              <th><span data-i18n="bn">ব্যবহারিক</span><span data-i18n="en">Practical</span></th>
+              <th><span data-i18n="bn">পূর্ণমান</span><span data-i18n="en">Full Marks</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span data-i18n="bn">বাংলা</span><span data-i18n="en">Bangla</span></td>
+              <td><span data-i18n="bn">মোঃ রফিকুল ইসলাম</span><span data-i18n="en">Md. Rafiqul Islam</span></td>
+              <td>70</td><td>—</td><td>—</td><td>100</td>
+            </tr>
+            <tr>
+              <td><span data-i18n="bn">ইংরেজি</span><span data-i18n="en">English</span></td>
+              <td><span data-i18n="bn">নাসরিন সুলতানা</span><span data-i18n="en">Nasrin Sultana</span></td>
+              <td>70</td><td>—</td><td>—</td><td>100</td>
+            </tr>
+            <tr>
+              <td><span data-i18n="bn">গণিত</span><span data-i18n="en">Mathematics</span></td>
+              <td><span data-i18n="bn">সালমা আক্তার</span><span data-i18n="en">Salma Akter</span></td>
+              <td>100</td><td>—</td><td>—</td><td>100</td>
+            </tr>
+            <tr>
+              <td><span data-i18n="bn">বিজ্ঞান</span><span data-i18n="en">Science</span></td>
+              <td><span data-i18n="bn">করিম উদ্দিন</span><span data-i18n="en">Karim Uddin</span></td>
+              <td>50</td><td>25</td><td>25</td><td>100</td>
+            </tr>
+            <tr>
+              <td><span data-i18n="bn">তথ্য ও যোগাযোগ প্রযুক্তি</span><span data-i18n="en">ICT</span></td>
+              <td><span data-i18n="bn">মোঃ রফিকুল ইসলাম</span><span data-i18n="en">Md. Rafiqul Islam</span></td>
+              <td>25</td><td>—</td><td>25</td><td>50</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="flex gap-2" style="margin-top: var(--space-4);">
+          <button class="btn btn-primary"><span data-i18n="bn">সংরক্ষণ করুন</span><span data-i18n="en">Save</span></button>
+          <a class="btn btn-secondary" href="seat-plan.html"><span data-i18n="bn">পরবর্তী: সিট প্ল্যান</span><span data-i18n="en">Next: Seat Plan</span></a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

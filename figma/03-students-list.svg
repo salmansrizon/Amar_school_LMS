@@ -1,0 +1,130 @@
+<svg width="1440" height="900" viewBox="0 0 1440 900" xmlns="http://www.w3.org/2000/svg" font-family="Hind Siliguri, Noto Sans Bengali, Arial, sans-serif">
+  <rect x="0" y="0" width="1440" height="900" fill="#f8fafc"/>
+
+  <!-- ===== Sidebar ===== -->
+  <rect x="0" y="0" width="232" height="900" fill="#0f172a"/>
+  <g>
+    <rect x="16" y="20" width="26" height="26" rx="6" fill="#8b5cf6"/>
+    <text x="24" y="38" font-size="13" font-weight="700" fill="#ffffff">A</text>
+    <text x="52" y="39" font-size="16" font-weight="700" fill="#ffffff">Amar School</text>
+  </g>
+  <g font-size="13">
+    <text x="26" y="98" fill="#cbd5e1">ড্যাশবোর্ড (Dashboard)</text>
+
+    <rect x="12" y="110" width="208" height="34" rx="4" fill="#7c3aed"/>
+    <text x="26" y="132" fill="#ffffff">শিক্ষার্থী (Students)</text>
+
+    <text x="26" y="166" fill="#cbd5e1">কর্মচারী (Employees)</text>
+    <text x="26" y="200" fill="#cbd5e1">উপস্থিতি (Attendance)</text>
+    <text x="26" y="234" fill="#cbd5e1">শ্রেণি ও পাঠ্যক্রম (Class)</text>
+    <text x="26" y="268" fill="#cbd5e1">পরীক্ষা ও ফলাফল (Exams)</text>
+    <text x="26" y="302" fill="#cbd5e1">হিসাব ও ফি (Accounting)</text>
+    <text x="26" y="336" fill="#cbd5e1">এসএমএস (SMS)</text>
+    <text x="26" y="370" fill="#cbd5e1">প্রকাশনা (Publishing)</text>
+    <text x="26" y="404" fill="#cbd5e1">মতামত (Feedback)</text>
+    <text x="26" y="438" fill="#cbd5e1">স্টাফ অনুমতি (Permissions)</text>
+    <text x="26" y="472" fill="#cbd5e1">প্রতিষ্ঠান সেটআপ (Institute)</text>
+  </g>
+
+  <!-- ===== Topbar ===== -->
+  <rect x="232" y="0" width="1208" height="60" fill="#ffffff" stroke="#e2e8f0"/>
+  <text x="264" y="38" font-size="20" font-weight="600" fill="#0f172a">শিক্ষার্থী তালিকা · Students</text>
+  <g font-size="12" font-weight="600">
+    <rect x="1180" y="16" width="80" height="28" rx="6" fill="#ffffff" stroke="#e2e8f0"/>
+    <rect x="1180" y="16" width="40" height="28" rx="6" fill="#7c3aed"/>
+    <text x="1191" y="34" fill="#ffffff">বাং</text>
+    <text x="1230" y="34" fill="#334155">EN</text>
+  </g>
+  <circle cx="1380" cy="30" r="16" fill="#ede9fe"/>
+  <text x="1372" y="35" font-size="12" fill="#7c3aed" font-weight="700">রউ</text>
+
+  <!-- ===== Toolbar ===== -->
+  <rect x="264" y="80" width="300" height="36" rx="6" fill="#ffffff" stroke="#cbd5e1"/>
+  <text x="278" y="103" font-size="13" fill="#94a3b8">খুঁজুন · Search name or roll…</text>
+
+  <rect x="576" y="80" width="150" height="36" rx="6" fill="#ffffff" stroke="#cbd5e1"/>
+  <text x="590" y="103" font-size="13" fill="#334155">শ্রেণি: সব · Class: All</text>
+
+  <rect x="738" y="80" width="150" height="36" rx="6" fill="#ffffff" stroke="#cbd5e1"/>
+  <text x="752" y="103" font-size="13" fill="#334155">শিফট: সব · Shift: All</text>
+
+  <rect x="1244" y="80" width="164" height="36" rx="6" fill="#7c3aed"/>
+  <text x="1264" y="103" font-size="13" font-weight="600" fill="#ffffff">+ নতুন ভর্তি · Admit</text>
+
+  <!-- ===== Table ===== -->
+  <rect x="264" y="134" width="1144" height="36" fill="#f1f5f9" stroke="#e2e8f0"/>
+  <g font-size="11" fill="#64748b" font-weight="600">
+    <text x="280"  y="157">রোল · ROLL</text>
+    <text x="360"  y="157">নাম · NAME</text>
+    <text x="620"  y="157">শ্রেণি/শাখা · CLASS/SEC</text>
+    <text x="800"  y="157">অভিভাবক · GUARDIAN</text>
+    <text x="1000" y="157">আচরণ · BEHAVIOUR</text>
+    <text x="1130" y="157">অবস্থা · STATUS</text>
+    <text x="1280" y="157">অ্যাকশন</text>
+  </g>
+
+  <!-- rows -->
+  <g font-size="13">
+    <!-- row 1 -->
+    <rect x="264" y="170" width="1144" height="36" fill="#ffffff" stroke="#e2e8f0"/>
+    <text x="280" y="193" fill="#0f172a">০০১</text>
+    <text x="360" y="193" fill="#0f172a">রাফি আহমেদ</text>
+    <text x="620" y="193" fill="#0f172a">Class 6 — A</text>
+    <text x="800" y="193" fill="#0f172a">করিম আহমেদ</text>
+    <rect x="1000" y="178" width="70" height="20" rx="4" fill="#dcfce7" stroke="#86efac"/>
+    <text x="1010" y="192" font-size="11" fill="#15803d" font-weight="700">৪.৫ / ৫</text>
+    <rect x="1130" y="178" width="70" height="20" rx="4" fill="#dcfce7" stroke="#86efac"/>
+    <text x="1140" y="192" font-size="11" fill="#15803d" font-weight="700">Active</text>
+    <text x="1280" y="193" fill="#7c3aed" font-size="12">দেখুন · View</text>
+
+    <!-- row 2 -->
+    <rect x="264" y="206" width="1144" height="36" fill="#ffffff" stroke="#e2e8f0"/>
+    <text x="280" y="229" fill="#0f172a">০০২</text>
+    <text x="360" y="229" fill="#0f172a">নুসরাত জাহান</text>
+    <text x="620" y="229" fill="#0f172a">Class 6 — A</text>
+    <text x="800" y="229" fill="#0f172a">জাহানারা বেগম</text>
+    <rect x="1000" y="214" width="70" height="20" rx="4" fill="#fef3c7" stroke="#fcd34d"/>
+    <text x="1010" y="228" font-size="11" fill="#b45309" font-weight="700">৩.১ / ৫</text>
+    <rect x="1130" y="214" width="70" height="20" rx="4" fill="#dcfce7" stroke="#86efac"/>
+    <text x="1140" y="228" font-size="11" fill="#15803d" font-weight="700">Active</text>
+    <text x="1280" y="229" fill="#7c3aed" font-size="12">দেখুন · View</text>
+
+    <!-- row 3 -->
+    <rect x="264" y="242" width="1144" height="36" fill="#ffffff" stroke="#e2e8f0"/>
+    <text x="280" y="265" fill="#0f172a">০০৩</text>
+    <text x="360" y="265" fill="#0f172a">তানভীর হাসান</text>
+    <text x="620" y="265" fill="#0f172a">Class 6 — B</text>
+    <text x="800" y="265" fill="#0f172a">হাসান মাহমুদ</text>
+    <rect x="1000" y="250" width="70" height="20" rx="4" fill="#dcfce7" stroke="#86efac"/>
+    <text x="1010" y="264" font-size="11" fill="#15803d" font-weight="700">৪.৮ / ৫</text>
+    <rect x="1130" y="250" width="70" height="20" rx="4" fill="#dcfce7" stroke="#86efac"/>
+    <text x="1140" y="264" font-size="11" fill="#15803d" font-weight="700">Active</text>
+    <text x="1280" y="265" fill="#7c3aed" font-size="12">দেখুন · View</text>
+
+    <!-- row 4 -->
+    <rect x="264" y="278" width="1144" height="36" fill="#ffffff" stroke="#e2e8f0"/>
+    <text x="280" y="301" fill="#0f172a">০০৪</text>
+    <text x="360" y="301" fill="#0f172a">সাদিয়া ইসলাম</text>
+    <text x="620" y="301" fill="#0f172a">Class 6 — B</text>
+    <text x="800" y="301" fill="#0f172a">ইসলাম উদ্দিন</text>
+    <rect x="1000" y="286" width="70" height="20" rx="4" fill="#fee2e2" stroke="#fca5a5"/>
+    <text x="1010" y="300" font-size="11" fill="#b91c1c" font-weight="700">২.০ / ৫</text>
+    <rect x="1130" y="286" width="86" height="20" rx="4" fill="#f1f5f9" stroke="#e2e8f0"/>
+    <text x="1140" y="300" font-size="11" fill="#64748b" font-weight="700">Old Student</text>
+    <text x="1280" y="301" fill="#7c3aed" font-size="12">দেখুন · View</text>
+
+    <!-- row 5 -->
+    <rect x="264" y="314" width="1144" height="36" fill="#ffffff" stroke="#e2e8f0"/>
+    <text x="280" y="337" fill="#0f172a">০০৫</text>
+    <text x="360" y="337" fill="#0f172a">ইমরান খান</text>
+    <text x="620" y="337" fill="#0f172a">Class 7 — A</text>
+    <text x="800" y="337" fill="#0f172a">খান বাহাদুর</text>
+    <rect x="1000" y="322" width="70" height="20" rx="4" fill="#dcfce7" stroke="#86efac"/>
+    <text x="1010" y="336" font-size="11" fill="#15803d" font-weight="700">৪.২ / ৫</text>
+    <rect x="1130" y="322" width="70" height="20" rx="4" fill="#dcfce7" stroke="#86efac"/>
+    <text x="1140" y="336" font-size="11" fill="#15803d" font-weight="700">Active</text>
+    <text x="1280" y="337" fill="#7c3aed" font-size="12">দেখুন · View</text>
+  </g>
+
+  <text x="264" y="380" font-size="11" fill="#94a3b8">১–৫ এর মধ্যে দেখানো হচ্ছে, মোট ১,২৪৮ · Showing 1–5 of 1,248 · compact row height 36px (fixed, no density toggle — resolved decision)</text>
+</svg>

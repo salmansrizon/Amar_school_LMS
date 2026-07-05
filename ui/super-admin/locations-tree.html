@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>টেরিটরি ও লোকেশন · Territory & Locations — Super Admin</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../shared/design-system.css">
+<script src="../shared/app.js" defer></script>
+<style>
+  .loc-tree details { margin-left: var(--space-4); }
+  .loc-tree summary { cursor: pointer; padding: var(--space-1) 0; }
+  .loc-row { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-1) var(--space-2); border-radius: var(--radius-sm); }
+  .loc-row.selected { background: var(--accent-soft); }
+  .loc-row .name { font-size: var(--text-sm); }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="mark">A</span><span>Super Admin</span></div>
+    <nav>
+      <a class="nav-item" href="schools-list.html"><span data-i18n="bn">স্কুলসমূহ</span><span data-i18n="en">Schools</span></a>
+      <a class="nav-item" href="dealers-list.html"><span data-i18n="bn">ডিলার</span><span data-i18n="en">Dealers</span></a>
+      <a class="nav-item" href="gov-officials-list.html"><span data-i18n="bn">সরকারি কর্মকর্তা</span><span data-i18n="en">Government Officials</span></a>
+      <a class="nav-item" href="codes-list.html"><span data-i18n="bn">সাবস্ক্রিপশন কোড</span><span data-i18n="en">Subscription Codes</span></a>
+      <a class="nav-item active" href="locations-tree.html"><span data-i18n="bn">টেরিটরি ও লোকেশন</span><span data-i18n="en">Territory & Locations</span></a>
+      <a class="nav-item" href="vendor-accounting-ledger.html"><span data-i18n="bn">ভেন্ডর হিসাব</span><span data-i18n="en">Vendor Accounting</span></a>
+      <a class="nav-item" href="vendor-sms-compose.html"><span data-i18n="bn">ভেন্ডর এসএমএস</span><span data-i18n="en">Vendor SMS</span></a>
+      <a class="nav-item" href="central-holiday-calendar.html"><span data-i18n="bn">কেন্দ্রীয় ছুটির তালিকা</span><span data-i18n="en">Central Off-Day</span></a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="title"><span data-i18n="bn">টেরিটরি ও লোকেশন</span><span data-i18n="en">Territory & Locations</span></div>
+      <div class="actions">
+        <a class="btn btn-secondary btn-sm" href="../index.html" title="Home">🏠</a>
+        <a class="btn btn-secondary btn-sm" href="../sitemap.html" title="Sitemap">📋</a>
+        <a class="btn btn-secondary btn-sm" href="clusters.html"><span data-i18n="bn">ক্লাস্টার পরিচালনা</span><span data-i18n="en">Manage Clusters</span></a>
+        <div class="lang-switch">
+          <button data-lang-btn="bn" onclick="setLang('bn')">বাং</button>
+          <button data-lang-btn="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="theme-switch">
+          <button data-theme-btn="light" onclick="setTheme('light')">☀</button>
+          <button data-theme-btn="dark" onclick="setTheme('dark')">☾</button>
+          <button data-theme-btn="system" onclick="setTheme('system')">Auto</button>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+
+      <p class="text-secondary" style="font-size:var(--text-sm); max-width:640px;">
+        <span data-i18n="bn">চার-স্তরের অবস্থান কাঠামো: বিভাগ/জোন → জেলা → উপজেলা → ইউনিয়ন। একটি সন্তান নোড যোগ করতে হলে তার প্যারেন্ট আগে থেকেই থাকতে হবে; একটি নোড মুছে ফেললে তার সকল উত্তরাধিকারীও মুছে যায়।</span>
+        <span data-i18n="en">4-level location hierarchy: Zone/Division → District → Upazila → Union. Adding a child requires its parent to already exist; deleting a node cascades to all descendants.</span>
+      </p>
+
+      <div class="toolbar">
+        <input class="search-input" type="text" placeholder="লোকেশন খুঁজুন · Search a location">
+        <div class="flex gap-2">
+          <span class="text-secondary" style="font-size:var(--text-xs);"><span data-i18n="bn">নির্বাচিত: উপজেলা — মিরপুর</span><span data-i18n="en">Selected: Upazila — Mirpur</span></span>
+          <button class="btn btn-secondary" disabled title="Select a parent node in the tree first">
+            <span data-i18n="bn">+ সন্তান নোড যোগ করুন</span><span data-i18n="en">+ Add Child</span>
+          </button>
+          <button class="btn btn-primary">
+            <span data-i18n="bn">+ নতুন বিভাগ/জোন</span><span data-i18n="en">+ New Zone/Division</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="card loc-tree">
+
+        <details open>
+          <summary>
+            <span class="loc-row">
+              <span class="name">📍 <span data-i18n="bn">ঢাকা বিভাগ</span><span data-i18n="en">Dhaka Division</span></span>
+              <span class="badge badge-neutral">42 <span data-i18n="bn">স্কুল</span><span data-i18n="en">Schools</span></span>
+              <button class="btn btn-secondary btn-sm" disabled title="Select this node first"><span data-i18n="bn">+ সন্তান</span><span data-i18n="en">+ Child</span></button>
+            </span>
+          </summary>
+
+          <details open>
+            <summary>
+              <span class="loc-row">
+                <span class="name">📍 <span data-i18n="bn">ঢাকা জেলা</span><span data-i18n="en">Dhaka District</span></span>
+                <span class="badge badge-neutral">27 <span data-i18n="bn">স্কুল</span><span data-i18n="en">Schools</span></span>
+                <button class="btn btn-secondary btn-sm" disabled title="Select this node first"><span data-i18n="bn">+ সন্তান</span><span data-i18n="en">+ Child</span></button>
+              </span>
+            </summary>
+
+            <details open>
+              <summary>
+                <span class="loc-row selected">
+                  <span class="name">📍 <span data-i18n="bn">মিরপুর উপজেলা</span><span data-i18n="en">Mirpur Upazila</span></span>
+                  <span class="badge badge-info"><span data-i18n="bn">নির্বাচিত</span><span data-i18n="en">Selected</span></span>
+                  <span class="badge badge-neutral">14 <span data-i18n="bn">স্কুল</span><span data-i18n="en">Schools</span></span>
+                  <button class="btn btn-primary btn-sm"><span data-i18n="bn">+ সন্তান</span><span data-i18n="en">+ Child</span></button>
+                </span>
+              </summary>
+              <div class="loc-row"><span class="name">📍 <span data-i18n="bn">মিরপুর সদর ইউনিয়ন</span><span data-i18n="en">Mirpur Sadar Union</span></span><span class="badge badge-neutral">9 <span data-i18n="bn">স্কুল</span><span data-i18n="en">Schools</span></span><button class="btn btn-secondary btn-sm" disabled title="Select this node first"><span data-i18n="bn">+ সন্তান</span><span data-i18n="en">+ Child</span></button></div>
+              <div class="loc-row"><span class="name">📍 <span data-i18n="bn">পল্লবী ইউনিয়ন</span><span data-i18n="en">Pallabi Union</span></span><span class="badge badge-neutral">5 <span data-i18n="bn">স্কুল</span><span data-i18n="en">Schools</span></span><button class="btn btn-secondary btn-sm" disabled title="Select this node first"><span data-i18n="bn">+ সন্তান</span><span data-i18n="en">+ Child</span></button></div>
+            </details>
+
+            <details>
+              <summary>
+                <span class="loc-row">
+                  <span class="name">📍 <span data-i18n="bn">সাভার উপজেলা</span><span data-i18n="en">Savar Upazila</span></span>
+                  <span class="badge badge-neutral">13 <span data-i18n="bn">স্কুল</span><span data-i18n="en">Schools</span></span>
+                  <button class="btn btn-secondary btn-sm" disabled title="Select this node first"><span data-i18n="bn">+ সন্তান</span><span data-i18n="en">+ Child</span></button>
+                </span>
+              </summary>
+            </details>
+          </details>
+        </details>
+
+        <details>
+          <summary>
+            <span class="loc-row">
+              <span class="name">📍 <span data-i18n="bn">রংপুর বিভাগ</span><span data-i18n="en">Rangpur Division</span></span>
+              <span class="badge badge-neutral">31 <span data-i18n="bn">স্কুল</span><span data-i18n="en">Schools</span></span>
+              <button class="btn btn-secondary btn-sm" disabled title="Select this node first"><span data-i18n="bn">+ সন্তান</span><span data-i18n="en">+ Child</span></button>
+            </span>
+          </summary>
+        </details>
+
+        <details>
+          <summary>
+            <span class="loc-row">
+              <span class="name">📍 <span data-i18n="bn">রাজশাহী বিভাগ</span><span data-i18n="en">Rajshahi Division</span></span>
+              <span class="badge badge-neutral">28 <span data-i18n="bn">স্কুল</span><span data-i18n="en">Schools</span></span>
+              <button class="btn btn-secondary btn-sm" disabled title="Select this node first"><span data-i18n="bn">+ সন্তান</span><span data-i18n="en">+ Child</span></button>
+            </span>
+          </summary>
+        </details>
+
+      </div>
+
+      <p class="locked-note" style="margin-top:var(--space-3);">
+        <span data-i18n="bn">"+ সন্তান" বাটন শুধুমাত্র সেই নোডের জন্য সক্রিয় থাকে যেটি বর্তমানে নির্বাচিত/প্রসারিত — অন্য সব নোডে এটি নিষ্ক্রিয় থাকে।</span>
+        <span data-i18n="en">The "+ Child" button is only enabled for the node currently selected/expanded — it stays disabled/greyed on every other node.</span>
+      </p>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

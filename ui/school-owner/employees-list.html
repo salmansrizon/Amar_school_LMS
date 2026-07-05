@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>কর্মচারী তালিকা · Employees List — Amar School Management</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../shared/design-system.css">
+<script src="../shared/app.js" defer></script>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="mark">A</span><span>Amar School</span></div>
+    <nav>
+      <a class="nav-item" href="../school-owner/dashboard.html"><span data-i18n="bn">ড্যাশবোর্ড</span><span data-i18n="en">Dashboard</span></a>
+      <a class="nav-item" href="../school-owner/students-list.html"><span data-i18n="bn">শিক্ষার্থী</span><span data-i18n="en">Students</span></a>
+      <a class="nav-item active" href="../school-owner/employees-list.html"><span data-i18n="bn">কর্মচারী</span><span data-i18n="en">Employees</span></a>
+      <a class="nav-item" href="../school-owner/attendance-student-mark.html"><span data-i18n="bn">উপস্থিতি</span><span data-i18n="en">Attendance</span></a>
+      <a class="nav-item" href="../school-owner/classes-list.html"><span data-i18n="bn">শ্রেণি ও পাঠ্যক্রম</span><span data-i18n="en">Class & Curriculum</span></a>
+      <a class="nav-item" href="../school-owner/exams-list.html"><span data-i18n="bn">পরীক্ষা ও ফলাফল</span><span data-i18n="en">Exams & Results</span></a>
+      <a class="nav-item" href="../school-owner/fee-collection.html"><span data-i18n="bn">হিসাব ও ফি</span><span data-i18n="en">Accounting & Fees</span></a>
+      <a class="nav-item" href="../school-owner/sms-compose.html"><span data-i18n="bn">এসএমএস</span><span data-i18n="en">SMS</span></a>
+      <a class="nav-item" href="../school-owner/notices-list.html"><span data-i18n="bn">প্রকাশনা</span><span data-i18n="en">Publishing</span></a>
+      <a class="nav-item" href="../school-owner/feedback-inbox.html"><span data-i18n="bn">মতামত</span><span data-i18n="en">Feedback</span></a>
+      <a class="nav-item" href="../school-owner/staff-permissions.html"><span data-i18n="bn">স্টাফ অনুমতি</span><span data-i18n="en">Staff Permissions</span></a>
+      <a class="nav-item" href="../school-owner/institute-profile.html"><span data-i18n="bn">প্রতিষ্ঠান সেটআপ</span><span data-i18n="en">Institute Setup</span></a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="title"><span data-i18n="bn">কর্মচারী তালিকা</span><span data-i18n="en">Employees List</span></div>
+      <div class="actions">
+        <div class="lang-switch">
+          <button data-lang-btn="bn" onclick="setLang('bn')">বাং</button>
+          <button data-lang-btn="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="theme-switch">
+          <button data-theme-btn="light" onclick="setTheme('light')">☀</button>
+          <button data-theme-btn="dark" onclick="setTheme('dark')">☾</button>
+          <button data-theme-btn="system" onclick="setTheme('system')">Auto</button>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+
+      <div class="toolbar">
+        <div class="flex gap-2 items-center">
+          <input class="search-input" type="text" placeholder="নাম দিয়ে খুঁজুন · Search by name">
+          <select style="height:var(--control-h); border:1px solid var(--border-strong); border-radius:var(--radius-sm); padding:0 var(--space-3); background:var(--bg-surface); font-family:inherit; font-size:var(--text-sm);">
+            <option><span data-i18n="bn">সকল বিভাগ</span><span data-i18n="en">All Categories</span></option>
+            <option><span data-i18n="bn">শিক্ষক</span><span data-i18n="en">Teacher</span></option>
+            <option><span data-i18n="bn">কর্মচারী</span><span data-i18n="en">Staff</span></option>
+          </select>
+        </div>
+        <div class="flex gap-2">
+          <a class="btn btn-secondary" href="employees-archive.html"><span data-i18n="bn">পুরাতন কর্মচারী</span><span data-i18n="en">Old Employees</span></a>
+          <a class="btn btn-primary" href="employee-create-form.html">+ <span data-i18n="bn">নতুন কর্মচারী</span><span data-i18n="en">New Employee</span></a>
+        </div>
+      </div>
+
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th><span data-i18n="bn">নাম</span><span data-i18n="en">Name</span></th>
+            <th><span data-i18n="bn">বিভাগ</span><span data-i18n="en">Category</span></th>
+            <th><span data-i18n="bn">যোগ্যতা</span><span data-i18n="en">Qualification</span></th>
+            <th><span data-i18n="bn">শিফট</span><span data-i18n="en">Shift</span></th>
+            <th><span data-i18n="bn">ডিপার্টমেন্ট</span><span data-i18n="en">Department</span></th>
+            <th><span data-i18n="bn">অবস্থা</span><span data-i18n="en">Status</span></th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>সুমাইয়া আক্তার</td>
+            <td><span data-i18n="bn">শিক্ষক</span><span data-i18n="en">Teacher</span></td>
+            <td>M.A., B.Ed.</td>
+            <td><span data-i18n="bn">সকাল</span><span data-i18n="en">Morning</span></td>
+            <td><span data-i18n="bn">বাংলা বিভাগ</span><span data-i18n="en">Bangla Dept.</span></td>
+            <td><span class="badge badge-success"><span data-i18n="bn">সক্রিয়</span><span data-i18n="en">Active</span></span></td>
+            <td><a href="employee-detail.html?id=1"><span data-i18n="bn">দেখুন</span><span data-i18n="en">View</span></a></td>
+          </tr>
+          <tr>
+            <td>মোঃ আরিফুল ইসলাম</td>
+            <td><span data-i18n="bn">শিক্ষক</span><span data-i18n="en">Teacher</span></td>
+            <td>M.Sc.</td>
+            <td><span data-i18n="bn">সকাল</span><span data-i18n="en">Morning</span></td>
+            <td><span data-i18n="bn">বিজ্ঞান বিভাগ</span><span data-i18n="en">Science Dept.</span></td>
+            <td><span class="badge badge-success"><span data-i18n="bn">সক্রিয়</span><span data-i18n="en">Active</span></span></td>
+            <td><a href="employee-detail.html?id=2"><span data-i18n="bn">দেখুন</span><span data-i18n="en">View</span></a></td>
+          </tr>
+          <tr>
+            <td>মোছাঃ শারমিন সুলতানা</td>
+            <td><span data-i18n="bn">অফিস স্টাফ</span><span data-i18n="en">Office Staff</span></td>
+            <td>H.S.C.</td>
+            <td><span data-i18n="bn">দিবা</span><span data-i18n="en">Day</span></td>
+            <td><span data-i18n="bn">প্রশাসন</span><span data-i18n="en">Administration</span></td>
+            <td><span class="badge badge-success"><span data-i18n="bn">সক্রিয়</span><span data-i18n="en">Active</span></span></td>
+            <td><a href="employee-detail.html?id=3"><span data-i18n="bn">দেখুন</span><span data-i18n="en">View</span></a></td>
+          </tr>
+          <tr>
+            <td>মোঃ জসিম উদ্দিন</td>
+            <td><span data-i18n="bn">নিরাপত্তা কর্মী</span><span data-i18n="en">Security</span></td>
+            <td>J.S.C.</td>
+            <td><span data-i18n="bn">সকাল</span><span data-i18n="en">Morning</span></td>
+            <td><span data-i18n="bn">প্রশাসন</span><span data-i18n="en">Administration</span></td>
+            <td><span class="badge badge-neutral"><span data-i18n="bn">পুরাতন কর্মচারী</span><span data-i18n="en">Old Employee</span></span></td>
+            <td><a href="employee-detail.html?id=4"><span data-i18n="bn">দেখুন</span><span data-i18n="en">View</span></a></td>
+          </tr>
+        </tbody>
+      </table>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

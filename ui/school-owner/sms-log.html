@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>এসএমএস লগ · SMS Log — Amar School Management</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../shared/design-system.css">
+<script src="../shared/app.js" defer></script>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="mark">A</span><span>Amar School</span></div>
+    <nav>
+      <a class="nav-item" href="../school-owner/dashboard.html"><span data-i18n="bn">ড্যাশবোর্ড</span><span data-i18n="en">Dashboard</span></a>
+      <a class="nav-item" href="../school-owner/students-list.html"><span data-i18n="bn">শিক্ষার্থী</span><span data-i18n="en">Students</span></a>
+      <a class="nav-item" href="../school-owner/employees-list.html"><span data-i18n="bn">কর্মচারী</span><span data-i18n="en">Employees</span></a>
+      <a class="nav-item" href="../school-owner/attendance-student-mark.html"><span data-i18n="bn">উপস্থিতি</span><span data-i18n="en">Attendance</span></a>
+      <a class="nav-item" href="../school-owner/classes-list.html"><span data-i18n="bn">শ্রেণি ও পাঠ্যক্রম</span><span data-i18n="en">Class & Curriculum</span></a>
+      <a class="nav-item" href="../school-owner/exams-list.html"><span data-i18n="bn">পরীক্ষা ও ফলাফল</span><span data-i18n="en">Exams & Results</span></a>
+      <a class="nav-item" href="../school-owner/fee-collection.html"><span data-i18n="bn">হিসাব ও ফি</span><span data-i18n="en">Accounting & Fees</span></a>
+      <a class="nav-item active" href="../school-owner/sms-compose.html"><span data-i18n="bn">এসএমএস</span><span data-i18n="en">SMS</span></a>
+      <a class="nav-item" href="../school-owner/notices-list.html"><span data-i18n="bn">প্রকাশনা</span><span data-i18n="en">Publishing</span></a>
+      <a class="nav-item" href="../school-owner/feedback-inbox.html"><span data-i18n="bn">মতামত</span><span data-i18n="en">Feedback</span></a>
+      <a class="nav-item" href="../school-owner/staff-permissions.html"><span data-i18n="bn">স্টাফ অনুমতি</span><span data-i18n="en">Staff Permissions</span></a>
+      <a class="nav-item" href="../school-owner/institute-profile.html"><span data-i18n="bn">প্রতিষ্ঠান সেটআপ</span><span data-i18n="en">Institute Setup</span></a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="title"><span data-i18n="bn">এসএমএস লগ</span><span data-i18n="en">SMS Log</span></div>
+      <div class="actions">
+        <div class="lang-switch">
+          <button data-lang-btn="bn" onclick="setLang('bn')">বাং</button>
+          <button data-lang-btn="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="theme-switch">
+          <button data-theme-btn="light" onclick="setTheme('light')">☀</button>
+          <button data-theme-btn="dark" onclick="setTheme('dark')">☾</button>
+          <button data-theme-btn="system" onclick="setTheme('system')">Auto</button>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+
+      <div class="tabs">
+        <a href="sms-compose.html"><span data-i18n="bn">রচনা করুন</span><span data-i18n="en">Compose</span></a>
+        <a href="sms-absence-rules.html"><span data-i18n="bn">অনুপস্থিতি নিয়ম</span><span data-i18n="en">Absence Rules</span></a>
+        <a href="sms-log.html" class="active"><span data-i18n="bn">পাঠানোর লগ</span><span data-i18n="en">Send Log</span></a>
+      </div>
+
+      <div class="toolbar">
+        <div class="flex gap-2 items-center">
+          <input type="date" value="2026-07-01" style="height:var(--control-h); border:1px solid var(--border-strong); border-radius:var(--radius-sm); padding:0 var(--space-3); font-family:inherit;">
+          <input type="date" value="2026-07-05" style="height:var(--control-h); border:1px solid var(--border-strong); border-radius:var(--radius-sm); padding:0 var(--space-3); font-family:inherit;">
+          <button class="btn btn-secondary btn-sm"><span data-i18n="bn">প্রয়োগ করুন</span><span data-i18n="en">Apply</span></button>
+        </div>
+      </div>
+
+      <div class="kpi-grid" style="grid-template-columns: repeat(3, 1fr);">
+        <div class="kpi-card">
+          <div class="label"><span data-i18n="bn">মোট পাঠানো</span><span data-i18n="en">Total Sent</span></div>
+          <div class="value">১৮৪</div>
+        </div>
+        <div class="kpi-card">
+          <div class="label"><span data-i18n="bn">মোট অংশ</span><span data-i18n="en">Total Segments</span></div>
+          <div class="value">২০৬</div>
+        </div>
+        <div class="kpi-card">
+          <div class="label"><span data-i18n="bn">ব্যর্থ</span><span data-i18n="en">Failed</span></div>
+          <div class="value">৩</div>
+        </div>
+      </div>
+
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th><span data-i18n="bn">তারিখ/সময়</span><span data-i18n="en">Date/Time</span></th>
+            <th><span data-i18n="bn">প্রাপক গ্রুপ</span><span data-i18n="en">Recipient Group</span></th>
+            <th><span data-i18n="bn">প্রাপক সংখ্যা</span><span data-i18n="en">Recipients</span></th>
+            <th><span data-i18n="bn">বার্তা</span><span data-i18n="en">Message</span></th>
+            <th><span data-i18n="bn">অংশ</span><span data-i18n="en">Segments</span></th>
+            <th><span data-i18n="bn">অবস্থা</span><span data-i18n="en">Status</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>০৫ জুলাই ২০২৬, ৯:১০ AM</td>
+            <td><span data-i18n="bn">৬ষ্ঠ শ্রেণি / এ</span><span data-i18n="en">Class 6 / A</span></td>
+            <td>৪২</td>
+            <td class="text-secondary">আগামীকাল বার্ষিক ক্রীড়া প্রতিযোগিতার কারণে...</td>
+            <td>১</td>
+            <td><span class="badge badge-success"><span data-i18n="bn">প্রেরিত</span><span data-i18n="en">Sent</span></span></td>
+          </tr>
+          <tr>
+            <td>০৪ জুলাই ২০২৬, ৬:০০ PM</td>
+            <td><span data-i18n="bn">অনুপস্থিতি নিয়ম (স্বয়ংক্রিয়)</span><span data-i18n="en">Absence Rule (auto)</span></td>
+            <td>৫</td>
+            <td class="text-secondary">প্রিয় অভিভাবক, আপনার সন্তান ৩ কার্যদিবস...</td>
+            <td>১</td>
+            <td><span class="badge badge-success"><span data-i18n="bn">প্রেরিত</span><span data-i18n="en">Sent</span></span></td>
+          </tr>
+          <tr>
+            <td>০৩ জুলাই ২০২৬, ১১:৪৫ AM</td>
+            <td><span data-i18n="bn">ম্যানুয়াল নম্বর</span><span data-i18n="en">Manual Numbers</span></td>
+            <td>২</td>
+            <td class="text-secondary">অভিভাবক সভা আগামী শনিবার...</td>
+            <td>২</td>
+            <td><span class="badge badge-danger"><span data-i18n="bn">ব্যর্থ</span><span data-i18n="en">Failed</span></span></td>
+          </tr>
+        </tbody>
+      </table>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

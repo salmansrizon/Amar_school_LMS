@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>RFID কার্ড বরাদ্দ · RFID Card Assignment — Amar School Management</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../shared/design-system.css">
+<script src="../shared/app.js" defer></script>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="mark">A</span><span>Amar School</span></div>
+    <nav>
+      <a class="nav-item" href="../school-owner/dashboard.html"><span data-i18n="bn">ড্যাশবোর্ড</span><span data-i18n="en">Dashboard</span></a>
+      <a class="nav-item" href="../school-owner/students-list.html"><span data-i18n="bn">শিক্ষার্থী</span><span data-i18n="en">Students</span></a>
+      <a class="nav-item" href="../school-owner/employees-list.html"><span data-i18n="bn">কর্মচারী</span><span data-i18n="en">Employees</span></a>
+      <a class="nav-item active" href="../school-owner/attendance-student-mark.html"><span data-i18n="bn">উপস্থিতি</span><span data-i18n="en">Attendance</span></a>
+      <a class="nav-item" href="../school-owner/classes-list.html"><span data-i18n="bn">শ্রেণি ও পাঠ্যক্রম</span><span data-i18n="en">Class & Curriculum</span></a>
+      <a class="nav-item" href="../school-owner/exams-list.html"><span data-i18n="bn">পরীক্ষা ও ফলাফল</span><span data-i18n="en">Exams & Results</span></a>
+      <a class="nav-item" href="../school-owner/fee-collection.html"><span data-i18n="bn">হিসাব ও ফি</span><span data-i18n="en">Accounting & Fees</span></a>
+      <a class="nav-item" href="../school-owner/sms-compose.html"><span data-i18n="bn">এসএমএস</span><span data-i18n="en">SMS</span></a>
+      <a class="nav-item" href="../school-owner/notices-list.html"><span data-i18n="bn">প্রকাশনা</span><span data-i18n="en">Publishing</span></a>
+      <a class="nav-item" href="../school-owner/feedback-inbox.html"><span data-i18n="bn">মতামত</span><span data-i18n="en">Feedback</span></a>
+      <a class="nav-item" href="../school-owner/staff-permissions.html"><span data-i18n="bn">স্টাফ অনুমতি</span><span data-i18n="en">Staff Permissions</span></a>
+      <a class="nav-item" href="../school-owner/institute-profile.html"><span data-i18n="bn">প্রতিষ্ঠান সেটআপ</span><span data-i18n="en">Institute Setup</span></a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="title"><span data-i18n="bn">RFID কার্ড বরাদ্দ</span><span data-i18n="en">RFID Card Assignment</span></div>
+      <div class="actions">
+        <div class="lang-switch">
+          <button data-lang-btn="bn" onclick="setLang('bn')">বাং</button>
+          <button data-lang-btn="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="theme-switch">
+          <button data-theme-btn="light" onclick="setTheme('light')">☀</button>
+          <button data-theme-btn="dark" onclick="setTheme('dark')">☾</button>
+          <button data-theme-btn="system" onclick="setTheme('system')">Auto</button>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+
+      <div class="tabs">
+        <a href="attendance-student-mark.html"><span data-i18n="bn">শিক্ষার্থী হাজিরা</span><span data-i18n="en">Mark Attendance</span></a>
+        <a href="attendance-book.html"><span data-i18n="bn">হাজিরা খাতা</span><span data-i18n="en">Attendance Book</span></a>
+        <a href="attendance-employee.html"><span data-i18n="bn">কর্মচারী উপস্থিতি</span><span data-i18n="en">Employee Attendance</span></a>
+        <a href="leave-management.html"><span data-i18n="bn">ছুটি ব্যবস্থাপনা</span><span data-i18n="en">Leave Management</span></a>
+        <a href="off-day-calendar.html"><span data-i18n="bn">ছুটির দিন ক্যালেন্ডার</span><span data-i18n="en">Off-Day Calendar</span></a>
+        <a href="rfid-card-assignment.html" class="active"><span data-i18n="bn">RFID কার্ড</span><span data-i18n="en">RFID Card</span></a>
+      </div>
+
+      <div class="card mb-4">
+        <h3 class="mt-0"><span data-i18n="bn">কার্ড বরাদ্দ করুন</span><span data-i18n="en">Assign a Card</span></h3>
+        <div class="form-grid">
+          <div class="field field-full">
+            <label><span data-i18n="bn">শিক্ষার্থী বা কর্মচারী খুঁজুন</span><span data-i18n="en">Search Student or Employee</span></label>
+            <input type="text" placeholder="নাম, রোল বা আইডি লিখুন · Type a name, roll or ID">
+          </div>
+          <div class="field">
+            <label><span data-i18n="bn">ধরন</span><span data-i18n="en">Type</span></label>
+            <select><option><span data-i18n="bn">শিক্ষার্থী</span><span data-i18n="en">Student</span></option><option><span data-i18n="bn">কর্মচারী</span><span data-i18n="en">Employee</span></option></select>
+          </div>
+          <div class="field">
+            <label><span data-i18n="bn">নির্বাচিত</span><span data-i18n="en">Selected</span></label>
+            <input type="text" value="রাকিব হাসান — Roll ০১, Class 8/A" disabled>
+          </div>
+          <div class="field field-full">
+            <label><span data-i18n="bn">কার্ড নম্বর</span><span data-i18n="en">Card Number</span></label>
+            <input type="text" placeholder="e.g. 0004821193">
+          </div>
+        </div>
+        <div class="flex justify-between" style="margin-top: var(--space-4);">
+          <span></span>
+          <button class="btn btn-primary"><span data-i18n="bn">কার্ড বরাদ্দ করুন</span><span data-i18n="en">Assign Card</span></button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 class="mt-0"><span data-i18n="bn">বরাদ্দকৃত কার্ডসমূহ</span><span data-i18n="en">Assigned Cards</span></h3>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th><span data-i18n="bn">নাম</span><span data-i18n="en">Name</span></th>
+              <th><span data-i18n="bn">ধরন</span><span data-i18n="en">Type</span></th>
+              <th><span data-i18n="bn">কার্ড নম্বর</span><span data-i18n="en">Card Number</span></th>
+              <th><span data-i18n="bn">বরাদ্দের তারিখ</span><span data-i18n="en">Assigned On</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>রাকিব হাসান</td>
+              <td><span data-i18n="bn">শিক্ষার্থী</span><span data-i18n="en">Student</span></td>
+              <td>0004821190</td>
+              <td>১০/০১/২০২৬</td>
+            </tr>
+            <tr>
+              <td>সুমাইয়া আক্তার</td>
+              <td><span data-i18n="bn">কর্মচারী</span><span data-i18n="en">Employee</span></td>
+              <td>0004821021</td>
+              <td>০৫/০১/২০১৮</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

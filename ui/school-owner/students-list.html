@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>শিক্ষার্থী তালিকা · Students List — Amar School Management</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../shared/design-system.css">
+<script src="../shared/app.js" defer></script>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="mark">A</span><span>Amar School</span></div>
+    <nav>
+      <a class="nav-item" href="../school-owner/dashboard.html"><span data-i18n="bn">ড্যাশবোর্ড</span><span data-i18n="en">Dashboard</span></a>
+      <a class="nav-item active" href="../school-owner/students-list.html"><span data-i18n="bn">শিক্ষার্থী</span><span data-i18n="en">Students</span></a>
+      <a class="nav-item" href="../school-owner/employees-list.html"><span data-i18n="bn">কর্মচারী</span><span data-i18n="en">Employees</span></a>
+      <a class="nav-item" href="../school-owner/attendance-student-mark.html"><span data-i18n="bn">উপস্থিতি</span><span data-i18n="en">Attendance</span></a>
+      <a class="nav-item" href="../school-owner/classes-list.html"><span data-i18n="bn">শ্রেণি ও পাঠ্যক্রম</span><span data-i18n="en">Class & Curriculum</span></a>
+      <a class="nav-item" href="../school-owner/exams-list.html"><span data-i18n="bn">পরীক্ষা ও ফলাফল</span><span data-i18n="en">Exams & Results</span></a>
+      <a class="nav-item" href="../school-owner/fee-collection.html"><span data-i18n="bn">হিসাব ও ফি</span><span data-i18n="en">Accounting & Fees</span></a>
+      <a class="nav-item" href="../school-owner/sms-compose.html"><span data-i18n="bn">এসএমএস</span><span data-i18n="en">SMS</span></a>
+      <a class="nav-item" href="../school-owner/notices-list.html"><span data-i18n="bn">প্রকাশনা</span><span data-i18n="en">Publishing</span></a>
+      <a class="nav-item" href="../school-owner/feedback-inbox.html"><span data-i18n="bn">মতামত</span><span data-i18n="en">Feedback</span></a>
+      <a class="nav-item" href="../school-owner/staff-permissions.html"><span data-i18n="bn">স্টাফ অনুমতি</span><span data-i18n="en">Staff Permissions</span></a>
+      <a class="nav-item" href="../school-owner/institute-profile.html"><span data-i18n="bn">প্রতিষ্ঠান সেটআপ</span><span data-i18n="en">Institute Setup</span></a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="title"><span data-i18n="bn">শিক্ষার্থী তালিকা</span><span data-i18n="en">Students List</span></div>
+      <div class="actions">
+        <a class="btn btn-secondary btn-sm" href="../index.html" title="Home">🏠</a>
+        <a class="btn btn-secondary btn-sm" href="../sitemap.html" title="Sitemap">📋</a>
+        <div class="lang-switch">
+          <button data-lang-btn="bn" onclick="setLang('bn')">বাং</button>
+          <button data-lang-btn="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="theme-switch">
+          <button data-theme-btn="light" onclick="setTheme('light')">☀</button>
+          <button data-theme-btn="dark" onclick="setTheme('dark')">☾</button>
+          <button data-theme-btn="system" onclick="setTheme('system')">Auto</button>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+
+      <div class="toolbar">
+        <div class="flex gap-2 items-center">
+          <input class="search-input" type="text" placeholder="নাম, রোল বা অভিভাবক দিয়ে খুঁজুন · Search by name, roll or guardian">
+          <select class="field" style="height:var(--control-h); border:1px solid var(--border-strong); border-radius:var(--radius-sm); padding:0 var(--space-3); background:var(--bg-surface); font-family:inherit; font-size:var(--text-sm);">
+            <option><span data-i18n="bn">সকল শ্রেণি</span><span data-i18n="en">All Classes</span></option>
+            <option>Class 6</option>
+            <option>Class 7</option>
+            <option>Class 8</option>
+            <option>Class 9</option>
+            <option>Class 10</option>
+          </select>
+          <select style="height:var(--control-h); border:1px solid var(--border-strong); border-radius:var(--radius-sm); padding:0 var(--space-3); background:var(--bg-surface); font-family:inherit; font-size:var(--text-sm);">
+            <option><span data-i18n="bn">সকল শাখা</span><span data-i18n="en">All Sections</span></option>
+            <option>A</option>
+            <option>B</option>
+          </select>
+        </div>
+        <div class="flex gap-2">
+          <a class="btn btn-secondary" href="students-archive.html"><span data-i18n="bn">পুরাতন শিক্ষার্থী</span><span data-i18n="en">Old Students</span></a>
+          <a class="btn btn-primary" href="student-admission-form.html">+ <span data-i18n="bn">নতুন ভর্তি</span><span data-i18n="en">New Admission</span></a>
+        </div>
+      </div>
+
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th><span data-i18n="bn">রোল</span><span data-i18n="en">Roll</span></th>
+            <th><span data-i18n="bn">নাম</span><span data-i18n="en">Name</span></th>
+            <th><span data-i18n="bn">শ্রেণি/শাখা</span><span data-i18n="en">Class/Section</span></th>
+            <th><span data-i18n="bn">অভিভাবক</span><span data-i18n="en">Guardian</span></th>
+            <th><span data-i18n="bn">আচরণ লগ (গড়)</span><span data-i18n="en">Behaviour Avg</span></th>
+            <th><span data-i18n="bn">অবস্থা</span><span data-i18n="en">Status</span></th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>০১</td>
+            <td>রাকিব হাসান</td>
+            <td>Class 8 / A</td>
+            <td>মোঃ আব্দুল হাসান</td>
+            <td><span class="badge badge-success">4.6</span></td>
+            <td><span class="badge badge-success"><span data-i18n="bn">সক্রিয়</span><span data-i18n="en">Active</span></span></td>
+            <td><a href="student-detail.html?id=1"><span data-i18n="bn">দেখুন</span><span data-i18n="en">View</span></a></td>
+          </tr>
+          <tr>
+            <td>০২</td>
+            <td>তামিম ইকবাল</td>
+            <td>Class 8 / A</td>
+            <td>মোছাঃ রহিমা বেগম</td>
+            <td><span class="badge badge-warning">3.1</span></td>
+            <td><span class="badge badge-success"><span data-i18n="bn">সক্রিয়</span><span data-i18n="en">Active</span></span></td>
+            <td><a href="student-detail.html?id=2"><span data-i18n="bn">দেখুন</span><span data-i18n="en">View</span></a></td>
+          </tr>
+          <tr>
+            <td>০৩</td>
+            <td>সাদিয়া ইসলাম</td>
+            <td>Class 7 / B</td>
+            <td>মোঃ কামাল উদ্দিন</td>
+            <td><span class="badge badge-success">5.0</span></td>
+            <td><span class="badge badge-success"><span data-i18n="bn">সক্রিয়</span><span data-i18n="en">Active</span></span></td>
+            <td><a href="student-detail.html?id=3"><span data-i18n="bn">দেখুন</span><span data-i18n="en">View</span></a></td>
+          </tr>
+          <tr>
+            <td>০৪</td>
+            <td>ফাহিম চৌধুরী</td>
+            <td>Class 9 / A</td>
+            <td>মোঃ নাসির চৌধুরী</td>
+            <td><span class="badge badge-danger">2.0</span></td>
+            <td><span class="badge badge-success"><span data-i18n="bn">সক্রিয়</span><span data-i18n="en">Active</span></span></td>
+            <td><a href="student-detail.html?id=4"><span data-i18n="bn">দেখুন</span><span data-i18n="en">View</span></a></td>
+          </tr>
+          <tr>
+            <td>০৫</td>
+            <td>নুসরাত জাহান</td>
+            <td>Class 10 / A</td>
+            <td>মোঃ শফিকুল ইসলাম</td>
+            <td><span class="badge badge-neutral">—</span></td>
+            <td><span class="badge badge-neutral"><span data-i18n="bn">পুরাতন শিক্ষার্থী</span><span data-i18n="en">Old Student</span></span></td>
+            <td><a href="student-detail.html?id=5"><span data-i18n="bn">দেখুন</span><span data-i18n="en">View</span></a></td>
+          </tr>
+        </tbody>
+      </table>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

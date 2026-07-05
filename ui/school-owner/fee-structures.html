@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>ফি কাঠামো · Fee Structures — Amar School Management</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../shared/design-system.css">
+<script src="../shared/app.js" defer></script>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="mark">A</span><span>Amar School</span></div>
+    <nav>
+      <a class="nav-item" href="../school-owner/dashboard.html"><span data-i18n="bn">ড্যাশবোর্ড</span><span data-i18n="en">Dashboard</span></a>
+      <a class="nav-item" href="../school-owner/students-list.html"><span data-i18n="bn">শিক্ষার্থী</span><span data-i18n="en">Students</span></a>
+      <a class="nav-item" href="../school-owner/employees-list.html"><span data-i18n="bn">কর্মচারী</span><span data-i18n="en">Employees</span></a>
+      <a class="nav-item" href="../school-owner/attendance-student-mark.html"><span data-i18n="bn">উপস্থিতি</span><span data-i18n="en">Attendance</span></a>
+      <a class="nav-item" href="../school-owner/classes-list.html"><span data-i18n="bn">শ্রেণি ও পাঠ্যক্রম</span><span data-i18n="en">Class & Curriculum</span></a>
+      <a class="nav-item" href="../school-owner/exams-list.html"><span data-i18n="bn">পরীক্ষা ও ফলাফল</span><span data-i18n="en">Exams & Results</span></a>
+      <a class="nav-item active" href="../school-owner/fee-collection.html"><span data-i18n="bn">হিসাব ও ফি</span><span data-i18n="en">Accounting & Fees</span></a>
+      <a class="nav-item" href="../school-owner/sms-compose.html"><span data-i18n="bn">এসএমএস</span><span data-i18n="en">SMS</span></a>
+      <a class="nav-item" href="../school-owner/notices-list.html"><span data-i18n="bn">প্রকাশনা</span><span data-i18n="en">Publishing</span></a>
+      <a class="nav-item" href="../school-owner/feedback-inbox.html"><span data-i18n="bn">মতামত</span><span data-i18n="en">Feedback</span></a>
+      <a class="nav-item" href="../school-owner/staff-permissions.html"><span data-i18n="bn">স্টাফ অনুমতি</span><span data-i18n="en">Staff Permissions</span></a>
+      <a class="nav-item" href="../school-owner/institute-profile.html"><span data-i18n="bn">প্রতিষ্ঠান সেটআপ</span><span data-i18n="en">Institute Setup</span></a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="title"><span data-i18n="bn">ফি কাঠামো</span><span data-i18n="en">Fee Structures</span></div>
+      <div class="actions">
+        <div class="lang-switch">
+          <button data-lang-btn="bn" onclick="setLang('bn')">বাং</button>
+          <button data-lang-btn="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="theme-switch">
+          <button data-theme-btn="light" onclick="setTheme('light')">☀</button>
+          <button data-theme-btn="dark" onclick="setTheme('dark')">☾</button>
+          <button data-theme-btn="system" onclick="setTheme('system')">Auto</button>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+
+      <div class="tabs">
+        <a href="fee-structures.html" class="active"><span data-i18n="bn">ফি কাঠামো</span><span data-i18n="en">Fee Structures</span></a>
+        <a href="fee-collection.html"><span data-i18n="bn">ফি আদায়</span><span data-i18n="en">Fee Collection</span></a>
+        <a href="vouchers-list.html"><span data-i18n="bn">ভাউচার</span><span data-i18n="en">Vouchers</span></a>
+        <a href="asset-register.html"><span data-i18n="bn">সম্পদ রেজিস্টার</span><span data-i18n="en">Asset Register</span></a>
+        <a href="bank-cash-accounts.html"><span data-i18n="bn">ব্যাংক ও নগদ</span><span data-i18n="en">Bank & Cash</span></a>
+        <a href="director-capital.html"><span data-i18n="bn">পরিচালকের মূলধন</span><span data-i18n="en">Director Capital</span></a>
+        <a href="general-ledger.html"><span data-i18n="bn">সাধারণ খতিয়ান</span><span data-i18n="en">General Ledger</span></a>
+      </div>
+
+      <div class="toolbar">
+        <div class="flex gap-2 items-center">
+          <input class="search-input" type="text" placeholder="শ্রেণি খুঁজুন · Search class">
+        </div>
+        <button class="btn btn-primary"><span data-i18n="bn">+ নতুন ফি কাঠামো</span><span data-i18n="en">+ New Fee Structure</span></button>
+      </div>
+
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th><span data-i18n="bn">শ্রেণি</span><span data-i18n="en">Class</span></th>
+            <th><span data-i18n="bn">শিক্ষাবর্ষ</span><span data-i18n="en">Academic Year</span></th>
+            <th><span data-i18n="bn">ফি প্রকার</span><span data-i18n="en">Fee Type</span></th>
+            <th><span data-i18n="bn">পরিমাণ</span><span data-i18n="en">Amount</span></th>
+            <th><span data-i18n="bn">কার্যক্রম</span><span data-i18n="en">Action</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>৬ষ্ঠ শ্রেণি · Class 6</td>
+            <td>২০২৬</td>
+            <td><span class="badge badge-info"><span data-i18n="bn">মাসিক</span><span data-i18n="en">Monthly</span></span></td>
+            <td>৳ ১,২০০</td>
+            <td class="flex gap-2">
+              <button class="btn btn-sm btn-secondary"><span data-i18n="bn">সম্পাদনা</span><span data-i18n="en">Edit</span></button>
+              <button class="btn btn-sm btn-secondary" onclick="document.getElementById('copy-modal').style.display='flex'"><span data-i18n="bn">অনুলিপি করুন</span><span data-i18n="en">Copy</span></button>
+            </td>
+          </tr>
+          <tr>
+            <td>৭ম শ্রেণি · Class 7</td>
+            <td>২০২৬</td>
+            <td><span class="badge badge-info"><span data-i18n="bn">মাসিক</span><span data-i18n="en">Monthly</span></span></td>
+            <td>৳ ১,৩০০</td>
+            <td class="flex gap-2">
+              <button class="btn btn-sm btn-secondary"><span data-i18n="bn">সম্পাদনা</span><span data-i18n="en">Edit</span></button>
+              <button class="btn btn-sm btn-secondary" onclick="document.getElementById('copy-modal').style.display='flex'"><span data-i18n="bn">অনুলিপি করুন</span><span data-i18n="en">Copy</span></button>
+            </td>
+          </tr>
+          <tr>
+            <td>৯ম শ্রেণি · Class 9</td>
+            <td>২০২৬</td>
+            <td><span class="badge badge-neutral"><span data-i18n="bn">এককালীন (বার্ষিক)</span><span data-i18n="en">One-time (Yearly)</span></span></td>
+            <td>৳ ৫,০০০</td>
+            <td class="flex gap-2">
+              <button class="btn btn-sm btn-secondary"><span data-i18n="bn">সম্পাদনা</span><span data-i18n="en">Edit</span></button>
+              <button class="btn btn-sm btn-secondary" onclick="document.getElementById('copy-modal').style.display='flex'"><span data-i18n="bn">অনুলিপি করুন</span><span data-i18n="en">Copy</span></button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Copy-to-another-class/year demo dialog -->
+      <div class="modal-backdrop" id="copy-modal" style="display:none; position: fixed;">
+        <div class="modal">
+          <h3><span data-i18n="bn">অন্য শ্রেণি/বছরে অনুলিপি করুন</span><span data-i18n="en">Copy to another Class/Year</span></h3>
+          <div class="form-grid">
+            <div class="field">
+              <label><span data-i18n="bn">লক্ষ্য শ্রেণি</span><span data-i18n="en">Target Class</span></label>
+              <select><option>৮ম শ্রেণি · Class 8</option></select>
+            </div>
+            <div class="field">
+              <label><span data-i18n="bn">লক্ষ্য শিক্ষাবর্ষ</span><span data-i18n="en">Target Year</span></label>
+              <select><option>২০২৭</option></select>
+            </div>
+          </div>
+          <div class="flex gap-2 justify-between" style="margin-top: var(--space-5);">
+            <button class="btn btn-secondary" onclick="document.getElementById('copy-modal').style.display='none'"><span data-i18n="bn">বাতিল</span><span data-i18n="en">Cancel</span></button>
+            <button class="btn btn-primary"><span data-i18n="bn">অনুলিপি করুন</span><span data-i18n="en">Copy Structure</span></button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

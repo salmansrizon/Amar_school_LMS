@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>স্কুল বিস্তারিত · School Detail — Super Admin</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../shared/design-system.css">
+<script src="../shared/app.js" defer></script>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="mark">A</span><span>Super Admin</span></div>
+    <nav>
+      <a class="nav-item active" href="schools-list.html"><span data-i18n="bn">স্কুলসমূহ</span><span data-i18n="en">Schools</span></a>
+      <a class="nav-item" href="dealers-list.html"><span data-i18n="bn">ডিলার</span><span data-i18n="en">Dealers</span></a>
+      <a class="nav-item" href="gov-officials-list.html"><span data-i18n="bn">সরকারি কর্মকর্তা</span><span data-i18n="en">Government Officials</span></a>
+      <a class="nav-item" href="codes-list.html"><span data-i18n="bn">সাবস্ক্রিপশন কোড</span><span data-i18n="en">Subscription Codes</span></a>
+      <a class="nav-item" href="locations-tree.html"><span data-i18n="bn">টেরিটরি ও লোকেশন</span><span data-i18n="en">Territory & Locations</span></a>
+      <a class="nav-item" href="vendor-accounting-ledger.html"><span data-i18n="bn">ভেন্ডর হিসাব</span><span data-i18n="en">Vendor Accounting</span></a>
+      <a class="nav-item" href="vendor-sms-compose.html"><span data-i18n="bn">ভেন্ডর এসএমএস</span><span data-i18n="en">Vendor SMS</span></a>
+      <a class="nav-item" href="central-holiday-calendar.html"><span data-i18n="bn">কেন্দ্রীয় ছুটির তালিকা</span><span data-i18n="en">Central Off-Day</span></a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="title"><span data-i18n="bn">আদর্শ উচ্চ বিদ্যালয়</span><span data-i18n="en">Adarsha High School</span></div>
+      <div class="actions">
+        <a class="btn btn-secondary btn-sm" href="../index.html" title="Home">🏠</a>
+        <a class="btn btn-secondary btn-sm" href="../sitemap.html" title="Sitemap">📋</a>
+        <a class="btn btn-secondary btn-sm" href="schools-list.html">&larr; <span data-i18n="bn">স্কুল তালিকা</span><span data-i18n="en">Schools list</span></a>
+        <div class="lang-switch">
+          <button data-lang-btn="bn" onclick="setLang('bn')">বাং</button>
+          <button data-lang-btn="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="theme-switch">
+          <button data-theme-btn="light" onclick="setTheme('light')">☀</button>
+          <button data-theme-btn="dark" onclick="setTheme('dark')">☾</button>
+          <button data-theme-btn="system" onclick="setTheme('system')">Auto</button>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+
+      <div class="flex items-center gap-2 mb-4">
+        <span class="badge badge-success"><span data-i18n="bn">সক্রিয় সাবস্ক্রিপশন</span><span data-i18n="en">Active Subscription</span></span>
+        <span class="badge badge-neutral">EIIN: 109876</span>
+        <span class="badge badge-neutral"><span data-i18n="bn">মেয়াদ শেষ</span><span data-i18n="en">Expires</span>: 2027-03-14</span>
+      </div>
+
+      <div class="tabs">
+        <a class="active" href="#profile"><span data-i18n="bn">প্রোফাইল</span><span data-i18n="en">Profile</span></a>
+        <a href="#subscription"><span data-i18n="bn">সাবস্ক্রিপশন ও মেয়াদ</span><span data-i18n="en">Subscription & Expiry</span></a>
+        <a href="#flags"><span data-i18n="bn">ফিচার ফ্ল্যাগ</span><span data-i18n="en">Feature Flags</span></a>
+        <a href="#actions"><span data-i18n="bn">কার্যক্রম ও সহায়তা</span><span data-i18n="en">Actions & Support</span></a>
+      </div>
+
+      <!-- PROFILE -->
+      <div id="profile" class="card mb-4">
+        <h3 class="mt-0"><span data-i18n="bn">প্রতিষ্ঠান প্রোফাইল</span><span data-i18n="en">Institute Profile</span></h3>
+        <div class="form-grid">
+          <div class="field"><label><span data-i18n="bn">স্কুলের নাম (বাংলা)</span><span data-i18n="en">School Name (Bangla)</span></label><input type="text" value="আদর্শ উচ্চ বিদ্যালয়"></div>
+          <div class="field"><label><span data-i18n="bn">স্কুলের নাম (ইংরেজি)</span><span data-i18n="en">School Name (English)</span></label><input type="text" value="Adarsha High School"></div>
+          <div class="field"><label>EIIN</label><input type="text" value="109876"></div>
+          <div class="field"><label>MPO</label><input type="text" value="MPO-33210"></div>
+          <div class="field"><label><span data-i18n="bn">সেন্টার কোড</span><span data-i18n="en">Center Code</span></label><input type="text" value="CC-7745"></div>
+          <div class="field"><label><span data-i18n="bn">লগইন ইমেইল</span><span data-i18n="en">Login Email</span></label><input type="email" value="owner@adarsha-hs.edu.bd"></div>
+          <div class="field"><label><span data-i18n="bn">বিভাগ / জেলা / উপজেলা / ইউনিয়ন</span><span data-i18n="en">Division / District / Upazila / Union</span></label><input type="text" value="Dhaka / Dhaka / Mirpur / —"></div>
+          <div class="field"><label><span data-i18n="bn">ক্লাস্টার</span><span data-i18n="en">Cluster</span></label>
+            <select><option><span data-i18n="bn">মিরপুর সদর ক্লাস্টার</span><span data-i18n="en">Mirpur Sadar Cluster</span></option><option><span data-i18n="bn">কোনোটি না</span><span data-i18n="en">None</span></option></select>
+          </div>
+        </div>
+        <div class="flex gap-2 mt-4" style="margin-top: var(--space-4);">
+          <button class="btn btn-primary"><span data-i18n="bn">সংরক্ষণ করুন</span><span data-i18n="en">Save Changes</span></button>
+        </div>
+      </div>
+
+      <!-- SUBSCRIPTION & EXPIRY -->
+      <div id="subscription" class="card mb-4">
+        <h3 class="mt-0"><span data-i18n="bn">সাবস্ক্রিপশন ও মেয়াদ সংশোধন</span><span data-i18n="en">Subscription & Expiry Correction</span></h3>
+        <p class="text-secondary" style="font-size:var(--text-sm);">
+          <span data-i18n="bn">এই স্কুলটি সক্রিয় — কোড রিডিম করা হয়েছে, তাই একটি প্রকৃত মেয়াদ শেষের তারিখ বিদ্যমান।</span>
+          <span data-i18n="en">This School is Active — a code has been redeemed, so a real expiry date exists to adjust.</span>
+        </p>
+        <div class="flex items-center gap-3 mb-4">
+          <div class="field" style="min-width:160px;">
+            <label><span data-i18n="bn">বর্তমান মেয়াদ শেষ</span><span data-i18n="en">Current Expiry</span></label>
+            <input type="text" value="2027-03-14" disabled>
+          </div>
+          <button class="btn btn-secondary" title="Decrease the expiry by one month (manual correction)">
+            &minus;1 <span data-i18n="bn">মাস কমান</span><span data-i18n="en">Decrease Month</span>
+          </button>
+          <span class="locked-note"><span data-i18n="bn">কোড ইতিহাস থাকা অ্যাক্টিভ স্কুলের জন্যই কেবল সক্রিয়</span><span data-i18n="en">Only enabled while a real active expiry (from code history) exists</span></span>
+        </div>
+
+        <h4><span data-i18n="bn">ম্যানুয়াল কোড প্রয়োগ</span><span data-i18n="en">Manual Code Application</span></h4>
+        <div class="form-grid">
+          <div class="field"><label><span data-i18n="bn">সাবস্ক্রিপশন কোড</span><span data-i18n="en">Subscription Code</span></label><input type="text" placeholder="ASM-XXXX-XXXX"></div>
+          <div class="field"><label><span data-i18n="bn">প্রয়োগের পর মেয়াদ পূর্বরূপ</span><span data-i18n="en">Expiry Preview After Apply</span></label><input type="text" value="2027-09-14" disabled></div>
+        </div>
+        <div class="flex gap-2" style="margin-top: var(--space-3);">
+          <button class="btn btn-primary"><span data-i18n="bn">কোড প্রয়োগ করুন</span><span data-i18n="en">Apply Code</span></button>
+        </div>
+
+        <h4><span data-i18n="bn">কোড ইতিহাস</span><span data-i18n="en">Code History</span></h4>
+        <table class="data-table">
+          <thead><tr>
+            <th><span data-i18n="bn">কোড</span><span data-i18n="en">Code</span></th>
+            <th><span data-i18n="bn">মেয়াদ</span><span data-i18n="en">Validity</span></th>
+            <th><span data-i18n="bn">মূল্য</span><span data-i18n="en">Price</span></th>
+            <th><span data-i18n="bn">রিডিমের তারিখ</span><span data-i18n="en">Redeemed On</span></th>
+          </tr></thead>
+          <tbody>
+            <tr><td>ASM-7712-4KX9</td><td>6 <span data-i18n="bn">মাস</span><span data-i18n="en">months</span></td><td>Tk 3,000</td><td>2026-09-14</td></tr>
+            <tr><td>ASM-2201-7QW3</td><td>12 <span data-i18n="bn">মাস</span><span data-i18n="en">months</span></td><td>Tk 0 <span class="badge badge-info" style="margin-left:4px;"><span data-i18n="bn">ফ্রি</span><span data-i18n="en">Free</span></span></td><td>2025-09-10</td></tr>
+          </tbody>
+        </table>
+
+        <div class="card" style="margin-top: var(--space-5); background: var(--bg-surface-alt);">
+          <h4 class="mt-0"><span data-i18n="bn">উদাহরণ — ট্রায়াল স্কুল (কোনো কোড ইতিহাস নেই)</span><span data-i18n="en">Example — Trial School (no code history)</span></h4>
+          <div class="flex items-center gap-2 mb-4">
+            <span class="badge badge-info"><span data-i18n="bn">ট্রায়াল</span><span data-i18n="en">Trial</span></span>
+            <span class="text-secondary" style="font-size:var(--text-sm);">নতুন দিন ট্রায়াল স্কুল · Notun Din Trial School</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="field" style="min-width:160px;">
+              <label><span data-i18n="bn">বর্তমান মেয়াদ শেষ</span><span data-i18n="en">Current Expiry</span></label>
+              <input type="text" value="—" disabled>
+            </div>
+            <button class="btn btn-secondary" disabled>&minus;1 <span data-i18n="bn">মাস কমান</span><span data-i18n="en">Decrease Month</span></button>
+            <span class="locked-note"><span data-i18n="bn">কোনো কোড ইতিহাস নেই বলে কমানোর মতো কোনো প্রকৃত মেয়াদ নেই</span><span data-i18n="en">Disabled: no code history means there is no real expiry to decrease</span></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- FEATURE FLAGS -->
+      <div id="flags" class="card mb-4">
+        <h3 class="mt-0"><span data-i18n="bn">ফিচার ফ্ল্যাগ</span><span data-i18n="en">Feature Flags</span></h3>
+        <p class="text-secondary" style="font-size:var(--text-sm);">
+          <span data-i18n="bn">এগুলো সাবস্ক্রিপশন নির্বিশেষে স্বতন্ত্র বুলিয়ান টগল — এখানে কোনো Basic/Pro প্ল্যান-টায়ার গ্রুপিং নেই।</span>
+          <span data-i18n="en">A flat list of independent booleans, regardless of subscription — deliberately not grouped into a Basic/Pro plan-tier system.</span>
+        </p>
+        <table class="data-table">
+          <thead><tr>
+            <th><span data-i18n="bn">মডিউল</span><span data-i18n="en">Module</span></th>
+            <th><span data-i18n="bn">অবস্থা</span><span data-i18n="en">State</span></th>
+            <th></th>
+          </tr></thead>
+          <tbody>
+            <tr><td><span data-i18n="bn">শিক্ষার্থী ও কর্মচারী</span><span data-i18n="en">Students & Employees</span></td><td><span class="badge badge-success">ON</span></td><td><button class="btn btn-secondary btn-sm"><span data-i18n="bn">বন্ধ করুন</span><span data-i18n="en">Turn Off</span></button></td></tr>
+            <tr><td><span data-i18n="bn">উপস্থিতি</span><span data-i18n="en">Attendance</span></td><td><span class="badge badge-success">ON</span></td><td><button class="btn btn-secondary btn-sm"><span data-i18n="bn">বন্ধ করুন</span><span data-i18n="en">Turn Off</span></button></td></tr>
+            <tr><td><span data-i18n="bn">পরীক্ষা ও ফলাফল</span><span data-i18n="en">Exams & Results</span></td><td><span class="badge badge-success">ON</span></td><td><button class="btn btn-secondary btn-sm"><span data-i18n="bn">বন্ধ করুন</span><span data-i18n="en">Turn Off</span></button></td></tr>
+            <tr><td><span data-i18n="bn">হিসাব ও ফি</span><span data-i18n="en">Accounting & Fees</span></td><td><span class="badge badge-success">ON</span></td><td><button class="btn btn-secondary btn-sm"><span data-i18n="bn">বন্ধ করুন</span><span data-i18n="en">Turn Off</span></button></td></tr>
+            <tr><td><span data-i18n="bn">এসএমএস</span><span data-i18n="en">SMS</span></td><td><span class="badge badge-danger">OFF</span></td><td><button class="btn btn-secondary btn-sm"><span data-i18n="bn">চালু করুন</span><span data-i18n="en">Turn On</span></button></td></tr>
+            <tr><td><span data-i18n="bn">গ্যালারি</span><span data-i18n="en">Gallery</span></td><td><span class="badge badge-success">ON</span></td><td><button class="btn btn-secondary btn-sm"><span data-i18n="bn">বন্ধ করুন</span><span data-i18n="en">Turn Off</span></button></td></tr>
+            <tr><td><span data-i18n="bn">মতামত</span><span data-i18n="en">Feedback</span></td><td><span class="badge badge-success">ON</span></td><td><button class="btn btn-secondary btn-sm"><span data-i18n="bn">বন্ধ করুন</span><span data-i18n="en">Turn Off</span></button></td></tr>
+            <tr><td>RFID</td><td><span class="badge badge-danger">OFF</span></td><td><button class="btn btn-secondary btn-sm"><span data-i18n="bn">চালু করুন</span><span data-i18n="en">Turn On</span></button></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- ACTIONS & SUPPORT -->
+      <div id="actions" class="card">
+        <h3 class="mt-0"><span data-i18n="bn">কার্যক্রম ও সহায়তা</span><span data-i18n="en">Actions & Support</span></h3>
+        <div class="flex gap-3" style="flex-wrap: wrap;">
+          <button class="btn btn-danger"><span data-i18n="bn">স্কুল ব্লক করুন</span><span data-i18n="en">Block School</span></button>
+          <button class="btn btn-secondary"><span data-i18n="bn">ফোর্স অফলাইন</span><span data-i18n="en">Force Offline</span></button>
+          <button class="btn btn-secondary"><span data-i18n="bn">লাইভ সাপোর্ট চ্যাট খুলুন</span><span data-i18n="en">Open Live Support Chat</span></button>
+          <button class="btn btn-secondary"><span data-i18n="bn">কেন্দ্রীয় ছুটির তালিকা পুশ করুন</span><span data-i18n="en">Push Central Off-Day List</span></button>
+          <a class="btn btn-secondary" href="vendor-sms-compose.html"><span data-i18n="bn">এই স্কুলে এসএমএস</span><span data-i18n="en">SMS this School</span></a>
+          <a class="btn btn-secondary" href="binding-code-inventory.html"><span data-i18n="bn">RFID ব্যবস্থাপনা</span><span data-i18n="en">RFID Management</span></a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

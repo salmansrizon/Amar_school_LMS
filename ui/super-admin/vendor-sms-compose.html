@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>ভেন্ডর এসএমএস · Vendor SMS Compose — Super Admin</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../shared/design-system.css">
+<script src="../shared/app.js" defer></script>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="mark">A</span><span>Super Admin</span></div>
+    <nav>
+      <a class="nav-item" href="schools-list.html"><span data-i18n="bn">স্কুলসমূহ</span><span data-i18n="en">Schools</span></a>
+      <a class="nav-item" href="dealers-list.html"><span data-i18n="bn">ডিলার</span><span data-i18n="en">Dealers</span></a>
+      <a class="nav-item" href="gov-officials-list.html"><span data-i18n="bn">সরকারি কর্মকর্তা</span><span data-i18n="en">Government Officials</span></a>
+      <a class="nav-item" href="codes-list.html"><span data-i18n="bn">সাবস্ক্রিপশন কোড</span><span data-i18n="en">Subscription Codes</span></a>
+      <a class="nav-item" href="locations-tree.html"><span data-i18n="bn">টেরিটরি ও লোকেশন</span><span data-i18n="en">Territory & Locations</span></a>
+      <a class="nav-item" href="vendor-accounting-ledger.html"><span data-i18n="bn">ভেন্ডর হিসাব</span><span data-i18n="en">Vendor Accounting</span></a>
+      <a class="nav-item active" href="vendor-sms-compose.html"><span data-i18n="bn">ভেন্ডর এসএমএস</span><span data-i18n="en">Vendor SMS</span></a>
+      <a class="nav-item" href="central-holiday-calendar.html"><span data-i18n="bn">কেন্দ্রীয় ছুটির তালিকা</span><span data-i18n="en">Central Off-Day</span></a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="title"><span data-i18n="bn">ভেন্ডর এসএমএস</span><span data-i18n="en">Vendor SMS</span></div>
+      <div class="actions">
+        <a class="btn btn-secondary btn-sm" href="../index.html" title="Home">🏠</a>
+        <a class="btn btn-secondary btn-sm" href="../sitemap.html" title="Sitemap">📋</a>
+        <div class="lang-switch">
+          <button data-lang-btn="bn" onclick="setLang('bn')">বাং</button>
+          <button data-lang-btn="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="theme-switch">
+          <button data-theme-btn="light" onclick="setTheme('light')">☀</button>
+          <button data-theme-btn="dark" onclick="setTheme('dark')">☾</button>
+          <button data-theme-btn="system" onclick="setTheme('system')">Auto</button>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+
+      <div class="card mb-4" style="max-width:720px; display:flex; align-items:center; justify-content:space-between;">
+        <div>
+          <div class="text-secondary" style="font-size:var(--text-xs); text-transform:uppercase;"><span data-i18n="bn">গেটওয়ে ব্যালেন্স / ক্রেডিট</span><span data-i18n="en">Gateway Balance / Credit</span></div>
+          <div style="font-size:var(--text-2xl); font-weight:700;">12,450 <span style="font-size:var(--text-sm); font-weight:500;" class="text-secondary">SMS</span></div>
+        </div>
+        <span class="badge badge-success"><span data-i18n="bn">যথেষ্ট ব্যালেন্স</span><span data-i18n="en">Sufficient balance</span></span>
+      </div>
+
+      <div class="card" style="max-width:720px;">
+        <h3 class="mt-0"><span data-i18n="bn">এলাকা-ভিত্তিক প্রাপক তালিকা তৈরি করুন</span><span data-i18n="en">Build Area-Filtered Recipient List</span></h3>
+        <div class="form-grid">
+          <div class="field">
+            <label><span data-i18n="bn">বিভাগ</span><span data-i18n="en">Division</span></label>
+            <select><option><span data-i18n="bn">সকল বিভাগ</span><span data-i18n="en">All Divisions</span></option><option>Dhaka</option><option>Rangpur</option></select>
+          </div>
+          <div class="field">
+            <label><span data-i18n="bn">জেলা</span><span data-i18n="en">District</span></label>
+            <select><option><span data-i18n="bn">সকল জেলা</span><span data-i18n="en">All Districts</span></option><option>Dhaka</option></select>
+          </div>
+          <div class="field">
+            <label><span data-i18n="bn">উপজেলা</span><span data-i18n="en">Upazila</span></label>
+            <select><option><span data-i18n="bn">সকল উপজেলা</span><span data-i18n="en">All Upazilas</span></option><option>Mirpur</option></select>
+          </div>
+          <div class="field">
+            <label><span data-i18n="bn">প্রাপক ধরন</span><span data-i18n="en">Recipient Type</span></label>
+            <select><option><span data-i18n="bn">স্কুল মালিক</span><span data-i18n="en">School Owners</span></option><option><span data-i18n="bn">ডিলার</span><span data-i18n="en">Dealers</span></option><option><span data-i18n="bn">সরকারি কর্মকর্তা</span><span data-i18n="en">Government Officials</span></option></select>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between mt-4" style="margin-top:var(--space-4); background:var(--bg-surface-alt); padding:var(--space-3); border-radius:var(--radius-md);">
+          <span style="font-size:var(--text-sm);"><span data-i18n="bn">মিলিত প্রাপক</span><span data-i18n="en">Matched recipients</span>: <strong>96</strong></span>
+          <div class="flex gap-2">
+            <button class="btn btn-secondary btn-sm"><span data-i18n="bn">এক্সেল আপলোড</span><span data-i18n="en">Excel Upload</span></button>
+            <button class="btn btn-secondary btn-sm"><span data-i18n="bn">এক্সেল ডাউনলোড</span><span data-i18n="en">Excel Download</span></button>
+          </div>
+        </div>
+
+        <div class="field field-full" style="margin-top:var(--space-4);">
+          <label><span data-i18n="bn">বার্তা</span><span data-i18n="en">Message</span></label>
+          <textarea rows="4" id="sms-body" oninput="document.getElementById('char-count').textContent = this.value.length; document.getElementById('seg-count').textContent = Math.max(1, Math.ceil((this.value.length||1)/160));" placeholder="আপনার বার্তা লিখুন... · Type your message..."></textarea>
+          <span class="text-secondary" style="font-size:var(--text-xs);">
+            <span id="char-count">0</span> <span data-i18n="bn">অক্ষর</span><span data-i18n="en">characters</span> ·
+            <span id="seg-count">1</span> <span data-i18n="bn">এসএমএস অংশ</span><span data-i18n="en">SMS segment(s)</span>
+          </span>
+        </div>
+
+        <div class="flex gap-2" style="margin-top:var(--space-4);">
+          <button class="btn btn-primary"><span data-i18n="bn">পাঠান</span><span data-i18n="en">Send</span></button>
+          <button class="btn btn-secondary"><span data-i18n="bn">এপিআই কী / সেন্ডার আইডি সেটিংস</span><span data-i18n="en">API Key / Sender ID Settings</span></button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

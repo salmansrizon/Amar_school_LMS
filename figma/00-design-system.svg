@@ -1,0 +1,200 @@
+<svg width="1600" height="2320" viewBox="0 0 1600 2320" xmlns="http://www.w3.org/2000/svg" font-family="Hind Siliguri, Noto Sans Bengali, Arial, sans-serif">
+  <rect x="0" y="0" width="1600" height="2320" fill="#f8fafc"/>
+
+  <!-- Header -->
+  <text x="40" y="50" font-size="28" font-weight="700" fill="#0f172a">Amar School Management — Design System</text>
+  <text x="40" y="75" font-size="14" fill="#64748b">Resolved via /grill-with-docs session — see docs/adr/0004 (Bangla-primary bilingual UI), docs/adr/0005 (dark-mode tokens). Light theme shown; dark tokens live in ui/shared/design-system.css.</text>
+
+  <!-- ============ BRAND COLORS ============ -->
+  <text x="40" y="120" font-size="18" font-weight="600" fill="#0f172a">Brand — purple/violet</text>
+  <text x="40" y="140" font-size="13" fill="#64748b">Chrome, links, primary actions, active nav ONLY. Never used to convey status meaning.</text>
+
+  <g font-size="13">
+    <!-- 50 -->
+    <rect x="40"  y="160" width="160" height="90" rx="6" fill="#f5f3ff"/>
+    <text x="40" y="266" fill="#334155">brand-50</text><text x="40" y="282" fill="#94a3b8">#f5f3ff</text>
+    <!-- 100 -->
+    <rect x="210" y="160" width="160" height="90" rx="6" fill="#ede9fe"/>
+    <text x="210" y="266" fill="#334155">brand-100</text><text x="210" y="282" fill="#94a3b8">#ede9fe</text>
+    <!-- 200 -->
+    <rect x="380" y="160" width="160" height="90" rx="6" fill="#ddd6fe"/>
+    <text x="380" y="266" fill="#334155">brand-200</text><text x="380" y="282" fill="#94a3b8">#ddd6fe</text>
+    <!-- 300 -->
+    <rect x="550" y="160" width="160" height="90" rx="6" fill="#c4b5fd"/>
+    <text x="550" y="266" fill="#334155">brand-300</text><text x="550" y="282" fill="#94a3b8">#c4b5fd</text>
+    <!-- 400 -->
+    <rect x="720" y="160" width="160" height="90" rx="6" fill="#a78bfa"/>
+    <text x="720" y="266" fill="#334155">brand-400</text><text x="720" y="282" fill="#94a3b8">#a78bfa</text>
+    <!-- 500 -->
+    <rect x="890" y="160" width="160" height="90" rx="6" fill="#8b5cf6"/>
+    <text x="890" y="266" fill="#334155">brand-500</text><text x="890" y="282" fill="#94a3b8">#8b5cf6</text>
+    <!-- 600 (primary) -->
+    <rect x="1060" y="160" width="160" height="90" rx="6" fill="#7c3aed" stroke="#0f172a" stroke-width="2"/>
+    <text x="1060" y="266" fill="#334155" font-weight="700">brand-600 (primary)</text><text x="1060" y="282" fill="#94a3b8">#7c3aed</text>
+    <!-- 700 -->
+    <rect x="1230" y="160" width="160" height="90" rx="6" fill="#6d28d9"/>
+    <text x="1230" y="266" fill="#334155">brand-700</text><text x="1230" y="282" fill="#94a3b8">#6d28d9</text>
+    <!-- 800/900 stacked under -->
+    <rect x="1400" y="160" width="160" height="42" rx="6" fill="#5b21b6"/>
+    <rect x="1400" y="208" width="160" height="42" rx="6" fill="#4c1d95"/>
+    <text x="1400" y="266" fill="#334155">brand-800 / 900</text><text x="1400" y="282" fill="#94a3b8">#5b21b6 / #4c1d95</text>
+  </g>
+
+  <!-- ============ SEMANTIC STATUS COLORS ============ -->
+  <text x="40" y="340" font-size="18" font-weight="600" fill="#0f172a">Semantic status colors</text>
+  <text x="40" y="360" font-size="13" fill="#64748b">The ONLY carriers of status meaning (active/trial/expired, on-time/late, pass/fail). Never substitute brand hue here.</text>
+
+  <g font-size="14">
+    <!-- Success -->
+    <rect x="40" y="380" width="360" height="54" rx="8" fill="#dcfce7" stroke="#86efac" stroke-width="1.5"/>
+    <text x="60" y="413" fill="#15803d" font-weight="700">Active / On-time / Pass</text>
+    <text x="40" y="452" font-size="12" fill="#64748b">success-bg #dcfce7   success-fg #15803d   success-border #86efac</text>
+
+    <!-- Warning -->
+    <rect x="420" y="380" width="360" height="54" rx="8" fill="#fef3c7" stroke="#fcd34d" stroke-width="1.5"/>
+    <text x="440" y="413" fill="#b45309" font-weight="700">Trial / Late / Considerable</text>
+    <text x="420" y="452" font-size="12" fill="#64748b">warning-bg #fef3c7   warning-fg #b45309   warning-border #fcd34d</text>
+
+    <!-- Danger -->
+    <rect x="800" y="380" width="360" height="54" rx="8" fill="#fee2e2" stroke="#fca5a5" stroke-width="1.5"/>
+    <text x="820" y="413" fill="#b91c1c" font-weight="700">Expired / Blocked / Absent / Fail</text>
+    <text x="800" y="452" font-size="12" fill="#64748b">danger-bg #fee2e2   danger-fg #b91c1c   danger-border #fca5a5</text>
+
+    <!-- Info -->
+    <rect x="1180" y="380" width="380" height="54" rx="8" fill="#dbeafe" stroke="#93c5fd" stroke-width="1.5"/>
+    <text x="1200" y="413" fill="#1d4ed8" font-weight="700">Informational / Extended access</text>
+    <text x="1180" y="452" font-size="12" fill="#64748b">info-bg #dbeafe   info-fg #1d4ed8   info-border #93c5fd</text>
+  </g>
+
+  <!-- ============ TYPE SCALE ============ -->
+  <text x="40" y="500" font-size="18" font-weight="600" fill="#0f172a">Type scale — Hind Siliguri (single unified typeface, Bangla + Latin)</text>
+  <text x="40" y="520" font-size="13" fill="#64748b">Bangla is default/primary (ADR 0004); English is the switchable secondary. One font family for both — no dual-voice pairing.</text>
+
+  <g fill="#0f172a">
+    <text x="40"  y="565" font-size="12" fill="#94a3b8">text-xs / 12px</text>
+    <text x="240" y="568" font-size="12">শিক্ষার্থী ব্যবস্থাপনা</text>
+    <text x="900" y="568" font-size="12">Student Management</text>
+
+    <text x="40"  y="605" font-size="12" fill="#94a3b8">text-sm / 13px</text>
+    <text x="240" y="609" font-size="13">শিক্ষার্থী ব্যবস্থাপনা</text>
+    <text x="900" y="609" font-size="13">Student Management</text>
+
+    <text x="40"  y="650" font-size="12" fill="#94a3b8">text-base / 14px</text>
+    <text x="240" y="654" font-size="14">শিক্ষার্থী ব্যবস্থাপনা</text>
+    <text x="900" y="654" font-size="14">Student Management</text>
+
+    <text x="40"  y="700" font-size="12" fill="#94a3b8">text-lg / 16px</text>
+    <text x="240" y="705" font-size="16">শিক্ষার্থী ব্যবস্থাপনা</text>
+    <text x="900" y="705" font-size="16">Student Management</text>
+
+    <text x="40"  y="755" font-size="12" fill="#94a3b8">text-xl / 20px</text>
+    <text x="240" y="761" font-size="20" font-weight="600">শিক্ষার্থী ব্যবস্থাপনা</text>
+    <text x="900" y="761" font-size="20" font-weight="600">Student Management</text>
+
+    <text x="40"  y="815" font-size="12" fill="#94a3b8">text-2xl / 24px</text>
+    <text x="240" y="822" font-size="24" font-weight="700">শিক্ষার্থী ব্যবস্থাপনা</text>
+    <text x="900" y="822" font-size="24" font-weight="700">Student Management</text>
+  </g>
+
+  <!-- ============ SPACING SCALE ============ -->
+  <text x="40" y="880" font-size="18" font-weight="600" fill="#0f172a">Spacing scale (compact)</text>
+  <g fill="#7c3aed">
+    <rect x="240" y="900" width="4"  height="20" /><text x="40" y="915" font-size="12" fill="#64748b">space-1 / 4px</text>
+    <rect x="240" y="930" width="8"  height="20" /><text x="40" y="945" font-size="12" fill="#64748b">space-2 / 8px</text>
+    <rect x="240" y="960" width="12" height="20" /><text x="40" y="975" font-size="12" fill="#64748b">space-3 / 12px</text>
+    <rect x="240" y="990" width="16" height="20" /><text x="40" y="1005" font-size="12" fill="#64748b">space-4 / 16px</text>
+    <rect x="240" y="1020" width="20" height="20" /><text x="40" y="1035" font-size="12" fill="#64748b">space-5 / 20px</text>
+    <rect x="240" y="1050" width="24" height="20" /><text x="40" y="1065" font-size="12" fill="#64748b">space-6 / 24px</text>
+    <rect x="240" y="1080" width="32" height="20" /><text x="40" y="1095" font-size="12" fill="#64748b">space-8 / 32px</text>
+  </g>
+
+  <!-- ============ RADIUS SCALE ============ -->
+  <text x="700" y="880" font-size="18" font-weight="600" fill="#0f172a">Radius scale — small &amp; consistent everywhere</text>
+  <g>
+    <rect x="700" y="910" width="150" height="90" rx="4" fill="#ede9fe" stroke="#a78bfa" stroke-width="1.5"/>
+    <text x="700" y="1020" font-size="12" fill="#64748b">radius-sm / 4px</text>
+
+    <rect x="880" y="910" width="150" height="90" rx="6" fill="#ede9fe" stroke="#a78bfa" stroke-width="1.5"/>
+    <text x="880" y="1020" font-size="12" fill="#64748b">radius-md / 6px</text>
+
+    <rect x="1060" y="910" width="150" height="90" rx="10" fill="#ede9fe" stroke="#a78bfa" stroke-width="1.5"/>
+    <text x="1060" y="1020" font-size="12" fill="#64748b">radius-lg / 10px</text>
+  </g>
+
+  <!-- ============ COMPONENTS ============ -->
+  <text x="40" y="1160" font-size="18" font-weight="600" fill="#0f172a">Components</text>
+
+  <!-- Buttons -->
+  <text x="40" y="1195" font-size="13" fill="#64748b">Buttons</text>
+  <g font-size="14" font-weight="500">
+    <rect x="40" y="1210" width="150" height="36" rx="6" fill="#7c3aed"/>
+    <text x="72" y="1233" fill="#ffffff">Primary</text>
+
+    <rect x="210" y="1210" width="150" height="36" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5"/>
+    <text x="240" y="1233" fill="#0f172a">Secondary</text>
+
+    <rect x="380" y="1210" width="150" height="36" rx="6" fill="#b91c1c"/>
+    <text x="418" y="1233" fill="#ffffff">Delete</text>
+  </g>
+
+  <!-- Badges -->
+  <text x="40" y="1290" font-size="13" fill="#64748b">Status badges</text>
+  <g font-size="12" font-weight="700">
+    <rect x="40"  y="1305" width="110" height="30" rx="4" fill="#dcfce7" stroke="#86efac"/>
+    <text x="54" y="1325" fill="#15803d">Active</text>
+
+    <rect x="165" y="1305" width="100" height="30" rx="4" fill="#fef3c7" stroke="#fcd34d"/>
+    <text x="179" y="1325" fill="#b45309">Trial</text>
+
+    <rect x="280" y="1305" width="110" height="30" rx="4" fill="#fee2e2" stroke="#fca5a5"/>
+    <text x="294" y="1325" fill="#b91c1c">Expired</text>
+
+    <rect x="405" y="1305" width="150" height="30" rx="4" fill="#fee2e2" stroke="#fca5a5"/>
+    <text x="419" y="1325" fill="#b91c1c">Absent (4 days)</text>
+
+    <rect x="570" y="1305" width="190" height="30" rx="4" fill="#f5f3ff" stroke="#c4b5fd"/>
+    <text x="584" y="1325" fill="#6d28d9">Extended access</text>
+  </g>
+
+  <!-- KPI card -->
+  <text x="40" y="1385" font-size="13" fill="#64748b">KPI card</text>
+  <g>
+    <rect x="40" y="1400" width="260" height="110" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+    <text x="60" y="1430" font-size="11" fill="#64748b" letter-spacing="0.5">TOTAL STUDENTS</text>
+    <text x="60" y="1465" font-size="26" font-weight="700" fill="#0f172a">1,248</text>
+    <text x="60" y="1490" font-size="12" fill="#15803d">▲ 3.2% vs last month</text>
+  </g>
+
+  <!-- Compact table sample -->
+  <text x="40" y="1560" font-size="13" fill="#64748b">Compact data table (fixed density, ~36px rows)</text>
+  <g font-size="13">
+    <rect x="40" y="1575" width="1000" height="36" fill="#f1f5f9" stroke="#e2e8f0"/>
+    <text x="56"  y="1598" fill="#64748b" font-size="11">ROLL</text>
+    <text x="176" y="1598" fill="#64748b" font-size="11">NAME</text>
+    <text x="516" y="1598" fill="#64748b" font-size="11">CLASS</text>
+    <text x="696" y="1598" fill="#64748b" font-size="11">STATUS</text>
+
+    <rect x="40" y="1611" width="1000" height="36" fill="#ffffff" stroke="#e2e8f0"/>
+    <text x="56"  y="1634" fill="#0f172a">014</text>
+    <text x="176" y="1634" fill="#0f172a">রাফি আহমেদ</text>
+    <text x="516" y="1634" fill="#0f172a">Class 6 — A</text>
+    <rect x="696" y="1618" width="90" height="22" rx="4" fill="#dcfce7" stroke="#86efac"/>
+    <text x="708" y="1634" fill="#15803d" font-size="11" font-weight="700">Present</text>
+
+    <rect x="40" y="1647" width="1000" height="36" fill="#ffffff" stroke="#e2e8f0"/>
+    <text x="56"  y="1670" fill="#0f172a">015</text>
+    <text x="176" y="1670" fill="#0f172a">নুসরাত জাহান</text>
+    <text x="516" y="1670" fill="#0f172a">Class 6 — A</text>
+    <rect x="696" y="1654" width="90" height="22" rx="4" fill="#fee2e2" stroke="#fca5a5"/>
+    <text x="708" y="1670" fill="#b91c1c" font-size="11" font-weight="700">Absent</text>
+
+    <rect x="40" y="1683" width="1000" height="36" fill="#ffffff" stroke="#e2e8f0"/>
+    <text x="56"  y="1706" fill="#0f172a">016</text>
+    <text x="176" y="1706" fill="#0f172a">তানভীর হাসান</text>
+    <text x="516" y="1706" fill="#0f172a">Class 6 — A</text>
+    <rect x="696" y="1690" width="90" height="22" rx="4" fill="#fef3c7" stroke="#fcd34d"/>
+    <text x="708" y="1706" fill="#b45309" font-size="11" font-weight="700">Late</text>
+  </g>
+
+  <text x="40" y="1770" font-size="11" fill="#94a3b8">Sidebar width 232px · topbar/content padding 24px · control height 32px · table row height 36px — see ui/shared/design-system.css for full CSS tokens.</text>
+</svg>

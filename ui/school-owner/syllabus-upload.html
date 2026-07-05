@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>সিলেবাস আপলোড · Syllabus Upload — Amar School Management</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../shared/design-system.css">
+<script src="../shared/app.js" defer></script>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="mark">A</span><span>Amar School</span></div>
+    <nav>
+      <a class="nav-item" href="../school-owner/dashboard.html"><span data-i18n="bn">ড্যাশবোর্ড</span><span data-i18n="en">Dashboard</span></a>
+      <a class="nav-item" href="../school-owner/students-list.html"><span data-i18n="bn">শিক্ষার্থী</span><span data-i18n="en">Students</span></a>
+      <a class="nav-item" href="../school-owner/employees-list.html"><span data-i18n="bn">কর্মচারী</span><span data-i18n="en">Employees</span></a>
+      <a class="nav-item" href="../school-owner/attendance-student-mark.html"><span data-i18n="bn">উপস্থিতি</span><span data-i18n="en">Attendance</span></a>
+      <a class="nav-item active" href="../school-owner/classes-list.html"><span data-i18n="bn">শ্রেণি ও পাঠ্যক্রম</span><span data-i18n="en">Class & Curriculum</span></a>
+      <a class="nav-item" href="../school-owner/exams-list.html"><span data-i18n="bn">পরীক্ষা ও ফলাফল</span><span data-i18n="en">Exams & Results</span></a>
+      <a class="nav-item" href="../school-owner/fee-collection.html"><span data-i18n="bn">হিসাব ও ফি</span><span data-i18n="en">Accounting & Fees</span></a>
+      <a class="nav-item" href="../school-owner/sms-compose.html"><span data-i18n="bn">এসএমএস</span><span data-i18n="en">SMS</span></a>
+      <a class="nav-item" href="../school-owner/notices-list.html"><span data-i18n="bn">প্রকাশনা</span><span data-i18n="en">Publishing</span></a>
+      <a class="nav-item" href="../school-owner/feedback-inbox.html"><span data-i18n="bn">মতামত</span><span data-i18n="en">Feedback</span></a>
+      <a class="nav-item" href="../school-owner/staff-permissions.html"><span data-i18n="bn">স্টাফ অনুমতি</span><span data-i18n="en">Staff Permissions</span></a>
+      <a class="nav-item" href="../school-owner/institute-profile.html"><span data-i18n="bn">প্রতিষ্ঠান সেটআপ</span><span data-i18n="en">Institute Setup</span></a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="title"><span data-i18n="bn">সিলেবাস আপলোড</span><span data-i18n="en">Syllabus Upload</span></div>
+      <div class="actions">
+        <div class="lang-switch">
+          <button data-lang-btn="bn" onclick="setLang('bn')">বাং</button>
+          <button data-lang-btn="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="theme-switch">
+          <button data-theme-btn="light" onclick="setTheme('light')">☀</button>
+          <button data-theme-btn="dark" onclick="setTheme('dark')">☾</button>
+          <button data-theme-btn="system" onclick="setTheme('system')">Auto</button>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+
+      <div class="card mb-4">
+        <h3 class="mt-0"><span data-i18n="bn">নতুন সিলেবাস আপলোড করুন</span><span data-i18n="en">Upload New Syllabus</span></h3>
+        <div class="form-grid">
+          <div class="field">
+            <label><span data-i18n="bn">শ্রেণি</span><span data-i18n="en">Class</span></label>
+            <select>
+              <option><span data-i18n="bn">অষ্টম শ্রেণি - A</span><span data-i18n="en">Class 8 - A</span></option>
+            </select>
+          </div>
+          <div class="field">
+            <label><span data-i18n="bn">বিষয় (ঐচ্ছিক)</span><span data-i18n="en">Subject (optional)</span></label>
+            <select>
+              <option><span data-i18n="bn">সকল বিষয় (সম্পূর্ণ সিলেবাস)</span><span data-i18n="en">All subjects (full syllabus)</span></option>
+            </select>
+          </div>
+          <div class="field field-full">
+            <label><span data-i18n="bn">ফাইল নির্বাচন করুন (শুধুমাত্র PDF)</span><span data-i18n="en">Choose File (PDF only)</span></label>
+            <input type="file" accept="application/pdf">
+          </div>
+        </div>
+        <div class="flex gap-2" style="margin-top: var(--space-4);">
+          <button class="btn btn-primary"><span data-i18n="bn">আপলোড করুন</span><span data-i18n="en">Upload</span></button>
+          <a class="btn btn-secondary" href="classes-list.html"><span data-i18n="bn">বাতিল</span><span data-i18n="en">Cancel</span></a>
+        </div>
+      </div>
+
+      <h3><span data-i18n="bn">বিদ্যমান সিলেবাস সমূহ</span><span data-i18n="en">Existing Syllabus Files</span></h3>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th><span data-i18n="bn">শ্রেণি</span><span data-i18n="en">Class</span></th>
+            <th><span data-i18n="bn">বর্তমান ফাইল</span><span data-i18n="en">Current File</span></th>
+            <th><span data-i18n="bn">আপলোডের তারিখ</span><span data-i18n="en">Uploaded On</span></th>
+            <th><span data-i18n="bn">আকার</span><span data-i18n="en">Size</span></th>
+            <th><span data-i18n="bn">কার্যক্রম</span><span data-i18n="en">Actions</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span data-i18n="bn">ষষ্ঠ শ্রেণি - A</span><span data-i18n="en">Class 6 - A</span></td>
+            <td><span data-i18n="bn">সিলেবাস_ষষ্ঠ_২০২৫.pdf</span><span data-i18n="en">syllabus_class6_2025.pdf</span></td>
+            <td>০৫ জানুয়ারি ২০২৫</td>
+            <td>1.2 MB</td>
+            <td class="flex gap-2">
+              <a class="btn btn-secondary btn-sm" href="#"><span data-i18n="bn">ডাউনলোড</span><span data-i18n="en">Download</span></a>
+              <button class="btn btn-secondary btn-sm"><span data-i18n="bn">প্রতিস্থাপন</span><span data-i18n="en">Replace</span></button>
+            </td>
+          </tr>
+          <tr>
+            <td><span data-i18n="bn">অষ্টম শ্রেণি - A</span><span data-i18n="en">Class 8 - A</span></td>
+            <td><span data-i18n="bn">সিলেবাস_অষ্টম_২০২৫.pdf</span><span data-i18n="en">syllabus_class8_2025.pdf</span></td>
+            <td>০৮ জানুয়ারি ২০২৫</td>
+            <td>2.4 MB</td>
+            <td class="flex gap-2">
+              <a class="btn btn-secondary btn-sm" href="#"><span data-i18n="bn">ডাউনলোড</span><span data-i18n="en">Download</span></a>
+              <button class="btn btn-secondary btn-sm"><span data-i18n="bn">প্রতিস্থাপন</span><span data-i18n="en">Replace</span></button>
+            </td>
+          </tr>
+          <tr>
+            <td><span data-i18n="bn">দশম শ্রেণি - B</span><span data-i18n="en">Class 10 - B</span></td>
+            <td><span class="text-secondary"><span data-i18n="bn">কোনো ফাইল আপলোড করা হয়নি</span><span data-i18n="en">No file uploaded yet</span></span></td>
+            <td>—</td>
+            <td>—</td>
+            <td class="flex gap-2">
+              <button class="btn btn-primary btn-sm"><span data-i18n="bn">আপলোড</span><span data-i18n="en">Upload</span></button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>
