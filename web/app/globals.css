@@ -1,0 +1,47 @@
+@import "tailwindcss";
+
+/* Family Design System tokens (ADR 0006) — the app-side source of truth.
+   Mirrors ui/shared/design-system.css; palette changes go here (and there) only. */
+@theme {
+  --color-ink: #131313;
+  --color-ink-card: #1c1c1c;
+  --color-paper: #ffffff;
+  --color-paper-muted: #f5f4f1;
+  --color-line: #ececec;
+  --color-line-strong: #d8d8d8;
+  --color-muted: #767676;
+
+  --color-brand-50: #eef5ff;
+  --color-brand-100: #dbeaff;
+  --color-brand-300: #8abcff;
+  --color-brand-500: #2f7eff;
+  --color-brand-600: #1e6bf0;
+  --color-brand-700: #1a58c8;
+
+  --color-mint: #00d26a;
+  --color-mint-deep: #0a7a48;
+  --color-mint-soft: #e6f9ef;
+  --color-sun: #ffc94a;
+  --color-sun-deep: #c98a00;
+  --color-sun-soft: #fff6e0;
+  --color-alert: #ef4444;
+  --color-alert-deep: #dc2626;
+  --color-alert-soft: #fdeaea;
+  --color-sky: #00b2ff;
+  --color-sky-deep: #0077b8;
+  --color-sky-soft: #e5f6ff;
+
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+
+  --shadow-card: 0 12px 32px rgb(0 0 0 / 0.08);
+  --shadow-modal: 0 24px 64px rgb(0 0 0 / 0.16);
+
+  --font-sans: var(--font-jakarta), var(--font-bangla), system-ui, sans-serif;
+}
+
+body {
+  background: var(--color-paper-muted);
+  color: var(--color-ink);
+}

@@ -1,0 +1,44 @@
+// Minimal bilingual dictionary — Bangla default, English secondary (ADR 0004).
+// Grows per feature slice; keep keys flat and screen-prefixed.
+
+export type Lang = 'bn' | 'en'
+export const DEFAULT_LANG: Lang = 'bn'
+export const LANG_COOKIE = 'asm-lang'
+
+type Entry = { bn: string; en: string }
+
+const dict = {
+  'app.name': { bn: 'আমার স্কুল', en: 'Amar School' },
+  'login.title': { bn: 'লগইন', en: 'Log in' },
+  'login.email': { bn: 'ইমেইল', en: 'Email' },
+  'login.password': { bn: 'পাসওয়ার্ড', en: 'Password' },
+  'login.submit': { bn: 'লগইন করুন', en: 'Log in' },
+  'login.forgot': { bn: 'পাসওয়ার্ড ভুলে গেছেন?', en: 'Forgot password?' },
+  'login.noAccount': { bn: 'অ্যাকাউন্ট নেই? স্কুল নিবন্ধন করুন', en: 'No account? Register a school' },
+  'login.failed': { bn: 'ইমেইল বা পাসওয়ার্ড সঠিক নয়', en: 'Invalid email or password' },
+  'signup.title': { bn: 'স্কুল নিবন্ধন', en: 'Register School' },
+  'signup.schoolName': { bn: 'প্রতিষ্ঠানের নাম', en: 'School name' },
+  'signup.submit': { bn: 'নিবন্ধন করুন', en: 'Register' },
+  'signup.haveAccount': { bn: 'অ্যাকাউন্ট আছে? লগইন করুন', en: 'Have an account? Log in' },
+  'reset.title': { bn: 'পাসওয়ার্ড রিসেট', en: 'Reset password' },
+  'reset.send': { bn: 'রিসেট লিংক পাঠান', en: 'Send reset link' },
+  'reset.sent': { bn: 'ইমেইল পাঠানো হয়েছে — ইনবক্স দেখুন', en: 'Email sent — check your inbox' },
+  'reset.newPassword': { bn: 'নতুন পাসওয়ার্ড', en: 'New password' },
+  'reset.save': { bn: 'সংরক্ষণ করুন', en: 'Save' },
+  'shell.logout': { bn: 'লগআউট', en: 'Log out' },
+  'shell.welcome': { bn: 'স্বাগতম', en: 'Welcome' },
+  'home.school': { bn: 'স্কুল ড্যাশবোর্ড', en: 'School Dashboard' },
+  'home.dealer': { bn: 'ডিলার ড্যাশবোর্ড', en: 'Dealer Dashboard' },
+  'home.superAdmin': { bn: 'সুপার অ্যাডমিন', en: 'Super Admin' },
+  'home.gov': { bn: 'সরকারি পর্যবেক্ষণ', en: 'Government Oversight' },
+  'home.placeholder': {
+    bn: 'এই ভূমিকার ফিচারগুলো পরবর্তী ধাপে যুক্ত হবে।',
+    en: 'Features for this role arrive in later slices.',
+  },
+} satisfies Record<string, Entry>
+
+export type MessageKey = keyof typeof dict
+
+export function t(key: MessageKey, lang: Lang): string {
+  return dict[key][lang]
+}
