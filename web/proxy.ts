@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { canAccess, homeFor, isProtectedPath, type Role } from '@/lib/auth/routing'
+import { canOpenScreen, screenKeyForPath } from '@/lib/auth/screens'
 
 // Optimistic auth gate for the role route groups (ADR 0003). Pages and RLS
 // re-verify — this only routes: no session → /login; wrong role group → own home.
@@ -48,6 +49,19 @@ export async function proxy(request: NextRequest) {
   const role = profile.role as Role
   if (!canAccess(role, path)) {
     return NextResponse.redirect(new URL(homeFor(role), request.url))
+  }
+
+  // Staff Users: per-screen allow-list (issue #2) — server-enforced, not just nav.
+  const screen = screenKeyForPath(path)
+  if (role === 'staff_user' && screen) {
+    const { data: grants } = await supabase
+      .from('staff_permissions')
+      .select('screen_key')
+      .eq('staff_user_id', user.id)
+    const granted = (grants ?? []).map((g) => g.screen_key)
+    if (!canOpenScreen(role, granted, screen)) {
+      return NextResponse.redirect(new URL('/school/permission-denied', request.url))
+    }
   }
 
   return response

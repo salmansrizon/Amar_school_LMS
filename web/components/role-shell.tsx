@@ -8,7 +8,16 @@ import { createClient } from '@/lib/supabase/server'
 
 // Bare authenticated landing shell per role (issue #1 — no feature UI yet).
 // Re-verifies the session server-side; the proxy check is only optimistic.
-export async function RoleShell({ group, titleKey }: { group: string; titleKey: MessageKey }) {
+export async function RoleShell({
+  group,
+  titleKey,
+  ownerLinks = [],
+}: {
+  group: string
+  titleKey: MessageKey
+  /** Quick links shown only to School Owners (e.g. staff management). */
+  ownerLinks?: { href: string; labelKey: MessageKey }[]
+}) {
   const lang = await currentLang()
   const supabase = await createClient()
   const {
@@ -46,6 +55,19 @@ export async function RoleShell({ group, titleKey }: { group: string; titleKey: 
             {t('shell.welcome', lang)}, {profile.full_name ?? user.email}
           </p>
           <p className="mt-4 text-sm text-muted">{t('home.placeholder', lang)}</p>
+          {profile.role === 'school_owner' && ownerLinks.length > 0 && (
+            <div className="mt-5 flex flex-wrap justify-center gap-2">
+              {ownerLinks.map((link) => (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  className="rounded-full border border-line-strong px-4 py-1.5 text-sm font-semibold hover:bg-paper-muted"
+                >
+                  {t(link.labelKey, lang)}
+                </a>
+              ))}
+            </div>
+          )}
         </div>
       </main>
     </div>

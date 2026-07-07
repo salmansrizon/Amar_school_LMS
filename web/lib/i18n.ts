@@ -35,6 +35,21 @@ const dict = {
     bn: 'এই ভূমিকার ফিচারগুলো পরবর্তী ধাপে যুক্ত হবে।',
     en: 'Features for this role arrive in later slices.',
   },
+  'staff.title': { bn: 'স্টাফ অনুমতি', en: 'Staff Permissions' },
+  'staff.create': { bn: 'নতুন স্টাফ লগইন', en: 'New staff login' },
+  'staff.fullName': { bn: 'পূর্ণ নাম', en: 'Full name' },
+  'staff.createBtn': { bn: 'স্টাফ তৈরি করুন', en: 'Create staff' },
+  'staff.list': { bn: 'স্টাফ তালিকা', en: 'Staff list' },
+  'staff.none': { bn: 'এখনো কোনো স্টাফ ইউজার নেই', en: 'No staff users yet' },
+  'staff.permissions': { bn: 'অনুমতি', en: 'Permissions' },
+  'staff.screens': { bn: 'স্ক্রিন অ্যাক্সেস', en: 'Screen access' },
+  'staff.granted': { bn: 'অনুমোদিত', en: 'Granted' },
+  'denied.title': { bn: 'অনুমতি নেই', en: 'Permission denied' },
+  'denied.body': {
+    bn: 'এই স্ক্রিনে আপনার অ্যাক্সেস নেই। স্কুল মালিকের সাথে যোগাযোগ করুন।',
+    en: 'You do not have access to this screen. Contact your School Owner.',
+  },
+  'denied.back': { bn: 'ড্যাশবোর্ডে ফিরুন', en: 'Back to dashboard' },
 } satisfies Record<string, Entry>
 
 export type MessageKey = keyof typeof dict
