@@ -26,8 +26,10 @@ export async function GET(request: Request) {
   if (!profile) {
     const schoolName = user.user_metadata?.school_name
     if (typeof schoolName === 'string' && schoolName.trim()) {
-      await supabase.rpc('register_school', { school_name: schoolName.trim() })
-      profile = { role: 'school_owner' }
+      const { error: rpcError } = await supabase.rpc('register_school', {
+        school_name: schoolName.trim(),
+      })
+      if (!rpcError) profile = { role: 'school_owner' }
     }
   }
 
