@@ -399,24 +399,60 @@ html:not([data-lang]) [data-i18n="en"],
 [data-lang="bn"] [data-i18n="en"] { display: none; }
 [data-lang="en"] [data-i18n="bn"] { display: none; }
 
-/* ---------- Responsive (small devices) ---------- */
+/* ---------- Mobile navbar / drawer / breadcrumbs (injected by shared/app.js) ---------- */
 
-@media (max-width: 900px) {
-  /* Sidebar collapses into a top bar with horizontally scrollable nav */
+.mobile-navbar, .crumbs, .nav-backdrop { display: none; }
+
+.mobile-navbar {
+  position: sticky; top: 0; z-index: 40;
+  align-items: center; gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: var(--bg-sidebar); color: var(--gray-0);
+}
+.mobile-navbar .brand { display: flex; align-items: center; gap: var(--space-2); font-weight: 800; }
+.nav-toggle {
+  background: none; border: none; color: inherit; cursor: pointer;
+  font-size: 1.35rem; line-height: 1; padding: var(--space-2);
+  border-radius: var(--radius-sm);
+}
+.nav-toggle:active { background: rgba(255,255,255,0.12); }
+
+.crumbs {
+  align-items: center; flex-wrap: wrap; gap: var(--space-1);
+  padding: var(--space-2) var(--space-4);
+  background: var(--bg-surface); border-bottom: 1px solid var(--border-default);
+  font-size: var(--text-xs); color: var(--text-secondary);
+}
+.crumbs a { color: var(--text-secondary); text-decoration: none; }
+.crumbs a:hover { color: var(--accent); }
+.crumbs .sep { opacity: 0.5; }
+.crumbs .current { color: var(--text-primary); font-weight: 600; }
+
+.nav-backdrop { position: fixed; inset: 0; background: rgba(19,19,19,0.5); z-index: 50; }
+
+/* ---------- Responsive (phones + tablets) ---------- */
+
+@media (max-width: 1024px) {
   .app-shell { flex-direction: column; }
+  .mobile-navbar { display: flex; }
+  .crumbs { display: flex; }
+
+  /* Sidebar becomes an off-canvas drawer opened from the navbar hamburger */
   .sidebar {
-    width: 100%;
-    flex-direction: row;
-    align-items: center;
-    gap: var(--space-2);
-    padding: var(--space-2) var(--space-3);
-    overflow-x: auto;
+    position: fixed; top: 0; bottom: 0; left: 0;
+    width: 264px; max-width: 82vw;
+    transform: translateX(-100%);
+    transition: transform 0.2s ease;
+    z-index: 60;
+    overflow-y: auto;
     -webkit-overflow-scrolling: touch;
   }
-  .sidebar .brand { padding: 0 var(--space-3) 0 0; flex-shrink: 0; white-space: nowrap; }
-  .sidebar nav { flex-direction: row; align-items: center; gap: var(--space-1); }
-  .sidebar .nav-section-label { display: none; }
-  .sidebar a.nav-item { white-space: nowrap; flex-shrink: 0; }
+  body.nav-open .sidebar { transform: translateX(0); }
+  body.nav-open .nav-backdrop { display: block; }
+  body.nav-open { overflow: hidden; }
+
+  /* Comfier tap targets in the drawer */
+  .sidebar a.nav-item { padding: var(--space-3); }
 }
 
 @media (max-width: 768px) {
