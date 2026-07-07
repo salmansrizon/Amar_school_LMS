@@ -6,6 +6,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="../shared/design-system.css">
 <script src="../shared/app.js" defer></script>
+<style>
+  .profile-split { display: grid; grid-template-columns: 160px 1fr; gap: var(--space-6); }
+  @media (max-width: 640px) { .profile-split { grid-template-columns: 1fr; } }
+</style>
 </head>
 <body>
 <div class="app-shell">
@@ -64,7 +68,7 @@
         <a href="#behaviour"><span data-i18n="bn">আচরণ লগ</span><span data-i18n="en">Behaviour Log</span></a>
       </div>
 
-      <div style="display:grid; grid-template-columns: 160px 1fr; gap: var(--space-6);">
+      <div class="profile-split">
         <div class="card" style="text-align:center;">
           <div style="width:120px;height:120px;border-radius:var(--radius-md);background:var(--bg-surface-alt);border:1px dashed var(--border-strong);display:flex;align-items:center;justify-content:center;margin:0 auto var(--space-2);color:var(--text-secondary);font-size:var(--text-xs);">
             <span data-i18n="bn">ছবি</span><span data-i18n="en">Photo</span>

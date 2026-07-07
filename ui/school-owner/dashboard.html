@@ -6,6 +6,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="../shared/design-system.css">
 <script src="../shared/app.js" defer></script>
+<style>
+  .dash-split { display: grid; grid-template-columns: 2fr 1fr; gap: var(--space-4); align-items: start; }
+  @media (max-width: 900px) { .dash-split { grid-template-columns: 1fr; } }
+</style>
 </head>
 <body>
 <div class="app-shell">
@@ -70,7 +74,7 @@
         </div>
       </div>
 
-      <div style="display:grid; grid-template-columns: 2fr 1fr; gap: var(--space-4); align-items:start;">
+      <div class="dash-split">
         <div class="card">
           <h3 class="mt-0"><span data-i18n="bn">সাম্প্রতিক কার্যক্রম</span><span data-i18n="en">Recent Activity</span></h3>
           <table class="data-table">
