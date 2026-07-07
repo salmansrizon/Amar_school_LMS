@@ -54,12 +54,13 @@ export async function proxy(request: NextRequest) {
   // Staff Users: per-screen allow-list (issue #2) — server-enforced, not just nav.
   const screen = screenKeyForPath(path)
   if (role === 'staff_user' && screen) {
-    const { data: grants } = await supabase
+    const { data: grant } = await supabase
       .from('staff_permissions')
       .select('screen_key')
       .eq('staff_user_id', user.id)
-    const granted = (grants ?? []).map((g) => g.screen_key)
-    if (!canOpenScreen(role, granted, screen)) {
+      .eq('screen_key', screen)
+      .maybeSingle()
+    if (!canOpenScreen(role, grant ? [grant.screen_key] : [], screen)) {
       return NextResponse.redirect(new URL('/school/permission-denied', request.url))
     }
   }
