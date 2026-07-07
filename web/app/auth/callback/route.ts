@@ -14,7 +14,10 @@ export async function GET(request: Request) {
     if (error) return NextResponse.redirect(new URL('/login', url.origin))
   }
 
-  if (next) return NextResponse.redirect(new URL(next, url.origin))
+  // Same-origin paths only — an absolute URL in ?next would be an open redirect.
+  if (next && next.startsWith('/') && !next.startsWith('//')) {
+    return NextResponse.redirect(new URL(next, url.origin))
+  }
 
   const {
     data: { user },

@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation'
 import { LangSwitch } from '@/components/lang-switch'
 import { LogoutButton } from '@/components/logout-button'
 import { currentLang } from '@/lib/i18n-server'
-import { canAccess, type Role } from '@/lib/auth/routing'
+import { canAccess, homeFor, type Role } from '@/lib/auth/routing'
 import { t, type MessageKey } from '@/lib/i18n'
 import { createClient } from '@/lib/supabase/server'
 
@@ -21,7 +21,9 @@ export async function RoleShell({ group, titleKey }: { group: string; titleKey: 
     .select('role, full_name')
     .eq('id', user.id)
     .single()
-  if (!profile || !canAccess(profile.role as Role, group)) redirect('/login')
+  if (!profile) redirect('/login')
+  // Wrong role group: send them to their own home, not back to the login form.
+  if (!canAccess(profile.role as Role, group)) redirect(homeFor(profile.role as Role))
 
   return (
     <div className="flex min-h-screen flex-col">
