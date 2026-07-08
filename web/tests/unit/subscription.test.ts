@@ -20,6 +20,11 @@ describe('expiryAfterRedemption: stacks onto max(today, current expiry)', () => 
   it('expiring today counts as active-through-today: stacks from today', () => {
     expect(expiryAfterRedemption(new Date('2026-07-08'), 2, TODAY)).toEqual(new Date('2026-09-08'))
   })
+
+  it('clamps month-end overflow like Postgres (Jan 31 + 1mo = Feb 28)', () => {
+    expect(expiryAfterRedemption(new Date('2027-01-31'), 1, TODAY)).toEqual(new Date('2027-02-28'))
+    expect(expiryAfterRedemption(new Date('2026-08-31'), 1, TODAY)).toEqual(new Date('2026-09-30'))
+  })
 })
 
 describe('expiryAfterDecrease (issue #6)', () => {

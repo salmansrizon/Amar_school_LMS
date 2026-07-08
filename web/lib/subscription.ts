@@ -4,7 +4,11 @@
 
 function addMonths(date: Date, months: number): Date {
   const result = new Date(date)
+  const day = result.getUTCDate()
   result.setUTCMonth(result.getUTCMonth() + months)
+  // Clamp month-end overflow (Jan 31 + 1mo → Feb 28/29, not Mar 3),
+  // matching Postgres make_interval semantics.
+  if (result.getUTCDate() !== day) result.setUTCDate(0)
   return result
 }
 

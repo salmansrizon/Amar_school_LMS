@@ -15,13 +15,15 @@ async function signedIn(email: string): Promise<SupabaseClient> {
 
 function isoDatePlusMonths(base: Date, months: number): string {
   const d = new Date(base)
+  const day = d.getUTCDate()
   d.setUTCMonth(d.getUTCMonth() + months)
+  if (d.getUTCDate() !== day) d.setUTCDate(0) // clamp like Postgres make_interval
   return d.toISOString().slice(0, 10)
 }
 
 describe('Subscription Codes (issue #5) + manual expiry correction (issue #6)', () => {
   let admin: SupabaseClient
-  let schoolBId: string
+  let schoolBId: string  // per-run throwaway school (redemption is permanent, so no reset is possible)
 
   async function generate(count: number, months: number, price: number) {
     return admin.rpc('generate_code_batch', {
@@ -38,18 +40,21 @@ describe('Subscription Codes (issue #5) + manual expiry correction (issue #6)', 
 
   beforeAll(async () => {
     admin = await signedIn('super@test.local')
-    const { data } = await admin.from('schools').select('id').eq('name', 'Test School B').single()
-    schoolBId = data!.id
-    // Reset School B to pristine trial state.
-    await admin.from('subscription_codes').update({ redeemed_school_id: null, redeemed_at: null })
-      .eq('redeemed_school_id', schoolBId)
-    await admin.from('schools').update({ subscription_expires_at: null }).eq('id', schoolBId)
+    // Redemption is permanent (trigger-enforced), so each run gets a fresh
+    // throwaway school. Used codes pin it in the DB — a tiny, acceptable
+    // residue in the dev project.
+    const { data, error } = await admin
+      .from('schools')
+      .insert({ name: `ZZ Codes Test ${crypto.randomUUID().slice(0, 8)}` })
+      .select('id')
+      .single()
+    if (error) throw new Error(error.message)
+    schoolBId = data.id
   })
 
   afterAll(async () => {
-    await admin.from('subscription_codes').update({ redeemed_school_id: null, redeemed_at: null })
-      .eq('redeemed_school_id', schoolBId)
-    await admin.from('schools').update({ subscription_expires_at: null }).eq('id', schoolBId)
+    // Unused codes are deletable; remove this run's leftovers.
+    await admin.from('subscription_codes').delete().is('redeemed_at', null)
   })
 
   it('generates a batch of unique codes with validity and price', async () => {
@@ -107,6 +112,18 @@ describe('Subscription Codes (issue #5) + manual expiry correction (issue #6)', 
     const code = (data as { code: string }[])[0].code
     expect((await admin.rpc('redeem_code', { code_text: code, sid: schoolBId })).error).toBeNull()
     expect((await admin.rpc('redeem_code', { code_text: code, sid: schoolBId })).error).not.toBeNull()
+  })
+
+  it('a redeemed code cannot be un-redeemed, even by a Super Admin', async () => {
+    const { data } = await generate(1, 1, 0)
+    const code = (data as { code: string }[])[0].code
+    await admin.rpc('redeem_code', { code_text: code, sid: schoolBId })
+
+    const { error } = await admin
+      .from('subscription_codes')
+      .update({ redeemed_school_id: null, redeemed_at: null })
+      .eq('code', code)
+    expect(error).not.toBeNull()
   })
 
   it('a used code cannot be deleted; an unused one can', async () => {
