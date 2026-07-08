@@ -19,7 +19,10 @@ export type AttendanceStatus = 'present' | 'on_time' | 'late_entry' | 'exit_earl
 
 /**
  * Legacy status matrix: late-entry × early-exit, with the Considerable Grace
- * Window applied to the entry side. Times are 'HH:MM' in the shift's local day.
+ * Window applied to the entry side. Times are 'HH:MM' interpreted as UTC —
+ * matching the SQL job. Devices must send UTC timestamps.
+ * ponytail: single-timezone assumption; add schools.timezone when a non-UTC
+ * deployment needs local-time statuses.
  */
 export function employeeStatus(
   entry: Date,

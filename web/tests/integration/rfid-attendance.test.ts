@@ -61,7 +61,7 @@ describe('RFID Attendance Event ingestion + reconciliation (issue #10)', () => {
       await ownerA.from('students').insert({ full_name: 'RFID Test Student' }).select('id').single()
     ).data!.id
 
-    await ownerA.from('rfid_cards').delete().in('card_number', ['EMP-CARD-1', 'STU-CARD-1'])
+    await ownerA.from('rfid_cards').delete().in('card_number', ['EMP-CARD-1', 'STU-CARD-1', 'LATE-CARD-9'])
     await ownerA.from('rfid_cards').insert([
       { card_number: 'EMP-CARD-1', employee_id: employeeId },
       { card_number: 'STU-CARD-1', student_id: studentId },
@@ -148,6 +148,41 @@ describe('RFID Attendance Event ingestion + reconciliation (issue #10)', () => {
     await anon().rpc('reconcile_attendance', { job_secret: RECONCILE_SECRET, target_date: DAY })
     const { data } = await ownerA.from('attendance_records').select('id').eq('att_date', DAY)
     expect(data).toHaveLength(2)
+  })
+
+  it('unregistered-card taps survive reconciliation and replay once the card is registered', async () => {
+    // Tap from a card nobody has registered yet.
+    await anon().rpc('ingest_attendance_events', {
+      school: schoolId,
+      token: ingestToken,
+      events: [{ card_number: 'LATE-CARD-9', tapped_at: `${DAY}T08:10:00Z` }],
+    })
+    await anon().rpc('reconcile_attendance', { job_secret: RECONCILE_SECRET, target_date: DAY })
+
+    // Not consumed: the tap is still unprocessed.
+    const { data: pending } = await ownerA
+      .from('attendance_events')
+      .select('processed')
+      .eq('card_number', 'LATE-CARD-9')
+    expect(pending!.every((e) => e.processed === false)).toBe(true)
+
+    // Register the card the next day, re-run — the tap replays into a record.
+    const { data: lateStudent } = await ownerA
+      .from('students')
+      .insert({ full_name: 'RFID Late Card Student' })
+      .select('id')
+      .single()
+    await ownerA.from('rfid_cards').insert({ card_number: 'LATE-CARD-9', student_id: lateStudent!.id })
+    await anon().rpc('reconcile_attendance', { job_secret: RECONCILE_SECRET, target_date: DAY })
+
+    const { data: record } = await ownerA
+      .from('attendance_records')
+      .select('status')
+      .eq('person_id', lateStudent!.id)
+      .eq('att_date', DAY)
+    expect(record).toHaveLength(1)
+
+    await ownerA.from('students').delete().eq('id', lateStudent!.id)
   })
 
   it('reconcile rejects a wrong secret', async () => {
