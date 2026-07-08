@@ -1,0 +1,89 @@
+'use server'
+
+import { revalidatePath } from 'next/cache'
+import { createClient } from '@/lib/supabase/server'
+
+// RLS scopes all writes to the caller's School.
+
+const PAGE = '/school/employees'
+
+/** Empty → null; invalid → NaN (callers reject); otherwise the integer. */
+function optionalMinutes(value: FormDataEntryValue | null): number | null {
+  const raw = String(value ?? '').trim()
+  if (!raw) return null
+  const minutes = Number(raw)
+  return Number.isInteger(minutes) && minutes >= 0 ? minutes : Number.NaN
+}
+
+export async function addEmployee(formData: FormData): Promise<{ error?: string }> {
+  const name = String(formData.get('full_name') ?? '').trim()
+  if (!name) return { error: 'Name is required' }
+  const override = optionalMinutes(formData.get('grace_override'))
+  if (Number.isNaN(override)) return { error: 'Grace must be a non-negative integer' }
+  const supabase = await createClient()
+  const { error } = await supabase.from('employees').insert({
+    full_name: name,
+    category: String(formData.get('category') ?? '').trim() || null,
+    grace_override_minutes: override,
+  })
+  if (error) return { error: error.message }
+  revalidatePath(PAGE)
+  return {}
+}
+
+export async function addShift(formData: FormData): Promise<{ error?: string }> {
+  const name = String(formData.get('name') ?? '').trim()
+  if (!name) return { error: 'Name is required' }
+  const grace = optionalMinutes(formData.get('grace_minutes'))
+  if (Number.isNaN(grace)) return { error: 'Grace must be a non-negative integer' }
+  const supabase = await createClient()
+  const { error } = await supabase.from('shifts').insert({ name, grace_minutes: grace })
+  if (error) return { error: error.message }
+  revalidatePath(PAGE)
+  return {}
+}
+
+export async function setShiftAssignment(
+  employeeId: string,
+  shiftId: string,
+  assigned: boolean,
+): Promise<{ error?: string }> {
+  const supabase = await createClient()
+  const { error } = assigned
+    ? await supabase.from('employee_shifts').insert({ employee_id: employeeId, shift_id: shiftId })
+    : await supabase
+        .from('employee_shifts')
+        .delete()
+        .eq('employee_id', employeeId)
+        .eq('shift_id', shiftId)
+  if (error) return { error: error.message }
+  revalidatePath(PAGE)
+  return {}
+}
+
+export async function setCategoryGrace(formData: FormData): Promise<{ error?: string }> {
+  const category = String(formData.get('category') ?? '').trim()
+  if (!category) return { error: 'Category is required' }
+  const grace = Number(formData.get('grace_minutes'))
+  if (!Number.isInteger(grace) || grace < 0) return { error: 'Grace must be a non-negative integer' }
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from('category_grace_minutes')
+    .upsert({ category, grace_minutes: grace }, { onConflict: 'school_id,category' })
+  if (error) return { error: error.message }
+  revalidatePath(PAGE)
+  return {}
+}
+
+export async function setDefaultGrace(formData: FormData): Promise<{ error?: string }> {
+  const raw = String(formData.get('minutes') ?? '').trim()
+  const minutes = raw === '' ? null : Number(raw)
+  if (minutes !== null && (!Number.isInteger(minutes) || minutes < 0)) {
+    return { error: 'Grace must be a non-negative integer' }
+  }
+  const supabase = await createClient()
+  const { error } = await supabase.rpc('set_school_default_grace', { minutes })
+  if (error) return { error: error.message }
+  revalidatePath(PAGE)
+  return {}
+}

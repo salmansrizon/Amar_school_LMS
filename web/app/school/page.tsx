@@ -5,6 +5,7 @@ export default function SchoolHome() {
     <RoleShell
       group="/school"
       titleKey="home.school"
+      links={[{ href: '/school/employees', labelKey: 'employees.title' }]}
       ownerLinks={[{ href: '/school/staff', labelKey: 'staff.title' }]}
     />
   )

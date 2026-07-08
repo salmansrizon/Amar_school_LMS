@@ -99,6 +99,24 @@ const dict = {
   'schools.newExpiry': { bn: 'নতুন মেয়াদ', en: 'New expiry' },
   'schools.decrease': { bn: 'মেয়াদ কমান (মাস)', en: 'Decrease expiry (months)' },
   'schools.apply': { bn: 'প্রয়োগ করুন', en: 'Apply' },
+  'common.back': { bn: 'ফিরে যান', en: 'Back' },
+  'employees.title': { bn: 'কর্মচারী', en: 'Employees' },
+  'employees.add': { bn: 'নতুন কর্মচারী', en: 'New employee' },
+  'employees.name': { bn: 'পূর্ণ নাম', en: 'Full name' },
+  'employees.category': { bn: 'ক্যাটাগরি', en: 'Category' },
+  'employees.override': { bn: 'ব্যক্তিগত গ্রেস (মিনিট)', en: 'Individual grace (min)' },
+  'employees.none': { bn: 'এখনো কোনো কর্মচারী নেই', en: 'No employees yet' },
+  'employees.effective': { bn: 'কার্যকর গ্রেস', en: 'Effective grace' },
+  'employees.shifts': { bn: 'শিফট', en: 'Shifts' },
+  'grace.global': { bn: 'স্কুল ডিফল্ট গ্রেস (মিনিট)', en: 'School default grace (min)' },
+  'grace.hint': {
+    bn: 'কার্যকর গ্রেস = সব প্রযোজ্য মানের সর্বোচ্চ (গ্লোবাল, ক্যাটাগরি, শিফট, ব্যক্তিগত)',
+    en: 'Effective grace = MAX across all applicable values (global, category, shift, individual)',
+  },
+  'shifts.add': { bn: 'নতুন শিফট', en: 'New shift' },
+  'shifts.name': { bn: 'শিফটের নাম', en: 'Shift name' },
+  'shifts.grace': { bn: 'গ্রেস (মিনিট)', en: 'Grace (min)' },
+  'categoryGrace.add': { bn: 'ক্যাটাগরি গ্রেস', en: 'Category grace' },
 } satisfies Record<string, Entry>
 
 export type MessageKey = keyof typeof dict
