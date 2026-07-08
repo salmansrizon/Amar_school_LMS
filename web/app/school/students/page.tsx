@@ -12,6 +12,9 @@ export default async function StudentsPage() {
     data: { user },
   } = await supabase.auth.getUser()
   if (!user) redirect('/login')
+  // Defense in depth alongside the proxy gate: /school pages are for school roles.
+  const { data: me } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+  if (me?.role !== 'school_owner' && me?.role !== 'staff_user') redirect('/login')
 
   const { data: students } = await supabase
     .from('students')
