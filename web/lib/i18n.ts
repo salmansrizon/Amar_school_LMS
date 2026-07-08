@@ -99,6 +99,26 @@ const dict = {
   'schools.newExpiry': { bn: 'নতুন মেয়াদ', en: 'New expiry' },
   'schools.decrease': { bn: 'মেয়াদ কমান (মাস)', en: 'Decrease expiry (months)' },
   'schools.apply': { bn: 'প্রয়োগ করুন', en: 'Apply' },
+  'students.title': { bn: 'শিক্ষার্থী', en: 'Students' },
+  'students.add': { bn: 'নতুন শিক্ষার্থী', en: 'New student' },
+  'students.name': { bn: 'পূর্ণ নাম', en: 'Full name' },
+  'students.class': { bn: 'শ্রেণি', en: 'Class' },
+  'students.section': { bn: 'শাখা', en: 'Section' },
+  'students.none': { bn: 'এখনো কোনো শিক্ষার্থী নেই', en: 'No students yet' },
+  'behaviour.title': { bn: 'আচরণ লগ', en: 'Behaviour Log' },
+  'behaviour.note': { bn: 'ঘটনার বিবরণ', en: 'Incident note' },
+  'behaviour.rating': { bn: 'রেটিং (০–১০)', en: 'Rating (0–10)' },
+  'behaviour.remind': { bn: 'রিমাইন্ড তারিখ', en: 'Remind date' },
+  'behaviour.avg': { bn: 'গড় রেটিং', en: 'Average rating' },
+  'behaviour.locked': { bn: 'লকড', en: 'Locked' },
+  'behaviour.lockedHint': {
+    bn: 'তৈরির ৩ দিন পর এন্ট্রি রিড-অনলি হয়ে যায়',
+    en: 'Entries become read-only 3 days after creation',
+  },
+  'behaviour.edit': { bn: 'সম্পাদনা', en: 'Edit' },
+  'behaviour.save': { bn: 'সংরক্ষণ', en: 'Save' },
+  'behaviour.none': { bn: 'কোনো এন্ট্রি নেই', en: 'No entries' },
+  'common.back': { bn: 'ফিরে যান', en: 'Back' },
 } satisfies Record<string, Entry>
 
 export type MessageKey = keyof typeof dict
