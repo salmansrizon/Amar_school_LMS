@@ -5,7 +5,10 @@ export default function SuperAdminHome() {
     <RoleShell
       group="/super-admin"
       titleKey="home.superAdmin"
-      links={[{ href: '/super-admin/locations', labelKey: 'locations.title' }]}
+      links={[
+        { href: '/super-admin/locations', labelKey: 'locations.title' },
+        { href: '/super-admin/partners', labelKey: 'partners.title' },
+      ]}
     />
   )
 }
