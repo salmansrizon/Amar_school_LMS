@@ -29,6 +29,7 @@ export async function GET(request: Request) {
 
   const gateway = smsGateway()
   let sent = 0
+  let failed = 0
   for (const candidate of (data ?? []) as {
     school_id: string
     student_id: string
@@ -38,8 +39,8 @@ export async function GET(request: Request) {
     streak: number
   }[]) {
     const body = `${candidate.student_name} has been absent for ${candidate.streak} working day(s).`
-    // Dedupe first: the log's unique constraint decides whether we send.
-    const { data: recorded } = await supabase.rpc('record_absence_sms', {
+    // Record the send attempt first (deduped by the unique constraint).
+    const { data: recorded, error: recordError } = await supabase.rpc('record_absence_sms', {
       job_secret: secret,
       p_school: candidate.school_id,
       p_student: candidate.student_id,
@@ -49,11 +50,20 @@ export async function GET(request: Request) {
       p_body: body,
       p_provider: gateway.name,
     })
+    if (recordError) {
+      failed += 1
+      continue
+    }
     if (recorded && candidate.guardian_phone) {
-      await gateway.send(candidate.guardian_phone, body)
-      sent += 1
+      try {
+        const result = await gateway.send(candidate.guardian_phone, body)
+        if (result.ok) sent += 1
+        else failed += 1
+      } catch {
+        failed += 1
+      }
     }
   }
 
-  return NextResponse.json({ date: target, candidates: data?.length ?? 0, sent })
+  return NextResponse.json({ date: target, candidates: data?.length ?? 0, sent, failed })
 }

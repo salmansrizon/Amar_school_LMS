@@ -138,7 +138,7 @@ export default async function SmsPage() {
             </table>
           </div>
         ) : (
-          <p className="text-sm text-gray-500">{t('sms.log', lang)}</p>
+          <p className="text-sm text-gray-500">{t('attendance.none', lang)}</p>
         )}
       </section>
     </main>
