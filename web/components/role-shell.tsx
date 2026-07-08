@@ -13,6 +13,7 @@ export async function RoleShell({
   titleKey,
   ownerLinks = [],
   links = [],
+  children,
 }: {
   group: string
   titleKey: MessageKey
@@ -20,6 +21,8 @@ export async function RoleShell({
   ownerLinks?: { href: string; labelKey: MessageKey }[]
   /** Quick links shown to every role in this group. */
   links?: { href: string; labelKey: MessageKey }[]
+  /** Feature content; when present it replaces the placeholder text. */
+  children?: React.ReactNode
 }) {
   const lang = await currentLang()
   const supabase = await createClient()
@@ -59,7 +62,7 @@ export async function RoleShell({
           <p className="mt-2 text-sm text-muted">
             {t('shell.welcome', lang)}, {profile.full_name ?? user.email}
           </p>
-          <p className="mt-4 text-sm text-muted">{t('home.placeholder', lang)}</p>
+          {children ?? <p className="mt-4 text-sm text-muted">{t('home.placeholder', lang)}</p>}
           {allLinks.length > 0 && (
             <div className="mt-5 flex flex-wrap justify-center gap-2">
               {allLinks.map((link) => (

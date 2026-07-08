@@ -10,5 +10,7 @@ export default defineConfig(({ mode }) => ({
     env: loadEnv(mode, __dirname, ''),
     include: ['tests/**/*.test.ts'],
     testTimeout: 15000,
+    // Integration tests share seeded rows (Test School A/B) — run files serially.
+    fileParallelism: false,
   },
 }))

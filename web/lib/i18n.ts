@@ -64,6 +64,21 @@ const dict = {
     bn: 'এই ক্লাস্টারটি মুছে যাবে — নিশ্চিত?',
     en: 'Delete this cluster?',
   },
+  'territory.mySchools': { bn: 'আমার স্কুলসমূহ', en: 'My Schools' },
+  'territory.noSchools': { bn: 'এখনো কোনো টেরিটরি বরাদ্দ নেই', en: 'No territory assignments yet' },
+  'territory.extended': { bn: 'বর্ধিত অ্যাক্সেস', en: 'Extended access' },
+  'partners.title': { bn: 'ডিলার ও সরকারি কর্মকর্তা', en: 'Dealers & Officials' },
+  'partners.create': { bn: 'নতুন অ্যাকাউন্ট', en: 'New account' },
+  'partners.role': { bn: 'ভূমিকা', en: 'Role' },
+  'partners.dealer': { bn: 'ডিলার', en: 'Dealer' },
+  'partners.gov': { bn: 'সরকারি কর্মকর্তা', en: 'Government Official' },
+  'partners.list': { bn: 'অ্যাকাউন্ট তালিকা', en: 'Accounts' },
+  'partners.assignments': { bn: 'টেরিটরি বরাদ্দ', en: 'Territory assignments' },
+  'partners.addLocation': { bn: 'লোকেশন বরাদ্দ', en: 'Assign location' },
+  'partners.addSchool': { bn: 'বর্ধিত স্কুল অ্যাক্সেস', en: 'Extended school access' },
+  'partners.tier': { bn: 'টিয়ার', en: 'Tier' },
+  'partners.none': { bn: 'কোনো বরাদ্দ নেই', en: 'No assignments' },
+  'partners.remove': { bn: 'মুছুন', en: 'Remove' },
 } satisfies Record<string, Entry>
 
 export type MessageKey = keyof typeof dict
