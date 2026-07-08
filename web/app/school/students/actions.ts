@@ -6,6 +6,13 @@ import { createClient } from '@/lib/supabase/server'
 // RLS scopes everything to the caller's School; the 3-day lock trigger is the
 // authority for edit rejection.
 
+function parseRating(value: FormDataEntryValue | null): number | null {
+  const rating = Number(value)
+  return Number.isFinite(rating) && rating >= 0 && rating <= 10 && value !== null && value !== ''
+    ? rating
+    : null
+}
+
 export async function addStudent(formData: FormData): Promise<{ error?: string }> {
   const name = String(formData.get('full_name') ?? '').trim()
   if (!name) return { error: 'Name is required' }
@@ -21,14 +28,18 @@ export async function addStudent(formData: FormData): Promise<{ error?: string }
 }
 
 export async function addBehaviourEntry(formData: FormData): Promise<{ error?: string }> {
-  const studentId = String(formData.get('student_id'))
+  const studentId = String(formData.get('student_id') ?? '').trim()
+  if (!studentId) return { error: 'Student is required' }
   const note = String(formData.get('note') ?? '').trim()
   if (!note) return { error: 'Note is required' }
+  const rating = parseRating(formData.get('rating'))
+  if (rating === null) return { error: 'Rating must be between 0 and 10' }
+
   const supabase = await createClient()
   const { error } = await supabase.from('behaviour_log_entries').insert({
     student_id: studentId,
     note,
-    rating: Number(formData.get('rating')),
+    rating,
     remind_date: String(formData.get('remind_date') ?? '') || null,
   })
   if (error) return { error: error.message }
@@ -37,14 +48,22 @@ export async function addBehaviourEntry(formData: FormData): Promise<{ error?: s
 }
 
 export async function updateBehaviourEntry(formData: FormData): Promise<{ error?: string }> {
-  const id = String(formData.get('id'))
-  const studentId = String(formData.get('student_id'))
+  const id = String(formData.get('id') ?? '').trim()
+  const studentId = String(formData.get('student_id') ?? '').trim()
+  if (!id || !studentId) return { error: 'Entry is required' }
   const note = String(formData.get('note') ?? '').trim()
   if (!note) return { error: 'Note is required' }
+  const rating = parseRating(formData.get('rating'))
+  if (rating === null) return { error: 'Rating must be between 0 and 10' }
+
   const supabase = await createClient()
   const { data, error } = await supabase
     .from('behaviour_log_entries')
-    .update({ note, rating: Number(formData.get('rating')) })
+    .update({
+      note,
+      rating,
+      remind_date: String(formData.get('remind_date') ?? '') || null,
+    })
     .eq('id', id)
     .select('id')
   if (error) return { error: error.message }

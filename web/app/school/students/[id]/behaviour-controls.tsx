@@ -110,6 +110,7 @@ export function EditableEntry({
       <textarea name="note" defaultValue={entry.note} required rows={2} className={`${inputClass} h-auto py-2`} />
       <div className="flex items-center gap-2">
         <input name="rating" type="number" min={0} max={10} defaultValue={entry.rating} required className={`${inputClass} w-24`} />
+        <input name="remind_date" type="date" defaultValue={entry.remind_date ?? ''} className={`${inputClass} w-40`} />
         <button type="submit" disabled={pending} className="h-9 cursor-pointer rounded-full bg-brand-500 px-4 text-xs font-semibold text-white hover:bg-brand-600 disabled:opacity-50">
           {t('behaviour.save', lang)}
         </button>
