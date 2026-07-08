@@ -26,6 +26,8 @@ export default async function SchoolsPage() {
     supabase.from('schools').select('id, name, subscription_expires_at').order('name'),
     supabase.rpc('schools_with_code_history'),
   ])
+  // `returns setof uuid` (scalar) → PostgREST returns bare strings, not
+  // {column: value} objects (verified against the live API).
   const withHistory = new Set((redeemed ?? []) as string[])
   const today = new Date(new Date().toISOString().slice(0, 10))
 
