@@ -207,11 +207,46 @@ describe('RFID Attendance Event ingestion + reconciliation (issue #10)', () => {
     expect(data![0].status).toBe('on_time') // exit now ≥ shift end 14:00 → no longer exit_early
   })
 
+  it('rejects assigning a card to another school\'s student (cross-tenant)', async () => {
+    const ownerB = await signedIn('owner-b@test.local')
+    await ownerB.from('students').delete().eq('full_name', 'RFID XTenant Student')
+    const { data: victim } = await ownerB
+      .from('students')
+      .insert({ full_name: 'RFID XTenant Student' })
+      .select('id')
+      .single()
+
+    await ownerA.from('rfid_cards').delete().eq('card_number', 'XT-CARD-1')
+    const { error } = await ownerA
+      .from('rfid_cards')
+      .insert({ card_number: 'XT-CARD-1', student_id: victim!.id })
+
+    // Clean up BEFORE asserting so a failing run never strands a cross-tenant row.
+    await ownerA.from('rfid_cards').delete().eq('card_number', 'XT-CARD-1')
+    await ownerB.from('students').delete().eq('id', victim!.id)
+    expect(error).not.toBeNull()
+  })
+
   it('reconcile rejects a wrong secret', async () => {
     const { error } = await anon().rpc('reconcile_attendance', {
       job_secret: 'wrong-secret',
       target_date: DAY,
     })
     expect(error).not.toBeNull()
+  })
+
+  it('ingest skips malformed tapped_at instead of aborting the batch', async () => {
+    const { error, data } = await anon().rpc('ingest_attendance_events', {
+      school: schoolId,
+      token: ingestToken,
+      events: [
+        { card_number: 'STU-CARD-1', tapped_at: `${DAY}T10:00:00Z` },
+        { card_number: 'STU-CARD-1', tapped_at: 'not-a-timestamp' },
+        { card_number: 'STU-CARD-1', tapped_at: null },
+        { card_number: 'STU-CARD-1', tapped_at: `${DAY}T11:00:00Z` },
+      ],
+    })
+    expect(error).toBeNull()
+    expect(data).toBe(2) // only the two valid timestamps inserted
   })
 })

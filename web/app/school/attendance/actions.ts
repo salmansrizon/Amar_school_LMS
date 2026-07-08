@@ -15,6 +15,16 @@ export async function assignCard(formData: FormData): Promise<{ error?: string }
 
   const supabase = await createClient()
   if (!(await requireSchoolMember(supabase))) return { error: 'Unauthorized' }
+
+  // The RLS-scoped lookup only sees this school's people, so a cross-school id
+  // fails here with a clear error (composite FKs in 0020 enforce it in the DB).
+  const { data: holderRow } = await supabase
+    .from(kind === 'student' ? 'students' : 'employees')
+    .select('id')
+    .eq('id', id)
+    .maybeSingle()
+  if (!holderRow) return { error: 'Holder not found' }
+
   const { error } = await supabase.from('rfid_cards').insert({
     card_number: cardNumber,
     student_id: kind === 'student' ? id : null,
