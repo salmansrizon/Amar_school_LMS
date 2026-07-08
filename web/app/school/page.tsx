@@ -8,6 +8,7 @@ export default function SchoolHome() {
       links={[
         { href: '/school/students', labelKey: 'students.title' },
         { href: '/school/employees', labelKey: 'employees.title' },
+        { href: '/school/exams', labelKey: 'exams.title' },
       ]}
       ownerLinks={[{ href: '/school/staff', labelKey: 'staff.title' }]}
     />
