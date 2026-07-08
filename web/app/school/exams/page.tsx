@@ -45,6 +45,19 @@ export default async function ExamsPage() {
           ))}
         </ul>
       </section>
+
+      {/* PDF printing seam (#25) — proves the server-side mark-sheet renderer.
+          Real per-student marks arrive with §5.5 (issues #32/#33). */}
+      <p className="mt-4 text-sm">
+        <a
+          href="/api/print/mark-sheet"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-brand-600 hover:underline"
+        >
+          {t('exams.sampleMarkSheet', lang)} →
+        </a>
+      </p>
     </main>
   )
 }

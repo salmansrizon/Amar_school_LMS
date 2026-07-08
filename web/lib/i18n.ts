@@ -129,6 +129,7 @@ const dict = {
     en: 'Closing an exam CANNOT be undone — all editing stops permanently. Are you sure?',
   },
   'exams.rename': { bn: 'নাম পরিবর্তন', en: 'Rename' },
+  'exams.sampleMarkSheet': { bn: 'নমুনা মার্কশিট (পিডিএফ)', en: 'Sample mark sheet (PDF)' },
   'fees.title': { bn: 'হিসাব ও ফি', en: 'Accounting & Fees' },
   'fees.collect': { bn: 'ফি কালেকশন', en: 'Collect fee' },
   'fees.student': { bn: 'শিক্ষার্থী', en: 'Student' },
