@@ -26,6 +26,11 @@ describe('takaInWords', () => {
     expect(takaInWords(0.05)).toBe('Zero Taka and Five Paisa Only')
   })
 
+  it('is exact on IEEE754-hostile fractions', () => {
+    expect(takaInWords(1.005)).toBe('One Taka and One Paisa Only')
+    expect(takaInWords(0.1 + 0.2)).toBe('Zero Taka and Thirty Paisa Only')
+  })
+
   it('rejects negatives', () => {
     expect(() => takaInWords(-1)).toThrow()
   })

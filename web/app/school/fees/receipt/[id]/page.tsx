@@ -14,6 +14,9 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
     data: { user },
   } = await supabase.auth.getUser()
   if (!user) redirect('/login')
+  // Defense in depth alongside the proxy gate: /school pages are for school roles.
+  const { data: me } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+  if (me?.role !== 'school_owner' && me?.role !== 'staff_user') redirect('/login')
 
   const { data: record } = await supabase
     .from('fee_collection_records')
@@ -30,7 +33,11 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
     section: string | null
   } | null
   const school = record.schools as unknown as { name: string } | null
-  const total = Number(record.pay_amount) + Number(record.fine_amount)
+  // Adjustment is a discount/scholarship — it reduces what was actually collected.
+  const total = Math.max(
+    0,
+    Number(record.pay_amount) + Number(record.fine_amount) - Number(record.adjust_amount),
+  )
 
   return (
     <main className="mx-auto w-full max-w-md flex-1 p-6">

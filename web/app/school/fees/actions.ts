@@ -1,6 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { requireSchoolMember } from '@/lib/auth/require-role'
 import { createClient } from '@/lib/supabase/server'
 
 // One record per student per month is DB-enforced (unique constraint).
@@ -31,6 +32,7 @@ export async function saveFeeRecord(formData: FormData): Promise<SaveFeeResult> 
   const method = String(formData.get('payment_method') ?? 'cash')
 
   const supabase = await createClient()
+  if (!(await requireSchoolMember(supabase))) return { error: 'Unauthorized' }
 
   if (editId) {
     const { data, error } = await supabase
