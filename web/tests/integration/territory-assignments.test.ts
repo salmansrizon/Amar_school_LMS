@@ -35,8 +35,11 @@ describe('Dealer & Government Official Territory assignment (issue #4)', () => {
     union1 = await add('T4-Union', 'union', upazila)
 
     const { data: schools } = await admin.from('schools').select('id, name').in('name', ['Test School A', 'Test School B'])
-    schoolAId = schools!.find((s) => s.name === 'Test School A')!.id
-    schoolBId = schools!.find((s) => s.name === 'Test School B')!.id
+    const schoolA = schools?.find((s) => s.name === 'Test School A')
+    const schoolB = schools?.find((s) => s.name === 'Test School B')
+    if (!schoolA || !schoolB) throw new Error('seed schools missing — run supabase/seed-test.sql first')
+    schoolAId = schoolA.id
+    schoolBId = schoolB.id
     await admin.from('schools').update({ location_id: union1 }).eq('id', schoolAId)
     await admin.from('schools').update({ location_id: null }).eq('id', schoolBId)
 
@@ -47,8 +50,16 @@ describe('Dealer & Government Official Territory assignment (issue #4)', () => {
       user_role: 'dealer',
     })
     if (error) {
-      const { data: existing } = await admin.from('profiles').select('id').eq('role', 'dealer').limit(1)
-      dealerId = existing![0].id
+      // Already created in a prior run — resolve the SAME account by its name,
+      // so dealerId matches the credentials used for the signed-in client.
+      const { data: existing } = await admin
+        .from('profiles')
+        .select('id')
+        .eq('role', 'dealer')
+        .eq('full_name', 'Test Dealer One')
+        .single()
+      if (!existing) throw new Error(`dealer exists but profile not found: ${error.message}`)
+      dealerId = existing.id
     } else {
       dealerId = created as string
     }
@@ -133,7 +144,14 @@ describe('Dealer & Government Official Territory assignment (issue #4)', () => {
       user_role: 'gov_official',
     })
     const govId = govErr
-      ? (await admin.from('profiles').select('id').eq('role', 'gov_official').limit(1)).data![0].id
+      ? (
+          await admin
+            .from('profiles')
+            .select('id')
+            .eq('role', 'gov_official')
+            .eq('full_name', 'Test Gov Official')
+            .single()
+        ).data!.id
       : (gov as string)
 
     const { error } = await admin.from('territory_assignments').insert({
