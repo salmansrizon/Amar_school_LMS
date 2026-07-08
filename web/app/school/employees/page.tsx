@@ -97,7 +97,7 @@ export default async function EmployeesPage() {
                   )}
                 </div>
                 <span className="rounded-full bg-brand-50 px-3 py-1 text-xs font-bold text-brand-700">
-                  {t('employees.effective', lang)}: {effective.get(e.id)}m
+                  {t('employees.effective', lang)}: {effective.get(e.id) ?? 0}m
                 </span>
               </div>
               <div className="mt-2 flex flex-wrap items-center gap-2">
