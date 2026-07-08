@@ -20,7 +20,11 @@ describe('Exam entity + Closed state (issue #8)', () => {
 
   beforeAll(async () => {
     ownerA = await signedIn('owner-a@test.local')
-    await ownerA.from('exams').delete().eq('name', 'Closed State Test Exam')
+    // Closed exams are undeletable by school roles (by design) — clean up
+    // prior runs as Super Admin, who is exempt for vendor-side maintenance.
+    const admin = await signedIn('super@test.local')
+    const { error } = await admin.from('exams').delete().eq('name', 'Closed State Test Exam')
+    if (error) throw new Error(`cleanup failed: ${error.message}`)
   })
 
   it('an Exam can be created Open and edited freely', async () => {

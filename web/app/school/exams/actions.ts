@@ -29,7 +29,7 @@ export async function renameExam(id: string, name: string): Promise<{ error?: st
     .eq('id', id)
     .select('id')
   if (error) return { error: error.message }
-  if (!data?.length) return { error: 'exam not updated' }
+  if (!data?.length) return { error: 'Exam not found or not accessible' }
   revalidatePath(PAGE)
   return {}
 }
