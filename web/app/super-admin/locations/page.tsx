@@ -4,7 +4,7 @@ import { buildTree, LOCATION_LABEL, type LocationRow } from '@/lib/locations'
 import { currentLang } from '@/lib/i18n-server'
 import { t } from '@/lib/i18n'
 import { createClient } from '@/lib/supabase/server'
-import { AddLocationForm, DeleteLocationButton, AddClusterForm } from './tree-controls'
+import { AddLocationForm, DeleteLocationButton, AddClusterForm, DeleteClusterButton } from './tree-controls'
 import type { LocationNode } from '@/lib/locations'
 import type { Lang } from '@/lib/i18n'
 
@@ -17,7 +17,7 @@ function TreeNode({ node, lang }: { node: LocationNode; lang: Lang }) {
         </span>
         <span className="text-sm font-medium">{node.name}</span>
         <AddLocationForm parent={node} lang={lang} />
-        <DeleteLocationButton id={node.id} />
+        <DeleteLocationButton id={node.id} lang={lang} />
       </div>
       {node.children.length > 0 && (
         <ul className="ml-5 border-l border-line pl-4">
@@ -80,8 +80,9 @@ export default async function LocationsPage() {
           {clusters?.map((c) => (
             <li key={c.id} className="flex items-center justify-between py-2 text-sm">
               <span className="font-medium">{c.name}</span>
-              <span className="text-muted">
+              <span className="flex items-center gap-2 text-muted">
                 {(c.locations as unknown as { name: string } | null)?.name}
+                <DeleteClusterButton id={c.id} lang={lang} />
               </span>
             </li>
           ))}

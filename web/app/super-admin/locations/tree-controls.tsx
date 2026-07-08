@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react'
 import { childType, LOCATION_LABEL, type LocationNode, type LocationRow } from '@/lib/locations'
 import { t, type Lang } from '@/lib/i18n'
-import { addCluster, addLocation, deleteLocation } from './actions'
+import { addCluster, addLocation, deleteCluster, deleteLocation } from './actions'
 
 const smallInput =
   'h-8 rounded-sm border border-line-strong bg-paper px-2 text-sm outline-none focus:border-brand-500'
@@ -56,22 +56,51 @@ export function AddLocationForm({ parent, lang }: { parent: LocationNode | null;
   )
 }
 
-export function DeleteLocationButton({ id }: { id: string }) {
+export function DeleteLocationButton({ id, lang }: { id: string; lang: Lang }) {
+  const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
   return (
-    <button
-      type="button"
-      disabled={pending}
-      onClick={() => {
-        if (!confirm('Delete this node and ALL locations under it?')) return
-        startTransition(async () => {
-          await deleteLocation(id)
-        })
-      }}
-      className="cursor-pointer rounded-full px-2 py-0.5 text-xs text-alert-deep hover:bg-alert-soft disabled:opacity-50"
-    >
-      🗑
-    </button>
+    <>
+      <button
+        type="button"
+        disabled={pending}
+        onClick={() => {
+          if (!confirm(t('locations.confirmDelete', lang))) return
+          startTransition(async () => {
+            const result = await deleteLocation(id)
+            setError(result.error ?? null)
+          })
+        }}
+        className="cursor-pointer rounded-full px-2 py-0.5 text-xs text-alert-deep hover:bg-alert-soft disabled:opacity-50"
+      >
+        🗑
+      </button>
+      {error && <span className="text-xs text-alert-deep">{error}</span>}
+    </>
+  )
+}
+
+export function DeleteClusterButton({ id, lang }: { id: string; lang: Lang }) {
+  const [error, setError] = useState<string | null>(null)
+  const [pending, startTransition] = useTransition()
+  return (
+    <>
+      <button
+        type="button"
+        disabled={pending}
+        onClick={() => {
+          if (!confirm(t('locations.confirmDeleteCluster', lang))) return
+          startTransition(async () => {
+            const result = await deleteCluster(id)
+            setError(result.error ?? null)
+          })
+        }}
+        className="cursor-pointer rounded-full px-2 py-0.5 text-xs text-alert-deep hover:bg-alert-soft disabled:opacity-50"
+      >
+        🗑
+      </button>
+      {error && <span className="text-xs text-alert-deep">{error}</span>}
+    </>
   )
 }
 

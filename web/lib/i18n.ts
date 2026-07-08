@@ -56,6 +56,14 @@ const dict = {
   'locations.empty': { bn: 'এখনো কোনো লোকেশন নেই — একটি বিভাগ দিয়ে শুরু করুন', en: 'No locations yet — start with a Division' },
   'locations.clusters': { bn: 'ক্লাস্টার', en: 'Clusters' },
   'locations.clusterName': { bn: 'ক্লাস্টারের নাম', en: 'Cluster name' },
+  'locations.confirmDelete': {
+    bn: 'এই নোড এবং এর অধীনের সব লোকেশন মুছে যাবে — নিশ্চিত?',
+    en: 'Delete this node and ALL locations under it?',
+  },
+  'locations.confirmDeleteCluster': {
+    bn: 'এই ক্লাস্টারটি মুছে যাবে — নিশ্চিত?',
+    en: 'Delete this cluster?',
+  },
 } satisfies Record<string, Entry>
 
 export type MessageKey = keyof typeof dict

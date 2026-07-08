@@ -37,6 +37,8 @@ export async function RoleShell({
   // Wrong role group: send them to their own home, not back to the login form.
   if (!canAccess(profile.role as Role, group)) redirect(homeFor(profile.role as Role))
 
+  const allLinks = [...links, ...(profile.role === 'school_owner' ? ownerLinks : [])]
+
   return (
     <div className="flex min-h-screen flex-col">
       <header className="flex items-center justify-between border-b border-line bg-ink px-4 py-3 text-white">
@@ -58,9 +60,9 @@ export async function RoleShell({
             {t('shell.welcome', lang)}, {profile.full_name ?? user.email}
           </p>
           <p className="mt-4 text-sm text-muted">{t('home.placeholder', lang)}</p>
-          {[...links, ...(profile.role === 'school_owner' ? ownerLinks : [])].length > 0 && (
+          {allLinks.length > 0 && (
             <div className="mt-5 flex flex-wrap justify-center gap-2">
-              {[...links, ...(profile.role === 'school_owner' ? ownerLinks : [])].map((link) => (
+              {allLinks.map((link) => (
                 <a
                   key={link.href}
                   href={link.href}
