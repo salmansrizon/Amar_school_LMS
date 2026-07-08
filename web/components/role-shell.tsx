@@ -12,11 +12,14 @@ export async function RoleShell({
   group,
   titleKey,
   ownerLinks = [],
+  links = [],
 }: {
   group: string
   titleKey: MessageKey
   /** Quick links shown only to School Owners (e.g. staff management). */
   ownerLinks?: { href: string; labelKey: MessageKey }[]
+  /** Quick links shown to every role in this group. */
+  links?: { href: string; labelKey: MessageKey }[]
 }) {
   const lang = await currentLang()
   const supabase = await createClient()
@@ -33,6 +36,8 @@ export async function RoleShell({
   if (!profile) redirect('/login')
   // Wrong role group: send them to their own home, not back to the login form.
   if (!canAccess(profile.role as Role, group)) redirect(homeFor(profile.role as Role))
+
+  const allLinks = [...links, ...(profile.role === 'school_owner' ? ownerLinks : [])]
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -55,9 +60,9 @@ export async function RoleShell({
             {t('shell.welcome', lang)}, {profile.full_name ?? user.email}
           </p>
           <p className="mt-4 text-sm text-muted">{t('home.placeholder', lang)}</p>
-          {profile.role === 'school_owner' && ownerLinks.length > 0 && (
+          {allLinks.length > 0 && (
             <div className="mt-5 flex flex-wrap justify-center gap-2">
-              {ownerLinks.map((link) => (
+              {allLinks.map((link) => (
                 <a
                   key={link.href}
                   href={link.href}
