@@ -89,4 +89,27 @@ describe('Minimal Employee + Considerable Grace Window (issue #9)', () => {
     const { data } = await ownerB.from('employees').select('id').eq('id', employeeId)
     expect(data).toEqual([])
   })
+
+  it("a foreign school's shift cannot be associated with my employee", async () => {
+    await ownerB.from('shifts').delete().eq('name', 'G-Foreign')
+    const { data: foreign } = await ownerB
+      .from('shifts')
+      .insert({ name: 'G-Foreign', grace_minutes: 999 })
+      .select('id')
+      .single()
+
+    const { error } = await ownerA
+      .from('employee_shifts')
+      .insert({ employee_id: employeeId, shift_id: foreign!.id })
+    expect(error).not.toBeNull()
+
+    expect(await grace()).toBeLessThan(999)
+    await ownerB.from('shifts').delete().eq('id', foreign!.id)
+  })
+
+  it('the one-call school-wide grace list matches the per-employee value', async () => {
+    const { data } = await ownerA.rpc('effective_grace_for_my_school')
+    const rows = data as { employee_id: string; grace: number }[]
+    expect(rows.find((r) => r.employee_id === employeeId)?.grace).toBe(await grace())
+  })
 })

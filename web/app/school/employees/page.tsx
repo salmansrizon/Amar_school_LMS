@@ -27,21 +27,24 @@ export default async function EmployeesPage() {
   // Defense in depth alongside the proxy gate: /school pages are for school roles.
   if (!me?.school_id || (me.role !== 'school_owner' && me.role !== 'staff_user')) redirect('/login')
 
-  const [{ data: school }, { data: shifts }, { data: categories }, { data: employees }, { data: assignments }] =
-    await Promise.all([
-      supabase.from('schools').select('default_grace_minutes').eq('id', me.school_id).single(),
-      supabase.from('shifts').select('id, name, grace_minutes').order('name'),
-      supabase.from('category_grace_minutes').select('category, grace_minutes').order('category'),
-      supabase.from('employees').select('id, full_name, category, grace_override_minutes').order('full_name'),
-      supabase.from('employee_shifts').select('employee_id, shift_id'),
-    ])
+  const [
+    { data: school },
+    { data: shifts },
+    { data: categories },
+    { data: employees },
+    { data: assignments },
+    { data: graceRows },
+  ] = await Promise.all([
+    supabase.from('schools').select('default_grace_minutes').eq('id', me.school_id).single(),
+    supabase.from('shifts').select('id, name, grace_minutes').order('name'),
+    supabase.from('category_grace_minutes').select('category, grace_minutes').order('category'),
+    supabase.from('employees').select('id, full_name, category, grace_override_minutes').order('full_name'),
+    supabase.from('employee_shifts').select('employee_id, shift_id'),
+    supabase.rpc('effective_grace_for_my_school'),
+  ])
 
-  const effective = new Map<string, number>()
-  await Promise.all(
-    (employees ?? []).map(async (e) => {
-      const { data } = await supabase.rpc('effective_grace_minutes', { emp: e.id })
-      effective.set(e.id, (data as number) ?? 0)
-    }),
+  const effective = new Map<string, number>(
+    ((graceRows ?? []) as { employee_id: string; grace: number }[]).map((r) => [r.employee_id, r.grace]),
   )
   const assignedSet = new Set((assignments ?? []).map((a) => `${a.employee_id}:${a.shift_id}`))
 
