@@ -25,12 +25,16 @@ describe('Subscription Codes (issue #5) + manual expiry correction (issue #6)', 
   let admin: SupabaseClient
   let schoolBId: string  // per-run throwaway school (redemption is permanent, so no reset is possible)
 
+  const generatedCodes: string[] = []
+
   async function generate(count: number, months: number, price: number) {
-    return admin.rpc('generate_code_batch', {
+    const result = await admin.rpc('generate_code_batch', {
       batch_count: count,
       validity_months: months,
       code_price: price,
     })
+    if (result.data) generatedCodes.push(...(result.data as { code: string }[]).map((c) => c.code))
+    return result
   }
 
   async function status(schoolId: string) {
@@ -53,8 +57,11 @@ describe('Subscription Codes (issue #5) + manual expiry correction (issue #6)', 
   })
 
   afterAll(async () => {
-    // Unused codes are deletable; remove this run's leftovers.
-    await admin.from('subscription_codes').delete().is('redeemed_at', null)
+    // Remove only THIS run's leftover unused codes — never touch codes a real
+    // admin may have pre-generated. (Used ones are undeletable by design.)
+    if (generatedCodes.length) {
+      await admin.from('subscription_codes').delete().in('code', generatedCodes).is('redeemed_at', null)
+    }
   })
 
   it('generates a batch of unique codes with validity and price', async () => {
