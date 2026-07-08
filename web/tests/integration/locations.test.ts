@@ -95,6 +95,16 @@ describe('Territory & Location hierarchy (issue #3)', () => {
     }
   })
 
+  it('a School linked only via a Cluster is still under the node', async () => {
+    // Detach the direct location; keep only the cluster (which lives at upazila).
+    await admin.from('schools').update({ location_id: null }).eq('id', schoolAId)
+    for (const node of [division, district, upazila]) {
+      const { data } = await admin.rpc('schools_under_location', { location: node })
+      expect((data as { id: string }[]).map((s) => s.id)).toContain(schoolAId)
+    }
+    await admin.from('schools').update({ location_id: union1 }).eq('id', schoolAId)
+  })
+
   it('a sibling branch does not include the School', async () => {
     const other = (await addLocation('T-District-2', 'district', division)).id!
     const { data } = await admin.rpc('schools_under_location', { location: other })
