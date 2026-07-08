@@ -185,6 +185,28 @@ describe('RFID Attendance Event ingestion + reconciliation (issue #10)', () => {
     await ownerA.from('students').delete().eq('id', lateStudent!.id)
   })
 
+  it('late-arriving taps after reconciliation widen the record instead of overwriting it (backfill)', async () => {
+    // Device was offline during the day; it pushes a buffered tap after the
+    // nightly reconcile already wrote entry=07:58 / exit=13:00 for the employee.
+    await anon().rpc('ingest_attendance_events', {
+      school: schoolId,
+      token: ingestToken,
+      events: [{ card_number: 'EMP-CARD-1', tapped_at: `${DAY}T14:30:00Z` }],
+    })
+    await anon().rpc('reconcile_attendance', { job_secret: RECONCILE_SECRET, target_date: DAY })
+
+    const { data } = await ownerA
+      .from('attendance_records')
+      .select('entry_at, exit_at, status')
+      .eq('att_date', DAY)
+      .eq('person_type', 'employee')
+      .eq('person_id', employeeId)
+    expect(data).toHaveLength(1)
+    expect(data![0].entry_at).toBe(`${DAY}T07:58:00+00:00`) // original entry kept
+    expect(data![0].exit_at).toBe(`${DAY}T14:30:00+00:00`) // widened by the late tap
+    expect(data![0].status).toBe('on_time') // exit now ≥ shift end 14:00 → no longer exit_early
+  })
+
   it('reconcile rejects a wrong secret', async () => {
     const { error } = await anon().rpc('reconcile_attendance', {
       job_secret: 'wrong-secret',
