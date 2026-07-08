@@ -24,9 +24,9 @@ export default async function SchoolsPage() {
 
   const [{ data: schools }, { data: redeemed }] = await Promise.all([
     supabase.from('schools').select('id, name, subscription_expires_at').order('name'),
-    supabase.from('subscription_codes').select('redeemed_school_id').not('redeemed_school_id', 'is', null),
+    supabase.rpc('schools_with_code_history'),
   ])
-  const withHistory = new Set((redeemed ?? []).map((r) => r.redeemed_school_id))
+  const withHistory = new Set((redeemed ?? []) as string[])
   const today = new Date(new Date().toISOString().slice(0, 10))
 
   const statusKey = { trial: 'schools.trial', active: 'schools.active', expired: 'schools.expired' } as const
