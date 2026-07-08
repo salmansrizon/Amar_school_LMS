@@ -34,3 +34,5 @@ begin
   end if;
   return new;
 end $$;
+
+alter table public.exams add constraint exam_year_range check (exam_year between 2000 and 2100);
