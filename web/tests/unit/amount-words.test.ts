@@ -27,8 +27,10 @@ describe('takaInWords', () => {
   })
 
   it('is exact on IEEE754-hostile fractions', () => {
-    expect(takaInWords(1.005)).toBe('One Taka and One Paisa Only')
+    // 1.005 as a double is 1.00499…, so the nearest paisa is 100 → one taka even.
+    expect(takaInWords(1.005)).toBe('One Taka Only')
     expect(takaInWords(0.1 + 0.2)).toBe('Zero Taka and Thirty Paisa Only')
+    expect(takaInWords(99.995)).toBe('One Hundred Taka Only')
   })
 
   it('rejects negatives', () => {

@@ -37,9 +37,10 @@ function integerInWords(n: number): string {
 
 export function takaInWords(amount: number): string {
   if (amount < 0 || !Number.isFinite(amount)) throw new Error('amount must be a non-negative number')
-  const taka = Math.floor(amount)
-  // Avoid IEEE754 drift on the fractional part (e.g. 1.005).
-  const paisa = Math.round(amount * 100) - taka * 100
+  // Work in integer paisa from the start — no IEEE754 drift on fractions.
+  const totalPaisa = Math.round(amount * 100)
+  const taka = Math.floor(totalPaisa / 100)
+  const paisa = totalPaisa % 100
   if (paisa > 0) {
     return `${integerInWords(taka)} Taka and ${integerInWords(paisa)} Paisa Only`
   }
