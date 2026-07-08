@@ -37,8 +37,10 @@ function CreateForm({
       }}
     >
       {children}
-      {error && <p className="text-sm text-alert-deep sm:col-span-2">{error}</p>}
-      <button type="submit" disabled={pending} className={`${primaryBtnClass} sm:col-span-2`}>
+      {/* col-span-full so the error/submit stretch across whatever column count
+          the caller's grid uses (2 for class/room, 3 for subject). */}
+      {error && <p className="text-sm text-alert-deep sm:col-span-full">{error}</p>}
+      <button type="submit" disabled={pending} className={`${primaryBtnClass} sm:col-span-full`}>
         {submitLabel}
       </button>
     </form>
