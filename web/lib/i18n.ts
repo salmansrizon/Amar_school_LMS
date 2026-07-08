@@ -173,6 +173,26 @@ const dict = {
   'behaviour.save': { bn: 'সংরক্ষণ', en: 'Save' },
   'behaviour.none': { bn: 'কোনো এন্ট্রি নেই', en: 'No entries' },
   'common.back': { bn: 'ফিরে যান', en: 'Back' },
+  'attendance.title': { bn: 'উপস্থিতি', en: 'Attendance' },
+  'attendance.cards': { bn: 'RFID কার্ড', en: 'RFID cards' },
+  'attendance.assign': { bn: 'কার্ড বরাদ্দ', en: 'Assign card' },
+  'attendance.cardNumber': { bn: 'কার্ড নম্বর', en: 'Card number' },
+  'attendance.holder': { bn: 'কার্ডধারী', en: 'Holder' },
+  'attendance.records': { bn: 'ফাইনাল উপস্থিতি রেকর্ড', en: 'Finalized attendance records' },
+  'attendance.date': { bn: 'তারিখ', en: 'Date' },
+  'attendance.entry': { bn: 'প্রবেশ', en: 'Entry' },
+  'attendance.exit': { bn: 'প্রস্থান', en: 'Exit' },
+  'attendance.none': { bn: 'কোনো রেকর্ড নেই', en: 'No records' },
+  'attendance.ingestInfo': {
+    bn: 'ডিভাইস/ব্রিজ এজেন্ট এই এন্ডপয়েন্টে POST করবে (x-ingest-token হেডারসহ):',
+    en: 'Devices/bridge agents POST to this endpoint (with the x-ingest-token header):',
+  },
+  'attendance.remove': { bn: 'মুছুন', en: 'Remove' },
+  'status.present': { bn: 'উপস্থিত', en: 'Present' },
+  'status.on_time': { bn: 'সময়মতো', en: 'On time' },
+  'status.late_entry': { bn: 'দেরিতে প্রবেশ', en: 'Late entry' },
+  'status.exit_early': { bn: 'আগে প্রস্থান', en: 'Early exit' },
+  'status.late_exit_early': { bn: 'দেরিতে প্রবেশ ও আগে প্রস্থান', en: 'Late entry & early exit' },
 } satisfies Record<string, Entry>
 
 export type MessageKey = keyof typeof dict
