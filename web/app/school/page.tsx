@@ -11,6 +11,7 @@ export default function SchoolHome() {
         { href: '/school/exams', labelKey: 'exams.title' },
         { href: '/school/fees', labelKey: 'fees.title' },
         { href: '/school/attendance', labelKey: 'attendance.title' },
+        { href: '/school/sms', labelKey: 'sms.title' },
       ]}
       ownerLinks={[{ href: '/school/staff', labelKey: 'staff.title' }]}
     />

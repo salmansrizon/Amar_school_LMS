@@ -3,6 +3,10 @@
     {
       "path": "/api/attendance/reconcile",
       "schedule": "30 12 * * *"
+    },
+    {
+      "path": "/api/sms/absence",
+      "schedule": "0 13 * * *"
     }
   ]
 }
