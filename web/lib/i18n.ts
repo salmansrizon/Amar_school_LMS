@@ -50,6 +50,12 @@ const dict = {
     en: 'You do not have access to this screen. Contact your School Owner.',
   },
   'denied.back': { bn: 'ড্যাশবোর্ডে ফিরুন', en: 'Back to dashboard' },
+  'common.add': { bn: 'যোগ করুন', en: 'Add' },
+  'locations.title': { bn: 'টেরিটরি ও লোকেশন', en: 'Territory & Locations' },
+  'locations.tree': { bn: 'লোকেশন ট্রি', en: 'Location tree' },
+  'locations.empty': { bn: 'এখনো কোনো লোকেশন নেই — একটি বিভাগ দিয়ে শুরু করুন', en: 'No locations yet — start with a Division' },
+  'locations.clusters': { bn: 'ক্লাস্টার', en: 'Clusters' },
+  'locations.clusterName': { bn: 'ক্লাস্টারের নাম', en: 'Cluster name' },
 } satisfies Record<string, Entry>
 
 export type MessageKey = keyof typeof dict
