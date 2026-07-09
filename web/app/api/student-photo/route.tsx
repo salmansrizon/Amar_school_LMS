@@ -29,5 +29,7 @@ export async function GET(req: NextRequest) {
     .createSignedUrl(student.photo_path, 60 * 10)
   if (error || !signed?.signedUrl) return new Response('could not open photo', { status: 500 })
 
-  return NextResponse.redirect(signed.signedUrl)
+  // Don't cache the redirect, so a replaced photo shows immediately (the stable
+  // /api/student-photo URL would otherwise serve a cached redirect to the old file).
+  return NextResponse.redirect(signed.signedUrl, { headers: { 'Cache-Control': 'no-store' } })
 }

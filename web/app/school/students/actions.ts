@@ -113,9 +113,15 @@ export async function transferStudent(id: string, formData: FormData): Promise<{
   const toShift = s(formData, 'to_shift_id')
   if (!toClass && !toSection && !toShift) return { error: 'Choose a new class, section or shift' }
 
+  // A blank field means "keep as-is" — a class-only transfer must not wipe the
+  // student's existing section/shift.
+  const newClass = toClass ?? cur.class_name
+  const newSection = toSection ?? cur.section
+  const newShift = toShift ?? cur.shift_id
+
   const { error: upErr } = await supabase
     .from('students')
-    .update({ class_name: toClass, section: toSection, shift_id: toShift })
+    .update({ class_name: newClass, section: newSection, shift_id: newShift })
     .eq('id', id)
   if (upErr) return { error: upErr.message }
 
@@ -124,9 +130,9 @@ export async function transferStudent(id: string, formData: FormData): Promise<{
     from_class: cur.class_name,
     from_section: cur.section,
     from_shift_id: cur.shift_id,
-    to_class: toClass,
-    to_section: toSection,
-    to_shift_id: toShift,
+    to_class: newClass,
+    to_section: newSection,
+    to_shift_id: newShift,
     note: s(formData, 'note'),
   })
   if (histErr) return { error: histErr.message }
