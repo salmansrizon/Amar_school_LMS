@@ -258,6 +258,18 @@ const dict = {
   'routine.draft': { bn: 'খসড়া', en: 'Draft' },
   'routine.print': { bn: 'প্রিন্ট (পিডিএফ)', en: 'Print (PDF)' },
   'routine.unset': { bn: 'নির্ধারিত নয়', en: 'Not set' },
+  // Per-class syllabus upload (§5.4, issue #45)
+  'syllabus.title': { bn: 'সিলেবাস', en: 'Syllabus' },
+  'syllabus.intro': { bn: 'প্রতি শ্রেণির জন্য সিলেবাস পিডিএফ আপলোড করুন (সর্বোচ্চ ১০ এমবি)।', en: 'Upload a syllabus PDF per class (max 10 MB).' },
+  'syllabus.current': { bn: 'বর্তমান ফাইল', en: 'Current file' },
+  'syllabus.none': { bn: 'কোনো ফাইল নেই', en: 'No file' },
+  'syllabus.upload': { bn: 'আপলোড', en: 'Upload' },
+  'syllabus.replace': { bn: 'পরিবর্তন', en: 'Replace' },
+  'syllabus.view': { bn: 'দেখুন', en: 'View' },
+  'syllabus.remove': { bn: 'মুছুন', en: 'Remove' },
+  'syllabus.pdfOnly': { bn: 'শুধু পিডিএফ ফাইল', en: 'PDF files only' },
+  'syllabus.uploading': { bn: 'আপলোড হচ্ছে…', en: 'Uploading…' },
+  'syllabus.noClasses': { bn: 'আগে শ্রেণি যোগ করুন', en: 'Add classes first' },
 } satisfies Record<string, Entry>
 
 export type MessageKey = keyof typeof dict
