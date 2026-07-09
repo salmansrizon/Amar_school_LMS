@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { redirect } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { createClient } from '@/lib/supabase/server'
@@ -23,13 +23,13 @@ const SAMPLE = {
     roll: '01',
   },
   subjects: [
-    { bn: 'বাংলা', en: 'Bangla', full: 100, got: 88, grade: 'A+', gpa: '5.00' },
-    { bn: 'ইংরেজি', en: 'English', full: 100, got: 82, grade: 'A+', gpa: '5.00' },
-    { bn: 'গণিত', en: 'Mathematics', full: 100, got: 95, grade: 'A+', gpa: '5.00' },
-    { bn: 'বিজ্ঞান', en: 'Science', full: 100, got: 91, grade: 'A+', gpa: '5.00' },
-    { bn: 'সামাজিক বিজ্ঞান', en: 'Social Science', full: 100, got: 78, grade: 'A', gpa: '4.00' },
-    { bn: 'তথ্য ও যোগাযোগ প্রযুক্তি', en: 'ICT', full: 50, got: 44, grade: 'A+', gpa: '5.00' },
-    { bn: 'ধর্ম শিক্ষা', en: 'Religious Studies', full: 100, got: 84, grade: 'A+', gpa: '5.00' },
+    { bn: 'বাংলা', en: 'Bangla', full: 100, got: 88, grade: 'A+', gpa: 5 },
+    { bn: 'ইংরেজি', en: 'English', full: 100, got: 82, grade: 'A+', gpa: 5 },
+    { bn: 'গণিত', en: 'Mathematics', full: 100, got: 95, grade: 'A+', gpa: 5 },
+    { bn: 'বিজ্ঞান', en: 'Science', full: 100, got: 91, grade: 'A+', gpa: 5 },
+    { bn: 'সামাজিক বিজ্ঞান', en: 'Social Science', full: 100, got: 78, grade: 'A', gpa: 4 },
+    { bn: 'তথ্য ও যোগাযোগ প্রযুক্তি', en: 'ICT', full: 50, got: 44, grade: 'A+', gpa: 5 },
+    { bn: 'ধর্ম শিক্ষা', en: 'Religious Studies', full: 100, got: 84, grade: 'A+', gpa: 5 },
   ],
 }
 
@@ -44,7 +44,12 @@ export default async function MarkSheetPreviewPage() {
   const { data: me } = await supabase.from('profiles').select('role').eq('id', user.id).single()
   if (me?.role !== 'school_owner' && me?.role !== 'staff_user') redirect('/login')
 
-  const { data: school } = await supabase.from('schools').select('name').single()
+  // Surface a missing school row instead of printing a blank letterhead.
+  const { data: school, error: schoolError } = await supabase
+    .from('schools')
+    .select('name')
+    .maybeSingle()
+  if (schoolError || !school) notFound()
   const { data: exam } = await supabase
     .from('exams')
     .select('name, exam_year')
@@ -60,6 +65,7 @@ export default async function MarkSheetPreviewPage() {
   const student = SAMPLE.student[lang]
   const totalFull = SAMPLE.subjects.reduce((sum, s) => sum + s.full, 0)
   const totalGot = SAMPLE.subjects.reduce((sum, s) => sum + s.got, 0)
+  const overallGpa = SAMPLE.subjects.reduce((sum, s) => sum + s.gpa, 0) / SAMPLE.subjects.length
 
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 p-6">
@@ -109,7 +115,7 @@ export default async function MarkSheetPreviewPage() {
                     {s.grade}
                   </span>
                 </td>
-                <td className="py-2">{s.gpa}</td>
+                <td className="py-2">{s.gpa.toFixed(2)}</td>
               </tr>
             ))}
           </tbody>
@@ -119,7 +125,9 @@ export default async function MarkSheetPreviewPage() {
           <span>
             {t('markSheet.totalMarks', lang)} {totalGot} / {totalFull}
           </span>
-          <span>{t('markSheet.overallGpa', lang)} 5.00</span>
+          <span>
+            {t('markSheet.overallGpa', lang)} {overallGpa.toFixed(2)}
+          </span>
           <span className="rounded-full bg-mint-soft px-2 py-0.5 text-xs text-mint-deep">
             {t('markSheet.pass', lang)}
           </span>

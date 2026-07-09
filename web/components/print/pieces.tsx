@@ -6,10 +6,11 @@ import type { ReactNode } from 'react'
 // already-translated strings, pieces stay presentation-only.
 
 /** One printed sheet: a card on screen, a bare A4 page in print. Batch
- *  printing renders several PrintPages in a row — each breaks the page. */
+ *  printing renders several PrintPages in a row — each but the last breaks
+ *  the page (an unconditional break would print a blank trailing sheet). */
 export function PrintPage({ children }: { children: ReactNode }) {
   return (
-    <div className="mx-auto w-full max-w-[760px] break-after-page rounded-md border border-line-strong bg-paper p-8 shadow-card print:max-w-none print:rounded-none print:border-0 print:p-0 print:shadow-none">
+    <div className="mx-auto w-full max-w-190 rounded-md border border-line-strong bg-paper p-8 shadow-card not-last:break-after-page print:max-w-none print:rounded-none print:border-0 print:p-0 print:shadow-none">
       {children}
     </div>
   )
@@ -81,7 +82,7 @@ export function QrFooterRow({
   return (
     <div className="mt-6 flex items-center justify-between border-t border-line pt-4">
       {qr ?? (
-        <div className="flex size-[84px] items-center justify-center rounded-sm border border-dashed border-line-strong text-center text-xs text-muted">
+        <div className="flex size-21 items-center justify-center rounded-sm border border-dashed border-line-strong text-center text-xs text-muted">
           {qrLabel}
         </div>
       )}

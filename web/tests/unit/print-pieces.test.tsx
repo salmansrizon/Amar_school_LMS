@@ -12,24 +12,23 @@ import {
 // Seam: the shared printable template layer (ADR 0007, issue #25).
 
 describe('PrintPage', () => {
-  it('renders children on a page-breaking sheet', () => {
+  it('renders children on a sheet', () => {
     const html = renderToStaticMarkup(
       <PrintPage>
         <p>sheet body</p>
       </PrintPage>,
     )
     expect(html).toContain('sheet body')
-    expect(html).toContain('break-after-page')
   })
 
-  it('batch printing: consecutive pages each carry their own break', () => {
+  it('page break applies to every sheet except the last (no blank trailing page)', () => {
     const html = renderToStaticMarkup(
       <>
         <PrintPage>one</PrintPage>
         <PrintPage>two</PrintPage>
       </>,
     )
-    expect(html.match(/break-after-page/g)).toHaveLength(2)
+    expect(html.match(/not-last:break-after-page/g)).toHaveLength(2)
   })
 })
 
@@ -48,8 +47,14 @@ describe('InstituteHeader', () => {
   })
 
   it('omits the meta line when not given', () => {
-    const html = renderToStaticMarkup(<InstituteHeader name="School" docTitle="Doc" />)
-    expect(html).not.toContain('text-muted')
+    const withMeta = renderToStaticMarkup(
+      <InstituteHeader name="School" meta="EIIN: 999" docTitle="Doc" />,
+    )
+    const withoutMeta = renderToStaticMarkup(<InstituteHeader name="School" docTitle="Doc" />)
+    expect(withMeta).toContain('EIIN: 999')
+    expect(withoutMeta).not.toContain('EIIN')
+    // One fewer child div when meta is absent.
+    expect(withoutMeta.match(/<div/g)!.length).toBe(withMeta.match(/<div/g)!.length - 1)
   })
 })
 
