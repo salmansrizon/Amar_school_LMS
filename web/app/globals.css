@@ -45,3 +45,14 @@ body {
   background: var(--color-paper-muted);
   color: var(--color-ink);
 }
+
+/* Printables (ADR 0007): the browser IS the PDF renderer. */
+@page {
+  size: A4;
+  margin: 14mm;
+}
+@media print {
+  body {
+    background: var(--color-paper);
+  }
+}
