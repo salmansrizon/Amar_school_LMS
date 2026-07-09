@@ -1,6 +1,7 @@
 import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { requireSchoolMember } from '@/lib/auth/require-role'
 
 // Supabase storage client needs Node APIs.
 export const runtime = 'nodejs'
@@ -15,10 +16,9 @@ export async function GET(req: NextRequest) {
   if (!classId) return new Response('class is required', { status: 400 })
 
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) return new Response('unauthorized', { status: 401 })
+  // Same access gate as the /school pages: a School member only (RLS scopes the
+  // row to their School as well). Consistent with the fee-receipt page.
+  if (!(await requireSchoolMember(supabase))) return new Response('forbidden', { status: 403 })
 
   const { data: row } = await supabase
     .from('class_syllabi')

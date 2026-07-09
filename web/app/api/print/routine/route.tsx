@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { ROUTINE_DAYS, ROUTINE_PERIODS, dayLabel } from '@/lib/routine'
 import { RoutineDocument, type RoutineData, type RoutineCellText } from '@/lib/pdf/templates/routine'
 import { renderPdf } from '@/lib/pdf/render'
+import { requireSchoolMember } from '@/lib/auth/require-role'
 import { t } from '@/lib/i18n'
 
 // react-pdf needs Node APIs (ADR 0007).
@@ -27,6 +28,8 @@ export async function GET(req: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
   if (!user) return new Response('unauthorized', { status: 401 })
+  // School member only, consistent with the /school pages (RLS also scopes rows).
+  if (!(await requireSchoolMember(supabase))) return new Response('forbidden', { status: 403 })
 
   const [{ data: cls }, { data: slots }, { data: meta }, { data: subjects }, { data: teachers }, { data: rooms }, { data: profile }] =
     await Promise.all([
