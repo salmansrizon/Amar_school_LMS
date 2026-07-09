@@ -25,9 +25,14 @@ export default async function ExamsPage() {
     <main className="mx-auto w-full max-w-2xl flex-1 p-6">
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold">{t('exams.title', lang)}</h1>
-        <Link href="/school" className="text-sm text-brand-600 hover:underline">
-          ← {t('common.back', lang)}
-        </Link>
+        <div className="flex items-center gap-4">
+          <Link href="/school/exams/mark-sheet-preview" className="text-sm text-brand-600 hover:underline">
+            {t('markSheet.title', lang)}
+          </Link>
+          <Link href="/school" className="text-sm text-brand-600 hover:underline">
+            ← {t('common.back', lang)}
+          </Link>
+        </div>
       </div>
 
       <section className="mb-6 rounded-lg border border-line bg-paper p-5 shadow-card">

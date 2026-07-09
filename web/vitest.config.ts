@@ -8,7 +8,7 @@ export default defineConfig(({ mode }) => ({
   test: {
     environment: 'node',
     env: loadEnv(mode, __dirname, ''),
-    include: ['tests/**/*.test.ts'],
+    include: ['tests/**/*.test.{ts,tsx}'],
     testTimeout: 15000,
     // Integration tests share seeded rows (Test School A/B) — run files serially.
     fileParallelism: false,

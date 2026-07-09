@@ -1,0 +1,91 @@
+import type { ReactNode } from 'react'
+
+// Shared printable template pieces (ADR 0007) — the legacy C_TAMPLATES
+// equivalent. Every printable (receipts, mark sheets, progress reports,
+// admit cards, routines, attendance books) composes these; pages pass
+// already-translated strings, pieces stay presentation-only.
+
+/** One printed sheet: a card on screen, a bare A4 page in print. Batch
+ *  printing renders several PrintPages in a row — each breaks the page. */
+export function PrintPage({ children }: { children: ReactNode }) {
+  return (
+    <div className="mx-auto w-full max-w-[760px] break-after-page rounded-md border border-line-strong bg-paper p-8 shadow-card print:max-w-none print:rounded-none print:border-0 print:p-0 print:shadow-none">
+      {children}
+    </div>
+  )
+}
+
+/** Institute name + meta line + document title (covers the exam-header case:
+ *  the docTitle names the exam, e.g. "Mark Sheet — Annual Examination 2025"). */
+export function InstituteHeader({
+  name,
+  meta,
+  docTitle,
+}: {
+  name: string
+  meta?: string
+  docTitle: string
+}) {
+  return (
+    <header className="mb-4 border-b-2 border-line-strong pb-4 text-center">
+      <div className="text-xl font-bold">{name}</div>
+      {meta ? <div className="mt-0.5 text-xs text-muted">{meta}</div> : null}
+      <div className="mt-3 text-lg font-semibold text-brand-600">{docTitle}</div>
+    </header>
+  )
+}
+
+/** Two-column label/value block (student-info, record-info…). */
+export function InfoGrid({ rows }: { rows: { label: string; value: ReactNode }[] }) {
+  return (
+    <dl className="mb-5 grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
+      {rows.map((row) => (
+        <div key={row.label} className="flex justify-between border-b border-dashed border-line pb-0.5">
+          <dt className="text-muted">{row.label}</dt>
+          <dd>{row.value}</dd>
+        </div>
+      ))}
+    </dl>
+  )
+}
+
+/** Right-aligned totals strip under a grade/marks table. */
+export function GradePanelRow({ children }: { children: ReactNode }) {
+  return <div className="mt-3 flex justify-end gap-6 text-sm font-semibold">{children}</div>
+}
+
+/** Signature lines along the sheet's bottom. */
+export function SignatureRow({ labels }: { labels: string[] }) {
+  return (
+    <div className="mt-8 flex justify-between text-xs">
+      {labels.map((label) => (
+        <span key={label} className="w-40 border-t border-line-strong pt-1 text-center">
+          {label}
+        </span>
+      ))}
+    </div>
+  )
+}
+
+/** Bottom strip: QR authenticity slot + "powered by" footer. Pass a real
+ *  QR as `qr` when the printable has one; the labelled box is the default. */
+export function QrFooterRow({
+  qrLabel,
+  poweredBy,
+  qr,
+}: {
+  qrLabel: string
+  poweredBy: string
+  qr?: ReactNode
+}) {
+  return (
+    <div className="mt-6 flex items-center justify-between border-t border-line pt-4">
+      {qr ?? (
+        <div className="flex size-[84px] items-center justify-center rounded-sm border border-dashed border-line-strong text-center text-xs text-muted">
+          {qrLabel}
+        </div>
+      )}
+      <div className="text-center text-xs text-muted">{poweredBy}</div>
+    </div>
+  )
+}
