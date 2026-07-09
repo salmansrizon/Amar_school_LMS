@@ -56,14 +56,19 @@ export default async function StudentsPage({
             {t('students.showArchived', lang)}
           </Link>
         </div>
-        {!showArchived && (
-          <Link
-            href="/school/students/new"
-            className="rounded-full bg-brand-500 px-4 py-1.5 text-sm font-semibold text-white hover:bg-brand-600"
-          >
-            + {t('students.admit', lang)}
+        <div className="flex items-center gap-2">
+          <Link href="/school/students/subject-assignment" className="text-sm font-semibold text-brand-600 hover:underline">
+            {t('students.subjectAssignment', lang)}
           </Link>
-        )}
+          {!showArchived && (
+            <Link
+              href="/school/students/new"
+              className="rounded-full bg-brand-500 px-4 py-1.5 text-sm font-semibold text-white hover:bg-brand-600"
+            >
+              + {t('students.admit', lang)}
+            </Link>
+          )}
+        </div>
       </div>
 
       <section className="rounded-lg border border-line bg-paper p-5 shadow-card">

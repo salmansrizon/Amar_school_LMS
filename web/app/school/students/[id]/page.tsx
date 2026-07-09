@@ -1,11 +1,12 @@
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
-import { averageRating, isEntryLocked } from '@/lib/behaviour'
+import { averageRating, isEntryLocked, recentAverage } from '@/lib/behaviour'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { createClient } from '@/lib/supabase/server'
 import { AddEntryForm, EditableEntry } from './behaviour-controls'
 import { ArchiveToggle, PhotoUpload, TransferForm } from './student-detail-controls'
+import { SendBehaviourSmsButton, SubjectsSection } from './subject-controls'
 
 export default async function StudentDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -32,13 +33,18 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
   const shiftName = new Map((shifts ?? []).map((sh) => [sh.id, sh.name]))
   const archived = Boolean(student.archived_at)
 
-  const { data: entries } = await supabase
-    .from('behaviour_log_entries')
-    .select('id, note, rating, remind_date, created_at')
-    .eq('student_id', id)
-    .order('created_at', { ascending: false })
+  const [{ data: entries }, { data: allSubjects }, { data: assigned }] = await Promise.all([
+    supabase
+      .from('behaviour_log_entries')
+      .select('id, note, rating, remind_date, created_at')
+      .eq('student_id', id)
+      .order('created_at', { ascending: false }),
+    supabase.from('subjects').select('id, name').order('name'),
+    supabase.from('student_subjects').select('subject_id, is_optional').eq('student_id', id),
+  ])
   const now = new Date()
   const avg = averageRating((entries ?? []).map((e) => e.rating))
+  const recentAvg = recentAverage(entries ?? [], now)
 
   const bool = (v: boolean) => (v ? '✓' : '—')
 
@@ -73,6 +79,26 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
         </div>
 
         <ProfileGrid student={student} shiftName={shiftName} boolFmt={bool} lang={lang} />
+
+        <div className="mt-4 flex flex-wrap gap-3 border-t border-line pt-3 text-sm">
+          <a href={`/api/print/admission?student=${id}`} target="_blank" rel="noopener noreferrer" className="font-semibold text-brand-600 hover:underline">
+            {t('students.printAdmission', lang)} →
+          </a>
+          <a href={`/api/print/id-card?student=${id}`} target="_blank" rel="noopener noreferrer" className="font-semibold text-brand-600 hover:underline">
+            {t('students.printId', lang)} →
+          </a>
+        </div>
+      </section>
+
+      {/* Subject assignment (§5.1, issue #46) */}
+      <section className="mb-6 rounded-lg border border-line bg-paper p-5 shadow-card">
+        <h2 className="mb-3 font-bold">{t('students.subjects', lang)}</h2>
+        <SubjectsSection
+          studentId={id}
+          allSubjects={allSubjects ?? []}
+          assigned={assigned ?? []}
+          lang={lang}
+        />
       </section>
 
       {/* Class/shift transfer + history */}
@@ -100,11 +126,18 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
       <section className="mb-6 rounded-lg border border-line bg-paper p-5 shadow-card">
         <div className="mb-3 flex items-center justify-between">
           <h2 className="font-bold">{t('behaviour.title', lang)}</h2>
-          {avg !== null && (
-            <span className="rounded-full bg-brand-50 px-3 py-1 text-sm font-bold text-brand-700">
-              {t('behaviour.avg', lang)}: {avg}
-            </span>
-          )}
+          <span className="flex items-center gap-2">
+            {recentAvg !== null && (
+              <span className="rounded-full bg-paper-muted px-3 py-1 text-sm font-semibold text-muted">
+                {t('students.recentAvg', lang)}: {recentAvg}
+              </span>
+            )}
+            {avg !== null && (
+              <span className="rounded-full bg-brand-50 px-3 py-1 text-sm font-bold text-brand-700">
+                {t('behaviour.avg', lang)}: {avg}
+              </span>
+            )}
+          </span>
         </div>
         <AddEntryForm studentId={student.id} lang={lang} />
       </section>
@@ -121,6 +154,9 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
                 locked={isEntryLocked(new Date(entry.created_at), now)}
                 lang={lang}
               />
+              <div className="mt-2 flex justify-end">
+                <SendBehaviourSmsButton entryId={entry.id} lang={lang} />
+              </div>
             </li>
           ))}
         </ul>
