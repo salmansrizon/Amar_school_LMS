@@ -53,10 +53,12 @@ export async function bulkAssignClassSubject(formData: FormData): Promise<{ erro
   if (!students?.length) return { error: 'No active students in that class' }
 
   const rows = students.map((s) => ({ student_id: s.id, subject_id: subjectId, is_optional: isOptional }))
-  // Skip students who already have the subject rather than error.
+  // A class-wide assignment is authoritative: students who already have the
+  // subject get the chosen compulsory/optional flag applied (not skipped), so the
+  // reported count matches reality.
   const { error } = await supabase
     .from('student_subjects')
-    .upsert(rows, { onConflict: 'student_id,subject_id', ignoreDuplicates: true })
+    .upsert(rows, { onConflict: 'student_id,subject_id' })
   if (error) return { error: error.message }
   revalidatePath('/school/students/subject-assignment')
   return { count: students.length }
