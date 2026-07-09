@@ -163,6 +163,10 @@ const dict = {
   'classes.papers': { bn: 'পত্র সংখ্যা', en: 'Papers' },
   'classes.code': { bn: 'কোড (ঐচ্ছিক)', en: 'Code (optional)' },
   'classes.selectClass': { bn: 'শ্রেণি নির্বাচন করুন', en: 'Select class' },
+  'classes.deleteConfirm': {
+    bn: 'মুছে ফেলা হবে — শ্রেণি মুছলে এর বিষয়গুলোও মুছে যাবে। নিশ্চিত?',
+    en: 'This will be deleted — deleting a class also deletes its subjects. Are you sure?',
+  },
   'classes.noClasses': { bn: 'এখনো কোনো শ্রেণি নেই', en: 'No classes yet' },
   'classes.noRooms': { bn: 'এখনো কোনো কক্ষ নেই', en: 'No rooms yet' },
   'classes.noSubjects': { bn: 'এখনো কোনো বিষয় নেই', en: 'No subjects yet' },

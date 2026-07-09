@@ -143,13 +143,15 @@ export function DeleteButton({
       <button
         type="button"
         disabled={pending}
-        onClick={() =>
+        onClick={() => {
+          // Deleting a class cascades to its subjects — always confirm.
+          if (!window.confirm(t('classes.deleteConfirm', lang))) return
           startTransition(async () => {
             setError(null)
             const result = await removeItem(entity, id)
             if (result.error) setError(result.error)
           })
-        }
+        }}
         className="cursor-pointer rounded-full border border-line px-3 py-1 text-xs font-semibold text-alert-deep hover:bg-alert-soft"
       >
         {t('common.delete', lang)}

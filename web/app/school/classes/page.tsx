@@ -53,7 +53,9 @@ export default async function ClassesPage({
           'id, name, code, theory_marks, mcq_marks, practical_marks, paper_count, classes(name, section)',
         )
         .order('created_at'),
-      supabase.from('students').select('class_name, section'),
+      // ponytail: whole-table scan capped at 10k rows; switch to a count RPC
+      // if a school ever outgrows it.
+      supabase.from('students').select('class_name, section').limit(10000),
     ])
 
   const levels = [...new Set((classes ?? []).map((c) => c.education_level).filter(Boolean))] as string[]

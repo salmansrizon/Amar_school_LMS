@@ -121,6 +121,20 @@ describe('Class & Curriculum I (issue #26)', () => {
     expect(error).toBeNull()
   })
 
+  it("a subject cannot link to another school's class (composite FK)", async () => {
+    const { error } = await ownerB
+      .from('subjects')
+      .insert({ class_id: classId, name: 'CC Hijack', theory_marks: 100 })
+    expect(error).not.toBeNull()
+    expect(error!.code).toBe('23503')
+  })
+
+  it('duplicate room names in a school are rejected', async () => {
+    const { error } = await ownerA.from('rooms').insert({ name: 'CC Test Room', capacity: 30 })
+    expect(error).not.toBeNull()
+    expect(error!.code).toBe('23505')
+  })
+
   it("RLS: another school's owner sees none of it", async () => {
     const { data: classes } = await ownerB.from('classes').select('id').eq('id', classId)
     expect(classes).toHaveLength(0)
