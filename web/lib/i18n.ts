@@ -167,6 +167,10 @@ const dict = {
     bn: 'মুছে ফেলা হবে — শ্রেণি মুছলে এর বিষয়গুলোও মুছে যাবে। নিশ্চিত?',
     en: 'This will be deleted — deleting a class also deletes its subjects. Are you sure?',
   },
+  'classes.deleteConfirmSimple': {
+    bn: 'মুছে ফেলা হবে। নিশ্চিত?',
+    en: 'This will be deleted. Are you sure?',
+  },
   'classes.noClasses': { bn: 'এখনো কোনো শ্রেণি নেই', en: 'No classes yet' },
   'classes.noRooms': { bn: 'এখনো কোনো কক্ষ নেই', en: 'No rooms yet' },
   'classes.noSubjects': { bn: 'এখনো কোনো বিষয় নেই', en: 'No subjects yet' },

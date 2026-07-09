@@ -144,8 +144,9 @@ export function DeleteButton({
         type="button"
         disabled={pending}
         onClick={() => {
-          // Deleting a class cascades to its subjects — always confirm.
-          if (!window.confirm(t('classes.deleteConfirm', lang))) return
+          // Deleting a class cascades to its subjects — say so; keep it plain otherwise.
+          const key = entity === 'classes' ? 'classes.deleteConfirm' : 'classes.deleteConfirmSimple'
+          if (!window.confirm(t(key, lang))) return
           startTransition(async () => {
             setError(null)
             const result = await removeItem(entity, id)
