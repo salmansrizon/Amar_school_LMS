@@ -241,6 +241,23 @@ const dict = {
   'classes.total': { bn: 'মোট', en: 'Total' },
   'classes.noSubjects': { bn: 'এখনো কোনো বিষয় নেই', en: 'No subjects yet' },
   'classes.optional': { bn: '(ঐচ্ছিক)', en: '(optional)' },
+  // Class routine builder (§5.4, issue #45)
+  'routine.title': { bn: 'ক্লাস রুটিন', en: 'Class Routine' },
+  'routine.pickClass': { bn: 'একটি শ্রেণি নির্বাচন করুন', en: 'Select a class' },
+  'routine.noClasses': { bn: 'আগে শ্রেণি ও পাঠ্যক্রমে শ্রেণি যোগ করুন', en: 'Add classes under Class & Curriculum first' },
+  'routine.period': { bn: 'পিরিয়ড', en: 'Period' },
+  'routine.subject': { bn: 'বিষয়', en: 'Subject' },
+  'routine.teacher': { bn: 'শিক্ষক', en: 'Teacher' },
+  'routine.room': { bn: 'কক্ষ', en: 'Room' },
+  'routine.none': { bn: '—', en: '—' },
+  'routine.edit': { bn: 'সম্পাদনা', en: 'Edit' },
+  'routine.save': { bn: 'সংরক্ষণ', en: 'Save' },
+  'routine.clear': { bn: 'খালি করুন', en: 'Clear' },
+  'routine.publish': { bn: 'প্রকাশ করুন', en: 'Publish' },
+  'routine.published': { bn: 'প্রকাশিত', en: 'Published' },
+  'routine.draft': { bn: 'খসড়া', en: 'Draft' },
+  'routine.print': { bn: 'প্রিন্ট (পিডিএফ)', en: 'Print (PDF)' },
+  'routine.unset': { bn: 'নির্ধারিত নয়', en: 'Not set' },
 } satisfies Record<string, Entry>
 
 export type MessageKey = keyof typeof dict
