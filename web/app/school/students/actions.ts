@@ -137,6 +137,7 @@ export async function transferStudent(formData: FormData): Promise<{ error?: str
   if (error) return { error: error.message }
   revalidatePath(LIST)
   revalidatePath(`${LIST}/${id}`)
+  revalidatePath(`${LIST}/${id}/transfer`)
   return {}
 }
 
