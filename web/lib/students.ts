@@ -1,5 +1,5 @@
-// Students I helpers (issue #27): list filtering and profile display bits,
-// kept pure for unit testing.
+// Students I/II helpers (issues #27, #46): list filtering, profile display,
+// subject assignment and behaviour SMS bits, kept pure for unit testing.
 
 export interface StudentListRow {
   id: string
@@ -81,4 +81,25 @@ const PHOTO_EXT: Record<string, string> = {
 /** Storage extension for an allowed photo MIME type; null = not allowed. */
 export function photoExtension(mimeType: string): string | null {
   return PHOTO_EXT[mimeType] ?? null
+}
+
+// Subject assignment (issue #46, PRD §5.1) helpers.
+
+export interface SubjectOption {
+  id: string
+  name: string
+  class_id: string | null
+}
+
+/** A class's assignable catalogue: subjects linked to it, plus school-wide ones. */
+export function subjectsForClass(subjects: SubjectOption[], classId: string): SubjectOption[] {
+  return subjects.filter((s) => s.class_id === null || s.class_id === classId)
+}
+
+const MAX_NOTE_CHARS = 80
+
+/** SMS body for a behaviour-record send — kept short (single segment budget). */
+export function behaviourSmsBody(studentName: string, note: string, rating: number): string {
+  const trimmed = note.length > MAX_NOTE_CHARS ? `${note.slice(0, MAX_NOTE_CHARS)}…` : note
+  return `Behaviour note for ${studentName} (rating ${rating}/10): ${trimmed}`
 }

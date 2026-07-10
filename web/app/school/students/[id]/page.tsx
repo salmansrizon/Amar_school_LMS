@@ -7,11 +7,13 @@ import { createClient } from '@/lib/supabase/server'
 import { classShiftLabel } from '@/lib/students'
 import { AddEntryForm, EditableEntry } from './behaviour-controls'
 import { ArchiveToggle, PhotoControl, ProfileEditor } from './profile-controls'
+import { StudentSubjects, type AssignedSubject } from './subject-controls'
 
 // Layout per ui/school-owner/student-detail.html: status + roll header with
-// Transfer action, photo card beside carded profile sections (Identity /
-// Address / Guardian / Benefits / Previous Institute / Siblings), and the
-// behaviour log (issue #22) at the bottom. Edit reuses the admission sections.
+// Transfer/Print actions, photo card beside carded profile sections (Identity /
+// Address / Guardian / Benefits / Previous Institute / Siblings), subject
+// assignment (issue #46), and the behaviour log (issue #22) at the bottom.
+// Edit reuses the admission sections.
 
 function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -50,15 +52,25 @@ export default async function StudentDetailPage({
   const { data: student } = await supabase.from('students').select('*').eq('id', id).single()
   if (!student) notFound()
 
-  const [{ data: entries }, { data: classes }, { data: shifts }] = await Promise.all([
-    supabase
-      .from('behaviour_log_entries')
-      .select('id, note, rating, remind_date, created_at')
-      .eq('student_id', id)
-      .order('created_at', { ascending: false }),
-    supabase.from('classes').select('name, section').order('created_at'),
-    supabase.from('shifts').select('id, name').order('created_at'),
-  ])
+  const [{ data: entries }, { data: classes }, { data: shifts }, { data: subjects }, { data: assignments }] =
+    await Promise.all([
+      supabase
+        .from('behaviour_log_entries')
+        .select('id, note, rating, remind_date, created_at')
+        .eq('student_id', id)
+        .order('created_at', { ascending: false }),
+      supabase.from('classes').select('name, section').order('created_at'),
+      supabase.from('shifts').select('id, name').order('created_at'),
+      supabase.from('subjects').select('id, name').order('name'),
+      supabase.from('student_subjects').select('subject_id, is_optional').eq('student_id', id),
+    ])
+
+  const subjectName = new Map((subjects ?? []).map((s) => [s.id, s.name]))
+  const assignedSubjects: AssignedSubject[] = (assignments ?? []).map((a) => ({
+    subject_id: a.subject_id,
+    name: subjectName.get(a.subject_id) ?? a.subject_id,
+    is_optional: a.is_optional,
+  }))
 
   const now = new Date()
   const avg = averageRating((entries ?? []).map((e) => e.rating))
@@ -102,7 +114,23 @@ export default async function StudentDetailPage({
               .join(' · ')}
           </span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <Link
+            href={`/school/students/${id}/print/admission`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted"
+          >
+            {t('students.printAdmission', lang)}
+          </Link>
+          <Link
+            href={`/school/students/${id}/print/id-card`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted"
+          >
+            {t('students.printIdCard', lang)}
+          </Link>
           <Link
             href={`/school/students/${id}/transfer`}
             className="rounded-full border border-line-strong px-4 py-1.5 text-xs font-semibold hover:bg-paper-muted"
@@ -192,6 +220,16 @@ export default async function StudentDetailPage({
           </InfoCard>
         </ProfileEditor>
       </div>
+
+      <section className="mb-6 rounded-lg border border-line bg-paper p-5 shadow-card">
+        <h2 className="mb-3 font-bold">{t('subjects.title', lang)}</h2>
+        <StudentSubjects
+          studentId={student.id}
+          assigned={assignedSubjects}
+          available={subjects ?? []}
+          lang={lang}
+        />
+      </section>
 
       <section className="mb-6 rounded-lg border border-line bg-paper p-5 shadow-card">
         <div className="mb-3 flex items-center justify-between">

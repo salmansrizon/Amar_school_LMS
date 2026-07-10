@@ -162,6 +162,12 @@ export default async function ClassesPage({
                         >
                           {t('classes.syllabus', lang)}
                         </Link>
+                        <Link
+                          href={`/school/students/subject-assignment?class=${c.id}`}
+                          className="rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted"
+                        >
+                          {t('classes.subjects', lang)}
+                        </Link>
                         <DeleteButton entity="classes" id={c.id} lang={lang} />
                       </div>
                     </td>
