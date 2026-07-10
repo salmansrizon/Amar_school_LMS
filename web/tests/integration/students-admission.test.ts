@@ -139,20 +139,14 @@ describe('Students I (issue #27)', () => {
     expect(active?.archived_at).toBeNull()
   })
 
-  it('a transfer records history and moves the student', async () => {
-    const { error: histError } = await ownerA.from('student_transfers').insert({
-      student_id: studentId,
-      from_class: 'ST1 Class',
-      from_section: 'A',
-      to_class: 'ST1 Other Class',
-      to_section: 'B',
-      note: 'guardian request',
+  it('transfer_student RPC records history and moves the student atomically', async () => {
+    const { error } = await ownerA.rpc('transfer_student', {
+      p_student_id: studentId,
+      p_to_class: 'ST1 Other Class',
+      p_to_section: 'B',
+      p_to_shift_id: null,
+      p_note: 'guardian request',
     })
-    expect(histError).toBeNull()
-    const { error } = await ownerA
-      .from('students')
-      .update({ class_name: 'ST1 Other Class', section: 'B', roll_number: null })
-      .eq('id', studentId)
     expect(error).toBeNull()
     const { data: history } = await ownerA
       .from('student_transfers')
@@ -160,6 +154,26 @@ describe('Students I (issue #27)', () => {
       .eq('student_id', studentId)
     expect(history).toHaveLength(1)
     expect(history![0].to_class).toBe('ST1 Other Class')
+    const { data: student } = await ownerA
+      .from('students')
+      .select('class_name, section, roll_number')
+      .eq('id', studentId)
+      .single()
+    expect(student?.class_name).toBe('ST1 Other Class')
+    expect(student?.section).toBe('B')
+    expect(student?.roll_number).toBeNull() // reset on class change
+  })
+
+  it('transfer_student rejects a student from another school', async () => {
+    const { error } = await ownerB.rpc('transfer_student', {
+      p_student_id: studentId,
+      p_to_class: 'Hijack',
+      p_to_section: null,
+      p_to_shift_id: null,
+      p_note: null,
+    })
+    expect(error).not.toBeNull()
+    expect(error!.message).toContain('student not accessible')
   })
 
   it("RLS: another school's owner sees neither student nor transfers", async () => {

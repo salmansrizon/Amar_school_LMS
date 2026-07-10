@@ -116,47 +116,24 @@ export async function restoreStudent(id: string): Promise<{ error?: string }> {
   return {}
 }
 
-/** Class/shift transfer: records the history row, then moves the student.
- *  Roll is reset on a class change so rolls stay per class (an explicit roll
- *  can be set afterwards via edit). */
+/** Class/shift transfer: goes through the transfer_student RPC so the history
+ *  row and the student update commit in a single transaction — otherwise a
+ *  failure between two separate writes could leave an orphaned history row
+ *  claiming a transfer that never applied. */
 export async function transferStudent(formData: FormData): Promise<{ error?: string }> {
   const id = String(formData.get('id') ?? '').trim()
   if (!id) return { error: 'Student is required' }
   const toClass = text(formData, 'to_class')
-  const toSection = text(formData, 'to_section')
-  const toShift = text(formData, 'to_shift_id')
   if (!toClass) return { error: 'New class is required' }
 
   const supabase = await createClient()
-  const { data: current } = await supabase
-    .from('students')
-    .select('class_name, section, shift_id')
-    .eq('id', id)
-    .maybeSingle()
-  if (!current) return { error: 'Student not found' }
-
-  const { error: histError } = await supabase.from('student_transfers').insert({
-    student_id: id,
-    from_class: current.class_name,
-    from_section: current.section,
-    from_shift_id: current.shift_id,
-    to_class: toClass,
-    to_section: toSection,
-    to_shift_id: toShift,
-    note: text(formData, 'note'),
+  const { error } = await supabase.rpc('transfer_student', {
+    p_student_id: id,
+    p_to_class: toClass,
+    p_to_section: text(formData, 'to_section'),
+    p_to_shift_id: text(formData, 'to_shift_id'),
+    p_note: text(formData, 'note'),
   })
-  if (histError) return { error: histError.message }
-
-  const classChanged = toClass !== current.class_name
-  const { error } = await supabase
-    .from('students')
-    .update({
-      class_name: toClass,
-      section: toSection,
-      shift_id: toShift,
-      ...(classChanged ? { roll_number: null } : {}),
-    })
-    .eq('id', id)
   if (error) return { error: error.message }
   revalidatePath(LIST)
   revalidatePath(`${LIST}/${id}`)
