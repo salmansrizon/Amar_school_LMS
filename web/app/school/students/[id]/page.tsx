@@ -5,6 +5,7 @@ import { currentLang } from '@/lib/i18n-server'
 import { t } from '@/lib/i18n'
 import { createClient } from '@/lib/supabase/server'
 import { AddEntryForm, EditableEntry } from './behaviour-controls'
+import { StudentSubjects, type AssignedSubject } from './subject-controls'
 
 export default async function StudentDetailPage({
   params,
@@ -29,11 +30,22 @@ export default async function StudentDetailPage({
     .single()
   if (!student) notFound()
 
-  const { data: entries } = await supabase
-    .from('behaviour_log_entries')
-    .select('id, note, rating, remind_date, created_at')
-    .eq('student_id', id)
-    .order('created_at', { ascending: false })
+  const [{ data: entries }, { data: subjects }, { data: assignments }] = await Promise.all([
+    supabase
+      .from('behaviour_log_entries')
+      .select('id, note, rating, remind_date, created_at')
+      .eq('student_id', id)
+      .order('created_at', { ascending: false }),
+    supabase.from('subjects').select('id, name').order('name'),
+    supabase.from('student_subjects').select('subject_id, is_optional').eq('student_id', id),
+  ])
+
+  const subjectName = new Map((subjects ?? []).map((s) => [s.id, s.name]))
+  const assignedSubjects: AssignedSubject[] = (assignments ?? []).map((a) => ({
+    subject_id: a.subject_id,
+    name: subjectName.get(a.subject_id) ?? a.subject_id,
+    is_optional: a.is_optional,
+  }))
 
   const now = new Date()
   const avg = averageRating((entries ?? []).map((e) => e.rating))
@@ -46,9 +58,39 @@ export default async function StudentDetailPage({
           ← {t('students.title', lang)}
         </Link>
       </div>
-      <p className="mb-4 text-sm text-muted">
-        {[student.class_name, student.section].filter(Boolean).join(' — ')}
-      </p>
+      <div className="mb-4 flex items-center justify-between">
+        <p className="text-sm text-muted">
+          {[student.class_name, student.section].filter(Boolean).join(' — ')}
+        </p>
+        <span className="flex items-center gap-2">
+          <Link
+            href={`/school/students/${id}/print/admission`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted"
+          >
+            {t('students.printAdmission', lang)}
+          </Link>
+          <Link
+            href={`/school/students/${id}/print/id-card`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted"
+          >
+            {t('students.printIdCard', lang)}
+          </Link>
+        </span>
+      </div>
+
+      <section className="mb-6 rounded-lg border border-line bg-paper p-5 shadow-card">
+        <h2 className="mb-3 font-bold">{t('subjects.title', lang)}</h2>
+        <StudentSubjects
+          studentId={student.id}
+          assigned={assignedSubjects}
+          available={subjects ?? []}
+          lang={lang}
+        />
+      </section>
 
       <section className="mb-6 rounded-lg border border-line bg-paper p-5 shadow-card">
         <div className="mb-3 flex items-center justify-between">

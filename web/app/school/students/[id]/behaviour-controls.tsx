@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react'
 import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
 import { t, type Lang } from '@/lib/i18n'
-import { addBehaviourEntry, updateBehaviourEntry } from '../actions'
+import { addBehaviourEntry, updateBehaviourEntry, sendBehaviourSms } from '../actions'
 
 export function AddEntryForm({ studentId, lang }: { studentId: string; lang: Lang }) {
   const [error, setError] = useState<string | null>(null)
@@ -60,7 +60,9 @@ export function EditableEntry({
 }) {
   const [editing, setEditing] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [smsSent, setSmsSent] = useState(false)
   const [pending, startTransition] = useTransition()
+  const [smsPending, startSmsTransition] = useTransition()
 
   if (!editing) {
     return (
@@ -73,20 +75,44 @@ export function EditableEntry({
             {' · '}
             {new Date(entry.created_at).toLocaleDateString()}
           </p>
+          {error && <p className="mt-1 text-xs text-alert-deep">{error}</p>}
         </div>
-        {locked ? (
-          <span className="rounded-full bg-paper-muted px-2 py-0.5 text-xs font-semibold text-muted">
-            🔒 {t('behaviour.locked', lang)}
-          </span>
-        ) : (
-          <button
-            type="button"
-            onClick={() => setEditing(true)}
-            className="cursor-pointer rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted"
-          >
-            {t('behaviour.edit', lang)}
-          </button>
-        )}
+        <div className="flex shrink-0 items-center gap-2">
+          {smsSent ? (
+            <span className="rounded-full bg-mint-soft px-2 py-0.5 text-xs font-semibold text-mint-deep">
+              {t('behaviour.smsSent', lang)}
+            </span>
+          ) : (
+            <button
+              type="button"
+              disabled={smsPending}
+              onClick={() =>
+                startSmsTransition(async () => {
+                  setError(null)
+                  const result = await sendBehaviourSms(entry.id)
+                  if (result.error) setError(result.error)
+                  else setSmsSent(true)
+                })
+              }
+              className="cursor-pointer rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted disabled:opacity-50"
+            >
+              {smsPending ? t('behaviour.sendingSms', lang) : t('behaviour.sendSms', lang)}
+            </button>
+          )}
+          {locked ? (
+            <span className="rounded-full bg-paper-muted px-2 py-0.5 text-xs font-semibold text-muted">
+              🔒 {t('behaviour.locked', lang)}
+            </span>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setEditing(true)}
+              className="cursor-pointer rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted"
+            >
+              {t('behaviour.edit', lang)}
+            </button>
+          )}
+        </div>
       </div>
     )
   }

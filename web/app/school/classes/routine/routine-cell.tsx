@@ -196,26 +196,31 @@ export function PublishButton({
   )
 }
 
-/** Mockup's class dropdown: picking a class navigates to its grid. */
+/** Class dropdown: picking a class navigates to `${basePath}?class=<id>` — the
+ *  routine grid by default; reused as-is by subject assignment (issue #46). */
 export function ClassPicker({
   classes,
   selected,
   lang,
+  basePath = '/school/classes/routine',
+  pickLabelKey = 'routine.pickClass',
 }: {
   classes: { id: string; name: string; section: string | null }[]
   selected: string
   lang: Lang
+  basePath?: string
+  pickLabelKey?: 'routine.pickClass' | 'subjects.pickClass'
 }) {
   const router = useRouter()
   return (
     <select
       value={selected}
-      onChange={(e) => router.push(`/school/classes/routine?class=${e.target.value}`)}
+      onChange={(e) => router.push(`${basePath}?class=${e.target.value}`)}
       className="min-w-40 rounded-md border border-line bg-paper px-3 py-1.5 text-sm"
-      aria-label={t('routine.pickClass', lang)}
+      aria-label={t(pickLabelKey, lang)}
     >
       <option value="" disabled>
-        {t('routine.pickClass', lang)}
+        {t(pickLabelKey, lang)}
       </option>
       {classes.map((c) => (
         <option key={c.id} value={c.id}>
