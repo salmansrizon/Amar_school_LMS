@@ -7,8 +7,8 @@ import { countFor, studentCounts } from '@/lib/classes'
 import { AddClassForm, AddRoomForm, AddSubjectForm, DeleteButton } from './class-controls'
 
 // Layout per ui/school-owner/classes-list.html: three anchored sections
-// (Classes / Rooms / Subjects), each a toolbar + data table.
-// Routine/Syllabus actions per class arrive with issue #45.
+// (Classes / Rooms / Subjects), each a toolbar + data table. Each class row
+// links to its routine builder and the syllabus page (issue #45).
 
 const thClass = 'px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted'
 const tdClass = 'px-3 py-2 text-sm'
@@ -149,7 +149,21 @@ export default async function ClassesPage({
                     <td className={tdClass}>{c.group_department ?? dash}</td>
                     <td className={tdClass}>{countFor(counts, c.name, c.section)}</td>
                     <td className={tdClass}>
-                      <DeleteButton entity="classes" id={c.id} lang={lang} />
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Link
+                          href={`/school/classes/routine?class=${c.id}`}
+                          className="rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted"
+                        >
+                          {t('classes.routine', lang)}
+                        </Link>
+                        <Link
+                          href="/school/classes/syllabus"
+                          className="rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted"
+                        >
+                          {t('classes.syllabus', lang)}
+                        </Link>
+                        <DeleteButton entity="classes" id={c.id} lang={lang} />
+                      </div>
                     </td>
                   </tr>
                 ))}
