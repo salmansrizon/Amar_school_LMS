@@ -4,21 +4,11 @@ import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { createClient } from '@/lib/supabase/server'
 import { LogFeedbackForm, FeedbackRow } from './feedback-controls'
+import { AddDetails } from '@/components/add-details'
 
 // Layout per ui/school-owner/feedback-inbox.html: tabs (Inbox / Ratings
 // Dashboard), a search+status toolbar, and a data table with an expandable
 // reply row per message (issue #38).
-
-function AddDetails({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <details className="group">
-      <summary className="inline-flex cursor-pointer list-none rounded-full bg-brand-500 px-4 py-1.5 text-xs font-semibold text-white hover:bg-brand-600">
-        {label}
-      </summary>
-      <div className="mt-3 rounded-md border border-line bg-paper-muted p-4">{children}</div>
-    </details>
-  )
-}
 
 const thClass = 'px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted'
 

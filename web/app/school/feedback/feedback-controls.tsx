@@ -83,7 +83,9 @@ function statusLabelKey(status: Message['status']): 'feedback.statusUnread' | 'f
 export function FeedbackRow({ message, lang }: { message: Message; lang: Lang }) {
   const [open, setOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [warning, setWarning] = useState(false)
   const [pending, startTransition] = useTransition()
+  const locale = lang === 'bn' ? 'bn-BD' : 'en-GB'
 
   function handleOpen() {
     const willOpen = !open
@@ -103,7 +105,7 @@ export function FeedbackRow({ message, lang }: { message: Message; lang: Lang })
           {message.sender_role && <span className="text-muted"> ({message.sender_role})</span>}
         </td>
         <td className="px-3 py-2 text-sm text-muted">{message.subject}</td>
-        <td className="px-3 py-2 text-sm">{new Date(message.created_at).toLocaleDateString()}</td>
+        <td className="px-3 py-2 text-sm">{new Date(message.created_at).toLocaleDateString(locale)}</td>
         <td className="px-3 py-2 text-sm">
           <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${statusBadgeClass(message.status)}`}>
             {t(statusLabelKey(message.status), lang)}
@@ -131,7 +133,9 @@ export function FeedbackRow({ message, lang }: { message: Message; lang: Lang })
               <div className="mb-3 rounded-md border border-line bg-paper p-3">
                 <p className="mb-1 text-xs font-semibold text-muted">
                   {t('feedback.replied', lang)}
-                  {message.replied_at && ` — ${new Date(message.replied_at).toLocaleDateString()}`}
+                  {message.replied_at && (
+                    <> · {t('feedback.repliedOn', lang)}: {new Date(message.replied_at).toLocaleDateString(locale)}</>
+                  )}
                 </p>
                 <p className="text-sm">{message.reply_body}</p>
               </div>
@@ -144,9 +148,13 @@ export function FeedbackRow({ message, lang }: { message: Message; lang: Lang })
                 const data = new FormData(form)
                 startTransition(async () => {
                   setError(null)
+                  setWarning(false)
                   const result = await replyToFeedback(data)
                   if (result.error) setError(result.error)
-                  else form.reset()
+                  else {
+                    if (result.emailFailed) setWarning(true)
+                    form.reset()
+                  }
                 })
               }}
             >
@@ -163,6 +171,7 @@ export function FeedbackRow({ message, lang }: { message: Message; lang: Lang })
               </button>
             </form>
             {error && <p className="mt-1 text-xs text-alert-deep">{error}</p>}
+            {warning && <p className="mt-1 text-xs text-sun-deep">{t('feedback.emailFailed', lang)}</p>}
           </td>
         </tr>
       )}

@@ -491,6 +491,10 @@ const dict = {
   'feedback.send': { bn: 'পাঠান', en: 'Send' },
   'feedback.sending': { bn: 'পাঠানো হচ্ছে...', en: 'Sending...' },
   'feedback.replied': { bn: 'উত্তর পাঠানো হয়েছে', en: 'Reply sent' },
+  'feedback.emailFailed': {
+    bn: 'উত্তর সংরক্ষিত হয়েছে, তবে ইমেইল পাঠানো যায়নি',
+    en: 'Reply saved, but the email could not be sent',
+  },
   'feedback.repliedOn': { bn: 'উত্তরের তারিখ', en: 'Replied on' },
   'feedback.none': { bn: 'এখনো কোনো মতামত নেই', en: 'No feedback yet' },
   'feedback.logNew': { bn: 'নতুন মতামত লগ করুন', en: 'Log new feedback' },
@@ -503,6 +507,10 @@ const dict = {
   'feedback.avgRating': { bn: 'গড় রেটিং', en: 'Average Rating' },
   'feedback.totalResponses': { bn: 'মোট প্রতিক্রিয়া', en: 'Total Responses' },
   'feedback.responseRate': { bn: 'সাড়াদানের হার', en: 'Response Rate' },
+  'feedback.responseRateHint': {
+    bn: 'ইনবক্সের উত্তর দেওয়া বার্তার হার',
+    en: 'Share of inbox messages answered',
+  },
   'feedback.distribution': { bn: 'রেটিং বিভাজন', en: 'Rating Distribution' },
   'feedback.byCategory': { bn: 'বিভাগ অনুযায়ী গড়', en: 'Average by Category' },
   'feedback.categoryTeaching': { bn: 'শিক্ষাদান', en: 'Teaching' },

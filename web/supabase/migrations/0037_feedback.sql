@@ -33,6 +33,23 @@ create policy "school members manage feedback_messages" on public.feedback_messa
 create policy "super admin manages feedback_messages" on public.feedback_messages
   for all using (public.app_current_role() = 'super_admin');
 
+-- replied_by points at profiles, which is school-scoped — verify tenancy past
+-- RLS, same as enforce_student_subject_school / enforce_class_ref_school.
+create function public.enforce_feedback_reply_school() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  if new.replied_by is not null and not exists (
+    select 1 from profiles where id = new.replied_by and school_id = new.school_id
+  ) then
+    raise exception 'replied_by does not belong to this school';
+  end if;
+  return new;
+end $$;
+
+create trigger feedback_message_replied_by_same_school
+  before insert or update on public.feedback_messages
+  for each row execute function public.enforce_feedback_reply_school();
+
 -- Per-institute vs per-application ratings (PRD §5.9 says "aggregated
 -- per-institute and per-application"): 'institute' rows belong to one School;
 -- 'application' rows are platform-wide (school_id null) — schema support

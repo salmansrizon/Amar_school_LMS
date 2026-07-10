@@ -24,16 +24,8 @@ describe('Feedback Inbox status state machine', () => {
     expect(statusOnOpen('answered')).toBe('answered')
   })
 
-  it('replying answers an unread message directly (implicit read + answered)', () => {
-    expect(statusOnReply('unread')).toBe('answered')
-  })
-
-  it('replying to a read message answers it', () => {
-    expect(statusOnReply('read')).toBe('answered')
-  })
-
-  it('re-replying to an already-answered message stays answered', () => {
-    expect(statusOnReply('answered')).toBe('answered')
+  it('replying always answers a message (implicit read + answered, regardless of prior state)', () => {
+    expect(statusOnReply()).toBe('answered')
   })
 })
 

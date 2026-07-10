@@ -5,6 +5,7 @@ import { t, type Lang } from '@/lib/i18n'
 import { createClient } from '@/lib/supabase/server'
 import { countFor, studentCounts } from '@/lib/classes'
 import { AddClassForm, AddRoomForm, AddSubjectForm, DeleteButton } from './class-controls'
+import { AddDetails } from '@/components/add-details'
 
 // Layout per ui/school-owner/classes-list.html: three anchored sections
 // (Classes / Rooms / Subjects), each a toolbar + data table. Each class row
@@ -12,17 +13,6 @@ import { AddClassForm, AddRoomForm, AddSubjectForm, DeleteButton } from './class
 
 const thClass = 'px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted'
 const tdClass = 'px-3 py-2 text-sm'
-
-function AddDetails({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <details className="group">
-      <summary className="inline-flex cursor-pointer list-none rounded-full bg-brand-500 px-4 py-1.5 text-xs font-semibold text-white hover:bg-brand-600">
-        {label}
-      </summary>
-      <div className="mt-3 rounded-md border border-line bg-paper-muted p-4">{children}</div>
-    </details>
-  )
-}
 
 export default async function ClassesPage({
   searchParams,

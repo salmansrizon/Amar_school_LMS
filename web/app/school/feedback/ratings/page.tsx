@@ -12,20 +12,10 @@ import {
   type CategoryKey,
 } from '@/lib/feedback'
 import { LogRatingForm } from './rating-controls'
+import { AddDetails } from '@/components/add-details'
 
 // Layout per ui/school-owner/feedback-ratings.html: 3 KPI cards, a rating
 // distribution bar chart, and an average-by-category bar chart (issue #38).
-
-function AddDetails({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <details className="group">
-      <summary className="inline-flex cursor-pointer list-none rounded-full bg-brand-500 px-4 py-1.5 text-xs font-semibold text-white hover:bg-brand-600">
-        {label}
-      </summary>
-      <div className="mt-3 rounded-md border border-line bg-paper-muted p-4">{children}</div>
-    </details>
-  )
-}
 
 function Bar({ label, pct, valueLabel }: { label: string; pct: number; valueLabel: string }) {
   return (
@@ -107,6 +97,9 @@ export default async function FeedbackRatingsPage() {
         <div className="rounded-lg border border-line bg-paper p-4 shadow-card">
           <div className="text-xs font-semibold uppercase tracking-wide text-muted">{t('feedback.responseRate', lang)}</div>
           <div className="mt-1 text-2xl font-extrabold">{rate}%</div>
+          {/* Distinct source from the two KPIs to its left (satisfaction_ratings):
+              this is the share of inbox messages the School has answered. */}
+          <div className="mt-1 text-xs text-muted">{t('feedback.responseRateHint', lang)}</div>
         </div>
       </div>
 

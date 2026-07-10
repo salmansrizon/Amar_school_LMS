@@ -10,13 +10,9 @@ export function statusOnOpen(current: FeedbackStatus): FeedbackStatus {
   return current === 'unread' ? 'read' : current
 }
 
-/** Sending a reply always lands on 'answered' — from any prior state. Takes
- * the current status (mirroring statusOnOpen's shape) so call sites read the
- * same way even though the result never actually depends on it. */
-export function statusOnReply(
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  current: FeedbackStatus,
-): FeedbackStatus {
+/** Sending a reply always lands on 'answered', unconditionally — there is no
+ * prior state to branch on, unlike statusOnOpen. */
+export function statusOnReply(): FeedbackStatus {
   return 'answered'
 }
 

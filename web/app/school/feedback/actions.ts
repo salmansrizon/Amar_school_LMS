@@ -78,7 +78,7 @@ export async function markFeedbackRead(id: string): Promise<{ error?: string }> 
 /** Replying always lands on 'answered' (statusOnReply) and dispatches an email
  * when the sender left an address — the stored reply is the source of truth
  * regardless of send outcome (issue #38: keep the email side minimal/isolated). */
-export async function replyToFeedback(formData: FormData): Promise<{ error?: string }> {
+export async function replyToFeedback(formData: FormData): Promise<{ error?: string; emailFailed?: boolean }> {
   const id = str(formData, 'id')
   const replyBody = str(formData, 'reply_body')
   if (!id) return { error: 'Missing message id' }
@@ -92,12 +92,12 @@ export async function replyToFeedback(formData: FormData): Promise<{ error?: str
 
   const { data: existing, error: fetchError } = await supabase
     .from('feedback_messages')
-    .select('status, sender_email, subject')
+    .select('sender_email, subject')
     .eq('id', id)
     .single()
   if (fetchError || !existing) return { error: fetchError?.message ?? 'Not found' }
 
-  const nextStatus = statusOnReply(existing.status as FeedbackStatus)
+  const nextStatus = statusOnReply()
   const now = new Date().toISOString()
   const { error } = await supabase
     .from('feedback_messages')
@@ -111,11 +111,16 @@ export async function replyToFeedback(formData: FormData): Promise<{ error?: str
     .eq('id', id)
   if (error) return { error: error.message }
 
+  revalidatePath(INBOX_PAGE)
+
   if (existing.sender_email) {
-    await emailGateway().send(existing.sender_email, `Re: ${existing.subject}`, replyBody)
+    const sent = await emailGateway().send(existing.sender_email, `Re: ${existing.subject}`, replyBody)
+    // The stored reply above is already committed and is the source of truth
+    // — a failed send is surfaced to the caller as a soft warning, never a
+    // blocking error (issue #38: keep the email side minimal/isolated).
+    if (!sent.ok) return { emailFailed: true }
   }
 
-  revalidatePath(INBOX_PAGE)
   return {}
 }
 
