@@ -68,6 +68,52 @@ export function SignatureRow({ labels }: { labels: string[] }) {
   )
 }
 
+/** A blank fill-in line for paper-fallback templates (issue #39, PRD §5.11) —
+ *  same visual language as InfoGrid's value slot, but empty handwriting space
+ *  instead of a real value. */
+export function BlankLine({ width = 'w-40' }: { width?: string }) {
+  return (
+    <span className={`inline-block border-b border-dashed border-line-strong align-bottom ${width}`}>
+      &nbsp;
+    </span>
+  )
+}
+
+/** A ruled roster table with blank rows — attendance sheets, homework
+ *  collection sheets and similar paper-fallback templates (issue #39). */
+export function BlankRosterTable({
+  columns,
+  rowCount = 25,
+}: {
+  columns: string[]
+  rowCount?: number
+}) {
+  return (
+    <table className="w-full border-collapse text-xs">
+      <thead>
+        <tr>
+          {columns.map((c) => (
+            <th key={c} className="border border-line-strong px-2 py-1.5 text-left font-semibold">
+              {c}
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {Array.from({ length: rowCount }).map((_, i) => (
+          <tr key={i}>
+            {columns.map((c) => (
+              <td key={c} className="border border-line-strong px-2 py-3">
+                &nbsp;
+              </td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  )
+}
+
 /** Bottom strip: QR authenticity slot + "powered by" footer. Pass a real
  *  QR as `qr` when the printable has one; the labelled box is the default. */
 export function QrFooterRow({
