@@ -1,0 +1,75 @@
+// Students I helpers (issue #27): list filtering and profile display bits,
+// kept pure for unit testing.
+
+export interface StudentListRow {
+  id: string
+  full_name: string
+  roll_number: number | null
+  class_name: string | null
+  section: string | null
+  guardian_name: string | null
+  archived_at: string | null
+}
+
+/** "Class 8 / A / Morning" — drops missing parts, null when nothing is set. */
+export function classShiftLabel(
+  className: string | null | undefined,
+  section: string | null | undefined,
+  shiftName?: string | null,
+): string | null {
+  const parts = [className, section, shiftName].filter(Boolean)
+  return parts.length ? parts.join(' / ') : null
+}
+
+/** Case-insensitive match on name, roll number or guardian name (list search). */
+export function matchesStudentQuery(s: StudentListRow, query: string): boolean {
+  const q = query.trim().toLowerCase()
+  if (!q) return true
+  return (
+    s.full_name.toLowerCase().includes(q) ||
+    (s.roll_number !== null && String(s.roll_number) === q) ||
+    (s.guardian_name ?? '').toLowerCase().includes(q)
+  )
+}
+
+export function filterStudents(
+  students: StudentListRow[],
+  query: string,
+  className: string,
+  section: string,
+): StudentListRow[] {
+  return students.filter(
+    (s) =>
+      matchesStudentQuery(s, query) &&
+      (!className || s.class_name === className) &&
+      (!section || s.section === section),
+  )
+}
+
+/** Per-student average rating from a flat (student_id, rating) list, 1 decimal. */
+export function behaviourAverages(
+  entries: { student_id: string; rating: number | null }[],
+): Map<string, number> {
+  const sums = new Map<string, { total: number; count: number }>()
+  for (const e of entries) {
+    if (e.rating === null) continue
+    const acc = sums.get(e.student_id) ?? { total: 0, count: 0 }
+    acc.total += e.rating
+    acc.count += 1
+    sums.set(e.student_id, acc)
+  }
+  const out = new Map<string, number>()
+  for (const [id, { total, count }] of sums) out.set(id, Math.round((total / count) * 10) / 10)
+  return out
+}
+
+const PHOTO_EXT: Record<string, string> = {
+  'image/jpeg': 'jpg',
+  'image/png': 'png',
+  'image/webp': 'webp',
+}
+
+/** Storage extension for an allowed photo MIME type; null = not allowed. */
+export function photoExtension(mimeType: string): string | null {
+  return PHOTO_EXT[mimeType] ?? null
+}
