@@ -72,11 +72,13 @@ export async function deleteSyllabus(classId: string): Promise<{ error?: string 
     .eq('class_id', classId)
     .maybeSingle()
   if (!row) return { error: 'Not found' }
-  // Storage RLS confines the delete to the caller's own School folder.
-  const { error: rmError } = await supabase.storage.from('syllabus').remove([row.storage_path])
-  if (rmError) return { error: rmError.message }
+  // DB row first: if this fails nothing changed; if the Storage remove after it
+  // fails, the object is an invisible orphan (re-upload overwrites it) rather
+  // than a ghost list entry pointing at a missing file.
   const { error } = await supabase.from('class_syllabi').delete().eq('class_id', classId)
   if (error) return { error: error.message }
+  // Storage RLS confines the delete to the caller's own School folder.
+  await supabase.storage.from('syllabus').remove([row.storage_path])
   revalidatePath(PAGE)
   return {}
 }

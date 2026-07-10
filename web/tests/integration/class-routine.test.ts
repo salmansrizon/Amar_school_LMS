@@ -142,6 +142,16 @@ describe('Class & Curriculum II (issue #45)', () => {
     expect(error).toBeNull()
   })
 
+  it("a slot cannot be created for another school's class (tenancy trigger)", async () => {
+    const { error } = await ownerB.from('routine_slots').insert({
+      class_id: classId, // school A's class; ownerB's school_id defaults in
+      day_of_week: 1,
+      period: 1,
+    })
+    expect(error).not.toBeNull()
+    expect(error!.message).toContain('class does not belong to this school')
+  })
+
   it("a slot cannot reference another school's teacher (tenancy trigger)", async () => {
     const { error } = await ownerA.from('routine_slots').insert({
       class_id: classId,
