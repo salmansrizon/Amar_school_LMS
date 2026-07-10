@@ -88,14 +88,15 @@ export function StudentSubjects({
           className="flex flex-wrap items-center gap-2"
           onSubmit={(e) => {
             e.preventDefault()
-            const data = new FormData(e.currentTarget)
+            const form = e.currentTarget
+            const data = new FormData(form)
             data.set('student_id', studentId)
             startTransition(async () => {
               setError(null)
               const result = await setStudentSubject(data)
               if (result.error) setError(result.error)
               else {
-                e.currentTarget.reset()
+                form.reset()
                 router.refresh()
               }
             })

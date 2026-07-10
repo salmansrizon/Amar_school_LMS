@@ -95,6 +95,7 @@ export async function sendBehaviourSms(entryId: string): Promise<{ error?: strin
   const body = behaviourSmsBody(student.full_name, entry.note, entry.rating)
   const gateway = smsGateway()
   const result = await gateway.send(student.guardian_phone, body)
+  if (!result.ok) return { error: 'SMS gateway failed to send' }
 
   const { error } = await supabase.from('sms_log').insert({
     school_id: student.school_id,
@@ -105,6 +106,5 @@ export async function sendBehaviourSms(entryId: string): Promise<{ error?: strin
     provider: gateway.name,
   })
   if (error) return { error: error.message }
-  if (!result.ok) return { error: 'SMS gateway failed to send' }
   return {}
 }
