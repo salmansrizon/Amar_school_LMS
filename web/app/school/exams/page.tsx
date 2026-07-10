@@ -26,6 +26,9 @@ export default async function ExamsPage() {
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold">{t('exams.title', lang)}</h1>
         <div className="flex items-center gap-4">
+          <Link href="/school/exams/grading-schemes" className="text-sm text-brand-600 hover:underline">
+            {t('grading.title', lang)}
+          </Link>
           <Link href="/school/exams/mark-sheet-preview" className="text-sm text-brand-600 hover:underline">
             {t('markSheet.title', lang)}
           </Link>
