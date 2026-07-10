@@ -25,7 +25,12 @@ function feeTypeBadge(feeType: string, lang: Lang) {
   )
 }
 
-export default async function FeeStructuresPage() {
+export default async function FeeStructuresPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>
+}) {
+  const { q = '' } = await searchParams
   const lang: Lang = await currentLang()
   const supabase = await createClient()
   const {
@@ -36,7 +41,7 @@ export default async function FeeStructuresPage() {
   const { data: me } = await supabase.from('profiles').select('role').eq('id', user.id).single()
   if (me?.role !== 'school_owner' && me?.role !== 'staff_user') redirect('/login')
 
-  const [{ data: classes }, { data: structures }] = await Promise.all([
+  const [{ data: classes }, { data: allStructures }] = await Promise.all([
     supabase.from('classes').select('id, name, section').order('created_at'),
     supabase
       .from('fee_structures')
@@ -47,6 +52,17 @@ export default async function FeeStructuresPage() {
   const classOptions: ClassOption[] = classes ?? []
   const classLabel = (c: { name: string; section: string | null } | null) =>
     c ? `${c.name}${c.section ? ` - ${c.section}` : ''}` : '—'
+
+  // Search box per ui/school-owner/fee-structures.html ("শ্রেণি খুঁজুন · Search
+  // class") — filters the (typically small) structures list by Class label.
+  const query = q.trim().toLowerCase()
+  const structures = query
+    ? (allStructures ?? []).filter((s) =>
+        classLabel(s.classes as unknown as { name: string; section: string | null } | null)
+          .toLowerCase()
+          .includes(query),
+      )
+    : allStructures
 
   return (
     <main className="mx-auto w-full max-w-4xl flex-1 p-6">
@@ -76,7 +92,23 @@ export default async function FeeStructuresPage() {
       </section>
 
       <section className="overflow-x-auto rounded-lg border border-line bg-paper p-5 shadow-card">
-        <h2 className="mb-3 font-bold">{t('fees.tabStructures', lang)}</h2>
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <h2 className="font-bold">{t('fees.tabStructures', lang)}</h2>
+          <form method="get" className="flex items-center gap-2">
+            <input
+              name="q"
+              defaultValue={q}
+              placeholder={t('fees.searchClass', lang)}
+              className="w-48 rounded-md border border-line bg-paper px-3 py-1.5 text-sm"
+            />
+            <button
+              type="submit"
+              className="cursor-pointer rounded-full border border-line px-3 py-1 text-xs font-semibold hover:bg-paper-muted"
+            >
+              {t('classes.filter', lang)}
+            </button>
+          </form>
+        </div>
         {!structures?.length ? (
           <p className="text-sm text-muted">{t('fees.noStructures', lang)}</p>
         ) : (

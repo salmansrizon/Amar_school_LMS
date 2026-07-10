@@ -54,12 +54,10 @@ export function FeeStructureForm({
   classes,
   lang,
   editing,
-  onSaved,
 }: {
   classes: ClassOption[]
   lang: Lang
   editing?: FeeStructureEditing
-  onSaved?: () => void
 }) {
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
@@ -81,7 +79,6 @@ export function FeeStructureForm({
             return
           }
           if (!editing) form.reset()
-          onSaved?.()
         })
       }}
     >

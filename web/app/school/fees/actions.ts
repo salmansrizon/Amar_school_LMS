@@ -31,6 +31,10 @@ export async function saveFeeRecord(formData: FormData): Promise<SaveFeeResult> 
     return { error: 'Amounts must be non-negative numbers' }
   }
   const method = String(formData.get('payment_method') ?? 'cash')
+  // Optional free-text note (ui/school-owner/fee-collection.html); empty
+  // string normalizes to null rather than storing a blank note.
+  const noteRaw = String(formData.get('note') ?? '').trim()
+  const note = noteRaw || null
 
   const supabase = await createClient()
   if (!(await requireSchoolMember(supabase))) return { error: 'Unauthorized' }
@@ -38,7 +42,7 @@ export async function saveFeeRecord(formData: FormData): Promise<SaveFeeResult> 
   if (editId) {
     const { data, error } = await supabase
       .from('fee_collection_records')
-      .update({ ...amounts, payment_method: method })
+      .update({ ...amounts, payment_method: method, note })
       .eq('id', editId)
       .select('id')
     if (error) return { error: error.message }
@@ -49,7 +53,7 @@ export async function saveFeeRecord(formData: FormData): Promise<SaveFeeResult> 
 
   const { data, error } = await supabase
     .from('fee_collection_records')
-    .insert({ student_id: studentId, month, year, ...amounts, payment_method: method })
+    .insert({ student_id: studentId, month, year, ...amounts, payment_method: method, note })
     .select('id')
     .single()
 

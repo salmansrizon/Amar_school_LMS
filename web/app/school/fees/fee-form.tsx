@@ -21,6 +21,7 @@ export interface ExistingFeeRecord {
   fine_amount: number
   adjust_amount: number
   payment_method: string
+  note: string | null
 }
 
 /** Fee Collection form (issue #34, PRD §5.6) per ui/school-owner/fee-collection.html:
@@ -52,6 +53,7 @@ export function FeeForm({
   const total = totalPayable(fee, fine, adjust)
   const [received, setReceived] = useState(existingRecord?.pay_amount ?? total)
   const due = dueAmount(total, received)
+  const [note, setNote] = useState(existingRecord?.note ?? '')
 
   const [absentDays, setAbsentDays] = useState<number | null>(null)
   const [calculating, startCalculating] = useTransition()
@@ -76,6 +78,7 @@ export function FeeForm({
         data.set('adjust_amount', String(adjust))
         data.set('due_amount', String(due))
         data.set('payment_method', method)
+        data.set('note', note)
         startSaving(async () => {
           setError(null)
           const result = await saveFeeRecord(data)
@@ -208,6 +211,19 @@ export function FeeForm({
           {t('fees.due', lang)}
         </label>
         <input id="due_amount" type="text" disabled value={`৳${due.toFixed(2)}`} className={inputClass} />
+      </div>
+      <div className="sm:col-span-4">
+        <label className={labelClass} htmlFor="fee_note">
+          {t('fees.note', lang)}
+        </label>
+        <input
+          id="fee_note"
+          type="text"
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          placeholder={t('fees.notePlaceholder', lang)}
+          className={inputClass}
+        />
       </div>
 
       {error && <p className="text-sm text-alert-deep sm:col-span-4">{error}</p>}

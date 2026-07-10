@@ -22,7 +22,7 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
   const { data: record } = await supabase
     .from('fee_collection_records')
     .select(
-      'id, month, year, pay_amount, fine_amount, adjust_amount, due_amount, payment_method, updated_at, students(full_name, class_name, section), schools(name)',
+      'id, month, year, pay_amount, fine_amount, adjust_amount, due_amount, payment_method, note, updated_at, students(full_name, class_name, section), schools(name)',
     )
     .eq('id', id)
     .single()
@@ -94,6 +94,13 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
           <span className="font-semibold text-muted">{t('fees.inWords', lang)}: </span>
           {takaInWords(total)}
         </p>
+
+        {record.note && (
+          <p className="mt-2 rounded-md bg-paper-muted px-3 py-2 text-xs">
+            <span className="font-semibold text-muted">{t('fees.note', lang)}: </span>
+            {record.note}
+          </p>
+        )}
 
         <footer className="mt-6 text-center text-xs text-muted">
           {t('fees.method', lang)}: {t(`fees.${record.payment_method}` as 'fees.cash', lang)} ·{' '}

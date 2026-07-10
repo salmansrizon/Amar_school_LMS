@@ -82,7 +82,7 @@ export default async function FeesPage({
     if (roster.length) {
       const { data: records } = await supabase
         .from('fee_collection_records')
-        .select('id, student_id, pay_amount, fine_amount, adjust_amount, payment_method')
+        .select('id, student_id, pay_amount, fine_amount, adjust_amount, payment_method, note')
         .eq('month', month)
         .eq('year', year)
         .in(
@@ -98,6 +98,7 @@ export default async function FeesPage({
             fine_amount: Number(r.fine_amount),
             adjust_amount: Number(r.adjust_amount),
             payment_method: r.payment_method,
+            note: r.note,
           },
         ]),
       )

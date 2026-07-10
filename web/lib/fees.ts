@@ -1,10 +1,14 @@
 // Accounting I helpers (issue #34, PRD §5.6): Fee/Fine/Scholarship-Discount
-// split arithmetic, the absent-fine calculator's working-days formula (shared
-// definition with the absence-SMS feature's is_absent_working_day, 0021/#12),
-// and the fee-structure copy-between-class/year payload builder. Kept pure
-// for unit testing; the live-data versions (real off days/leaves/attendance,
-// real school-tenancy checks) live in the absent_working_days_in_month RPC
-// (0037) which walks the same per-day rule via is_absent_working_day.
+// split arithmetic, the absent-fine amount arithmetic, and the fee-structure
+// copy-between-class/year payload builder. Kept pure for unit testing.
+//
+// The working-days formula itself (Total − Off Days − Approved Leave −
+// Present, with off-day/leave overlap handling) is NOT reimplemented here —
+// it lives exactly once, in is_absent_working_day (0021, absence-SMS #12),
+// and the absent_working_days_in_month RPC (0037) reuses that function
+// day-by-day. A parallel TypeScript copy of that per-day rule would be dead
+// weight (nothing calls it) and a second place the definition could drift;
+// the RPC's behaviour is covered by tests/integration/fee-structures.test.ts.
 
 /** Fee (prescribed) + Fine − Scholarship/Discount, floored at zero. */
 export function totalPayable(feeAmount: number, fineAmount: number, adjustAmount: number): number {
@@ -19,52 +23,6 @@ export function dueAmount(totalPayableAmount: number, receivedAmount: number): n
 /** Absent working days × the per-day fine rate; negative inputs clamp to zero. */
 export function absentFineAmount(absentDays: number, ratePerDay: number): number {
   return Math.max(0, absentDays) * Math.max(0, ratePerDay)
-}
-
-function pad2(n: number): string {
-  return String(n).padStart(2, '0')
-}
-
-/** Every ISO (YYYY-MM-DD) date in the given calendar month, in order. */
-export function daysInMonth(year: number, month: number): string[] {
-  const count = new Date(year, month, 0).getDate()
-  const out: string[] = []
-  for (let d = 1; d <= count; d++) {
-    out.push(`${year}-${pad2(month)}-${pad2(d)}`)
-  }
-  return out
-}
-
-export interface LeaveRange {
-  from_day: string
-  to_day: string
-}
-
-/** A single day's absent-working-day test — mirrors is_absent_working_day
- *  (0021): not an off day, not covered by approved leave, not present. */
-export function isAbsentWorkingDay(
-  day: string,
-  offDays: ReadonlySet<string>,
-  leaves: readonly LeaveRange[],
-  presentDays: ReadonlySet<string>,
-): boolean {
-  if (offDays.has(day)) return false
-  if (leaves.some((l) => day >= l.from_day && day <= l.to_day)) return false
-  if (presentDays.has(day)) return false
-  return true
-}
-
-/** The absent-fine working-days formula: Total − Off Days − Approved Leave −
- *  Present, evaluated per day so off-day/leave overlap never double-subtracts. */
-export function countAbsentWorkingDays(
-  days: readonly string[],
-  offDays: readonly string[],
-  leaves: readonly LeaveRange[],
-  presentDays: readonly string[],
-): number {
-  const offSet = new Set(offDays)
-  const presentSet = new Set(presentDays)
-  return days.filter((d) => isAbsentWorkingDay(d, offSet, leaves, presentSet)).length
 }
 
 // Fee structures (copy-between-class/year).

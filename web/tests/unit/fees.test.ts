@@ -1,19 +1,16 @@
 import { describe, it, expect } from 'vitest'
-import {
-  totalPayable,
-  dueAmount,
-  absentFineAmount,
-  daysInMonth,
-  countAbsentWorkingDays,
-  buildFeeStructureCopy,
-  type FeeStructureCore,
-} from '@/lib/fees'
+import { totalPayable, dueAmount, absentFineAmount, buildFeeStructureCopy, type FeeStructureCore } from '@/lib/fees'
 
 // Accounting I (issue #34, PRD §5.6): fee structures + absent-fine calculator.
 // Red-first per the map's TDD requirement — these are the pure pieces:
-// Fee/Fine/Scholarship-Discount split arithmetic, the working-days absence
-// formula (shared definition with the absence-SMS feature, issue #12), and
-// the copy-between-class/year payload builder.
+// Fee/Fine/Scholarship-Discount split arithmetic, the absent-fine amount
+// (days × rate), and the copy-between-class/year payload builder.
+//
+// The working-days absence-count formula itself is NOT reimplemented/tested
+// here in TypeScript — it lives once, in is_absent_working_day (0021,
+// absence-SMS #12), reused by the absent_working_days_in_month RPC (0037).
+// Its behaviour (including off-day/leave overlap) is covered against the
+// real database in tests/integration/fee-structures.test.ts.
 
 describe('totalPayable', () => {
   it('sums fee + fine, minus the scholarship/discount', () => {
@@ -50,68 +47,6 @@ describe('absentFineAmount', () => {
   it('clamps negative inputs to zero rather than producing a negative fine', () => {
     expect(absentFineAmount(-2, 50)).toBe(0)
     expect(absentFineAmount(3, -10)).toBe(0)
-  })
-})
-
-describe('daysInMonth', () => {
-  it('lists every ISO date in a 31-day month', () => {
-    const days = daysInMonth(2026, 7)
-    expect(days).toHaveLength(31)
-    expect(days[0]).toBe('2026-07-01')
-    expect(days[30]).toBe('2026-07-31')
-  })
-
-  it('handles February in a non-leap year', () => {
-    expect(daysInMonth(2026, 2)).toHaveLength(28)
-  })
-
-  it('handles February in a leap year', () => {
-    expect(daysInMonth(2024, 2)).toHaveLength(29)
-  })
-})
-
-describe('countAbsentWorkingDays (shared working-days formula)', () => {
-  // Total − Off Days − Approved Leave − Present, with off-day/leave overlap
-  // handled by short-circuiting per day (mirrors is_absent_working_day, 0021).
-  const days = ['2026-07-01', '2026-07-02', '2026-07-03', '2026-07-04', '2026-07-05']
-
-  it('counts days that are not off, not on leave, and not present', () => {
-    // 07-01 present, 07-02 off day, rest absent
-    const count = countAbsentWorkingDays(days, ['2026-07-02'], [], ['2026-07-01'])
-    expect(count).toBe(3)
-  })
-
-  it('excludes days covered by an approved leave range', () => {
-    const count = countAbsentWorkingDays(
-      days,
-      [],
-      [{ from_day: '2026-07-03', to_day: '2026-07-04' }],
-      [],
-    )
-    expect(count).toBe(3) // 07-01, 07-02, 07-05
-  })
-
-  it('handles off-day/leave overlap without double-subtracting', () => {
-    // 07-02 is both an off day AND inside the leave range — must only drop
-    // the total by one for that day, not two.
-    const count = countAbsentWorkingDays(
-      days,
-      ['2026-07-02'],
-      [{ from_day: '2026-07-01', to_day: '2026-07-02' }],
-      [],
-    )
-    // absent working days = 07-03, 07-04, 07-05 (07-01 on leave, 07-02 off+leave)
-    expect(count).toBe(3)
-  })
-
-  it('returns zero when every day is present, off, or on leave', () => {
-    const count = countAbsentWorkingDays(
-      days,
-      ['2026-07-01', '2026-07-02'],
-      [{ from_day: '2026-07-03', to_day: '2026-07-05' }],
-      [],
-    )
-    expect(count).toBe(0)
   })
 })
 
