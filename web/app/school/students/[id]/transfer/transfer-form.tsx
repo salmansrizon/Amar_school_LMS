@@ -12,16 +12,26 @@ export function TransferForm({
   studentId,
   classes,
   shifts,
+  currentClass,
+  currentSection,
+  currentShiftId,
 }: {
   lang: Lang
   studentId: string
   classes: { name: string; section: string | null }[]
   shifts: { id: string; name: string }[]
+  currentClass: string | null
+  currentSection: string | null
+  currentShiftId: string | null
 }) {
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
-  const [toClass, setToClass] = useState('')
+  // Pre-filled with the student's current class/section/shift (mirrors the
+  // mockup) — a blank shift is treated as "unchanged" by the RPC, but
+  // pre-filling avoids relying on that and keeps the form honest about what
+  // will actually be submitted.
+  const [toClass, setToClass] = useState(currentClass ?? '')
   const classNames = [...new Set(classes.map((c) => c.name))]
   const sections = useMemo(() => sectionsForClass(classes, toClass), [classes, toClass])
 
@@ -66,7 +76,12 @@ export function TransferForm({
         <div>
           <label className={fieldLabelClass}>{t('students.newSection', lang)}</label>
           {/* key remounts on class change so a stale section can't linger */}
-          <select key={toClass} name="to_section" className={fieldClass}>
+          <select
+            key={toClass}
+            name="to_section"
+            defaultValue={toClass === currentClass ? (currentSection ?? '') : ''}
+            className={fieldClass}
+          >
             <option value="">—</option>
             {sections.map((s) => (
               <option key={s} value={s}>
@@ -77,7 +92,7 @@ export function TransferForm({
         </div>
         <div>
           <label className={fieldLabelClass}>{t('students.newShift', lang)}</label>
-          <select name="to_shift_id" className={fieldClass}>
+          <select name="to_shift_id" defaultValue={currentShiftId ?? ''} className={fieldClass}>
             <option value="">—</option>
             {shifts.map((s) => (
               <option key={s.id} value={s.id}>

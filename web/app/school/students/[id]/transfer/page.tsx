@@ -75,6 +75,9 @@ export default async function StudentTransferPage({
           studentId={id}
           classes={classes ?? []}
           shifts={shifts ?? []}
+          currentClass={student.class_name}
+          currentSection={student.section}
+          currentShiftId={student.shift_id}
         />
       </section>
 
