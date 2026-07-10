@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 import { takaInWords } from '@/lib/amount-words'
+import { totalPayable } from '@/lib/fees'
 import { currentLang } from '@/lib/i18n-server'
 import { t } from '@/lib/i18n'
 import { createClient } from '@/lib/supabase/server'
@@ -34,10 +35,8 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
   } | null
   const school = record.schools as unknown as { name: string } | null
   // Adjustment is a discount/scholarship — it reduces what was actually collected.
-  const total = Math.max(
-    0,
-    Number(record.pay_amount) + Number(record.fine_amount) - Number(record.adjust_amount),
-  )
+  // Shared with the collection form's live preview (lib/fees.ts).
+  const total = totalPayable(Number(record.pay_amount), Number(record.fine_amount), Number(record.adjust_amount))
 
   return (
     <main className="mx-auto w-full max-w-md flex-1 p-6">
@@ -70,7 +69,7 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
             </dd>
           </div>
           <div className="flex justify-between">
-            <dt className="text-muted">{t('fees.pay', lang)}</dt>
+            <dt className="text-muted">{t('fees.receivedAmount', lang)}</dt>
             <dd>৳{Number(record.pay_amount).toFixed(2)}</dd>
           </div>
           <div className="flex justify-between">

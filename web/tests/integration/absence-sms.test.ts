@@ -108,10 +108,14 @@ describe('Absence SMS Rule (issue #12)', () => {
   })
 
   it('approved leave breaks the absence (leave days are not working days)', async () => {
+    // status: 'approved' — student_leaves gained an approval workflow via a
+    // sibling ticket's live migration; is_absent_working_day only excludes
+    // approved leave (matches "Approved Leave" in the PRD formula).
     await owner.from('student_leaves').insert({
       student_id: studentId,
       from_day: DAYS[3],
       to_day: DAYS[4],
+      status: 'approved',
     })
     const rows = (await candidates(DAYS[4])).filter((r) => r.student_id === studentId)
     expect(rows).toEqual([])

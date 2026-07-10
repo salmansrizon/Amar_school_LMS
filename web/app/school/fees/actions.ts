@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { requireSchoolMember } from '@/lib/auth/require-role'
 import { createClient } from '@/lib/supabase/server'
+import { absentFineAmount } from '@/lib/fees'
 
 // One record per student per month is DB-enforced (unique constraint).
 // The action implements legacy's "already have a payment info, please edit":
@@ -68,4 +69,30 @@ export async function saveFeeRecord(formData: FormData): Promise<SaveFeeResult> 
   }
   revalidatePath('/school/fees')
   return { savedId: data.id }
+}
+
+// Absent-fine calculator (issue #34, PRD §5.6): absent working days come from
+// the absent_working_days_in_month RPC (0037), which walks is_absent_working_day
+// (0021, the absence-SMS feature's shared definition) day by day — the fine
+// arithmetic itself (days × rate) is the one pure piece, kept in lib/fees.ts.
+export type CalculateFineResult = { error?: string; absentDays?: number; fineAmount?: number }
+
+export async function calculateAbsentFine(
+  studentId: string,
+  year: number,
+  month: number,
+  ratePerDay: number,
+): Promise<CalculateFineResult> {
+  const supabase = await createClient()
+  if (!(await requireSchoolMember(supabase))) return { error: 'Unauthorized' }
+
+  const { data, error } = await supabase.rpc('absent_working_days_in_month', {
+    p_student: studentId,
+    p_year: year,
+    p_month: month,
+  })
+  if (error) return { error: error.message }
+
+  const absentDays = Number(data)
+  return { absentDays, fineAmount: absentFineAmount(absentDays, ratePerDay) }
 }
