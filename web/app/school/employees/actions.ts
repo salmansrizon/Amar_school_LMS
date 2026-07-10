@@ -15,19 +15,92 @@ function optionalMinutes(value: FormDataEntryValue | null): number | null {
   return Number.isInteger(minutes) && minutes >= 0 ? minutes : Number.NaN
 }
 
-export async function addEmployee(formData: FormData): Promise<{ error?: string }> {
+function text(formData: FormData, key: string): string | null {
+  return String(formData.get(key) ?? '').trim() || null
+}
+
+/** The full profile columns (issue #28) shared by create and edit. */
+function profileFields(formData: FormData) {
+  return {
+    mobile: text(formData, 'mobile'),
+    date_of_birth: text(formData, 'date_of_birth'),
+    joining_date: text(formData, 'joining_date'),
+    bank_name: text(formData, 'bank_name'),
+    bank_branch: text(formData, 'bank_branch'),
+    bank_account: text(formData, 'bank_account'),
+    category: text(formData, 'category'),
+    qualification: text(formData, 'qualification'),
+    department: text(formData, 'department'),
+    subject_taught: text(formData, 'subject_taught'),
+  }
+}
+
+export async function createEmployee(
+  formData: FormData,
+): Promise<{ id?: string; error?: string }> {
   const name = String(formData.get('full_name') ?? '').trim()
   if (!name) return { error: 'Name is required' }
   const override = optionalMinutes(formData.get('grace_override'))
   if (Number.isNaN(override)) return { error: 'Grace must be a non-negative integer' }
   const supabase = await createClient()
-  const { error } = await supabase.from('employees').insert({
-    full_name: name,
-    category: String(formData.get('category') ?? '').trim() || null,
-    grace_override_minutes: override,
-  })
+  const { data, error } = await supabase
+    .from('employees')
+    .insert({ full_name: name, grace_override_minutes: override, ...profileFields(formData) })
+    .select('id')
+    .single()
   if (error) return { error: error.message }
   revalidatePath(PAGE)
+  return { id: data.id }
+}
+
+export async function updateEmployee(formData: FormData): Promise<{ error?: string }> {
+  const id = String(formData.get('id') ?? '').trim()
+  if (!id) return { error: 'Employee is required' }
+  const name = String(formData.get('full_name') ?? '').trim()
+  if (!name) return { error: 'Name is required' }
+  const override = optionalMinutes(formData.get('grace_override'))
+  if (Number.isNaN(override)) return { error: 'Grace must be a non-negative integer' }
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('employees')
+    .update({ full_name: name, grace_override_minutes: override, ...profileFields(formData) })
+    .eq('id', id)
+    .select('id')
+  if (error) return { error: error.message }
+  if (!data?.length) return { error: 'Employee not found' }
+  revalidatePath(PAGE)
+  revalidatePath(`${PAGE}/${id}`)
+  return {}
+}
+
+/** Old Employees soft-archive (§5.2) — the row stays for history/reports. */
+export async function archiveEmployee(id: string): Promise<{ error?: string }> {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('employees')
+    .update({ archived_at: new Date().toISOString() })
+    .eq('id', id)
+    .select('id')
+  if (error) return { error: error.message }
+  if (!data?.length) return { error: 'Employee not found' }
+  revalidatePath(PAGE)
+  revalidatePath(`${PAGE}/${id}`)
+  revalidatePath(`${PAGE}/archive`)
+  return {}
+}
+
+export async function restoreEmployee(id: string): Promise<{ error?: string }> {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('employees')
+    .update({ archived_at: null })
+    .eq('id', id)
+    .select('id')
+  if (error) return { error: error.message }
+  if (!data?.length) return { error: 'Employee not found' }
+  revalidatePath(PAGE)
+  revalidatePath(`${PAGE}/${id}`)
+  revalidatePath(`${PAGE}/archive`)
   return {}
 }
 

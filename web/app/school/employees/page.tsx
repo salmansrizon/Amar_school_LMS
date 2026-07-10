@@ -1,18 +1,28 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
-import { t } from '@/lib/i18n'
+import { t, type Lang } from '@/lib/i18n'
 import { createClient } from '@/lib/supabase/server'
-import {
-  AddEmployeeForm,
-  AddShiftForm,
-  CategoryGraceForm,
-  DefaultGraceForm,
-  ShiftToggle,
-} from './employee-controls'
+import { employeeShiftNames, filterEmployees } from '@/lib/employees'
+import { AddShiftForm, CategoryGraceForm, DefaultGraceForm } from './employee-controls'
 
-export default async function EmployeesPage() {
-  const lang = await currentLang()
+// Layout per ui/school-owner/employees-list.html: search + category filter,
+// table Name | Category | Qualification | Shift | Department | Status | View,
+// with Old Employees + New Employee actions. Office-time/grace config
+// (global default, per-shift, per-category, per-individual override — issue
+// #9) stays at the top, unchanged by issue #28.
+
+const thClass = 'px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted'
+const tdClass = 'px-3 py-2 text-sm'
+const selectClass = 'rounded-md border border-line bg-paper px-3 py-1.5 text-sm'
+
+export default async function EmployeesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; category?: string }>
+}) {
+  const { q = '', category = '' } = await searchParams
+  const lang: Lang = await currentLang()
   const supabase = await createClient()
   const {
     data: { user },
@@ -30,26 +40,27 @@ export default async function EmployeesPage() {
   const [
     { data: school },
     { data: shifts },
-    { data: categories },
+    { data: categoryGrace },
     { data: employees },
     { data: assignments },
-    { data: graceRows },
   ] = await Promise.all([
     supabase.from('schools').select('default_grace_minutes').eq('id', me.school_id).single(),
     supabase.from('shifts').select('id, name, grace_minutes').order('name'),
     supabase.from('category_grace_minutes').select('category, grace_minutes').order('category'),
-    supabase.from('employees').select('id, full_name, category, grace_override_minutes').order('full_name'),
+    supabase
+      .from('employees')
+      .select('id, full_name, category, qualification, department, archived_at')
+      .is('archived_at', null)
+      .order('full_name'),
     supabase.from('employee_shifts').select('employee_id, shift_id'),
-    supabase.rpc('effective_grace_for_my_school'),
   ])
 
-  const effective = new Map<string, number>(
-    ((graceRows ?? []) as { employee_id: string; grace: number }[]).map((r) => [r.employee_id, r.grace]),
-  )
-  const assignedSet = new Set((assignments ?? []).map((a) => `${a.employee_id}:${a.shift_id}`))
+  const visible = filterEmployees(employees ?? [], q, category)
+  const categories = [...new Set((employees ?? []).map((e) => e.category).filter(Boolean))] as string[]
+  const dash = <span className="text-muted">—</span>
 
   return (
-    <main className="mx-auto w-full max-w-3xl flex-1 p-6">
+    <main className="mx-auto w-full max-w-4xl flex-1 p-6">
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold">{t('employees.title', lang)}</h1>
         <Link href="/school" className="text-sm text-brand-600 hover:underline">
@@ -68,7 +79,7 @@ export default async function EmployeesPage() {
               {s.name}: {s.grace_minutes ?? '—'}m
             </span>
           ))}
-          {categories?.map((c) => (
+          {categoryGrace?.map((c) => (
             <span key={c.category} className="mr-3">
               {c.category}: {c.grace_minutes}m
             </span>
@@ -76,45 +87,86 @@ export default async function EmployeesPage() {
         </div>
       </section>
 
-      <section className="mb-6 rounded-lg border border-line bg-paper p-5 shadow-card">
-        <h2 className="mb-3 font-bold">{t('employees.add', lang)}</h2>
-        <AddEmployeeForm lang={lang} />
-      </section>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <form className="flex flex-wrap items-center gap-2" method="get">
+          <input
+            name="q"
+            defaultValue={q}
+            placeholder={t('employees.search', lang)}
+            className="w-56 rounded-md border border-line bg-paper px-3 py-1.5 text-sm"
+          />
+          <select name="category" defaultValue={category} className={selectClass}>
+            <option value="">{t('employees.allCategories', lang)}</option>
+            {categories.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </select>
+          <button
+            type="submit"
+            className="cursor-pointer rounded-full border border-line px-3 py-1 text-xs font-semibold hover:bg-paper-muted"
+          >
+            {t('classes.filter', lang)}
+          </button>
+        </form>
+        <div className="flex gap-2">
+          <Link
+            href="/school/employees/archive"
+            className="rounded-full border border-line-strong px-4 py-1.5 text-xs font-semibold hover:bg-paper-muted"
+          >
+            {t('employees.oldEmployees', lang)}
+          </Link>
+          <Link
+            href="/school/employees/new"
+            className="rounded-full bg-brand-500 px-4 py-1.5 text-xs font-semibold text-white hover:bg-brand-600"
+          >
+            + {t('employees.add', lang)}
+          </Link>
+        </div>
+      </div>
 
       <section className="rounded-lg border border-line bg-paper p-5 shadow-card">
-        {!employees?.length && <p className="text-sm text-muted">{t('employees.none', lang)}</p>}
-        <ul className="divide-y divide-line">
-          {employees?.map((e) => (
-            <li key={e.id} className="py-3">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div>
-                  <span className="text-sm font-medium">{e.full_name}</span>
-                  {e.category && <span className="ml-2 text-xs text-muted">{e.category}</span>}
-                  {e.grace_override_minutes !== null && (
-                    <span className="ml-2 text-xs text-muted">
-                      {t('employees.override', lang)}: {e.grace_override_minutes}
-                    </span>
-                  )}
-                </div>
-                <span className="rounded-full bg-brand-50 px-3 py-1 text-xs font-bold text-brand-700">
-                  {t('employees.effective', lang)}: {effective.get(e.id) ?? 0}m
-                </span>
-              </div>
-              <div className="mt-2 flex flex-wrap items-center gap-2">
-                <span className="text-xs text-muted">{t('employees.shifts', lang)}:</span>
-                {shifts?.map((s) => (
-                  <ShiftToggle
-                    key={s.id}
-                    employeeId={e.id}
-                    shiftId={s.id}
-                    label={s.name}
-                    assigned={assignedSet.has(`${e.id}:${s.id}`)}
-                  />
+        {!visible.length ? (
+          <p className="text-sm text-muted">{t('employees.none', lang)}</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="border-b border-line-strong">
+                  <th className={thClass}>{t('employees.name', lang)}</th>
+                  <th className={thClass}>{t('employees.category', lang)}</th>
+                  <th className={thClass}>{t('employees.qualification', lang)}</th>
+                  <th className={thClass}>{t('employees.shifts', lang)}</th>
+                  <th className={thClass}>{t('employees.department', lang)}</th>
+                  <th className={thClass}>{t('employees.status', lang)}</th>
+                  <th className={thClass} />
+                </tr>
+              </thead>
+              <tbody>
+                {visible.map((e) => (
+                  <tr key={e.id} className="border-b border-line">
+                    <td className={`${tdClass} font-medium`}>{e.full_name}</td>
+                    <td className={tdClass}>{e.category ?? dash}</td>
+                    <td className={tdClass}>{e.qualification ?? dash}</td>
+                    <td className={tdClass}>{employeeShiftNames(e.id, assignments ?? [], shifts ?? []) ?? dash}</td>
+                    <td className={tdClass}>{e.department ?? dash}</td>
+                    <td className={tdClass}>
+                      <span className="rounded-full bg-mint-soft px-2 py-0.5 text-xs font-semibold text-mint-deep">
+                        {t('employees.active', lang)}
+                      </span>
+                    </td>
+                    <td className={tdClass}>
+                      <Link href={`/school/employees/${e.id}`} className="text-brand-600 hover:underline">
+                        {t('employees.view', lang)}
+                      </Link>
+                    </td>
+                  </tr>
                 ))}
-              </div>
-            </li>
-          ))}
-        </ul>
+              </tbody>
+            </table>
+          </div>
+        )}
       </section>
     </main>
   )
