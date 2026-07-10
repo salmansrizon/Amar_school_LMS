@@ -51,6 +51,7 @@ export function CreateNoticeForm({
     }
     startTransition(async () => {
       setError(null)
+      const supabase = createClient()
       let imagePath: string | null = null
       if (imageFile) {
         if (imageFile.size > PUBLICATION_MAX_IMAGE_BYTES) {
@@ -62,7 +63,6 @@ export function CreateNoticeForm({
           setError(pathErr ?? 'Upload failed')
           return
         }
-        const supabase = createClient()
         const { error: upErr } = await supabase.storage
           .from('publications')
           .upload(path, imageFile, { contentType: imageFile.type })
@@ -85,6 +85,10 @@ export function CreateNoticeForm({
         linkUrl,
       })
       if (res.error) {
+        // The row insert failed after the image was already uploaded — clean
+        // up the now-orphaned object rather than leaving it unreferenced
+        // (mirrors the gallery upload flow's cleanup-on-failure).
+        if (imagePath) await supabase.storage.from('publications').remove([imagePath])
         setError(res.error)
         return
       }
