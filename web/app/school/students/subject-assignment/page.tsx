@@ -4,7 +4,7 @@ import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { createClient } from '@/lib/supabase/server'
 import { subjectsForClass } from '@/lib/students'
-import { ClassPicker } from './class-picker'
+import { ClassPicker } from '../../classes/routine/routine-cell'
 import { BulkAssignForm } from './bulk-assign-form'
 
 // Bulk "assign all" per class (issue #46, PRD §5.1 second half): pick a class,
@@ -48,7 +48,13 @@ export default async function SubjectAssignmentPage({
       ) : (
         <>
           <div className="mb-4">
-            <ClassPicker classes={classes} selected={selectedClass} lang={lang} />
+            <ClassPicker
+              classes={classes}
+              selected={selectedClass}
+              lang={lang}
+              basePath="/school/students/subject-assignment"
+              pickLabelKey="subjects.pickClass"
+            />
           </div>
           {selectedClass ? (
             <AssignmentPanel classId={selectedClass} lang={lang} />

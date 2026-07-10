@@ -1,9 +1,9 @@
 -- Student subject assignment (issue #46, PRD §5.1 second half): compulsory/
 -- optional subjects per student. Bulk "assign all" (per class) is an app-layer
 -- operation that inserts one row per student per subject — no schema support
--- needed beyond this table. Mirrors DDL already applied live (verified against
--- information_schema/pg_trigger before writing this file — do not re-apply).
--- Additive only.
+-- needed beyond this table. Additive only.
+-- Mirrors DDL a concurrent #27 session already applied live; this file is the
+-- mirror the project convention requires, not a fresh apply (see map issue #24).
 
 create table public.student_subjects (
   student_id uuid not null references public.students (id) on delete cascade,
