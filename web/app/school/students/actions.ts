@@ -262,6 +262,8 @@ export async function sendBehaviourSms(entryId: string): Promise<{ error?: strin
     body,
     provider: gateway.name,
   })
-  if (error) return { error: error.message }
+  // The SMS is already sent — a log-insert failure must not surface as a
+  // retryable error, or the guardian gets a duplicate message on retry.
+  if (error) console.error('sms_log insert failed after successful send', error)
   return {}
 }
