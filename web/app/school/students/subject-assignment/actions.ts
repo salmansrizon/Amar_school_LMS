@@ -27,7 +27,8 @@ export async function bulkAssignSubjects(
 
   let query = supabase.from('students').select('id').eq('class_name', cls.name)
   query = cls.section ? query.eq('section', cls.section) : query.is('section', null)
-  const { data: students } = await query
+  const { data: students, error: studentsError } = await query
+  if (studentsError) return { error: studentsError.message }
   if (!students?.length) return { error: 'No students in this class' }
 
   const optional = new Set(optionalSubjectIds)
