@@ -2,6 +2,8 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { smsGateway } from '@/lib/sms/gateway'
+import { behaviourSmsBody } from '@/lib/students'
 
 // RLS scopes everything to the caller's School; the 3-day lock trigger is the
 // authority for edit rejection.
@@ -69,5 +71,40 @@ export async function updateBehaviourEntry(formData: FormData): Promise<{ error?
   if (error) return { error: error.message }
   if (!data?.length) return { error: 'entry not updated' }
   revalidatePath(`/school/students/${studentId}`)
+  return {}
+}
+
+/** Send a behaviour record's note/rating to the student's guardian (issue #46). */
+export async function sendBehaviourSms(entryId: string): Promise<{ error?: string }> {
+  const supabase = await createClient()
+  const { data: entry } = await supabase
+    .from('behaviour_log_entries')
+    .select('note, rating, student_id')
+    .eq('id', entryId)
+    .maybeSingle()
+  if (!entry) return { error: 'Entry not found' }
+
+  const { data: student } = await supabase
+    .from('students')
+    .select('id, full_name, guardian_phone, school_id')
+    .eq('id', entry.student_id)
+    .maybeSingle()
+  if (!student) return { error: 'Student not found' }
+  if (!student.guardian_phone) return { error: 'No guardian phone on file for this student' }
+
+  const body = behaviourSmsBody(student.full_name, entry.note, entry.rating)
+  const gateway = smsGateway()
+  const result = await gateway.send(student.guardian_phone, body)
+
+  const { error } = await supabase.from('sms_log').insert({
+    school_id: student.school_id,
+    student_id: student.id,
+    sent_on: new Date().toISOString().slice(0, 10),
+    phone: student.guardian_phone,
+    body,
+    provider: gateway.name,
+  })
+  if (error) return { error: error.message }
+  if (!result.ok) return { error: 'SMS gateway failed to send' }
   return {}
 }
