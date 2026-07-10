@@ -50,7 +50,14 @@ export default async function StudentsPage({
   const visible = filterStudents(students ?? [], q, klass, section)
   const avgs = behaviourAverages(ratings ?? [])
   const classNames = [...new Set((students ?? []).map((s) => s.class_name).filter(Boolean))] as string[]
-  const sections = [...new Set((students ?? []).map((s) => s.section).filter(Boolean))] as string[]
+  const sections = [
+    ...new Set(
+      (students ?? [])
+        .filter((s) => !klass || s.class_name === klass)
+        .map((s) => s.section)
+        .filter(Boolean),
+    ),
+  ] as string[]
 
   return (
     <main className="mx-auto w-full max-w-4xl flex-1 p-6">
