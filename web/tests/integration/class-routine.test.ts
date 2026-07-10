@@ -194,6 +194,24 @@ describe('Class & Curriculum II (issue #45)', () => {
     expect(data![0].published_at).not.toBeNull()
   })
 
+  it("a publish row cannot target another school's class (tenancy trigger)", async () => {
+    const { error } = await ownerB
+      .from('class_routines')
+      .insert({ class_id: classId, published_at: new Date().toISOString() })
+    expect(error).not.toBeNull()
+    expect(error!.message).toContain('class does not belong to this school')
+  })
+
+  it("a syllabus row cannot target another school's class (tenancy trigger)", async () => {
+    const { error } = await ownerB.from('class_syllabi').insert({
+      class_id: classId,
+      storage_path: `ignored/${classId}.pdf`,
+      file_name: 'ghost.pdf',
+    })
+    expect(error).not.toBeNull()
+    expect(error!.message).toContain('class does not belong to this school')
+  })
+
   it('one syllabus row per class, replaced on re-upload (upsert)', async () => {
     const row = (name: string, size: number) =>
       ownerA.from('class_syllabi').upsert(

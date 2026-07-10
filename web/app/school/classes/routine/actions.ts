@@ -70,6 +70,11 @@ export async function setSlot(formData: FormData): Promise<{ error?: string }> {
 
 export async function publishRoutine(classId: string): Promise<{ error?: string }> {
   const supabase = await createClient()
+  // class_routines has no tenancy trigger, so verify the class is the caller's
+  // own (RLS-scoped read) before upserting — otherwise a foreign class UUID
+  // would plant a ghost row that blocks the real school from publishing.
+  const { data: cls } = await supabase.from('classes').select('id').eq('id', classId).maybeSingle()
+  if (!cls) return { error: 'Class not found' }
   const { error } = await supabase
     .from('class_routines')
     .upsert({ class_id: classId, published_at: new Date().toISOString() }, { onConflict: 'class_id' })
