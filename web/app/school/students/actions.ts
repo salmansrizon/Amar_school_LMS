@@ -246,6 +246,8 @@ export async function sendBehaviourSms(entryId: string): Promise<{ error?: strin
     .maybeSingle()
   if (!student) return { error: 'Student not found' }
   if (!student.guardian_phone) return { error: 'No guardian phone on file for this student' }
+  if (entry.rating === null) return { error: 'Entry has no rating — cannot compose SMS' }
+  if (!entry.note) return { error: 'Entry has no note — cannot compose SMS' }
 
   const body = behaviourSmsBody(student.full_name, entry.note, entry.rating)
   const gateway = smsGateway()
