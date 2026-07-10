@@ -129,6 +129,20 @@ export function evaluateSubject(mark: SubjectMark, scheme: GradingScheme): Subje
 // above this floor counts toward the overall GPA total.
 const GPA_BONUS_FLOOR = 2
 
+// Legacy 4th/additional-subject grade-deduction rule: a *failing* optional
+// subject deducts this many points from the GPA total instead of the bonus
+// above — it's still auto-passed (a deduction lowers the GPA, it never fails
+// the result outright), the complement of the GPA_BONUS_FLOOR bonus.
+const GPA_DEDUCTION_ON_OPTIONAL_FAIL = 1
+
+/** The letter/GPA label for the aggregate percent, per scheme type. Numeric
+ * schemes never carry a label (matches evaluateSubject's per-subject skip) —
+ * a numeric scheme reports marks/percent only, no letter conversion. */
+function overallLabel(scheme: GradingScheme, percent: number): string | null {
+  if (scheme.schemeType === 'numeric') return null
+  return resolveGradeBand(scheme.bands, percent)?.label ?? null
+}
+
 /**
  * Combine-and-evaluate: per-subject results (already through
  * `applySubjectGroups`/`evaluateSubject`) fold into one overall verdict per the
@@ -143,13 +157,17 @@ const GPA_BONUS_FLOOR = 2
  *    scheme's pass mark — individual subject failures don't matter on their
  *    own. Grade-point schemes likewise report GPA 0.00 when that aggregate
  *    itself falls under the pass mark.
- *  - `optional_conditional` ("optional-subject conditional auto-pass"):
- *    compulsory subjects must all pass, same as `individual`; an optional
- *    subject's failure is forgiven and never fails the result. A *passing*
- *    optional subject's grade point above 2.00 is added to the GPA total
- *    before averaging over the compulsory-subject count (the legacy
- *    4th/additional-subject GPA bonus); at or below 2.00 it contributes
- *    nothing either way.
+ *  - `optional_conditional` ("optional-subject conditional auto-pass" +
+ *    "grade deduction", PRD §5.5): compulsory subjects must all pass, same as
+ *    `individual`; an optional subject's failure is forgiven and never fails
+ *    the result outright, but it *deducts* GPA_DEDUCTION_ON_OPTIONAL_FAIL
+ *    points from the GPA total (floored at 0) — the "grade deduction" half of
+ *    the rule. A *passing* optional subject's grade point above 2.00 instead
+ *    *adds* the excess to the GPA total (the legacy 4th/additional-subject
+ *    GPA bonus); at or below 2.00 it contributes nothing either way. The
+ *    total is capped at the scheme's highest configured grade point (e.g.
+ *    5.00 on the standard GPA scale) — a bonus can't push GPA past the top
+ *    of the scale.
  */
 export function evaluateOverallResult(results: SubjectResult[], scheme: GradingScheme): OverallResult {
   const compulsory = results.filter((r) => !r.isOptional)
@@ -174,32 +192,35 @@ export function evaluateOverallResult(results: SubjectResult[], scheme: GradingS
   }
 
   if (scheme.schemeType !== 'grade_point') {
-    return {
-      passed,
-      percent: overallPercent,
-      gpa: null,
-      label: passed ? (resolveGradeBand(scheme.bands, overallPercent)?.label ?? null) : 'F',
-    }
+    return { passed, percent: overallPercent, gpa: null, label: overallLabel(scheme, overallPercent) }
   }
 
   // For a grade_point scheme, the same condition that fails the overall
   // result also zeroes out the GPA — `passed` already encodes the right
   // failure condition per strategy (all-subjects for individual,
   // compulsory-only for optional_conditional, aggregate for combined_average).
+  // The GPA-0 result is always labelled "F" by convention, regardless of
+  // which percent band the aggregate happens to land in (a single failed
+  // compulsory subject can zero the GPA while the aggregate percent still
+  // reads as a passing band under individual/optional_conditional).
   if (!passed) {
     return { passed: false, percent: overallPercent, gpa: 0, label: 'F' }
   }
 
   const basePoints = compulsory.reduce((s, r) => s + (r.gradePoint ?? 0), 0)
-  let bonus = 0
+  let adjustment = 0
   if (scheme.passRuleStrategy === 'optional_conditional') {
     for (const r of optional) {
       if (r.passed && r.gradePoint !== null && r.gradePoint > GPA_BONUS_FLOOR) {
-        bonus += r.gradePoint - GPA_BONUS_FLOOR
+        adjustment += r.gradePoint - GPA_BONUS_FLOOR
+      } else if (!r.passed) {
+        adjustment -= GPA_DEDUCTION_ON_OPTIONAL_FAIL
       }
     }
   }
-  const gpa = compulsory.length ? Math.round(((basePoints + bonus) / compulsory.length) * 100) / 100 : 0
-  const label = resolveGradeBand(scheme.bands, overallPercent)?.label ?? null
-  return { passed: true, percent: overallPercent, gpa, label }
+  const maxGradePoint = scheme.bands.reduce((max, b) => Math.max(max, b.gradePoint ?? 0), 0)
+  const cap = maxGradePoint > 0 ? maxGradePoint : Infinity
+  const raw = compulsory.length ? (basePoints + adjustment) / compulsory.length : 0
+  const gpa = Math.min(Math.max(Math.round(raw * 100) / 100, 0), cap)
+  return { passed: true, percent: overallPercent, gpa, label: overallLabel(scheme, overallPercent) }
 }

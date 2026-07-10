@@ -83,7 +83,7 @@ export async function addGradeBand(formData: FormData): Promise<{ error?: string
   if (fetchError) return { error: fetchError.message }
   const overlaps = bandOverlaps(
     (existing ?? []).map((b) => ({ minPercent: b.min_percent, maxPercent: b.max_percent })),
-    { minPercent: minPercent, maxPercent: maxPercent },
+    { minPercent, maxPercent },
   )
   if (overlaps) return { error: 'This range overlaps an existing band for this scheme' }
 

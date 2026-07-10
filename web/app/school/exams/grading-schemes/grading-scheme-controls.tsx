@@ -11,7 +11,7 @@ import {
   removeGradeBand,
 } from './actions'
 
-function useSubmit(action: (data: FormData) => Promise<{ error?: string }>, onDone?: () => void) {
+function useSubmit(action: (data: FormData) => Promise<{ error?: string }>) {
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
   const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -22,10 +22,7 @@ function useSubmit(action: (data: FormData) => Promise<{ error?: string }>, onDo
       setError(null)
       const result = await action(data)
       if (result.error) setError(result.error)
-      else {
-        form.reset()
-        onDone?.()
-      }
+      else form.reset()
     })
   }
   return { error, pending, onSubmit }

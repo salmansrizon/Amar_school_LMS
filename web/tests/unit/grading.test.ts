@@ -239,25 +239,27 @@ describe('evaluateOverallResult — optional_conditional pass-rule strategy', ()
     result({ subjectId: 'english', gradePoint: 4, percent: 75, label: 'A' }),
   ]
 
-  it('a failing optional subject is auto-passed — overall still passes', () => {
+  it('a failing optional subject is auto-passed — overall still passes, but GPA is deducted', () => {
     const results = [
       ...compulsory,
       result({ subjectId: 'fourth', passed: false, percent: 10, gradePoint: 0, label: 'F', isOptional: true }),
     ]
     const out = evaluateOverallResult(results, scheme({ passRuleStrategy: 'optional_conditional' }))
     expect(out.passed).toBe(true)
+    // base = (5 + 4) / 2 = 4.5; deduction = 1 point spread over 2 compulsory subjects
+    // -> (9 - 1) / 2 = 4.00 (PRD §5.5 "grade deduction" half of the optional-subject rule).
+    expect(out.gpa).toBe(4)
   })
 
-  it('a passing optional subject above 2.00 GPA adds only the excess above 2.00 as bonus', () => {
+  it("a passing optional subject above 2.00 GPA adds the excess as bonus, capped at the scheme's top grade point", () => {
     const results = [
       ...compulsory,
       result({ subjectId: 'fourth', passed: true, percent: 90, gradePoint: 5, label: 'A+', isOptional: true }),
     ]
     const out = evaluateOverallResult(results, scheme({ passRuleStrategy: 'optional_conditional' }))
     // base = (5 + 4) / 2 = 4.5; bonus = 5 - 2 = 3 spread over 2 compulsory subjects
-    // total = (5 + 4 + 3) / 2 = 6 -> but GPA is capped implicitly by scheme design;
-    // here we assert the raw bonus arithmetic rather than an artificial cap.
-    expect(out.gpa).toBe(6)
+    // -> (9 + 3) / 2 = 6.00, but capped at 5.00 (the highest grade point in GPA_BANDS).
+    expect(out.gpa).toBe(5)
   })
 
   it('an optional subject at or below 2.00 GPA contributes no bonus', () => {
@@ -292,11 +294,43 @@ describe('evaluateOverallResult — non grade_point scheme types', () => {
     expect(out.label).toBe('A+') // aggregate 80% -> A+ band
   })
 
-  it('numeric scheme: gpa and label are always null', () => {
+  it('letter scheme failure: label comes from the school-configured fail band, never hardcoded', () => {
+    const results = [
+      result({ subjectId: 'bangla', fullMarks: 100, obtainedMarks: 10, passed: false, label: 'F', gradePoint: null }),
+      result({ subjectId: 'english', fullMarks: 100, obtainedMarks: 15, passed: false, label: 'F', gradePoint: null }),
+    ]
+    const out = evaluateOverallResult(results, scheme({ schemeType: 'letter', passRuleStrategy: 'individual' }))
+    expect(out.passed).toBe(false)
+    expect(out.gpa).toBeNull()
+    expect(out.label).toBe('F') // aggregate 12.5% resolves to the school's own F band, not a hardcoded literal
+  })
+
+  it('numeric scheme: gpa and label are always null even if bands happen to be configured', () => {
     const results = [result({ fullMarks: 100, obtainedMarks: 90, label: null, gradePoint: null })]
-    const out = evaluateOverallResult(results, scheme({ schemeType: 'numeric', bands: [], passRuleStrategy: 'individual' }))
+    const out = evaluateOverallResult(
+      results,
+      scheme({ schemeType: 'numeric', bands: GPA_BANDS, passRuleStrategy: 'individual' }),
+    )
     expect(out.gpa).toBeNull()
     expect(out.label).toBeNull()
     expect(out.percent).toBe(90)
+  })
+})
+
+describe('evaluateOverallResult — GPA deduction never goes negative', () => {
+  it('multiple failing optional subjects floor the GPA at 0 instead of going negative', () => {
+    const compulsoryLow = [
+      result({ subjectId: 'bangla', gradePoint: 1, percent: 35, label: 'D' }),
+      result({ subjectId: 'english', gradePoint: 1, percent: 35, label: 'D' }),
+    ]
+    const results = [
+      ...compulsoryLow,
+      result({ subjectId: 'third', passed: false, percent: 10, gradePoint: 0, label: 'F', isOptional: true }),
+      result({ subjectId: 'fourth', passed: false, percent: 10, gradePoint: 0, label: 'F', isOptional: true }),
+    ]
+    const out = evaluateOverallResult(results, scheme({ passRuleStrategy: 'optional_conditional' }))
+    // base = (1 + 1) / 2 = 1.00; deduction = 2 points spread over 2 -> 1.00 - 1.00 = 0.00
+    expect(out.gpa).toBe(0)
+    expect(out.passed).toBe(true) // still auto-passed; only the GPA is floored
   })
 })
