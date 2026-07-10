@@ -96,6 +96,7 @@ export async function archiveStudent(id: string): Promise<{ error?: string }> {
   if (error) return { error: error.message }
   if (!data?.length) return { error: 'Student not found' }
   revalidatePath(LIST)
+  revalidatePath(`${LIST}/${id}`)
   revalidatePath(`${LIST}/archive`)
   return {}
 }
@@ -110,6 +111,7 @@ export async function restoreStudent(id: string): Promise<{ error?: string }> {
   if (error) return { error: error.message }
   if (!data?.length) return { error: 'Student not found' }
   revalidatePath(LIST)
+  revalidatePath(`${LIST}/${id}`)
   revalidatePath(`${LIST}/archive`)
   return {}
 }

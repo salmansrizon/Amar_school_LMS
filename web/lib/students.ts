@@ -63,6 +63,15 @@ export function behaviourAverages(
   return out
 }
 
+/** Sections that exist for the selected class (all sections when unset). */
+export function sectionsForClass(
+  classes: { name: string; section: string | null }[],
+  className: string,
+): string[] {
+  const pool = className ? classes.filter((c) => c.name === className) : classes
+  return [...new Set(pool.map((c) => c.section).filter(Boolean))] as string[]
+}
+
 const PHOTO_EXT: Record<string, string> = {
   'image/jpeg': 'jpg',
   'image/png': 'png',

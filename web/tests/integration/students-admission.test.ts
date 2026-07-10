@@ -92,6 +92,31 @@ describe('Students I (issue #27)', () => {
     expect(data?.roll_number).toBe(50)
   })
 
+  it('concurrent admissions to one class get distinct rolls (advisory lock)', async () => {
+    const results = await Promise.all(
+      [1, 2, 3, 4].map((n) =>
+        ownerA
+          .from('students')
+          .insert({ full_name: `ST1 Concurrent ${n}`, class_name: 'ST1 Race Class' })
+          .select('roll_number')
+          .single(),
+      ),
+    )
+    const rolls = results.map((r) => r.data?.roll_number)
+    expect(new Set(rolls).size).toBe(4)
+  })
+
+  it('an explicit duplicate roll in a class is rejected (unique backstop)', async () => {
+    await ownerA
+      .from('students')
+      .insert({ full_name: 'ST1 Dup A', class_name: 'ST1 Dup Class', roll_number: 7 })
+    const { error } = await ownerA
+      .from('students')
+      .insert({ full_name: 'ST1 Dup B', class_name: 'ST1 Dup Class', roll_number: 7 })
+    expect(error).not.toBeNull()
+    expect(error!.code).toBe('23505')
+  })
+
   it('soft-archive keeps the row but flags it', async () => {
     const { error } = await ownerA
       .from('students')

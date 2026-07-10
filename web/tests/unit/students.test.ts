@@ -5,6 +5,7 @@ import {
   filterStudents,
   behaviourAverages,
   photoExtension,
+  sectionsForClass,
   type StudentListRow,
 } from '@/lib/students'
 
@@ -88,6 +89,24 @@ describe('behaviourAverages', () => {
       { student_id: 'a', rating: 4 },
     ])
     expect(avgs.get('a')).toBe(4.3)
+  })
+})
+
+describe('sectionsForClass', () => {
+  const classes = [
+    { name: 'Class 8', section: 'A' },
+    { name: 'Class 8', section: 'B' },
+    { name: 'Class 9', section: 'A' },
+    { name: 'Class 9', section: null },
+  ]
+
+  it('lists only the selected class’s sections, deduped', () => {
+    expect(sectionsForClass(classes, 'Class 8')).toEqual(['A', 'B'])
+    expect(sectionsForClass(classes, 'Class 9')).toEqual(['A'])
+  })
+
+  it('lists all sections when no class is chosen', () => {
+    expect(sectionsForClass(classes, '')).toEqual(['A', 'B'])
   })
 })
 

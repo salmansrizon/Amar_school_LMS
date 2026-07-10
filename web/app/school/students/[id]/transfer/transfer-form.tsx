@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useMemo, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { t, type Lang } from '@/lib/i18n'
+import { sectionsForClass } from '@/lib/students'
 import { fieldClass, fieldLabelClass } from '../../new/admission-form'
 import { transferStudent } from '../../actions'
 
@@ -20,8 +21,9 @@ export function TransferForm({
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
+  const [toClass, setToClass] = useState('')
   const classNames = [...new Set(classes.map((c) => c.name))]
-  const sections = [...new Set(classes.map((c) => c.section).filter(Boolean))] as string[]
+  const sections = useMemo(() => sectionsForClass(classes, toClass), [classes, toClass])
 
   return (
     <form
@@ -38,6 +40,7 @@ export function TransferForm({
             return
           }
           form.reset()
+          setToClass('')
           router.refresh()
         })
       }}
@@ -45,7 +48,13 @@ export function TransferForm({
       <div className="grid gap-3 sm:grid-cols-3">
         <div>
           <label className={fieldLabelClass}>{t('students.newClass', lang)}</label>
-          <select name="to_class" required className={fieldClass}>
+          <select
+            name="to_class"
+            required
+            value={toClass}
+            onChange={(e) => setToClass(e.target.value)}
+            className={fieldClass}
+          >
             <option value="">—</option>
             {classNames.map((c) => (
               <option key={c} value={c}>
@@ -56,7 +65,8 @@ export function TransferForm({
         </div>
         <div>
           <label className={fieldLabelClass}>{t('students.newSection', lang)}</label>
-          <select name="to_section" className={fieldClass}>
+          {/* key remounts on class change so a stale section can't linger */}
+          <select key={toClass} name="to_section" className={fieldClass}>
             <option value="">—</option>
             {sections.map((s) => (
               <option key={s} value={s}>

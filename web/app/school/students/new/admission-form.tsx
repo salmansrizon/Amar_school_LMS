@@ -1,11 +1,11 @@
 'use client'
 
-import { useRef, useState, useTransition } from 'react'
+import { useMemo, useRef, useState, useTransition } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { t, type Lang } from '@/lib/i18n'
-import { photoExtension } from '@/lib/students'
+import { photoExtension, sectionsForClass } from '@/lib/students'
 import { admitStudent, studentPhotoPath, recordStudentPhoto } from '../actions'
 
 const MAX_PHOTO_BYTES = 2 * 1024 * 1024 // mirrors the bucket's server-enforced cap
@@ -47,7 +47,8 @@ export function ProfileFields({
 }) {
   const d = (key: string) => String(defaults[key] ?? '')
   const classNames = [...new Set(classes.map((c) => c.name))]
-  const sections = [...new Set(classes.map((c) => c.section).filter(Boolean))] as string[]
+  const [className, setClassName] = useState(d('class_name'))
+  const sections = useMemo(() => sectionsForClass(classes, className), [classes, className])
 
   return (
     <>
@@ -70,7 +71,12 @@ export function ProfileFields({
             <input name="blood_group" defaultValue={d('blood_group')} className={fieldClass} placeholder="A+" />
           </Field>
           <Field label={t('students.class', lang)}>
-            <select name="class_name" defaultValue={d('class_name')} className={fieldClass}>
+            <select
+              name="class_name"
+              value={className}
+              onChange={(e) => setClassName(e.target.value)}
+              className={fieldClass}
+            >
               <option value="">—</option>
               {classNames.map((c) => (
                 <option key={c} value={c}>
@@ -80,7 +86,8 @@ export function ProfileFields({
             </select>
           </Field>
           <Field label={t('students.section', lang)}>
-            <select name="section" defaultValue={d('section')} className={fieldClass}>
+            {/* key remounts on class change so a stale section can't linger */}
+            <select key={className} name="section" defaultValue={d('section')} className={fieldClass}>
               <option value="">—</option>
               {sections.map((s) => (
                 <option key={s} value={s}>
