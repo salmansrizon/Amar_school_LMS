@@ -7,6 +7,7 @@ import {
   exceedsCapacity,
   countRollsInRange,
   filterExams,
+  sortRoutineEntries,
 } from '@/lib/exam-setup'
 
 describe('subjectFullMarks', () => {
@@ -25,6 +26,31 @@ describe('dateToDayOfWeek', () => {
     expect(dateToDayOfWeek('2025-12-14')).toBe(0)
     // 2025-12-13 is a Saturday.
     expect(dateToDayOfWeek('2025-12-13')).toBe(6)
+  })
+})
+
+describe('sortRoutineEntries', () => {
+  it('orders by date, then by start time within a date', () => {
+    const entries = [
+      { exam_date: '2025-12-14', start_time: '10:00' },
+      { exam_date: '2025-12-10', start_time: '11:00' },
+      { exam_date: '2025-12-10', start_time: '09:00' },
+    ]
+    expect(sortRoutineEntries(entries)).toEqual([
+      { exam_date: '2025-12-10', start_time: '09:00' },
+      { exam_date: '2025-12-10', start_time: '11:00' },
+      { exam_date: '2025-12-14', start_time: '10:00' },
+    ])
+  })
+
+  it('does not mutate the input array', () => {
+    const entries = [
+      { exam_date: '2025-12-14', start_time: '10:00' },
+      { exam_date: '2025-12-10', start_time: '11:00' },
+    ]
+    const original = [...entries]
+    sortRoutineEntries(entries)
+    expect(entries).toEqual(original)
   })
 })
 

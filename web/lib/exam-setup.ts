@@ -23,6 +23,20 @@ export function dateToDayOfWeek(isoDate: string): number {
   return new Date(Date.UTC(y, m - 1, d)).getUTCDay()
 }
 
+export interface RoutineEntryOrder {
+  exam_date: string
+  start_time: string
+}
+
+/** Chronological order for exam routine entries (date, then start time) —
+ * shared by the routine builder table and its printable so they always list
+ * sittings in the same order. */
+export function sortRoutineEntries<T extends RoutineEntryOrder>(entries: T[]): T[] {
+  return [...entries].sort(
+    (a, b) => a.exam_date.localeCompare(b.exam_date) || a.start_time.localeCompare(b.start_time),
+  )
+}
+
 export interface SeatRange {
   roll_start: number
   roll_end: number

@@ -294,6 +294,30 @@ describe('Exams II — setup, routine, seat plan (issue #47)', () => {
     expect(data!.seat_plan_published_at).not.toBeNull()
   })
 
+  it('editing a seat-plan row after publishing clears the publish marker (must re-publish)', async () => {
+    // Follows the prior test: examId is published with roomBig 1-2, roomSmall 3.
+    const { data: before } = await ownerA
+      .from('exams')
+      .select('seat_plan_published_at')
+      .eq('id', examId)
+      .single()
+    expect(before!.seat_plan_published_at).not.toBeNull()
+
+    const { error } = await ownerA
+      .from('exam_seat_plans')
+      .update({ roll_start: 4, roll_end: 4 })
+      .eq('exam_id', examId)
+      .eq('room_id', roomSmallId)
+    expect(error).toBeNull()
+
+    const { data: after } = await ownerA
+      .from('exams')
+      .select('seat_plan_published_at')
+      .eq('id', examId)
+      .single()
+    expect(after!.seat_plan_published_at).toBeNull()
+  })
+
   it('generate_seat_plan partitions the class roster by roll number into active rooms', async () => {
     // Fresh exam so prior manual rows don't interfere.
     const { data: freshExam } = await ownerA

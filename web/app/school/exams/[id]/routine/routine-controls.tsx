@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
 import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
-import { dateToDayOfWeek } from '@/lib/exam-setup'
+import { dateToDayOfWeek, sortRoutineEntries } from '@/lib/exam-setup'
 import { dayLabel } from '@/lib/routine'
 import { t, type Lang } from '@/lib/i18n'
 import { addRoutineEntry, removeRoutineEntry } from './actions'
@@ -43,7 +43,7 @@ export function RoutineTable({
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
 
-  const sorted = [...entries].sort((a, b) => a.exam_date.localeCompare(b.exam_date) || a.start_time.localeCompare(b.start_time))
+  const sorted = sortRoutineEntries(entries)
 
   return (
     <div className="overflow-x-auto">

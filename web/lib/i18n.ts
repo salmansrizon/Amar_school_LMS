@@ -153,6 +153,18 @@ const dict = {
     en: 'Note: once an exam is closed, it stays closed permanently — there is no reopen path for anyone.',
   },
   'exams.noClasses': { bn: 'এখনো কোনো শ্রেণি তৈরি হয়নি', en: 'No classes yet' },
+  // Close Exam confirmation modal, per exam-close-confirm-modal.html.
+  'exams.closeModalTitle': { bn: 'পরীক্ষা বন্ধ করবেন?', en: 'Close this exam?' },
+  'exams.closeModalBody': {
+    bn: 'বন্ধ করলে এর সকল সেটআপ, সিট প্ল্যান ও নম্বর এন্ট্রি স্থায়ীভাবে লক হয়ে যাবে।',
+    en: 'Closing this locks its setup, seat plan, and marks entry permanently.',
+  },
+  'exams.closeModalWarning': {
+    bn: '⚠ এই কাজটি ফিরিয়ে আনা যাবে না। বন্ধ করার পর কোনো ব্যবহারকারী — মালিক, স্টাফ বা প্রশাসক কেউই — এই পরীক্ষা পুনরায় খুলতে পারবেন না। শুধুমাত্র "ফলাফল দেখুন" সবার জন্য সবসময় উপলব্ধ থাকবে।',
+    en: '⚠ This action cannot be undone. Once closed, no one — Owner, Staff, or Admin — can reopen this exam. Only "View Result" remains available going forward.',
+  },
+  'exams.closeModalCancel': { bn: 'বাতিল', en: 'Cancel' },
+  'exams.closeModalConfirm': { bn: 'হ্যাঁ, স্থায়ীভাবে বন্ধ করুন', en: 'Yes, Close Permanently' },
   // Exam Setup detail page.
   'examSetup.title': { bn: 'পরীক্ষা সেটআপ', en: 'Exam Setup' },
   'examSetup.basicInfo': { bn: 'মূল তথ্য', en: 'Basic Info' },
@@ -204,6 +216,7 @@ const dict = {
   'seatPlan.status': { bn: 'অবস্থা', en: 'Status' },
   'seatPlan.ok': { bn: 'ঠিক আছে', en: 'OK' },
   'seatPlan.overlap': { bn: 'সংঘর্ষ', en: 'Overlap' },
+  'seatPlan.overCapacity': { bn: 'ধারণক্ষমতা অতিক্রম', en: 'Over Capacity' },
   'seatPlan.generate': { bn: 'স্বয়ংক্রিয় সিট প্ল্যান তৈরি করুন', en: 'Generate Seat Plan' },
   'seatPlan.generateConfirm': {
     bn: 'এটি বর্তমান সিট প্ল্যান প্রতিস্থাপন করবে। এগিয়ে যাবেন?',

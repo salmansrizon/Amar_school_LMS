@@ -3,7 +3,7 @@ import { notFound, redirect } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { createClient } from '@/lib/supabase/server'
-import { dateToDayOfWeek } from '@/lib/exam-setup'
+import { dateToDayOfWeek, sortRoutineEntries } from '@/lib/exam-setup'
 import { dayLabel } from '@/lib/routine'
 import { PrintPage, InstituteHeader, QrFooterRow } from '@/components/print/pieces'
 import { PrintButton } from '@/components/print/print-button'
@@ -19,6 +19,7 @@ export default async function ExamRoutinePrintPage({ params }: { params: Promise
     data: { user },
   } = await supabase.auth.getUser()
   if (!user) redirect('/login')
+  // Defense in depth alongside the proxy gate: /school pages are for school roles.
   const { data: me } = await supabase.from('profiles').select('role').eq('id', user.id).single()
   if (me?.role !== 'school_owner' && me?.role !== 'staff_user') redirect('/login')
 
@@ -39,9 +40,7 @@ export default async function ExamRoutinePrintPage({ params }: { params: Promise
 
   const subjectName = new Map((subjects ?? []).map((s) => [s.id, s.name]))
   const roomName = new Map((rooms ?? []).map((r) => [r.id, r.name]))
-  const sorted = [...(entries ?? [])].sort(
-    (a, b) => a.exam_date.localeCompare(b.exam_date) || a.start_time.localeCompare(b.start_time),
-  )
+  const sorted = sortRoutineEntries(entries ?? [])
   const examLabel = `${exam.name} (${exam.exam_year})`
 
   return (

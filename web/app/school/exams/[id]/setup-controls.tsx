@@ -5,7 +5,7 @@ import { useState, useTransition } from 'react'
 import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
 import { subjectFullMarks } from '@/lib/exam-setup'
 import { t, type Lang } from '@/lib/i18n'
-import { closeExam } from '../actions'
+import { CloseExamModal } from '../exam-controls'
 import { assignSubjectTeacher, setExamGradingScheme, updateExamBasicInfo } from './actions'
 
 export interface ClassOption {
@@ -33,9 +33,9 @@ export interface SubjectRow {
   teacher_id: string | null
 }
 
-/** Open/Closed badge + Close Exam button, per exam-close-confirm-modal.html —
- * closing is permanent (issue #8), so this is a plain confirm() gate, not a
- * reversible toggle. */
+/** Open/Closed badge + Close Exam button. Closing is permanent (issue #8);
+ * the confirmation is CloseExamModal (exam-controls.tsx), a dedicated dialog
+ * per exam-close-confirm-modal.html, not a bare window.confirm(). */
 export function ExamHeader({
   examId,
   examLabel,
@@ -47,10 +47,6 @@ export function ExamHeader({
   closed: boolean
   lang: Lang
 }) {
-  const router = useRouter()
-  const [error, setError] = useState<string | null>(null)
-  const [pending, startTransition] = useTransition()
-
   return (
     <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
       <span
@@ -61,7 +57,6 @@ export function ExamHeader({
         {closed ? `🔒 ${t('exams.closed', lang)}` : t('exams.open', lang)}
       </span>
       <div className="flex flex-wrap items-center gap-2">
-        {error && <span className="text-xs text-alert-deep">{error}</span>}
         <a
           href={`/school/exams/${examId}/routine`}
           className="rounded-full border border-line-strong px-3 py-1.5 text-xs font-semibold hover:bg-paper-muted"
@@ -75,22 +70,12 @@ export function ExamHeader({
           {t('exams.seatPlan', lang)}
         </a>
         {!closed && (
-          <button
-            type="button"
-            disabled={pending}
-            onClick={() => {
-              if (!confirm(`${t('exams.closeConfirm', lang)}\n\n${examLabel}`)) return
-              startTransition(async () => {
-                setError(null)
-                const result = await closeExam(examId)
-                if (result.error) setError(result.error)
-                else router.refresh()
-              })
-            }}
-            className="cursor-pointer rounded-full bg-alert-soft px-3 py-1.5 text-xs font-semibold text-alert-deep hover:bg-alert/20 disabled:opacity-50"
-          >
-            {t('exams.close', lang)}
-          </button>
+          <CloseExamModal
+            examId={examId}
+            examLabel={examLabel}
+            lang={lang}
+            triggerClassName="cursor-pointer rounded-full bg-alert-soft px-3 py-1.5 text-xs font-semibold text-alert-deep hover:bg-alert/20"
+          />
         )}
       </div>
     </div>

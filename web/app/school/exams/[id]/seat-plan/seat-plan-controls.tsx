@@ -54,7 +54,6 @@ export function SeatPlanTable({
         <tbody className="divide-y divide-line">
           {rows.map((row) => {
             const room = roomById.get(row.room_id)
-            const bad = overlapping.has(row.id) || (room ? exceedsCapacity(row, room.capacity) : false)
             return (
               <SeatPlanRowView
                 key={row.id}
@@ -62,7 +61,8 @@ export function SeatPlanTable({
                 row={row}
                 room={room}
                 studentCount={countRollsInRange(rolls, row)}
-                overlapOrOverCapacity={bad}
+                isOverlap={overlapping.has(row.id)}
+                isOverCapacity={room ? exceedsCapacity(row, room.capacity) : false}
                 disabled={disabled}
                 lang={lang}
               />
@@ -79,7 +79,8 @@ function SeatPlanRowView({
   row,
   room,
   studentCount,
-  overlapOrOverCapacity,
+  isOverlap,
+  isOverCapacity,
   disabled,
   lang,
 }: {
@@ -87,10 +88,12 @@ function SeatPlanRowView({
   row: SeatPlanRow
   room: RoomOption | undefined
   studentCount: number
-  overlapOrOverCapacity: boolean
+  isOverlap: boolean
+  isOverCapacity: boolean
   disabled: boolean
   lang: Lang
 }) {
+  const bad = isOverlap || isOverCapacity
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
@@ -149,10 +152,10 @@ function SeatPlanRowView({
       <td className="py-2 pr-2">
         <span
           className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
-            overlapOrOverCapacity ? 'bg-alert-soft text-alert-deep' : 'bg-mint-soft text-mint-deep'
+            bad ? 'bg-alert-soft text-alert-deep' : 'bg-mint-soft text-mint-deep'
           }`}
         >
-          {overlapOrOverCapacity ? t('seatPlan.overlap', lang) : t('seatPlan.ok', lang)}
+          {isOverlap ? t('seatPlan.overlap', lang) : isOverCapacity ? t('seatPlan.overCapacity', lang) : t('seatPlan.ok', lang)}
         </span>
       </td>
       {!disabled && (
