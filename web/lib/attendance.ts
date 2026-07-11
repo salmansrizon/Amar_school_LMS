@@ -50,3 +50,26 @@ export function employeeStatus(
   if (early) return 'exit_early'
   return 'on_time'
 }
+
+// Employee 6-state status codes (issue #30, PRD §5.3): the 4 on-time/late ×
+// on-time/early combinations above, plus 'absent' and 'on_leave' — the two
+// outer states the reconciliation job never writes (absence is the ABSENCE
+// of an attendance_records row, same convention as is_absent_working_day;
+// leave is a separate table). ui/school-owner/attendance-employee.html shows
+// all 6 as one badge set on the daily employee-attendance screen.
+export type EmployeeDisplayStatus = AttendanceStatus | 'absent' | 'on_leave'
+
+export function resolveEmployeeDisplayStatus(args: {
+  hasRecord: boolean
+  onApprovedLeave: boolean
+  entry: Date | null
+  exit: Date | null
+  shiftStart: string | null
+  shiftEnd: string | null
+  graceMinutes: number
+}): EmployeeDisplayStatus {
+  if (!args.hasRecord) {
+    return args.onApprovedLeave ? 'on_leave' : 'absent'
+  }
+  return employeeStatus(args.entry!, args.exit, args.shiftStart, args.shiftEnd, args.graceMinutes)
+}

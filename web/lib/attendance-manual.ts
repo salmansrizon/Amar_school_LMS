@@ -159,3 +159,22 @@ export function monthGrid(year: number, month: number, offDays: OffDay[]): Calen
   }
   return cells
 }
+
+// Attendance Book (issue #30, PRD §5.3): one cell's P/A/blank for the monthly
+// register (ui/school-owner/attendance-book.html). A day only ever reads 'A'
+// once it's actually passed and isn't excused (off-day or approved leave) —
+// future days and excused days stay blank rather than falsely reading absent.
+export type RegisterDayStatus = 'present' | 'absent' | 'blank'
+
+export function registerDayStatus(args: {
+  iso: string
+  today: string
+  isOff: boolean
+  onApprovedLeave: boolean
+  hasRecord: boolean
+}): RegisterDayStatus {
+  if (args.hasRecord) return 'present'
+  if (args.iso > args.today) return 'blank'
+  if (args.isOff || args.onApprovedLeave) return 'blank'
+  return 'absent'
+}

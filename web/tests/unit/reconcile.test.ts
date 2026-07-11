@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { collapseTaps, employeeStatus } from '@/lib/attendance'
+import { collapseTaps, employeeStatus, resolveEmployeeDisplayStatus } from '@/lib/attendance'
 
 // Mirrors the SQL reconciliation rules (issue #10, CONTEXT/PRD §5.3):
 // earliest tap = entry, latest tap = exit, everything between is noise.
@@ -42,5 +42,53 @@ describe('employeeStatus: applies shift window + Considerable Grace', () => {
 
   it('no shift window configured → plain present', () => {
     expect(employeeStatus(at('08:00'), at('14:00'), null, null, 30)).toBe('present')
+  })
+})
+
+// Employee 6-state status codes (issue #30, PRD §5.3): the 4 combos above
+// plus the two outer states the reconciliation job never writes.
+describe('resolveEmployeeDisplayStatus: adds absent/on_leave around employeeStatus', () => {
+  const at = (time: string) => new Date(`2026-07-08T${time}:00Z`)
+
+  it('no record, no leave -> absent', () => {
+    expect(
+      resolveEmployeeDisplayStatus({
+        hasRecord: false,
+        onApprovedLeave: false,
+        entry: null,
+        exit: null,
+        shiftStart: '08:00',
+        shiftEnd: '14:00',
+        graceMinutes: 10,
+      }),
+    ).toBe('absent')
+  })
+
+  it('no record, on approved leave -> on_leave (not absent)', () => {
+    expect(
+      resolveEmployeeDisplayStatus({
+        hasRecord: false,
+        onApprovedLeave: true,
+        entry: null,
+        exit: null,
+        shiftStart: '08:00',
+        shiftEnd: '14:00',
+        graceMinutes: 10,
+      }),
+    ).toBe('on_leave')
+  })
+
+  it('a record present delegates to employeeStatus', () => {
+    expect(
+      resolveEmployeeDisplayStatus({
+        hasRecord: true,
+        onApprovedLeave: false,
+        entry: at('08:05'),
+        exit: at('16:32'),
+        shiftStart: '08:00',
+        shiftEnd: '16:00',
+        graceMinutes: 10,
+      }),
+    ).toBe('on_time')
   })
 })
