@@ -69,6 +69,18 @@ export function ExamHeader({
         >
           {t('exams.seatPlan', lang)}
         </a>
+        <a
+          href={`/school/exams/${examId}/marks-entry`}
+          className="rounded-full border border-line-strong px-3 py-1.5 text-xs font-semibold hover:bg-paper-muted"
+        >
+          {t('exams.markEntry', lang)}
+        </a>
+        <a
+          href={`/school/exams/${examId}/promotion`}
+          className="rounded-full border border-line-strong px-3 py-1.5 text-xs font-semibold hover:bg-paper-muted"
+        >
+          {t('exams.promotion', lang)}
+        </a>
         {!closed && (
           <CloseExamModal
             examId={examId}
