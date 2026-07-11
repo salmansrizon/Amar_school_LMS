@@ -23,7 +23,7 @@ Live tracker for the parallel implementation of school-owner module tickets (#28
 | #34 Accounting I | feat/34-accounting-1 | **DONE, merged** | #61 merged | Fee structures + copy-between-class/year, deepened Fee/Fine/Scholarship collection UI, absent-fine calculator (`absent_working_days_in_month` RPC reuses `is_absent_working_day`). Migrations renumbered 0037→0039 (`fee_structures`), 0038→0040 (`fee_collection_records.note`) — collided with #31/#38, which merged first. |
 | #35 Accounting II | — | blocked on #34 | — | Not started |
 | #36 SMS | — | blocked on #28 merging | — | Not started |
-| #37 Publishing | feat/37-publishing-1 | in progress | — | Migration 0037_publishing.sql — renumber at merge |
+| #37 Publishing | feat/37-publishing-1 | **DONE, merged** | #62 merged | 26 new tests. Migration renumbered 3x during flight (0037→0038→0039→0041 for publishing, →0042 for the bucket-size fix) as #31/#34/#38 landed migrations ahead of it; final numbers 0041/0042. Reviewed via `/code-review` (Standards+Spec): fixed orphaned-upload cleanup on notice-image insert failure + gallery bucket size ceiling (5MB→20MB) mismatched against the per-album configurable range. |
 | #38 Feedback | feat/38-feedback-1 | **DONE, merged** | #59 merged | 28 new tests. Migration 0038_feedback.sql. Tenancy trigger on replied_by, AddDetails deduped, dead i18n key fixed |
 | #39 Institute Setup | feat/39-institute-setup-1 | in progress | — | Relaunched fresh (first attempt's worktree auto-cleaned, no files written) |
 
@@ -31,7 +31,7 @@ Live tracker for the parallel implementation of school-owner module tickets (#28
 
 - #31: a02db67f9fa1bedab — DONE
 - #34: a16025b75a4654ada — DONE
-- #37: a356fae1ef12a11fa — in progress, worktree `.claude/worktrees/agent-a356fae1ef12a11fa`
+- #37: a356fae1ef12a11fa — DONE
 - #38: a56a85063df6fd727 — DONE
 - #39: acf80a45999337a7b — in progress, worktree `.claude/worktrees/agent-acf80a45999337a7b`
 - #47: a890de4107a85ffd1 — in progress, worktree `.claude/worktrees/agent-a890de4107a85ffd1` (check `git worktree list`; if missing, the worktree was auto-cleaned and the ticket must be relaunched fresh instead of resumed)
@@ -39,8 +39,8 @@ Live tracker for the parallel implementation of school-owner module tickets (#28
 ## Known gotchas hit so far
 
 - Session limit gets hit mid-run; the error message gives a reset time (Asia/Dhaka). Resume via a message to the same agentId once past reset — do NOT relaunch fresh unless `git worktree list` shows the worktree is gone (that means zero file changes were made and the ticket must restart from scratch).
-- Migration number collisions: #31 got 0037 first (merged), #38 got 0038 (merged), #34 renumbered its two migrations to 0039/0040 at merge (merged). #37 also picked 0037 before merging — still needs to re-check `web/supabase/migrations/` on `origin/staging` and renumber (0041+ is next free as of #34 merging).
+- Migration number collisions: #31 got 0037 first (merged), #38 got 0038 (merged), #34 renumbered its two migrations to 0039/0040 at merge (merged). #37 hit this three times in a row (0037→0038→0039, chased by each of #31/#38/#34 landing first) before settling at 0041/0042 (merged) — re-check `web/supabase/migrations/` on `origin/staging` right before every push, not just once, when several siblings are merging around the same time. 0043+ is next free as of #37 merging.
 - `web/lib/i18n.ts` and the school home/module nav files are shared — resolve merge conflicts by keeping both sides' added blocks, never drop a sibling ticket's keys.
 - staging is not the GitHub default branch, so "Closes #N" in a PR body does NOT auto-close the issue on merge — close manually with a resolution comment (see #31, #38 precedent).
-- Live-Supabase integration tests are shared across all parallel sessions hitting the same DB — expect occasional unrelated flaky failures (e.g. `absence-sms.test.ts`) from sibling branches; re-run before treating as a regression.
+- Live-Supabase integration tests are shared across all parallel sessions hitting the same DB — expect occasional unrelated flaky failures (e.g. `absence-sms.test.ts`) from sibling branches; re-run before treating as a regression. With 3+ sibling sessions running full suites concurrently, whole-suite runs can show widespread failures (10-20 files) that clear up when the same files are run individually or alone — this looks like Supabase Auth rate-limiting under concurrent login volume, not a real regression. Verify by running just your own new test file(s) in isolation; don't chase a fully-green whole-suite run while several siblings are mid-flight.
 - A `/code-review` sub-agent's report can fail to route back to its parent agent (bad address) — if that happens the report lands on the orchestrator instead, which then relays it to the right agent manually.
