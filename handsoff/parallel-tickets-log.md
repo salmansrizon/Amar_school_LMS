@@ -20,7 +20,7 @@ Live tracker for the parallel implementation of school-owner module tickets (#28
 | #32 Exams III | — | blocked on #47 | — | Not started |
 | #33 Exams IV | — | blocked on #32 | — | Not started |
 | #48 Exams V | — | blocked on #33 | — | Not started |
-| #34 Accounting I | feat/34-accounting-1 | in progress | — | Migration 0037_fee_structures.sql — renumber at merge (collided with #37/#31) |
+| #34 Accounting I | feat/34-accounting-1 | **DONE, merged** | #61 merged | Fee structures + copy-between-class/year, deepened Fee/Fine/Scholarship collection UI, absent-fine calculator (`absent_working_days_in_month` RPC reuses `is_absent_working_day`). Migrations renumbered 0037→0039 (`fee_structures`), 0038→0040 (`fee_collection_records.note`) — collided with #31/#38, which merged first. |
 | #35 Accounting II | — | blocked on #34 | — | Not started |
 | #36 SMS | — | blocked on #28 merging | — | Not started |
 | #37 Publishing | feat/37-publishing-1 | in progress | — | Migration 0037_publishing.sql — renumber at merge |
@@ -30,7 +30,7 @@ Live tracker for the parallel implementation of school-owner module tickets (#28
 ## Agent IDs (internal — for resuming via the orchestrator's SendMessage tool; not GitHub-facing)
 
 - #31: a02db67f9fa1bedab — DONE
-- #34: a16025b75a4654ada — in progress, worktree `.claude/worktrees/agent-a16025b75a4654ada`
+- #34: a16025b75a4654ada — DONE
 - #37: a356fae1ef12a11fa — in progress, worktree `.claude/worktrees/agent-a356fae1ef12a11fa`
 - #38: a56a85063df6fd727 — DONE
 - #39: acf80a45999337a7b — in progress, worktree `.claude/worktrees/agent-acf80a45999337a7b`
@@ -39,7 +39,7 @@ Live tracker for the parallel implementation of school-owner module tickets (#28
 ## Known gotchas hit so far
 
 - Session limit gets hit mid-run; the error message gives a reset time (Asia/Dhaka). Resume via a message to the same agentId once past reset — do NOT relaunch fresh unless `git worktree list` shows the worktree is gone (that means zero file changes were made and the ticket must restart from scratch).
-- Migration number collisions: #31 got 0037 first (merged). #34 and #37 both also picked 0037 before merging — each must re-check `web/supabase/migrations/` on `origin/staging` right before merge and renumber if taken.
+- Migration number collisions: #31 got 0037 first (merged), #38 got 0038 (merged), #34 renumbered its two migrations to 0039/0040 at merge (merged). #37 also picked 0037 before merging — still needs to re-check `web/supabase/migrations/` on `origin/staging` and renumber (0041+ is next free as of #34 merging).
 - `web/lib/i18n.ts` and the school home/module nav files are shared — resolve merge conflicts by keeping both sides' added blocks, never drop a sibling ticket's keys.
 - staging is not the GitHub default branch, so "Closes #N" in a PR body does NOT auto-close the issue on merge — close manually with a resolution comment (see #31, #38 precedent).
 - Live-Supabase integration tests are shared across all parallel sessions hitting the same DB — expect occasional unrelated flaky failures (e.g. `absence-sms.test.ts`) from sibling branches; re-run before treating as a regression.
