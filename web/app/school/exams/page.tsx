@@ -37,6 +37,9 @@ export default async function ExamsPage() {
           <Link href="/school/exams/grading-schemes" className="text-sm text-brand-600 hover:underline">
             {t('grading.title', lang)}
           </Link>
+          <Link href="/school/exams/combinations" className="text-sm text-brand-600 hover:underline">
+            {t('combinations.title', lang)}
+          </Link>
           <Link href="/school/exams/mark-sheet-preview" className="text-sm text-brand-600 hover:underline">
             {t('markSheet.title', lang)}
           </Link>
