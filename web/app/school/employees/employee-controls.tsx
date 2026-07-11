@@ -2,13 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { t, type Lang } from '@/lib/i18n'
-import {
-  addEmployee,
-  addShift,
-  setCategoryGrace,
-  setDefaultGrace,
-  setShiftAssignment,
-} from './actions'
+import { addShift, setCategoryGrace, setDefaultGrace, setShiftAssignment } from './actions'
 
 const input =
   'h-9 w-full rounded-sm border border-line-strong bg-paper px-2 text-sm outline-none focus:border-brand-500'
@@ -73,34 +67,6 @@ export function CategoryGraceForm({ lang }: { lang: Lang }) {
         <button type="submit" disabled={pending} className={btn}>{t('common.add', lang)}</button>
       </div>
       {error && <p className="mt-1 text-xs text-alert-deep">{error}</p>}
-    </form>
-  )
-}
-
-export function AddEmployeeForm({ lang }: { lang: Lang }) {
-  const { error, pending, submit } = useAction(addEmployee)
-  return (
-    <form onSubmit={submit} className="grid gap-3 sm:grid-cols-4">
-      <div className="sm:col-span-2">
-        <label className={label} htmlFor="emp_name">{t('employees.name', lang)}</label>
-        <input id="emp_name" name="full_name" required className={input} />
-      </div>
-      <div>
-        <label className={label} htmlFor="emp_category">{t('employees.category', lang)}</label>
-        <input id="emp_category" name="category" className={input} />
-      </div>
-      <div>
-        <label className={label} htmlFor="emp_override">{t('employees.override', lang)}</label>
-        <input id="emp_override" name="grace_override" type="number" min={0} className={input} />
-      </div>
-      {error && <p className="text-sm text-alert-deep sm:col-span-4">{error}</p>}
-      <button
-        type="submit"
-        disabled={pending}
-        className="h-10 cursor-pointer rounded-full bg-brand-500 text-sm font-semibold text-white hover:bg-brand-600 disabled:opacity-50 sm:col-span-4"
-      >
-        {t('employees.add', lang)}
-      </button>
     </form>
   )
 }
