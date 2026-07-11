@@ -15,6 +15,7 @@ export default function SchoolHome() {
         { href: '/school/sms', labelKey: 'sms.title' },
         { href: '/school/notices', labelKey: 'notices.title' },
         { href: '/school/feedback', labelKey: 'feedback.title' },
+        { href: '/school/institute', labelKey: 'institute.title' },
       ]}
       ownerLinks={[{ href: '/school/staff', labelKey: 'staff.title' }]}
     />
