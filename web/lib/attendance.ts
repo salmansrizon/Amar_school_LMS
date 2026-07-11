@@ -51,12 +51,15 @@ export function employeeStatus(
   return 'on_time'
 }
 
-// Employee 6-state status codes (issue #30, PRD §5.3): the 4 on-time/late ×
-// on-time/early combinations above, plus 'absent' and 'on_leave' — the two
-// outer states the reconciliation job never writes (absence is the ABSENCE
-// of an attendance_records row, same convention as is_absent_working_day;
-// leave is a separate table). ui/school-owner/attendance-employee.html shows
-// all 6 as one badge set on the daily employee-attendance screen.
+// Employee 6-state status codes (issue #30, PRD §5.3): on_time, late_entry,
+// exit_early, late_exit_early (the 4 on-time/late × on-time/early combos
+// above) plus 'absent' and 'on_leave' — the two outer states the
+// reconciliation job never writes (absence is the ABSENCE of an
+// attendance_records row, same convention as is_absent_working_day; leave is
+// a separate table). 'present' is not one of the 6 — it is employeeStatus's
+// pre-existing no-shift-configured fallback (also used for students), kept
+// here only so this type can wrap AttendanceStatus without narrowing it.
+// ui/school-owner/attendance-employee.html shows the 6 as one badge set.
 export type EmployeeDisplayStatus = AttendanceStatus | 'absent' | 'on_leave'
 
 export function resolveEmployeeDisplayStatus(args: {
