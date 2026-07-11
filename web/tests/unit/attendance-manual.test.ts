@@ -6,6 +6,7 @@ import {
   mergeLeaves,
   filterLeaves,
   monthGrid,
+  registerDayStatus,
 } from '@/lib/attendance-manual'
 
 const students = [
@@ -116,5 +117,46 @@ describe('monthGrid', () => {
     const grid = monthGrid(2026, 1, []) // Feb 2026 (not a leap year) = 28 days
     const realDays = grid.filter((c) => c.day !== null)
     expect(realDays).toHaveLength(28)
+  })
+})
+
+// Attendance Book (issue #30): monthly register cell status.
+describe('registerDayStatus', () => {
+  const today = '2026-07-15'
+
+  it('a day with a record is present, regardless of anything else', () => {
+    expect(
+      registerDayStatus({ iso: '2026-07-05', today, isOff: true, onApprovedLeave: true, hasRecord: true }),
+    ).toBe('present')
+  })
+
+  it('a future day stays blank even with no record', () => {
+    expect(
+      registerDayStatus({ iso: '2026-07-20', today, isOff: false, onApprovedLeave: false, hasRecord: false }),
+    ).toBe('blank')
+  })
+
+  it('an off-day with no record stays blank, not absent', () => {
+    expect(
+      registerDayStatus({ iso: '2026-07-04', today, isOff: true, onApprovedLeave: false, hasRecord: false }),
+    ).toBe('blank')
+  })
+
+  it('an approved-leave day with no record stays blank, not absent', () => {
+    expect(
+      registerDayStatus({ iso: '2026-07-06', today, isOff: false, onApprovedLeave: true, hasRecord: false }),
+    ).toBe('blank')
+  })
+
+  it('a past working day with no record and no excuse is absent', () => {
+    expect(
+      registerDayStatus({ iso: '2026-07-10', today, isOff: false, onApprovedLeave: false, hasRecord: false }),
+    ).toBe('absent')
+  })
+
+  it('today itself with no record and no excuse is absent (day already happened)', () => {
+    expect(
+      registerDayStatus({ iso: today, today, isOff: false, onApprovedLeave: false, hasRecord: false }),
+    ).toBe('absent')
   })
 })

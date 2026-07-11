@@ -3,6 +3,8 @@ import { t, type Lang } from '@/lib/i18n'
 
 const TABS = [
   { href: '/school/attendance/mark', key: 'attendance.tabMark' as const },
+  { href: '/school/attendance/book', key: 'attendance.tabBook' as const },
+  { href: '/school/attendance/employee', key: 'attendance.tabEmployee' as const },
   { href: '/school/attendance/leave', key: 'attendance.tabLeave' as const },
   { href: '/school/attendance/off-days', key: 'attendance.tabOffDays' as const },
   { href: '/school/attendance', key: 'attendance.tabCards' as const },

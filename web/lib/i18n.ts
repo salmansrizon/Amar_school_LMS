@@ -871,6 +871,54 @@ const dict = {
   'attendance.allShifts': { bn: 'সকল শিফট', en: 'All Shifts' },
   'attendance.rollCol': { bn: 'রোল', en: 'Roll' },
 
+  // Attendance II (issue #30, PRD §5.3 automated half + §6.9): employee
+  // 6-state status display, attendance book (blank + filled print), and the
+  // per-school manual-attendance override switch.
+  'attendance.tabBook': { bn: 'হাজিরা খাতা', en: 'Attendance Book' },
+  'attendance.tabEmployee': { bn: 'কর্মচারী উপস্থিতি', en: 'Employee Attendance' },
+
+  'attendance.employeeTitle': { bn: 'কর্মচারী উপস্থিতি', en: 'Employee Attendance' },
+  'attendance.employeeSearch': { bn: 'নাম দিয়ে খুঁজুন', en: 'Search by name' },
+  'attendance.nameCol': { bn: 'নাম', en: 'Name' },
+  'attendance.inCol': { bn: 'প্রবেশ', en: 'In' },
+  'attendance.outCol': { bn: 'প্রস্থান', en: 'Out' },
+  'attendance.appliedGraceCol': { bn: 'প্রযোজ্য গ্রেস', en: 'Applied Grace' },
+  'attendance.graceMinutesSuffix': { bn: 'মিনিট', en: 'min' },
+  'attendance.graceSourceGlobal': { bn: 'গ্লোবাল ডিফল্ট', en: 'global default' },
+  'attendance.graceSourceCategory': { bn: 'বিভাগ', en: 'category' },
+  'attendance.graceSourceShift': { bn: 'শিফট', en: 'shift' },
+  'attendance.graceSourceOverride': { bn: 'ব্যক্তিগত ওভাররাইড', en: 'individual override' },
+  'status.absent': { bn: 'অনুপস্থিত', en: 'Absent' },
+  'status.on_leave': { bn: 'ছুটিতে', en: 'On Leave' },
+  'attendance.employeeGraceNote': {
+    bn: 'প্রযোজ্য গ্রেস সবসময় গ্লোবাল, বিভাগ, শিফট ও ব্যক্তিগত ওভাররাইডের মধ্যে সর্বোচ্চটি — কখনোই কড়া/ছোট মান নয়।',
+    en: 'The applied grace is always the MAX of global, category, shift and individual override — never the stricter/smaller value.',
+  },
+  'attendance.employeeRfidNote': {
+    bn: 'RFID দিয়ে হাজিরা নেওয়া কর্মচারীদের জন্যও একই দিনে একাধিক ট্যাপ একটি রেকর্ডে একত্রিত হয় — প্রথম ট্যাপ প্রবেশ, শেষ ট্যাপ প্রস্থান।',
+    en: 'For employees marked via RFID, same-day taps also reconcile into one record — earliest tap = entry, latest tap = exit.',
+  },
+  'attendance.noEmployees': { bn: 'কোনো কর্মচারী নেই', en: 'No employees' },
+
+  'attendance.automaticTitle': { bn: 'স্বয়ংক্রিয় উপস্থিতি', en: 'Automatic Attendance' },
+  'attendance.automaticHint': {
+    bn: 'বন্ধ করলে RFID রিকনসিলিয়েশন এই স্কুলের জন্য বন্ধ থাকবে — উপস্থিতি সম্পূর্ণ ম্যানুয়ালি নিতে হবে।',
+    en: 'When switched off, RFID reconciliation stops for this School — attendance must be taken fully manually.',
+  },
+  'attendance.automaticEnabled': { bn: 'সক্রিয়', en: 'Enabled' },
+  'attendance.automaticDisabled': { bn: 'নিষ্ক্রিয় (শুধু ম্যানুয়াল)', en: 'Disabled (manual only)' },
+
+  'attendance.bookTitle': { bn: 'হাজিরা খাতা — মাসিক রেজিস্টার', en: 'Attendance Book — Monthly Register' },
+  'attendance.bookMonth': { bn: 'মাস', en: 'Month' },
+  'attendance.bookFilled': { bn: 'পূর্ণকৃত', en: 'Filled' },
+  'attendance.bookBlank': { bn: 'খালি (প্রিন্টের জন্য)', en: 'Blank (for print)' },
+  'attendance.bookRegisterWord': { bn: 'মাসিক হাজিরা রেজিস্টার', en: 'Monthly Attendance Register' },
+  'attendance.bookLegend': {
+    bn: 'P = উপস্থিত, A = অনুপস্থিত।',
+    en: 'P = Present, A = Absent.',
+  },
+  'attendance.bookNoRoster': { bn: 'এই শ্রেণিতে কোনো শিক্ষার্থী নেই', en: 'No students in this class' },
+
   // Institute Setup & Misc (issue #39, PRD §5.11)
   'institute.title': { bn: 'প্রতিষ্ঠান সেটআপ', en: 'Institute Setup' },
   'institute.tabProfile': { bn: 'প্রতিষ্ঠান প্রোফাইল', en: 'Institute Profile' },
