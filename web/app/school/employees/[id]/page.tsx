@@ -3,7 +3,6 @@ import { notFound, redirect } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { createClient } from '@/lib/supabase/server'
-import { employeeShiftNames } from '@/lib/employees'
 import { ShiftToggle } from '../employee-controls'
 import { ArchiveToggle, ProfileEditor } from './profile-controls'
 
@@ -71,19 +70,20 @@ export default async function EmployeeDetailPage({
   const archived = employee.archived_at !== null
   const locale = lang === 'bn' ? 'bn-BD' : 'en-GB'
   const assignedShiftIds = new Set((assignments ?? []).map((a) => a.shift_id))
-  const shiftNames = employeeShiftNames(id, assignments ?? [], shifts ?? [])
   const categoryGrace = categories?.find((c) => c.category === employee.category)?.grace_minutes ?? null
-  const shiftGrace = Math.max(
-    0,
-    ...(shifts ?? [])
-      .filter((s) => assignedShiftIds.has(s.id))
-      .map((s) => s.grace_minutes ?? 0),
-  )
+  // null unless at least one assigned shift has grace configured — an
+  // assigned-but-unconfigured shift must read "—", the same as the other
+  // unconfigured levels, not a misleading "0".
+  const configuredShiftGraces = (shifts ?? [])
+    .filter((s) => assignedShiftIds.has(s.id))
+    .map((s) => s.grace_minutes)
+    .filter((g): g is number => g !== null && g !== undefined)
+  const shiftGrace = configuredShiftGraces.length ? Math.max(...configuredShiftGraces) : null
   const effectiveGrace = typeof effective === 'number' ? effective : 0
   const levels: { label: string; minutes: number | null }[] = [
     { label: t('grace.global', lang), minutes: school?.default_grace_minutes ?? null },
     { label: t('employees.gradeLevelCategory', lang), minutes: categoryGrace },
-    { label: t('employees.gradeLevelShift', lang), minutes: shiftNames ? shiftGrace : null },
+    { label: t('employees.gradeLevelShift', lang), minutes: shiftGrace },
     { label: t('employees.override', lang), minutes: employee.grace_override_minutes },
   ]
 
@@ -172,7 +172,9 @@ export default async function EmployeeDetailPage({
             </thead>
             <tbody>
               {levels.map((l) => {
-                const winning = l.minutes !== null && l.minutes === effectiveGrace && effectiveGrace > 0
+                // Highlight every configured level tied with the effective value — including
+                // when every applicable level is 0, which is still a legitimate MAX result.
+                const winning = l.minutes !== null && l.minutes === effectiveGrace
                 return (
                   <tr key={l.label} className="border-b border-line">
                     <td className={`px-3 py-2 text-sm ${winning ? 'font-semibold' : ''}`}>{l.label}</td>
