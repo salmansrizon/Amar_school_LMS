@@ -7,7 +7,7 @@ import { galleryImageExtension } from '@/lib/publishing'
 // Photo bytes are uploaded client-side straight to the private 'gallery'
 // bucket (mirrors issue #45's syllabus pattern); these actions only manage
 // album/photo metadata rows. The real, configurable per-album image-count and
-// per-image-size caps are enforced by a DB trigger (migration 0037) — this
+// per-image-size caps are enforced by a DB trigger (migration 0038) — this
 // file is not the authority, just the entry point that surfaces its errors.
 
 const ALBUMS_PAGE = '/school/notices/gallery'

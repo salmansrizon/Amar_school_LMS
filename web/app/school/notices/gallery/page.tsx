@@ -9,7 +9,7 @@ import { CreateAlbumForm } from './gallery-controls'
 
 // Layout per ui/school-owner/gallery-albums.html: a 4-column album grid, each
 // card showing "N/max photos" and a "Full" badge once the album-level cap is
-// reached (the cap itself is server-enforced — see migration 0037's trigger).
+// reached (the cap itself is server-enforced — see migration 0038's trigger).
 export default async function GalleryAlbumsPage({
   searchParams,
 }: {
