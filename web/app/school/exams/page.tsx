@@ -3,7 +3,12 @@ import { redirect } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
 import { t } from '@/lib/i18n'
 import { createClient } from '@/lib/supabase/server'
-import { AddExamForm, ExamRow } from './exam-controls'
+import { AddExamForm, ExamsListClient } from './exam-controls'
+
+// Layout per ui/school-owner/exams-list.html: search + class/status filter
+// toolbar, "+ New Exam" quick-create (name/year only — full setup happens on
+// the detail page, [id]/page.tsx), table of exams with Setup/Seat Plan
+// actions (locked once Closed, issue #8's immutability rule).
 
 export default async function ExamsPage() {
   const lang = await currentLang()
@@ -16,16 +21,22 @@ export default async function ExamsPage() {
   const { data: me } = await supabase.from('profiles').select('role').eq('id', user.id).single()
   if (me?.role !== 'school_owner' && me?.role !== 'staff_user') redirect('/login')
 
-  const { data: exams } = await supabase
-    .from('exams')
-    .select('id, name, exam_year, status, closed_at')
-    .order('created_at', { ascending: false })
+  const [{ data: exams }, { data: classes }] = await Promise.all([
+    supabase
+      .from('exams')
+      .select('id, name, exam_year, status, class_id, start_date')
+      .order('created_at', { ascending: false }),
+    supabase.from('classes').select('id, name, section').order('created_at'),
+  ])
 
   return (
-    <main className="mx-auto w-full max-w-2xl flex-1 p-6">
+    <main className="mx-auto w-full max-w-3xl flex-1 p-6">
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold">{t('exams.title', lang)}</h1>
         <div className="flex items-center gap-4">
+          <Link href="/school/exams/grading-schemes" className="text-sm text-brand-600 hover:underline">
+            {t('grading.title', lang)}
+          </Link>
           <Link href="/school/exams/mark-sheet-preview" className="text-sm text-brand-600 hover:underline">
             {t('markSheet.title', lang)}
           </Link>
@@ -41,15 +52,10 @@ export default async function ExamsPage() {
       </section>
 
       <section className="rounded-lg border border-line bg-paper p-5 shadow-card">
-        {!exams?.length && <p className="text-sm text-muted">{t('exams.none', lang)}</p>}
-        <ul className="divide-y divide-line">
-          {exams?.map((exam) => (
-            <li key={exam.id} className="py-3">
-              <ExamRow exam={exam} lang={lang} />
-            </li>
-          ))}
-        </ul>
+        <ExamsListClient exams={exams ?? []} classes={classes ?? []} lang={lang} />
       </section>
+
+      <p className="mt-3 text-xs text-muted">{t('exams.closedNote', lang)}</p>
     </main>
   )
 }
