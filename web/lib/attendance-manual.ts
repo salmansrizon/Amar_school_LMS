@@ -7,6 +7,8 @@ export interface RosterStudent {
   full_name: string
   class_name: string | null
   section: string | null
+  roll_number?: number | null
+  shift_id?: string | null
 }
 
 export function studentClassOptions(students: RosterStudent[]): string[] {
@@ -24,15 +26,31 @@ export function studentSectionOptions(students: RosterStudent[], className: stri
   ].sort()
 }
 
+/**
+ * Roster rows for the mark-attendance screen, filtered by class/section/shift
+ * and ordered by Roll number (matching attendance-student-mark.html) with
+ * un-rolled students falling back to a name sort at the end.
+ */
 export function filterRoster(
   students: RosterStudent[],
   className: string,
   section: string,
-): { id: string; full_name: string }[] {
+  shiftId = '',
+): { id: string; full_name: string; roll_number: number | null }[] {
   return students
-    .filter((s) => (!className || s.class_name === className) && (!section || s.section === section))
-    .map((s) => ({ id: s.id, full_name: s.full_name }))
-    .sort((a, b) => a.full_name.localeCompare(b.full_name))
+    .filter(
+      (s) =>
+        (!className || s.class_name === className) &&
+        (!section || s.section === section) &&
+        (!shiftId || s.shift_id === shiftId),
+    )
+    .map((s) => ({ id: s.id, full_name: s.full_name, roll_number: s.roll_number ?? null }))
+    .sort((a, b) => {
+      if (a.roll_number != null && b.roll_number != null) return a.roll_number - b.roll_number
+      if (a.roll_number != null) return -1
+      if (b.roll_number != null) return 1
+      return a.full_name.localeCompare(b.full_name)
+    })
 }
 
 export type LeaveStatus = 'pending' | 'approved' | 'rejected'

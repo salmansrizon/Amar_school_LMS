@@ -7,11 +7,10 @@ import { filterRoster, studentClassOptions, studentSectionOptions } from '@/lib/
 import { AttendanceTabs } from '../attendance-tabs'
 import { MarkAttendanceForm } from './mark-form'
 
-// Layout per ui/school-owner/attendance-student-mark.html: class/section/date
-// filters, bulk all-present/all-absent, per-row present/absent + absence
-// cause. No Roll/Shift columns yet — roll numbers land with #27's admission
-// profile; students have no shift assignment in this schema (shifts are
-// employee-only, from #7).
+// Layout per ui/school-owner/attendance-student-mark.html: class/section/
+// shift/date filters, bulk all-present/all-absent, per-row present/absent +
+// absence cause, Roll number leading each row (roll_number/shift_id landed
+// with #27's admission profile, merged after this ticket first shipped).
 function todayIso(): string {
   return new Date().toISOString().slice(0, 10)
 }
@@ -19,9 +18,9 @@ function todayIso(): string {
 export default async function MarkAttendancePage({
   searchParams,
 }: {
-  searchParams: Promise<{ class?: string; section?: string; date?: string }>
+  searchParams: Promise<{ class?: string; section?: string; shift?: string; date?: string }>
 }) {
-  const { class: className = '', section = '', date = todayIso() } = await searchParams
+  const { class: className = '', section = '', shift = '', date = todayIso() } = await searchParams
   const lang: Lang = await currentLang()
   const supabase = await createClient()
   const {
@@ -31,14 +30,18 @@ export default async function MarkAttendancePage({
   const { data: me } = await supabase.from('profiles').select('role').eq('id', user.id).single()
   if (me?.role !== 'school_owner' && me?.role !== 'staff_user') redirect('/login')
 
-  const { data: students } = await supabase
-    .from('students')
-    .select('id, full_name, class_name, section')
-    .order('full_name')
+  const [{ data: students }, { data: shifts }] = await Promise.all([
+    supabase
+      .from('students')
+      .select('id, full_name, class_name, section, roll_number, shift_id')
+      .order('full_name'),
+    supabase.from('shifts').select('id, name').order('created_at'),
+  ])
   const roster = students ?? []
+  const shiftOptions = shifts ?? []
   const classes = studentClassOptions(roster)
   const sections = className ? studentSectionOptions(roster, className) : []
-  const visible = filterRoster(roster, className, section)
+  const visible = filterRoster(roster, className, section, shift)
   const visibleIds = visible.map((s) => s.id)
 
   const [{ data: records }, { data: notes }] = await Promise.all([
@@ -65,6 +68,7 @@ export default async function MarkAttendancePage({
   const initial = visible.map((s) => ({
     id: s.id,
     full_name: s.full_name,
+    roll_number: s.roll_number,
     present: presentIds.has(s.id) || !causeByPerson.has(s.id),
     cause: causeByPerson.get(s.id) ?? '',
   }))
@@ -80,7 +84,7 @@ export default async function MarkAttendancePage({
 
       <AttendanceTabs active="/school/attendance/mark" lang={lang} />
 
-      <form className="mb-4 grid gap-3 rounded-lg border border-line bg-paper p-5 shadow-card sm:grid-cols-4" method="get">
+      <form className="mb-4 grid gap-3 rounded-lg border border-line bg-paper p-5 shadow-card sm:grid-cols-5" method="get">
         <div>
           <label className="mb-1 block text-xs font-semibold text-muted">{t('attendance.class', lang)}</label>
           <select
@@ -107,6 +111,21 @@ export default async function MarkAttendancePage({
             {sections.map((s) => (
               <option key={s} value={s}>
                 {s}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="mb-1 block text-xs font-semibold text-muted">{t('attendance.shift', lang)}</label>
+          <select
+            name="shift"
+            defaultValue={shift}
+            className="w-full rounded-md border border-line bg-paper px-3 py-1.5 text-sm"
+          >
+            <option value="">{t('attendance.allShifts', lang)}</option>
+            {shiftOptions.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name}
               </option>
             ))}
           </select>

@@ -7,6 +7,7 @@ import { saveStudentAttendance } from '../manual-actions'
 interface Row {
   id: string
   full_name: string
+  roll_number?: number | null
   present: boolean
   cause: string
 }
@@ -67,6 +68,7 @@ export function MarkAttendanceForm({ lang, date, students }: { lang: Lang; date:
         <table className="w-full border-collapse">
           <thead>
             <tr className="border-b border-line-strong">
+              <th className={thClass}>{t('attendance.rollCol', lang)}</th>
               <th className={thClass}>{t('employees.name', lang)}</th>
               <th className={thClass}>{t('attendance.presentCol', lang)}</th>
               <th className={thClass}>{t('attendance.absentCol', lang)}</th>
@@ -76,6 +78,7 @@ export function MarkAttendanceForm({ lang, date, students }: { lang: Lang; date:
           <tbody>
             {rows.map((r) => (
               <tr key={r.id} className="border-b border-line">
+                <td className={tdClass}>{r.roll_number ?? <span className="text-muted">—</span>}</td>
                 <td className={`${tdClass} font-medium`}>{r.full_name}</td>
                 <td className={tdClass}>
                   <input

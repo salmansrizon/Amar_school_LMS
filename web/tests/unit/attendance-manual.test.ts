@@ -9,10 +9,10 @@ import {
 } from '@/lib/attendance-manual'
 
 const students = [
-  { id: '1', full_name: 'Rakib Hasan', class_name: 'Class 8', section: 'A' },
-  { id: '2', full_name: 'Tamim Iqbal', class_name: 'Class 8', section: 'B' },
-  { id: '3', full_name: 'Sadia Islam', class_name: 'Class 9', section: 'A' },
-  { id: '4', full_name: 'Nusrat Jahan', class_name: null, section: null },
+  { id: '1', full_name: 'Rakib Hasan', class_name: 'Class 8', section: 'A', roll_number: 2, shift_id: 'morning' },
+  { id: '2', full_name: 'Tamim Iqbal', class_name: 'Class 8', section: 'B', roll_number: 1, shift_id: 'day' },
+  { id: '3', full_name: 'Sadia Islam', class_name: 'Class 9', section: 'A', roll_number: null, shift_id: null },
+  { id: '4', full_name: 'Nusrat Jahan', class_name: null, section: null, roll_number: null, shift_id: null },
 ]
 
 describe('studentClassOptions / studentSectionOptions', () => {
@@ -27,13 +27,23 @@ describe('studentClassOptions / studentSectionOptions', () => {
 })
 
 describe('filterRoster', () => {
-  it('filters by class and section, sorted by name', () => {
-    expect(filterRoster(students, 'Class 8', '').map((s) => s.id)).toEqual(['1', '2'])
+  it('filters by class and section, sorted by roll number', () => {
+    // Class 8 has Tamim (roll 1) and Rakib (roll 2) -> roll order, not name order
+    expect(filterRoster(students, 'Class 8', '').map((s) => s.id)).toEqual(['2', '1'])
     expect(filterRoster(students, 'Class 8', 'B').map((s) => s.id)).toEqual(['2'])
+  })
+
+  it('filters by shift', () => {
+    expect(filterRoster(students, 'Class 8', '', 'morning').map((s) => s.id)).toEqual(['1'])
   })
 
   it('empty filters return everything sorted', () => {
     expect(filterRoster(students, '', '')).toHaveLength(4)
+  })
+
+  it('rolls without a number sort after rolled students, then by name', () => {
+    const rows = filterRoster(students, '', '')
+    expect(rows.map((r) => r.id)).toEqual(['2', '1', '4', '3'])
   })
 })
 
