@@ -130,6 +130,19 @@ describe('Absence SMS Rule (issue #12)', () => {
     await owner.from('student_leaves').delete().eq('student_id', studentId)
   })
 
+  it('a pending (unapproved) leave request does NOT break the absence (issue #29)', async () => {
+    await owner.from('student_leaves').insert({
+      student_id: studentId,
+      from_day: DAYS[3],
+      to_day: DAYS[4],
+      // status omitted -> defaults to 'pending'
+    })
+    const rows = (await candidates(DAYS[4])).filter((r) => r.student_id === studentId)
+    expect(rows).toHaveLength(1)
+    expect(rows[0].rule_id).toBe(rangeRule)
+    await owner.from('student_leaves').delete().eq('student_id', studentId)
+  })
+
   it('the send log dedupes per student/rule/day and reports date-range totals', async () => {
     const record = (day: string) =>
       anon().rpc('record_absence_sms', {

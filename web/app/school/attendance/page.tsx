@@ -4,6 +4,7 @@ import { currentLang } from '@/lib/i18n-server'
 import { t } from '@/lib/i18n'
 import { createClient } from '@/lib/supabase/server'
 import { AssignCardForm, RemoveCardButton } from './card-controls'
+import { AttendanceTabs } from './attendance-tabs'
 
 export default async function AttendancePage() {
   const lang = await currentLang()
@@ -50,6 +51,8 @@ export default async function AttendancePage() {
           ← {t('common.back', lang)}
         </Link>
       </div>
+
+      <AttendanceTabs active="/school/attendance" lang={lang} />
 
       <section className="mb-6 rounded-lg border border-line bg-paper p-5 shadow-card">
         <h2 className="mb-2 font-bold">{t('attendance.cards', lang)}</h2>
