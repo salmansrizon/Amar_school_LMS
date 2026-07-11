@@ -91,8 +91,11 @@ export interface SubjectOption {
   class_id: string | null
 }
 
-/** A class's assignable catalogue: subjects linked to it, plus school-wide ones. */
-export function subjectsForClass(subjects: SubjectOption[], classId: string): SubjectOption[] {
+/** A class's assignable catalogue: subjects linked to it, plus school-wide ones.
+ * Generic so callers carrying extra columns (e.g. exam-setup.html's mark
+ * config, issue #47) keep them through the filter instead of narrowing to
+ * SubjectOption's bare shape. */
+export function subjectsForClass<T extends SubjectOption>(subjects: T[], classId: string): T[] {
   return subjects.filter((s) => s.class_id === null || s.class_id === classId)
 }
 
