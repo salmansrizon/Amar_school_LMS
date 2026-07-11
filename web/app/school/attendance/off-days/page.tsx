@@ -24,7 +24,15 @@ const MONTH_NAMES: { bn: string; en: string }[] = [
   { bn: 'নভেম্বর', en: 'November' },
   { bn: 'ডিসেম্বর', en: 'December' },
 ]
-const WEEKDAY_LABELS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
+const WEEKDAY_LABELS: { bn: string; en: string }[] = [
+  { bn: 'রবি', en: 'Su' },
+  { bn: 'সোম', en: 'Mo' },
+  { bn: 'মঙ্গল', en: 'Tu' },
+  { bn: 'বুধ', en: 'We' },
+  { bn: 'বৃহঃ', en: 'Th' },
+  { bn: 'শুক্র', en: 'Fr' },
+  { bn: 'শনি', en: 'Sa' },
+]
 
 function currentYear(): number {
   return new Date().getFullYear()
@@ -89,8 +97,8 @@ export default async function OffDayCalendarPage({
               <h4 className="mb-2 text-center text-sm font-bold">{name[lang]}</h4>
               <div className="grid grid-cols-7 gap-0.5 text-xs">
                 {WEEKDAY_LABELS.map((w) => (
-                  <span key={w} className="rounded-sm px-0.5 py-0.5 text-center text-muted">
-                    {w}
+                  <span key={w.en} className="rounded-sm px-0.5 py-0.5 text-center text-muted">
+                    {w[lang]}
                   </span>
                 ))}
                 {grid.map((cell, i) => (
