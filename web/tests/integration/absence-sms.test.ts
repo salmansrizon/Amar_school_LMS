@@ -111,12 +111,20 @@ describe('Absence SMS Rule (issue #12)', () => {
     // status: 'approved' — student_leaves gained an approval workflow via a
     // sibling ticket's live migration; is_absent_working_day only excludes
     // approved leave (matches "Approved Leave" in the PRD formula).
-    await owner.from('student_leaves').insert({
+    const { error } = await owner.from('student_leaves').insert({
       student_id: studentId,
       from_day: DAYS[3],
       to_day: DAYS[4],
       status: 'approved',
     })
+    expect(error).toBeNull()
+    const workingDay = await anon().rpc('is_absent_working_day', {
+      sid: studentId,
+      school: schoolId,
+      d: DAYS[4],
+    })
+    expect(workingDay.error).toBeNull()
+    expect(workingDay.data).toBe(false)
     const rows = (await candidates(DAYS[4])).filter((r) => r.student_id === studentId)
     expect(rows).toEqual([])
     await owner.from('student_leaves').delete().eq('student_id', studentId)
