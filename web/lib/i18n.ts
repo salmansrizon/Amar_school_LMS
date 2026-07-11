@@ -379,6 +379,14 @@ const dict = {
     bn: 'প্রমোশনের আগে পরীক্ষা সেটআপে একটি শ্রেণি নির্বাচন করুন।',
     en: 'Select a class in Exam Setup before promoting students.',
   },
+  'promotion.markFinalClass': {
+    bn: 'এই শ্রেণিটি একটি উত্তীর্ণ ব্যাচ / সর্বশেষ শ্রেণি হিসেবে চিহ্নিত করুন',
+    en: 'Mark this class as a graduating / final class',
+  },
+  'promotion.markFinalClassHint': {
+    bn: 'চিহ্নিত করা হলে নিচে "পুরাতন করুন" অপশনটি দেখা যাবে।',
+    en: 'Once marked, the "Make Old" section below becomes available.',
+  },
   // Grading schemes & pass rules (issue #31, PRD §5.5).
   'grading.title': { bn: 'গ্রেডিং স্কিম', en: 'Grading Schemes' },
   'grading.name': { bn: 'স্কিমের নাম', en: 'Scheme Name' },

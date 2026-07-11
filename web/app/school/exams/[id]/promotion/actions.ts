@@ -73,3 +73,16 @@ export async function makeOldStudents(examId: string, studentIds: string[]): Pro
   if (failedCount) return { error: lastError ?? 'Some students could not be archived', failedCount }
   return {}
 }
+
+// "Make Old" (promotion-transfer.html's Graduating Batch section) is only
+// meaningful for a genuine graduating/terminal class — classes (issue #26)
+// carries no such marker, so this ticket adds the smallest one
+// (classes.is_final_class, migration 0050) and this toggle sets it, rather
+// than leaving every exam's passed students archivable regardless of class.
+export async function setClassFinal(examId: string, classId: string, isFinal: boolean): Promise<{ error?: string }> {
+  const supabase = await createClient()
+  const { error } = await supabase.from('classes').update({ is_final_class: isFinal }).eq('id', classId)
+  if (error) return { error: error.message }
+  revalidatePath(pagePath(examId))
+  return {}
+}

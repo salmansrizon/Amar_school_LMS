@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 
 // RLS ("school members manage …") plus enforce_exam_combination_school /
 // enforce_exam_combination_member_school (tenancy + the "at most one blank
-// weight" / "weights <= 100%" invariants, migration 0042) are the authority
+// weight" / "weights <= 100%" invariants, migration 0049) are the authority
 // on tenancy and on the hard cases that are always wrong regardless of which
 // member ends up unweighted. resolveMemberWeights (web/lib/exam-results.ts)
 // does the fuller validation (weights must total exactly 100% once every

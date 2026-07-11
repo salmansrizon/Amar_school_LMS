@@ -4,7 +4,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
 import { inputClass } from '@/components/auth-card'
 import { t, type Lang } from '@/lib/i18n'
-import { makeOldStudents, promoteStudents } from './actions'
+import { makeOldStudents, promoteStudents, setClassFinal } from './actions'
 
 export interface ClassOption {
   id: string
@@ -220,6 +220,44 @@ export function PromotionTable({
         </button>
       </div>
     </>
+  )
+}
+
+/** Gates the Graduating Batch / "Make Old" section (per Spec review: classes
+ * carry no "final/graduating" marker anywhere in the schema, so without this
+ * toggle any exam's passed students could be archived, not just a genuine
+ * terminal class's). Always visible so the school can flip it on for the
+ * class this exam belongs to; GraduatingSection itself only renders once set. */
+export function FinalClassToggle({
+  examId,
+  classId,
+  isFinalClass,
+  lang,
+}: {
+  examId: string
+  classId: string
+  isFinalClass: boolean
+  lang: Lang
+}) {
+  const router = useRouter()
+  const [pending, startTransition] = useTransition()
+
+  return (
+    <label className="mb-4 flex items-center gap-2 text-sm">
+      <input
+        type="checkbox"
+        checked={isFinalClass}
+        disabled={pending}
+        onChange={(e) => {
+          startTransition(async () => {
+            await setClassFinal(examId, classId, e.target.checked)
+            router.refresh()
+          })
+        }}
+      />
+      <span>{t('promotion.markFinalClass', lang)}</span>
+      <span className="text-xs text-muted">— {t('promotion.markFinalClassHint', lang)}</span>
+    </label>
   )
 }
 

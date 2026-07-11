@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 
 // RLS + enforce_exam_mark_school (same-school tenancy, Closed-exam guard,
-// migration 0041) are the authority here — this action only shapes the
+// migration 0048) are the authority here — this action only shapes the
 // per-student rows into one bulk upsert so a Save covers the whole subject
 // column in one round trip, matching the mockup's single Save button for the
 // entire table.

@@ -20,6 +20,7 @@ import {
   type RankBasis,
 } from '@/lib/exam-results'
 import {
+  FinalClassToggle,
   GraduatingSection,
   PromotionTable,
   ResultControlsBar,
@@ -91,7 +92,11 @@ export default async function PromotionPage({
     )
   }
 
-  const { data: cls } = await supabase.from('classes').select('name, section').eq('id', exam.class_id).maybeSingle()
+  const { data: cls } = await supabase
+    .from('classes')
+    .select('name, section, is_final_class')
+    .eq('id', exam.class_id)
+    .maybeSingle()
   const [{ data: allClasses }, { data: allSubjects }, { data: combos }] = await Promise.all([
     supabase.from('classes').select('id, name, section').order('created_at'),
     supabase.from('subjects').select('id, name, class_id, theory_marks, mcq_marks, practical_marks').order('name'),
@@ -265,6 +270,12 @@ export default async function PromotionPage({
 
   return bodyWrap(
     <>
+      <FinalClassToggle
+        examId={exam.id}
+        classId={exam.class_id}
+        isFinalClass={cls?.is_final_class ?? false}
+        lang={lang}
+      />
       <section className="mb-4 rounded-lg border border-line bg-paper p-5 shadow-card">
         <PromotionTable
           examId={exam.id}
@@ -274,7 +285,7 @@ export default async function PromotionPage({
           lang={lang}
         />
       </section>
-      <GraduatingSection examId={exam.id} rows={rows} lang={lang} />
+      {cls?.is_final_class && <GraduatingSection examId={exam.id} rows={rows} lang={lang} />}
     </>,
   )
 }

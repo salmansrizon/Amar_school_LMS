@@ -4,10 +4,10 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 // Seam: Exams III — marks entry, multi-exam combination, promotion/roll-
 // transfer (issue #32, PRD §5.5). exam_marks extends the same-school +
 // Closed-exam guard pattern the #47 child tables already use (migration
-// 0041); exam_combinations/exam_combination_members add the "at most one
-// blank weight" / "weights <= 100%" invariants (migration 0042);
+// 0048); exam_combinations/exam_combination_members add the "at most one
+// blank weight" / "weights <= 100%" invariants (migration 0049);
 // transfer_student gains an optional p_new_roll for promotion (migration
-// 0041) without breaking its existing callers.
+// 0048) without breaking its existing callers.
 const URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const ANON = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 const PASSWORD = 'test-password-123!'
