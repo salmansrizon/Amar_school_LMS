@@ -1,0 +1,1477 @@
+{
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/shared/app.js": {
+    "mtime": 1783436312.450766,
+    "ast_hash": "ba2707e80bf0cbc4de78ee30a25e65f2",
+    "semantic_hash": "ba2707e80bf0cbc4de78ee30a25e65f2"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/vercel.json": {
+    "mtime": 1783518445.970341,
+    "ast_hash": "5f2cdd11bf9405b149e2023592e1f180",
+    "semantic_hash": "5f2cdd11bf9405b149e2023592e1f180"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/postcss.config.mjs": {
+    "mtime": 1783440808.3678496,
+    "ast_hash": "239f3ebf717465dc636818a1a619398d",
+    "semantic_hash": "239f3ebf717465dc636818a1a619398d"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/next-env.d.ts": {
+    "mtime": 1783437659.4804242,
+    "ast_hash": "2a74d3909800ca5467fa83b0ab4a4890",
+    "semantic_hash": "2a74d3909800ca5467fa83b0ab4a4890"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/package.json": {
+    "mtime": 1783440859.1126072,
+    "ast_hash": "6811569ffec06dc48a0fc60be4e10acf",
+    "semantic_hash": "6811569ffec06dc48a0fc60be4e10acf"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/proxy.ts": {
+    "mtime": 1783442211.4920156,
+    "ast_hash": "579e9612f057b34d4d411638f021b2ad",
+    "semantic_hash": "579e9612f057b34d4d411638f021b2ad"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/tsconfig.json": {
+    "mtime": 1783440808.371664,
+    "ast_hash": "02fc19ad21338c2ab820a70136310db4",
+    "semantic_hash": "02fc19ad21338c2ab820a70136310db4"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/vitest.config.ts": {
+    "mtime": 1783611911.598275,
+    "ast_hash": "3c6c6175159283c3d29f262b33725282",
+    "semantic_hash": "3c6c6175159283c3d29f262b33725282"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/eslint.config.mjs": {
+    "mtime": 1783440808.3619146,
+    "ast_hash": "dfa1f5f6a7037bf39dc510f30b180002",
+    "semantic_hash": "dfa1f5f6a7037bf39dc510f30b180002"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/next.config.ts": {
+    "mtime": 1783440808.3661141,
+    "ast_hash": "073c476be067d6d4649b355483ee2690",
+    "semantic_hash": "073c476be067d6d4649b355483ee2690"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/.vercel/project.json": {
+    "mtime": 1783440644.0580065,
+    "ast_hash": "2ec2e3a92446622774b39adaa179914f",
+    "semantic_hash": "2ec2e3a92446622774b39adaa179914f"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/layout.tsx": {
+    "mtime": 1783440808.3578622,
+    "ast_hash": "9b63826df4d999bfc86b87681cc283ea",
+    "semantic_hash": "9b63826df4d999bfc86b87681cc283ea"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/page.tsx": {
+    "mtime": 1783440808.3583891,
+    "ast_hash": "34dde6b99c305a833a093b2d3890a08c",
+    "semantic_hash": "34dde6b99c305a833a093b2d3890a08c"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/auth/callback/route.ts": {
+    "mtime": 1783440808.3558464,
+    "ast_hash": "9cbe6cf16019330091ca90fd3c38a99c",
+    "semantic_hash": "9cbe6cf16019330091ca90fd3c38a99c"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/signup/page.tsx": {
+    "mtime": 1783440808.360033,
+    "ast_hash": "2de294751802d8a9709ca39aea4ba5d8",
+    "semantic_hash": "2de294751802d8a9709ca39aea4ba5d8"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/dealer/page.tsx": {
+    "mtime": 1783476880.5360868,
+    "ast_hash": "94e5a0705fd3f34c3cd69616ebac572b",
+    "semantic_hash": "94e5a0705fd3f34c3cd69616ebac572b"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/super-admin/page.tsx": {
+    "mtime": 1783479796.1185346,
+    "ast_hash": "2ce9f010699939483d121634d9c04fd0",
+    "semantic_hash": "2ce9f010699939483d121634d9c04fd0"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/super-admin/partners/create-vendor-form.tsx": {
+    "mtime": 1783476880.537753,
+    "ast_hash": "8b11ea1fe7b8c6e0edd38d98d818ce6d",
+    "semantic_hash": "8b11ea1fe7b8c6e0edd38d98d818ce6d"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/super-admin/partners/actions.ts": {
+    "mtime": 1783476880.53763,
+    "ast_hash": "23bdce0a3006b91271450813405eb650",
+    "semantic_hash": "23bdce0a3006b91271450813405eb650"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/super-admin/partners/page.tsx": {
+    "mtime": 1783476880.537974,
+    "ast_hash": "4a3587b99cbbe65cb4662cebfdd9e5ac",
+    "semantic_hash": "4a3587b99cbbe65cb4662cebfdd9e5ac"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/super-admin/partners/[id]/assignment-controls.tsx": {
+    "mtime": 1783476880.5373275,
+    "ast_hash": "9b68f11b3a70621623f01ddebf34d7a7",
+    "semantic_hash": "9b68f11b3a70621623f01ddebf34d7a7"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/super-admin/partners/[id]/page.tsx": {
+    "mtime": 1783476880.5374486,
+    "ast_hash": "a5f553fd7c6d09f1badd8c26f2c76613",
+    "semantic_hash": "a5f553fd7c6d09f1badd8c26f2c76613"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/super-admin/locations/actions.ts": {
+    "mtime": 1783476880.5369587,
+    "ast_hash": "2a3b17305e8ab5c7dec516cd8b1cbd11",
+    "semantic_hash": "2a3b17305e8ab5c7dec516cd8b1cbd11"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/super-admin/locations/tree-controls.tsx": {
+    "mtime": 1783475780.6394024,
+    "ast_hash": "9db4a04c253d32b43521b3ab907bf131",
+    "semantic_hash": "9db4a04c253d32b43521b3ab907bf131"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/super-admin/locations/page.tsx": {
+    "mtime": 1783475780.6383092,
+    "ast_hash": "ea976f7388cf363b0317e1e7804bc31d",
+    "semantic_hash": "ea976f7388cf363b0317e1e7804bc31d"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/super-admin/codes/code-controls.tsx": {
+    "mtime": 1783479796.1181598,
+    "ast_hash": "421967d32c57ed5b1b8bdd45787c3493",
+    "semantic_hash": "421967d32c57ed5b1b8bdd45787c3493"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/super-admin/codes/actions.ts": {
+    "mtime": 1783479796.1179378,
+    "ast_hash": "fe22ec1ee2d94f40b2109df3b3bd56e2",
+    "semantic_hash": "fe22ec1ee2d94f40b2109df3b3bd56e2"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/super-admin/codes/page.tsx": {
+    "mtime": 1783479796.118359,
+    "ast_hash": "31b9908ccbafcb07dd15c39be4f7f2bc",
+    "semantic_hash": "31b9908ccbafcb07dd15c39be4f7f2bc"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/super-admin/schools/subscription-controls.tsx": {
+    "mtime": 1783479796.1188698,
+    "ast_hash": "1f66f1328f0ea0a8a234bee39b0e8dcd",
+    "semantic_hash": "1f66f1328f0ea0a8a234bee39b0e8dcd"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/super-admin/schools/page.tsx": {
+    "mtime": 1783479796.1186888,
+    "ast_hash": "f37cfd9266940ec1305ab1422923df3d",
+    "semantic_hash": "f37cfd9266940ec1305ab1422923df3d"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/api/attendance/reconcile/route.ts": {
+    "mtime": 1783516005.1513436,
+    "ast_hash": "0c4da9109da9a637a46d48f801d5dd42",
+    "semantic_hash": "0c4da9109da9a637a46d48f801d5dd42"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/api/attendance/ingest/[schoolId]/route.ts": {
+    "mtime": 1783516005.1509888,
+    "ast_hash": "b9a6d8ff58c3928892e7f60cde50c7f4",
+    "semantic_hash": "b9a6d8ff58c3928892e7f60cde50c7f4"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/api/sms/absence/route.ts": {
+    "mtime": 1783518445.967943,
+    "ast_hash": "a15a62c336dd5847a22d6eb898c310e7",
+    "semantic_hash": "a15a62c336dd5847a22d6eb898c310e7"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/api/student-photo/route.ts": {
+    "mtime": 1783650350.4218407,
+    "ast_hash": "03c47181943c96761f6d40672f55383b",
+    "semantic_hash": "03c47181943c96761f6d40672f55383b"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/api/syllabus/route.ts": {
+    "mtime": 1783650143.8346906,
+    "ast_hash": "757b32c153a5576bec52f669911fd873",
+    "semantic_hash": "757b32c153a5576bec52f669911fd873"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/reset-password/page.tsx": {
+    "mtime": 1783440808.358736,
+    "ast_hash": "ff99f09f8ee3caeb327727b7ee16687c",
+    "semantic_hash": "ff99f09f8ee3caeb327727b7ee16687c"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/reset-password/update/page.tsx": {
+    "mtime": 1783440808.3595734,
+    "ast_hash": "ea83f4291660b94c1e4767b317e32a0f",
+    "semantic_hash": "ea83f4291660b94c1e4767b317e32a0f"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/school/page.tsx": {
+    "mtime": 1783614695.1983144,
+    "ast_hash": "5166df889051e6f00b3c8e5643787e4c",
+    "semantic_hash": "5166df889051e6f00b3c8e5643787e4c"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/school/attendance/card-controls.tsx": {
+    "mtime": 1783516005.152342,
+    "ast_hash": "db96e675eb36c8ed4a1c9f3fb35d4787",
+    "semantic_hash": "db96e675eb36c8ed4a1c9f3fb35d4787"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/school/attendance/actions.ts": {
+    "mtime": 1783516005.1515095,
+    "ast_hash": "6741284d4777185966732ebff0a414e9",
+    "semantic_hash": "6741284d4777185966732ebff0a414e9"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/school/attendance/page.tsx": {
+    "mtime": 1783516005.1524997,
+    "ast_hash": "94576b1152371e1b71c3c988286e8200",
+    "semantic_hash": "94576b1152371e1b71c3c988286e8200"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/school/permission-denied/page.tsx": {
+    "mtime": 1783442211.4896991,
+    "ast_hash": "0eab4e227444b38ac7bd384bdde8717d",
+    "semantic_hash": "0eab4e227444b38ac7bd384bdde8717d"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/school/fees/fee-form.tsx": {
+    "mtime": 1783496071.3125253,
+    "ast_hash": "a9ef86bd13c0f5b5e08a37c542a4baab",
+    "semantic_hash": "a9ef86bd13c0f5b5e08a37c542a4baab"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/school/fees/actions.ts": {
+    "mtime": 1783496071.312376,
+    "ast_hash": "2f40b2590d817791e83a512ea1e2a742",
+    "semantic_hash": "2f40b2590d817791e83a512ea1e2a742"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/school/fees/page.tsx": {
+    "mtime": 1783496071.3126519,
+    "ast_hash": "12ced934214a0853171ce1048ad25b92",
+    "semantic_hash": "12ced934214a0853171ce1048ad25b92"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/school/fees/receipt/[id]/print-button.tsx": {
+    "mtime": 1783496071.3130271,
+    "ast_hash": "a9750fe3b3e0384e23d8329c861b9157",
+    "semantic_hash": "a9750fe3b3e0384e23d8329c861b9157"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/school/fees/receipt/[id]/page.tsx": {
+    "mtime": 1783496071.3129098,
+    "ast_hash": "c58125e8b3ba08a2bed611b5af814c54",
+    "semantic_hash": "c58125e8b3ba08a2bed611b5af814c54"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/school/sms/actions.ts": {
+    "mtime": 1783518445.9686542,
+    "ast_hash": "9812cdf5c670fb586c3d035bfbf30e2b",
+    "semantic_hash": "9812cdf5c670fb586c3d035bfbf30e2b"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/school/sms/sms-controls.tsx": {
+    "mtime": 1783518445.9690373,
+    "ast_hash": "63df0605644aa656d1cc24c4d62a0fc9",
+    "semantic_hash": "63df0605644aa656d1cc24c4d62a0fc9"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/school/sms/page.tsx": {
+    "mtime": 1783518445.968827,
+    "ast_hash": "71251ee244696f963b4dd5925adcaee7",
+    "semantic_hash": "71251ee244696f963b4dd5925adcaee7"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/school/classes/class-controls.tsx": {
+    "mtime": 1783614695.1978867,
+    "ast_hash": "df17f0e92d20cb93846e0d0e5b636f5f",
+    "semantic_hash": "df17f0e92d20cb93846e0d0e5b636f5f"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/school/classes/actions.ts": {
+    "mtime": 1783614695.1977377,
+    "ast_hash": "05b7061045db5501b3f3fab1a71fa822",
+    "semantic_hash": "05b7061045db5501b3f3fab1a71fa822"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/school/classes/page.tsx": {
+    "mtime": 1783672055.4260387,
+    "ast_hash": "f112f8de0bead40d68ef5ead8ff4daa0",
+    "semantic_hash": "f112f8de0bead40d68ef5ead8ff4daa0"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/school/classes/routine/routine-cell.tsx": {
+    "mtime": 1783672055.4262662,
+    "ast_hash": "de4514ee4c44e076cb8e2f797e4e7074",
+    "semantic_hash": "de4514ee4c44e076cb8e2f797e4e7074"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/school/classes/routine/actions.ts": {
+    "mtime": 1783650143.8350403,
+    "ast_hash": "90a94313b2b2e864b7a7ae50354fc6b8",
+    "semantic_hash": "90a94313b2b2e864b7a7ae50354fc6b8"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/school/classes/routine/page.tsx": {
+    "mtime": 1783650143.8351793,
+    "ast_hash": "feda99ebd96cd56bb96c0d850a003339",
+    "semantic_hash": "feda99ebd96cd56bb96c0d850a003339"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/school/classes/routine/print/page.tsx": {
+    "mtime": 1783650143.8353443,
+    "ast_hash": "14613bfda51b989b52c59a765e3df118",
+    "semantic_hash": "14613bfda51b989b52c59a765e3df118"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/school/classes/syllabus/syllabus-controls.tsx": {
+    "mtime": 1783650143.8358324,
+    "ast_hash": "88ba83c4c8a021c41e50fc42fa44bef9",
+    "semantic_hash": "88ba83c4c8a021c41e50fc42fa44bef9"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/school/classes/syllabus/actions.ts": {
+    "mtime": 1783650143.8356063,
+    "ast_hash": "df77a47e9ff6328e00f256d6ca437ee3",
+    "semantic_hash": "df77a47e9ff6328e00f256d6ca437ee3"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/school/classes/syllabus/page.tsx": {
+    "mtime": 1783650143.835716,
+    "ast_hash": "6fef59980aaab0fcd6d3db114c8094a5",
+    "semantic_hash": "6fef59980aaab0fcd6d3db114c8094a5"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/school/students/actions.ts": {
+    "mtime": 1783673735.046525,
+    "ast_hash": "077a858c01e769e92bb9ea4991efa9a4",
+    "semantic_hash": "077a858c01e769e92bb9ea4991efa9a4"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/school/students/page.tsx": {
+    "mtime": 1783673373.170605,
+    "ast_hash": "16406a15ca85e20df6c7daa896a62ba4",
+    "semantic_hash": "16406a15ca85e20df6c7daa896a62ba4"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/school/students/archive/restore-button.tsx": {
+    "mtime": 1783650546.95252,
+    "ast_hash": "fd8adf310e6493a2bf984fbb5b982b7f",
+    "semantic_hash": "fd8adf310e6493a2bf984fbb5b982b7f"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/school/students/archive/page.tsx": {
+    "mtime": 1783650543.1457558,
+    "ast_hash": "89ef10ec222b715cc253ae27434f8414",
+    "semantic_hash": "89ef10ec222b715cc253ae27434f8414"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/school/students/new/admission-form.tsx": {
+    "mtime": 1783651340.3362117,
+    "ast_hash": "e3157c7b3d92ffef2212d6daec122122",
+    "semantic_hash": "e3157c7b3d92ffef2212d6daec122122"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/school/students/new/page.tsx": {
+    "mtime": 1783650404.4603066,
+    "ast_hash": "8bd898e3277e76fa129bead6ba8458aa",
+    "semantic_hash": "8bd898e3277e76fa129bead6ba8458aa"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/school/students/subject-assignment/bulk-assign-form.tsx": {
+    "mtime": 1783672055.4275656,
+    "ast_hash": "457e5ada6c717ad73b83027dc0e4c2f8",
+    "semantic_hash": "457e5ada6c717ad73b83027dc0e4c2f8"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/school/students/subject-assignment/actions.ts": {
+    "mtime": 1783672055.427477,
+    "ast_hash": "8597e176d2c9d0081c9c224fed176af4",
+    "semantic_hash": "8597e176d2c9d0081c9c224fed176af4"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/school/students/subject-assignment/page.tsx": {
+    "mtime": 1783672055.4276545,
+    "ast_hash": "57b58a65429ebd377e2052fd8e42d8e4",
+    "semantic_hash": "57b58a65429ebd377e2052fd8e42d8e4"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/school/students/[id]/behaviour-controls.tsx": {
+    "mtime": 1783672055.426633,
+    "ast_hash": "6dc388d38e0b0a1826609e7e72124730",
+    "semantic_hash": "6dc388d38e0b0a1826609e7e72124730"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/school/students/[id]/profile-controls.tsx": {
+    "mtime": 1783650784.8475897,
+    "ast_hash": "4bf1764dbf16b241c235e8396c02228e",
+    "semantic_hash": "4bf1764dbf16b241c235e8396c02228e"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/school/students/[id]/subject-controls.tsx": {
+    "mtime": 1783672055.427218,
+    "ast_hash": "d2bc75ce544d5ff3eb8dfa960cbfd21a",
+    "semantic_hash": "d2bc75ce544d5ff3eb8dfa960cbfd21a"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/school/students/[id]/page.tsx": {
+    "mtime": 1783672426.5297742,
+    "ast_hash": "6bd22eea3de32ebaf1180964dcfc33cf",
+    "semantic_hash": "6bd22eea3de32ebaf1180964dcfc33cf"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/school/students/[id]/transfer/transfer-form.tsx": {
+    "mtime": 1783673765.6336951,
+    "ast_hash": "2112789d7c44c5ca05dfecb5ff938a01",
+    "semantic_hash": "2112789d7c44c5ca05dfecb5ff938a01"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/school/students/[id]/transfer/page.tsx": {
+    "mtime": 1783673782.7711532,
+    "ast_hash": "fbf14808e6435609fba8fcb0622dc834",
+    "semantic_hash": "fbf14808e6435609fba8fcb0622dc834"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/school/students/[id]/print/admission/page.tsx": {
+    "mtime": 1783672055.4269907,
+    "ast_hash": "dd3a52812b912595348f2580e9767c9f",
+    "semantic_hash": "dd3a52812b912595348f2580e9767c9f"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/school/students/[id]/print/id-card/page.tsx": {
+    "mtime": 1783672055.4271088,
+    "ast_hash": "f7831f8c244d63f4ac1ea2c2def6bfbd",
+    "semantic_hash": "f7831f8c244d63f4ac1ea2c2def6bfbd"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/school/exams/actions.ts": {
+    "mtime": 1783494603.5298092,
+    "ast_hash": "e0dbad66be223acb713f93ee7831965c",
+    "semantic_hash": "e0dbad66be223acb713f93ee7831965c"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/school/exams/exam-controls.tsx": {
+    "mtime": 1783494603.5301106,
+    "ast_hash": "88143599c2e11aaf6d99d61fdc86f334",
+    "semantic_hash": "88143599c2e11aaf6d99d61fdc86f334"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/school/exams/page.tsx": {
+    "mtime": 1783611911.5974903,
+    "ast_hash": "a329e03a7ceb64dc2039dee9d9611607",
+    "semantic_hash": "a329e03a7ceb64dc2039dee9d9611607"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/school/exams/mark-sheet-preview/page.tsx": {
+    "mtime": 1783611911.5973506,
+    "ast_hash": "0e813248d2f72790aea766d2b5080037",
+    "semantic_hash": "0e813248d2f72790aea766d2b5080037"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/school/staff/create-staff-form.tsx": {
+    "mtime": 1783442211.4911108,
+    "ast_hash": "cd56121be515f2b55e7bec005980650a",
+    "semantic_hash": "cd56121be515f2b55e7bec005980650a"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/school/staff/actions.ts": {
+    "mtime": 1783442211.4909618,
+    "ast_hash": "9f3094e68ab01d3b7fffa30f809d33fa",
+    "semantic_hash": "9f3094e68ab01d3b7fffa30f809d33fa"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/school/staff/page.tsx": {
+    "mtime": 1783442211.491248,
+    "ast_hash": "502a61f2981bfc83e961d2908c6c9305",
+    "semantic_hash": "502a61f2981bfc83e961d2908c6c9305"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/school/staff/[id]/screen-toggle.tsx": {
+    "mtime": 1783442211.4907382,
+    "ast_hash": "c0a55f22b2dd724964fb255c81d56c39",
+    "semantic_hash": "c0a55f22b2dd724964fb255c81d56c39"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/school/staff/[id]/page.tsx": {
+    "mtime": 1783442211.4904923,
+    "ast_hash": "a7a308ad752c28d39d708fcd109228a2",
+    "semantic_hash": "a7a308ad752c28d39d708fcd109228a2"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/school/employees/actions.ts": {
+    "mtime": 1783493442.0582874,
+    "ast_hash": "2800ac15f64920ffaa0223abd7f75fb1",
+    "semantic_hash": "2800ac15f64920ffaa0223abd7f75fb1"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/school/employees/employee-controls.tsx": {
+    "mtime": 1783493442.0586064,
+    "ast_hash": "10335a53c01fc50a122fed3db56512f8",
+    "semantic_hash": "10335a53c01fc50a122fed3db56512f8"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/school/employees/page.tsx": {
+    "mtime": 1783493442.0587218,
+    "ast_hash": "bf13712a83203e2593d2c42034db976a",
+    "semantic_hash": "bf13712a83203e2593d2c42034db976a"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/login/page.tsx": {
+    "mtime": 1783440808.3580966,
+    "ast_hash": "ddda2cdca14b02570b43f26278b5e37d",
+    "semantic_hash": "ddda2cdca14b02570b43f26278b5e37d"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/app/gov/page.tsx": {
+    "mtime": 1783476880.5363123,
+    "ast_hash": "c77fdbf8d433e5846f382cdc6d1e10a7",
+    "semantic_hash": "c77fdbf8d433e5846f382cdc6d1e10a7"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/tests/unit/amount-words.test.ts": {
+    "mtime": 1783496071.313679,
+    "ast_hash": "728c3f0b268eb3a991bbb89f8dd4ef71",
+    "semantic_hash": "728c3f0b268eb3a991bbb89f8dd4ef71"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/tests/unit/screens.test.ts": {
+    "mtime": 1783442211.4924734,
+    "ast_hash": "fab1c38840dfb534317a6f129e7e71cb",
+    "semantic_hash": "fab1c38840dfb534317a6f129e7e71cb"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/tests/unit/routine.test.ts": {
+    "mtime": 1783650143.836871,
+    "ast_hash": "826cc2ef47e55c261b79f8fd52278769",
+    "semantic_hash": "826cc2ef47e55c261b79f8fd52278769"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/tests/unit/grace.test.ts": {
+    "mtime": 1783493442.060502,
+    "ast_hash": "60e8fe8eb4448c5e81a7d2bbddf0c9ce",
+    "semantic_hash": "60e8fe8eb4448c5e81a7d2bbddf0c9ce"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/tests/unit/subscription.test.ts": {
+    "mtime": 1783479796.1205387,
+    "ast_hash": "418e120ad70981a6477e83ed0b4c50e2",
+    "semantic_hash": "418e120ad70981a6477e83ed0b4c50e2"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/tests/unit/routing.test.ts": {
+    "mtime": 1783440808.371447,
+    "ast_hash": "48601d495539fc037a153dc967939d02",
+    "semantic_hash": "48601d495539fc037a153dc967939d02"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/tests/unit/behaviour.test.ts": {
+    "mtime": 1783492593.1876538,
+    "ast_hash": "960fc8ab2b41c61c63d01698c68a947a",
+    "semantic_hash": "960fc8ab2b41c61c63d01698c68a947a"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/tests/unit/locations-tree.test.ts": {
+    "mtime": 1783475780.6418996,
+    "ast_hash": "d981235122c763d9021b0412704d8ddc",
+    "semantic_hash": "d981235122c763d9021b0412704d8ddc"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/tests/unit/reconcile.test.ts": {
+    "mtime": 1783516005.1545153,
+    "ast_hash": "d2ae50162de30e45f28d5e082fe5987b",
+    "semantic_hash": "d2ae50162de30e45f28d5e082fe5987b"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/tests/unit/print-pieces.test.tsx": {
+    "mtime": 1783611911.5981555,
+    "ast_hash": "a6b5747b17c5819b42982dbfaad7b10e",
+    "semantic_hash": "a6b5747b17c5819b42982dbfaad7b10e"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/tests/unit/classes-count.test.ts": {
+    "mtime": 1783614695.1996999,
+    "ast_hash": "a8c643882e5c87f25b3bb311e806db6e",
+    "semantic_hash": "a8c643882e5c87f25b3bb311e806db6e"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/tests/unit/sms-gateway.test.ts": {
+    "mtime": 1783518445.9701283,
+    "ast_hash": "4495d47d889213ac0e136d6340980ee6",
+    "semantic_hash": "4495d47d889213ac0e136d6340980ee6"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/tests/unit/students.test.ts": {
+    "mtime": 1783672215.026533,
+    "ast_hash": "375c372ee57e17374cbd135579bd08f6",
+    "semantic_hash": "375c372ee57e17374cbd135579bd08f6"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/tests/integration/exams.test.ts": {
+    "mtime": 1783494603.5318987,
+    "ast_hash": "984f425e66e5ca5f7625b560d62eab12",
+    "semantic_hash": "984f425e66e5ca5f7625b560d62eab12"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/tests/integration/locations.test.ts": {
+    "mtime": 1783475780.6417766,
+    "ast_hash": "6296eacfb7ee9176e5dd28a05fc5f6b7",
+    "semantic_hash": "6296eacfb7ee9176e5dd28a05fc5f6b7"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/tests/integration/print-preview.test.ts": {
+    "mtime": 1783611911.5980368,
+    "ast_hash": "8f032d524b11c6d80a632f9a076d56f4",
+    "semantic_hash": "8f032d524b11c6d80a632f9a076d56f4"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/tests/integration/fee-collection.test.ts": {
+    "mtime": 1783496071.313581,
+    "ast_hash": "44d002adaabe1bc48b16ff1b6ef16b49",
+    "semantic_hash": "44d002adaabe1bc48b16ff1b6ef16b49"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/tests/integration/class-curriculum.test.ts": {
+    "mtime": 1783614695.1995778,
+    "ast_hash": "33716ee3ea88ecba62f57d668b6a19af",
+    "semantic_hash": "33716ee3ea88ecba62f57d668b6a19af"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/tests/integration/rfid-attendance.test.ts": {
+    "mtime": 1783516005.1542969,
+    "ast_hash": "3332ce05834736b31e75a2457de7ca2d",
+    "semantic_hash": "3332ce05834736b31e75a2457de7ca2d"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/tests/integration/employees-grace.test.ts": {
+    "mtime": 1783493442.0603538,
+    "ast_hash": "1d3c278e3e35a7039757dbbed4dc6aa9",
+    "semantic_hash": "1d3c278e3e35a7039757dbbed4dc6aa9"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/tests/integration/students-behaviour.test.ts": {
+    "mtime": 1783492593.187478,
+    "ast_hash": "be4c02cb6da035aa67aa78c0612da2ab",
+    "semantic_hash": "be4c02cb6da035aa67aa78c0612da2ab"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/tests/integration/class-routine.test.ts": {
+    "mtime": 1783650143.8367643,
+    "ast_hash": "474553bb0f20b1981614f0d2a0ae7aab",
+    "semantic_hash": "474553bb0f20b1981614f0d2a0ae7aab"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/tests/integration/territory-assignments.test.ts": {
+    "mtime": 1783476880.5391643,
+    "ast_hash": "7310d7d54deff414253c949117119f6d",
+    "semantic_hash": "7310d7d54deff414253c949117119f6d"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/tests/integration/subscription-codes.test.ts": {
+    "mtime": 1783479796.1203907,
+    "ast_hash": "e13c97da42b49f0cb33d3cc1e340303f",
+    "semantic_hash": "e13c97da42b49f0cb33d3cc1e340303f"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/tests/integration/absence-sms.test.ts": {
+    "mtime": 1783518445.9699147,
+    "ast_hash": "ed1fb3d07ebb49959304b0c1442bf84a",
+    "semantic_hash": "ed1fb3d07ebb49959304b0c1442bf84a"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/tests/integration/student-subjects.test.ts": {
+    "mtime": 1783672055.42842,
+    "ast_hash": "462d80f59f653c3817b8cb8c6d51095d",
+    "semantic_hash": "462d80f59f653c3817b8cb8c6d51095d"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/tests/integration/staff-permissions.test.ts": {
+    "mtime": 1783442211.4922962,
+    "ast_hash": "c2bc4172a1a1ea4170514982740bdb59",
+    "semantic_hash": "c2bc4172a1a1ea4170514982740bdb59"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/tests/integration/students-admission.test.ts": {
+    "mtime": 1783673799.8742943,
+    "ast_hash": "c1dffdeb054c8b756b81b6930a57a0b2",
+    "semantic_hash": "c1dffdeb054c8b756b81b6930a57a0b2"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/tests/integration/rls.test.ts": {
+    "mtime": 1783440808.3711877,
+    "ast_hash": "4edea37cfc8300255399523b1618486e",
+    "semantic_hash": "4edea37cfc8300255399523b1618486e"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/supabase/staging-seed.sql": {
+    "mtime": 1783518467.8051758,
+    "ast_hash": "eb49670637f87a8f9b6ec4d5c1fe7a7e",
+    "semantic_hash": "eb49670637f87a8f9b6ec4d5c1fe7a7e"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/supabase/seed-test.sql": {
+    "mtime": 1783475780.6416097,
+    "ast_hash": "a4f02367fd5cc957b2d15f02e60f3810",
+    "semantic_hash": "a4f02367fd5cc957b2d15f02e60f3810"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/supabase/migrations/0034_roll_race_hardening.sql": {
+    "mtime": 1783651266.9791164,
+    "ast_hash": "61cb0a900ebf1b155ca9ff96d2824dac",
+    "semantic_hash": "61cb0a900ebf1b155ca9ff96d2824dac"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/supabase/migrations/0028_routine_syllabus_hardening.sql": {
+    "mtime": 1783650143.836534,
+    "ast_hash": "0360955eb339be1d8fc9f271aac67109",
+    "semantic_hash": "0360955eb339be1d8fc9f271aac67109"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/supabase/migrations/0019_reconcile_merge_backfill.sql": {
+    "mtime": 1783516005.1540394,
+    "ast_hash": "f5bc151ff8f2d09ceaa61f52d3df39f1",
+    "semantic_hash": "f5bc151ff8f2d09ceaa61f52d3df39f1"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/supabase/migrations/0035_transfer_student_rpc.sql": {
+    "mtime": 1783665051.0086823,
+    "ast_hash": "726c1983ba27c8278e67f729dcb07324",
+    "semantic_hash": "726c1983ba27c8278e67f729dcb07324"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/supabase/migrations/0013_grace_hardening.sql": {
+    "mtime": 1783493442.060142,
+    "ast_hash": "d12722d7fad3ad4aa14d9bbe530c6e22",
+    "semantic_hash": "d12722d7fad3ad4aa14d9bbe530c6e22"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/supabase/migrations/0001_foundation.sql": {
+    "mtime": 1783440808.3701112,
+    "ast_hash": "66c9ea0dcb35848bf53b8cc6793f099a",
+    "semantic_hash": "66c9ea0dcb35848bf53b8cc6793f099a"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/supabase/migrations/0018_reconcile_keep_unresolved.sql": {
+    "mtime": 1783516005.1538243,
+    "ast_hash": "737c01ac9c4bdf86876c441962c0a3ac",
+    "semantic_hash": "737c01ac9c4bdf86876c441962c0a3ac"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/supabase/migrations/0012_employees_grace.sql": {
+    "mtime": 1783493442.0599456,
+    "ast_hash": "707e761f66961bd027d945c003db9e5a",
+    "semantic_hash": "707e761f66961bd027d945c003db9e5a"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/supabase/migrations/0027_syllabus_file_size.sql": {
+    "mtime": 1783650143.8364289,
+    "ast_hash": "599bf63705ef1f4ffae40cbd265c3f62",
+    "semantic_hash": "599bf63705ef1f4ffae40cbd265c3f62"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/supabase/migrations/0010_schools_with_code_history.sql": {
+    "mtime": 1783479796.120189,
+    "ast_hash": "4c47ad158b09edbcc8f378d12953e2a1",
+    "semantic_hash": "4c47ad158b09edbcc8f378d12953e2a1"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/supabase/migrations/0016_fee_collection.sql": {
+    "mtime": 1783496071.3134875,
+    "ast_hash": "ef08b928b7d92b374e9d717bec5c627a",
+    "semantic_hash": "ef08b928b7d92b374e9d717bec5c627a"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/supabase/migrations/0030_student_subjects.sql": {
+    "mtime": 1783672055.4282174,
+    "ast_hash": "384dea67276c643b2238547ec2d84fe2",
+    "semantic_hash": "384dea67276c643b2238547ec2d84fe2"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/supabase/migrations/0002_staff_permissions.sql": {
+    "mtime": 1783442211.4921527,
+    "ast_hash": "bde542786d2047cdf7d9464f80835bbc",
+    "semantic_hash": "bde542786d2047cdf7d9464f80835bbc"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/supabase/migrations/0006_territory_assignments.sql": {
+    "mtime": 1783476880.5388885,
+    "ast_hash": "da62436e97ce5003781b52a37dac820c",
+    "semantic_hash": "da62436e97ce5003781b52a37dac820c"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/supabase/migrations/0011_students_behaviour.sql": {
+    "mtime": 1783492593.187384,
+    "ast_hash": "cf7eef6e14a0736e9e20cb02aa1b2c5f",
+    "semantic_hash": "cf7eef6e14a0736e9e20cb02aa1b2c5f"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/supabase/migrations/0008_subscription_codes.sql": {
+    "mtime": 1783479796.119801,
+    "ast_hash": "1d0efdf9b5be7d227cd09c43a1eeecad",
+    "semantic_hash": "1d0efdf9b5be7d227cd09c43a1eeecad"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/supabase/migrations/0023_class_curriculum_hardening.sql": {
+    "mtime": 1783614695.1991448,
+    "ast_hash": "cd8d99a7da4a4787375d9a56105aaf96",
+    "semantic_hash": "cd8d99a7da4a4787375d9a56105aaf96"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/supabase/migrations/0009_code_redemption_permanence.sql": {
+    "mtime": 1783479796.11996,
+    "ast_hash": "1e8713bb3c6cc0761c3596990d16b897",
+    "semantic_hash": "1e8713bb3c6cc0761c3596990d16b897"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/supabase/migrations/0029_class_tenancy_triggers.sql": {
+    "mtime": 1783650143.836636,
+    "ast_hash": "7b360b75db88a8960417b49ad7c9141b",
+    "semantic_hash": "7b360b75db88a8960417b49ad7c9141b"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/supabase/migrations/0036_transfer_keep_shift_when_blank.sql": {
+    "mtime": 1783673727.4436417,
+    "ast_hash": "4529be7ae0731cacdedaf5539ab48b8d",
+    "semantic_hash": "4529be7ae0731cacdedaf5539ab48b8d"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/supabase/migrations/0025_class_routine.sql": {
+    "mtime": 1783650143.8362362,
+    "ast_hash": "9a7bde0deaba295f2a4bef9f4560b43c",
+    "semantic_hash": "9a7bde0deaba295f2a4bef9f4560b43c"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/supabase/migrations/0007_unique_assignments.sql": {
+    "mtime": 1783476880.5390143,
+    "ast_hash": "3ecb5d49e2371aa625146e5c9cbb4a90",
+    "semantic_hash": "3ecb5d49e2371aa625146e5c9cbb4a90"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/supabase/migrations/0020_rfid_card_same_school.sql": {
+    "mtime": 1783516005.1541667,
+    "ast_hash": "bb776a6853a163db99d299ba4b5f22b8",
+    "semantic_hash": "bb776a6853a163db99d299ba4b5f22b8"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/supabase/migrations/0033_student_transfer_tenancy.sql": {
+    "mtime": 1783650699.073231,
+    "ast_hash": "47d923df728846f2f84be13b365b82cb",
+    "semantic_hash": "47d923df728846f2f84be13b365b82cb"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/supabase/migrations/0022_class_curriculum.sql": {
+    "mtime": 1783614695.1988575,
+    "ast_hash": "043251e071e7a4ebf3552ef51ecd052f",
+    "semantic_hash": "043251e071e7a4ebf3552ef51ecd052f"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/supabase/migrations/0014_exams.sql": {
+    "mtime": 1783494603.5316472,
+    "ast_hash": "91e68172c51dc61ff79f4795882f1479",
+    "semantic_hash": "91e68172c51dc61ff79f4795882f1479"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/supabase/migrations/0026_class_syllabus_storage.sql": {
+    "mtime": 1783650143.836318,
+    "ast_hash": "73388c4730f08d5e0a23876cefe5c9a6",
+    "semantic_hash": "73388c4730f08d5e0a23876cefe5c9a6"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/supabase/migrations/0017_rfid_attendance.sql": {
+    "mtime": 1783516005.1536086,
+    "ast_hash": "b1e49d0288c5f1ac32c0f8ab21f61128",
+    "semantic_hash": "b1e49d0288c5f1ac32c0f8ab21f61128"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/supabase/migrations/0003_locations.sql": {
+    "mtime": 1783475780.6404862,
+    "ast_hash": "1748236719215077525976fe04cc3660",
+    "semantic_hash": "1748236719215077525976fe04cc3660"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/supabase/migrations/0015_exam_hardening.sql": {
+    "mtime": 1783494603.53177,
+    "ast_hash": "9a050b12c7e2e4731e0ac66ae22815d0",
+    "semantic_hash": "9a050b12c7e2e4731e0ac66ae22815d0"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/supabase/migrations/0032_students_admission_profile.sql": {
+    "mtime": 1783650162.2139742,
+    "ast_hash": "dd87c4bef4a85aab5cf0d9752fb4b4da",
+    "semantic_hash": "dd87c4bef4a85aab5cf0d9752fb4b4da"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/supabase/migrations/0005_location_indexes.sql": {
+    "mtime": 1783475780.6414468,
+    "ast_hash": "f2450c5526adffa9b40ea539cff9cc11",
+    "semantic_hash": "f2450c5526adffa9b40ea539cff9cc11"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/supabase/migrations/0004_schools_under_location_via_cluster.sql": {
+    "mtime": 1783475780.6413448,
+    "ast_hash": "d11375eb5c91ed2fe7a87ef7c7e3349b",
+    "semantic_hash": "d11375eb5c91ed2fe7a87ef7c7e3349b"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/supabase/migrations/0024_class_curriculum_tenant_integrity.sql": {
+    "mtime": 1783614695.1993423,
+    "ast_hash": "7b478d1ef4d86aa079cc27906e1c154c",
+    "semantic_hash": "7b478d1ef4d86aa079cc27906e1c154c"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/supabase/migrations/0021_absence_sms.sql": {
+    "mtime": 1783518445.9696991,
+    "ast_hash": "16adad550e9f661cfae39d4a7868c663",
+    "semantic_hash": "16adad550e9f661cfae39d4a7868c663"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/supabase/migrations/0031_behaviour_sms_log_policy.sql": {
+    "mtime": 1783672055.4283051,
+    "ast_hash": "530b2acc8c170991eab23832e28b92b4",
+    "semantic_hash": "530b2acc8c170991eab23832e28b92b4"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/supabase/.temp/linked-project.json": {
+    "mtime": 1783515289.4852922,
+    "ast_hash": "8cd76075ad911d020fe9a044fae191f9",
+    "semantic_hash": "8cd76075ad911d020fe9a044fae191f9"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/components/auth-card.tsx": {
+    "mtime": 1783440808.360443,
+    "ast_hash": "721ea14a5b1924fdf68d843527c34cbc",
+    "semantic_hash": "721ea14a5b1924fdf68d843527c34cbc"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/components/logout-button.tsx": {
+    "mtime": 1783440808.360808,
+    "ast_hash": "b94a11079c715d5828b62833577a02bf",
+    "semantic_hash": "b94a11079c715d5828b62833577a02bf"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/components/territory-schools.tsx": {
+    "mtime": 1783476880.5383477,
+    "ast_hash": "33386308961ce61405d1b765b96e6453",
+    "semantic_hash": "33386308961ce61405d1b765b96e6453"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/components/lang-switch.tsx": {
+    "mtime": 1783440808.3605995,
+    "ast_hash": "8775813950f1eb7672a8f21477313d86",
+    "semantic_hash": "8775813950f1eb7672a8f21477313d86"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/components/role-shell.tsx": {
+    "mtime": 1783476880.5382214,
+    "ast_hash": "bafa2710685c6e35dbb01ecc14642397",
+    "semantic_hash": "bafa2710685c6e35dbb01ecc14642397"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/components/print/pieces.tsx": {
+    "mtime": 1783611911.5976403,
+    "ast_hash": "559d588d3d30a8c622bef664ab0b5b88",
+    "semantic_hash": "559d588d3d30a8c622bef664ab0b5b88"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/components/print/print-button.tsx": {
+    "mtime": 1783611911.597746,
+    "ast_hash": "a9750fe3b3e0384e23d8329c861b9157",
+    "semantic_hash": "a9750fe3b3e0384e23d8329c861b9157"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/lib/amount-words.ts": {
+    "mtime": 1783496071.313248,
+    "ast_hash": "6000cd3334cdb64f43f4c36a96507ad5",
+    "semantic_hash": "6000cd3334cdb64f43f4c36a96507ad5"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/lib/locations.ts": {
+    "mtime": 1783475780.640281,
+    "ast_hash": "cf0df3a3fdabb946baadfc3175d4ec73",
+    "semantic_hash": "cf0df3a3fdabb946baadfc3175d4ec73"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/lib/students.ts": {
+    "mtime": 1783672155.7554746,
+    "ast_hash": "d231e700cac842d72ae9a5d72b569521",
+    "semantic_hash": "d231e700cac842d72ae9a5d72b569521"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/lib/grace.ts": {
+    "mtime": 1783493442.059455,
+    "ast_hash": "b567917df87e667e1720383db33b939c",
+    "semantic_hash": "b567917df87e667e1720383db33b939c"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/lib/use-lang.ts": {
+    "mtime": 1783440808.3638797,
+    "ast_hash": "88e30ebfd455f85e5e8cfb36a3e17fa7",
+    "semantic_hash": "88e30ebfd455f85e5e8cfb36a3e17fa7"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/lib/classes.ts": {
+    "mtime": 1783614695.1984901,
+    "ast_hash": "975f8b06bfae60947138c2b59c9d2629",
+    "semantic_hash": "975f8b06bfae60947138c2b59c9d2629"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/lib/i18n.ts": {
+    "mtime": 1783672325.6655836,
+    "ast_hash": "69bb09417c531ce6a3b57b6c13d7de0d",
+    "semantic_hash": "69bb09417c531ce6a3b57b6c13d7de0d"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/lib/behaviour.ts": {
+    "mtime": 1783492593.187148,
+    "ast_hash": "5628f796663d2502bdbeafab436b097e",
+    "semantic_hash": "5628f796663d2502bdbeafab436b097e"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/lib/routine.ts": {
+    "mtime": 1783650143.8361373,
+    "ast_hash": "e8f8909dc155defa6b51b480d5e8f80d",
+    "semantic_hash": "e8f8909dc155defa6b51b480d5e8f80d"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/lib/attendance.ts": {
+    "mtime": 1783516005.1529832,
+    "ast_hash": "4157580e5373063c6b371213aa3076a7",
+    "semantic_hash": "4157580e5373063c6b371213aa3076a7"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/lib/subscription.ts": {
+    "mtime": 1783479796.1193118,
+    "ast_hash": "c9b7b89c80235cf3d07a1cfd5be247f3",
+    "semantic_hash": "c9b7b89c80235cf3d07a1cfd5be247f3"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/lib/i18n-server.ts": {
+    "mtime": 1783440808.3624547,
+    "ast_hash": "de634c42b85014d35bfb94a3df7316a6",
+    "semantic_hash": "de634c42b85014d35bfb94a3df7316a6"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/lib/sms/gateway.ts": {
+    "mtime": 1783518445.9695153,
+    "ast_hash": "d000f3843da20c146dcf0c659b4cb7aa",
+    "semantic_hash": "d000f3843da20c146dcf0c659b4cb7aa"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/lib/auth/screens.ts": {
+    "mtime": 1783442211.491669,
+    "ast_hash": "ec876354bcea0be469c6739ad5e5ffa4",
+    "semantic_hash": "ec876354bcea0be469c6739ad5e5ffa4"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/lib/auth/routing.ts": {
+    "mtime": 1783440808.3622434,
+    "ast_hash": "f5a8a04f41f67129f6f1297dfb1934ec",
+    "semantic_hash": "f5a8a04f41f67129f6f1297dfb1934ec"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/lib/auth/require-role.ts": {
+    "mtime": 1783493442.0592387,
+    "ast_hash": "d3febe34108a6748863c8a680de4796b",
+    "semantic_hash": "d3febe34108a6748863c8a680de4796b"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/lib/auth/post-login.ts": {
+    "mtime": 1783440808.3621128,
+    "ast_hash": "e976e6f8b48afa76db6f0badfd796442",
+    "semantic_hash": "e976e6f8b48afa76db6f0badfd796442"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/lib/supabase/client.ts": {
+    "mtime": 1783440808.363473,
+    "ast_hash": "ce73649606a76e931690c3a412a85337",
+    "semantic_hash": "ce73649606a76e931690c3a412a85337"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/lib/supabase/server.ts": {
+    "mtime": 1783440808.3636644,
+    "ast_hash": "b83af0db174ffb4f84139fc719af9735",
+    "semantic_hash": "b83af0db174ffb4f84139fc719af9735"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/.claude/settings.local.json": {
+    "mtime": 1783752193.4094954,
+    "ast_hash": "0e4147d539976d2e864e4562cb2fd1ab",
+    "semantic_hash": "0e4147d539976d2e864e4562cb2fd1ab"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/index.html": {
+    "mtime": 1783261643.3501341,
+    "ast_hash": "d22267b86a5a15e11432ffa8e04fe08b",
+    "semantic_hash": "d22267b86a5a15e11432ffa8e04fe08b"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/CONTEXT.md": {
+    "mtime": 1783261269.7117002,
+    "ast_hash": "cfb06fba2deebe6f65f20af98225a129",
+    "semantic_hash": "cfb06fba2deebe6f65f20af98225a129"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/README.md": {
+    "mtime": 1783261269.7117949,
+    "ast_hash": "7e5ea6921ac3b049b79df941de471f36",
+    "semantic_hash": "7e5ea6921ac3b049b79df941de471f36"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/index.html": {
+    "mtime": 1783261269.721972,
+    "ast_hash": "b89e72b9fdf3f494bf45533c5a914efb",
+    "semantic_hash": "b89e72b9fdf3f494bf45533c5a914efb"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/sitemap.html": {
+    "mtime": 1783261269.732518,
+    "ast_hash": "0e004abe56ee8c1147aca2199e6006c7",
+    "semantic_hash": "0e004abe56ee8c1147aca2199e6006c7"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/login.html": {
+    "mtime": 1783261269.7221065,
+    "ast_hash": "b9fab0b765b3e91301708456eb4aad6f",
+    "semantic_hash": "b9fab0b765b3e91301708456eb4aad6f"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/role-routing.html": {
+    "mtime": 1783261269.7222393,
+    "ast_hash": "8c12c7f829aea3fd65c4100fa821dbbb",
+    "semantic_hash": "8c12c7f829aea3fd65c4100fa821dbbb"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/DESIGN-SPEC.md": {
+    "mtime": 1783261269.7203994,
+    "ast_hash": "c558d81c9c1ac958982408fb2dc33dd3",
+    "semantic_hash": "c558d81c9c1ac958982408fb2dc33dd3"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/school-owner/student-transfer-modal.html": {
+    "mtime": 1783261269.7315764,
+    "ast_hash": "67f2a54893793560cb5dc422521050c6",
+    "semantic_hash": "67f2a54893793560cb5dc422521050c6"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/school-owner/classes-list.html": {
+    "mtime": 1783261269.7251208,
+    "ast_hash": "4a811ce2beb88ef9c2ece3ed7ea1837e",
+    "semantic_hash": "4a811ce2beb88ef9c2ece3ed7ea1837e"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/school-owner/syllabus-upload.html": {
+    "mtime": 1783261269.7319858,
+    "ast_hash": "a8518759b4142c1abcc09d05e43794ea",
+    "semantic_hash": "a8518759b4142c1abcc09d05e43794ea"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/school-owner/result-book.html": {
+    "mtime": 1783261269.7300456,
+    "ast_hash": "6363b4757bbcf921dfd736786cbba936",
+    "semantic_hash": "6363b4757bbcf921dfd736786cbba936"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/school-owner/sms-compose.html": {
+    "mtime": 1783261269.7306936,
+    "ast_hash": "6ba5eaed3c9f11070e2b359574200712",
+    "semantic_hash": "6ba5eaed3c9f11070e2b359574200712"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/school-owner/feedback-inbox.html": {
+    "mtime": 1783261269.72741,
+    "ast_hash": "1b615326305b1d3d172fc47179de5e5a",
+    "semantic_hash": "1b615326305b1d3d172fc47179de5e5a"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/school-owner/gallery-album-detail.html": {
+    "mtime": 1783261269.7277026,
+    "ast_hash": "bbcd1df7b0689172e1f7bf0867f0371d",
+    "semantic_hash": "bbcd1df7b0689172e1f7bf0867f0371d"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/school-owner/fee-structures.html": {
+    "mtime": 1783261269.7272897,
+    "ast_hash": "924238d76e5c7a3d79106bdcaf1496e9",
+    "semantic_hash": "924238d76e5c7a3d79106bdcaf1496e9"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/school-owner/notices-list.html": {
+    "mtime": 1783261269.729294,
+    "ast_hash": "3ee2ff6f6afd89271b9819e92b54d406",
+    "semantic_hash": "3ee2ff6f6afd89271b9819e92b54d406"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/school-owner/exams-list.html": {
+    "mtime": 1783261269.726846,
+    "ast_hash": "55263cdd88448391d85a32b5d98af367",
+    "semantic_hash": "55263cdd88448391d85a32b5d98af367"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/school-owner/director-capital.html": {
+    "mtime": 1783261269.7254593,
+    "ast_hash": "17a6f8a389062a3bf7dbcf1d18c5f322",
+    "semantic_hash": "17a6f8a389062a3bf7dbcf1d18c5f322"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/school-owner/institute-profile.html": {
+    "mtime": 1783261269.7283049,
+    "ast_hash": "32529aaf8f313c29acb66a82957c4784",
+    "semantic_hash": "32529aaf8f313c29acb66a82957c4784"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/school-owner/student-admission-form.html": {
+    "mtime": 1783261269.7312734,
+    "ast_hash": "8634be64239216952aa91815f74dbc3c",
+    "semantic_hash": "8634be64239216952aa91815f74dbc3c"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/school-owner/admit-card-preview.html": {
+    "mtime": 1783261269.7233393,
+    "ast_hash": "f91a13e50ae9095e561d9e59829cbf9d",
+    "semantic_hash": "f91a13e50ae9095e561d9e59829cbf9d"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/school-owner/employee-detail.html": {
+    "mtime": 1783261269.7259445,
+    "ast_hash": "9e869c4bfe95ca042c200a7e8fc88ce6",
+    "semantic_hash": "9e869c4bfe95ca042c200a7e8fc88ce6"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/school-owner/attendance-book.html": {
+    "mtime": 1783261269.7238195,
+    "ast_hash": "56d31f293e8ad2e650364077f28a02ff",
+    "semantic_hash": "56d31f293e8ad2e650364077f28a02ff"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/school-owner/employees-archive.html": {
+    "mtime": 1783261269.72609,
+    "ast_hash": "bae3caffe60dacad62509664307abe4f",
+    "semantic_hash": "bae3caffe60dacad62509664307abe4f"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/school-owner/general-ledger.html": {
+    "mtime": 1783261269.7280555,
+    "ast_hash": "e33ca4175b51dbe032dfd03dee3d22e6",
+    "semantic_hash": "e33ca4175b51dbe032dfd03dee3d22e6"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/school-owner/dashboard.html": {
+    "mtime": 1783436053.3714075,
+    "ast_hash": "d1cfec6cc6dcae17a1c9e96779dc1035",
+    "semantic_hash": "d1cfec6cc6dcae17a1c9e96779dc1035"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/school-owner/exam-close-confirm-modal.html": {
+    "mtime": 1783261269.7264173,
+    "ast_hash": "05545f18514b21fd6320c128ab4c4d20",
+    "semantic_hash": "05545f18514b21fd6320c128ab4c4d20"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/school-owner/activity-checklist.html": {
+    "mtime": 1783261269.722916,
+    "ast_hash": "8d9eeef5b77e6b763b10d9afa5263bb6",
+    "semantic_hash": "8d9eeef5b77e6b763b10d9afa5263bb6"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/school-owner/bank-cash-accounts.html": {
+    "mtime": 1783261269.7245934,
+    "ast_hash": "1f551c3faf96b22628a36f29421cf27c",
+    "semantic_hash": "1f551c3faf96b22628a36f29421cf27c"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/school-owner/students-list.html": {
+    "mtime": 1783261269.7318637,
+    "ast_hash": "49793658cbcab172c3cae579372e70e4",
+    "semantic_hash": "49793658cbcab172c3cae579372e70e4"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/school-owner/rfid-card-assignment.html": {
+    "mtime": 1783261269.7302604,
+    "ast_hash": "38544a59f5749d0de0851919c37daede",
+    "semantic_hash": "38544a59f5749d0de0851919c37daede"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/school-owner/students-archive.html": {
+    "mtime": 1783261269.7316835,
+    "ast_hash": "78ec5c4d7fc827c00661cb087d00d147",
+    "semantic_hash": "78ec5c4d7fc827c00661cb087d00d147"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/school-owner/employee-create-form.html": {
+    "mtime": 1783261269.7256944,
+    "ast_hash": "b32ba393961c378cde2df4ba44d73d80",
+    "semantic_hash": "b32ba393961c378cde2df4ba44d73d80"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/school-owner/attendance-student-mark.html": {
+    "mtime": 1783261269.7243555,
+    "ast_hash": "ae09b619f32ab80edbd9b97c4846b667",
+    "semantic_hash": "ae09b619f32ab80edbd9b97c4846b667"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/school-owner/asset-register.html": {
+    "mtime": 1783261269.7235315,
+    "ast_hash": "f124bc702c5eadedddcebf11a1c67b48",
+    "semantic_hash": "f124bc702c5eadedddcebf11a1c67b48"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/school-owner/progress-report-preview.html": {
+    "mtime": 1783261269.7296572,
+    "ast_hash": "b496788cb2a752cabc4cba92e0c0d86c",
+    "semantic_hash": "b496788cb2a752cabc4cba92e0c0d86c"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/school-owner/student-behaviour-log.html": {
+    "mtime": 1783261269.7313802,
+    "ast_hash": "a05315257d4d6195907aab9d600854c6",
+    "semantic_hash": "a05315257d4d6195907aab9d600854c6"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/school-owner/promotion-transfer.html": {
+    "mtime": 1783261269.7298415,
+    "ast_hash": "387ee0b5513fdd774ab59d2a9a007559",
+    "semantic_hash": "387ee0b5513fdd774ab59d2a9a007559"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/school-owner/sms-absence-rules.html": {
+    "mtime": 1783261269.7305772,
+    "ast_hash": "2a7faf5202f6ad1f66b5e5530d0ef3fa",
+    "semantic_hash": "2a7faf5202f6ad1f66b5e5530d0ef3fa"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/school-owner/student-detail.html": {
+    "mtime": 1783436056.7707105,
+    "ast_hash": "c67b29f5365c3918410fc8433aac7691",
+    "semantic_hash": "c67b29f5365c3918410fc8433aac7691"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/school-owner/fee-collection.html": {
+    "mtime": 1783261269.7271016,
+    "ast_hash": "b32d3d3eb9fe146c09e029029f4f4e0c",
+    "semantic_hash": "b32d3d3eb9fe146c09e029029f4f4e0c"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/school-owner/result-inquiry.html": {
+    "mtime": 1783261269.73016,
+    "ast_hash": "ae419ee7391c6af75dbd87207b8ff454",
+    "semantic_hash": "ae419ee7391c6af75dbd87207b8ff454"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/school-owner/attendance-employee.html": {
+    "mtime": 1783261269.724111,
+    "ast_hash": "3426117b4fb1f2cace09174b955c2efc",
+    "semantic_hash": "3426117b4fb1f2cace09174b955c2efc"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/school-owner/off-day-calendar.html": {
+    "mtime": 1783261269.7294848,
+    "ast_hash": "e85089f4d320de562bdf1df79419e849",
+    "semantic_hash": "e85089f4d320de562bdf1df79419e849"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/school-owner/logistics-index.html": {
+    "mtime": 1783261269.728632,
+    "ast_hash": "e0d5f6821b236c8832f00eceff76f28e",
+    "semantic_hash": "e0d5f6821b236c8832f00eceff76f28e"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/school-owner/seat-plan.html": {
+    "mtime": 1783261269.7303853,
+    "ast_hash": "274a54045900b4312a65bc6c4483f992",
+    "semantic_hash": "274a54045900b4312a65bc6c4483f992"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/school-owner/blank-templates.html": {
+    "mtime": 1783261269.72474,
+    "ast_hash": "761680b2c84c656971343af07ae90808",
+    "semantic_hash": "761680b2c84c656971343af07ae90808"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/school-owner/staff-permissions.html": {
+    "mtime": 1783261269.730884,
+    "ast_hash": "fa38e0dbbad6f31b41c5cab8eb045f8b",
+    "semantic_hash": "fa38e0dbbad6f31b41c5cab8eb045f8b"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/school-owner/mark-sheet-preview.html": {
+    "mtime": 1783261269.7288232,
+    "ast_hash": "141fb95ce86d16e6b5827c6cea74d427",
+    "semantic_hash": "141fb95ce86d16e6b5827c6cea74d427"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/school-owner/employees-list.html": {
+    "mtime": 1783261269.7262914,
+    "ast_hash": "5a5cef2b8889ef673f1357ac4ecfed1e",
+    "semantic_hash": "5a5cef2b8889ef673f1357ac4ecfed1e"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/school-owner/vouchers-list.html": {
+    "mtime": 1783261269.732173,
+    "ast_hash": "3502453543ba1cafbb6f1847a52f40ea",
+    "semantic_hash": "3502453543ba1cafbb6f1847a52f40ea"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/school-owner/feedback-ratings.html": {
+    "mtime": 1783261269.727563,
+    "ast_hash": "64125c60e09679f683c86b5a7e9ff72a",
+    "semantic_hash": "64125c60e09679f683c86b5a7e9ff72a"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/school-owner/leave-management.html": {
+    "mtime": 1783261269.7284968,
+    "ast_hash": "c0b2de237886ba420f6b13174e680ca0",
+    "semantic_hash": "c0b2de237886ba420f6b13174e680ca0"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/school-owner/exam-routine.html": {
+    "mtime": 1783261269.7265632,
+    "ast_hash": "009c2f5157f58e4b588921fad7a9c692",
+    "semantic_hash": "009c2f5157f58e4b588921fad7a9c692"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/school-owner/sms-log.html": {
+    "mtime": 1783261269.7307951,
+    "ast_hash": "60709b00160c3871c0e38a85dbde7e56",
+    "semantic_hash": "60709b00160c3871c0e38a85dbde7e56"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/school-owner/exam-setup.html": {
+    "mtime": 1783261269.7267573,
+    "ast_hash": "3cde7bc069747085d3c2b49b6c6de7a8",
+    "semantic_hash": "3cde7bc069747085d3c2b49b6c6de7a8"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/school-owner/class-routine-builder.html": {
+    "mtime": 1783261269.7249708,
+    "ast_hash": "4d6a7db9e2b707f3d4f798b9d7e1cc3a",
+    "semantic_hash": "4d6a7db9e2b707f3d4f798b9d7e1cc3a"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/school-owner/fee-collection-edit-modal.html": {
+    "mtime": 1783261269.727019,
+    "ast_hash": "ecd07e9002e9a49a0181f90e66582784",
+    "semantic_hash": "ecd07e9002e9a49a0181f90e66582784"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/school-owner/gallery-albums.html": {
+    "mtime": 1783261269.727844,
+    "ast_hash": "24b882ee688a1b41c51878b04a9a9b5c",
+    "semantic_hash": "24b882ee688a1b41c51878b04a9a9b5c"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/school-owner/marks-entry.html": {
+    "mtime": 1783261269.729,
+    "ast_hash": "c7414cbb24613d1980ae73f2ff54b1de",
+    "semantic_hash": "c7414cbb24613d1980ae73f2ff54b1de"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/school-owner/notice-create.html": {
+    "mtime": 1783261269.7291036,
+    "ast_hash": "b8a5ec5468e16da71d99bb217e09d6cb",
+    "semantic_hash": "b8a5ec5468e16da71d99bb217e09d6cb"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/dealer/code-purchase.html": {
+    "mtime": 1783261269.7207134,
+    "ast_hash": "12c91e46e5ff52383c0870fd64df5015",
+    "semantic_hash": "12c91e46e5ff52383c0870fd64df5015"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/dealer/dashboard.html": {
+    "mtime": 1783261269.7209742,
+    "ast_hash": "c059726525cd6b59d74570035b33a8b2",
+    "semantic_hash": "c059726525cd6b59d74570035b33a8b2"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/super-admin/central-holiday-calendar.html": {
+    "mtime": 1783261269.7336009,
+    "ast_hash": "9801cc0a37a3e6b0c71996553dfc049c",
+    "semantic_hash": "9801cc0a37a3e6b0c71996553dfc049c"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/super-admin/clusters.html": {
+    "mtime": 1783261269.7337153,
+    "ast_hash": "e6d345d50567e8333fe4a6cc9f7853d6",
+    "semantic_hash": "e6d345d50567e8333fe4a6cc9f7853d6"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/super-admin/vendor-accounting-ledger.html": {
+    "mtime": 1783436006.1539545,
+    "ast_hash": "9774ff493672e5588672a21703d73e5b",
+    "semantic_hash": "9774ff493672e5588672a21703d73e5b"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/super-admin/gov-officials-list.html": {
+    "mtime": 1783261269.7346418,
+    "ast_hash": "328c6d2385be3294329f6c6b9bb8db48",
+    "semantic_hash": "328c6d2385be3294329f6c6b9bb8db48"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/super-admin/dealer-detail.html": {
+    "mtime": 1783261269.7342253,
+    "ast_hash": "ac590e2f2524078335a8c95c952bc011",
+    "semantic_hash": "ac590e2f2524078335a8c95c952bc011"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/super-admin/codes-batch-generate.html": {
+    "mtime": 1783261269.7338195,
+    "ast_hash": "80ca55c7271e7c598fc0679fa12c4c25",
+    "semantic_hash": "80ca55c7271e7c598fc0679fa12c4c25"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/super-admin/binding-code-inventory.html": {
+    "mtime": 1783261269.7334406,
+    "ast_hash": "a6566e4ae4e7055e462148194ef59622",
+    "semantic_hash": "a6566e4ae4e7055e462148194ef59622"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/super-admin/codes-list.html": {
+    "mtime": 1783261269.7340143,
+    "ast_hash": "260733515d98070efa44eed0376ba217",
+    "semantic_hash": "260733515d98070efa44eed0376ba217"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/super-admin/locations-tree.html": {
+    "mtime": 1783261269.734832,
+    "ast_hash": "69b1a9239b16838a56fde1d918287522",
+    "semantic_hash": "69b1a9239b16838a56fde1d918287522"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/super-admin/schools-list.html": {
+    "mtime": 1783436006.1521595,
+    "ast_hash": "d3d2055ffc70e5264b2c0a58d786977a",
+    "semantic_hash": "d3d2055ffc70e5264b2c0a58d786977a"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/super-admin/dealers-list.html": {
+    "mtime": 1783261269.7343273,
+    "ast_hash": "a88dd8967ba45107b4e1399a5f40e9e2",
+    "semantic_hash": "a88dd8967ba45107b4e1399a5f40e9e2"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/super-admin/attendance-job-monitor.html": {
+    "mtime": 1783436006.1531613,
+    "ast_hash": "86ac78d4ffd1d1641a388168bb970c03",
+    "semantic_hash": "86ac78d4ffd1d1641a388168bb970c03"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/super-admin/school-detail-admin.html": {
+    "mtime": 1783261269.7349038,
+    "ast_hash": "57f21a802f4cf95a598ffe8ab457ac46",
+    "semantic_hash": "57f21a802f4cf95a598ffe8ab457ac46"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/super-admin/gov-official-detail.html": {
+    "mtime": 1783261269.7345283,
+    "ast_hash": "d2557ff154d73458ff93b139bebd34eb",
+    "semantic_hash": "d2557ff154d73458ff93b139bebd34eb"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/super-admin/vendor-sms-compose.html": {
+    "mtime": 1783261269.7354228,
+    "ast_hash": "11b755afd29e4d696abfdaa237e65a8f",
+    "semantic_hash": "11b755afd29e4d696abfdaa237e65a8f"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/staff-user/dashboard.html": {
+    "mtime": 1783261269.7327898,
+    "ast_hash": "ea2a9d779e2b9d48d2efe6f392c13071",
+    "semantic_hash": "ea2a9d779e2b9d48d2efe6f392c13071"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/staff-user/permission-denied.html": {
+    "mtime": 1783261269.7330189,
+    "ast_hash": "ea2e619b93abbb196f893ae2d7551494",
+    "semantic_hash": "ea2e619b93abbb196f893ae2d7551494"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/gov-official/performance-reports.html": {
+    "mtime": 1783261269.7215598,
+    "ast_hash": "1746871770669d0a2875c1addc7462aa",
+    "semantic_hash": "1746871770669d0a2875c1addc7462aa"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/gov-official/dashboard.html": {
+    "mtime": 1783261269.7212725,
+    "ast_hash": "4d13a75f6111afc8dca41d12a99dd87a",
+    "semantic_hash": "4d13a75f6111afc8dca41d12a99dd87a"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/ui/gov-official/school-drilldown.html": {
+    "mtime": 1783261269.7217503,
+    "ast_hash": "a6e735bc3e6e52f97755fc1fd881cf12",
+    "semantic_hash": "a6e735bc3e6e52f97755fc1fd881cf12"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/README.md": {
+    "mtime": 1783440808.3555107,
+    "ast_hash": "f15aaa42d5d299d091b1171097ea56ad",
+    "semantic_hash": "f15aaa42d5d299d091b1171097ea56ad"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/AGENTS.md": {
+    "mtime": 1783440808.3543987,
+    "ast_hash": "9e09241799026ac05be315a2f0b50055",
+    "semantic_hash": "9e09241799026ac05be315a2f0b50055"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/CLAUDE.md": {
+    "mtime": 1783440808.3545985,
+    "ast_hash": "5c27369b226fcf2be8a6cfe52224e767",
+    "semantic_hash": "5c27369b226fcf2be8a6cfe52224e767"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/.vercel/README.txt": {
+    "mtime": 1783440644.0583427,
+    "ast_hash": "2b13c79d37d6ed82a3255b83b6815034",
+    "semantic_hash": "2b13c79d37d6ed82a3255b83b6815034"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/Design System/Family Design System (standalone)-2.html": {
+    "mtime": 1783493442.0579386,
+    "ast_hash": "f4abcc2d09ce19c785403ead35633653",
+    "semantic_hash": "f4abcc2d09ce19c785403ead35633653"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/docs/PRD.md": {
+    "mtime": 1783261269.7122707,
+    "ast_hash": "e3d3f402041965c75d53f3af3dbb1613",
+    "semantic_hash": "e3d3f402041965c75d53f3af3dbb1613"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/docs/ARCHITECTURE.md": {
+    "mtime": 1783261269.7121165,
+    "ast_hash": "16b49cb0def3cbaba3bcd79c2c960623",
+    "semantic_hash": "16b49cb0def3cbaba3bcd79c2c960623"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/docs/adr/0006-tailwind-over-shared-design-system-css.md": {
+    "mtime": 1783440808.3540387,
+    "ast_hash": "30723e0d8b0e8c6d0d9c2e0f91f82179",
+    "semantic_hash": "30723e0d8b0e8c6d0d9c2e0f91f82179"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/docs/adr/0003-unified-app-role-based-access.md": {
+    "mtime": 1783261269.7126708,
+    "ast_hash": "40fb0d2877c0767c0c9e6c9e4a728835",
+    "semantic_hash": "40fb0d2877c0767c0c9e6c9e4a728835"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/docs/adr/0001-dual-path-attendance-machine-ingest.md": {
+    "mtime": 1783261269.7124712,
+    "ast_hash": "570dc40b8affd1963c2ba34584aca2b1",
+    "semantic_hash": "570dc40b8affd1963c2ba34584aca2b1"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/docs/adr/0007-browser-print-over-server-pdf.md": {
+    "mtime": 1783611911.5969899,
+    "ast_hash": "faf796222f470eeb8584bbe43df0f27b",
+    "semantic_hash": "faf796222f470eeb8584bbe43df0f27b"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/docs/adr/0002-shared-schema-multi-tenancy.md": {
+    "mtime": 1783261269.712573,
+    "ast_hash": "449966ab16c41b580d1d1ec876591205",
+    "semantic_hash": "449966ab16c41b580d1d1ec876591205"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/docs/adr/0004-bangla-primary-bilingual-ui.md": {
+    "mtime": 1783261269.712769,
+    "ast_hash": "5e2e0e43aaf39ebc86719528be41f805",
+    "semantic_hash": "5e2e0e43aaf39ebc86719528be41f805"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/figma/README.md": {
+    "mtime": 1783261269.7139797,
+    "ast_hash": "4decbe12a78d828e00e81ca7feac378c",
+    "semantic_hash": "4decbe12a78d828e00e81ca7feac378c"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/handsoff/amar-school-lms-handoff.md": {
+    "mtime": 1783510861.2233276,
+    "ast_hash": "565ed052727bf497f6eb0b5623f583c0",
+    "semantic_hash": "565ed052727bf497f6eb0b5623f583c0"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/public/file.svg": {
+    "mtime": 1783440808.3692448,
+    "ast_hash": "d09f95206c3fa0bb9bd9fefabfd0ea71",
+    "semantic_hash": "d09f95206c3fa0bb9bd9fefabfd0ea71"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/public/vercel.svg": {
+    "mtime": 1783440808.3696759,
+    "ast_hash": "c0af2f507b369b085b35ef4bbe3bcf1e",
+    "semantic_hash": "c0af2f507b369b085b35ef4bbe3bcf1e"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/public/next.svg": {
+    "mtime": 1783440808.3695366,
+    "ast_hash": "8e061864f388b47f33a1c3780831193e",
+    "semantic_hash": "8e061864f388b47f33a1c3780831193e"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/public/globe.svg": {
+    "mtime": 1783440808.3693888,
+    "ast_hash": "2aaafa6a49b6563925fe440891e32717",
+    "semantic_hash": "2aaafa6a49b6563925fe440891e32717"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/web/public/window.svg": {
+    "mtime": 1783440808.3698752,
+    "ast_hash": "a2760511c65806022ad20adf74370ff3",
+    "semantic_hash": "a2760511c65806022ad20adf74370ff3"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/figma/00-design-system.svg": {
+    "mtime": 1783261269.7130823,
+    "ast_hash": "b9a8508f9408fb67a32433dfd9a73d89",
+    "semantic_hash": "b9a8508f9408fb67a32433dfd9a73d89"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/figma/01-login.svg": {
+    "mtime": 1783261269.7131948,
+    "ast_hash": "18d75481cd4a22e199478a41a32c01cc",
+    "semantic_hash": "18d75481cd4a22e199478a41a32c01cc"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/figma/03-students-list.svg": {
+    "mtime": 1783261269.713645,
+    "ast_hash": "4adc0ad0dadb9843a497dc53e9853e96",
+    "semantic_hash": "4adc0ad0dadb9843a497dc53e9853e96"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/figma/04-super-admin-dealer-territory.svg": {
+    "mtime": 1783261269.7138784,
+    "ast_hash": "3a3fc4f5c836d1f46be82f43dbca2aed",
+    "semantic_hash": "3a3fc4f5c836d1f46be82f43dbca2aed"
+  },
+  "/Users/salmansakib/Documents/Projects/Amar_school_LMS/figma/02-dashboard-school-owner.svg": {
+    "mtime": 1783261269.7133486,
+    "ast_hash": "64ae0c9719526b98bf69aaf5247f167e",
+    "semantic_hash": "64ae0c9719526b98bf69aaf5247f167e"
+  }
+}

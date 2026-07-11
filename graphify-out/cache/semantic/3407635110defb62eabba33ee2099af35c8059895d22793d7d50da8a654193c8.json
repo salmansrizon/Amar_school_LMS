@@ -1,0 +1,1 @@
+{"nodes": [{"id": "migrations_0027_syllabus_file_size_class_syllabi_file_size", "label": "class_syllabi.file_size column addition", "file_type": "code", "source_file": "web/supabase/migrations/0027_syllabus_file_size.sql", "source_location": "L3-4", "source_url": null, "captured_at": null, "author": null, "contributor": null}], "edges": [], "hyperedges": []}
