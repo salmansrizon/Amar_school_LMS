@@ -1,4 +1,4 @@
--- Code-review finding (issue #37): 0039 set the 'gallery' bucket's hard
+-- Code-review finding (issue #37): 0041 set the 'gallery' bucket's hard
 -- file_size_limit ceiling to 5MB, but createAlbum() (and its form) let a
 -- School Owner configure a per-album max_image_size_bytes up to 20MB — any
 -- album configured above 5MB would have every upload above 5MB silently

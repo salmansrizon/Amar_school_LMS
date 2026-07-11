@@ -87,7 +87,7 @@ export function validateTargetSelection(
 
 // Gallery albums (PRD §5.8 + §7): per-album configurable image-count and
 // per-image size caps, enforced server-side (a DB trigger — see migration
-// 0039), not just here. These helpers are UI-facing display/pre-check only.
+// 0041), not just here. These helpers are UI-facing display/pre-check only.
 
 /** "12/20" for the album grid + detail toolbar badge. */
 export function albumCountLabel(count: number, max: number): string {
@@ -103,7 +103,7 @@ export function photoExceedsCap(fileSizeBytes: number, maxBytes: number): boolea
 }
 
 // Client-side pre-check mirroring the 'publications' Storage bucket's
-// server-enforced cap (migration 0039) — a single optional image, no album
+// server-enforced cap (migration 0041) — a single optional image, no album
 // cap concept.
 export const PUBLICATION_MAX_IMAGE_BYTES = 2 * 1024 * 1024
 
