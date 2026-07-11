@@ -66,7 +66,7 @@ export async function saveFeeStructure(formData: FormData): Promise<FeeStructure
 // Copy-between-class/year (PRD §5.6): carries fee_type/amount/fine rate onto a
 // target Class/Year via buildFeeStructureCopy (lib/fees.ts); upserts so a
 // re-copy just refreshes the target instead of erroring on the unique
-// constraint (one_structure_per_class_year_type, 0037).
+// constraint (one_structure_per_class_year_type, 0039).
 export async function copyFeeStructure(
   sourceId: string,
   targetClassId: string,

@@ -5,7 +5,7 @@
 // The working-days formula itself (Total − Off Days − Approved Leave −
 // Present, with off-day/leave overlap handling) is NOT reimplemented here —
 // it lives exactly once, in is_absent_working_day (0021, absence-SMS #12),
-// and the absent_working_days_in_month RPC (0037) reuses that function
+// and the absent_working_days_in_month RPC (0039) reuses that function
 // day-by-day. A parallel TypeScript copy of that per-day rule would be dead
 // weight (nothing calls it) and a second place the definition could drift;
 // the RPC's behaviour is covered by tests/integration/fee-structures.test.ts.

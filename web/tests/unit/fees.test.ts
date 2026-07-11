@@ -8,7 +8,7 @@ import { totalPayable, dueAmount, absentFineAmount, buildFeeStructureCopy, type 
 //
 // The working-days absence-count formula itself is NOT reimplemented/tested
 // here in TypeScript — it lives once, in is_absent_working_day (0021,
-// absence-SMS #12), reused by the absent_working_days_in_month RPC (0037).
+// absence-SMS #12), reused by the absent_working_days_in_month RPC (0039).
 // Its behaviour (including off-day/leave overlap) is covered against the
 // real database in tests/integration/fee-structures.test.ts.
 

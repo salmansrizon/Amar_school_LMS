@@ -76,7 +76,7 @@ export async function saveFeeRecord(formData: FormData): Promise<SaveFeeResult> 
 }
 
 // Absent-fine calculator (issue #34, PRD §5.6): absent working days come from
-// the absent_working_days_in_month RPC (0037), which walks is_absent_working_day
+// the absent_working_days_in_month RPC (0039), which walks is_absent_working_day
 // (0021, the absence-SMS feature's shared definition) day by day — the fine
 // arithmetic itself (days × rate) is the one pure piece, kept in lib/fees.ts.
 export type CalculateFineResult = { error?: string; absentDays?: number; fineAmount?: number }
