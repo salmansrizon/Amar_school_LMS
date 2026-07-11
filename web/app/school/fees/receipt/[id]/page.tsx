@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 import { takaInWords } from '@/lib/amount-words'
+import { totalPayable } from '@/lib/fees'
 import { currentLang } from '@/lib/i18n-server'
 import { t } from '@/lib/i18n'
 import { createClient } from '@/lib/supabase/server'
@@ -21,7 +22,7 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
   const { data: record } = await supabase
     .from('fee_collection_records')
     .select(
-      'id, month, year, pay_amount, fine_amount, adjust_amount, due_amount, payment_method, updated_at, students(full_name, class_name, section), schools(name)',
+      'id, month, year, pay_amount, fine_amount, adjust_amount, due_amount, payment_method, note, updated_at, students(full_name, class_name, section), schools(name)',
     )
     .eq('id', id)
     .single()
@@ -34,10 +35,8 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
   } | null
   const school = record.schools as unknown as { name: string } | null
   // Adjustment is a discount/scholarship — it reduces what was actually collected.
-  const total = Math.max(
-    0,
-    Number(record.pay_amount) + Number(record.fine_amount) - Number(record.adjust_amount),
-  )
+  // Shared with the collection form's live preview (lib/fees.ts).
+  const total = totalPayable(Number(record.pay_amount), Number(record.fine_amount), Number(record.adjust_amount))
 
   return (
     <main className="mx-auto w-full max-w-md flex-1 p-6">
@@ -70,7 +69,7 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
             </dd>
           </div>
           <div className="flex justify-between">
-            <dt className="text-muted">{t('fees.pay', lang)}</dt>
+            <dt className="text-muted">{t('fees.receivedAmount', lang)}</dt>
             <dd>৳{Number(record.pay_amount).toFixed(2)}</dd>
           </div>
           <div className="flex justify-between">
@@ -95,6 +94,13 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
           <span className="font-semibold text-muted">{t('fees.inWords', lang)}: </span>
           {takaInWords(total)}
         </p>
+
+        {record.note && (
+          <p className="mt-2 rounded-md bg-paper-muted px-3 py-2 text-xs">
+            <span className="font-semibold text-muted">{t('fees.note', lang)}: </span>
+            {record.note}
+          </p>
+        )}
 
         <footer className="mt-6 text-center text-xs text-muted">
           {t('fees.method', lang)}: {t(`fees.${record.payment_method}` as 'fees.cash', lang)} ·{' '}
