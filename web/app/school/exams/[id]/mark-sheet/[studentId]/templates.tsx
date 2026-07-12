@@ -78,7 +78,7 @@ function SubjectTable({ props, showGradeColumns }: { props: MarkSheetTemplatePro
           {showGradeColumns && (
             <>
               <th className="py-2 pr-2 font-semibold">{t('markSheet.grade', lang)}</th>
-              <th className="py-2 font-semibold">GPA</th>
+              <th className="py-2 font-semibold">{t('markSheet.gpa', lang)}</th>
             </>
           )}
         </tr>

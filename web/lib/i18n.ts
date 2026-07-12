@@ -539,6 +539,7 @@ const dict = {
   'markSheet.classTeacher': { bn: 'শ্রেণি শিক্ষক', en: 'Class Teacher' },
   'markSheet.examController': { bn: 'পরীক্ষা নিয়ন্ত্রক', en: 'Controller of Examinations' },
   'markSheet.headTeacher': { bn: 'প্রধান শিক্ষক', en: 'Head Teacher' },
+  'markSheet.gpa': { bn: 'GPA', en: 'GPA' },
   'markSheet.pickTemplate': { bn: 'টেমপ্লেট নির্বাচন করুন', en: 'Choose template' },
   'markSheet.template1': { bn: 'টেমপ্লেট ১', en: 'Template 1' },
   'markSheet.template2': { bn: 'টেমপ্লেট ২', en: 'Template 2' },

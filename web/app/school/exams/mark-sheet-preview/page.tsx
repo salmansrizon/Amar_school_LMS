@@ -101,7 +101,7 @@ export default async function MarkSheetPreviewPage() {
               <th className="py-2 pr-2 font-semibold">{t('markSheet.fullMarks', lang)}</th>
               <th className="py-2 pr-2 font-semibold">{t('markSheet.obtained', lang)}</th>
               <th className="py-2 pr-2 font-semibold">{t('markSheet.grade', lang)}</th>
-              <th className="py-2 font-semibold">GPA</th>
+              <th className="py-2 font-semibold">{t('markSheet.gpa', lang)}</th>
             </tr>
           </thead>
           <tbody>
