@@ -1,18 +1,22 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { requireSchoolMember } from '@/lib/auth/require-role'
+import { requireSchoolMember, requireSchoolMemberProfile } from '@/lib/auth/require-role'
 import { createClient } from '@/lib/supabase/server'
+import { currentLang } from '@/lib/i18n-server'
+import { t } from '@/lib/i18n'
 import { smsGateway } from '@/lib/sms/gateway'
 import { countSmsSegments } from '@/lib/sms/segments'
 import {
   resolveRecipients,
+  COMPOSE_STUDENT_COLUMNS,
+  COMPOSE_EMPLOYEE_COLUMNS,
   type ComposeMode,
   type ComposeStudentRow,
   type ComposeEmployeeRow,
 } from '@/lib/sms/recipients'
 
-const PAGE = '/school/sms/rules'
+const RULES_PAGE = '/school/sms/rules'
 const LOG_PAGE = '/school/sms/log'
 
 export async function addOffDay(formData: FormData): Promise<{ error?: string }> {
@@ -25,7 +29,7 @@ export async function addOffDay(formData: FormData): Promise<{ error?: string }>
 
   const { error } = await supabase.from('off_days').insert({ day, label })
   if (error) return { error: error.message }
-  revalidatePath(PAGE)
+  revalidatePath(RULES_PAGE)
   return {}
 }
 
@@ -38,7 +42,7 @@ export async function deleteOffDay(formData: FormData): Promise<{ error?: string
 
   const { error } = await supabase.from('off_days').delete().eq('day', day)
   if (error) return { error: error.message }
-  revalidatePath(PAGE)
+  revalidatePath(RULES_PAGE)
   return {}
 }
 
@@ -64,7 +68,7 @@ export async function addRule(formData: FormData): Promise<{ error?: string }> {
     return { error: 'Invalid rule type' }
   }
 
-  revalidatePath(PAGE)
+  revalidatePath(RULES_PAGE)
   return {}
 }
 
@@ -77,7 +81,7 @@ export async function deleteRule(formData: FormData): Promise<{ error?: string }
 
   const { error } = await supabase.from('absence_sms_rules').delete().eq('id', id)
   if (error) return { error: error.message }
-  revalidatePath(PAGE)
+  revalidatePath(RULES_PAGE)
   return {}
 }
 
@@ -92,7 +96,7 @@ export async function addLeave(formData: FormData): Promise<{ error?: string }> 
 
   const { error } = await supabase.from('student_leaves').insert({ student_id: studentId, from_day: fromDay, to_day: toDay })
   if (error) return { error: error.message }
-  revalidatePath(PAGE)
+  revalidatePath(RULES_PAGE)
   return {}
 }
 
@@ -105,7 +109,7 @@ export async function deleteLeave(formData: FormData): Promise<{ error?: string 
 
   const { error } = await supabase.from('student_leaves').delete().eq('id', id)
   if (error) return { error: error.message }
-  revalidatePath(PAGE)
+  revalidatePath(RULES_PAGE)
   return {}
 }
 
@@ -115,6 +119,7 @@ export async function deleteLeave(formData: FormData): Promise<{ error?: string 
 // — the same one the absence-rule cron uses) and logged to sms_log with
 // kind='manual' so the Send Log totals combine both sources.
 export async function sendCompose(formData: FormData): Promise<{ error?: string; sent?: number; failed?: number }> {
+  const lang = await currentLang()
   const mode = formData.get('mode') as ComposeMode
   const body = ((formData.get('body') as string) || '').trim()
   const className = (formData.get('class_name') as string) || ''
@@ -123,23 +128,20 @@ export async function sendCompose(formData: FormData): Promise<{ error?: string;
   const category = (formData.get('category') as string) || ''
   const manualNumbers = (formData.get('manual_numbers') as string) || ''
 
-  if (!body) return { error: 'Message is required' }
+  if (!body) return { error: t('sms.messageRequired', lang) }
   if (mode !== 'class_shift_section' && mode !== 'group' && mode !== 'manual') {
-    return { error: 'Invalid recipient mode' }
+    return { error: t('sms.invalidMode', lang) }
   }
 
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) return { error: 'Unauthorized' }
-  const { data: me } = await supabase.from('profiles').select('role, school_id').eq('id', user.id).single()
-  if (me?.role !== 'school_owner' && me?.role !== 'staff_user') return { error: 'Unauthorized' }
-  if (!me.school_id) return { error: 'Unauthorized' }
+  const { ok, schoolId } = await requireSchoolMemberProfile(supabase)
+  if (!ok || !schoolId) return { error: 'Unauthorized' }
 
+  // Withdrawn/archived students and employees are excluded — matches the
+  // active-only default every other list screen in this app uses.
   const [{ data: students }, { data: employees }] = await Promise.all([
-    supabase.from('students').select('id, full_name, class_name, section, shift_id, guardian_phone'),
-    supabase.from('employees').select('id, full_name, category, mobile'),
+    supabase.from('students').select(COMPOSE_STUDENT_COLUMNS).is('archived_at', null),
+    supabase.from('employees').select(COMPOSE_EMPLOYEE_COLUMNS).is('archived_at', null),
   ])
 
   const recipients = resolveRecipients(mode, {
@@ -149,7 +151,7 @@ export async function sendCompose(formData: FormData): Promise<{ error?: string;
     category,
     manualNumbers,
   })
-  if (recipients.length === 0) return { error: 'No recipients found' }
+  if (recipients.length === 0) return { error: t('sms.noRecipients', lang) }
 
   const recipientLabel =
     mode === 'class_shift_section'
@@ -175,7 +177,7 @@ export async function sendCompose(formData: FormData): Promise<{ error?: string;
   )
 
   const rows = results.map(({ r, ok }) => ({
-    school_id: me.school_id,
+    school_id: schoolId,
     student_id: r.studentId ?? null,
     rule_id: null,
     sent_on: sentOn,

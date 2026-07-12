@@ -880,6 +880,7 @@ const dict = {
   'sms.sendComplete': { bn: 'পাঠানো সম্পন্ন', en: 'Send complete' },
   'sms.noRecipients': { bn: 'কোনো প্রাপক পাওয়া যায়নি', en: 'No recipients found' },
   'sms.messageRequired': { bn: 'বার্তা লিখুন', en: 'Message is required' },
+  'sms.invalidMode': { bn: 'অবৈধ প্রাপক মোড', en: 'Invalid recipient mode' },
   'sms.dateTime': { bn: 'তারিখ/সময়', en: 'Date/Time' },
   'sms.recipients': { bn: 'প্রাপক সংখ্যা', en: 'Recipients' },
   'sms.segmentsCol': { bn: 'অংশ', en: 'Segments' },

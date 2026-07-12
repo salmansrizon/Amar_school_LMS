@@ -27,6 +27,10 @@ create index sms_log_school_created_idx on public.sms_log (school_id, created_at
 -- candidates for one rule group into a single log row) and a segment count,
 -- and now returns the inserted row's id (null on a deduped conflict) so the
 -- caller can update its status once the actual send attempt completes.
+-- NOTE: this is the first migration to drop+recreate an existing RPC rather
+-- than stay purely additive — Postgres won't let CREATE OR REPLACE change a
+-- function's return type (boolean -> uuid here). Every caller is updated in
+-- this same commit (app/api/sms/absence/route.ts, tests/integration/absence-sms.test.ts).
 drop function if exists public.record_absence_sms(text, uuid, uuid, uuid, date, text, text, text);
 
 create function public.record_absence_sms(

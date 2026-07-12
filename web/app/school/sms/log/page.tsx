@@ -103,7 +103,7 @@ export default async function SmsLogPage({
             <tbody>
               {batches.map((b) => (
                 <tr key={b.batchId} className="border-b border-line">
-                  <td className={tdClass}>{new Date(b.sentAt).toLocaleString(lang === 'bn' ? 'bn-BD' : 'en-US')}</td>
+                  <td className={tdClass}>{new Date(b.sentAt).toLocaleString(lang === 'bn' ? 'bn-BD' : 'en-GB')}</td>
                   <td className={tdClass}>
                     {b.kind === 'absence_auto'
                       ? t('sms.logAutoGroup', lang)

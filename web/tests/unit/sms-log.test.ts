@@ -19,14 +19,25 @@ const row = (over: Partial<SmsLogRow>): SmsLogRow => ({
 })
 
 describe('aggregateSmsLog', () => {
-  it('groups rows sharing a batch_id into one row, counting recipients and summing segments', () => {
+  it('groups rows sharing a batch_id into one row, counting recipients (not summing segments)', () => {
+    // Every recipient in one batch got the identical composed message, so
+    // "Segments" is the per-message count, not recipients × segments — the
+    // mockup's example row is Recipients=42, Segments=1 for one message.
+    const rows = [
+      row({ id: 'r1', batch_id: 'b1', segments: 1 }),
+      row({ id: 'r2', batch_id: 'b1', segments: 1 }),
+    ]
+    const batches = aggregateSmsLog(rows)
+    expect(batches).toHaveLength(1)
+    expect(batches[0]).toMatchObject({ batchId: 'b1', recipients: 2, segments: 1, failed: false })
+  })
+
+  it('a batch\'s segment count is the max across its rows (defends against any per-row variance)', () => {
     const rows = [
       row({ id: 'r1', batch_id: 'b1', segments: 1 }),
       row({ id: 'r2', batch_id: 'b1', segments: 2 }),
     ]
-    const batches = aggregateSmsLog(rows)
-    expect(batches).toHaveLength(1)
-    expect(batches[0]).toMatchObject({ batchId: 'b1', recipients: 2, segments: 3, failed: false })
+    expect(aggregateSmsLog(rows)[0].segments).toBe(2)
   })
 
   it('a batch is "failed" if any recipient in it failed', () => {

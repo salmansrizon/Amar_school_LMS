@@ -5,6 +5,12 @@
 
 export type ComposeMode = 'class_shift_section' | 'group' | 'manual'
 
+// Shared `.select()` column lists — the compose page (for the initial fetch +
+// live "estimated recipients" preview) and the sendCompose server action (for
+// the actual send) must resolve recipients from the exact same shape.
+export const COMPOSE_STUDENT_COLUMNS = 'id, full_name, class_name, section, shift_id, guardian_phone'
+export const COMPOSE_EMPLOYEE_COLUMNS = 'id, full_name, category, mobile'
+
 export interface ComposeStudentRow {
   id: string
   full_name: string

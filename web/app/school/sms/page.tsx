@@ -5,6 +5,7 @@ import { t } from '@/lib/i18n'
 import { createClient } from '@/lib/supabase/server'
 import { SmsTabs } from './tabs'
 import { ComposeForm } from './compose-form'
+import { COMPOSE_STUDENT_COLUMNS, COMPOSE_EMPLOYEE_COLUMNS } from '@/lib/sms/recipients'
 
 // Compose SMS (issue #36, PRD §5.7) per ui/school-owner/sms-compose.html.
 // Recipients build from class/shift/section, a teacher/staff/management
@@ -19,10 +20,13 @@ export default async function SmsComposePage() {
   const { data: me } = await supabase.from('profiles').select('role').eq('id', user.id).single()
   if (me?.role !== 'school_owner' && me?.role !== 'staff_user') redirect('/login')
 
+  // Withdrawn/archived students and employees are excluded — matches the
+  // active-only default every other list screen in this app uses (e.g.
+  // app/school/students/page.tsx, app/school/employees/page.tsx).
   const [{ data: students }, { data: shifts }, { data: employees }] = await Promise.all([
-    supabase.from('students').select('id, full_name, class_name, section, shift_id, guardian_phone'),
+    supabase.from('students').select(COMPOSE_STUDENT_COLUMNS).is('archived_at', null),
     supabase.from('shifts').select('id, name').order('name'),
-    supabase.from('employees').select('id, full_name, category, mobile'),
+    supabase.from('employees').select(COMPOSE_EMPLOYEE_COLUMNS).is('archived_at', null),
   ])
 
   const classNames = [...new Set((students ?? []).map((s) => s.class_name).filter(Boolean))] as string[]

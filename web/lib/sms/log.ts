@@ -30,8 +30,12 @@ export interface SmsLogBatch {
   failed: boolean
 }
 
-/** One row per send action (batch_id), newest first. Recipients/segments are
- *  summed across every row in the batch; a batch reads as "Failed" if any
+/** One row per send action (batch_id), newest first. `recipients` counts the
+ *  rows in the batch, but `segments` is the per-message segment count (every
+ *  recipient in a batch gets the identical composed message, so it is NOT
+ *  summed across recipients — that would report e.g. a 42-recipient,
+ *  1-segment send as "42 segments", which the mockup's Recipients=42/
+ *  Segments=1 example rules out). A batch reads as "Failed" if any
  *  recipient in it failed. */
 export function aggregateSmsLog(rows: SmsLogRow[]): SmsLogBatch[] {
   const batches = new Map<string, SmsLogRow[]>()
@@ -51,7 +55,7 @@ export function aggregateSmsLog(rows: SmsLogRow[]): SmsLogBatch[] {
         sentAt: earliest.created_at,
         bodyPreview: earliest.body,
         recipients: list.length,
-        segments: list.reduce((sum, r) => sum + r.segments, 0),
+        segments: Math.max(...list.map((r) => r.segments)),
         failed: list.some((r) => r.status === 'failed'),
       }
     })
