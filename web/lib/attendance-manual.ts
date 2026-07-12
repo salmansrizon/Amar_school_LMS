@@ -178,3 +178,22 @@ export function registerDayStatus(args: {
   if (args.isOff || args.onApprovedLeave) return 'blank'
   return 'absent'
 }
+
+// Progress Report (issue #33, PRD §5.5): the "Attendance %" info-grid figure
+// (progress-report-preview.html). attendance_records only ever holds
+// PRESENT-ish rows (absence is inferred from the ABSENCE of a row, migration
+// 0046) and off-days/approved leave must not count against the student —
+// so a percentage needs presentCount against (presentCount + genuinely
+// absent working days), the latter from the new absent_working_days_in_range
+// RPC (migration 0053, generalizing issue #34's absent_working_days_in_month)
+// rather than a raw row-count ratio, which would silently exclude every
+// off-day/leave day from the denominator's cost and over-state attendance.
+/** Percent of working days present, rounded to the nearest whole number.
+ * Null (not 0) when there are no working days to consider at all (a brand
+ * new student with nothing recorded yet), so the page can show "—" instead
+ * of a misleading 0%. */
+export function attendancePercent(presentCount: number, absentWorkingDays: number): number | null {
+  const total = presentCount + absentWorkingDays
+  if (total <= 0) return null
+  return Math.round((presentCount / total) * 100)
+}

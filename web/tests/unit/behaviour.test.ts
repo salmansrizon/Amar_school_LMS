@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { averageRating, isEntryLocked } from '@/lib/behaviour'
+import { averageRating, isEntryLocked, ratingBand } from '@/lib/behaviour'
 
 describe('isEntryLocked: read-only 3 days after CREATION (issue #7)', () => {
   const now = new Date('2026-07-08T12:00:00Z')
@@ -25,5 +25,20 @@ describe('averageRating: rolling average across entries', () => {
   })
   it('empty log has no average', () => {
     expect(averageRating([])).toBeNull()
+  })
+})
+
+describe('ratingBand: buckets the 0-10 rating for the progress report (issue #33)', () => {
+  it('excellent at 8 and above', () => {
+    expect(ratingBand(10)).toBe('excellent')
+    expect(ratingBand(8)).toBe('excellent')
+  })
+  it('good from 5 up to 7', () => {
+    expect(ratingBand(7)).toBe('good')
+    expect(ratingBand(5)).toBe('good')
+  })
+  it('needs improvement below 5', () => {
+    expect(ratingBand(4)).toBe('needsImprovement')
+    expect(ratingBand(0)).toBe('needsImprovement')
   })
 })
