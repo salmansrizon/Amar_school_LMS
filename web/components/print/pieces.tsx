@@ -136,3 +136,84 @@ export function QrFooterRow({
     </div>
   )
 }
+
+/** A rendered QR SVG (web/lib/qr.ts) sized to fill QrFooterRow's default
+ * slot — pass as QrFooterRow's `qr` prop wherever a printable has a real
+ * authenticity mark instead of the placeholder box (issue #33). */
+export function QrMark({ svg }: { svg: string }) {
+  return (
+    <div
+      className="flex size-21 items-center justify-center overflow-hidden rounded-sm border border-line-strong"
+      // The SVG string comes from web/lib/qr.ts (the `qrcode` package), never
+      // from user input — safe to inject directly.
+      dangerouslySetInnerHTML={{ __html: svg }}
+    />
+  )
+}
+
+/** Tone -> pill classes shared by every grade/pass-fail/rating badge across
+ *  the printables (mark sheet, progress report) so each template doesn't
+ *  repeat the same className string. */
+const BADGE_TONES = {
+  success: 'bg-mint-soft text-mint-deep',
+  info: 'bg-sky-soft text-sky-deep',
+  alert: 'bg-alert-soft text-alert-deep',
+  neutral: 'bg-paper-muted text-muted',
+} as const
+
+export function Badge({ tone, children }: { tone: keyof typeof BADGE_TONES; children: ReactNode }) {
+  return (
+    <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${BADGE_TONES[tone]}`}>{children}</span>
+  )
+}
+
+/** A section heading inside a printed sheet (mockup's `.section-title`) —
+ *  e.g. "Behaviour Rating", "Co-curricular Checklist". */
+export function SectionTitle({ children }: { children: ReactNode }) {
+  return <div className="mt-5 mb-2 text-sm font-bold">{children}</div>
+}
+
+/** A plain two-column table (label + value per row) — the progress report's
+ *  Behaviour Rating table (Criteria/Rating) and similar label/badge listings. */
+export function KeyValueTable({
+  headers,
+  rows,
+}: {
+  headers: [ReactNode, ReactNode]
+  rows: { key: string; label: ReactNode; value: ReactNode }[]
+}) {
+  return (
+    <table className="w-full border-collapse text-sm">
+      <thead>
+        <tr className="border-b border-line-strong text-left text-xs uppercase tracking-wide text-muted">
+          <th className="py-2 pr-2 font-semibold">{headers[0]}</th>
+          <th className="py-2 font-semibold">{headers[1]}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((row) => (
+          <tr key={row.key} className="border-b border-line">
+            <td className="py-2 pr-2">{row.label}</td>
+            <td className="py-2">{row.value}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  )
+}
+
+/** The progress report's co-curricular checklist grid (mockup's
+ *  `.cocurricular-grid`) — a checkmark badge per checked item, a dash for
+ *  unchecked, three per row. */
+export function ChecklistGrid({ items }: { items: { id: string; label: ReactNode; checked: boolean }[] }) {
+  return (
+    <div className="grid grid-cols-3 gap-2">
+      {items.map((item) => (
+        <div key={item.id} className="flex items-center gap-2 text-sm">
+          <Badge tone={item.checked ? 'success' : 'neutral'}>{item.checked ? '✓' : '—'}</Badge>
+          <span>{item.label}</span>
+        </div>
+      ))}
+    </div>
+  )
+}

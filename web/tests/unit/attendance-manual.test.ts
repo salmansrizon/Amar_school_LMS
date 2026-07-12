@@ -7,6 +7,7 @@ import {
   filterLeaves,
   monthGrid,
   registerDayStatus,
+  attendancePercent,
 } from '@/lib/attendance-manual'
 
 const students = [
@@ -158,5 +159,23 @@ describe('registerDayStatus', () => {
     expect(
       registerDayStatus({ iso: today, today, isOff: false, onApprovedLeave: false, hasRecord: false }),
     ).toBe('absent')
+  })
+})
+
+describe('attendancePercent: present days over working days, not raw row count (issue #33)', () => {
+  it('all present is 100%', () => {
+    expect(attendancePercent(20, 0)).toBe(100)
+  })
+
+  it('divides present by (present + genuinely absent working days)', () => {
+    expect(attendancePercent(96, 4)).toBe(96)
+  })
+
+  it('rounds to the nearest whole percent', () => {
+    expect(attendancePercent(2, 1)).toBe(67)
+  })
+
+  it('a student with zero working days considered has no percentage (not misleading 0%)', () => {
+    expect(attendancePercent(0, 0)).toBeNull()
   })
 })

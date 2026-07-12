@@ -81,6 +81,18 @@ export function ExamHeader({
         >
           {t('exams.promotion', lang)}
         </a>
+        <a
+          href={`/school/exams/${examId}/cocurricular`}
+          className="rounded-full border border-line-strong px-3 py-1.5 text-xs font-semibold hover:bg-paper-muted"
+        >
+          {t('exams.cocurricular', lang)}
+        </a>
+        <a
+          href={`/school/exams/${examId}/printables`}
+          className="rounded-full border border-line-strong px-3 py-1.5 text-xs font-semibold hover:bg-paper-muted"
+        >
+          {t('exams.printables', lang)}
+        </a>
         {!closed && (
           <CloseExamModal
             examId={examId}
