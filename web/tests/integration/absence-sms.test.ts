@@ -144,6 +144,10 @@ describe('Absence SMS Rule (issue #12)', () => {
   })
 
   it('the send log dedupes per student/rule/day and reports date-range totals', async () => {
+    // record_absence_sms now returns the new sms_log row's id (or null on a
+    // deduped conflict) instead of a boolean — issue #36 needed the id back
+    // so the caller can flip status to 'failed' after the real send attempt,
+    // and a batch_id/segments pair so the Send Log can group + total sends.
     const record = (day: string) =>
       anon().rpc('record_absence_sms', {
         job_secret: SECRET,
@@ -156,9 +160,9 @@ describe('Absence SMS Rule (issue #12)', () => {
         p_provider: 'log',
       })
 
-    expect((await record(DAYS[3])).data).toBe(true)
-    expect((await record(DAYS[3])).data).toBe(false) // same day: deduped
-    expect((await record(DAYS[4])).data).toBe(true)
+    expect((await record(DAYS[3])).data).toBeTruthy()
+    expect((await record(DAYS[3])).data).toBeNull() // same day: deduped
+    expect((await record(DAYS[4])).data).toBeTruthy()
 
     const { count } = await owner
       .from('sms_log')

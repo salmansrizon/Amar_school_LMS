@@ -261,6 +261,10 @@ export async function sendBehaviourSms(entryId: string): Promise<{ error?: strin
     phone: student.guardian_phone,
     body,
     provider: gateway.name,
+    // Send Log (issue #36) groups sms_log rows by kind/recipient_label; give
+    // this single-recipient send a real label instead of falling through to
+    // the compose screen's "Manual Numbers" default.
+    recipient_label: student.full_name,
   })
   // The SMS is already sent — a log-insert failure must not surface as a
   // retryable error, or the guardian gets a duplicate message on retry.
