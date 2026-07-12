@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { createClient } from '@/lib/supabase/server'
+import { AccountingTabs } from './accounting-tabs'
 import { FeeForm, type CollectStudent, type ExistingFeeRecord } from './fee-form'
 
 // Layout per ui/school-owner/fee-collection.html: toolbar (search + Class +
@@ -117,14 +118,7 @@ export default async function FeesPage({
         </Link>
       </div>
 
-      <nav className="mb-4 flex gap-2 border-b border-line text-sm font-semibold">
-        <Link href="/school/fees/structures" className="px-3 py-2 text-muted hover:text-ink">
-          {t('fees.tabStructures', lang)}
-        </Link>
-        <span className="border-b-2 border-brand-500 px-3 py-2 text-brand-700">
-          {t('fees.tabCollection', lang)}
-        </span>
-      </nav>
+      <AccountingTabs active="collection" lang={lang} />
 
       <form className="mb-4 flex flex-wrap items-center gap-2" method="get">
         <select name="class" defaultValue={selectedClass} className={selectClass}>
