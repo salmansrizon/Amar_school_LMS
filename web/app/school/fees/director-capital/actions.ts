@@ -3,24 +3,20 @@
 import { revalidatePath } from 'next/cache'
 import { requireSchoolMember } from '@/lib/auth/require-role'
 import { createClient } from '@/lib/supabase/server'
+import { parsePositiveAmount } from '@/lib/accounting'
 
 // Accounting II (issue #35, PRD §5.6): director capital invest/withdraw with
 // a running balance. The insufficient-balance guard is enforced by
-// apply_director_capital_transaction (0054) — a real DB trigger, not just a
+// apply_director_capital_transaction (0055) — a real DB trigger, not just a
 // UI check — mirroring bank/cash accounts' guard shape.
 
 const PAGE = '/school/fees/director-capital'
 
 export type ActionResult = { error?: string; savedId?: string }
 
-function positiveAmount(value: FormDataEntryValue | null): number {
-  const n = Number(String(value ?? '0').trim() || 0)
-  return Number.isFinite(n) && n > 0 ? n : Number.NaN
-}
-
 export async function recordDirectorCapitalTransaction(formData: FormData): Promise<ActionResult> {
   const txnType = String(formData.get('txn_type') ?? '')
-  const amount = positiveAmount(formData.get('amount'))
+  const amount = parsePositiveAmount(formData.get('amount'))
   const txnDate = String(formData.get('txn_date') ?? '').trim()
   const note = String(formData.get('note') ?? '').trim() || null
 

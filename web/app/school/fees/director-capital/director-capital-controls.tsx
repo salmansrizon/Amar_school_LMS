@@ -11,7 +11,7 @@ import { recordDirectorCapitalTransaction } from './actions'
  *  buttons (ui/school-owner/director-capital.html). Confirm is disabled
  *  client-side when a withdrawal would exceed the running balance —
  *  insufficientBalance mirrors the real DB-level guard
- *  (apply_director_capital_transaction, 0054). */
+ *  (apply_director_capital_transaction, 0055). */
 export function TransactionForm({
   balance,
   action,

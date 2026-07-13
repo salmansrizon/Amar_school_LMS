@@ -1,9 +1,10 @@
 import Link from 'next/link'
-import { redirect } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { createClient } from '@/lib/supabase/server'
 import { buildGeneralLedger, type LedgerSource, type LedgerSourceRow } from '@/lib/accounting'
+import { PrintPage, InstituteHeader, QrFooterRow } from '@/components/print/pieces'
 import { PrintButton } from '@/components/print/print-button'
 import { AccountingTabs } from '../accounting-tabs'
 
@@ -15,6 +16,12 @@ import { AccountingTabs } from '../accounting-tabs'
 // RLS-scoped (no cross-School leakage) and merged by buildGeneralLedger
 // (lib/accounting.ts), which computes the running Balance over each
 // School's FULL history so narrowing the date range doesn't corrupt it.
+//
+// Printable body composes the shared template layer (ADR 0007 —
+// PrintPage/InstituteHeader/QrFooterRow), same as every other printable
+// added after that layer landed (routine print, mark sheets, progress
+// reports); only the chrome (tabs, date filter, print button) is app-only
+// and hidden via print:hidden.
 
 const thClass = 'px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted'
 const tdClass = 'px-3 py-2 text-sm'
@@ -58,6 +65,12 @@ export default async function GeneralLedgerPage({
   // Defense in depth alongside the proxy gate: /school pages are for school roles.
   const { data: me } = await supabase.from('profiles').select('role').eq('id', user.id).single()
   if (me?.role !== 'school_owner' && me?.role !== 'staff_user') redirect('/login')
+
+  const {
+    data: school,
+    error: schoolError,
+  } = await supabase.from('schools').select('name').maybeSingle()
+  if (schoolError || !school) notFound()
 
   const [{ data: feeRecords }, { data: vouchers }, { data: assets }, { data: bankTxns }, { data: directorTxns }] =
     await Promise.all([
@@ -163,15 +176,21 @@ export default async function GeneralLedgerPage({
           {t('ledger.apply', lang)}
         </button>
         <div className="ml-auto">
-          <PrintButton label={t('ledger.print', lang)} />
+          <PrintButton label={t('print.print', lang)} />
         </div>
       </form>
 
-      <section className="overflow-x-auto rounded-lg border border-line bg-paper p-5 shadow-card print:border-0 print:shadow-none">
+      <PrintPage>
+        <InstituteHeader
+          name={school.name}
+          meta={`${new Date(from).toLocaleDateString(locale)} – ${new Date(to).toLocaleDateString(locale)}`}
+          docTitle={t('ledger.title', lang)}
+        />
+
         {!entries.length ? (
           <p className="text-sm text-muted">{t('ledger.none', lang)}</p>
         ) : (
-          <table className="w-full border-collapse">
+          <table className="w-full border-collapse text-sm">
             <thead>
               <tr className="border-b border-line-strong">
                 <th className={thClass}>{t('ledger.date', lang)}</th>
@@ -200,7 +219,9 @@ export default async function GeneralLedgerPage({
             </tbody>
           </table>
         )}
-      </section>
+
+        <QrFooterRow qrLabel={t('print.qr', lang)} poweredBy={t('print.poweredBy', lang)} />
+      </PrintPage>
     </main>
   )
 }

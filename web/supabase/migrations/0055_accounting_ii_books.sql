@@ -94,7 +94,10 @@ begin
     perform pg_advisory_xact_lock(
       hashtextextended(new.school_id::text || ':voucher:' || v_year::text, 0)
     );
-    select count(*) + 1 into v_seq
+    -- max(existing seq)+1, not count(*)+1 — a deleted voucher must not free
+    -- up its number for reuse, which count() would do and collide with a
+    -- still-existing higher-numbered voucher.
+    select coalesce(max(split_part(voucher_no, '-', 3)::int), 0) + 1 into v_seq
     from vouchers
     where school_id = new.school_id and extract(year from txn_date) = v_year;
     new.voucher_no := 'VCH-' || v_year::text || '-' || lpad(v_seq::text, 4, '0');

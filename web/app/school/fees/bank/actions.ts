@@ -3,10 +3,11 @@
 import { revalidatePath } from 'next/cache'
 import { requireSchoolMember } from '@/lib/auth/require-role'
 import { createClient } from '@/lib/supabase/server'
+import { parseNonNegativeAmount, parsePositiveAmount } from '@/lib/accounting'
 
 // Accounting II (issue #35, PRD §5.6): bank/cash accounts with
 // deposit/withdraw and cheque tracking. The insufficient-balance guard is
-// enforced by apply_bank_cash_transaction (0054) — a real DB trigger that
+// enforced by apply_bank_cash_transaction (0055) — a real DB trigger that
 // locks the account row and raises an exception, not just a UI check; this
 // action recognizes that specific exception and maps it to a translatable
 // error code the client renders via t('bank.insufficientBalance', lang).
@@ -15,20 +16,10 @@ const PAGE = '/school/fees/bank'
 
 export type ActionResult = { error?: string; savedId?: string }
 
-function nonNegative(value: FormDataEntryValue | null): number {
-  const n = Number(String(value ?? '0').trim() || 0)
-  return Number.isFinite(n) && n >= 0 ? n : Number.NaN
-}
-
-function positiveAmount(value: FormDataEntryValue | null): number {
-  const n = Number(String(value ?? '0').trim() || 0)
-  return Number.isFinite(n) && n > 0 ? n : Number.NaN
-}
-
 export async function saveBankAccount(formData: FormData): Promise<ActionResult> {
   const name = String(formData.get('name') ?? '').trim()
   const type = String(formData.get('type') ?? '')
-  const opening = nonNegative(formData.get('opening_balance'))
+  const opening = parseNonNegativeAmount(formData.get('opening_balance'))
 
   if (!name) return { error: 'Account name is required' }
   if (type !== 'cash' && type !== 'bank') return { error: 'Type must be cash or bank' }
@@ -50,7 +41,7 @@ export async function saveBankAccount(formData: FormData): Promise<ActionResult>
 export async function recordBankTransaction(formData: FormData): Promise<ActionResult> {
   const accountId = String(formData.get('account_id') ?? '')
   const txnType = String(formData.get('txn_type') ?? '')
-  const amount = positiveAmount(formData.get('amount'))
+  const amount = parsePositiveAmount(formData.get('amount'))
   const txnDate = String(formData.get('txn_date') ?? '').trim()
   const paymentMethod = String(formData.get('payment_method') ?? 'cash') === 'cheque' ? 'cheque' : 'cash'
   const chequeNo = paymentMethod === 'cheque' ? String(formData.get('cheque_no') ?? '').trim() || null : null

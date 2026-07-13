@@ -81,7 +81,7 @@ export function NewAccountForm({ lang }: { lang: Lang }) {
  *  cheque tracking; the mockup's demo only illustrates the guard for a Cash
  *  account, which has no cheque concept). Confirm is disabled client-side
  *  when a withdrawal would exceed the balance — insufficientBalance mirrors
- *  the real DB-level guard (apply_bank_cash_transaction, 0054). */
+ *  the real DB-level guard (apply_bank_cash_transaction, 0055). */
 export function TransactionForm({
   accountId,
   accountName,

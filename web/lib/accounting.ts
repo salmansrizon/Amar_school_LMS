@@ -4,7 +4,7 @@
 //
 // The real money-safety guard (insufficient-balance rejection) is enforced in
 // the database — apply_bank_cash_transaction / apply_director_capital_transaction
-// (0054) lock the balance row and raise a real exception, matching Accounting
+// (0055) lock the balance row and raise a real exception, matching Accounting
 // I's "one Fee Collection Record per student per month" precedent of a
 // DB-level constraint rather than a UI-only check. insufficientBalance below
 // is only the UI-side mirror, so a form can disable/pre-validate without a
@@ -14,6 +14,24 @@
 /** True when a withdrawal of `amount` would take `balance` negative. */
 export function insufficientBalance(balance: number, amount: number): boolean {
   return amount > balance
+}
+
+// Shared FormData amount parsing (code review finding: vouchers/assets/bank/
+// director-capital actions.ts each parsed amount fields identically —
+// consolidated here instead of four copies).
+
+/** Parses a FormData amount field, requiring it to be > 0; NaN signals an
+ *  invalid or non-positive input (the caller should reject the request). */
+export function parsePositiveAmount(value: FormDataEntryValue | null): number {
+  const n = Number(String(value ?? '0').trim() || 0)
+  return Number.isFinite(n) && n > 0 ? n : Number.NaN
+}
+
+/** Parses a FormData amount field, requiring it to be >= 0; NaN signals an
+ *  invalid or negative input (the caller should reject the request). */
+export function parseNonNegativeAmount(value: FormDataEntryValue | null): number {
+  const n = Number(String(value ?? '0').trim() || 0)
+  return Number.isFinite(n) && n >= 0 ? n : Number.NaN
 }
 
 /** Straight-line depreciation: the asset loses `ratePercent`% of its purchase

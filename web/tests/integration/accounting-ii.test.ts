@@ -4,7 +4,7 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 // Seam: Accounting II (issue #35, PRD §5.6) — voucher categories/vouchers,
 // asset categories/assets, bank/cash accounts + transactions, and director
 // capital transactions. The real money-safety guards (insufficient-balance
-// rejection) live in the database (0054's apply_bank_cash_transaction /
+// rejection) live in the database (0055's apply_bank_cash_transaction /
 // apply_director_capital_transaction triggers) — these tests exercise that
 // DB-level enforcement directly, the same way fee-collection.test.ts
 // exercises the one-record-per-student-per-month unique constraint.

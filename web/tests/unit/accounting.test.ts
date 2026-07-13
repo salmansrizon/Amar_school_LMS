@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest'
 import {
   insufficientBalance,
+  parsePositiveAmount,
+  parseNonNegativeAmount,
   currentAssetValue,
   buildGeneralLedger,
   type LedgerSourceRow,
@@ -13,6 +15,26 @@ describe('insufficientBalance (Accounting II, issue #35)', () => {
   it('is false when the withdrawal is within the balance', () => {
     expect(insufficientBalance(32500, 32500)).toBe(false)
     expect(insufficientBalance(32500, 1000)).toBe(false)
+  })
+})
+
+describe('parsePositiveAmount / parseNonNegativeAmount (shared FormData parsing)', () => {
+  it('parsePositiveAmount accepts a positive number string', () => {
+    expect(parsePositiveAmount('150.5')).toBe(150.5)
+  })
+  it('parsePositiveAmount rejects zero, negative, and non-numeric input', () => {
+    expect(parsePositiveAmount('0')).toBeNaN()
+    expect(parsePositiveAmount('-5')).toBeNaN()
+    expect(parsePositiveAmount('abc')).toBeNaN()
+    expect(parsePositiveAmount(null)).toBeNaN()
+  })
+  it('parseNonNegativeAmount accepts zero and positive numbers', () => {
+    expect(parseNonNegativeAmount('0')).toBe(0)
+    expect(parseNonNegativeAmount('99.99')).toBe(99.99)
+  })
+  it('parseNonNegativeAmount rejects negative and non-numeric input', () => {
+    expect(parseNonNegativeAmount('-1')).toBeNaN()
+    expect(parseNonNegativeAmount('xyz')).toBeNaN()
   })
 })
 

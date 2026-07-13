@@ -2,10 +2,10 @@
 
 import { useRef, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
 import { t, type Lang } from '@/lib/i18n'
-import { saveVoucher, saveVoucherCategory, voucherAttachmentUploadPath } from './actions'
+import { AttachmentPicker, type AttachmentMeta } from '../attachment-picker'
+import { saveVoucher, saveVoucherCategory } from './actions'
 
 export interface CategoryOption {
   id: string
@@ -13,66 +13,18 @@ export interface CategoryOption {
   type: 'income' | 'expense'
 }
 
-// Mirrors the DB-enforced caps (0054's enforce_attachment_cap): 500KB image,
-// 5MB PDF (PRD §7). These are only the UI's early check — the trigger is the
-// real authority.
-const MAX_IMAGE_BYTES = 512000
-const MAX_PDF_BYTES = 5242880
-
-function extFor(mime: string): string | null {
-  if (mime === 'image/jpeg') return 'jpg'
-  if (mime === 'image/png') return 'png'
-  if (mime === 'image/webp') return 'webp'
-  if (mime === 'application/pdf') return 'pdf'
-  return null
-}
-
 /** New Voucher form (issue #35, PRD §5.6): Category (Income/Expense derived
- *  from it) + Date + Description + Amount + optional Attachment. */
+ *  from it) + Date + Description + Amount + optional Attachment (the
+ *  attachment picker itself is shared with the Asset form — attachment-picker.tsx). */
 export function NewVoucherForm({ categories, lang }: { categories: CategoryOption[]; lang: Lang }) {
   const router = useRouter()
   const formRef = useRef<HTMLFormElement>(null)
-  const fileRef = useRef<HTMLInputElement>(null)
   const [pending, startTransition] = useTransition()
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [fileMeta, setFileMeta] = useState<{ path: string; name: string; mime: string; size: number } | null>(
-    null,
-  )
+  const [fileMeta, setFileMeta] = useState<AttachmentMeta | null>(null)
+  const [pickerKey, setPickerKey] = useState(0)
   const today = new Date().toISOString().slice(0, 10)
-
-  async function onPick(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
-    setError(null)
-    const ext = extFor(file.type)
-    if (!ext) {
-      setError(t('vouchers.badType', lang))
-      return
-    }
-    const cap = file.type.startsWith('image/') ? MAX_IMAGE_BYTES : MAX_PDF_BYTES
-    if (file.size > cap) {
-      setError(t('vouchers.tooBig', lang))
-      return
-    }
-    setUploading(true)
-    const { path, error: pathErr } = await voucherAttachmentUploadPath(ext)
-    if (pathErr || !path) {
-      setError(pathErr ?? 'Upload failed')
-      setUploading(false)
-      return
-    }
-    const supabase = createClient()
-    const { error: upErr } = await supabase.storage
-      .from('accounting-attachments')
-      .upload(path, file, { contentType: file.type })
-    setUploading(false)
-    if (upErr) {
-      setError(upErr.message)
-      return
-    }
-    setFileMeta({ path, name: file.name, mime: file.type, size: file.size })
-  }
 
   return (
     <form
@@ -96,7 +48,7 @@ export function NewVoucherForm({ categories, lang }: { categories: CategoryOptio
           }
           formRef.current?.reset()
           setFileMeta(null)
-          if (fileRef.current) fileRef.current.value = ''
+          setPickerKey((k) => k + 1) // remounts AttachmentPicker to clear its file input
           router.refresh()
         })
       }}
@@ -135,16 +87,7 @@ export function NewVoucherForm({ categories, lang }: { categories: CategoryOptio
         <input id="amount" name="amount" type="number" min={0.01} step="0.01" required className={inputClass} />
       </div>
       <div className="sm:col-span-3">
-        <label className={labelClass}>{t('vouchers.attachFile', lang)}</label>
-        <input
-          ref={fileRef}
-          type="file"
-          accept="image/jpeg,image/png,image/webp,application/pdf"
-          onChange={onPick}
-          disabled={uploading}
-          className="w-full text-sm"
-        />
-        {fileMeta && <p className="mt-1 text-xs text-muted">📎 {fileMeta.name}</p>}
+        <AttachmentPicker key={pickerKey} kind="voucher" lang={lang} onUploaded={setFileMeta} onUploadingChange={setUploading} />
       </div>
       {error && <p className="text-sm text-alert-deep sm:col-span-4">{error}</p>}
       <button type="submit" disabled={pending || uploading} className={`${primaryBtnClass} sm:col-span-4`}>
