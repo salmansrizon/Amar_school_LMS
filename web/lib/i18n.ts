@@ -36,6 +36,7 @@ const dict = {
     en: 'Features for this role arrive in later slices.',
   },
   // School Owner dashboard home (per ui/school-owner/dashboard.html).
+  'dash.dashboard': { bn: 'ড্যাশবোর্ড', en: 'Dashboard' },
   'dash.totalStudents': { bn: 'মোট শিক্ষার্থী', en: 'Total Students' },
   'dash.activeStudents': { bn: 'সক্রিয় শিক্ষার্থী', en: 'active students' },
   'dash.totalEmployees': { bn: 'মোট কর্মচারী', en: 'Total Employees' },
