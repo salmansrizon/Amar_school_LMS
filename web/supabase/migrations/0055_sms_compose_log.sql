@@ -1,5 +1,7 @@
--- Renumbered 0047 -> 0054 (staging collision: 0047_attendance_employee_book.sql
--- already exists there — precedent: commit 1f1f8d6). Content unchanged.
+-- Renumbered 0047 -> 0054 -> 0055 (staging collision: 0047_attendance_employee_book.sql;
+-- then the shared dev Supabase project's live migration history showed
+-- 0054_accounting_ii_books/0054b already applied out-of-band by issue #35's
+-- branch — precedent: commit 1f1f8d6). Content otherwise unchanged.
 --
 -- SMS Compose + Log (issue #36, PRD §5.7). The absence-rule cron already
 -- writes to sms_log (0021); this extends the same table so manual composes

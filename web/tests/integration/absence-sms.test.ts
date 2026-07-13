@@ -44,10 +44,13 @@ describe('Absence SMS Rule (issue #12)', () => {
     } = await owner.auth.getUser()
     schoolId = (await owner.from('profiles').select('school_id').eq('id', user!.id).single()).data!.school_id
 
-    // Clean slate for the fixed week.
+    // Clean slate for the fixed week. Explicit school_id predicates even
+    // though RLS already scopes these — this project's Postgres is a shared
+    // dev instance other agents use concurrently, so don't rely solely on
+    // RLS as the only thing standing between a test and a mass delete.
     await owner.from('students').delete().eq('full_name', 'SMS Test Student')
-    await owner.from('absence_sms_rules').delete().gte('created_at', '2000-01-01')
-    await owner.from('off_days').delete().in('day', DAYS)
+    await owner.from('absence_sms_rules').delete().eq('school_id', schoolId)
+    await owner.from('off_days').delete().eq('school_id', schoolId).in('day', DAYS)
     await admin.from('sms_log').delete().eq('school_id', schoolId)
 
     studentId = (
