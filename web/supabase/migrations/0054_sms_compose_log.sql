@@ -1,3 +1,6 @@
+-- Renumbered 0047 -> 0054 (staging collision: 0047_attendance_employee_book.sql
+-- already exists there — precedent: commit 1f1f8d6). Content unchanged.
+--
 -- SMS Compose + Log (issue #36, PRD §5.7). The absence-rule cron already
 -- writes to sms_log (0021); this extends the same table so manual composes
 -- and automated absence sends share one log, distinguished by `kind`, and so
