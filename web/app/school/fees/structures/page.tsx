@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { createClient } from '@/lib/supabase/server'
+import { AccountingTabs } from '../accounting-tabs'
 import { FeeStructureForm, CopyFeeStructureForm, type ClassOption } from './structure-controls'
 
 // Layout per ui/school-owner/fee-structures.html: toolbar (+ New Fee Structure)
@@ -73,14 +74,7 @@ export default async function FeeStructuresPage({
         </Link>
       </div>
 
-      <nav className="mb-4 flex gap-2 border-b border-line text-sm font-semibold">
-        <span className="border-b-2 border-brand-500 px-3 py-2 text-brand-700">
-          {t('fees.tabStructures', lang)}
-        </span>
-        <Link href="/school/fees" className="px-3 py-2 text-muted hover:text-ink">
-          {t('fees.tabCollection', lang)}
-        </Link>
-      </nav>
+      <AccountingTabs active="structures" lang={lang} />
 
       <section className="mb-6 rounded-lg border border-line bg-paper p-5 shadow-card">
         <h2 className="mb-3 font-bold">{t('fees.newStructure', lang)}</h2>
