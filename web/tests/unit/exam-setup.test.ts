@@ -7,6 +7,8 @@ import {
   exceedsCapacity,
   countRollsInRange,
   filterExams,
+  filterResultRoster,
+  roomForRoll,
   sortRoutineEntries,
 } from '@/lib/exam-setup'
 
@@ -137,5 +139,58 @@ describe('filterExams', () => {
 
   it('empty filters return everything', () => {
     expect(filterExams(exams, '', '', '')).toHaveLength(3)
+  })
+})
+
+describe('filterResultRoster', () => {
+  const rows = [
+    { rollNumber: 1, passed: true },
+    { rollNumber: 2, passed: true },
+    { rollNumber: 5, passed: false },
+    { rollNumber: 8, passed: true },
+    { rollNumber: null, passed: true },
+  ]
+
+  it('with no filters returns everything', () => {
+    expect(filterResultRoster(rows, { rollFrom: null, rollTo: null, promotedOnly: false })).toHaveLength(5)
+  })
+
+  it('roll range is inclusive both ends and excludes null rolls', () => {
+    const filtered = filterResultRoster(rows, { rollFrom: 2, rollTo: 5, promotedOnly: false })
+    expect(filtered.map((r) => r.rollNumber)).toEqual([2, 5])
+  })
+
+  it('rollFrom alone is an open-ended lower bound', () => {
+    const filtered = filterResultRoster(rows, { rollFrom: 5, rollTo: null, promotedOnly: false })
+    expect(filtered.map((r) => r.rollNumber)).toEqual([5, 8])
+  })
+
+  it('promotedOnly drops failed students', () => {
+    const filtered = filterResultRoster(rows, { rollFrom: null, rollTo: null, promotedOnly: true })
+    expect(filtered.every((r) => r.passed)).toBe(true)
+    expect(filtered).toHaveLength(4)
+  })
+
+  it('combines roll range and promotedOnly', () => {
+    const filtered = filterResultRoster(rows, { rollFrom: 1, rollTo: 5, promotedOnly: true })
+    expect(filtered.map((r) => r.rollNumber)).toEqual([1, 2])
+  })
+})
+
+describe('roomForRoll', () => {
+  const seatRows = [
+    { roll_start: 1, roll_end: 30, roomName: 'Room 101' },
+    { roll_start: 31, roll_end: 60, roomName: 'Room 102' },
+  ]
+
+  it('finds the room whose range contains the roll (inclusive edges)', () => {
+    expect(roomForRoll(seatRows, 1)).toBe('Room 101')
+    expect(roomForRoll(seatRows, 30)).toBe('Room 101')
+    expect(roomForRoll(seatRows, 31)).toBe('Room 102')
+  })
+
+  it('is null for a roll outside every range, or a null roll', () => {
+    expect(roomForRoll(seatRows, 61)).toBeNull()
+    expect(roomForRoll(seatRows, null)).toBeNull()
   })
 })

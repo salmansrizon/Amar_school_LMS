@@ -7,6 +7,8 @@ import {
   GradePanelRow,
   SignatureRow,
   QrFooterRow,
+  PhotoBox,
+  Badge,
 } from '@/components/print/pieces'
 
 // Seam: the shared printable template layer (ADR 0007, issue #25).
@@ -103,5 +105,30 @@ describe('QrFooterRow', () => {
     )
     expect(html).toContain('data-real-qr')
     expect(html).not.toContain('QR কোড')
+  })
+})
+
+describe('PhotoBox', () => {
+  it('shows the dashed placeholder label when no photo is set', () => {
+    const html = renderToStaticMarkup(<PhotoBox src={null} label="ছবি" />)
+    expect(html).toContain('ছবি')
+    expect(html).not.toContain('<img')
+  })
+
+  it('renders a real photo instead of the placeholder when src is set', () => {
+    const html = renderToStaticMarkup(<PhotoBox src="/api/student-photo?student=abc" label="ছবি" />)
+    expect(html).toContain('<img')
+    expect(html).toContain('/api/student-photo?student=abc')
+  })
+})
+
+describe('Badge warning tone', () => {
+  it('renders the low-but-passing-grade tone distinctly from success/alert', () => {
+    const success = renderToStaticMarkup(<Badge tone="success">A+</Badge>)
+    const warning = renderToStaticMarkup(<Badge tone="warning">C</Badge>)
+    const alert = renderToStaticMarkup(<Badge tone="alert">F</Badge>)
+    expect(warning).toContain('C')
+    expect(warning).not.toBe(success.replace('A+', 'C'))
+    expect(warning).not.toBe(alert.replace('F', 'C'))
   })
 })

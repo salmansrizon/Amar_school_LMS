@@ -93,6 +93,24 @@ export function ExamHeader({
         >
           {t('exams.printables', lang)}
         </a>
+        <a
+          href={`/school/exams/${examId}/admit-cards`}
+          className="rounded-full border border-line-strong px-3 py-1.5 text-xs font-semibold hover:bg-paper-muted"
+        >
+          {t('admitCard.title', lang)}
+        </a>
+        <a
+          href={`/school/exams/${examId}/result-book`}
+          className="rounded-full border border-line-strong px-3 py-1.5 text-xs font-semibold hover:bg-paper-muted"
+        >
+          {t('resultBook.title', lang)}
+        </a>
+        <a
+          href={`/school/exams/${examId}/print-all`}
+          className="rounded-full border border-line-strong px-3 py-1.5 text-xs font-semibold hover:bg-paper-muted"
+        >
+          {t('printAll.title', lang)}
+        </a>
         {!closed && (
           <CloseExamModal
             examId={examId}
