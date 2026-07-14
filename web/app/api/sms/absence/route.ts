@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { smsGateway } from '@/lib/sms/gateway'
+import { countSmsSegments } from '@/lib/sms/segments'
 
 // Daily absence-SMS job (issue #12). Scheduled AFTER attendance reconciliation
 // (see vercel.json order); rule evaluation lives in SQL, dispatch goes through
@@ -30,6 +31,9 @@ export async function GET(request: Request) {
   const gateway = smsGateway()
   let sent = 0
   let failed = 0
+  // One batch id per rule per run: all of today's candidates for the same
+  // rule group into a single sms_log "send" for the log screen (§5.7).
+  const batchIdByRule = new Map<string, string>()
   for (const candidate of (data ?? []) as {
     school_id: string
     student_id: string
@@ -39,8 +43,17 @@ export async function GET(request: Request) {
     streak: number
   }[]) {
     const body = `${candidate.student_name} has been absent for ${candidate.streak} working day(s).`
-    // Record the send attempt first (deduped by the unique constraint).
-    const { data: recorded, error: recordError } = await supabase.rpc('record_absence_sms', {
+    const segments = countSmsSegments(body).segments || 1
+    let batchId = batchIdByRule.get(candidate.rule_id)
+    if (!batchId) {
+      batchId = crypto.randomUUID()
+      batchIdByRule.set(candidate.rule_id, batchId)
+    }
+
+    // Record the send attempt first (deduped by the unique constraint),
+    // optimistically as 'sent' — flipped to 'failed' below if the actual
+    // gateway.send() doesn't succeed.
+    const { data: logId, error: recordError } = await supabase.rpc('record_absence_sms', {
       job_secret: secret,
       p_school: candidate.school_id,
       p_student: candidate.student_id,
@@ -49,18 +62,25 @@ export async function GET(request: Request) {
       p_phone: candidate.guardian_phone,
       p_body: body,
       p_provider: gateway.name,
+      p_batch: batchId,
+      p_segments: segments,
     })
     if (recordError) {
       failed += 1
       continue
     }
-    if (recorded && candidate.guardian_phone) {
+    if (logId && candidate.guardian_phone) {
       try {
         const result = await gateway.send(candidate.guardian_phone, body)
-        if (result.ok) sent += 1
-        else failed += 1
+        if (result.ok) {
+          sent += 1
+        } else {
+          failed += 1
+          await supabase.rpc('set_sms_log_status', { job_secret: secret, p_id: logId, p_status: 'failed' })
+        }
       } catch {
         failed += 1
+        await supabase.rpc('set_sms_log_status', { job_secret: secret, p_id: logId, p_status: 'failed' })
       }
     }
   }

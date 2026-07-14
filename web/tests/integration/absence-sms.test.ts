@@ -44,10 +44,13 @@ describe('Absence SMS Rule (issue #12)', () => {
     } = await owner.auth.getUser()
     schoolId = (await owner.from('profiles').select('school_id').eq('id', user!.id).single()).data!.school_id
 
-    // Clean slate for the fixed week.
+    // Clean slate for the fixed week. Explicit school_id predicates even
+    // though RLS already scopes these — this project's Postgres is a shared
+    // dev instance other agents use concurrently, so don't rely solely on
+    // RLS as the only thing standing between a test and a mass delete.
     await owner.from('students').delete().eq('full_name', 'SMS Test Student')
-    await owner.from('absence_sms_rules').delete().gte('created_at', '2000-01-01')
-    await owner.from('off_days').delete().in('day', DAYS)
+    await owner.from('absence_sms_rules').delete().eq('school_id', schoolId)
+    await owner.from('off_days').delete().eq('school_id', schoolId).in('day', DAYS)
     await admin.from('sms_log').delete().eq('school_id', schoolId)
 
     studentId = (
@@ -144,6 +147,10 @@ describe('Absence SMS Rule (issue #12)', () => {
   })
 
   it('the send log dedupes per student/rule/day and reports date-range totals', async () => {
+    // record_absence_sms now returns the new sms_log row's id (or null on a
+    // deduped conflict) instead of a boolean — issue #36 needed the id back
+    // so the caller can flip status to 'failed' after the real send attempt,
+    // and a batch_id/segments pair so the Send Log can group + total sends.
     const record = (day: string) =>
       anon().rpc('record_absence_sms', {
         job_secret: SECRET,
@@ -156,9 +163,9 @@ describe('Absence SMS Rule (issue #12)', () => {
         p_provider: 'log',
       })
 
-    expect((await record(DAYS[3])).data).toBe(true)
-    expect((await record(DAYS[3])).data).toBe(false) // same day: deduped
-    expect((await record(DAYS[4])).data).toBe(true)
+    expect((await record(DAYS[3])).data).toBeTruthy()
+    expect((await record(DAYS[3])).data).toBeNull() // same day: deduped
+    expect((await record(DAYS[4])).data).toBeTruthy()
 
     const { count } = await owner
       .from('sms_log')
