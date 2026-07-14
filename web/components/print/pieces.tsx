@@ -158,12 +158,30 @@ const BADGE_TONES = {
   success: 'bg-mint-soft text-mint-deep',
   info: 'bg-sky-soft text-sky-deep',
   alert: 'bg-alert-soft text-alert-deep',
+  warning: 'bg-sun-soft text-sun-deep',
   neutral: 'bg-paper-muted text-muted',
 } as const
 
 export function Badge({ tone, children }: { tone: keyof typeof BADGE_TONES; children: ReactNode }) {
   return (
     <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${BADGE_TONES[tone]}`}>{children}</span>
+  )
+}
+
+/** The admit card's photo slot (mockup's `.photo-box`, issue #48) — a real
+ *  photo (student.photo_path, served signed via /api/student-photo) when
+ *  set, else the same dashed placeholder box the mockup shows. */
+export function PhotoBox({ src, label }: { src?: string | null; label: string }) {
+  if (src) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element -- server component; next/image can't sign a per-request URL here.
+      <img src={src} alt={label} className="h-30 w-25 shrink-0 rounded-sm border border-line-strong object-cover" />
+    )
+  }
+  return (
+    <div className="flex h-30 w-25 shrink-0 items-center justify-center rounded-sm border border-dashed border-line-strong text-center text-xs text-muted">
+      {label}
+    </div>
   )
 }
 

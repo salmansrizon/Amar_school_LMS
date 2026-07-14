@@ -103,3 +103,47 @@ export function filterExams<T extends ExamListEntry>(
     (e) => matchesExamQuery(e, query) && (!classId || e.class_id === classId) && (!status || e.status === status),
   )
 }
+
+// Exams V (issue #48): roll-range + promoted-only filtering, shared by
+// Result Book and batch print-all. "Promoted" has no stored column anywhere
+// in the schema — it's operationalized the same way Promotion's own
+// checkbox default is (promotion-controls.tsx): a student's OverallResult
+// `passed` flag. Kept pure/DB-free and inclusive-both-ends, mirroring
+// exam_seat_plans' roll_start/roll_end range concept.
+
+export interface ResultRosterFilterRow {
+  rollNumber: number | null
+  passed: boolean
+}
+
+export interface ResultRosterFilterOptions {
+  rollFrom: number | null
+  rollTo: number | null
+  promotedOnly: boolean
+}
+
+export function filterResultRoster<T extends ResultRosterFilterRow>(
+  rows: T[],
+  { rollFrom, rollTo, promotedOnly }: ResultRosterFilterOptions,
+): T[] {
+  return rows.filter((r) => {
+    if (rollFrom !== null && (r.rollNumber === null || r.rollNumber < rollFrom)) return false
+    if (rollTo !== null && (r.rollNumber === null || r.rollNumber > rollTo)) return false
+    if (promotedOnly && !r.passed) return false
+    return true
+  })
+}
+
+// Exams V (issue #48): resolves an admit card's "Exam Center" field — the
+// exam_seat_plans row (issue #47) whose [roll_start, roll_end] contains the
+// student's roll, joined to its room name. Not a stored column on students;
+// derived the same way seat-plan's own countRollsInRange treats a range as a
+// set of contained roll numbers.
+export interface SeatPlanRoomRow extends SeatRange {
+  roomName: string
+}
+
+export function roomForRoll(seatRows: SeatPlanRoomRow[], roll: number | null): string | null {
+  if (roll === null) return null
+  return seatRows.find((r) => roll >= r.roll_start && roll <= r.roll_end)?.roomName ?? null
+}
