@@ -28,14 +28,14 @@ const TABS: { key: AccountingTab; href: string; labelKey: string }[] = [
  *  following the precedent Accounting I (#34) already established. */
 export function AccountingTabs({ active, lang }: { active: AccountingTab; lang: Lang }) {
   return (
-    <nav className="mb-4 flex flex-wrap gap-2 border-b border-line text-sm font-semibold">
+    <nav className="mb-4 flex flex-nowrap gap-2 overflow-x-auto border-b border-line text-sm font-semibold">
       {TABS.map((tab) =>
         tab.key === active ? (
-          <span key={tab.key} className="border-b-2 border-brand-500 px-3 py-2 text-brand-700">
+          <span key={tab.key} className="shrink-0 whitespace-nowrap border-b-2 border-brand-500 px-3 py-2 text-brand-700">
             {t(tab.labelKey as 'fees.tabCollection', lang)}
           </span>
         ) : (
-          <Link key={tab.key} href={tab.href} className="px-3 py-2 text-muted hover:text-ink">
+          <Link key={tab.key} href={tab.href} className="shrink-0 whitespace-nowrap px-3 py-2 text-muted hover:text-ink">
             {t(tab.labelKey as 'fees.tabCollection', lang)}
           </Link>
         ),

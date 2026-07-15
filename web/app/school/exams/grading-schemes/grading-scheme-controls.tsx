@@ -204,7 +204,8 @@ function GradeBandTable({
   if (!bands.length) return <p className="mb-3 text-sm text-muted">{t('grading.noBands', lang)}</p>
 
   return (
-    <table className="mb-3 w-full text-left text-sm">
+    <div className="mb-3 overflow-x-auto">
+    <table className="w-full min-w-[36rem] text-left text-sm">
       <thead>
         <tr className="border-b border-line-strong text-xs uppercase tracking-wide text-muted">
           <th className="py-1 pr-2 font-semibold">{t('grading.label', lang)}</th>
@@ -250,6 +251,7 @@ function GradeBandTable({
         </tfoot>
       )}
     </table>
+    </div>
   )
 }
 

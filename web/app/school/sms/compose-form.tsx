@@ -2,13 +2,20 @@
 
 import { useMemo, useState, useTransition } from 'react'
 import { labelClass } from '@/components/auth-card'
+import { Button } from '@/components/ui/button'
 import { t, type Lang } from '@/lib/i18n'
 import { countSmsSegments } from '@/lib/sms/segments'
 import { resolveRecipients, type ComposeMode, type ComposeStudentRow, type ComposeEmployeeRow } from '@/lib/sms/recipients'
 import { sendCompose } from './actions'
 
-const selectClass = 'h-10 w-full rounded-sm border border-line-strong bg-paper px-3 text-sm outline-none focus:border-brand-500'
-const inputClass = 'h-10 w-full rounded-sm border border-line-strong bg-paper px-3 text-sm outline-none focus:border-brand-500'
+// Themed to match the dashboard: rounded-2xl cards, brand-600 primary, rounded-lg
+// form controls with a visible focus ring.
+const cardClass = 'rounded-2xl border border-line/70 bg-paper/92 p-5 shadow-card backdrop-blur'
+const selectClass =
+  'h-10 w-full rounded-lg border border-line-strong bg-paper px-3 text-sm outline-none transition focus:border-brand-500 focus-visible:ring-2 focus-visible:ring-brand-300'
+const inputClass = selectClass
+// Equal minimum width so the two actions stay the same size when labels swap bn/en.
+const actionBtn = 'min-w-[9rem]'
 
 const DRAFT_KEY = 'asm-sms-compose-draft'
 
@@ -123,7 +130,7 @@ export function ComposeForm({
 
   return (
     <div className="space-y-4">
-      <div className="rounded-lg border border-line bg-paper p-4 shadow-card">
+      <div className={cardClass}>
         <h2 className="mb-3 text-lg font-bold">{t('sms.recipientGroup', lang)}</h2>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div>
@@ -210,11 +217,11 @@ export function ComposeForm({
         </p>
       </div>
 
-      <div className="rounded-lg border border-line bg-paper p-4 shadow-card">
+      <div className={cardClass}>
         <h2 className="mb-3 text-lg font-bold">{t('sms.messageCard', lang)}</h2>
         <textarea
           rows={5}
-          className="w-full rounded-sm border border-line-strong bg-paper p-3 text-sm outline-none focus:border-brand-500"
+          className="w-full rounded-lg border border-line-strong bg-paper p-3 text-sm outline-none transition focus:border-brand-500 focus-visible:ring-2 focus-visible:ring-brand-300"
           value={draft.body}
           onChange={(e) => update('body', e.target.value)}
         />
@@ -230,22 +237,18 @@ export function ComposeForm({
           </p>
         )}
         {draftSaved && <p className="mt-2 text-sm text-muted">{t('sms.draftSaved', lang)}</p>}
-        <div className="mt-3 flex gap-2">
-          <button
-            type="button"
+        <div className="mt-3 flex flex-wrap gap-2">
+          <Button
+            variant="primary"
+            className={actionBtn}
             disabled={pending || recipients.length === 0 || !draft.body.trim()}
             onClick={submit}
-            className="cursor-pointer rounded-full bg-brand-500 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600 disabled:opacity-50"
           >
             {t('sms.sendNow', lang)}
-          </button>
-          <button
-            type="button"
-            onClick={saveDraft}
-            className="cursor-pointer rounded-full border border-line px-4 py-2 text-sm font-semibold hover:bg-paper-muted"
-          >
+          </Button>
+          <Button variant="secondary" className={actionBtn} onClick={saveDraft}>
             {t('sms.saveDraft', lang)}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

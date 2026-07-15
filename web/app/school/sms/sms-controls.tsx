@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { inputClass, labelClass } from '@/components/auth-card'
 import { t, type Lang } from '@/lib/i18n'
 import { addOffDay, deleteOffDay, addRule, deleteRule, addLeave, deleteLeave } from './actions'
 
@@ -24,12 +23,12 @@ export function AddOffDayForm({ lang }: { lang: Lang }) {
         })
       }}
     >
-      <input type="date" name="day" required className="rounded border px-3 py-1.5 text-sm" />
+      <input type="date" name="day" required className="h-9 rounded-lg border border-line-strong bg-paper px-3 text-sm outline-none transition focus:border-brand-500 focus-visible:ring-2 focus-visible:ring-brand-300" />
       <input
         type="text"
         name="label"
         placeholder={t('sms.offDayLabel', lang)}
-        className="rounded border px-3 py-1.5 text-sm"
+        className="h-9 rounded-lg border border-line-strong bg-paper px-3 text-sm outline-none transition focus:border-brand-500 focus-visible:ring-2 focus-visible:ring-brand-300"
       />
       <button
         type="submit"
@@ -98,7 +97,7 @@ export function AddRuleForm({ lang, ruleType }: { lang: Lang; ruleType: 'exact' 
               name="exact_days"
               min={1}
               required
-              className="w-20 rounded border px-3 py-1.5 text-sm"
+              className="w-20 h-9 rounded-lg border border-line-strong bg-paper px-3 text-sm outline-none transition focus:border-brand-500 focus-visible:ring-2 focus-visible:ring-brand-300"
             />
           </div>
           <button
@@ -118,7 +117,7 @@ export function AddRuleForm({ lang, ruleType }: { lang: Lang; ruleType: 'exact' 
               name="range_from"
               min={1}
               required
-              className="w-16 rounded border px-3 py-1.5 text-sm"
+              className="w-16 h-9 rounded-lg border border-line-strong bg-paper px-3 text-sm outline-none transition focus:border-brand-500 focus-visible:ring-2 focus-visible:ring-brand-300"
             />
           </div>
           <span className="pb-1.5 text-sm">–</span>
@@ -128,7 +127,7 @@ export function AddRuleForm({ lang, ruleType }: { lang: Lang; ruleType: 'exact' 
               name="range_to"
               min={1}
               required
-              className="w-16 rounded border px-3 py-1.5 text-sm"
+              className="w-16 h-9 rounded-lg border border-line-strong bg-paper px-3 text-sm outline-none transition focus:border-brand-500 focus-visible:ring-2 focus-visible:ring-brand-300"
             />
           </div>
           <button
@@ -192,15 +191,15 @@ export function AddLeaveForm({ lang, students }: { lang: Lang; students: { id: s
     >
       <div>
         <label className="block text-xs text-gray-500">{t('sms.leaveFrom', lang)}</label>
-        <input type="date" name="from_day" required className="rounded border px-3 py-1.5 text-sm" />
+        <input type="date" name="from_day" required className="h-9 rounded-lg border border-line-strong bg-paper px-3 text-sm outline-none transition focus:border-brand-500 focus-visible:ring-2 focus-visible:ring-brand-300" />
       </div>
       <div>
         <label className="block text-xs text-gray-500">{t('sms.leaveTo', lang)}</label>
-        <input type="date" name="to_day" required className="rounded border px-3 py-1.5 text-sm" />
+        <input type="date" name="to_day" required className="h-9 rounded-lg border border-line-strong bg-paper px-3 text-sm outline-none transition focus:border-brand-500 focus-visible:ring-2 focus-visible:ring-brand-300" />
       </div>
       <div>
         <label className="block text-xs text-gray-500">{t('sms.leaveStudent', lang)}</label>
-        <select name="student_id" required className="rounded border px-3 py-1.5 text-sm">
+        <select name="student_id" required className="h-9 rounded-lg border border-line-strong bg-paper px-3 text-sm outline-none transition focus:border-brand-500 focus-visible:ring-2 focus-visible:ring-brand-300">
           <option value="">—</option>
           {students.map((s) => (
             <option key={s.id} value={s.id}>{s.full_name}</option>
