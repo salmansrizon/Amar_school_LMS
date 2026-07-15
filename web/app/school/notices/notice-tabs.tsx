@@ -11,15 +11,15 @@ export function NoticeTabs({ active, lang }: { active: 'list' | 'create' | 'gall
   ] as const
 
   return (
-    <nav className="mb-5 flex gap-1 border-b border-line text-sm font-semibold">
+    <nav className="mb-5 flex flex-nowrap gap-1 overflow-x-auto border-b border-line text-sm font-semibold">
       {tabs.map((tab) => (
         <Link
           key={tab.key}
           href={tab.href}
           className={
             active === tab.key
-              ? 'rounded-t-md border-b-2 border-brand-500 px-4 py-2 text-brand-600'
-              : 'rounded-t-md px-4 py-2 text-muted hover:bg-paper hover:text-ink'
+              ? 'shrink-0 whitespace-nowrap rounded-t-md border-b-2 border-brand-500 px-4 py-2 text-brand-600'
+              : 'shrink-0 whitespace-nowrap rounded-t-md px-4 py-2 text-muted hover:bg-paper hover:text-ink'
           }
         >
           {tab.label}

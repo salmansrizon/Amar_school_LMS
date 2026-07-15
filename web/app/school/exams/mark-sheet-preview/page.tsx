@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
+import { ExamsTabs } from '../exams-tabs'
 import { createClient } from '@/lib/supabase/server'
 import {
   PrintPage,
@@ -70,13 +71,15 @@ export default async function MarkSheetPreviewPage() {
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 p-6">
       <div className="mb-4 flex items-center justify-between print:hidden">
-        <Link href="/school/exams" className="text-sm text-brand-600 hover:underline">
-          ← {t('exams.title', lang)}
-        </Link>
+        <Link href="/school/exams" aria-label={t('exams.title', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
         <div className="flex items-center gap-3">
           <span className="text-xs text-muted">{t('markSheet.sampleNote', lang)}</span>
           <PrintButton label={t('print.print', lang)} />
         </div>
+      </div>
+
+      <div className="print:hidden">
+        <ExamsTabs active="/school/exams/mark-sheet-preview" lang={lang} />
       </div>
 
       <PrintPage>

@@ -13,12 +13,12 @@ const TABS: { href: string; key: MessageKey }[] = [
 
 export function InstituteTabs({ active, lang }: { active: string; lang: Lang }) {
   return (
-    <nav className="mb-5 flex gap-1 border-b border-line text-sm font-semibold">
+    <nav className="mb-5 flex flex-nowrap gap-1 overflow-x-auto border-b border-line text-sm font-semibold">
       {TABS.map((tab) => (
         <Link
           key={tab.href}
           href={tab.href}
-          className={`rounded-t-md px-4 py-2 ${
+          className={`shrink-0 whitespace-nowrap rounded-t-md px-4 py-2 ${
             tab.href === active
               ? 'border-b-2 border-brand-500 text-brand-600'
               : 'text-muted hover:bg-paper hover:text-ink'

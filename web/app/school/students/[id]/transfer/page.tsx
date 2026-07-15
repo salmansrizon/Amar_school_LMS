@@ -60,9 +60,7 @@ export default async function StudentTransferPage({
     <main className="mx-auto w-full max-w-3xl flex-1 p-6">
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold">{t('students.transferTitle', lang)}</h1>
-        <Link href={`/school/students/${id}`} className="text-sm text-brand-600 hover:underline">
-          ← {t('students.backToProfile', lang)}
-        </Link>
+        <Link href={`/school/students/${id}`} aria-label={t('students.backToProfile', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
       </div>
       <p className="mb-4 text-sm text-muted">
         {student.full_name}

@@ -46,6 +46,17 @@ body {
   color: var(--color-ink);
 }
 
+/* Buttons keep their label on one line so switching language (bn/en) changes the
+   text without wrapping the control to a new line or changing its height. Applies
+   app-wide to every <button>; a button that genuinely needs to wrap can opt back
+   in with the `whitespace-normal` utility. */
+@layer base {
+  button,
+  [role='button'] {
+    white-space: nowrap;
+  }
+}
+
 /* Printables (ADR 0007): the browser IS the PDF renderer. */
 @page {
   size: A4;

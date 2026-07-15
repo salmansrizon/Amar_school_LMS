@@ -52,9 +52,7 @@ export default async function SmsLogPage({
     <main className="mx-auto w-full max-w-4xl flex-1 p-6">
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold">{t('sms.log', lang)}</h1>
-        <Link href="/school" className="text-sm text-brand-600 hover:underline">
-          ← {t('common.back', lang)}
-        </Link>
+        <Link href="/school" aria-label={t('common.back', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
       </div>
 
       <SmsTabs active="/school/sms/log" lang={lang} />
@@ -71,15 +69,15 @@ export default async function SmsLogPage({
       </form>
 
       <div className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <div className="rounded-lg border border-line bg-paper p-4 shadow-card">
+        <div className="rounded-2xl border border-line/70 bg-paper/92 p-5 shadow-card backdrop-blur">
           <div className="text-xs font-semibold uppercase tracking-wide text-muted">{t('sms.totalSent', lang)}</div>
           <div className="text-2xl font-extrabold">{totals.totalSent}</div>
         </div>
-        <div className="rounded-lg border border-line bg-paper p-4 shadow-card">
+        <div className="rounded-2xl border border-line/70 bg-paper/92 p-5 shadow-card backdrop-blur">
           <div className="text-xs font-semibold uppercase tracking-wide text-muted">{t('sms.totalSegments', lang)}</div>
           <div className="text-2xl font-extrabold">{totals.totalSegments}</div>
         </div>
-        <div className="rounded-lg border border-line bg-paper p-4 shadow-card">
+        <div className="rounded-2xl border border-line/70 bg-paper/92 p-5 shadow-card backdrop-blur">
           <div className="text-xs font-semibold uppercase tracking-wide text-muted">{t('sms.failed', lang)}</div>
           <div className="text-2xl font-extrabold">{totals.totalFailed}</div>
         </div>
@@ -88,7 +86,7 @@ export default async function SmsLogPage({
       {batches.length === 0 ? (
         <p className="text-sm text-muted">{t('sms.noLogRows', lang)}</p>
       ) : (
-        <div className="overflow-x-auto rounded-lg border border-line bg-paper shadow-card">
+        <div className="overflow-x-auto rounded-2xl border border-line/70 bg-paper/92 shadow-card backdrop-blur">
           <table className="w-full border-collapse text-left">
             <thead>
               <tr className="border-b border-line-strong">
@@ -133,4 +131,4 @@ export default async function SmsLogPage({
 
 const thClass = 'px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted'
 const tdClass = 'px-3 py-2 text-sm'
-const dateInputClass = 'h-9 rounded-sm border border-line-strong bg-paper px-2 text-sm outline-none focus:border-brand-500'
+const dateInputClass = 'h-9 rounded-lg border border-line-strong bg-paper px-2 text-sm outline-none transition focus:border-brand-500 focus-visible:ring-2 focus-visible:ring-brand-300'
