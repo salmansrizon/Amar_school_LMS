@@ -11,13 +11,13 @@ export interface StudentListRow {
   archived_at: string | null
 }
 
-/** "Class 8 / A / Morning" — drops missing parts, null when nothing is set. */
-export function classShiftLabel(
+/** "Class 8 / A" — drops missing parts, null when nothing is set. Shift left
+ *  the student side with issue #100; class + section carry the grouping. */
+export function classSectionLabel(
   className: string | null | undefined,
   section: string | null | undefined,
-  shiftName?: string | null,
 ): string | null {
-  const parts = [className, section, shiftName].filter(Boolean)
+  const parts = [className, section].filter(Boolean)
   return parts.length ? parts.join(' / ') : null
 }
 

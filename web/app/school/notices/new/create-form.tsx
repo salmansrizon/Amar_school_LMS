@@ -22,12 +22,10 @@ export function CreateNoticeForm({
   lang,
   classNames,
   sections,
-  shifts,
 }: {
   lang: Lang
   classNames: string[]
   sections: string[]
-  shifts: { id: string; name: string }[]
 }) {
   const router = useRouter()
   const [kind, setKind] = useState<PublicationKind>('notice')
@@ -36,7 +34,6 @@ export function CreateNoticeForm({
   const [content, setContent] = useState('')
   const [targetType, setTargetType] = useState<TargetType>('all')
   const [targetClassName, setTargetClassName] = useState('')
-  const [targetShiftId, setTargetShiftId] = useState('')
   const [targetSection, setTargetSection] = useState('')
   const [linkUrl, setLinkUrl] = useState('')
   const [imageFile, setImageFile] = useState<File | null>(null)
@@ -79,7 +76,6 @@ export function CreateNoticeForm({
         importance,
         targetType,
         targetClassName,
-        targetShiftId,
         targetSection,
         imagePath,
         linkUrl,
@@ -162,21 +158,6 @@ export function CreateNoticeForm({
                 {classNames.map((c) => (
                   <option key={c} value={c}>
                     {c}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className={labelClass}>{t('notices.shift', lang)}</label>
-              <select
-                className={inputClass}
-                value={targetShiftId}
-                onChange={(e) => setTargetShiftId(e.target.value)}
-              >
-                <option value="">—</option>
-                {shifts.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.name}
                   </option>
                 ))}
               </select>

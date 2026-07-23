@@ -4,7 +4,7 @@ import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { ExamsTabs } from '../exams-tabs'
 import { createClient } from '@/lib/supabase/server'
-import { classShiftLabel } from '@/lib/students'
+import { classSectionLabel } from '@/lib/students'
 import { loadExamRosterResults } from '@/lib/exam-print-data'
 import { Badge } from '@/components/print/pieces'
 
@@ -147,7 +147,7 @@ export default async function ResultInquiryPage({
     return true
   })
 
-  const clsLabel = classShiftLabel(roster.cls?.name, roster.cls?.section) ?? '—'
+  const clsLabel = classSectionLabel(roster.cls?.name, roster.cls?.section) ?? '—'
 
   return (
     <main className="mx-auto w-full max-w-4xl flex-1 p-6">

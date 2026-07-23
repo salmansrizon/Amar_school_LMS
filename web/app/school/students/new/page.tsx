@@ -21,9 +21,8 @@ export default async function NewAdmissionPage() {
   const { data: me } = await supabase.from('profiles').select('role').eq('id', user.id).single()
   if (me?.role !== 'school_owner' && me?.role !== 'staff_user') redirect('/login')
 
-  const [{ data: classes }, { data: shifts }] = await Promise.all([
+  const [{ data: classes }] = await Promise.all([
     supabase.from('classes').select('name, section').order('created_at'),
-    supabase.from('shifts').select('id, name').order('created_at'),
   ])
 
   return (
@@ -32,7 +31,7 @@ export default async function NewAdmissionPage() {
         <h1 className="text-2xl font-extrabold">{t('students.admissionTitle', lang)}</h1>
         <Link href="/school/students" aria-label={t('students.listTitle', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
       </div>
-      <AdmissionForm lang={lang} classes={classes ?? []} shifts={shifts ?? []} />
+      <AdmissionForm lang={lang} classes={classes ?? []} />
     </main>
   )
 }

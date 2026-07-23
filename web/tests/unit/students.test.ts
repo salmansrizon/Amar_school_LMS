@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import {
-  classShiftLabel,
+  classSectionLabel,
   matchesStudentQuery,
   filterStudents,
   behaviourAverages,
@@ -23,15 +23,14 @@ const row = (over: Partial<StudentListRow> = {}): StudentListRow => ({
   ...over,
 })
 
-describe('classShiftLabel', () => {
+describe('classSectionLabel', () => {
   it('joins the present parts with slashes', () => {
-    expect(classShiftLabel('Class 8', 'A', 'Morning')).toBe('Class 8 / A / Morning')
-    expect(classShiftLabel('Class 8', null, 'Morning')).toBe('Class 8 / Morning')
-    expect(classShiftLabel('Class 8', 'A')).toBe('Class 8 / A')
+    expect(classSectionLabel('Class 8', 'A')).toBe('Class 8 / A')
+    expect(classSectionLabel('Class 8', null)).toBe('Class 8')
   })
 
   it('returns null when nothing is set', () => {
-    expect(classShiftLabel(null, null, null)).toBeNull()
+    expect(classSectionLabel(null, null)).toBeNull()
   })
 })
 

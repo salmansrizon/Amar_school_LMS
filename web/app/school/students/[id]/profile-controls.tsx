@@ -14,13 +14,11 @@ export function ProfileEditor({
   lang,
   student,
   classes,
-  shifts,
   children,
 }: {
   lang: Lang
   student: Record<string, string | boolean | number | null> & { id: string; full_name: string }
   classes: { name: string; section: string | null }[]
-  shifts: { id: string; name: string }[]
   children: React.ReactNode // read-mode profile sections (server-rendered)
 }) {
   const router = useRouter()
@@ -59,7 +57,7 @@ export function ProfileEditor({
         })
       }}
     >
-      <ProfileFields lang={lang} classes={classes} shifts={shifts} defaults={student} />
+      <ProfileFields lang={lang} classes={classes} defaults={student} />
       {error && <p className="mb-3 text-sm text-alert-deep">{error}</p>}
       <div className="flex items-center justify-between">
         <button type="button" onClick={() => setEditing(false)} className={btnSecondary}>

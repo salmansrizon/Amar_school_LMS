@@ -43,7 +43,6 @@ export async function promoteStudents(
       p_student_id: item.studentId,
       p_to_class: toClass,
       p_to_section: toSection,
-      p_to_shift_id: null,
       p_note: 'Promotion',
       p_new_roll: item.newRoll,
     })
