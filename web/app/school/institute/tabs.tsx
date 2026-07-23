@@ -6,6 +6,7 @@ import { t, type Lang, type MessageKey } from '@/lib/i18n'
 // each tab has its own data/forms (unlike the single-page classes anchors).
 const TABS: { href: string; key: MessageKey }[] = [
   { href: '/school/institute', key: 'institute.tabProfile' },
+  { href: '/school/institute/venues', key: 'institute.tabVenues' },
   { href: '/school/institute/checklist', key: 'institute.tabChecklist' },
   { href: '/school/institute/logistics', key: 'institute.tabLogistics' },
   { href: '/school/institute/templates', key: 'institute.tabTemplates' },
