@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
-import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import type { SupabaseClient } from '@supabase/supabase-js'
+import { signedIn } from '../helpers/auth'
 
 // Seam: Exams III — marks entry, multi-exam combination, promotion/roll-
 // transfer (issue #32, PRD §5.5). exam_marks extends the same-school +
@@ -8,16 +9,6 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 // blank weight" / "weights <= 100%" invariants (migration 0049);
 // transfer_student gains an optional p_new_roll for promotion (migration
 // 0048) without breaking its existing callers.
-const URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const ANON = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-const PASSWORD = 'test-password-123!'
-
-async function signedIn(email: string): Promise<SupabaseClient> {
-  const client = createClient(URL, ANON, { auth: { persistSession: false } })
-  const { error } = await client.auth.signInWithPassword({ email, password: PASSWORD })
-  if (error) throw new Error(`login failed for ${email}: ${error.message}`)
-  return client
-}
 
 describe('Exams III — marks entry, combinations, promotion (issue #32)', () => {
   let ownerA: SupabaseClient

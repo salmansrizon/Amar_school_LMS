@@ -1,24 +1,11 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
-import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { resolveTheme, DEFAULT_THEME_KEY } from '@/lib/print-themes'
+import { signedIn } from '../helpers/auth'
 
 // Seam: per-school admit-card palette (issue #94, migration 0058). Stored
 // keyed by document type so a second themed printable is a row, not a schema
 // change; owner-writable, member-readable (every printable reads it).
-const URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const ANON = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-const PASSWORD = 'test-password-123!'
-
-function anonClient() {
-  return createClient(URL, ANON, { auth: { persistSession: false } })
-}
-
-async function signedIn(email: string): Promise<SupabaseClient> {
-  const client = anonClient()
-  const { error } = await client.auth.signInWithPassword({ email, password: PASSWORD })
-  if (error) throw new Error(`login failed for ${email}: ${error.message}`)
-  return client
-}
 
 describe('Admit card print themes (issue #94)', () => {
   let ownerA: SupabaseClient

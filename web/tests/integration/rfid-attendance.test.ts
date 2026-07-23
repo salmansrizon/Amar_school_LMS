@@ -1,24 +1,11 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
-import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import type { SupabaseClient } from '@supabase/supabase-js'
+import { signedIn, anonClient } from '../helpers/auth'
 
 // Seam: attendance_events ingest RPC (token-gated, ADR 0001) + the daily
 // reconciliation collapse (issue #10).
-const URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const ANON = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 const RECONCILE_SECRET = process.env.RECONCILE_SECRET!
-const PASSWORD = 'test-password-123!'
 const DAY = '2026-07-01' // fixed historical date, isolated from other runs
-
-async function signedIn(email: string): Promise<SupabaseClient> {
-  const client = createClient(URL, ANON, { auth: { persistSession: false } })
-  const { error } = await client.auth.signInWithPassword({ email, password: PASSWORD })
-  if (error) throw new Error(`login failed for ${email}: ${error.message}`)
-  return client
-}
-
-function anon() {
-  return createClient(URL, ANON, { auth: { persistSession: false } })
-}
 
 describe('RFID Attendance Event ingestion + reconciliation (issue #10)', () => {
   let ownerA: SupabaseClient
@@ -76,7 +63,7 @@ describe('RFID Attendance Event ingestion + reconciliation (issue #10)', () => {
   })
 
   it('rejects ingest with a wrong token', async () => {
-    const { error } = await anon().rpc('ingest_attendance_events', {
+    const { error } = await anonClient().rpc('ingest_attendance_events', {
       school: schoolId,
       token: '00000000-0000-0000-0000-000000000000',
       events: [{ card_number: 'EMP-CARD-1', tapped_at: `${DAY}T07:58:00Z` }],
@@ -85,7 +72,7 @@ describe('RFID Attendance Event ingestion + reconciliation (issue #10)', () => {
   })
 
   it('accepts a direct device push (single event) and a bridge-agent batch', async () => {
-    const push = await anon().rpc('ingest_attendance_events', {
+    const push = await anonClient().rpc('ingest_attendance_events', {
       school: schoolId,
       token: ingestToken,
       events: [{ card_number: 'EMP-CARD-1', tapped_at: `${DAY}T07:58:00Z` }],
@@ -93,7 +80,7 @@ describe('RFID Attendance Event ingestion + reconciliation (issue #10)', () => {
     expect(push.error).toBeNull()
     expect(push.data).toBe(1)
 
-    const batch = await anon().rpc('ingest_attendance_events', {
+    const batch = await anonClient().rpc('ingest_attendance_events', {
       school: schoolId,
       token: ingestToken,
       events: [
@@ -114,7 +101,7 @@ describe('RFID Attendance Event ingestion + reconciliation (issue #10)', () => {
   })
 
   it('reconciliation collapses 4 employee taps to one record: earliest entry, latest exit', async () => {
-    const { error } = await anon().rpc('reconcile_attendance', {
+    const { error } = await anonClient().rpc('reconcile_attendance', {
       job_secret: RECONCILE_SECRET,
       target_date: DAY,
     })
@@ -145,19 +132,19 @@ describe('RFID Attendance Event ingestion + reconciliation (issue #10)', () => {
   })
 
   it('re-running reconciliation is idempotent (still exactly one record each)', async () => {
-    await anon().rpc('reconcile_attendance', { job_secret: RECONCILE_SECRET, target_date: DAY })
+    await anonClient().rpc('reconcile_attendance', { job_secret: RECONCILE_SECRET, target_date: DAY })
     const { data } = await ownerA.from('attendance_records').select('id').eq('att_date', DAY)
     expect(data).toHaveLength(2)
   })
 
   it('unregistered-card taps survive reconciliation and replay once the card is registered', async () => {
     // Tap from a card nobody has registered yet.
-    await anon().rpc('ingest_attendance_events', {
+    await anonClient().rpc('ingest_attendance_events', {
       school: schoolId,
       token: ingestToken,
       events: [{ card_number: 'LATE-CARD-9', tapped_at: `${DAY}T08:10:00Z` }],
     })
-    await anon().rpc('reconcile_attendance', { job_secret: RECONCILE_SECRET, target_date: DAY })
+    await anonClient().rpc('reconcile_attendance', { job_secret: RECONCILE_SECRET, target_date: DAY })
 
     // Not consumed: the tap is still unprocessed.
     const { data: pending } = await ownerA
@@ -173,7 +160,7 @@ describe('RFID Attendance Event ingestion + reconciliation (issue #10)', () => {
       .select('id')
       .single()
     await ownerA.from('rfid_cards').insert({ card_number: 'LATE-CARD-9', student_id: lateStudent!.id })
-    await anon().rpc('reconcile_attendance', { job_secret: RECONCILE_SECRET, target_date: DAY })
+    await anonClient().rpc('reconcile_attendance', { job_secret: RECONCILE_SECRET, target_date: DAY })
 
     const { data: record } = await ownerA
       .from('attendance_records')
@@ -188,12 +175,12 @@ describe('RFID Attendance Event ingestion + reconciliation (issue #10)', () => {
   it('late-arriving taps after reconciliation widen the record instead of overwriting it (backfill)', async () => {
     // Device was offline during the day; it pushes a buffered tap after the
     // nightly reconcile already wrote entry=07:58 / exit=13:00 for the employee.
-    await anon().rpc('ingest_attendance_events', {
+    await anonClient().rpc('ingest_attendance_events', {
       school: schoolId,
       token: ingestToken,
       events: [{ card_number: 'EMP-CARD-1', tapped_at: `${DAY}T14:30:00Z` }],
     })
-    await anon().rpc('reconcile_attendance', { job_secret: RECONCILE_SECRET, target_date: DAY })
+    await anonClient().rpc('reconcile_attendance', { job_secret: RECONCILE_SECRET, target_date: DAY })
 
     const { data } = await ownerA
       .from('attendance_records')
@@ -228,7 +215,7 @@ describe('RFID Attendance Event ingestion + reconciliation (issue #10)', () => {
   })
 
   it('reconcile rejects a wrong secret', async () => {
-    const { error } = await anon().rpc('reconcile_attendance', {
+    const { error } = await anonClient().rpc('reconcile_attendance', {
       job_secret: 'wrong-secret',
       target_date: DAY,
     })
@@ -236,7 +223,7 @@ describe('RFID Attendance Event ingestion + reconciliation (issue #10)', () => {
   })
 
   it('ingest skips malformed tapped_at instead of aborting the batch', async () => {
-    const { error, data } = await anon().rpc('ingest_attendance_events', {
+    const { error, data } = await anonClient().rpc('ingest_attendance_events', {
       school: schoolId,
       token: ingestToken,
       events: [

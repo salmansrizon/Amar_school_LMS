@@ -1,25 +1,12 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
-import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import type { SupabaseClient } from '@supabase/supabase-js'
+import { signedIn, anonClient } from '../helpers/auth'
 
 // Seam: the per-school manual-attendance override switch (issue #30, PRD
 // §5.3 — "de-activate automatic attendance"), and its effect on
 // reconcile_attendance (migration 0047 re-points 0017's job).
-const URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const ANON = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 const RECONCILE_SECRET = process.env.RECONCILE_SECRET!
-const PASSWORD = 'test-password-123!'
 const DAY = '2026-07-02' // fixed historical date, isolated from other runs
-
-async function signedIn(email: string): Promise<SupabaseClient> {
-  const client = createClient(URL, ANON, { auth: { persistSession: false } })
-  const { error } = await client.auth.signInWithPassword({ email, password: PASSWORD })
-  if (error) throw new Error(`login failed for ${email}: ${error.message}`)
-  return client
-}
-
-function anon() {
-  return createClient(URL, ANON, { auth: { persistSession: false } })
-}
 
 describe('Attendance II: manual-attendance override switch (issue #30)', () => {
   let ownerA: SupabaseClient
@@ -101,12 +88,12 @@ describe('Attendance II: manual-attendance override switch (issue #30)', () => {
   })
 
   it('reconcile_attendance skips a School with automatic attendance switched off', async () => {
-    await anon().rpc('ingest_attendance_events', {
+    await anonClient().rpc('ingest_attendance_events', {
       school: schoolIdA,
       token: ingestTokenA,
       events: [{ card_number: cardNumber, tapped_at: `${DAY}T08:00:00Z` }],
     })
-    await anon().rpc('reconcile_attendance', { job_secret: RECONCILE_SECRET, target_date: DAY })
+    await anonClient().rpc('reconcile_attendance', { job_secret: RECONCILE_SECRET, target_date: DAY })
 
     const { data: records } = await ownerA
       .from('attendance_records')
@@ -125,7 +112,7 @@ describe('Attendance II: manual-attendance override switch (issue #30)', () => {
 
   it('re-enabling lets the same unprocessed tap reconcile normally', async () => {
     await ownerA.rpc('set_automatic_attendance_enabled', { enabled: true })
-    await anon().rpc('reconcile_attendance', { job_secret: RECONCILE_SECRET, target_date: DAY })
+    await anonClient().rpc('reconcile_attendance', { job_secret: RECONCILE_SECRET, target_date: DAY })
 
     const { data: records } = await ownerA
       .from('attendance_records')

@@ -1,23 +1,14 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
-import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { loadExamRosterResults, loadExamPrintContext } from '@/lib/exam-print-data'
 import { filterResultRoster, roomForRoll } from '@/lib/exam-setup'
+import { signedIn } from '../helpers/auth'
 
 // Seam: Exams V (issue #48, PRD §5.5) — the whole-roster loader (result book,
 // result inquiry, batch print-all) and its roll-range/promoted-only filter +
 // seat-plan-derived exam-center lookup, exercised end to end against a real
 // seeded exam/class/roster the same way the app pages call them, not just
 // raw table shape checks.
-const URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const ANON = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-const PASSWORD = 'test-password-123!'
-
-async function signedIn(email: string): Promise<SupabaseClient> {
-  const client = createClient(URL, ANON, { auth: { persistSession: false } })
-  const { error } = await client.auth.signInWithPassword({ email, password: PASSWORD })
-  if (error) throw new Error(`login failed for ${email}: ${error.message}`)
-  return client
-}
 
 describe('Exams V — result roster, roll-range/promoted filter, exam-center (issue #48)', () => {
   let ownerA: SupabaseClient

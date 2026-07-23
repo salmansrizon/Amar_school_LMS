@@ -1,25 +1,12 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
-import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import type { SupabaseClient } from '@supabase/supabase-js'
+import { signedIn } from '../helpers/auth'
 
 // Seam: Institute Setup & Misc (issue #39, PRD §5.11) — schools profile
 // deepening (owner-only update + fixed education-levels check constraint),
 // daily_checklists (date-range reporting) and logistics_index, both scoped
 // to "school members" (owner + granted Staff User) rather than owner-only.
-const URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const ANON = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-const PASSWORD = 'test-password-123!'
 const STAFF_EMAIL = 'staff-a1@test.local'
-
-function anonClient() {
-  return createClient(URL, ANON, { auth: { persistSession: false } })
-}
-
-async function signedIn(email: string): Promise<SupabaseClient> {
-  const client = anonClient()
-  const { error } = await client.auth.signInWithPassword({ email, password: PASSWORD })
-  if (error) throw new Error(`login failed for ${email}: ${error.message}`)
-  return client
-}
 
 describe('Institute Setup & Misc (issue #39)', () => {
   let ownerA: SupabaseClient

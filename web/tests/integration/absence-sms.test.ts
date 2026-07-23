@@ -1,23 +1,13 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
-import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import type { SupabaseClient } from '@supabase/supabase-js'
+import { signedIn, anonClient } from '../helpers/auth'
 
 // Seam: absence_sms_candidates working-day streak logic + sms_log dedupe
 // (issue #12). Gateway swap is unit-tested; dispatch here uses the log path.
-const URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const ANON = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 const SECRET = process.env.RECONCILE_SECRET!
-const PASSWORD = 'test-password-123!'
 // Fixed historical week: Mon 2026-06-01 … Fri 2026-06-05
 const DAYS = ['2026-06-01', '2026-06-02', '2026-06-03', '2026-06-04', '2026-06-05']
 
-async function signedIn(email: string): Promise<SupabaseClient> {
-  const client = createClient(URL, ANON, { auth: { persistSession: false } })
-  const { error } = await client.auth.signInWithPassword({ email, password: PASSWORD })
-  if (error) throw new Error(`login failed for ${email}: ${error.message}`)
-  return client
-}
-
-const anon = () => createClient(URL, ANON, { auth: { persistSession: false } })
 
 describe('Absence SMS Rule (issue #12)', () => {
   let owner: SupabaseClient
@@ -28,7 +18,7 @@ describe('Absence SMS Rule (issue #12)', () => {
   let rangeRule: string
 
   const candidates = async (day: string) => {
-    const { data, error } = await anon().rpc('absence_sms_candidates', {
+    const { data, error } = await anonClient().rpc('absence_sms_candidates', {
       job_secret: SECRET,
       target_date: day,
     })
@@ -121,7 +111,7 @@ describe('Absence SMS Rule (issue #12)', () => {
       status: 'approved',
     })
     expect(error).toBeNull()
-    const workingDay = await anon().rpc('is_absent_working_day', {
+    const workingDay = await anonClient().rpc('is_absent_working_day', {
       sid: studentId,
       school: schoolId,
       d: DAYS[4],
@@ -152,7 +142,7 @@ describe('Absence SMS Rule (issue #12)', () => {
     // so the caller can flip status to 'failed' after the real send attempt,
     // and a batch_id/segments pair so the Send Log can group + total sends.
     const record = (day: string) =>
-      anon().rpc('record_absence_sms', {
+      anonClient().rpc('record_absence_sms', {
         job_secret: SECRET,
         p_school: schoolId,
         p_student: studentId,
@@ -176,7 +166,7 @@ describe('Absence SMS Rule (issue #12)', () => {
   })
 
   it('rejects a wrong job secret', async () => {
-    const { error } = await anon().rpc('absence_sms_candidates', {
+    const { error } = await anonClient().rpc('absence_sms_candidates', {
       job_secret: 'nope',
       target_date: DAYS[3],
     })

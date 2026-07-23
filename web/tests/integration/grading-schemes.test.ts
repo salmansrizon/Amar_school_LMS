@@ -1,20 +1,11 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
-import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import type { SupabaseClient } from '@supabase/supabase-js'
+import { signedIn } from '../helpers/auth'
 
 // Seam: Exams I — grading schemes & pass rules (issue #31, PRD §5.5).
 // grading_schemes (school-scoped, letter/numeric/grade_point) + grade_bands
 // (percent-range -> label/grade-point table), with a same-school tenancy
 // trigger on grade_bands mirroring student_subjects/class_routines.
-const URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const ANON = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-const PASSWORD = 'test-password-123!'
-
-async function signedIn(email: string): Promise<SupabaseClient> {
-  const client = createClient(URL, ANON, { auth: { persistSession: false } })
-  const { error } = await client.auth.signInWithPassword({ email, password: PASSWORD })
-  if (error) throw new Error(`login failed for ${email}: ${error.message}`)
-  return client
-}
 
 describe('Grading schemes & grade bands (issue #31)', () => {
   let ownerA: SupabaseClient

@@ -1,20 +1,11 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
-import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import type { SupabaseClient } from '@supabase/supabase-js'
+import { signedIn } from '../helpers/auth'
 
 // Seam: Class & Curriculum II schema (issue #45, PRD §5.4 second half) —
 // routine_slots (one per class/day/period, School-wide teacher & room
 // conflict-free via partial unique indexes, same-school tenancy trigger),
 // class_routines publish marker, class_syllabi metadata, all RLS-scoped.
-const URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const ANON = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-const PASSWORD = 'test-password-123!'
-
-async function signedIn(email: string): Promise<SupabaseClient> {
-  const client = createClient(URL, ANON, { auth: { persistSession: false } })
-  const { error } = await client.auth.signInWithPassword({ email, password: PASSWORD })
-  if (error) throw new Error(`login failed for ${email}: ${error.message}`)
-  return client
-}
 
 describe('Class & Curriculum II (issue #45)', () => {
   let ownerA: SupabaseClient
