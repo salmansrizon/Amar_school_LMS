@@ -34,12 +34,33 @@ describe('Seat plan v2 (issue #95)', () => {
   let roomTwoId: string
   let foreignRoomId: string
 
+  // A Closed exam is undeletable by school roles (issue #8, preserved
+  // behaviour), and it pins its class through the FK — so cleanup removes what
+  // it can and the fixtures below reuse whatever survives, keeping the suite
+  // re-runnable rather than green only on a virgin database.
   async function cleanup(client: SupabaseClient) {
-    await client.from('exams').delete().like('name', `${P}%`)
+    await client.from('exams').delete().like('name', `${P}%`).eq('status', 'open')
     await client.from('students').delete().like('full_name', `${P}%`)
     await client.from('rooms').delete().like('name', `${P}%`)
     await client.from('buildings').delete().like('name', `${P}%`)
     await client.from('classes').delete().like('name', `${P}%`)
+  }
+
+  /** Insert if absent, reuse if a previous run left it behind. */
+  async function ensureClass(client: SupabaseClient, name: string): Promise<string> {
+    const { data: existing } = await client
+      .from('classes')
+      .select('id')
+      .eq('name', name)
+      .maybeSingle()
+    if (existing) return existing.id
+    const { data, error } = await client
+      .from('classes')
+      .insert({ name, section: 'A' })
+      .select('id')
+      .single()
+    if (error) throw new Error(`fixture class ${name}: ${error.message}`)
+    return data!.id
   }
 
   beforeAll(async () => {
@@ -87,15 +108,8 @@ describe('Seat plan v2 (issue #95)', () => {
         .single()
     ).data!.id
 
-    const { data: classes } = await ownerA
-      .from('classes')
-      .insert([
-        { name: `${P}Class Six`, section: 'A' },
-        { name: `${P}Class Seven`, section: 'A' },
-      ])
-      .select('id, name')
-    classAId = classes!.find((c) => c.name === `${P}Class Six`)!.id
-    classBId = classes!.find((c) => c.name === `${P}Class Seven`)!.id
+    classAId = await ensureClass(ownerA, `${P}Class Six`)
+    classBId = await ensureClass(ownerA, `${P}Class Seven`)
 
     await ownerA.from('students').insert([
       ...[1, 2, 3, 4].map((n) => ({
@@ -229,7 +243,7 @@ describe('Seat plan v2 (issue #95)', () => {
   it('refuses to generate for a Closed exam', async () => {
     const { data: closed } = await ownerA
       .from('exams')
-      .insert({ name: `${P}Closed Exam`, exam_year: 2026, class_id: classAId })
+      .insert({ name: `${P}Closed Exam ${Date.now()}`, exam_year: 2026, class_id: classAId })
       .select('id')
       .single()
     await ownerA.rpc('close_exam', { exam: closed!.id })
@@ -280,6 +294,37 @@ describe('Seat plan v2 (issue #95)', () => {
       .eq('id', examBId)
       .single()
     expect(exam?.seat_plan_published_at).toBeNull()
+  })
+
+  // Regression (code review, 2026-07-23): the generator budgeted from raw room
+  // capacity while deliberately not deleting other exams' rows, so a room
+  // already partly occupied by a non-selected exam overfilled and the capacity
+  // trigger aborted the entire run.
+  it('budgets around an exam it was not asked to regenerate', async () => {
+    // Seat Exam Seven alone in Room One (capacity 4), then regenerate only
+    // Exam Six into the same room.
+    await ownerA.rpc('generate_seat_plan_for', { exam_ids: [examBId], room_ids: [roomOneId] })
+    const { data: before } = await ownerA
+      .from('exam_seat_plans')
+      .select('roll_start, roll_end')
+      .eq('exam_id', examBId)
+      .eq('room_id', roomOneId)
+    expect(before!.length).toBeGreaterThan(0)
+
+    const { error } = await ownerA.rpc('generate_seat_plan_for', {
+      exam_ids: [examAId],
+      room_ids: [roomOneId, roomTwoId],
+    })
+    expect(error).toBeNull()
+
+    // The other exam kept its seats, and the room is still within capacity.
+    const { data: rows } = await ownerA
+      .from('exam_seat_plans')
+      .select('exam_id, roll_start, roll_end')
+      .eq('room_id', roomOneId)
+    const used = rows!.reduce((n, r) => n + (r.roll_end - r.roll_start + 1), 0)
+    expect(used).toBeLessThanOrEqual(4)
+    expect(rows!.some((r) => r.exam_id === examBId)).toBe(true)
   })
 
   it('the single-exam signature still works for shipped callers', async () => {

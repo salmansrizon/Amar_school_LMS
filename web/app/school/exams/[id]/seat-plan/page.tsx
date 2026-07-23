@@ -14,6 +14,7 @@ import {
   type RoomOption,
   type SeatPlanRow,
 } from './seat-plan-controls'
+import { embeddedBuildingName } from '@/lib/venues'
 
 // Layout per ui/school-owner/seat-plan.html: toolbar (exam label; Generate +
 // Publish) with an overlap-warning banner over the Room/Capacity/Assigned
@@ -85,8 +86,7 @@ export default async function SeatPlanPage({ params }: { params: Promise<{ id: s
     name: r.name,
     capacity: r.capacity,
     building_id: r.building_id,
-    buildingName:
-      (r.buildings as unknown as { name: string } | null)?.name ?? '',
+    buildingName: embeddedBuildingName(r),
   })) as RoomOption[]
   const buildingOpts = (buildings ?? []) as BuildingOption[]
   const examOpts: ExamOption[] = (otherExams ?? []).map((e) => ({

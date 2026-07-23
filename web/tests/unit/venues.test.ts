@@ -4,6 +4,7 @@ import {
   buildingRoomTree,
   buildingCapacity,
   roomVenueLabel,
+  embeddedBuildingName,
   validateBuilding,
   validateRoom,
   type BuildingRow,
@@ -101,5 +102,24 @@ describe('validateRoom', () => {
 
   it('allows a room to keep its own name while being edited', () => {
     expect(validateRoom({ ...input, id: 'r1', name: 'Room 101', building_id: 'b2' }, rooms)).toBeNull()
+  })
+})
+
+// Extracted during code review: three print pages were hand-casting the
+// embedded join and inlining the label.
+describe('roomVenueLabel / embeddedBuildingName', () => {
+  it('falls back to the room alone rather than printing a dangling dash', () => {
+    expect(roomVenueLabel(null, 'Room 101')).toBe('Room 101')
+    expect(roomVenueLabel('', 'Room 101')).toBe('Room 101')
+  })
+
+  it('reads the embedded building name in either PostgREST shape', () => {
+    expect(embeddedBuildingName({ buildings: { name: 'Science Block' } })).toBe('Science Block')
+    expect(embeddedBuildingName({ buildings: [{ name: 'Science Block' }] })).toBe('Science Block')
+  })
+
+  it('is empty when the join came back null or absent', () => {
+    expect(embeddedBuildingName({ buildings: null })).toBe('')
+    expect(embeddedBuildingName({})).toBe('')
   })
 })

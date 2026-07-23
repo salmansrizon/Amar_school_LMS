@@ -13,6 +13,7 @@ import {
 } from '@/lib/seat-plan-print'
 import { PrintPage, InstituteHeader, PaginatedSheet } from '@/components/print/pieces'
 import { PrintButton } from '@/components/print/print-button'
+import { embeddedBuildingName, roomVenueLabel } from '@/lib/venues'
 
 // Notice-board seat plan (issue #96, docs/improvement.md §2B; ADR 0007 —
 // browser-native print). Organised by room, because that is what a student
@@ -84,7 +85,7 @@ export default async function SeatPlanPrintPage({ params }: { params: Promise<{ 
     id: r.id,
     name: r.name,
     capacity: r.capacity,
-    buildingName: (r.buildings as unknown as { name: string } | null)?.name ?? '',
+    buildingName: embeddedBuildingName(r),
   }))
 
   const allocations: SeatAllocation[] = (seatRows ?? []).map((row) => {
@@ -140,7 +141,7 @@ export default async function SeatPlanPrintPage({ params }: { params: Promise<{ 
                   <section key={block.room.id} className="break-inside-avoid">
                     <div className="mb-1 flex items-baseline justify-between border-b border-line-strong pb-1">
                       <h2 className="text-sm font-bold">
-                        {block.buildingName} — {block.room.name}
+                        {roomVenueLabel(block.buildingName, block.room.name)}
                       </h2>
                       <span className="text-xs text-muted">
                         {t('seatPlan.capacity', lang)}: {block.room.capacity} · {t('seatPlan.studentCount', lang)}:{' '}

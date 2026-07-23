@@ -5,8 +5,9 @@ import { t, type Lang } from '@/lib/i18n'
 import { createClient } from '@/lib/supabase/server'
 import { loadInstitutePrintHeader } from '@/lib/institute-print'
 import { sittingLabel, studentsInRanges, type SheetStudent } from '@/lib/exam-attendance-sheet'
-import { PrintPage, InstituteHeader, InfoGrid, SignatureRow } from '@/components/print/pieces'
+import { PrintPage, InstituteHeader, InfoGrid, PaginatedSheet, SignatureRow } from '@/components/print/pieces'
 import { PrintButton } from '@/components/print/print-button'
+import { embeddedBuildingName } from '@/lib/venues'
 
 // Exam attendance sheet (issue #97, docs/improvement.md §4; ADR 0007).
 //
@@ -131,7 +132,7 @@ export default async function ExamAttendanceSheetPage({
   const roomById = new Map(
     (rooms ?? []).map((r) => [
       r.id,
-      { name: r.name, buildingName: (r.buildings as unknown as { name: string } | null)?.name ?? '' },
+      { name: r.name, buildingName: embeddedBuildingName(r) },
     ]),
   )
 
@@ -173,10 +174,17 @@ export default async function ExamAttendanceSheetPage({
           const seated = studentsInRanges(students, ranges)
           return (
             <PrintPage key={roomId}>
-              <InstituteHeader
-                institute={institute}
-                docTitle={`${t('examAttendanceSheet.docWord', lang)} — ${examLabel}`}
-              />
+              {/* A full room spills past one sheet, so the header repeats
+                  (issue #92): a page 2 with no institution block is not a
+                  document an invigilator can hand back. */}
+              <PaginatedSheet
+                header={
+                  <InstituteHeader
+                    institute={institute}
+                    docTitle={`${t('examAttendanceSheet.docWord', lang)} — ${examLabel}`}
+                  />
+                }
+              >
               <InfoGrid
                 rows={[
                   { label: t('examAttendanceSheet.subject', lang), value: subjectName.get(sitting.subject_id) ?? '—' },
@@ -226,6 +234,7 @@ export default async function ExamAttendanceSheetPage({
                 ]}
               />
               <p className="mt-3 text-center text-xs text-muted">{label}</p>
+              </PaginatedSheet>
             </PrintPage>
           )
         })

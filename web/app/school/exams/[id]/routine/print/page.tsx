@@ -8,6 +8,7 @@ import { dayLabel } from '@/lib/routine'
 import { PrintPage, InstituteHeader, PaginatedSheet, QrFooterRow } from '@/components/print/pieces'
 import { loadInstitutePrintHeader } from '@/lib/institute-print'
 import { PrintButton } from '@/components/print/print-button'
+import { embeddedBuildingName, roomVenueLabel } from '@/lib/venues'
 
 // Printable exam routine (ADR 0007: browser-native print), mirrors the class
 // routine print page's shape.
@@ -49,10 +50,7 @@ export default async function ExamRoutinePrintPage({ params }: { params: Promise
   // Room names only repeat across buildings since issue #93, so the printed
   // venue names both.
   const roomName = new Map(
-    (rooms ?? []).map((r) => {
-      const building = (r.buildings as unknown as { name: string } | null)?.name
-      return [r.id, building ? `${building} — ${r.name}` : r.name]
-    }),
+    (rooms ?? []).map((r) => [r.id, roomVenueLabel(embeddedBuildingName(r), r.name)]),
   )
   const sorted = sortRoutineEntries(entries ?? [])
   const examLabel = `${exam.name} (${exam.exam_year})`

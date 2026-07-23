@@ -36,9 +36,18 @@ export function buildingCapacity(building: BuildingWithRooms): number {
 }
 
 /** Rooms are only unique within their building, so anything naming a room to a
- *  human names its building too. */
-export function roomVenueLabel(buildingName: string, roomName: string): string {
-  return `${buildingName} — ${roomName}`
+ *  human names its building too. A room with no building name still prints
+ *  something usable rather than a dangling dash. */
+export function roomVenueLabel(buildingName: string | null | undefined, roomName: string): string {
+  return buildingName ? `${buildingName} — ${roomName}` : roomName
+}
+
+/** PostgREST returns an embedded `buildings(name)` join as an object the
+ *  generated types widen to unknown; every caller was casting it by hand. */
+export function embeddedBuildingName(row: { buildings?: unknown }): string {
+  const embedded = row.buildings as { name?: string } | { name?: string }[] | null | undefined
+  if (!embedded) return ''
+  return (Array.isArray(embedded) ? embedded[0]?.name : embedded.name) ?? ''
 }
 
 function normalize(name: string): string {

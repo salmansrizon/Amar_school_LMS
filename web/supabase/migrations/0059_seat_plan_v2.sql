@@ -85,6 +85,7 @@ declare
   room record;
   cursor_row record;
   free int;
+  taken int;
   share int;
   exams_left int;
   span int;
@@ -146,10 +147,20 @@ begin
     select count(*) into exams_left from _seat_cursor where next_pos <= total;
     exit when exams_left = 0;
 
-    free := room.capacity;
-    -- Every exam still in play gets a slice of this room; at least one seat
-    -- each, so no exam is starved out of a venue it belongs in.
-    share := greatest(1, room.capacity / exams_left);
+    -- Seats an exam OUTSIDE this call already holds in the room. Those rows
+    -- were deliberately not deleted, and the capacity trigger sums across every
+    -- exam in the room — so budgeting from raw capacity would overfill the room
+    -- and abort the whole run.
+    select coalesce(sum(roll_end - roll_start + 1), 0) into taken
+    from exam_seat_plans
+    where room_id = room.id and school_id = sid;
+
+    free := room.capacity - taken;
+    continue when free <= 0;
+
+    -- Every exam still in play gets a slice of what is actually left; at least
+    -- one seat each, so no exam is starved out of a venue it belongs in.
+    share := greatest(1, free / exams_left);
 
     for cursor_row in select * from _seat_cursor where next_pos <= total order by exam_id loop
       exit when free <= 0;
