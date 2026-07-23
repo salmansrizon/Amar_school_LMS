@@ -4,6 +4,7 @@ import { useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { labelClass } from '@/components/auth-card'
 import { t, type Lang } from '@/lib/i18n'
+import { compressImage, IMAGE_PRESETS } from '@/lib/image/compress'
 import { accountingAttachmentUploadPath, type AttachmentKind } from './attachment-actions'
 
 export interface AttachmentMeta {
@@ -60,17 +61,21 @@ export function AttachmentPicker({
     const file = e.target.files?.[0]
     if (!file) return
     setError(null)
-    const ext = extFor(file.type)
-    if (!ext) {
+    if (!extFor(file.type)) {
       setError(t('vouchers.badType', lang))
       return
     }
-    const cap = file.type.startsWith('image/') ? MAX_IMAGE_BYTES : MAX_PDF_BYTES
-    if (file.size > cap) {
+    setUploadingState(true)
+    // Compress images before the cap check so they fit the 500 KB attachment cap;
+    // PDFs pass through compressImage untouched.
+    const attachment = await compressImage(file, IMAGE_PRESETS.attachment)
+    const ext = extFor(attachment.type)
+    const cap = attachment.type.startsWith('image/') ? MAX_IMAGE_BYTES : MAX_PDF_BYTES
+    if (!ext || attachment.size > cap) {
       setError(t('vouchers.tooBig', lang))
+      setUploadingState(false)
       return
     }
-    setUploadingState(true)
     const { path, error: pathErr } = await accountingAttachmentUploadPath(kind, ext)
     if (pathErr || !path) {
       setError(pathErr ?? 'Upload failed')
@@ -80,14 +85,14 @@ export function AttachmentPicker({
     const supabase = createClient()
     const { error: upErr } = await supabase.storage
       .from('accounting-attachments')
-      .upload(path, file, { contentType: file.type })
+      .upload(path, attachment, { contentType: attachment.type })
     setUploadingState(false)
     if (upErr) {
       setError(upErr.message)
       return
     }
     setFileName(file.name)
-    onUploaded({ path, name: file.name, mime: file.type, size: file.size })
+    onUploaded({ path, name: file.name, mime: attachment.type, size: attachment.size })
   }
 
   return (

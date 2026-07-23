@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { t, type Lang } from '@/lib/i18n'
+import { compressImage, IMAGE_PRESETS } from '@/lib/image/compress'
 import { photoExtension, sectionsForClass } from '@/lib/students'
 import { admitStudent, studentPhotoPath, recordStudentPhoto } from '../actions'
 
@@ -199,15 +200,17 @@ export async function uploadStudentPhoto(
   lang: Lang,
 ): Promise<string | null> {
   if (!photoExtension(file.type)) return t('students.photoType', lang)
-  if (file.size > MAX_PHOTO_BYTES) return t('students.photoTooBig', lang)
-  const { path, error: pathErr } = await studentPhotoPath(studentId, file.type)
+  // Compress before the size check so large phone photos fit the 2 MB bucket cap.
+  const photo = await compressImage(file, IMAGE_PRESETS.studentPhoto)
+  if (photo.size > MAX_PHOTO_BYTES) return t('students.photoTooBig', lang)
+  const { path, error: pathErr } = await studentPhotoPath(studentId, photo.type)
   if (pathErr || !path) return pathErr ?? 'Upload failed'
   const supabase = createClient()
   const { error: upErr } = await supabase.storage
     .from('student-photos')
-    .upload(path, file, { upsert: true, contentType: file.type })
+    .upload(path, photo, { upsert: true, contentType: photo.type })
   if (upErr) return upErr.message
-  const res = await recordStudentPhoto(studentId, file.type)
+  const res = await recordStudentPhoto(studentId, photo.type)
   return res.error ?? null
 }
 

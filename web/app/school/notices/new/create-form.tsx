@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
 import { t, type Lang } from '@/lib/i18n'
+import { compressImage, IMAGE_PRESETS } from '@/lib/image/compress'
 import {
   IMPORTANCE_LEVELS,
   PUBLICATION_KINDS,
@@ -54,18 +55,20 @@ export function CreateNoticeForm({
       const supabase = createClient()
       let imagePath: string | null = null
       if (imageFile) {
-        if (imageFile.size > PUBLICATION_MAX_IMAGE_BYTES) {
+        // Compress before the size check so large images fit the 2 MB bucket cap.
+        const image = await compressImage(imageFile, IMAGE_PRESETS.publication)
+        if (image.size > PUBLICATION_MAX_IMAGE_BYTES) {
           setError(t('notices.imageTooBig', lang))
           return
         }
-        const { path, error: pathErr } = await publicationImageUploadPath(imageFile.type)
+        const { path, error: pathErr } = await publicationImageUploadPath(image.type)
         if (pathErr || !path) {
           setError(pathErr ?? 'Upload failed')
           return
         }
         const { error: upErr } = await supabase.storage
           .from('publications')
-          .upload(path, imageFile, { contentType: imageFile.type })
+          .upload(path, image, { contentType: image.type })
         if (upErr) {
           setError(upErr.message)
           return
