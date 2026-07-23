@@ -118,6 +118,13 @@ function SeatPlanRowView({
       <td className="py-2 pr-2 font-medium">
         {room ? room.name : '—'}
         {room?.buildingName ? <div className="text-xs font-normal text-muted">{room.buildingName}</div> : null}
+        {/* Per-room entry into the invigilator's sheet (issue #97). */}
+        <a
+          href={`/school/exams/${examId}/attendance-sheet?room=${row.room_id}`}
+          className="text-xs font-normal text-brand-600 hover:underline"
+        >
+          {t('examAttendanceSheet.title', lang)}
+        </a>
       </td>
       <td className="py-2 pr-2 text-right">{room?.capacity ?? '—'}</td>
       <td className="py-2 pr-2">
