@@ -38,16 +38,14 @@ export default async function NoticesPage({
   const { data: me } = await supabase.from('profiles').select('role').eq('id', user.id).single()
   if (me?.role !== 'school_owner' && me?.role !== 'staff_user') redirect('/login')
 
-  const [{ data: rows }, { data: shifts }] = await Promise.all([
+  const [{ data: rows }] = await Promise.all([
     supabase
       .from('publications')
       .select(
-        'id, kind, title, importance, target_type, target_class_name, target_section, target_shift_id, created_at',
+        'id, kind, title, importance, target_type, target_class_name, target_section, created_at',
       )
       .order('created_at', { ascending: false }),
-    supabase.from('shifts').select('id, name'),
   ])
-  const shiftName = new Map((shifts ?? []).map((s) => [s.id, s.name as string]))
   const visible = filterPublications(rows ?? [], q, kind as PublicationKind | '')
   const locale = lang === 'bn' ? 'bn-BD' : 'en-GB'
 
@@ -134,7 +132,6 @@ export default async function NoticesPage({
                         target_class_name: row.target_class_name ?? null,
                         target_section: row.target_section ?? null,
                       },
-                      row.target_shift_id ? (shiftName.get(row.target_shift_id) ?? null) : null,
                       lang,
                     )}
                   </td>

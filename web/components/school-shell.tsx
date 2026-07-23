@@ -12,7 +12,7 @@ import { t, type Lang, type MessageKey } from '@/lib/i18n'
 import { canOpenScreen } from '@/lib/auth/screens'
 import type { ScreenKey } from '@/lib/auth/screens'
 import type { Role } from '@/lib/auth/routing'
-import { SCHOOL_MODULES } from '@/lib/school-nav'
+import { SCHOOL_MODULES, type SchoolNavItem } from '@/lib/school-nav'
 
 // Persistent sidebar + topbar for the whole /school/* route group, restructured
 // to ui/school-owner/dashboard.html's reference image: light icon nav + bottom
@@ -46,30 +46,52 @@ function NavLinks({
   collapsed?: boolean
   onNavigate?: () => void
 }) {
-  const items: { screen: ScreenKey | 'dashboard'; href: string; titleKey: MessageKey }[] = [
-    { screen: 'dashboard', href: '/school', titleKey: 'dash.dashboard' },
-    ...SCHOOL_MODULES,
-  ]
+  const items: {
+    screen: ScreenKey | 'dashboard'
+    href: string
+    titleKey: MessageKey
+    children?: SchoolNavItem[]
+  }[] = [{ screen: 'dashboard', href: '/school', titleKey: 'dash.dashboard' }, ...SCHOOL_MODULES]
+  // One link renderer, used for both levels: a child differs only by indent
+  // (issue #101). Grants are still checked per entry — nesting is presentation.
+  const renderLink = (
+    item: { screen: ScreenKey | 'dashboard'; href: string; titleKey: MessageKey },
+    child = false,
+  ) => {
+    if (item.screen !== 'dashboard' && !canOpenScreen(role, grants, item.screen)) return null
+    const active = item.href === '/school' ? pathname === '/school' : pathname.startsWith(item.href)
+    const label = t(item.titleKey, lang)
+    return (
+      <Link
+        key={item.href}
+        href={item.href}
+        onClick={onNavigate}
+        aria-current={active ? 'page' : undefined}
+        title={collapsed ? label : undefined}
+        className={`flex min-h-11 items-center gap-3 rounded-xl py-2.5 text-sm font-semibold transition ${FOCUS} ${
+          collapsed ? 'justify-center px-0' : child ? 'pl-9 pr-3' : 'px-3'
+        } ${active ? 'bg-brand-50 text-brand-700' : 'text-muted hover:bg-brand-50/60 hover:text-brand-600'}`}
+      >
+        <Icon
+          name={item.screen}
+          className={`shrink-0 ${child ? 'size-4' : 'size-5'} ${active ? 'text-brand-600' : 'text-muted'}`}
+        />
+        {!collapsed && <span className="truncate">{label}</span>}
+      </Link>
+    )
+  }
+
   return (
     <nav className="flex flex-col gap-1">
       {items.map((item) => {
-        if (item.screen !== 'dashboard' && !canOpenScreen(role, grants, item.screen)) return null
-        const active = item.href === '/school' ? pathname === '/school' : pathname.startsWith(item.href)
-        const label = t(item.titleKey, lang)
+        const children = 'children' in item ? (item.children ?? []) : []
+        const parent = renderLink(item)
+        if (!parent && !children.length) return null
         return (
-          <Link
-            key={item.href}
-            href={item.href}
-            onClick={onNavigate}
-            aria-current={active ? 'page' : undefined}
-            title={collapsed ? label : undefined}
-            className={`flex min-h-11 items-center gap-3 rounded-xl py-2.5 text-sm font-semibold transition ${FOCUS} ${
-              collapsed ? 'justify-center px-0' : 'px-3'
-            } ${active ? 'bg-brand-50 text-brand-700' : 'text-muted hover:bg-brand-50/60 hover:text-brand-600'}`}
-          >
-            <Icon name={item.screen} className={`size-5 shrink-0 ${active ? 'text-brand-600' : 'text-muted'}`} />
-            {!collapsed && <span className="truncate">{label}</span>}
-          </Link>
+          <div key={item.href} className="flex flex-col gap-1">
+            {parent}
+            {children.map((child) => renderLink(child, true))}
+          </div>
         )
       })}
     </nav>

@@ -3,12 +3,12 @@ import { notFound, redirect } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { createClient } from '@/lib/supabase/server'
-import { ShiftToggle } from '../employee-controls'
+import { OfficeTimeToggle } from '../employee-controls'
 import { ArchiveToggle, ProfileEditor } from './profile-controls'
 
 // Layout per ui/school-owner/employee-detail.html: status header with
 // Archive/Restore action, carded profile sections (Identity / Bank Info /
-// Category & Qualification / Subject & Shift), and the Office-Time &
+// Category & Qualification / Subject & OfficeTime), and the Office-Time &
 // Considerable Grace Window breakdown table (max-across-levels rule, shipped
 // in the MVP as issue #9) at the bottom.
 
@@ -55,35 +55,35 @@ export default async function EmployeeDetailPage({
 
   const [
     { data: school },
-    { data: shifts },
+    { data: officeTimes },
     { data: assignments },
     { data: categories },
     { data: effective },
   ] = await Promise.all([
     supabase.from('schools').select('default_grace_minutes').eq('id', me.school_id).single(),
-    supabase.from('shifts').select('id, name, grace_minutes').order('name'),
-    supabase.from('employee_shifts').select('employee_id, shift_id').eq('employee_id', id),
+    supabase.from('office_times').select('id, name, grace_minutes').order('name'),
+    supabase.from('employee_office_times').select('employee_id, office_time_id').eq('employee_id', id),
     supabase.from('category_grace_minutes').select('category, grace_minutes').order('category'),
     supabase.rpc('effective_grace_minutes', { emp: id }),
   ])
 
   const archived = employee.archived_at !== null
   const locale = lang === 'bn' ? 'bn-BD' : 'en-GB'
-  const assignedShiftIds = new Set((assignments ?? []).map((a) => a.shift_id))
+  const assignedOfficeTimeIds = new Set((assignments ?? []).map((a) => a.office_time_id))
   const categoryGrace = categories?.find((c) => c.category === employee.category)?.grace_minutes ?? null
-  // null unless at least one assigned shift has grace configured — an
-  // assigned-but-unconfigured shift must read "—", the same as the other
+  // null unless at least one assigned officeTime has grace configured — an
+  // assigned-but-unconfigured officeTime must read "—", the same as the other
   // unconfigured levels, not a misleading "0".
-  const configuredShiftGraces = (shifts ?? [])
-    .filter((s) => assignedShiftIds.has(s.id))
+  const configuredOfficeTimeGraces = (officeTimes ?? [])
+    .filter((s) => assignedOfficeTimeIds.has(s.id))
     .map((s) => s.grace_minutes)
     .filter((g): g is number => g !== null && g !== undefined)
-  const shiftGrace = configuredShiftGraces.length ? Math.max(...configuredShiftGraces) : null
+  const officeTimeGrace = configuredOfficeTimeGraces.length ? Math.max(...configuredOfficeTimeGraces) : null
   const effectiveGrace = typeof effective === 'number' ? effective : 0
   const levels: { label: string; minutes: number | null }[] = [
     { label: t('grace.global', lang), minutes: school?.default_grace_minutes ?? null },
     { label: t('employees.gradeLevelCategory', lang), minutes: categoryGrace },
-    { label: t('employees.gradeLevelShift', lang), minutes: shiftGrace },
+    { label: t('employees.gradeLevelOfficeTime', lang), minutes: officeTimeGrace },
     { label: t('employees.override', lang), minutes: employee.grace_override_minutes },
   ]
 
@@ -132,20 +132,20 @@ export default async function EmployeeDetailPage({
         </InfoCard>
 
         <section className="mb-4 rounded-lg border border-line bg-paper p-5 shadow-card">
-          <h3 className="mb-3 font-bold">{t('employees.subjectShift', lang)}</h3>
+          <h3 className="mb-3 font-bold">{t('employees.subjectOfficeTime', lang)}</h3>
           <dl className="mb-3 grid gap-3 sm:grid-cols-2">
             <InfoRow label={t('employees.subjectTaught', lang)} value={employee.subject_taught} />
           </dl>
-          <p className="mb-2 text-xs font-semibold text-muted">{t('employees.shifts', lang)}</p>
+          <p className="mb-2 text-xs font-semibold text-muted">{t('employees.officeTimes', lang)}</p>
           <div className="flex flex-wrap items-center gap-2">
-            {!shifts?.length && <span className="text-sm text-muted">{t('employees.none', lang)}</span>}
-            {shifts?.map((s) => (
-              <ShiftToggle
+            {!officeTimes?.length && <span className="text-sm text-muted">{t('employees.none', lang)}</span>}
+            {officeTimes?.map((s) => (
+              <OfficeTimeToggle
                 key={s.id}
                 employeeId={id}
-                shiftId={s.id}
+                officeTimeId={s.id}
                 label={s.name}
-                assigned={assignedShiftIds.has(s.id)}
+                assigned={assignedOfficeTimeIds.has(s.id)}
               />
             ))}
           </div>

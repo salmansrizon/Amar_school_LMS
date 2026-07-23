@@ -37,12 +37,10 @@ export function Field({ label, children }: { label: string; children: React.Reac
 export function ProfileFields({
   lang,
   classes,
-  shifts,
   defaults = {},
 }: {
   lang: Lang
   classes: { name: string; section: string | null }[]
-  shifts: { id: string; name: string }[]
   defaults?: Record<string, string | boolean | number | null>
 }) {
   const d = (key: string) => String(defaults[key] ?? '')
@@ -92,16 +90,6 @@ export function ProfileFields({
               {sections.map((s) => (
                 <option key={s} value={s}>
                   {s}
-                </option>
-              ))}
-            </select>
-          </Field>
-          <Field label={t('students.shift', lang)}>
-            <select name="shift_id" defaultValue={d('shift_id')} className={fieldClass}>
-              <option value="">—</option>
-              {shifts.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.name}
                 </option>
               ))}
             </select>
@@ -214,11 +202,9 @@ export async function uploadStudentPhoto(
 export function AdmissionForm({
   lang,
   classes,
-  shifts,
 }: {
   lang: Lang
   classes: { name: string; section: string | null }[]
-  shifts: { id: string; name: string }[]
 }) {
   const router = useRouter()
   const photoRef = useRef<HTMLInputElement>(null)
@@ -248,7 +234,7 @@ export function AdmissionForm({
         })
       }}
     >
-      <ProfileFields lang={lang} classes={classes} shifts={shifts} />
+      <ProfileFields lang={lang} classes={classes} />
 
       <Card title={t('students.photo', lang)}>
         <Field label={t('students.uploadPhoto', lang)}>

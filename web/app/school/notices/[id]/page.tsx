@@ -28,21 +28,12 @@ export default async function NoticeDetailPage({ params }: { params: Promise<{ i
   const { data: row } = await supabase
     .from('publications')
     .select(
-      'id, kind, title, content, importance, target_type, target_class_name, target_section, target_shift_id, image_path, link_url, created_at',
+      'id, kind, title, content, importance, target_type, target_class_name, target_section, image_path, link_url, created_at',
     )
     .eq('id', id)
     .maybeSingle()
   if (!row) notFound()
 
-  let shiftName: string | null = null
-  if (row.target_shift_id) {
-    const { data: shift } = await supabase
-      .from('shifts')
-      .select('name')
-      .eq('id', row.target_shift_id)
-      .maybeSingle()
-    shiftName = shift?.name ?? null
-  }
   const locale = lang === 'bn' ? 'bn-BD' : 'en-GB'
 
   return (
@@ -69,7 +60,6 @@ export default async function NoticeDetailPage({ params }: { params: Promise<{ i
               target_class_name: row.target_class_name,
               target_section: row.target_section,
             },
-            shiftName,
             lang,
           )}{' '}
           · {new Date(row.created_at).toLocaleDateString(locale)}

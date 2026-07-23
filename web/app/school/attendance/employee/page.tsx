@@ -27,10 +27,10 @@ const STATUS_BADGE: Record<EmployeeDisplayStatus, string> = {
   on_leave: 'bg-sky-soft text-sky-deep',
 }
 
-const GRACE_SOURCE_KEY: Record<GraceSource, 'attendance.graceSourceGlobal' | 'attendance.graceSourceCategory' | 'attendance.graceSourceShift' | 'attendance.graceSourceOverride'> = {
+const GRACE_SOURCE_KEY: Record<GraceSource, 'attendance.graceSourceGlobal' | 'attendance.graceSourceCategory' | 'attendance.graceSourceOfficeTime' | 'attendance.graceSourceOverride'> = {
   global: 'attendance.graceSourceGlobal',
   category: 'attendance.graceSourceCategory',
-  shift: 'attendance.graceSourceShift',
+  officeTime: 'attendance.graceSourceOfficeTime',
   override: 'attendance.graceSourceOverride',
 }
 
@@ -54,14 +54,14 @@ export default async function EmployeeAttendancePage({
   const { data: me } = await supabase.from('profiles').select('role, school_id').eq('id', user.id).single()
   if (!me?.school_id || (me.role !== 'school_owner' && me.role !== 'staff_user')) redirect('/login')
 
-  const [{ data: school }, { data: employees }, { data: shifts }, { data: categories }] = await Promise.all([
+  const [{ data: school }, { data: employees }, { data: officeTimes }, { data: categories }] = await Promise.all([
     supabase.from('schools').select('default_grace_minutes').eq('id', me.school_id).single(),
     supabase
       .from('employees')
       .select('id, full_name, category, grace_override_minutes')
       .is('archived_at', null)
       .order('full_name'),
-    supabase.from('shifts').select('id, grace_minutes, starts_at, ends_at'),
+    supabase.from('office_times').select('id, grace_minutes, starts_at, ends_at'),
     supabase.from('category_grace_minutes').select('category, grace_minutes'),
   ])
 
@@ -72,8 +72,8 @@ export default async function EmployeeAttendancePage({
 
   const [{ data: assignments }, { data: records }, { data: leaves }] = await Promise.all([
     employeeIds.length
-      ? supabase.from('employee_shifts').select('employee_id, shift_id').in('employee_id', employeeIds)
-      : Promise.resolve({ data: [] as { employee_id: string; shift_id: string }[] }),
+      ? supabase.from('employee_office_times').select('employee_id, office_time_id').in('employee_id', employeeIds)
+      : Promise.resolve({ data: [] as { employee_id: string; office_time_id: string }[] }),
     employeeIds.length
       ? supabase
           .from('attendance_records')
@@ -94,33 +94,33 @@ export default async function EmployeeAttendancePage({
   ])
 
   const categoryGraceByName = new Map((categories ?? []).map((c) => [c.category, c.grace_minutes]))
-  const shiftById = new Map((shifts ?? []).map((s) => [s.id, s]))
-  const shiftIdsByEmployee = new Map<string, string[]>()
+  const officeTimeById = new Map((officeTimes ?? []).map((s) => [s.id, s]))
+  const officeTimeIdsByEmployee = new Map<string, string[]>()
   for (const a of assignments ?? []) {
-    const list = shiftIdsByEmployee.get(a.employee_id) ?? []
-    list.push(a.shift_id)
-    shiftIdsByEmployee.set(a.employee_id, list)
+    const list = officeTimeIdsByEmployee.get(a.employee_id) ?? []
+    list.push(a.office_time_id)
+    officeTimeIdsByEmployee.set(a.employee_id, list)
   }
   const recordByEmployee = new Map((records ?? []).map((r) => [r.person_id, r]))
   const onLeaveEmployees = new Set((leaves ?? []).map((l) => l.employee_id))
 
   const rows = roster.map((e) => {
-    const assignedShiftIds = shiftIdsByEmployee.get(e.id) ?? []
-    const assignedShifts = assignedShiftIds.map((id) => shiftById.get(id)).filter((s): s is NonNullable<typeof s> => !!s)
-    const shiftGraces = assignedShifts.map((s) => s.grace_minutes).filter((g): g is number => g !== null && g !== undefined)
+    const assignedOfficeTimeIds = officeTimeIdsByEmployee.get(e.id) ?? []
+    const assignedOfficeTimes = assignedOfficeTimeIds.map((id) => officeTimeById.get(id)).filter((s): s is NonNullable<typeof s> => !!s)
+    const officeTimeGraces = assignedOfficeTimes.map((s) => s.grace_minutes).filter((g): g is number => g !== null && g !== undefined)
     const { minutes: grace, source } = effectiveGraceWithSource({
       global: school?.default_grace_minutes ?? null,
       category: e.category ? (categoryGraceByName.get(e.category) ?? null) : null,
-      shifts: shiftGraces,
+      officeTimes: officeTimeGraces,
       override: e.grace_override_minutes,
     })
-    // Multi-shift assignment mirrors reconcile_attendance's simplification
+    // Multi-officeTime assignment mirrors reconcile_attendance's simplification
     // (migration 0017): earliest starts_at, latest ends_at across all
-    // assigned shifts — not fixed here, out of scope for this ticket.
-    const starts = assignedShifts.map((s) => s.starts_at).filter((v): v is string => !!v)
-    const ends = assignedShifts.map((s) => s.ends_at).filter((v): v is string => !!v)
-    const shiftStart = starts.length ? starts.sort()[0] : null
-    const shiftEnd = ends.length ? ends.sort().slice(-1)[0] : null
+    // assigned officeTimes — not fixed here, out of scope for this ticket.
+    const starts = assignedOfficeTimes.map((s) => s.starts_at).filter((v): v is string => !!v)
+    const ends = assignedOfficeTimes.map((s) => s.ends_at).filter((v): v is string => !!v)
+    const officeStart = starts.length ? starts.sort()[0] : null
+    const officeEnd = ends.length ? ends.sort().slice(-1)[0] : null
 
     const record = recordByEmployee.get(e.id)
     const status = resolveEmployeeDisplayStatus({
@@ -128,8 +128,8 @@ export default async function EmployeeAttendancePage({
       onApprovedLeave: onLeaveEmployees.has(e.id),
       entry: record ? new Date(record.entry_at) : null,
       exit: record?.exit_at ? new Date(record.exit_at) : null,
-      shiftStart,
-      shiftEnd,
+      officeStart,
+      officeEnd,
       graceMinutes: grace,
     })
 

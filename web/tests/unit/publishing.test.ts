@@ -48,34 +48,31 @@ describe('targetAudienceLabel: mockup "Target Audience" column', () => {
     expect(
       targetAudienceLabel(
         { target_type: 'all', target_class_name: null, target_section: null },
-        null,
         'en',
       ),
     ).toBe('All Students')
     expect(
       targetAudienceLabel(
         { target_type: 'all', target_class_name: null, target_section: null },
-        null,
         'bn',
       ),
     ).toBe('সকল শিক্ষার্থী')
   })
 
-  it('joins class / section / shift for a specific target', () => {
+  // OfficeTime left publication targeting with issue #100.
+  it('joins class / section for a specific target', () => {
     expect(
       targetAudienceLabel(
         { target_type: 'specific', target_class_name: 'Class 6', target_section: 'A' },
-        'Morning',
         'en',
       ),
-    ).toBe('Class 6 / A / Morning')
+    ).toBe('Class 6 / A')
   })
 
   it('drops missing parts of a specific target', () => {
     expect(
       targetAudienceLabel(
         { target_type: 'specific', target_class_name: 'Class 9', target_section: null },
-        null,
         'en',
       ),
     ).toBe('Class 9')
@@ -104,15 +101,15 @@ describe('filterPublications: list search + type filter', () => {
 
 describe('validateTargetSelection: specific target needs at least one filter', () => {
   it('accepts "all" with nothing selected', () => {
-    expect(validateTargetSelection('all', '', '', '')).toBeNull()
+    expect(validateTargetSelection('all', '', '')).toBeNull()
   })
 
   it('rejects "specific" with nothing selected', () => {
-    expect(validateTargetSelection('specific', '', '', '')).not.toBeNull()
+    expect(validateTargetSelection('specific', '', '')).not.toBeNull()
   })
 
   it('accepts "specific" with just a class chosen', () => {
-    expect(validateTargetSelection('specific', 'Class 6', '', '')).toBeNull()
+    expect(validateTargetSelection('specific', 'Class 6', '')).toBeNull()
   })
 })
 

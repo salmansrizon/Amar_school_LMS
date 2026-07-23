@@ -8,7 +8,7 @@ import { ComposeForm } from './compose-form'
 import { COMPOSE_STUDENT_COLUMNS, COMPOSE_EMPLOYEE_COLUMNS } from '@/lib/sms/recipients'
 
 // Compose SMS (issue #36, PRD §5.7) per ui/school-owner/sms-compose.html.
-// Recipients build from class/shift/section, a teacher/staff/management
+// Recipients build from class/section, a teacher/staff/management
 // group, or manual numbers; live character/segment counting client-side.
 export default async function SmsComposePage() {
   const lang = await currentLang()
@@ -23,9 +23,8 @@ export default async function SmsComposePage() {
   // Withdrawn/archived students and employees are excluded — matches the
   // active-only default every other list screen in this app uses (e.g.
   // app/school/students/page.tsx, app/school/employees/page.tsx).
-  const [{ data: students }, { data: shifts }, { data: employees }] = await Promise.all([
+  const [{ data: students }, { data: employees }] = await Promise.all([
     supabase.from('students').select(COMPOSE_STUDENT_COLUMNS).is('archived_at', null),
-    supabase.from('shifts').select('id, name').order('name'),
     supabase.from('employees').select(COMPOSE_EMPLOYEE_COLUMNS).is('archived_at', null),
   ])
 
@@ -49,7 +48,6 @@ export default async function SmsComposePage() {
         classNames={classNames}
         sections={sections}
         categories={categories}
-        shifts={shifts ?? []}
       />
     </main>
   )

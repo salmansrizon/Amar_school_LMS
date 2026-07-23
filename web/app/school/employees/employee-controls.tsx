@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { t, type Lang } from '@/lib/i18n'
-import { addShift, setCategoryGrace, setDefaultGrace, setShiftAssignment } from './actions'
+import { addOfficeTime, setCategoryGrace, setDefaultGrace, setOfficeTimeAssignment } from './actions'
 
 const input =
   'h-9 w-full rounded-sm border border-line-strong bg-paper px-2 text-sm outline-none focus:border-brand-500'
@@ -41,14 +41,14 @@ export function DefaultGraceForm({ current, lang }: { current: number | null; la
   )
 }
 
-export function AddShiftForm({ lang }: { lang: Lang }) {
-  const { error, pending, submit } = useAction(addShift)
+export function AddOfficeTimeForm({ lang }: { lang: Lang }) {
+  const { error, pending, submit } = useAction(addOfficeTime)
   return (
     <form onSubmit={submit}>
-      <label className={label}>{t('shifts.add', lang)}</label>
+      <label className={label}>{t('officeTimes.add', lang)}</label>
       <div className="flex gap-2">
-        <input name="name" required placeholder={t('shifts.name', lang)} className={input} />
-        <input name="grace_minutes" type="number" min={0} placeholder={t('shifts.grace', lang)} className={`${input} w-24`} />
+        <input name="name" required placeholder={t('officeTimes.name', lang)} className={input} />
+        <input name="grace_minutes" type="number" min={0} placeholder={t('officeTimes.grace', lang)} className={`${input} w-24`} />
         <button type="submit" disabled={pending} className={btn}>{t('common.add', lang)}</button>
       </div>
       {error && <p className="mt-1 text-xs text-alert-deep">{error}</p>}
@@ -63,7 +63,7 @@ export function CategoryGraceForm({ lang }: { lang: Lang }) {
       <label className={label}>{t('categoryGrace.add', lang)}</label>
       <div className="flex gap-2">
         <input name="category" required placeholder={t('employees.category', lang)} className={input} />
-        <input name="grace_minutes" type="number" min={0} required placeholder={t('shifts.grace', lang)} className={`${input} w-24`} />
+        <input name="grace_minutes" type="number" min={0} required placeholder={t('officeTimes.grace', lang)} className={`${input} w-24`} />
         <button type="submit" disabled={pending} className={btn}>{t('common.add', lang)}</button>
       </div>
       {error && <p className="mt-1 text-xs text-alert-deep">{error}</p>}
@@ -71,14 +71,14 @@ export function CategoryGraceForm({ lang }: { lang: Lang }) {
   )
 }
 
-export function ShiftToggle({
+export function OfficeTimeToggle({
   employeeId,
-  shiftId,
-  label: shiftName,
+  officeTimeId,
+  label: officeTimeName,
   assigned,
 }: {
   employeeId: string
-  shiftId: string
+  officeTimeId: string
   label: string
   assigned: boolean
 }) {
@@ -96,7 +96,7 @@ export function ShiftToggle({
           const next = !on
           setOn(next)
           setFailed(false)
-          const { error } = await setShiftAssignment(employeeId, shiftId, next)
+          const { error } = await setOfficeTimeAssignment(employeeId, officeTimeId, next)
           if (error) {
             setOn(!next)
             setFailed(true)
@@ -107,7 +107,7 @@ export function ShiftToggle({
         on ? 'bg-mint-soft text-mint-deep' : 'bg-paper-muted text-muted'
       } ${pending ? 'opacity-60' : ''} ${failed ? 'ring-1 ring-alert' : ''}`}
     >
-      {shiftName}
+      {officeTimeName}
     </button>
   )
 }

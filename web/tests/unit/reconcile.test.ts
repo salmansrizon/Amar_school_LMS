@@ -20,7 +20,7 @@ describe('collapseTaps', () => {
   })
 })
 
-describe('employeeStatus: applies shift window + Considerable Grace', () => {
+describe('employeeStatus: applies officeTime window + Considerable Grace', () => {
   const at = (time: string) => new Date(`2026-07-08T${time}:00Z`)
 
   it('entry within start+grace is on time', () => {
@@ -40,7 +40,7 @@ describe('employeeStatus: applies shift window + Considerable Grace', () => {
     expect(employeeStatus(at('09:00'), at('12:00'), '08:00', '14:00', 15)).toBe('late_exit_early')
   })
 
-  it('no shift window configured → plain present', () => {
+  it('no officeTime window configured → plain present', () => {
     expect(employeeStatus(at('08:00'), at('14:00'), null, null, 30)).toBe('present')
   })
 })
@@ -57,8 +57,8 @@ describe('resolveEmployeeDisplayStatus: adds absent/on_leave around employeeStat
         onApprovedLeave: false,
         entry: null,
         exit: null,
-        shiftStart: '08:00',
-        shiftEnd: '14:00',
+        officeStart: '08:00',
+        officeEnd: '14:00',
         graceMinutes: 10,
       }),
     ).toBe('absent')
@@ -71,8 +71,8 @@ describe('resolveEmployeeDisplayStatus: adds absent/on_leave around employeeStat
         onApprovedLeave: true,
         entry: null,
         exit: null,
-        shiftStart: '08:00',
-        shiftEnd: '14:00',
+        officeStart: '08:00',
+        officeEnd: '14:00',
         graceMinutes: 10,
       }),
     ).toBe('on_leave')
@@ -85,8 +85,8 @@ describe('resolveEmployeeDisplayStatus: adds absent/on_leave around employeeStat
         onApprovedLeave: false,
         entry: at('08:05'),
         exit: at('16:32'),
-        shiftStart: '08:00',
-        shiftEnd: '16:00',
+        officeStart: '08:00',
+        officeEnd: '16:00',
         graceMinutes: 10,
       }),
     ).toBe('on_time')

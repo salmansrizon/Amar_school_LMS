@@ -46,7 +46,6 @@ export async function createPublication(input: {
   importance: Importance
   targetType: TargetType
   targetClassName: string
-  targetShiftId: string
   targetSection: string
   imagePath: string | null
   linkUrl: string
@@ -58,7 +57,6 @@ export async function createPublication(input: {
   const targetError = validateTargetSelection(
     input.targetType,
     input.targetClassName,
-    input.targetShiftId,
     input.targetSection,
   )
   if (targetError) return { error: targetError }
@@ -76,7 +74,6 @@ export async function createPublication(input: {
       importance: input.importance,
       target_type: input.targetType,
       target_class_name: specific ? input.targetClassName || null : null,
-      target_shift_id: specific ? input.targetShiftId || null : null,
       target_section: specific ? input.targetSection || null : null,
       image_path: input.imagePath,
       link_url: input.linkUrl.trim() ? input.linkUrl.trim() : null,

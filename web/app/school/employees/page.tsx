@@ -3,13 +3,13 @@ import { redirect } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { createClient } from '@/lib/supabase/server'
-import { employeeShiftNames, filterEmployees } from '@/lib/employees'
-import { AddShiftForm, CategoryGraceForm, DefaultGraceForm } from './employee-controls'
+import { employeeOfficeTimeNames, filterEmployees } from '@/lib/employees'
+import { AddOfficeTimeForm, CategoryGraceForm, DefaultGraceForm } from './employee-controls'
 
 // Layout per ui/school-owner/employees-list.html: search + category filter,
-// table Name | Category | Qualification | Shift | Department | Status | View,
+// table Name | Category | Qualification | OfficeTime | Department | Status | View,
 // with Old Employees + New Employee actions. Office-time/grace config
-// (global default, per-shift, per-category, per-individual override — issue
+// (global default, per-officeTime, per-category, per-individual override — issue
 // #9) stays at the top, unchanged by issue #28.
 
 const thClass = 'px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted'
@@ -39,20 +39,20 @@ export default async function EmployeesPage({
 
   const [
     { data: school },
-    { data: shifts },
+    { data: officeTimes },
     { data: categoryGrace },
     { data: employees },
     { data: assignments },
   ] = await Promise.all([
     supabase.from('schools').select('default_grace_minutes').eq('id', me.school_id).single(),
-    supabase.from('shifts').select('id, name, grace_minutes').order('name'),
+    supabase.from('office_times').select('id, name, grace_minutes').order('name'),
     supabase.from('category_grace_minutes').select('category, grace_minutes').order('category'),
     supabase
       .from('employees')
       .select('id, full_name, category, qualification, department, archived_at')
       .is('archived_at', null)
       .order('full_name'),
-    supabase.from('employee_shifts').select('employee_id, shift_id'),
+    supabase.from('employee_office_times').select('employee_id, office_time_id'),
   ])
 
   const visible = filterEmployees(employees ?? [], q, category)
@@ -69,10 +69,10 @@ export default async function EmployeesPage({
 
       <section className="mb-6 grid gap-4 rounded-lg border border-line bg-paper p-5 shadow-card sm:grid-cols-3">
         <DefaultGraceForm current={school?.default_grace_minutes ?? null} lang={lang} />
-        <AddShiftForm lang={lang} />
+        <AddOfficeTimeForm lang={lang} />
         <CategoryGraceForm lang={lang} />
         <div className="text-xs text-muted sm:col-span-3">
-          {shifts?.map((s) => (
+          {officeTimes?.map((s) => (
             <span key={s.id} className="mr-3">
               {s.name}: {s.grace_minutes ?? '—'}m
             </span>
@@ -135,7 +135,7 @@ export default async function EmployeesPage({
                   <th className={thClass}>{t('employees.name', lang)}</th>
                   <th className={thClass}>{t('employees.category', lang)}</th>
                   <th className={thClass}>{t('employees.qualification', lang)}</th>
-                  <th className={thClass}>{t('employees.shifts', lang)}</th>
+                  <th className={thClass}>{t('employees.officeTimes', lang)}</th>
                   <th className={thClass}>{t('employees.department', lang)}</th>
                   <th className={thClass}>{t('employees.status', lang)}</th>
                   <th className={thClass} />
@@ -147,7 +147,7 @@ export default async function EmployeesPage({
                     <td className={`${tdClass} font-medium`}>{e.full_name}</td>
                     <td className={tdClass}>{e.category ?? dash}</td>
                     <td className={tdClass}>{e.qualification ?? dash}</td>
-                    <td className={tdClass}>{employeeShiftNames(e.id, assignments ?? [], shifts ?? []) ?? dash}</td>
+                    <td className={tdClass}>{employeeOfficeTimeNames(e.id, assignments ?? [], officeTimes ?? []) ?? dash}</td>
                     <td className={tdClass}>{e.department ?? dash}</td>
                     <td className={tdClass}>
                       <span className="rounded-full bg-mint-soft px-2 py-0.5 text-xs font-semibold text-mint-deep">

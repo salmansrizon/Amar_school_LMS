@@ -123,13 +123,12 @@ export async function sendCompose(formData: FormData): Promise<{ error?: string;
   const mode = formData.get('mode') as ComposeMode
   const body = ((formData.get('body') as string) || '').trim()
   const className = (formData.get('class_name') as string) || ''
-  const shiftId = (formData.get('shift_id') as string) || ''
   const section = (formData.get('section') as string) || ''
   const category = (formData.get('category') as string) || ''
   const manualNumbers = (formData.get('manual_numbers') as string) || ''
 
   if (!body) return { error: t('sms.messageRequired', lang) }
-  if (mode !== 'class_shift_section' && mode !== 'group' && mode !== 'manual') {
+  if (mode !== 'class_section' && mode !== 'group' && mode !== 'manual') {
     return { error: t('sms.invalidMode', lang) }
   }
 
@@ -147,14 +146,14 @@ export async function sendCompose(formData: FormData): Promise<{ error?: string;
   const recipients = resolveRecipients(mode, {
     students: (students ?? []) as ComposeStudentRow[],
     employees: (employees ?? []) as ComposeEmployeeRow[],
-    filter: { className, shiftId, section },
+    filter: { className, section },
     category,
     manualNumbers,
   })
   if (recipients.length === 0) return { error: t('sms.noRecipients', lang) }
 
   const recipientLabel =
-    mode === 'class_shift_section'
+    mode === 'class_section'
       ? [className, section].filter(Boolean).join(' / ') || null
       : mode === 'group'
         ? category || null

@@ -65,7 +65,7 @@ export function AssignCardForm({
 
 // Per-school manual-attendance override switch (issue #30, PRD §5.3): the
 // legacy "de-activate automatic attendance" toggle. Optimistic like
-// ShiftToggle (app/school/employees/employee-controls.tsx), reverts on error.
+// OfficeTimeToggle (app/school/employees/employee-controls.tsx), reverts on error.
 export function AutomaticAttendanceToggle({ enabled, lang }: { enabled: boolean; lang: Lang }) {
   const [on, setOn] = useState(enabled)
   const [error, setError] = useState<string | null>(null)

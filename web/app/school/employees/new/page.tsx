@@ -6,9 +6,9 @@ import { createClient } from '@/lib/supabase/server'
 import { CreateEmployeeForm } from './create-form'
 
 // Layout per ui/school-owner/employee-create-form.html: carded sections
-// Identity / Bank Info / Category & Qualification / Subject & Shift /
-// Individual Grace Override, Cancel + Save at the bottom. Shift assignment
-// itself stays on the employee detail page (existing multi-shift toggles).
+// Identity / Bank Info / Category & Qualification / Subject & OfficeTime /
+// Individual Grace Override, Cancel + Save at the bottom. OfficeTime assignment
+// itself stays on the employee detail page (existing multi-officeTime toggles).
 export default async function NewEmployeePage() {
   const lang: Lang = await currentLang()
   const supabase = await createClient()

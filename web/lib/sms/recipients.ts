@@ -3,12 +3,12 @@
 // caller's School) so the exact same logic backs both the server action that
 // sends and the client-side "estimated recipients" live preview.
 
-export type ComposeMode = 'class_shift_section' | 'group' | 'manual'
+export type ComposeMode = 'class_section' | 'group' | 'manual'
 
 // Shared `.select()` column lists — the compose page (for the initial fetch +
 // live "estimated recipients" preview) and the sendCompose server action (for
 // the actual send) must resolve recipients from the exact same shape.
-export const COMPOSE_STUDENT_COLUMNS = 'id, full_name, class_name, section, shift_id, guardian_phone'
+export const COMPOSE_STUDENT_COLUMNS = 'id, full_name, class_name, section, guardian_phone'
 export const COMPOSE_EMPLOYEE_COLUMNS = 'id, full_name, category, mobile'
 
 export interface ComposeStudentRow {
@@ -16,7 +16,6 @@ export interface ComposeStudentRow {
   full_name: string
   class_name: string | null
   section: string | null
-  shift_id: string | null
   guardian_phone: string | null
 }
 
@@ -34,23 +33,21 @@ export interface Recipient {
   employeeId?: string
 }
 
-export interface ClassShiftSectionFilter {
+export interface ClassSectionFilter {
   className?: string | null
-  shiftId?: string | null
   section?: string | null
 }
 
-/** Class/Shift/Section recipients: a blank filter field means "any" (matches
- *  the mockup's "All Shifts"/"All Sections" options); students without a
- *  recorded guardian phone are silently skipped rather than erroring, since
- *  a school-wide send should still reach everyone who has a number on file. */
-export function resolveClassShiftSectionRecipients(
+/** Class/Section recipients: a blank filter field means "any" (the "All
+ *  Sections" option); students without a recorded guardian phone are silently
+ *  skipped rather than erroring, since a school-wide send should still reach
+ *  everyone who has a number on file. OfficeTime left the student side with #100. */
+export function resolveClassSectionRecipients(
   students: ComposeStudentRow[],
-  filter: ClassShiftSectionFilter,
+  filter: ClassSectionFilter,
 ): Recipient[] {
   return students
     .filter((s) => !filter.className || s.class_name === filter.className)
-    .filter((s) => !filter.shiftId || s.shift_id === filter.shiftId)
     .filter((s) => !filter.section || s.section === filter.section)
     .filter((s): s is ComposeStudentRow & { guardian_phone: string } => !!s.guardian_phone)
     .map((s) => ({ phone: s.guardian_phone, name: s.full_name, studentId: s.id }))
@@ -85,12 +82,12 @@ export function resolveRecipients(
   input: {
     students: ComposeStudentRow[]
     employees: ComposeEmployeeRow[]
-    filter: ClassShiftSectionFilter
+    filter: ClassSectionFilter
     category: string
     manualNumbers: string
   },
 ): Recipient[] {
-  if (mode === 'class_shift_section') return resolveClassShiftSectionRecipients(input.students, input.filter)
+  if (mode === 'class_section') return resolveClassSectionRecipients(input.students, input.filter)
   if (mode === 'group') return resolveGroupRecipients(input.employees, input.category)
   return parseManualNumbers(input.manualNumbers)
 }

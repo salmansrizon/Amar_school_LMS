@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 
 // Seam: employees profile columns + soft-archive/restore (issue #28). The
-// office-time/grace machinery (shifts, category grace, effective_grace_*)
+// office-time/grace machinery (officeTimes, category grace, effective_grace_*)
 // predates this ticket and is exercised by tests/integration/grace.test.ts.
 const URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const ANON = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!

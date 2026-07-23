@@ -95,11 +95,11 @@ export function ProfileFields({
         </div>
       </Card>
 
-      <Card title={t('employees.subjectShift', lang)}>
+      <Card title={t('employees.subjectOfficeTime', lang)}>
         <Field label={t('employees.subjectTaught', lang)}>
           <input name="subject_taught" defaultValue={d('subject_taught')} className={fieldClass} />
         </Field>
-        <p className="mt-2 text-xs text-muted">{t('employees.shiftAssignHint', lang)}</p>
+        <p className="mt-2 text-xs text-muted">{t('employees.officeTimeAssignHint', lang)}</p>
       </Card>
 
       <Card title={t('employees.graceOverrideTitle', lang)}>

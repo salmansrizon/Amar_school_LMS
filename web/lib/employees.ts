@@ -26,16 +26,16 @@ export function filterEmployees<T extends EmployeeListRow>(
   )
 }
 
-/** Comma-joined assigned shift names for an employee, "—" via null when none. */
-export function employeeShiftNames(
+/** Comma-joined assigned officeTime names for an employee, "—" via null when none. */
+export function employeeOfficeTimeNames(
   employeeId: string,
-  assignments: { employee_id: string; shift_id: string }[],
-  shifts: { id: string; name: string }[],
+  assignments: { employee_id: string; office_time_id: string }[],
+  officeTimes: { id: string; name: string }[],
 ): string | null {
-  const shiftMap = new Map(shifts.map((s) => [s.id, s.name]))
+  const officeTimeMap = new Map(officeTimes.map((s) => [s.id, s.name]))
   const names = assignments
     .filter((a) => a.employee_id === employeeId)
-    .map((a) => shiftMap.get(a.shift_id))
+    .map((a) => officeTimeMap.get(a.office_time_id))
     .filter((n): n is string => Boolean(n))
   return names.length ? names.join(', ') : null
 }

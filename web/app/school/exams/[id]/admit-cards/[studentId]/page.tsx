@@ -3,7 +3,7 @@ import { notFound, redirect } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { createClient } from '@/lib/supabase/server'
-import { classShiftLabel } from '@/lib/students'
+import { classSectionLabel } from '@/lib/students'
 import { roomForRoll } from '@/lib/exam-setup'
 import { renderAuthenticityQr } from '@/lib/qr'
 import { PrintButton } from '@/components/print/print-button'
@@ -109,7 +109,7 @@ export default async function AdmitCardPage({
         examLabel={examLabel}
         studentName={student.full_name}
         roll={student.roll_number !== null ? String(student.roll_number) : '—'}
-        classSection={classShiftLabel(cls?.name, cls?.section) ?? '—'}
+        classSection={classSectionLabel(cls?.name, cls?.section) ?? '—'}
         guardianName={student.guardian_name ?? '—'}
         examCenter={examCenter ?? '—'}
         photoSrc={student.photo_path ? `/api/student-photo?student=${studentId}` : null}

@@ -151,7 +151,6 @@ describe('Exams III — marks entry, combinations, promotion (issue #32)', () =>
       p_student_id: studentId,
       p_to_class: 'EM Test Class Promoted',
       p_to_section: 'B',
-      p_to_shift_id: null,
       p_note: 'Promotion',
       p_new_roll: 7,
     })
@@ -172,7 +171,6 @@ describe('Exams III — marks entry, combinations, promotion (issue #32)', () =>
       p_student_id: studentId,
       p_to_class: 'EM Test Class Other',
       p_to_section: null,
-      p_to_shift_id: null,
       p_note: null,
     })
     expect(error).toBeNull()
