@@ -637,6 +637,14 @@ const dict = {
   'admitCard.examCenter': { bn: 'পরীক্ষা কেন্দ্র', en: 'Exam Center' },
   'admitCard.photo': { bn: 'ছবি', en: 'Photo' },
   'admitCard.studentSignature': { bn: 'শিক্ষার্থীর স্বাক্ষর', en: "Student's Signature" },
+  'admitCard.classTeacher': { bn: 'শ্রেণি শিক্ষক', en: 'Class Teacher' },
+  // Admit-card colour presets (issue #94).
+  'admitCard.theme': { bn: 'প্রবেশপত্রের রঙ', en: 'Admit card colour' },
+  'admitCard.themeHint': {
+    bn: 'নির্বাচিত রঙ প্রতিষ্ঠানের ডিফল্ট হিসেবে সংরক্ষিত হবে; প্রিন্টের সময় একবারের জন্য বদলানো যাবে।',
+    en: "Saved as the school's default; a single print run can override it.",
+  },
+  'admitCard.themeOverride': { bn: 'এই প্রিন্টের রঙ', en: 'Colour for this print' },
   'resultBook.title': { bn: 'ফলাফল বই', en: 'Result Book' },
   'resultBook.pickExam': { bn: 'পরীক্ষা নির্বাচন করুন', en: 'Pick exam' },
   'resultBook.totalMarks': { bn: 'মোট নম্বর', en: 'Total Marks' },

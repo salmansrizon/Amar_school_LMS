@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import type { InstitutePrintHeader } from '@/lib/institute-print'
+import { themeStyle, type PrintTheme } from '@/lib/print-themes'
 
 // Shared printable template pieces (ADR 0007) — the legacy C_TAMPLATES
 // equivalent. Every printable (receipts, mark sheets, progress reports,
@@ -9,9 +10,19 @@ import type { InstitutePrintHeader } from '@/lib/institute-print'
 /** One printed sheet: a card on screen, a bare A4 page in print. Batch
  *  printing renders several PrintPages in a row — each but the last breaks
  *  the page (an unconditional break would print a blank trailing sheet). */
-export function PrintPage({ children }: { children: ReactNode }) {
+export function PrintPage({ children, theme }: { children: ReactNode; theme?: PrintTheme }) {
+  // A themed sheet (issue #94) paints its own paper and ink from the curated
+  // preset; an unthemed one keeps the app's paper token exactly as before.
+  const style = theme
+    ? { ...themeStyle(theme), background: theme.paper, color: theme.ink }
+    : undefined
   return (
-    <div className="mx-auto w-full max-w-190 rounded-md border border-line-strong bg-paper p-8 shadow-card not-last:break-after-page print:max-w-none print:rounded-none print:border-0 print:p-0 print:shadow-none">
+    <div
+      style={style}
+      className={`mx-auto w-full max-w-190 rounded-md border border-line-strong p-8 shadow-card not-last:break-after-page print:max-w-none print:rounded-none print:border-0 print:p-0 print:shadow-none${
+        theme ? '' : ' bg-paper'
+      }`}
+    >
       {children}
     </div>
   )
@@ -30,15 +41,22 @@ export function InstituteHeader({
   meta,
   institute,
   docTitle,
+  accent,
 }: {
   name?: string
   meta?: string
   institute?: InstitutePrintHeader
   docTitle: string
+  /** Themed printables (issue #94) tint the rule and the title with their
+   *  preset accent; untinted headers keep the brand colour. */
+  accent?: string
 }) {
   const heading = institute?.name ?? name ?? ''
   return (
-    <header className="mb-4 border-b-2 border-line-strong pb-4 text-center">
+    <header
+      style={accent ? { borderBottomColor: accent } : undefined}
+      className="mb-4 border-b-2 border-line-strong pb-4 text-center"
+    >
       {institute?.logoUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
@@ -58,7 +76,12 @@ export function InstituteHeader({
         <div className="mt-0.5 text-xs text-muted">{institute.codesLine}</div>
       ) : null}
       {!institute && meta ? <div className="mt-0.5 text-xs text-muted">{meta}</div> : null}
-      <div className="mt-3 text-lg font-semibold text-brand-600">{docTitle}</div>
+      <div
+        style={accent ? { color: accent } : undefined}
+        className="mt-3 text-lg font-semibold text-brand-600"
+      >
+        {docTitle}
+      </div>
     </header>
   )
 }

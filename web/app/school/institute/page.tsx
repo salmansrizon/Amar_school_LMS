@@ -22,7 +22,7 @@ export default async function InstituteProfilePage() {
   const { data: me } = await supabase.from('profiles').select('role').eq('id', user.id).single()
   if (me?.role !== 'school_owner' && me?.role !== 'staff_user') redirect('/login')
 
-  const [{ data: school }, { data: locations }, { data: clusters }] = await Promise.all([
+  const [{ data: school }, { data: locations }, { data: clusters }, { data: admitCardTheme }] = await Promise.all([
     supabase
       .from('schools')
       .select(
@@ -31,6 +31,11 @@ export default async function InstituteProfilePage() {
       .maybeSingle(),
     supabase.from('locations').select('id, name, type, parent_id').order('name'),
     supabase.from('clusters').select('id, name').order('name'),
+    supabase
+      .from('school_print_themes')
+      .select('palette_key')
+      .eq('doc_type', 'admit-card')
+      .maybeSingle(),
   ])
 
   return (
@@ -48,6 +53,7 @@ export default async function InstituteProfilePage() {
         school={school ?? null}
         locations={(locations ?? []) as LocationRow[]}
         clusters={clusters ?? []}
+        admitCardTheme={admitCardTheme?.palette_key ?? null}
       />
     </main>
   )

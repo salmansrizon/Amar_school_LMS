@@ -8,8 +8,10 @@ import { roomForRoll } from '@/lib/exam-setup'
 import { renderAuthenticityQr } from '@/lib/qr'
 import { PrintButton } from '@/components/print/print-button'
 import { TemplatePicker2 } from '@/components/print/template-picker'
+import { ThemePicker } from '@/components/print/theme-picker'
 import { AdmitCardTemplate } from './templates'
-import { loadInstitutePrintHeader } from '@/lib/institute-print'
+import { loadInstitutePrintHeader, loadPrintThemeKey } from '@/lib/institute-print'
+import { resolveTheme } from '@/lib/print-themes'
 
 // Admit card (issue #48, PRD §5.5), per ui/school-owner/admit-card-preview.html
 // — identity + seat only, no grades. "Exam Center" is derived from the exam's
@@ -25,10 +27,10 @@ export default async function AdmitCardPage({
   searchParams,
 }: {
   params: Promise<{ id: string; studentId: string }>
-  searchParams: Promise<{ template?: string }>
+  searchParams: Promise<{ template?: string; theme?: string }>
 }) {
   const { id: examId, studentId } = await params
-  const { template: templateParam } = await searchParams
+  const { template: templateParam, theme: themeParam } = await searchParams
   const template = parseTemplate(templateParam)
   const lang: Lang = await currentLang()
   const supabase = await createClient()
@@ -42,6 +44,8 @@ export default async function AdmitCardPage({
 
   const institute = await loadInstitutePrintHeader(supabase, lang)
   if (!institute) notFound()
+  // Per-print override (?theme=) beats the school's saved default (issue #94).
+  const theme = resolveTheme(themeParam, await loadPrintThemeKey(supabase, 'admit-card'))
 
   const { data: exam } = await supabase
     .from('exams')
@@ -66,6 +70,7 @@ export default async function AdmitCardPage({
           label={t('markSheet.pickTemplate', lang)}
           options={[t('markSheet.template1', lang), t('markSheet.template2', lang)]}
         />
+        <ThemePicker selected={theme.key} label={t('admitCard.themeOverride', lang)} lang={lang} />
         <PrintButton label={t('print.print', lang)} />
       </div>
     </div>
@@ -100,6 +105,7 @@ export default async function AdmitCardPage({
       <AdmitCardTemplate
         lang={lang}
         institute={institute}
+        theme={theme}
         examLabel={examLabel}
         studentName={student.full_name}
         roll={student.roll_number !== null ? String(student.roll_number) : '—'}

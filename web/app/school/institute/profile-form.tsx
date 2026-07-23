@@ -8,9 +8,11 @@ import { t, type Lang } from '@/lib/i18n'
 import { EDUCATION_LEVELS } from '@/lib/institute'
 import { logoImageExtension, LOGO_MAX_BYTES } from '@/lib/institute-print'
 import type { LocationRow } from '@/lib/locations'
+import { PRINT_THEMES, DEFAULT_THEME_KEY } from '@/lib/print-themes'
 import {
   recordSchoolLogo,
   removeSchoolLogo,
+  savePrintTheme,
   schoolLogoUploadPath,
   updateInstituteProfile,
 } from './actions'
@@ -54,12 +56,14 @@ export function ProfileForm({
   school,
   locations,
   clusters,
+  admitCardTheme,
 }: {
   lang: Lang
   isOwner: boolean
   school: SchoolRow
   locations: LocationRow[]
   clusters: { id: string; name: string }[]
+  admitCardTheme: string | null
 }) {
   const [error, setError] = useState<string | null>(null)
   const [saved, setSaved] = useState(false)
@@ -230,6 +234,9 @@ export function ProfileForm({
           <div className="mt-4">
             <span className={labelClass}>{t('institute.logo', lang)}</span>
             <LogoControl lang={lang} isOwner={isOwner} hasLogo={!!school.logo_path} />
+          </div>
+          <div className="mt-4">
+            <ThemeControl lang={lang} isOwner={isOwner} selected={admitCardTheme ?? DEFAULT_THEME_KEY} />
           </div>
         </div>
 
@@ -454,6 +461,61 @@ function LogoControl({ lang, isOwner, hasLogo }: { lang: Lang; isOwner: boolean;
       )}
       <span className="text-xs text-muted">{t('institute.logoHint', lang)}</span>
       {error && <p className="w-full text-sm text-alert-deep">{error}</p>}
+    </div>
+  )
+}
+
+/** The school's default admit-card palette (issue #94). Colour is deliberately
+ *  admit-card-only — mark sheets and result books stay monochrome — but the
+ *  saved value is keyed by document type, so adding another themed printable
+ *  later is a new row rather than a schema change. */
+function ThemeControl({ lang, isOwner, selected }: { lang: Lang; isOwner: boolean; selected: string }) {
+  const router = useRouter()
+  const [value, setValue] = useState(selected)
+  const [error, setError] = useState<string | null>(null)
+  const [pending, startTransition] = useTransition()
+
+  return (
+    <div>
+      <label className={labelClass} htmlFor="admit_card_theme">
+        {t('admitCard.theme', lang)}
+      </label>
+      <div className="flex flex-wrap items-center gap-3">
+        <select
+          id="admit_card_theme"
+          value={value}
+          disabled={!isOwner || pending}
+          onChange={(e) => {
+            const next = e.target.value
+            setValue(next)
+            startTransition(async () => {
+              setError(null)
+              const res = await savePrintTheme('admit-card', next)
+              if (res.error) setError(res.error)
+              else router.refresh()
+            })
+          }}
+          className={`${inputClass} max-w-56`}
+        >
+          {PRINT_THEMES.map((theme) => (
+            <option key={theme.key} value={theme.key}>
+              {theme.label[lang]}
+            </option>
+          ))}
+        </select>
+        {/* Swatch: the preset as it will actually print. */}
+        {PRINT_THEMES.filter((theme) => theme.key === value).map((theme) => (
+          <span
+            key={theme.key}
+            style={{ background: theme.paper, color: theme.ink, borderColor: theme.accent }}
+            className="rounded-md border-2 px-3 py-1 text-xs font-semibold"
+          >
+            {theme.label[lang]}
+          </span>
+        ))}
+      </div>
+      <p className="mt-1 text-xs text-muted">{t('admitCard.themeHint', lang)}</p>
+      {error && <p className="mt-1 text-sm text-alert-deep">{error}</p>}
     </div>
   )
 }

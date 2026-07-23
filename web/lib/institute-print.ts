@@ -1,5 +1,6 @@
 import type { createClient } from '@/lib/supabase/server'
 import type { Lang } from '@/lib/i18n'
+import type { ThemedDocType } from '@/lib/print-themes'
 
 // The institution header every printable shows (issue #92, map #91,
 // docs/improvement.md "General Printing Requirements"). One payload, one
@@ -90,6 +91,21 @@ export async function loadInstitutePrintHeader(
   const { data } = await supabase.from('schools').select(SCHOOL_HEADER_COLUMNS).maybeSingle()
   if (!data) return null
   return buildInstituteHeader(data as unknown as SchoolHeaderRow, lang)
+}
+
+/** The school's saved palette key for a document type (issue #94), or null
+ *  while it has never chosen one. Readable by any school member — every
+ *  printable needs it — so no role check here beyond RLS. */
+export async function loadPrintThemeKey(
+  supabase: Supabase,
+  docType: ThemedDocType,
+): Promise<string | null> {
+  const { data } = await supabase
+    .from('school_print_themes')
+    .select('palette_key')
+    .eq('doc_type', docType)
+    .maybeSingle()
+  return data?.palette_key ?? null
 }
 
 /** Mirrors the 'school-logos' bucket's file_size_limit (migration 0056) so the

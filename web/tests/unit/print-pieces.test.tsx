@@ -11,6 +11,7 @@ import {
   Badge,
   PaginatedSheet,
 } from '@/components/print/pieces'
+import { PRINT_THEMES } from '@/lib/print-themes'
 
 // Seam: the shared printable template layer (ADR 0007, issue #25).
 
@@ -119,6 +120,22 @@ describe('InstituteHeader', () => {
     expect(html).not.toContain('Stale Name')
     expect(html).toContain('EIIN: 123456')
     expect(html).not.toContain('EIIN: 999')
+  })
+})
+
+describe('PrintPage theming', () => {
+  it('paints paper and ink from a curated preset (issue #94)', () => {
+    const slate = PRINT_THEMES.find((t) => t.key === 'slate')!
+    const html = renderToStaticMarkup(<PrintPage theme={slate}>body</PrintPage>)
+    expect(html).toContain(slate.paper)
+    expect(html).toContain(slate.ink)
+    // The app's paper token must not fight the preset's own background.
+    expect(html).not.toContain('bg-paper')
+  })
+
+  it('keeps the app paper token when unthemed', () => {
+    const html = renderToStaticMarkup(<PrintPage>body</PrintPage>)
+    expect(html).toContain('bg-paper')
   })
 })
 

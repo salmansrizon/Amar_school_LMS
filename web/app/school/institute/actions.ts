@@ -5,6 +5,7 @@ import { requireSchoolOwner } from '@/lib/auth/require-role'
 import { createClient } from '@/lib/supabase/server'
 import { validateInstituteProfile, type InstituteProfileInput } from '@/lib/institute'
 import { logoImageExtension } from '@/lib/institute-print'
+import { isThemeKey, type ThemedDocType } from '@/lib/print-themes'
 
 // Institute profile (issue #39, PRD §5.11) — owner-only (RLS "owner updates
 // own school" + requireSchoolOwner belt-and-suspenders here).
@@ -63,6 +64,32 @@ export async function updateInstituteProfile(formData: FormData): Promise<{ erro
       email: input.email ?? null,
     })
     .eq('id', me.school_id)
+  if (error) return { error: error.message }
+  revalidatePath(PAGE)
+  return {}
+}
+
+/** The school's default admit-card palette (issue #94). Stored keyed by
+ *  document type so adding a themed printable later is a row, not a column. */
+export async function savePrintTheme(
+  docType: ThemedDocType,
+  paletteKey: string,
+): Promise<{ error?: string }> {
+  if (!isThemeKey(paletteKey)) return { error: 'unknownTheme' }
+  const supabase = await createClient()
+  if (!(await requireSchoolOwner(supabase))) return { error: 'Unauthorized' }
+  const { data: userRes } = await supabase.auth.getUser()
+  const { data: me } = await supabase
+    .from('profiles')
+    .select('school_id')
+    .eq('id', userRes.user!.id)
+    .single()
+  if (!me?.school_id) return { error: 'Unauthorized' }
+
+  const { error } = await supabase.from('school_print_themes').upsert(
+    { school_id: me.school_id, doc_type: docType, palette_key: paletteKey, updated_at: new Date().toISOString() },
+    { onConflict: 'school_id,doc_type' },
+  )
   if (error) return { error: error.message }
   revalidatePath(PAGE)
   return {}
