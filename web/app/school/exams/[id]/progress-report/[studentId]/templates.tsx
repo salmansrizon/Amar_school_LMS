@@ -11,6 +11,7 @@ import {
 } from '@/components/print/pieces'
 import { t, type Lang } from '@/lib/i18n'
 import type { RatingBand } from '@/lib/behaviour'
+import type { InstitutePrintHeader } from '@/lib/institute-print'
 
 // Exams IV (issue #33, PRD §5.5): the 3 progress-report template variants.
 // Template 1 reproduces progress-report-preview.html's structure exactly
@@ -42,7 +43,8 @@ export interface ChecklistRow {
 
 export interface ProgressReportTemplateProps {
   lang: Lang
-  schoolName: string
+  /** Full institution header block (issue #92/#99). */
+  institute: InstitutePrintHeader
   examLabel: string
   studentName: string
   roll: string
@@ -141,7 +143,7 @@ function ClassicTemplate(props: ProgressReportTemplateProps) {
   const { lang } = props
   return (
     <PrintPage>
-      <InstituteHeader name={props.schoolName} docTitle={`${t('progressReport.docWord', lang)} — ${props.examLabel}`} />
+      <InstituteHeader institute={props.institute} docTitle={`${t('progressReport.docWord', lang)} — ${props.examLabel}`} />
       <InfoGrid rows={baseInfoRows(props)} />
       <SubjectTable rows={props.subjectRows} lang={lang} />
       <BehaviourSection props={props} />
@@ -161,7 +163,7 @@ function BorderedTemplate(props: ProgressReportTemplateProps) {
   }
   return (
     <PrintPage>
-      <InstituteHeader name={props.schoolName} docTitle={`${t('progressReport.docWord', lang)} — ${props.examLabel}`} />
+      <InstituteHeader institute={props.institute} docTitle={`${t('progressReport.docWord', lang)} — ${props.examLabel}`} />
       <InfoGrid rows={rows} />
       <div className="rounded-md border-2 border-line-strong p-3">
         <SubjectTable rows={props.subjectRows} lang={lang} />
@@ -180,7 +182,7 @@ function SideBySideTemplate(props: ProgressReportTemplateProps) {
   const { lang } = props
   return (
     <PrintPage>
-      <InstituteHeader name={props.schoolName} docTitle={`${t('progressReport.docWord', lang)} — ${props.examLabel}`} />
+      <InstituteHeader institute={props.institute} docTitle={`${t('progressReport.docWord', lang)} — ${props.examLabel}`} />
       <InfoGrid rows={baseInfoRows(props)} />
       <SubjectTable rows={props.subjectRows} lang={lang} />
       <div className="mt-5 grid grid-cols-2 gap-6">

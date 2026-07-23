@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/server'
 import { ROUTINE_DAYS, ROUTINE_PERIODS, dayLabel, indexSlots, type RoutineSlot } from '@/lib/routine'
 import { PrintPage, InstituteHeader, QrFooterRow } from '@/components/print/pieces'
 import { PrintButton } from '@/components/print/print-button'
+import { loadInstitutePrintHeader } from '@/lib/institute-print'
 
 // Printable weekly routine (ADR 0007: browser-native print, composed from the
 // shared pieces). Landscape-ish grid fits portrait A4 at this density.
@@ -28,9 +29,9 @@ export default async function RoutinePrintPage({
   const { class: classId } = await searchParams
   if (!classId) notFound()
 
-  const [{ data: school }, { data: cls }, { data: slots }, { data: subjects }, { data: teachers }, { data: rooms }] =
+  const [institute, { data: cls }, { data: slots }, { data: subjects }, { data: teachers }, { data: rooms }] =
     await Promise.all([
-      supabase.from('schools').select('name').maybeSingle(),
+      loadInstitutePrintHeader(supabase, lang),
       supabase.from('classes').select('name, section').eq('id', classId).maybeSingle(),
       supabase
         .from('routine_slots')
@@ -40,7 +41,7 @@ export default async function RoutinePrintPage({
       supabase.from('employees').select('id, full_name'),
       supabase.from('rooms').select('id, name'),
     ])
-  if (!school || !cls) notFound()
+  if (!institute || !cls) notFound()
 
   const byCell = indexSlots((slots ?? []) as RoutineSlot[])
   const subjectName = new Map((subjects ?? []).map((s) => [s.id, s.name]))
@@ -56,7 +57,7 @@ export default async function RoutinePrintPage({
       </div>
 
       <PrintPage>
-        <InstituteHeader name={school.name} docTitle={`${t('routine.docWord', lang)} — ${classLabel}`} />
+        <InstituteHeader institute={institute ?? undefined} docTitle={`${t('routine.docWord', lang)} — ${classLabel}`} />
 
         <table className="w-full table-fixed border-collapse text-xs">
           <thead>

@@ -289,7 +289,7 @@ export default async function PrintAllPage({
           <MarkSheetTemplate
             key={row.studentId}
             lang={lang}
-            schoolName={school.name}
+            institute={institute}
             examLabel={examLabel}
             studentName={row.fullName}
             roll={row.rollNumber !== null ? String(row.rollNumber) : '—'}
@@ -341,7 +341,7 @@ export default async function PrintAllPage({
         <ProgressReportTemplate
           key={row.studentId}
           lang={lang}
-          schoolName={school.name}
+          institute={institute}
           examLabel={examLabel}
           studentName={row.fullName}
           roll={row.rollNumber !== null ? String(row.rollNumber) : '—'}

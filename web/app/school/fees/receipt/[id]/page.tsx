@@ -6,6 +6,8 @@ import { currentLang } from '@/lib/i18n-server'
 import { t } from '@/lib/i18n'
 import { createClient } from '@/lib/supabase/server'
 import { PrintButton } from './print-button'
+import { loadInstitutePrintHeader } from '@/lib/institute-print'
+import { InstituteHeader } from '@/components/print/pieces'
 
 export default async function ReceiptPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -33,7 +35,7 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
     class_name: string | null
     section: string | null
   } | null
-  const school = record.schools as unknown as { name: string } | null
+  const institute = await loadInstitutePrintHeader(supabase, lang)
   // Adjustment is a discount/scholarship — it reduces what was actually collected.
   // Shared with the collection form's live preview (lib/fees.ts).
   const total = totalPayable(Number(record.pay_amount), Number(record.fine_amount), Number(record.adjust_amount))
@@ -46,10 +48,7 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
       </div>
 
       <section className="rounded-lg border border-line bg-paper p-6 shadow-card print:border-0 print:shadow-none">
-        <header className="mb-4 border-b border-line pb-3 text-center">
-          <h1 className="text-lg font-extrabold">{school?.name}</h1>
-          <p className="text-xs uppercase tracking-wide text-muted">{t('fees.receipt', lang)}</p>
-        </header>
+        <InstituteHeader institute={institute ?? undefined} docTitle={t('fees.receipt', lang)} />
 
         <dl className="flex flex-col gap-1.5 text-sm">
           <div className="flex justify-between">

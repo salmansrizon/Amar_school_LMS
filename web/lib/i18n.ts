@@ -337,6 +337,45 @@ const dict = {
   'seatPlan.overlap': { bn: 'সংঘর্ষ', en: 'Overlap' },
   'seatPlan.overCapacity': { bn: 'ধারণক্ষমতা অতিক্রম', en: 'Over Capacity' },
   'seatPlan.generate': { bn: 'স্বয়ংক্রিয় সিট প্ল্যান তৈরি করুন', en: 'Generate Seat Plan' },
+  // Exam Documents index (issue #99) — one place naming every printable an
+  // exam has, over routes that already exist.
+  'examDocs.title': { bn: 'পরীক্ষার কাগজপত্র', en: 'Exam Documents' },
+  'examDocs.open': { bn: 'খুলুন', en: 'Open' },
+  'examDocs.routine': { bn: 'পরীক্ষার রুটিন', en: 'Exam Routine' },
+  'examDocs.routineHint': {
+    bn: 'নোটিশ বোর্ডের জন্য তারিখ, সময় ও বিষয়ের সূচি।',
+    en: 'Dates, times and subjects, laid out for the notice board.',
+  },
+  'examDocs.seatPlan': { bn: 'আসন বিন্যাস', en: 'Seat Plan' },
+  'examDocs.seatPlanHint': {
+    bn: 'কক্ষভিত্তিক আসন বিন্যাস, প্রতিটি কক্ষের সম্পূর্ণ রোল তালিকাসহ।',
+    en: 'Room-by-room seating with each room’s combined roll list.',
+  },
+  'examDocs.admitCards': { bn: 'প্রবেশপত্র', en: 'Admit Cards' },
+  'examDocs.admitCardsHint': {
+    bn: 'প্রতি শিক্ষার্থীর প্রবেশপত্র — একসাথে সবার জন্যও ছাপা যায়।',
+    en: 'One per student, printable individually or for the whole exam.',
+  },
+  'examDocs.attendanceSheet': { bn: 'পরীক্ষার হাজিরা শিট', en: 'Attendance Sheets' },
+  'examDocs.attendanceSheetHint': {
+    bn: 'প্রতি কক্ষ ও প্রতি বিষয়ের জন্য কক্ষ পরিদর্শকের শিট।',
+    en: 'One invigilator sheet per room per subject sitting.',
+  },
+  'examDocs.printables': { bn: 'মার্কশিট ও প্রগ্রেস রিপোর্ট', en: 'Mark Sheets & Progress Reports' },
+  'examDocs.printablesHint': {
+    bn: 'শিক্ষার্থী বেছে নিয়ে ফলাফলের কাগজ ছাপুন।',
+    en: 'Pick a student and print their result documents.',
+  },
+  'examDocs.resultBook': { bn: 'ফলাফল বই', en: 'Result Book' },
+  'examDocs.resultBookHint': {
+    bn: 'পুরো শ্রেণির একত্রিত ফলাফল।',
+    en: 'The whole class’s results in one book.',
+  },
+  'examDocs.printAll': { bn: 'একসাথে সব ছাপুন', en: 'Batch Print' },
+  'examDocs.printAllHint': {
+    bn: 'রোল পরিসীমা বেছে নিয়ে সবার কাগজ একবারে ছাপুন।',
+    en: 'Print for every student at once, filtered by roll range.',
+  },
   // Exam attendance sheet (issue #97, docs/improvement.md §4).
   'examAttendanceSheet.title': { bn: 'পরীক্ষার হাজিরা শিট', en: 'Exam Attendance Sheet' },
   'examAttendanceSheet.docWord': { bn: 'পরীক্ষার হাজিরা শিট', en: 'Exam Attendance Sheet' },

@@ -10,6 +10,7 @@ import {
 } from '@/components/print/pieces'
 import { t, type Lang } from '@/lib/i18n'
 import type { SchemeType } from '@/lib/grading'
+import type { InstitutePrintHeader } from '@/lib/institute-print'
 
 // Exams IV (issue #33, PRD §5.5): the 3 mark-sheet template variants. All
 // three render the exact same computed data (grading.ts grades, exam-
@@ -32,8 +33,8 @@ export interface MarkSheetSubjectRow {
 
 export interface MarkSheetTemplateProps {
   lang: Lang
-  schoolName: string
-  schoolMeta?: string
+  /** Full institution header block (issue #92/#99). */
+  institute: InstitutePrintHeader
   examLabel: string
   studentName: string
   roll: string
@@ -112,8 +113,7 @@ function ClassicTemplate(props: MarkSheetTemplateProps) {
   return (
     <PrintPage>
       <InstituteHeader
-        name={props.schoolName}
-        meta={props.schoolMeta}
+        institute={props.institute}
         docTitle={`${t('markSheet.docWord', lang)} — ${props.examLabel}`}
       />
       <InfoGrid rows={baseInfoRows(props)} />
@@ -152,8 +152,7 @@ function BorderedTemplate(props: MarkSheetTemplateProps) {
   return (
     <PrintPage>
       <InstituteHeader
-        name={props.schoolName}
-        meta={props.schoolMeta}
+        institute={props.institute}
         docTitle={`${t('markSheet.docWord', lang)} — ${props.examLabel}`}
       />
       <InfoGrid rows={rows} />
@@ -190,8 +189,7 @@ function ResultCardTemplate(props: MarkSheetTemplateProps) {
   return (
     <PrintPage>
       <InstituteHeader
-        name={props.schoolName}
-        meta={props.schoolMeta}
+        institute={props.institute}
         docTitle={`${t('markSheet.docWord', lang)} — ${props.examLabel}`}
       />
       <InfoGrid rows={baseInfoRows(props)} />

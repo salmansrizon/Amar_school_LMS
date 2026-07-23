@@ -5,6 +5,7 @@ import { t } from '@/lib/i18n'
 import { createClient } from '@/lib/supabase/server'
 import { PrintPage, InstituteHeader, InfoGrid, BlankLine, BlankRosterTable } from '@/components/print/pieces'
 import { PrintButton } from '@/components/print/print-button'
+import { loadInstitutePrintHeader } from '@/lib/institute-print'
 
 // Blank Homework Collection Sheet (issue #39, PRD §5.11) — paper-fallback template.
 
@@ -18,7 +19,7 @@ export default async function BlankHomeworkPage() {
   const { data: me } = await supabase.from('profiles').select('role').eq('id', user.id).single()
   if (me?.role !== 'school_owner' && me?.role !== 'staff_user') redirect('/login')
 
-  const { data: school } = await supabase.from('schools').select('name').maybeSingle()
+  const institute = await loadInstitutePrintHeader(supabase, lang)
 
   return (
     <main className="mx-auto w-full max-w-4xl flex-1 p-6">
@@ -28,7 +29,7 @@ export default async function BlankHomeworkPage() {
       </div>
 
       <PrintPage>
-        <InstituteHeader name={school?.name ?? ''} docTitle={t('institute.templateHomework', lang)} />
+        <InstituteHeader institute={institute ?? undefined} docTitle={t('institute.templateHomework', lang)} />
         <InfoGrid
           rows={[
             { label: t('institute.class', lang), value: <BlankLine /> },

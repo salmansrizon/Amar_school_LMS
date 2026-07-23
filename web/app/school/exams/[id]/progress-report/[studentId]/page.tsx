@@ -10,6 +10,7 @@ import { renderAuthenticityQr } from '@/lib/qr'
 import { PrintButton } from '@/components/print/print-button'
 import { TemplatePicker } from '@/components/print/template-picker'
 import { ProgressReportTemplate } from './templates'
+import { loadInstitutePrintHeader } from '@/lib/institute-print'
 
 // Real per-student progress report (issue #33, PRD §5.5): subject marks +
 // grade via grading.ts (issue #31), rank via exam-results.ts (issue #32),
@@ -46,6 +47,7 @@ export default async function ProgressReportPage({
   if (me?.role !== 'school_owner' && me?.role !== 'staff_user') redirect('/login')
 
   const { data: school, error: schoolError } = await supabase.from('schools').select('name').maybeSingle()
+  const institute = await loadInstitutePrintHeader(supabase, lang)
   if (schoolError || !school) notFound()
 
   const ctx = await loadExamPrintContext(supabase, examId, studentId)
@@ -93,7 +95,7 @@ export default async function ProgressReportPage({
       {header}
       <ProgressReportTemplate
         lang={lang}
-        schoolName={school.name}
+        institute={institute!}
         examLabel={examLabel}
         studentName={ctx.student.full_name}
         roll={ctx.student.roll_number !== null ? String(ctx.student.roll_number) : '—'}

@@ -5,6 +5,7 @@ import { t } from '@/lib/i18n'
 import { createClient } from '@/lib/supabase/server'
 import { PrintPage, QrFooterRow } from '@/components/print/pieces'
 import { PrintButton } from '@/components/print/print-button'
+import { loadInstitutePrintHeader } from '@/lib/institute-print'
 
 // Printable student ID card (issue #46, PRD §5.1). ADR 0007: browser-native
 // print. A photo upload flow lands with the admission profile (#27); until
@@ -23,15 +24,15 @@ export default async function IdCardPrintPage({ params }: { params: Promise<{ id
   const { data: me } = await supabase.from('profiles').select('role').eq('id', user.id).single()
   if (me?.role !== 'school_owner' && me?.role !== 'staff_user') redirect('/login')
 
-  const [{ data: school }, { data: student }] = await Promise.all([
-    supabase.from('schools').select('name').maybeSingle(),
+  const [institute, { data: student }] = await Promise.all([
+    loadInstitutePrintHeader(supabase, lang),
     supabase
       .from('students')
       .select('full_name, class_name, section, roll_number, blood_group, guardian_mobile')
       .eq('id', id)
       .maybeSingle(),
   ])
-  if (!school || !student) notFound()
+  if (!institute || !student) notFound()
 
   const v = (x: string | number | null | undefined) => (x === null || x === undefined || x === '' ? dash : x)
 
@@ -44,7 +45,14 @@ export default async function IdCardPrintPage({ params }: { params: Promise<{ id
 
       <PrintPage>
         <div className="mx-auto w-full max-w-80 rounded-lg border-2 border-brand-500 p-4 text-center">
-          <div className="mb-2 text-sm font-bold">{school.name}</div>
+          {/* An ID card is 80mm wide: the full institution block (address,
+              contacts, codes) would swamp it, so the chrome here is the logo
+              and the name — deliberately the one exception to the sweep. */}
+          {institute.logoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={institute.logoUrl} alt="" className="mx-auto mb-1 h-10 w-auto object-contain" />
+          ) : null}
+          <div className="mb-2 text-sm font-bold">{institute.name}</div>
           <div className="mx-auto mb-3 flex size-20 items-center justify-center rounded-md border border-dashed border-line-strong text-xs text-muted">
             {t('students.photo', lang)}
           </div>
