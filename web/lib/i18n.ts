@@ -406,6 +406,8 @@ const dict = {
   'seatPlan.class': { bn: 'শ্রেণি', en: 'Class' },
   'seatPlan.section': { bn: 'শাখা', en: 'Section' },
   'seatPlan.subject': { bn: 'বিষয়', en: 'Subject' },
+  'seatPlan.forSitting': { bn: 'যে দিনের জন্য:', en: 'For sitting:' },
+  'seatPlan.allSittings': { bn: 'সব দিন', en: 'All sittings' },
   'seatPlan.allRolls': { bn: 'এই কক্ষের সব রোল', en: 'All rolls in this room' },
   'seatPlan.print': { bn: 'আসন বিন্যাস প্রিন্ট', en: 'Print seat plan' },
   // Seat plan v2 (issue #95): multi-exam, multi-building, mixed seating.

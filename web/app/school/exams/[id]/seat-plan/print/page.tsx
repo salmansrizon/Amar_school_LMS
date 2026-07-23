@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/server'
 import { loadInstitutePrintHeader } from '@/lib/institute-print'
 import {
   combinedRollList,
-  formatRollRanges,
+  formatRollList,
   roomNoticeBlocks,
   type PrintRoom,
   type SeatAllocation,
@@ -24,8 +24,15 @@ import { embeddedBuildingName, roomVenueLabel } from '@/lib/venues'
 // Every exam sharing a room with this one appears, otherwise the notice would
 // claim a room holds fewer students than it does.
 
-export default async function SeatPlanPrintPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function SeatPlanPrintPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>
+  searchParams: Promise<{ date?: string }>
+}) {
   const { id } = await params
+  const { date: sittingDate } = await searchParams
   const lang: Lang = await currentLang()
   const supabase = await createClient()
   const {
@@ -60,7 +67,7 @@ export default async function SeatPlanPrintPage({ params }: { params: Promise<{ 
       supabase.from('rooms').select('id, name, capacity, buildings(name)'),
       supabase.from('exams').select('id, name, exam_year, class_id'),
       supabase.from('classes').select('id, name, section'),
-      supabase.from('exam_routine_entries').select('exam_id, subject_id'),
+      supabase.from('exam_routine_entries').select('exam_id, subject_id, exam_date'),
       supabase.from('subjects').select('id, name'),
     ])
 
@@ -68,18 +75,26 @@ export default async function SeatPlanPrintPage({ params }: { params: Promise<{ 
   const examById = new Map((exams ?? []).map((e) => [e.id, e]))
   const subjectName = new Map((subjects ?? []).map((s) => [s.id, s.name]))
 
-  // A seat plan is not subject-specific — one sitting per subject is #97's
-  // attendance sheet. For the notice board, an exam contributes the subjects
-  // its routine actually schedules, so the board answers "which papers sit
-  // here" without pretending a range belongs to one subject.
+  // A seat plan is not subject-specific by itself — the seating holds for
+  // every sitting of the exam. But a notice board is posted for one exam DAY,
+  // and §2B wants the Subject named, so `?date=` narrows the routine to that
+  // day: each exam then contributes the paper it actually sits that morning.
+  // Without a date the sheet lists every paper the exam schedules, which is
+  // the honest answer to "which papers sit here" across the whole exam.
+  const sittings = (routine ?? []).filter((e) => !sittingDate || e.exam_date === sittingDate)
   const subjectsByExam = new Map<string, string[]>()
-  for (const entry of routine ?? []) {
+  for (const entry of sittings) {
     const name = subjectName.get(entry.subject_id)
     if (!name) continue
     const list = subjectsByExam.get(entry.exam_id) ?? []
     if (!list.includes(name)) list.push(name)
     subjectsByExam.set(entry.exam_id, list)
   }
+
+  // Every date this exam sits, for the picker on screen.
+  const examDates = [
+    ...new Set((routine ?? []).filter((e) => e.exam_id === id).map((e) => e.exam_date)),
+  ].sort()
 
   const printRooms: PrintRoom[] = (rooms ?? []).map((r) => ({
     id: r.id,
@@ -119,7 +134,33 @@ export default async function SeatPlanPrintPage({ params }: { params: Promise<{ 
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg>
         </Link>
-        <PrintButton label={t('print.print', lang)} />
+        <div className="flex items-center gap-3">
+          {examDates.length > 1 && (
+            <nav className="flex flex-wrap items-center gap-2 text-xs">
+              <span className="text-muted">{t('seatPlan.forSitting', lang)}</span>
+              <Link
+                href={`/school/exams/${id}/seat-plan/print`}
+                className={`rounded-full border px-2 py-0.5 font-semibold ${
+                  sittingDate ? 'border-line text-muted hover:bg-paper-muted' : 'border-brand-500 text-brand-600'
+                }`}
+              >
+                {t('seatPlan.allSittings', lang)}
+              </Link>
+              {examDates.map((d) => (
+                <Link
+                  key={d}
+                  href={`/school/exams/${id}/seat-plan/print?date=${d}`}
+                  className={`rounded-full border px-2 py-0.5 font-semibold ${
+                    sittingDate === d ? 'border-brand-500 text-brand-600' : 'border-line text-muted hover:bg-paper-muted'
+                  }`}
+                >
+                  {d}
+                </Link>
+              ))}
+            </nav>
+          )}
+          <PrintButton label={t('print.print', lang)} />
+        </div>
       </div>
 
       <PrintPage>
@@ -127,7 +168,7 @@ export default async function SeatPlanPrintPage({ params }: { params: Promise<{ 
           header={
             <InstituteHeader
               institute={institute}
-              docTitle={`${t('seatPlan.docWord', lang)} — ${examLabel}`}
+              docTitle={`${t('seatPlan.docWord', lang)} — ${examLabel}${sittingDate ? ` — ${sittingDate}` : ''}`}
             />
           }
         >
@@ -176,7 +217,7 @@ export default async function SeatPlanPrintPage({ params }: { params: Promise<{ 
                         actually scans for. Computed at print time, never stored. */}
                     <p className="mt-1 text-xs">
                       <span className="font-semibold">{t('seatPlan.allRolls', lang)}: </span>
-                      {formatRollRanges(rolls)}
+                      {formatRollList(rolls)}
                     </p>
                   </section>
                 )

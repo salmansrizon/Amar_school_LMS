@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import {
   roomNoticeBlocks,
   combinedRollList,
-  formatRollRanges,
+  formatRollList,
   type SeatAllocation,
   type PrintRoom,
 } from '@/lib/seat-plan-print'
@@ -104,21 +104,21 @@ describe('combinedRollList', () => {
   })
 })
 
-describe('formatRollRanges', () => {
-  it('collapses a consecutive run back into a range', () => {
-    expect(formatRollRanges([1, 2, 3, 4, 5])).toBe('1–5')
+describe('formatRollList', () => {
+  it('spells every roll out in order rather than collapsing to ranges', () => {
+    // #96's refinement: a student must not have to reason about ranges.
+    expect(formatRollList([1, 2, 3, 4, 5])).toBe('1, 2, 3, 4, 5')
   })
 
-  it('names each run separately when the list has gaps', () => {
-    expect(formatRollRanges([1, 2, 3, 101, 102])).toBe('1–3, 101–102')
+  it('keeps rolls from several exams in one ordered run of numbers', () => {
+    expect(formatRollList([1, 2, 3, 101, 102])).toBe('1, 2, 3, 101, 102')
   })
 
-  it('prints a lone roll as itself, not a range', () => {
-    expect(formatRollRanges([7])).toBe('7')
-    expect(formatRollRanges([7, 9])).toBe('7, 9')
+  it('prints a lone roll as itself', () => {
+    expect(formatRollList([7])).toBe('7')
   })
 
   it('is empty for no rolls', () => {
-    expect(formatRollRanges([])).toBe('')
+    expect(formatRollList([])).toBe('')
   })
 })

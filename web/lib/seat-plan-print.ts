@@ -80,22 +80,12 @@ export function combinedRollList(rows: { roll_start: number; roll_end: number }[
   return [...rolls].sort((a, b) => a - b)
 }
 
-/** Re-collapse a roll list into readable runs — "1–3, 101–102" rather than
- *  twenty numbers, which is what a notice board can actually be read from. */
-export function formatRollRanges(rolls: number[]): string {
-  if (!rolls.length) return ''
-  const parts: string[] = []
-  let start = rolls[0]
-  let prev = rolls[0]
-  for (const roll of rolls.slice(1)) {
-    if (roll === prev + 1) {
-      prev = roll
-      continue
-    }
-    parts.push(start === prev ? `${start}` : `${start}–${prev}`)
-    start = roll
-    prev = roll
-  }
-  parts.push(start === prev ? `${start}` : `${start}–${prev}`)
-  return parts.join(', ')
+/** The room's rolls spelled out, in order — "1, 2, 3, 101, 102".
+ *
+ *  Deliberately NOT re-collapsed into ranges (#96's refinement): the whole
+ *  point of the union is that a student scanning a mixed room should not have
+ *  to work out whether their roll falls inside overlapping ranges. Printing
+ *  every number is longer and is the thing that answers the question. */
+export function formatRollList(rolls: number[]): string {
+  return rolls.join(', ')
 }
