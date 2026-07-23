@@ -1,25 +1,12 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
-import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import type { SupabaseClient } from '@supabase/supabase-js'
+import { signedIn } from '../helpers/auth'
 
 // Seam: seat plan v2 (issue #95, map #91, migration 0059) — multi-exam,
 // multi-building generation with mixed seating, and the shipped guarantees
 // that must survive it: same-school tenancy, room-wide capacity, Closed-exam
 // immutability, and publish's overlap check (now within an exam, not across
 // exams sharing a room).
-const URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const ANON = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-const PASSWORD = 'test-password-123!'
-
-function anonClient() {
-  return createClient(URL, ANON, { auth: { persistSession: false } })
-}
-
-async function signedIn(email: string): Promise<SupabaseClient> {
-  const client = anonClient()
-  const { error } = await client.auth.signInWithPassword({ email, password: PASSWORD })
-  if (error) throw new Error(`login failed for ${email}: ${error.message}`)
-  return client
-}
 
 const P = 'SP2 '
 

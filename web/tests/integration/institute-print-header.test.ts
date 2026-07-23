@@ -1,25 +1,12 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
-import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { buildInstituteHeader, type SchoolHeaderRow } from '@/lib/institute-print'
+import { signedIn } from '../helpers/auth'
 
 // Seam: print chrome foundation (issue #92, map #91) — the header columns on
 // `schools` (owner-only, per-School) and the private 'school-logos' bucket
 // whose folder-per-school RLS keeps one School's logo out of another's
 // printables.
-const URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const ANON = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-const PASSWORD = 'test-password-123!'
-
-function anonClient() {
-  return createClient(URL, ANON, { auth: { persistSession: false } })
-}
-
-async function signedIn(email: string): Promise<SupabaseClient> {
-  const client = anonClient()
-  const { error } = await client.auth.signInWithPassword({ email, password: PASSWORD })
-  if (error) throw new Error(`login failed for ${email}: ${error.message}`)
-  return client
-}
 
 // A 1x1 PNG — real bytes, so Storage's mime sniffing and size cap apply.
 const PNG_1PX = Uint8Array.from(

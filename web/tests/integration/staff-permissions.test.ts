@@ -1,22 +1,9 @@
 import { describe, it, expect, beforeAll } from 'vitest'
-import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import type { SupabaseClient } from '@supabase/supabase-js'
+import { signedIn, PASSWORD } from '../helpers/auth'
 
 // Seam: staff_permissions table RLS + create_staff_user RPC (issue #2).
-const URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const ANON = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-const PASSWORD = 'test-password-123!'
 const STAFF_EMAIL = 'staff-a1@test.local'
-
-function anonClient() {
-  return createClient(URL, ANON, { auth: { persistSession: false } })
-}
-
-async function signedIn(email: string): Promise<SupabaseClient> {
-  const client = anonClient()
-  const { error } = await client.auth.signInWithPassword({ email, password: PASSWORD })
-  if (error) throw new Error(`login failed for ${email}: ${error.message}`)
-  return client
-}
 
 describe('Staff Permission Grant (issue #2)', () => {
   let ownerA: SupabaseClient

@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
-import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import type { SupabaseClient } from '@supabase/supabase-js'
+import { signedIn } from '../helpers/auth'
 
 // Seam: Exams II — exam setup deepening, subject-teacher assignment, exam
 // routine, and seat-plan assignment (issue #47, PRD §5.5). Builds on the
@@ -8,16 +9,6 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 // all carry the same-school tenancy trigger + a Closed-exam write guard, and
 // exam_seat_plans additionally enforces room-capacity (DB constraint) and
 // duplicate-range / overlap (publish_seat_plan RPC) server-side.
-const URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const ANON = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-const PASSWORD = 'test-password-123!'
-
-async function signedIn(email: string): Promise<SupabaseClient> {
-  const client = createClient(URL, ANON, { auth: { persistSession: false } })
-  const { error } = await client.auth.signInWithPassword({ email, password: PASSWORD })
-  if (error) throw new Error(`login failed for ${email}: ${error.message}`)
-  return client
-}
 
 describe('Exams II — setup, routine, seat plan (issue #47)', () => {
   let ownerA: SupabaseClient

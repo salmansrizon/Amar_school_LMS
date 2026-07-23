@@ -1,20 +1,11 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
-import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import type { SupabaseClient } from '@supabase/supabase-js'
+import { signedIn } from '../helpers/auth'
 
 // Seam: Exams IV (issue #33, PRD §5.5) — absent_working_days_in_range
 // generalizes issue #34's absent_working_days_in_month (migration 0039) to
 // an arbitrary date range for the progress report's Attendance % figure,
 // reusing the same is_absent_working_day (0021/0037/0046) per-day rule.
-const URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const ANON = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-const PASSWORD = 'test-password-123!'
-
-async function signedIn(email: string): Promise<SupabaseClient> {
-  const client = createClient(URL, ANON, { auth: { persistSession: false } })
-  const { error } = await client.auth.signInWithPassword({ email, password: PASSWORD })
-  if (error) throw new Error(`login failed for ${email}: ${error.message}`)
-  return client
-}
 
 describe('absent_working_days_in_range RPC (issue #33)', () => {
   let ownerA: SupabaseClient

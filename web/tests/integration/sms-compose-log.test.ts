@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
-import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import type { SupabaseClient } from '@supabase/supabase-js'
+import { signedIn, anonClient } from '../helpers/auth'
 
 // SMS Compose + Log (issue #36, PRD §5.7). Manual composes insert into the
 // same sms_log table the absence-rule cron writes to (0021), distinguished
@@ -7,19 +8,8 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 //  - a manual compose insert (real session, no job secret) is scoped by RLS
 //  - record_absence_sms's new batch/segment params + returned id work
 //  - set_sms_log_status flips a row to 'failed' after a real send attempt
-const URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const ANON = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 const SECRET = process.env.RECONCILE_SECRET!
-const PASSWORD = 'test-password-123!'
 
-async function signedIn(email: string): Promise<SupabaseClient> {
-  const client = createClient(URL, ANON, { auth: { persistSession: false } })
-  const { error } = await client.auth.signInWithPassword({ email, password: PASSWORD })
-  if (error) throw new Error(`login failed for ${email}: ${error.message}`)
-  return client
-}
-
-const anon = () => createClient(URL, ANON, { auth: { persistSession: false } })
 
 describe('SMS Compose + Log (issue #36)', () => {
   let ownerA: SupabaseClient
@@ -99,7 +89,7 @@ describe('SMS Compose + Log (issue #36)', () => {
 
   it('record_absence_sms accepts a batch id + segment count and returns the new row id', async () => {
     const batchId = crypto.randomUUID()
-    const { data: logId, error } = await anon().rpc('record_absence_sms', {
+    const { data: logId, error } = await anonClient().rpc('record_absence_sms', {
       job_secret: SECRET,
       p_school: schoolIdA,
       p_student: studentId,
@@ -119,7 +109,7 @@ describe('SMS Compose + Log (issue #36)', () => {
   })
 
   it('a repeat call for the same student/rule/day is deduped (returns null, no new row)', async () => {
-    const { data: logId } = await anon().rpc('record_absence_sms', {
+    const { data: logId } = await anonClient().rpc('record_absence_sms', {
       job_secret: SECRET,
       p_school: schoolIdA,
       p_student: studentId,
@@ -135,7 +125,7 @@ describe('SMS Compose + Log (issue #36)', () => {
   })
 
   it('set_sms_log_status flips a row to failed after a real send attempt fails', async () => {
-    const { data: logId } = await anon().rpc('record_absence_sms', {
+    const { data: logId } = await anonClient().rpc('record_absence_sms', {
       job_secret: SECRET,
       p_school: schoolIdA,
       p_student: studentId,
@@ -149,7 +139,7 @@ describe('SMS Compose + Log (issue #36)', () => {
     })
     expect(logId).toBeTruthy()
 
-    const { error: statusError } = await anon().rpc('set_sms_log_status', {
+    const { error: statusError } = await anonClient().rpc('set_sms_log_status', {
       job_secret: SECRET,
       p_id: logId,
       p_status: 'failed',
@@ -161,7 +151,7 @@ describe('SMS Compose + Log (issue #36)', () => {
   })
 
   it('set_sms_log_status rejects a wrong job secret', async () => {
-    const { error } = await anon().rpc('set_sms_log_status', { job_secret: 'nope', p_id: crypto.randomUUID(), p_status: 'failed' })
+    const { error } = await anonClient().rpc('set_sms_log_status', { job_secret: 'nope', p_id: crypto.randomUUID(), p_status: 'failed' })
     expect(error).not.toBeNull()
   })
 })

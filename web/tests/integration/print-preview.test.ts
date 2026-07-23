@@ -1,17 +1,15 @@
 import { describe, it, expect, beforeAll } from 'vitest'
-import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import type { SupabaseClient } from '@supabase/supabase-js'
+import { PASSWORD, anonClient } from '../helpers/auth'
 
 // Seam: the data the mark-sheet preview printable reads (issue #25) —
 // own school name and latest exam, through anon key + RLS.
-const URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const ANON = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-const PASSWORD = 'test-password-123!'
 
 describe('Mark-sheet preview data (issue #25)', () => {
   let ownerA: SupabaseClient
 
   beforeAll(async () => {
-    ownerA = createClient(URL, ANON, { auth: { persistSession: false } })
+    ownerA = anonClient()
     const { error } = await ownerA.auth.signInWithPassword({
       email: 'owner-a@test.local',
       password: PASSWORD,

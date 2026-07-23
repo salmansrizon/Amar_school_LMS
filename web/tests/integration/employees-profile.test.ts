@@ -1,21 +1,12 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
-import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import type { SupabaseClient } from '@supabase/supabase-js'
+import { signedIn } from '../helpers/auth'
 
 // Seam: employees profile columns + soft-archive/restore (issue #28). The
 // office-time/grace machinery (officeTimes, category grace, effective_grace_*)
 // predates this ticket and is exercised by tests/integration/grace.test.ts.
-const URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const ANON = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-const PASSWORD = 'test-password-123!'
 
 const MARK = 'Profile Test Employee'
-
-async function signedIn(email: string): Promise<SupabaseClient> {
-  const client = createClient(URL, ANON, { auth: { persistSession: false } })
-  const { error } = await client.auth.signInWithPassword({ email, password: PASSWORD })
-  if (error) throw new Error(`login failed for ${email}: ${error.message}`)
-  return client
-}
 
 describe('Employees I — full profile, archive, restore (issue #28)', () => {
   let ownerA: SupabaseClient

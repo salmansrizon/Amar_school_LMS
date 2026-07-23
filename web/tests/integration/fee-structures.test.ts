@@ -1,23 +1,14 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
-import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import type { SupabaseClient } from '@supabase/supabase-js'
+import { signedIn } from '../helpers/auth'
 
 // Seam: Accounting I (issue #34, PRD §5.6) — fee_structures (per Class/Year,
 // unique per fee type, same-school class tenancy) and the
 // absent_working_days_in_month RPC, which must reuse is_absent_working_day
 // (0021, absence-SMS issue #12) so the two features share one definition.
-const URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const ANON = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-const PASSWORD = 'test-password-123!'
 // Fixed historical month: July 2026 (31 days).
 const YEAR = 2026
 const MONTH = 7
-
-async function signedIn(email: string): Promise<SupabaseClient> {
-  const client = createClient(URL, ANON, { auth: { persistSession: false } })
-  const { error } = await client.auth.signInWithPassword({ email, password: PASSWORD })
-  if (error) throw new Error(`login failed for ${email}: ${error.message}`)
-  return client
-}
 
 describe('Accounting I: fee structures (issue #34)', () => {
   let ownerA: SupabaseClient

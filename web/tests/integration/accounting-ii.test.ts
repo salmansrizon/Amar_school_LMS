@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
-import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import type { SupabaseClient } from '@supabase/supabase-js'
+import { signedIn } from '../helpers/auth'
 
 // Seam: Accounting II (issue #35, PRD §5.6) — voucher categories/vouchers,
 // asset categories/assets, bank/cash accounts + transactions, and director
@@ -8,16 +9,6 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 // apply_director_capital_transaction triggers) — these tests exercise that
 // DB-level enforcement directly, the same way fee-collection.test.ts
 // exercises the one-record-per-student-per-month unique constraint.
-const URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const ANON = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-const PASSWORD = 'test-password-123!'
-
-async function signedIn(email: string): Promise<SupabaseClient> {
-  const client = createClient(URL, ANON, { auth: { persistSession: false } })
-  const { error } = await client.auth.signInWithPassword({ email, password: PASSWORD })
-  if (error) throw new Error(`login failed for ${email}: ${error.message}`)
-  return client
-}
 
 describe('Accounting II: voucher categories + vouchers (issue #35)', () => {
   let ownerA: SupabaseClient
