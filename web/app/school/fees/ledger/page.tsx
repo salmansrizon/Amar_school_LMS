@@ -1,3 +1,4 @@
+import Form from 'next/form'
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
@@ -163,7 +164,7 @@ export default async function GeneralLedgerPage({
         <AccountingTabs active="ledger" lang={lang} />
       </div>
 
-      <form method="get" className="mb-4 flex flex-wrap items-center gap-2 print:hidden">
+      <Form className="mb-4 flex flex-wrap items-center gap-2 print:hidden" action="/school/fees/ledger">
         <label className="text-xs text-muted">{t('ledger.dateRange', lang)}</label>
         <input name="from" type="date" defaultValue={from} className="h-9 rounded-md border border-line px-3 text-sm" />
         <input name="to" type="date" defaultValue={to} className="h-9 rounded-md border border-line px-3 text-sm" />
@@ -176,7 +177,7 @@ export default async function GeneralLedgerPage({
         <div className="ml-auto">
           <PrintButton label={t('print.print', lang)} />
         </div>
-      </form>
+      </Form>
 
       <PrintPage>
         <InstituteHeader

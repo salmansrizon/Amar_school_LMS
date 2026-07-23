@@ -1,3 +1,4 @@
+import Form from 'next/form'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
@@ -74,7 +75,7 @@ export default async function ChecklistPage({
       <div className="rounded-lg border border-line bg-paper p-5 shadow-card">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <h3 className="font-bold">{t('institute.dateRangeReport', lang)}</h3>
-          <form className="flex flex-wrap items-center gap-2" method="get">
+          <Form className="flex flex-wrap items-center gap-2" action="/school/institute/checklist">
             <input type="date" name="start" defaultValue={rangeStart} className={dateInputClass} />
             <input type="date" name="end" defaultValue={rangeEnd} className={dateInputClass} />
             <button
@@ -83,7 +84,7 @@ export default async function ChecklistPage({
             >
               {t('institute.apply', lang)}
             </button>
-          </form>
+          </Form>
         </div>
         {!report.length ? (
           <p className="text-sm text-muted">{t('institute.noChecklistRows', lang)}</p>

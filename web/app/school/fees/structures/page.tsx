@@ -1,3 +1,4 @@
+import Form from 'next/form'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
@@ -86,7 +87,7 @@ export default async function FeeStructuresPage({
       <section className="overflow-x-auto rounded-lg border border-line bg-paper p-5 shadow-card">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
           <h2 className="font-bold">{t('fees.tabStructures', lang)}</h2>
-          <form method="get" className="flex items-center gap-2">
+          <Form className="flex items-center gap-2" action="/school/fees/structures">
             <input
               name="q"
               defaultValue={q}
@@ -99,7 +100,7 @@ export default async function FeeStructuresPage({
             >
               {t('classes.filter', lang)}
             </button>
-          </form>
+          </Form>
         </div>
         {!structures?.length ? (
           <p className="text-sm text-muted">{t('fees.noStructures', lang)}</p>

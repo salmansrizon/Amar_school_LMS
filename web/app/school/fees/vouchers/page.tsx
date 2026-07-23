@@ -1,3 +1,4 @@
+import Form from 'next/form'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
@@ -103,7 +104,7 @@ export default async function VouchersPage({
       </section>
 
       <section className="overflow-x-auto rounded-lg border border-line bg-paper p-5 shadow-card">
-        <form method="get" className="mb-4 flex flex-wrap items-center gap-2">
+        <Form className="mb-4 flex flex-wrap items-center gap-2" action="/school/fees/vouchers">
           <input
             name="q"
             defaultValue={q}
@@ -124,7 +125,7 @@ export default async function VouchersPage({
           >
             {t('vouchers.filter', lang)}
           </button>
-        </form>
+        </Form>
 
         {!vouchers.length ? (
           <p className="text-sm text-muted">{t('vouchers.noVouchers', lang)}</p>

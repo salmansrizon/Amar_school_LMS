@@ -1,3 +1,4 @@
+import Form from 'next/form'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
@@ -126,7 +127,7 @@ export default async function AttendanceBookPage({
         <AttendanceTabs active="/school/attendance/book" lang={lang} />
       </div>
 
-      <form className="mb-4 flex flex-wrap items-center justify-between gap-2 print:hidden" method="get">
+      <Form className="mb-4 flex flex-wrap items-center justify-between gap-2 print:hidden" action="/school/attendance/book">
         <div className="flex flex-wrap items-center gap-2">
           <select
             name="class"
@@ -185,7 +186,7 @@ export default async function AttendanceBookPage({
           </Link>
           <PrintButton label={t('print.print', lang)} />
         </div>
-      </form>
+      </Form>
 
       {!visible.length ? (
         <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted shadow-card print:hidden">

@@ -1,3 +1,4 @@
+import Form from 'next/form'
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
@@ -73,7 +74,7 @@ export default async function PrintAllPage({
   const examLabel = `${exam.name} ${exam.exam_year}`
 
   const toolbar = (
-    <form method="get" className="mb-4 flex flex-wrap items-end gap-3 print:hidden">
+    <Form action={`/school/exams/${examId}/print-all`} className="mb-4 flex flex-wrap items-end gap-3 print:hidden">
       <div>
         <label className="mb-1 block text-xs font-semibold text-muted">{t('printAll.doc', lang)}</label>
         <select name="doc" defaultValue={doc} className="h-9 rounded-md border border-line px-2 text-sm">
@@ -117,7 +118,7 @@ export default async function PrintAllPage({
       <button type="submit" className="h-9 cursor-pointer rounded-full border border-line-strong px-4 text-sm font-semibold hover:bg-paper-muted">
         {t('resultInquiry.search', lang)}
       </button>
-    </form>
+    </Form>
   )
 
   const header = (

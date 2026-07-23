@@ -1,3 +1,4 @@
+import Form from 'next/form'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
@@ -66,7 +67,7 @@ export default async function ResultInquiryPage({
   const roster = await loadExamRosterResults(supabase, examId)
 
   const form = (
-    <form method="get" className="card mb-4 grid gap-3 rounded-lg border border-line bg-paper p-5 shadow-card sm:grid-cols-4">
+    <Form className="card mb-4 grid gap-3 rounded-lg border border-line bg-paper p-5 shadow-card sm:grid-cols-4" action="/school/exams/result-inquiry">
       <div>
         <label className="mb-1 block text-xs font-semibold text-muted">{t('resultInquiry.exam', lang)}</label>
         <select name="exam" defaultValue={examId} className="h-9 w-full rounded-md border border-line px-2 text-sm">
@@ -104,7 +105,7 @@ export default async function ResultInquiryPage({
           {t('resultInquiry.search', lang)}
         </button>
       </div>
-    </form>
+    </Form>
   )
 
   if (!roster) {

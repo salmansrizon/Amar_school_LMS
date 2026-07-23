@@ -1,3 +1,4 @@
+import Form from 'next/form'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
@@ -43,7 +44,7 @@ export default async function GalleryAlbumsPage({
       <NoticeTabs active="gallery" lang={lang} />
 
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-        <form className="flex items-center gap-2" method="get">
+        <Form className="flex items-center gap-2" action="/school/notices/gallery">
           <input
             name="q"
             defaultValue={q}
@@ -56,7 +57,7 @@ export default async function GalleryAlbumsPage({
           >
             {t('classes.filter', lang)}
           </button>
-        </form>
+        </Form>
         <details className="group">
           <summary className="inline-flex cursor-pointer list-none rounded-full bg-brand-500 px-4 py-1.5 text-xs font-semibold text-white hover:bg-brand-600">
             + {t('gallery.newAlbum', lang)}
