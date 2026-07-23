@@ -337,6 +337,14 @@ const dict = {
   'seatPlan.overlap': { bn: 'সংঘর্ষ', en: 'Overlap' },
   'seatPlan.overCapacity': { bn: 'ধারণক্ষমতা অতিক্রম', en: 'Over Capacity' },
   'seatPlan.generate': { bn: 'স্বয়ংক্রিয় সিট প্ল্যান তৈরি করুন', en: 'Generate Seat Plan' },
+  // Notice-board seat plan (issue #96).
+  'seatPlan.docWord': { bn: 'আসন বিন্যাস', en: 'Seat Plan' },
+  'seatPlan.exam': { bn: 'পরীক্ষা', en: 'Exam' },
+  'seatPlan.class': { bn: 'শ্রেণি', en: 'Class' },
+  'seatPlan.section': { bn: 'শাখা', en: 'Section' },
+  'seatPlan.subject': { bn: 'বিষয়', en: 'Subject' },
+  'seatPlan.allRolls': { bn: 'এই কক্ষের সব রোল', en: 'All rolls in this room' },
+  'seatPlan.print': { bn: 'আসন বিন্যাস প্রিন্ট', en: 'Print seat plan' },
   // Seat plan v2 (issue #95): multi-exam, multi-building, mixed seating.
   'seatPlan.generateTitle': { bn: 'সিট প্ল্যান তৈরি করুন', en: 'Generate seat plan' },
   'seatPlan.alsoExams': { bn: 'একসাথে অন্য পরীক্ষা', en: 'Include other exams' },

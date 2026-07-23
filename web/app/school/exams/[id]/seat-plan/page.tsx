@@ -109,6 +109,12 @@ export default async function SeatPlanPage({ params }: { params: Promise<{ id: s
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <span className="text-sm text-muted">{examLabel}</span>
+        <Link
+          href={`/school/exams/${exam.id}/seat-plan/print`}
+          className="text-sm text-brand-600 hover:underline"
+        >
+          {t('seatPlan.print', lang)}
+        </Link>
         {!closed && (
           <div className="flex items-center gap-2">
             <PublishButton
