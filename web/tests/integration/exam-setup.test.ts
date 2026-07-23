@@ -246,7 +246,9 @@ describe('Exams II — setup, routine, seat plan (issue #47)', () => {
       .from('exam_seat_plans')
       .insert({ exam_id: examId, room_id: roomSmallId, roll_start: 1, roll_end: 5 })
     expect(error).not.toBeNull()
-    expect(error!.message).toContain('roll range exceeds room capacity')
+    // Since issue #95 the check sums every exam seated in the room, so the
+    // message names the room's budget rather than this one range.
+    expect(error!.message).toContain('room capacity exceeded')
   })
 
   it('seat plan rows are rejected once the exam is closed', async () => {

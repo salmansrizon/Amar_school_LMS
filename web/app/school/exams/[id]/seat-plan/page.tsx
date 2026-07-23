@@ -3,12 +3,14 @@ import { notFound, redirect } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { createClient } from '@/lib/supabase/server'
-import { overlappingRowIds, exceedsCapacity } from '@/lib/exam-setup'
+import { overlappingRowIds, overCapacityRoomIds } from '@/lib/exam-setup'
 import {
   AddSeatPlanRowForm,
-  GenerateButton,
+  GeneratePanel,
   PublishButton,
   SeatPlanTable,
+  type BuildingOption,
+  type ExamOption,
   type RoomOption,
   type SeatPlanRow,
 } from './seat-plan-controls'
@@ -40,10 +42,26 @@ export default async function SeatPlanPage({ params }: { params: Promise<{ id: s
   if (!exam) notFound()
   const closed = exam.status === 'closed'
 
-  const [{ data: rows }, { data: rooms }] = await Promise.all([
-    supabase.from('exam_seat_plans').select('id, room_id, roll_start, roll_end').eq('exam_id', id),
-    supabase.from('rooms').select('id, name, capacity').eq('is_active', true).order('name'),
-  ])
+  // Mixed seating (issue #95): capacity is a room-wide budget, so the page
+  // needs every exam's allocation in these rooms, not just this exam's.
+  const [{ data: rows }, { data: allRows }, { data: rooms }, { data: buildings }, { data: otherExams }] =
+    await Promise.all([
+      supabase.from('exam_seat_plans').select('id, room_id, roll_start, roll_end').eq('exam_id', id),
+      supabase.from('exam_seat_plans').select('id, room_id, roll_start, roll_end'),
+      supabase
+        .from('rooms')
+        .select('id, name, capacity, building_id, buildings(name)')
+        .eq('is_active', true)
+        .order('name'),
+      supabase.from('buildings').select('id, name').order('name'),
+      supabase
+        .from('exams')
+        .select('id, name, exam_year')
+        .eq('status', 'open')
+        .neq('id', id)
+        .not('class_id', 'is', null)
+        .order('exam_year', { ascending: false }),
+    ])
 
   let rolls: number[] = []
   if (exam.class_id) {
@@ -62,13 +80,24 @@ export default async function SeatPlanPage({ params }: { params: Promise<{ id: s
   }
 
   const seatRows = (rows ?? []) as SeatPlanRow[]
-  const roomOpts = (rooms ?? []) as RoomOption[]
-  const roomById = new Map(roomOpts.map((r) => [r.id, r]))
+  const roomOpts = (rooms ?? []).map((r) => ({
+    id: r.id,
+    name: r.name,
+    capacity: r.capacity,
+    building_id: r.building_id,
+    buildingName:
+      (r.buildings as unknown as { name: string } | null)?.name ?? '',
+  })) as RoomOption[]
+  const buildingOpts = (buildings ?? []) as BuildingOption[]
+  const examOpts: ExamOption[] = (otherExams ?? []).map((e) => ({
+    id: e.id,
+    label: `${e.name} (${e.exam_year})`,
+  }))
   const overlapping = overlappingRowIds(seatRows)
-  const hasConflict = seatRows.some((r) => {
-    const room = roomById.get(r.room_id)
-    return overlapping.has(r.id) || (room ? exceedsCapacity(r, room.capacity) : false)
-  })
+  const overCapacity = overCapacityRoomIds((allRows ?? []) as SeatPlanRow[], roomOpts)
+  const hasConflict =
+    seatRows.some((r) => overlapping.has(r.id)) ||
+    seatRows.some((r) => overCapacity.has(r.room_id))
   const examLabel = `${exam.name} (${exam.exam_year})`
 
   return (
@@ -82,7 +111,6 @@ export default async function SeatPlanPage({ params }: { params: Promise<{ id: s
         <span className="text-sm text-muted">{examLabel}</span>
         {!closed && (
           <div className="flex items-center gap-2">
-            <GenerateButton examId={exam.id} lang={lang} />
             <PublishButton
               examId={exam.id}
               hasConflict={hasConflict}
@@ -92,6 +120,18 @@ export default async function SeatPlanPage({ params }: { params: Promise<{ id: s
           </div>
         )}
       </div>
+
+      {!closed && exam.class_id && (
+        <div className="mb-4 flex">
+          <GeneratePanel
+            examId={exam.id}
+            otherExams={examOpts}
+            buildings={buildingOpts}
+            rooms={roomOpts}
+            lang={lang}
+          />
+        </div>
+      )}
 
       {!exam.class_id ? (
         <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted shadow-card">
@@ -109,7 +149,15 @@ export default async function SeatPlanPage({ params }: { params: Promise<{ id: s
             {!seatRows.length ? (
               <p className="text-sm text-muted">{t('seatPlan.none', lang)}</p>
             ) : (
-              <SeatPlanTable examId={exam.id} rows={seatRows} rooms={roomOpts} rolls={rolls} disabled={closed} lang={lang} />
+              <SeatPlanTable
+                examId={exam.id}
+                rows={seatRows}
+                rooms={roomOpts}
+                rolls={rolls}
+                overCapacityRooms={overCapacity}
+                disabled={closed}
+                lang={lang}
+              />
             )}
             {!closed && <AddSeatPlanRowForm examId={exam.id} rooms={roomOpts} lang={lang} />}
           </section>

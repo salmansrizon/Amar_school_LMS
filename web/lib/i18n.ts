@@ -337,6 +337,14 @@ const dict = {
   'seatPlan.overlap': { bn: 'সংঘর্ষ', en: 'Overlap' },
   'seatPlan.overCapacity': { bn: 'ধারণক্ষমতা অতিক্রম', en: 'Over Capacity' },
   'seatPlan.generate': { bn: 'স্বয়ংক্রিয় সিট প্ল্যান তৈরি করুন', en: 'Generate Seat Plan' },
+  // Seat plan v2 (issue #95): multi-exam, multi-building, mixed seating.
+  'seatPlan.generateTitle': { bn: 'সিট প্ল্যান তৈরি করুন', en: 'Generate seat plan' },
+  'seatPlan.alsoExams': { bn: 'একসাথে অন্য পরীক্ষা', en: 'Include other exams' },
+  'seatPlan.mixedHint': {
+    bn: 'একাধিক পরীক্ষা নির্বাচন করলে এক কক্ষে বিভিন্ন পরীক্ষার শিক্ষার্থী মিশিয়ে বসানো হবে।',
+    en: 'Selecting more than one exam seats their students mixed together in the same rooms.',
+  },
+  'seatPlan.venues': { bn: 'ভবন ও কক্ষ', en: 'Buildings & rooms' },
   'seatPlan.generateConfirm': {
     bn: 'এটি বর্তমান সিট প্ল্যান প্রতিস্থাপন করবে। এগিয়ে যাবেন?',
     en: 'This replaces the current seat plan. Continue?',

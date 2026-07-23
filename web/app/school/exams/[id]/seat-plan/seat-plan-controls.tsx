@@ -3,14 +3,26 @@
 import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
 import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
-import { countRollsInRange, exceedsCapacity, overlappingRowIds } from '@/lib/exam-setup'
+import { countRollsInRange, overlappingRowIds } from '@/lib/exam-setup'
 import { t, type Lang } from '@/lib/i18n'
-import { generateSeatPlan, publishSeatPlan, removeSeatPlanRow, saveSeatPlanRow } from './actions'
+import { generateSeatPlanFor, publishSeatPlan, removeSeatPlanRow, saveSeatPlanRow } from './actions'
 
 export interface RoomOption {
   id: string
   name: string
   capacity: number
+  building_id: string
+  buildingName: string
+}
+
+export interface BuildingOption {
+  id: string
+  name: string
+}
+
+export interface ExamOption {
+  id: string
+  label: string
 }
 
 export interface SeatPlanRow {
@@ -25,6 +37,7 @@ export function SeatPlanTable({
   rows,
   rooms,
   rolls,
+  overCapacityRooms,
   disabled,
   lang,
 }: {
@@ -32,6 +45,8 @@ export function SeatPlanTable({
   rows: SeatPlanRow[]
   rooms: RoomOption[]
   rolls: number[]
+  /** Rooms past capacity once every exam seated in them is summed (issue #95). */
+  overCapacityRooms: Set<string>
   disabled: boolean
   lang: Lang
 }) {
@@ -62,7 +77,7 @@ export function SeatPlanTable({
                 room={room}
                 studentCount={countRollsInRange(rolls, row)}
                 isOverlap={overlapping.has(row.id)}
-                isOverCapacity={room ? exceedsCapacity(row, room.capacity) : false}
+                isOverCapacity={overCapacityRooms.has(row.room_id)}
                 disabled={disabled}
                 lang={lang}
               />
@@ -100,7 +115,10 @@ function SeatPlanRowView({
 
   return (
     <tr>
-      <td className="py-2 pr-2 font-medium">{room?.name ?? '—'}</td>
+      <td className="py-2 pr-2 font-medium">
+        {room ? room.name : '—'}
+        {room?.buildingName ? <div className="text-xs font-normal text-muted">{room.buildingName}</div> : null}
+      </td>
       <td className="py-2 pr-2 text-right">{room?.capacity ?? '—'}</td>
       <td className="py-2 pr-2">
         {disabled ? (
@@ -235,30 +253,143 @@ export function AddSeatPlanRowForm({ examId, rooms, lang }: { examId: string; ro
   )
 }
 
-export function GenerateButton({ examId, lang }: { examId: string; lang: Lang }) {
+/** Generate panel (issue #95, docs/improvement.md §2B): pick one or more
+ *  exams and one or more buildings — a whole building selects all its rooms,
+ *  or individual rooms are picked directly. The current exam is always
+ *  included; it is this exam's screen. */
+export function GeneratePanel({
+  examId,
+  otherExams,
+  buildings,
+  rooms,
+  lang,
+}: {
+  examId: string
+  otherExams: ExamOption[]
+  buildings: BuildingOption[]
+  rooms: RoomOption[]
+  lang: Lang
+}) {
   const router = useRouter()
+  const [open, setOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
-  return (
-    <span className="flex items-center gap-2">
-      {error && <span className="text-xs text-alert-deep">{error}</span>}
+  const [examIds, setExamIds] = useState<string[]>([])
+  const [roomIds, setRoomIds] = useState<string[]>(rooms.map((r) => r.id))
+
+  const toggle = (list: string[], id: string) =>
+    list.includes(id) ? list.filter((x) => x !== id) : [...list, id]
+
+  const roomsOf = (buildingId: string) => rooms.filter((r) => r.building_id === buildingId)
+  const buildingChecked = (buildingId: string) => {
+    const ids = roomsOf(buildingId).map((r) => r.id)
+    return ids.length > 0 && ids.every((id) => roomIds.includes(id))
+  }
+  const toggleBuilding = (buildingId: string) => {
+    const ids = roomsOf(buildingId).map((r) => r.id)
+    setRoomIds((prev) =>
+      buildingChecked(buildingId)
+        ? prev.filter((id) => !ids.includes(id))
+        : [...new Set([...prev, ...ids])],
+    )
+  }
+
+  if (!open) {
+    return (
       <button
         type="button"
-        disabled={pending}
-        onClick={() => {
-          if (!confirm(t('seatPlan.generateConfirm', lang))) return
-          startTransition(async () => {
-            setError(null)
-            const result = await generateSeatPlan(examId)
-            if (result.error) setError(result.error)
-            else router.refresh()
-          })
-        }}
-        className="cursor-pointer rounded-full border border-line-strong px-4 py-1.5 text-sm font-semibold hover:bg-paper-muted disabled:opacity-50"
+        onClick={() => setOpen(true)}
+        className="cursor-pointer rounded-full border border-line-strong px-4 py-1.5 text-sm font-semibold hover:bg-paper-muted"
       >
         {t('seatPlan.generate', lang)}
       </button>
-    </span>
+    )
+  }
+
+  return (
+    <div className="w-full rounded-lg border border-line bg-paper p-4 shadow-card">
+      <p className="mb-3 text-sm font-semibold">{t('seatPlan.generateTitle', lang)}</p>
+
+      {otherExams.length > 0 && (
+        <div className="mb-4">
+          <p className={labelClass}>{t('seatPlan.alsoExams', lang)}</p>
+          <div className="flex flex-wrap gap-3 text-sm">
+            {otherExams.map((exam) => (
+              <label key={exam.id} className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={examIds.includes(exam.id)}
+                  onChange={() => setExamIds((prev) => toggle(prev, exam.id))}
+                />
+                {exam.label}
+              </label>
+            ))}
+          </div>
+          <p className="mt-1 text-xs text-muted">{t('seatPlan.mixedHint', lang)}</p>
+        </div>
+      )}
+
+      <div className="mb-4 space-y-3">
+        <p className={labelClass}>{t('seatPlan.venues', lang)}</p>
+        {buildings.map((building) => (
+          <div key={building.id} className="rounded-md border border-line p-3">
+            <label className="flex items-center gap-2 text-sm font-semibold">
+              <input
+                type="checkbox"
+                checked={buildingChecked(building.id)}
+                onChange={() => toggleBuilding(building.id)}
+              />
+              {building.name}
+            </label>
+            <div className="mt-2 flex flex-wrap gap-3 pl-6 text-sm">
+              {roomsOf(building.id).map((room) => (
+                <label key={room.id} className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={roomIds.includes(room.id)}
+                    onChange={() => setRoomIds((prev) => toggle(prev, room.id))}
+                  />
+                  {room.name} <span className="text-xs text-muted">({room.capacity})</span>
+                </label>
+              ))}
+              {!roomsOf(building.id).length && (
+                <span className="text-xs text-muted">{t('venues.noRooms', lang)}</span>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {error && <p className="mb-2 text-sm text-alert-deep">{error}</p>}
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          disabled={pending || !roomIds.length}
+          onClick={() => {
+            if (!confirm(t('seatPlan.generateConfirm', lang))) return
+            startTransition(async () => {
+              setError(null)
+              const result = await generateSeatPlanFor(examId, examIds, roomIds)
+              if (result.error) setError(result.error)
+              else {
+                setOpen(false)
+                router.refresh()
+              }
+            })
+          }}
+          className={`${primaryBtnClass} w-auto px-5`}
+        >
+          {t('seatPlan.generate', lang)}
+        </button>
+        <button
+          type="button"
+          onClick={() => setOpen(false)}
+          className="cursor-pointer text-sm font-semibold text-muted hover:underline"
+        >
+          {t('venues.cancel', lang)}
+        </button>
+      </div>
+    </div>
   )
 }
 
