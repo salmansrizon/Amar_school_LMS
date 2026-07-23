@@ -4,7 +4,7 @@ import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { createClient } from '@/lib/supabase/server'
 import { countFor, studentCounts } from '@/lib/classes'
-import { AddClassForm, AddRoomForm, AddSubjectForm, DeleteButton } from './class-controls'
+import { AddClassForm, AddSubjectForm, DeleteButton } from './class-controls'
 import { AddDetails } from '@/components/add-details'
 
 // Layout per ui/school-owner/classes-list.html: three anchored sections
@@ -30,13 +30,12 @@ export default async function ClassesPage({
   const { data: me } = await supabase.from('profiles').select('role').eq('id', user.id).single()
   if (me?.role !== 'school_owner' && me?.role !== 'staff_user') redirect('/login')
 
-  const [{ data: classes }, { data: rooms }, { data: subjects }, { data: students }] =
+  const [{ data: classes }, { data: subjects }, { data: students }] =
     await Promise.all([
       supabase
         .from('classes')
         .select('id, name, section, education_level, group_department')
         .order('created_at'),
-      supabase.from('rooms').select('id, name, capacity, is_active').order('created_at'),
       supabase
         .from('subjects')
         .select(
@@ -167,50 +166,22 @@ export default async function ClassesPage({
         )}
       </section>
 
-      {/* Rooms */}
+      {/* Rooms moved to Institute Setup -> Venues (issue #93): rooms now belong
+          to a building and are institute master data, not class configuration.
+          The anchor and this link stay so existing navigation still lands. */}
       <section id="rooms" className="mb-8 rounded-lg border border-line bg-paper p-5 shadow-card">
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-          <h2 className="font-bold">{t('classes.roomList', lang)}</h2>
-          <AddDetails label={t('classes.addRoom', lang)}>
-            <AddRoomForm lang={lang} />
-          </AddDetails>
-        </div>
-        {!rooms?.length ? (
-          <p className="text-sm text-muted">{t('classes.noRooms', lang)}</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="border-b border-line-strong">
-                  <th className={thClass}>{t('classes.room', lang)}</th>
-                  <th className={thClass}>{t('classes.capacity', lang)}</th>
-                  <th className={thClass}>{t('classes.status', lang)}</th>
-                  <th className={thClass}>{t('classes.actions', lang)}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rooms.map((r) => (
-                  <tr key={r.id} className="border-b border-line">
-                    <td className={`${tdClass} font-medium`}>{r.name}</td>
-                    <td className={tdClass}>{r.capacity}</td>
-                    <td className={tdClass}>
-                      <span
-                        className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
-                          r.is_active ? 'bg-mint-soft text-mint-deep' : 'bg-paper-muted text-muted'
-                        }`}
-                      >
-                        {t(r.is_active ? 'classes.active' : 'classes.inactive', lang)}
-                      </span>
-                    </td>
-                    <td className={tdClass}>
-                      <DeleteButton entity="rooms" id={r.id} lang={lang} />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="font-bold">{t('classes.roomList', lang)}</h2>
+            <p className="mt-1 text-sm text-muted">{t('venues.movedHint', lang)}</p>
           </div>
-        )}
+          <Link
+            href="/school/institute/venues"
+            className="rounded-full bg-brand-500 px-4 py-1.5 text-xs font-semibold text-white hover:bg-brand-600"
+          >
+            {t('venues.manageLink', lang)}
+          </Link>
+        </div>
       </section>
 
       {/* Subjects */}

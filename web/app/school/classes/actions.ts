@@ -35,22 +35,6 @@ export async function addClass(formData: FormData): Promise<{ error?: string }> 
   return {}
 }
 
-export async function addRoom(formData: FormData): Promise<{ error?: string }> {
-  const name = str(formData, 'name')
-  if (!name) return { error: 'Name is required' }
-  const capacity = Number(formData.get('capacity'))
-  if (!Number.isInteger(capacity) || capacity < 1)
-    return { error: 'Capacity must be a positive whole number' }
-  const supabase = await createClient()
-  const { error } = await supabase.from('rooms').insert({ name, capacity })
-  if (error) {
-    if (error.code === '23505') return { error: 'This room already exists' }
-    return { error: error.message }
-  }
-  revalidatePath(PAGE)
-  return {}
-}
-
 export async function addSubject(formData: FormData): Promise<{ error?: string }> {
   const name = str(formData, 'name')
   if (!name) return { error: 'Name is required' }
@@ -87,8 +71,10 @@ export async function addSubject(formData: FormData): Promise<{ error?: string }
   return {}
 }
 
-type Entity = 'classes' | 'rooms' | 'subjects'
-const ENTITIES: ReadonlySet<Entity> = new Set(['classes', 'rooms', 'subjects'])
+// Rooms are no longer deleted from here — they moved to Institute Setup ->
+// Venues with issue #93, where deletion goes through the building they belong to.
+type Entity = 'classes' | 'subjects'
+const ENTITIES: ReadonlySet<Entity> = new Set(['classes', 'subjects'])
 
 export async function removeItem(entity: Entity, id: string): Promise<{ error?: string }> {
   if (!ENTITIES.has(entity)) return { error: 'Unknown item type' }

@@ -11,9 +11,10 @@ import {
   studentSectionOptions,
   type OffDay,
 } from '@/lib/attendance-manual'
-import { PrintPage, InstituteHeader } from '@/components/print/pieces'
+import { PrintPage, InstituteHeader, PaginatedSheet } from '@/components/print/pieces'
 import { PrintButton } from '@/components/print/print-button'
 import { AttendanceTabs } from '../attendance-tabs'
+import { loadInstitutePrintHeader } from '@/lib/institute-print'
 
 // Layout per ui/school-owner/attendance-book.html: class/section + month
 // filter, Filled/Blank toggle, print button, monthly P/A register grid
@@ -64,8 +65,8 @@ export default async function AttendanceBookPage({
   const daysInMonth = new Date(Date.UTC(year, month + 1, 0)).getUTCDate()
   const monthEnd = `${monthPrefix}-${String(daysInMonth).padStart(2, '0')}`
 
-  const [{ data: school }, { data: students }] = await Promise.all([
-    supabase.from('schools').select('name').eq('id', me.school_id).single(),
+  const [institute, { data: students }] = await Promise.all([
+    loadInstitutePrintHeader(supabase, lang),
     supabase.from('students').select('id, full_name, class_name, section, roll_number').order('full_name'),
   ])
   const roster = students ?? []
@@ -193,10 +194,14 @@ export default async function AttendanceBookPage({
         </p>
       ) : (
         <PrintPage>
-          <InstituteHeader
-            name={school?.name ?? ''}
-            docTitle={`${t('attendance.bookRegisterWord', lang)}${className ? ` — ${className}` : ''}${section ? `, ${section}` : ''} — ${monthLabel(year, month, lang)}`}
-          />
+          <PaginatedSheet
+            header={
+              <InstituteHeader
+                institute={institute ?? undefined}
+                docTitle={`${t('attendance.bookRegisterWord', lang)}${className ? ` — ${className}` : ''}${section ? `, ${section}` : ''} — ${monthLabel(year, month, lang)}`}
+              />
+            }
+          >
 
           <div className="overflow-x-auto">
             <table className="w-full border-collapse text-xs whitespace-nowrap">
@@ -250,6 +255,7 @@ export default async function AttendanceBookPage({
           {mode === 'filled' && (
             <p className="mt-3 text-xs text-muted">{t('attendance.bookLegend', lang)}</p>
           )}
+          </PaginatedSheet>
         </PrintPage>
       )}
     </main>

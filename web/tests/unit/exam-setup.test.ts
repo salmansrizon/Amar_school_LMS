@@ -10,6 +10,8 @@ import {
   filterResultRoster,
   roomForRoll,
   sortRoutineEntries,
+  roomUsedSeats,
+  overCapacityRoomIds,
 } from '@/lib/exam-setup'
 
 describe('subjectFullMarks', () => {
@@ -192,5 +194,35 @@ describe('roomForRoll', () => {
   it('is null for a roll outside every range, or a null roll', () => {
     expect(roomForRoll(seatRows, 61)).toBeNull()
     expect(roomForRoll(seatRows, null)).toBeNull()
+  })
+})
+
+// Mixed seating (issue #95): capacity is a room-wide budget shared by every
+// exam seated in the room, not a per-row check.
+describe('roomUsedSeats / overCapacityRoomIds', () => {
+  const rows = [
+    { id: 'a', room_id: 'r1', roll_start: 1, roll_end: 4 },
+    { id: 'b', room_id: 'r1', roll_start: 101, roll_end: 104 },
+    { id: 'c', room_id: 'r2', roll_start: 1, roll_end: 2 },
+  ]
+
+  it('sums every exam seated in the room', () => {
+    expect(roomUsedSeats(rows, 'r1')).toBe(8)
+    expect(roomUsedSeats(rows, 'r2')).toBe(2)
+    expect(roomUsedSeats(rows, 'unused')).toBe(0)
+  })
+
+  it('flags only the rooms whose combined allocation is past capacity', () => {
+    const over = overCapacityRoomIds(rows, [
+      { id: 'r1', capacity: 6 },
+      { id: 'r2', capacity: 2 },
+    ])
+    expect(over.has('r1')).toBe(true)
+    expect(over.has('r2')).toBe(false)
+  })
+
+  it('a room within budget for each exam alone but over when summed is still flagged', () => {
+    const over = overCapacityRoomIds(rows, [{ id: 'r1', capacity: 5 }])
+    expect(over.has('r1')).toBe(true)
   })
 })

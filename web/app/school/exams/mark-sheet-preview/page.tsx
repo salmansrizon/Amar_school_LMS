@@ -13,6 +13,7 @@ import {
   QrFooterRow,
 } from '@/components/print/pieces'
 import { PrintButton } from '@/components/print/print-button'
+import { loadInstitutePrintHeader } from '@/lib/institute-print'
 
 // Prototype printable (issue #25) proving the ADR 0007 print seam end-to-end:
 // real school + exam from the DB, sample student/marks until the exams module
@@ -46,11 +47,8 @@ export default async function MarkSheetPreviewPage() {
   if (me?.role !== 'school_owner' && me?.role !== 'staff_user') redirect('/login')
 
   // Surface a missing school row instead of printing a blank letterhead.
-  const { data: school, error: schoolError } = await supabase
-    .from('schools')
-    .select('name')
-    .maybeSingle()
-  if (schoolError || !school) notFound()
+  const institute = await loadInstitutePrintHeader(supabase, lang)
+  if (!institute) notFound()
   const { data: exam } = await supabase
     .from('exams')
     .select('name, exam_year')
@@ -84,7 +82,7 @@ export default async function MarkSheetPreviewPage() {
 
       <PrintPage>
         <InstituteHeader
-          name={school?.name ?? ''}
+          institute={institute ?? undefined}
           docTitle={`${t('markSheet.docWord', lang)} — ${examTitle}`}
         />
 

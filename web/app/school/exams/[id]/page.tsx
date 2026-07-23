@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
-import { t, type Lang } from '@/lib/i18n'
+import { t, type Lang, type MessageKey } from '@/lib/i18n'
 import { createClient } from '@/lib/supabase/server'
 import { subjectsForClass } from '@/lib/students'
 import {
@@ -21,6 +21,17 @@ import {
 // (issue #8) locks every field here — enforced server-side by the exam_close
 // trigger + the new child-table guards (migration 0039), mirrored client-side
 // by disabling the inputs.
+
+/** Every printable an exam has, in the order a school produces them. */
+const EXAM_DOCUMENTS: { href: string; label: MessageKey; hint: MessageKey }[] = [
+  { href: '/routine/print', label: 'examDocs.routine', hint: 'examDocs.routineHint' },
+  { href: '/seat-plan/print', label: 'examDocs.seatPlan', hint: 'examDocs.seatPlanHint' },
+  { href: '/admit-cards', label: 'examDocs.admitCards', hint: 'examDocs.admitCardsHint' },
+  { href: '/attendance-sheet', label: 'examDocs.attendanceSheet', hint: 'examDocs.attendanceSheetHint' },
+  { href: '/printables', label: 'examDocs.printables', hint: 'examDocs.printablesHint' },
+  { href: '/result-book', label: 'examDocs.resultBook', hint: 'examDocs.resultBookHint' },
+  { href: '/print-all', label: 'examDocs.printAll', hint: 'examDocs.printAllHint' },
+]
 
 export default async function ExamSetupPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -124,6 +135,30 @@ export default async function ExamSetupPage({ params }: { params: Promise<{ id: 
             {t('examSetup.nextSeatPlan', lang)}
           </Link>
         </div>
+      </section>
+
+      {/* Exam Documents index (issue #99). By the end of map #91 a single exam
+          is reachable from eight scattered print entry points; this is one
+          place that names them. Deliberately an index over routes that already
+          exist — not a hub route, not new architecture. */}
+      <section className="mt-4 rounded-lg border border-line bg-paper p-5 shadow-card">
+        <h3 className="mb-3 font-bold">{t('examDocs.title', lang)}</h3>
+        <ul className="divide-y divide-line">
+          {EXAM_DOCUMENTS.map((doc) => (
+            <li key={doc.href} className="flex items-start justify-between gap-4 py-2">
+              <div>
+                <p className="text-sm font-semibold">{t(doc.label, lang)}</p>
+                <p className="text-xs text-muted">{t(doc.hint, lang)}</p>
+              </div>
+              <Link
+                href={`/school/exams/${exam.id}${doc.href}`}
+                className="shrink-0 text-sm text-brand-600 hover:underline"
+              >
+                {t('examDocs.open', lang)}
+              </Link>
+            </li>
+          ))}
+        </ul>
       </section>
     </main>
   )

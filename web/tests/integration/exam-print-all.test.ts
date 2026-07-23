@@ -23,6 +23,7 @@ describe('Exams V — result roster, roll-range/promoted filter, exam-center (is
   let ownerA: SupabaseClient
   let ownerB: SupabaseClient
   let classId: string
+  let mainBuildingId: string
   let subjectId: string
   let schemeId: string
   let roomId: string
@@ -44,6 +45,11 @@ describe('Exams V — result roster, roll-range/promoted filter, exam-center (is
     await cleanup(ownerA)
     await cleanup(ownerB)
 
+    // Rooms belong to a building since issue #93; every school has one.
+    mainBuildingId = (
+      await ownerA.from('buildings').select('id').eq('name', 'Main Building').single()
+    ).data!.id
+
     classId = (
       await ownerA.from('classes').insert({ name: 'PA Test Class', section: 'A' }).select('id').single()
     ).data!.id
@@ -63,7 +69,7 @@ describe('Exams V — result roster, roll-range/promoted filter, exam-center (is
     ).data!.id
     await ownerA.from('grade_bands').insert({ grading_scheme_id: schemeId, label: 'Pass', min_percent: 33, max_percent: 100 })
     roomId = (
-      await ownerA.from('rooms').insert({ name: 'PA Test Room', capacity: 30 }).select('id').single()
+      await ownerA.from('rooms').insert({ building_id: mainBuildingId, name: 'PA Test Room', capacity: 30 }).select('id').single()
     ).data!.id
 
     passStudentId = (

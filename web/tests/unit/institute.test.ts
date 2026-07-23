@@ -55,6 +55,27 @@ describe('validateInstituteProfile', () => {
     expect(validateInstituteProfile(profile({ eiin_no: null }))).toBeNull()
   })
 
+  // Print-header fields (issue #92): free text by design, but a typo'd email
+  // would print on every document, so the one checkable field is checked.
+  it('accepts the print-header contact fields', () => {
+    expect(
+      validateInstituteProfile(
+        profile({ address_line: 'ঝিকরগাছা, যশোর', mobile: '01711-000000', email: 'info@a.edu.bd' }),
+      ),
+    ).toBeNull()
+  })
+
+  it('rejects a malformed email', () => {
+    expect(validateInstituteProfile(profile({ email: 'info@' }))).toBe('emailInvalid')
+    expect(validateInstituteProfile(profile({ email: 'not-an-email' }))).toBe('emailInvalid')
+  })
+
+  it('allows blank print-header fields (all optional)', () => {
+    expect(
+      validateInstituteProfile(profile({ address_line: null, mobile: null, email: null })),
+    ).toBeNull()
+  })
+
   it('rejects an education level outside the fixed set', () => {
     expect(validateInstituteProfile(profile({ education_levels: ['primary', 'college'] }))).toBe(
       'educationLevelInvalid',

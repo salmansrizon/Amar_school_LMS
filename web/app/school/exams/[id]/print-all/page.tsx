@@ -12,6 +12,8 @@ import { PrintButton } from '@/components/print/print-button'
 import { AdmitCardTemplate } from '../admit-cards/[studentId]/templates'
 import { MarkSheetTemplate } from '../mark-sheet/[studentId]/templates'
 import { ProgressReportTemplate } from '../progress-report/[studentId]/templates'
+import { loadInstitutePrintHeader, loadPrintThemeKey } from '@/lib/institute-print'
+import { PRINT_THEMES, resolveTheme } from '@/lib/print-themes'
 
 // Batch "print all" (issue #48, PRD §5.5): one page renders N PrintPages (one
 // per matching roster student) and calls window.print() once — ADR 0007's
@@ -45,10 +47,10 @@ export default async function PrintAllPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>
-  searchParams: Promise<{ doc?: string; template?: string; rollFrom?: string; rollTo?: string; promotedOnly?: string }>
+  searchParams: Promise<{ doc?: string; template?: string; rollFrom?: string; rollTo?: string; promotedOnly?: string; theme?: string }>
 }) {
   const { id: examId } = await params
-  const { doc: docParam, template: templateParam, rollFrom: rollFromParam, rollTo: rollToParam, promotedOnly: promotedOnlyParam } =
+  const { doc: docParam, template: templateParam, rollFrom: rollFromParam, rollTo: rollToParam, promotedOnly: promotedOnlyParam, theme: themeParam } =
     await searchParams
   const doc = parseDoc(docParam)
   const template = parseTemplate(templateParam, doc)
@@ -67,6 +69,11 @@ export default async function PrintAllPage({
 
   const { data: school } = await supabase.from('schools').select('name, eiin_no').maybeSingle()
   if (!school) notFound()
+  const institute = await loadInstitutePrintHeader(supabase, lang)
+  if (!institute) notFound()
+  // Admit cards are the one themed printable (issue #94); a batch run may
+  // deviate from the school default for this print only.
+  const admitCardTheme = resolveTheme(themeParam, await loadPrintThemeKey(supabase, 'admit-card'))
 
   const { data: exam } = await supabase.from('exams').select('id, name, exam_year, class_id').eq('id', examId).maybeSingle()
   if (!exam) notFound()
@@ -90,6 +97,24 @@ export default async function PrintAllPage({
           <option value="3">{t('markSheet.template3', lang)}</option>
         </select>
       </div>
+      {doc === 'admit-card' && (
+        <div>
+          <label className="mb-1 block text-xs font-semibold text-muted">
+            {t('admitCard.themeOverride', lang)}
+          </label>
+          <select
+            name="theme"
+            defaultValue={admitCardTheme.key}
+            className="h-9 rounded-md border border-line px-2 text-sm"
+          >
+            {PRINT_THEMES.map((themeOption) => (
+              <option key={themeOption.key} value={themeOption.key}>
+                {themeOption.label[lang]}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
       <div>
         <label className="mb-1 block text-xs font-semibold text-muted">{t('printAll.rollFrom', lang)}</label>
         <input
@@ -201,8 +226,8 @@ export default async function PrintAllPage({
           <AdmitCardTemplate
             key={c.studentId}
             lang={lang}
-            schoolName={school.name}
-            schoolMeta={school.eiin_no ? `EIIN: ${school.eiin_no}` : undefined}
+            institute={institute}
+            theme={admitCardTheme}
             examLabel={examLabel}
             studentName={c.studentName}
             roll={c.roll}
@@ -264,7 +289,7 @@ export default async function PrintAllPage({
           <MarkSheetTemplate
             key={row.studentId}
             lang={lang}
-            schoolName={school.name}
+            institute={institute}
             examLabel={examLabel}
             studentName={row.fullName}
             roll={row.rollNumber !== null ? String(row.rollNumber) : '—'}
@@ -316,7 +341,7 @@ export default async function PrintAllPage({
         <ProgressReportTemplate
           key={row.studentId}
           lang={lang}
-          schoolName={school.name}
+          institute={institute}
           examLabel={examLabel}
           studentName={row.fullName}
           roll={row.rollNumber !== null ? String(row.rollNumber) : '—'}

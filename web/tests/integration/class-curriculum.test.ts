@@ -69,12 +69,21 @@ describe('Class & Curriculum I (issue #26)', () => {
     await ownerA.from('classes').delete().eq('id', data!.id)
   })
 
+  // Rooms live inside a building since issue #93 (migration 0057); every
+  // school has its auto-created Main Building to attach them to.
   it('rooms require a positive capacity and default to active', async () => {
-    const { error: bad } = await ownerA.from('rooms').insert({ name: 'CC Test Room', capacity: 0 })
+    const { data: building } = await ownerA
+      .from('buildings')
+      .select('id')
+      .eq('name', 'Main Building')
+      .single()
+    const { error: bad } = await ownerA
+      .from('rooms')
+      .insert({ name: 'CC Test Room', capacity: 0, building_id: building!.id })
     expect(bad).not.toBeNull()
     const { data, error } = await ownerA
       .from('rooms')
-      .insert({ name: 'CC Test Room', capacity: 40 })
+      .insert({ name: 'CC Test Room', capacity: 40, building_id: building!.id })
       .select('id, is_active')
       .single()
     expect(error).toBeNull()
@@ -129,8 +138,15 @@ describe('Class & Curriculum I (issue #26)', () => {
     expect(error!.code).toBe('23503')
   })
 
-  it('duplicate room names in a school are rejected', async () => {
-    const { error } = await ownerA.from('rooms').insert({ name: 'CC Test Room', capacity: 30 })
+  it('duplicate room names within a building are rejected', async () => {
+    const { data: building } = await ownerA
+      .from('buildings')
+      .select('id')
+      .eq('name', 'Main Building')
+      .single()
+    const { error } = await ownerA
+      .from('rooms')
+      .insert({ name: 'CC Test Room', capacity: 30, building_id: building!.id })
     expect(error).not.toBeNull()
     expect(error!.code).toBe('23505')
   })

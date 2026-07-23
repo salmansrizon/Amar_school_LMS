@@ -8,7 +8,10 @@ import { roomForRoll } from '@/lib/exam-setup'
 import { renderAuthenticityQr } from '@/lib/qr'
 import { PrintButton } from '@/components/print/print-button'
 import { TemplatePicker2 } from '@/components/print/template-picker'
+import { ThemePicker } from '@/components/print/theme-picker'
 import { AdmitCardTemplate } from './templates'
+import { loadInstitutePrintHeader, loadPrintThemeKey } from '@/lib/institute-print'
+import { resolveTheme } from '@/lib/print-themes'
 
 // Admit card (issue #48, PRD §5.5), per ui/school-owner/admit-card-preview.html
 // — identity + seat only, no grades. "Exam Center" is derived from the exam's
@@ -24,10 +27,10 @@ export default async function AdmitCardPage({
   searchParams,
 }: {
   params: Promise<{ id: string; studentId: string }>
-  searchParams: Promise<{ template?: string }>
+  searchParams: Promise<{ template?: string; theme?: string }>
 }) {
   const { id: examId, studentId } = await params
-  const { template: templateParam } = await searchParams
+  const { template: templateParam, theme: themeParam } = await searchParams
   const template = parseTemplate(templateParam)
   const lang: Lang = await currentLang()
   const supabase = await createClient()
@@ -39,8 +42,10 @@ export default async function AdmitCardPage({
   const { data: me } = await supabase.from('profiles').select('role').eq('id', user.id).single()
   if (me?.role !== 'school_owner' && me?.role !== 'staff_user') redirect('/login')
 
-  const { data: school } = await supabase.from('schools').select('name, eiin_no').maybeSingle()
-  if (!school) notFound()
+  const institute = await loadInstitutePrintHeader(supabase, lang)
+  if (!institute) notFound()
+  // Per-print override (?theme=) beats the school's saved default (issue #94).
+  const theme = resolveTheme(themeParam, await loadPrintThemeKey(supabase, 'admit-card'))
 
   const { data: exam } = await supabase
     .from('exams')
@@ -65,6 +70,7 @@ export default async function AdmitCardPage({
           label={t('markSheet.pickTemplate', lang)}
           options={[t('markSheet.template1', lang), t('markSheet.template2', lang)]}
         />
+        <ThemePicker selected={theme.key} label={t('admitCard.themeOverride', lang)} lang={lang} />
         <PrintButton label={t('print.print', lang)} />
       </div>
     </div>
@@ -90,7 +96,7 @@ export default async function AdmitCardPage({
 
   const examLabel = `${exam.name} ${exam.exam_year}`
   const qrSvg = await renderAuthenticityQr(
-    `ADMITCARD|school:${school.name}|exam:${examId}|student:${studentId}|roll:${student.roll_number ?? ''}`,
+    `ADMITCARD|school:${institute.name}|exam:${examId}|student:${studentId}|roll:${student.roll_number ?? ''}`,
   )
 
   return (
@@ -98,8 +104,8 @@ export default async function AdmitCardPage({
       {header}
       <AdmitCardTemplate
         lang={lang}
-        schoolName={school.name}
-        schoolMeta={school.eiin_no ? `EIIN: ${school.eiin_no}` : undefined}
+        institute={institute}
+        theme={theme}
         examLabel={examLabel}
         studentName={student.full_name}
         roll={student.roll_number !== null ? String(student.roll_number) : '—'}

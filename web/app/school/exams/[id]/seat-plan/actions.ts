@@ -24,7 +24,9 @@ export async function saveSeatPlanRow(examId: string, formData: FormData): Promi
   const supabase = await createClient()
   const { error } = await supabase.from('exam_seat_plans').upsert(
     { exam_id: examId, room_id: roomId, roll_start: rollStart, roll_end: rollEnd },
-    { onConflict: 'exam_id,room_id' },
+    // Mixed seating (issue #95): a room may hold several ranges, so the
+    // conflict target is the full unique key, not just exam+room.
+    { onConflict: 'exam_id,room_id,roll_start' },
   )
   if (error) return { error: error.message }
   revalidatePath(pagePath(examId))
@@ -42,6 +44,27 @@ export async function removeSeatPlanRow(examId: string, rowId: string): Promise<
 export async function generateSeatPlan(examId: string): Promise<{ error?: string }> {
   const supabase = await createClient()
   const { error } = await supabase.rpc('generate_seat_plan', { exam: examId })
+  if (error) return { error: error.message }
+  revalidatePath(pagePath(examId))
+  return {}
+}
+
+/** Generate across a selection of exams and rooms (issue #95). The current
+ *  exam is always part of the selection — this is its screen — and the RPC
+ *  clears and refills only the exams named here, so another exam sharing the
+ *  same rooms keeps its allocation. */
+export async function generateSeatPlanFor(
+  examId: string,
+  examIds: string[],
+  roomIds: string[],
+): Promise<{ error?: string }> {
+  if (!roomIds.length) return { error: 'noRoomsSelected' }
+  const exams = Array.from(new Set([examId, ...examIds]))
+  const supabase = await createClient()
+  const { error } = await supabase.rpc('generate_seat_plan_for', {
+    exam_ids: exams,
+    room_ids: roomIds,
+  })
   if (error) return { error: error.message }
   revalidatePath(pagePath(examId))
   return {}

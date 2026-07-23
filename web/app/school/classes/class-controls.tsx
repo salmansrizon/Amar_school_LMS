@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react'
 import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
 import { t, type Lang } from '@/lib/i18n'
-import { addClass, addRoom, addSubject, removeItem } from './actions'
+import { addClass, addSubject, removeItem } from './actions'
 
 function useSubmit(action: (data: FormData) => Promise<{ error?: string }>) {
   const [error, setError] = useState<string | null>(null)
@@ -45,26 +45,6 @@ export function AddClassForm({ lang }: { lang: Lang }) {
       {error && <p className="text-sm text-alert-deep sm:col-span-4">{error}</p>}
       <button type="submit" disabled={pending} className={`${primaryBtnClass} sm:col-span-4`}>
         {t('classes.addClass', lang)}
-      </button>
-    </form>
-  )
-}
-
-export function AddRoomForm({ lang }: { lang: Lang }) {
-  const { error, pending, onSubmit } = useSubmit(addRoom)
-  return (
-    <form className="grid gap-3 sm:grid-cols-2" onSubmit={onSubmit}>
-      <div>
-        <label className={labelClass} htmlFor="room_name">{t('classes.name', lang)}</label>
-        <input id="room_name" name="name" required className={inputClass} />
-      </div>
-      <div>
-        <label className={labelClass} htmlFor="room_capacity">{t('classes.capacity', lang)}</label>
-        <input id="room_capacity" name="capacity" type="number" min={1} required className={inputClass} />
-      </div>
-      {error && <p className="text-sm text-alert-deep sm:col-span-2">{error}</p>}
-      <button type="submit" disabled={pending} className={`${primaryBtnClass} sm:col-span-2`}>
-        {t('classes.addRoom', lang)}
       </button>
     </form>
   )
@@ -131,7 +111,7 @@ export function DeleteButton({
   id,
   lang,
 }: {
-  entity: 'classes' | 'rooms' | 'subjects'
+  entity: 'classes' | 'subjects'
   id: string
   lang: Lang
 }) {

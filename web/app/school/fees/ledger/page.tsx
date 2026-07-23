@@ -4,9 +4,10 @@ import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { createClient } from '@/lib/supabase/server'
 import { buildGeneralLedger, type LedgerSource, type LedgerSourceRow } from '@/lib/accounting'
-import { PrintPage, InstituteHeader, QrFooterRow } from '@/components/print/pieces'
+import { PrintPage, InstituteHeader, PaginatedSheet, QrFooterRow } from '@/components/print/pieces'
 import { PrintButton } from '@/components/print/print-button'
 import { AccountingTabs } from '../accounting-tabs'
+import { loadInstitutePrintHeader } from '@/lib/institute-print'
 
 // Layout per ui/school-owner/general-ledger.html: a date-range toolbar over a
 // Date | Source | Description | Debit | Credit | Balance table, combining
@@ -66,11 +67,8 @@ export default async function GeneralLedgerPage({
   const { data: me } = await supabase.from('profiles').select('role').eq('id', user.id).single()
   if (me?.role !== 'school_owner' && me?.role !== 'staff_user') redirect('/login')
 
-  const {
-    data: school,
-    error: schoolError,
-  } = await supabase.from('schools').select('name').maybeSingle()
-  if (schoolError || !school) notFound()
+  const institute = await loadInstitutePrintHeader(supabase, lang)
+  if (!institute) notFound()
 
   const [{ data: feeRecords }, { data: vouchers }, { data: assets }, { data: bankTxns }, { data: directorTxns }] =
     await Promise.all([
@@ -179,11 +177,16 @@ export default async function GeneralLedgerPage({
       </form>
 
       <PrintPage>
-        <InstituteHeader
-          name={school.name}
-          meta={`${new Date(from).toLocaleDateString(locale)} – ${new Date(to).toLocaleDateString(locale)}`}
-          docTitle={t('ledger.title', lang)}
-        />
+        <PaginatedSheet
+          header={
+            <>
+              <InstituteHeader institute={institute ?? undefined} docTitle={t('ledger.title', lang)} />
+              <p className="mb-2 text-center text-xs text-muted">
+                {new Date(from).toLocaleDateString(locale)} – {new Date(to).toLocaleDateString(locale)}
+              </p>
+            </>
+          }
+        >
 
         {!entries.length ? (
           <p className="text-sm text-muted">{t('ledger.none', lang)}</p>
@@ -221,6 +224,7 @@ export default async function GeneralLedgerPage({
         )}
 
         <QrFooterRow qrLabel={t('print.qr', lang)} poweredBy={t('print.poweredBy', lang)} />
+        </PaginatedSheet>
       </PrintPage>
     </main>
   )

@@ -1,6 +1,6 @@
 'use client'
 
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { inputClass } from '@/components/auth-card'
 
 // Mark sheet / progress report template switcher (mark-sheet-preview.html /
@@ -20,11 +20,16 @@ export function TemplatePicker({
 }) {
   const router = useRouter()
   const pathname = usePathname()
+  const searchParams = useSearchParams()
   return (
     <select
       value={selected}
       aria-label={label}
-      onChange={(e) => router.push(`${pathname}?template=${e.target.value}`)}
+      onChange={(e) => {
+        const next = new URLSearchParams(searchParams.toString())
+        next.set('template', e.target.value)
+        router.push(`${pathname}?${next.toString()}`)
+      }}
       className={`${inputClass} max-w-48 print:hidden`}
     >
       {options.map((label, i) => (
@@ -50,11 +55,16 @@ export function TemplatePicker2({
 }) {
   const router = useRouter()
   const pathname = usePathname()
+  const searchParams = useSearchParams()
   return (
     <select
       value={selected}
       aria-label={label}
-      onChange={(e) => router.push(`${pathname}?template=${e.target.value}`)}
+      onChange={(e) => {
+        const next = new URLSearchParams(searchParams.toString())
+        next.set('template', e.target.value)
+        router.push(`${pathname}?${next.toString()}`)
+      }}
       className={`${inputClass} max-w-48 print:hidden`}
     >
       {options.map((label, i) => (

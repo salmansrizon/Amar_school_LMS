@@ -71,6 +71,31 @@ export function exceedsCapacity(range: SeatRange, capacity: number): boolean {
   return range.roll_end - range.roll_start + 1 > capacity
 }
 
+/** Seats a room already owes, summed across every exam seated in it — mixed
+ *  seating (issue #95) makes capacity a room-wide budget, not a per-row check.
+ *  Mirrors what enforce_exam_seat_plan_school computes server-side. */
+export function roomUsedSeats<T extends SeatRange & { room_id: string }>(
+  rows: T[],
+  roomId: string,
+): number {
+  return rows
+    .filter((r) => r.room_id === roomId)
+    .reduce((n, r) => n + (r.roll_end - r.roll_start + 1), 0)
+}
+
+/** Rooms whose total allocation across all exams is past capacity — the
+ *  room-wide successor to the per-row exceedsCapacity check. */
+export function overCapacityRoomIds<T extends SeatRange & { room_id: string }>(
+  rows: T[],
+  rooms: { id: string; capacity: number }[],
+): Set<string> {
+  const bad = new Set<string>()
+  for (const room of rooms) {
+    if (roomUsedSeats(rows, room.id) > room.capacity) bad.add(room.id)
+  }
+  return bad
+}
+
 /** Count of actual student roll numbers that fall inside [roll_start, roll_end]
  * — the mockup's "Student Count" column, distinct from the range's raw size
  * since roll numbers can have gaps (archived students, manual edits). */

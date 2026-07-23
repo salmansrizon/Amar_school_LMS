@@ -1,4 +1,6 @@
 import type { ReactNode } from 'react'
+import type { InstitutePrintHeader } from '@/lib/institute-print'
+import { themeStyle, type PrintTheme } from '@/lib/print-themes'
 
 // Shared printable template pieces (ADR 0007) — the legacy C_TAMPLATES
 // equivalent. Every printable (receipts, mark sheets, progress reports,
@@ -8,31 +10,106 @@ import type { ReactNode } from 'react'
 /** One printed sheet: a card on screen, a bare A4 page in print. Batch
  *  printing renders several PrintPages in a row — each but the last breaks
  *  the page (an unconditional break would print a blank trailing sheet). */
-export function PrintPage({ children }: { children: ReactNode }) {
+export function PrintPage({ children, theme }: { children: ReactNode; theme?: PrintTheme }) {
+  // A themed sheet (issue #94) paints its own paper and ink from the curated
+  // preset; an unthemed one keeps the app's paper token exactly as before.
+  const style = theme
+    ? { ...themeStyle(theme), background: theme.paper, color: theme.ink }
+    : undefined
   return (
-    <div className="mx-auto w-full max-w-190 rounded-md border border-line-strong bg-paper p-8 shadow-card not-last:break-after-page print:max-w-none print:rounded-none print:border-0 print:p-0 print:shadow-none">
+    <div
+      style={style}
+      className={`mx-auto w-full max-w-190 rounded-md border border-line-strong p-8 shadow-card not-last:break-after-page print:max-w-none print:rounded-none print:border-0 print:p-0 print:shadow-none${
+        theme ? '' : ' bg-paper'
+      }`}
+    >
       {children}
     </div>
   )
 }
 
 /** Institute name + meta line + document title (covers the exam-header case:
- *  the docTitle names the exam, e.g. "Mark Sheet — Annual Examination 2025"). */
+ *  the docTitle names the exam, e.g. "Mark Sheet — Annual Examination 2025").
+ *
+ *  Issue #92 deepened this into the full institution block the printing
+ *  requirements ask for: pass `institute` (built by `lib/institute-print.ts`)
+ *  and the header renders logo, name, address, contacts and codes, centred.
+ *  The legacy `name` + `meta` pair still works for printables not yet swept
+ *  onto the loader (issue #99); `institute` wins where both are given. */
 export function InstituteHeader({
   name,
   meta,
+  institute,
   docTitle,
+  accent,
 }: {
-  name: string
+  name?: string
   meta?: string
+  institute?: InstitutePrintHeader
   docTitle: string
+  /** Themed printables (issue #94) tint the rule and the title with their
+   *  preset accent; untinted headers keep the brand colour. */
+  accent?: string
+}) {
+  const heading = institute?.name ?? name ?? ''
+  return (
+    <header
+      style={accent ? { borderBottomColor: accent } : undefined}
+      className="mb-4 border-b-2 border-line-strong pb-4 text-center"
+    >
+      {institute?.logoUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={institute.logoUrl}
+          alt=""
+          className="mx-auto mb-2 h-16 w-auto object-contain"
+        />
+      ) : null}
+      <div className="text-xl font-bold">{heading}</div>
+      {institute?.addressLine ? (
+        <div className="mt-0.5 text-xs text-muted">{institute.addressLine}</div>
+      ) : null}
+      {institute?.contactLine ? (
+        <div className="mt-0.5 text-xs text-muted">{institute.contactLine}</div>
+      ) : null}
+      {institute?.codesLine ? (
+        <div className="mt-0.5 text-xs text-muted">{institute.codesLine}</div>
+      ) : null}
+      {!institute && meta ? <div className="mt-0.5 text-xs text-muted">{meta}</div> : null}
+      <div
+        style={accent ? { color: accent } : undefined}
+        className="mt-3 text-lg font-semibold text-brand-600"
+      >
+        {docTitle}
+      </div>
+    </header>
+  )
+}
+
+/** A document whose body outruns one sheet: the header lives in a table
+ *  header group, which every print engine repeats at the top of each printed
+ *  page. Single-sheet printables (admit cards, receipts) keep using
+ *  PrintPage + InstituteHeader directly — nothing to repeat there. */
+export function PaginatedSheet({
+  header,
+  children,
+}: {
+  header: ReactNode
+  children: ReactNode
 }) {
   return (
-    <header className="mb-4 border-b-2 border-line-strong pb-4 text-center">
-      <div className="text-xl font-bold">{name}</div>
-      {meta ? <div className="mt-0.5 text-xs text-muted">{meta}</div> : null}
-      <div className="mt-3 text-lg font-semibold text-brand-600">{docTitle}</div>
-    </header>
+    <table className="w-full border-collapse">
+      <thead className="table-header-group">
+        <tr>
+          <th className="p-0 text-left font-normal">{header}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td className="p-0 align-top">{children}</td>
+        </tr>
+      </tbody>
+    </table>
   )
 }
 

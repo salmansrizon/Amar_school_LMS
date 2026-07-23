@@ -1,5 +1,7 @@
 import { PrintPage, InstituteHeader, InfoGrid, PhotoBox, SignatureRow, QrFooterRow, QrMark } from '@/components/print/pieces'
 import { t, type Lang } from '@/lib/i18n'
+import type { InstitutePrintHeader } from '@/lib/institute-print'
+import type { PrintTheme } from '@/lib/print-themes'
 
 // Exams V (issue #48, PRD §5.5): the 2 admit-card template variants. No
 // grades/rank here (an admit card carries identity + seat only) — both
@@ -11,8 +13,8 @@ import { t, type Lang } from '@/lib/i18n'
 
 export interface AdmitCardTemplateProps {
   lang: Lang
-  schoolName: string
-  schoolMeta?: string
+  /** Full institution header block (issue #92) — built by the shared loader. */
+  institute: InstitutePrintHeader
   examLabel: string
   studentName: string
   roll: string
@@ -22,6 +24,9 @@ export interface AdmitCardTemplateProps {
   photoSrc: string | null
   qrSvg: string
   template: 1 | 2
+  /** Curated colour preset (issue #94): the school's saved default, or a
+   *  per-print override from the URL. */
+  theme: PrintTheme
 }
 
 function infoRows(props: AdmitCardTemplateProps) {
@@ -38,10 +43,10 @@ function infoRows(props: AdmitCardTemplateProps) {
 function ClassicTemplate(props: AdmitCardTemplateProps) {
   const { lang } = props
   return (
-    <PrintPage>
+    <PrintPage theme={props.theme}>
       <InstituteHeader
-        name={props.schoolName}
-        meta={props.schoolMeta}
+        institute={props.institute}
+        accent={props.theme.accent}
         docTitle={`${t('admitCard.docWord', lang)} — ${props.examLabel}`}
       />
       <div className="mb-5 flex gap-5">
@@ -50,7 +55,7 @@ function ClassicTemplate(props: AdmitCardTemplateProps) {
         </div>
         <PhotoBox src={props.photoSrc} label={t('admitCard.photo', lang)} />
       </div>
-      <SignatureRow labels={[t('admitCard.studentSignature', lang), t('markSheet.headTeacher', lang)]} />
+      <SignatureRow labels={[t('markSheet.headTeacher', lang), t('admitCard.classTeacher', lang)]} />
       <div className="mt-6 border-t border-line pt-4 text-center text-xs text-muted">{t('print.poweredBy', lang)}</div>
     </PrintPage>
   )
@@ -62,19 +67,22 @@ function ClassicTemplate(props: AdmitCardTemplateProps) {
 function BorderedTemplate(props: AdmitCardTemplateProps) {
   const { lang } = props
   return (
-    <PrintPage>
+    <PrintPage theme={props.theme}>
       <InstituteHeader
-        name={props.schoolName}
-        meta={props.schoolMeta}
+        institute={props.institute}
+        accent={props.theme.accent}
         docTitle={`${t('admitCard.docWord', lang)} — ${props.examLabel}`}
       />
-      <div className="mb-5 flex gap-5 rounded-md border-2 border-line-strong p-3">
+      <div
+        style={{ borderColor: props.theme.accent }}
+        className="mb-5 flex gap-5 rounded-md border-2 border-line-strong p-3"
+      >
         <div className="flex-1">
           <InfoGrid rows={infoRows(props)} />
         </div>
         <PhotoBox src={props.photoSrc} label={t('admitCard.photo', lang)} />
       </div>
-      <SignatureRow labels={[t('admitCard.studentSignature', lang), t('markSheet.headTeacher', lang)]} />
+      <SignatureRow labels={[t('markSheet.headTeacher', lang), t('admitCard.classTeacher', lang)]} />
       <QrFooterRow qrLabel={t('print.qr', lang)} poweredBy={t('print.poweredBy', lang)} qr={<QrMark svg={props.qrSvg} />} />
     </PrintPage>
   )

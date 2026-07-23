@@ -9,7 +9,9 @@ import {
   QrFooterRow,
   PhotoBox,
   Badge,
+  PaginatedSheet,
 } from '@/components/print/pieces'
+import { PRINT_THEMES } from '@/lib/print-themes'
 
 // Seam: the shared printable template layer (ADR 0007, issue #25).
 
@@ -57,6 +59,96 @@ describe('InstituteHeader', () => {
     expect(withoutMeta).not.toContain('EIIN')
     // One fewer child div when meta is absent.
     expect(withoutMeta.match(/<div/g)!.length).toBe(withMeta.match(/<div/g)!.length - 1)
+  })
+
+  // Issue #92: the header carries the full institution block. Callers that
+  // still pass only name/meta (swept in #99) must keep rendering as before.
+  it('renders the full institution block when given one', () => {
+    const html = renderToStaticMarkup(
+      <InstituteHeader
+        institute={{
+          name: 'আদর্শ মডেল স্কুল',
+          addressLine: 'ঝিকরগাছা, যশোর',
+          contactLine: '01711-000000 · info@adarsha.edu.bd',
+          codesLine: 'EIIN: 123456',
+          logoUrl: '/api/school-logo',
+        }}
+        docTitle="প্রবেশপত্র"
+      />,
+    )
+    expect(html).toContain('আদর্শ মডেল স্কুল')
+    expect(html).toContain('ঝিকরগাছা, যশোর')
+    expect(html).toContain('01711-000000 · info@adarsha.edu.bd')
+    expect(html).toContain('EIIN: 123456')
+    expect(html).toContain('/api/school-logo')
+    expect(html).toContain('প্রবেশপত্র')
+  })
+
+  it('omits absent institution lines and the logo slot', () => {
+    const html = renderToStaticMarkup(
+      <InstituteHeader
+        institute={{
+          name: 'School',
+          addressLine: null,
+          contactLine: null,
+          codesLine: null,
+          logoUrl: null,
+        }}
+        docTitle="Doc"
+      />,
+    )
+    expect(html).toContain('School')
+    expect(html).not.toContain('<img')
+  })
+
+  it('prefers the institute payload over a legacy name/meta pair', () => {
+    const html = renderToStaticMarkup(
+      <InstituteHeader
+        name="Stale Name"
+        meta="EIIN: 999"
+        institute={{
+          name: 'Real Name',
+          addressLine: null,
+          contactLine: null,
+          codesLine: 'EIIN: 123456',
+          logoUrl: null,
+        }}
+        docTitle="Doc"
+      />,
+    )
+    expect(html).toContain('Real Name')
+    expect(html).not.toContain('Stale Name')
+    expect(html).toContain('EIIN: 123456')
+    expect(html).not.toContain('EIIN: 999')
+  })
+})
+
+describe('PrintPage theming', () => {
+  it('paints paper and ink from a curated preset (issue #94)', () => {
+    const slate = PRINT_THEMES.find((t) => t.key === 'slate')!
+    const html = renderToStaticMarkup(<PrintPage theme={slate}>body</PrintPage>)
+    expect(html).toContain(slate.paper)
+    expect(html).toContain(slate.ink)
+    // The app's paper token must not fight the preset's own background.
+    expect(html).not.toContain('bg-paper')
+  })
+
+  it('keeps the app paper token when unthemed', () => {
+    const html = renderToStaticMarkup(<PrintPage>body</PrintPage>)
+    expect(html).toContain('bg-paper')
+  })
+})
+
+describe('PaginatedSheet', () => {
+  it('repeats its header on every printed page via a table header group', () => {
+    const html = renderToStaticMarkup(
+      <PaginatedSheet header={<span>repeated header</span>}>
+        <p>long body</p>
+      </PaginatedSheet>,
+    )
+    expect(html).toContain('<thead')
+    expect(html).toContain('repeated header')
+    expect(html).toContain('long body')
   })
 })
 

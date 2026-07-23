@@ -20,6 +20,7 @@ describe('Class & Curriculum II (issue #45)', () => {
   let ownerA: SupabaseClient
   let ownerB: SupabaseClient
   let classId: string
+  let mainBuildingId: string
   let otherClassId: string
   let subjectId: string
   let teacherId: string
@@ -38,6 +39,11 @@ describe('Class & Curriculum II (issue #45)', () => {
     ownerB = await signedIn('owner-b@test.local')
     await cleanup(ownerA)
     await cleanup(ownerB)
+
+    // Rooms belong to a building since issue #93; every school has one.
+    mainBuildingId = (
+      await ownerA.from('buildings').select('id').eq('name', 'Main Building').single()
+    ).data!.id
 
     const { data: cls, error } = await ownerA
       .from('classes')
@@ -61,7 +67,7 @@ describe('Class & Curriculum II (issue #45)', () => {
       await ownerA.from('employees').insert({ full_name: 'RT Test Teacher' }).select('id').single()
     ).data!.id
     roomId = (
-      await ownerA.from('rooms').insert({ name: 'RT Test Room', capacity: 40 }).select('id').single()
+      await ownerA.from('rooms').insert({ building_id: mainBuildingId, name: 'RT Test Room', capacity: 40 }).select('id').single()
     ).data!.id
     foreignTeacherId = (
       await ownerB.from('employees').insert({ full_name: 'RT Test Foreign' }).select('id').single()

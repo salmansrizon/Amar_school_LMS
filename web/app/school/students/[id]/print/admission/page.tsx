@@ -5,6 +5,7 @@ import { t } from '@/lib/i18n'
 import { createClient } from '@/lib/supabase/server'
 import { PrintPage, InstituteHeader, InfoGrid, SignatureRow, QrFooterRow } from '@/components/print/pieces'
 import { PrintButton } from '@/components/print/print-button'
+import { loadInstitutePrintHeader } from '@/lib/institute-print'
 
 // Printable admission form (issue #46, PRD §5.1: "Printable admission/ID
 // templates"). ADR 0007: browser-native print, composed from the shared
@@ -24,8 +25,8 @@ export default async function AdmissionPrintPage({ params }: { params: Promise<{
   const { data: me } = await supabase.from('profiles').select('role').eq('id', user.id).single()
   if (me?.role !== 'school_owner' && me?.role !== 'staff_user') redirect('/login')
 
-  const [{ data: school }, { data: student }] = await Promise.all([
-    supabase.from('schools').select('name').maybeSingle(),
+  const [institute, { data: student }] = await Promise.all([
+    loadInstitutePrintHeader(supabase, lang),
     supabase
       .from('students')
       .select(
@@ -34,7 +35,7 @@ export default async function AdmissionPrintPage({ params }: { params: Promise<{
       .eq('id', id)
       .maybeSingle(),
   ])
-  if (!school || !student) notFound()
+  if (!institute || !student) notFound()
 
   const v = (x: string | number | null | undefined) => (x === null || x === undefined || x === '' ? dash : x)
   const address = [student.village, student.union_name, student.upazila, student.district]
@@ -49,7 +50,7 @@ export default async function AdmissionPrintPage({ params }: { params: Promise<{
       </div>
 
       <PrintPage>
-        <InstituteHeader name={school.name} docTitle={t('students.printAdmission', lang)} />
+        <InstituteHeader institute={institute ?? undefined} docTitle={t('students.printAdmission', lang)} />
 
         <InfoGrid
           rows={[

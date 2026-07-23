@@ -23,6 +23,7 @@ describe('Exams II — setup, routine, seat plan (issue #47)', () => {
   let ownerA: SupabaseClient
   let ownerB: SupabaseClient
   let classId: string
+  let mainBuildingId: string
   let subjectId: string
   let subject2Id: string
   let teacherId: string
@@ -45,6 +46,11 @@ describe('Exams II — setup, routine, seat plan (issue #47)', () => {
     ownerB = await signedIn('owner-b@test.local')
     await cleanup(ownerA)
     await cleanup(ownerB)
+
+    // Rooms belong to a building since issue #93; every school has one.
+    mainBuildingId = (
+      await ownerA.from('buildings').select('id').eq('name', 'Main Building').single()
+    ).data!.id
 
     classId = (
       await ownerA.from('classes').insert({ name: 'ES Test Class', section: 'A' }).select('id').single()
@@ -70,10 +76,10 @@ describe('Exams II — setup, routine, seat plan (issue #47)', () => {
       await ownerB.from('employees').insert({ full_name: 'ES Test Foreign' }).select('id').single()
     ).data!.id
     roomBigId = (
-      await ownerA.from('rooms').insert({ name: 'ES Test Room Big', capacity: 40 }).select('id').single()
+      await ownerA.from('rooms').insert({ building_id: mainBuildingId, name: 'ES Test Room Big', capacity: 40 }).select('id').single()
     ).data!.id
     roomSmallId = (
-      await ownerA.from('rooms').insert({ name: 'ES Test Room Small', capacity: 2 }).select('id').single()
+      await ownerA.from('rooms').insert({ building_id: mainBuildingId, name: 'ES Test Room Small', capacity: 2 }).select('id').single()
     ).data!.id
 
     await ownerA.from('students').insert([
@@ -240,7 +246,9 @@ describe('Exams II — setup, routine, seat plan (issue #47)', () => {
       .from('exam_seat_plans')
       .insert({ exam_id: examId, room_id: roomSmallId, roll_start: 1, roll_end: 5 })
     expect(error).not.toBeNull()
-    expect(error!.message).toContain('roll range exceeds room capacity')
+    // Since issue #95 the check sums every exam seated in the room, so the
+    // message names the room's budget rather than this one range.
+    expect(error!.message).toContain('room capacity exceeded')
   })
 
   it('seat plan rows are rejected once the exam is closed', async () => {
