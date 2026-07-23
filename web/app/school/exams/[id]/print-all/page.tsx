@@ -12,6 +12,7 @@ import { PrintButton } from '@/components/print/print-button'
 import { AdmitCardTemplate } from '../admit-cards/[studentId]/templates'
 import { MarkSheetTemplate } from '../mark-sheet/[studentId]/templates'
 import { ProgressReportTemplate } from '../progress-report/[studentId]/templates'
+import { loadInstitutePrintHeader } from '@/lib/institute-print'
 
 // Batch "print all" (issue #48, PRD §5.5): one page renders N PrintPages (one
 // per matching roster student) and calls window.print() once — ADR 0007's
@@ -67,6 +68,8 @@ export default async function PrintAllPage({
 
   const { data: school } = await supabase.from('schools').select('name, eiin_no').maybeSingle()
   if (!school) notFound()
+  const institute = await loadInstitutePrintHeader(supabase, lang)
+  if (!institute) notFound()
 
   const { data: exam } = await supabase.from('exams').select('id, name, exam_year, class_id').eq('id', examId).maybeSingle()
   if (!exam) notFound()
@@ -201,8 +204,7 @@ export default async function PrintAllPage({
           <AdmitCardTemplate
             key={c.studentId}
             lang={lang}
-            schoolName={school.name}
-            schoolMeta={school.eiin_no ? `EIIN: ${school.eiin_no}` : undefined}
+            institute={institute}
             examLabel={examLabel}
             studentName={c.studentName}
             roll={c.roll}

@@ -1,5 +1,6 @@
 import { PrintPage, InstituteHeader, InfoGrid, PhotoBox, SignatureRow, QrFooterRow, QrMark } from '@/components/print/pieces'
 import { t, type Lang } from '@/lib/i18n'
+import type { InstitutePrintHeader } from '@/lib/institute-print'
 
 // Exams V (issue #48, PRD §5.5): the 2 admit-card template variants. No
 // grades/rank here (an admit card carries identity + seat only) — both
@@ -11,8 +12,8 @@ import { t, type Lang } from '@/lib/i18n'
 
 export interface AdmitCardTemplateProps {
   lang: Lang
-  schoolName: string
-  schoolMeta?: string
+  /** Full institution header block (issue #92) — built by the shared loader. */
+  institute: InstitutePrintHeader
   examLabel: string
   studentName: string
   roll: string
@@ -40,8 +41,7 @@ function ClassicTemplate(props: AdmitCardTemplateProps) {
   return (
     <PrintPage>
       <InstituteHeader
-        name={props.schoolName}
-        meta={props.schoolMeta}
+        institute={props.institute}
         docTitle={`${t('admitCard.docWord', lang)} — ${props.examLabel}`}
       />
       <div className="mb-5 flex gap-5">
@@ -64,8 +64,7 @@ function BorderedTemplate(props: AdmitCardTemplateProps) {
   return (
     <PrintPage>
       <InstituteHeader
-        name={props.schoolName}
-        meta={props.schoolMeta}
+        institute={props.institute}
         docTitle={`${t('admitCard.docWord', lang)} — ${props.examLabel}`}
       />
       <div className="mb-5 flex gap-5 rounded-md border-2 border-line-strong p-3">

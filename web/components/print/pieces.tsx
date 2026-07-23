@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import type { InstitutePrintHeader } from '@/lib/institute-print'
 
 // Shared printable template pieces (ADR 0007) — the legacy C_TAMPLATES
 // equivalent. Every printable (receipts, mark sheets, progress reports,
@@ -17,22 +18,75 @@ export function PrintPage({ children }: { children: ReactNode }) {
 }
 
 /** Institute name + meta line + document title (covers the exam-header case:
- *  the docTitle names the exam, e.g. "Mark Sheet — Annual Examination 2025"). */
+ *  the docTitle names the exam, e.g. "Mark Sheet — Annual Examination 2025").
+ *
+ *  Issue #92 deepened this into the full institution block the printing
+ *  requirements ask for: pass `institute` (built by `lib/institute-print.ts`)
+ *  and the header renders logo, name, address, contacts and codes, centred.
+ *  The legacy `name` + `meta` pair still works for printables not yet swept
+ *  onto the loader (issue #99); `institute` wins where both are given. */
 export function InstituteHeader({
   name,
   meta,
+  institute,
   docTitle,
 }: {
-  name: string
+  name?: string
   meta?: string
+  institute?: InstitutePrintHeader
   docTitle: string
 }) {
+  const heading = institute?.name ?? name ?? ''
   return (
     <header className="mb-4 border-b-2 border-line-strong pb-4 text-center">
-      <div className="text-xl font-bold">{name}</div>
-      {meta ? <div className="mt-0.5 text-xs text-muted">{meta}</div> : null}
+      {institute?.logoUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={institute.logoUrl}
+          alt=""
+          className="mx-auto mb-2 h-16 w-auto object-contain"
+        />
+      ) : null}
+      <div className="text-xl font-bold">{heading}</div>
+      {institute?.addressLine ? (
+        <div className="mt-0.5 text-xs text-muted">{institute.addressLine}</div>
+      ) : null}
+      {institute?.contactLine ? (
+        <div className="mt-0.5 text-xs text-muted">{institute.contactLine}</div>
+      ) : null}
+      {institute?.codesLine ? (
+        <div className="mt-0.5 text-xs text-muted">{institute.codesLine}</div>
+      ) : null}
+      {!institute && meta ? <div className="mt-0.5 text-xs text-muted">{meta}</div> : null}
       <div className="mt-3 text-lg font-semibold text-brand-600">{docTitle}</div>
     </header>
+  )
+}
+
+/** A document whose body outruns one sheet: the header lives in a table
+ *  header group, which every print engine repeats at the top of each printed
+ *  page. Single-sheet printables (admit cards, receipts) keep using
+ *  PrintPage + InstituteHeader directly — nothing to repeat there. */
+export function PaginatedSheet({
+  header,
+  children,
+}: {
+  header: ReactNode
+  children: ReactNode
+}) {
+  return (
+    <table className="w-full border-collapse">
+      <thead className="table-header-group">
+        <tr>
+          <th className="p-0 text-left font-normal">{header}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td className="p-0 align-top">{children}</td>
+        </tr>
+      </tbody>
+    </table>
   )
 }
 

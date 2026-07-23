@@ -1,11 +1,19 @@
 'use client'
 
-import { useMemo, useState, useTransition } from 'react'
+import { useMemo, useRef, useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
+import { createClient as createSupabaseClient } from '@/lib/supabase/client'
 import { t, type Lang } from '@/lib/i18n'
 import { EDUCATION_LEVELS } from '@/lib/institute'
+import { logoImageExtension, LOGO_MAX_BYTES } from '@/lib/institute-print'
 import type { LocationRow } from '@/lib/locations'
-import { updateInstituteProfile } from './actions'
+import {
+  recordSchoolLogo,
+  removeSchoolLogo,
+  schoolLogoUploadPath,
+  updateInstituteProfile,
+} from './actions'
 
 type SchoolRow = {
   id: string
@@ -18,6 +26,10 @@ type SchoolRow = {
   education_levels: string[]
   location_id: string | null
   cluster_id: string | null
+  address_line: string | null
+  mobile: string | null
+  email: string | null
+  logo_path: string | null
 } | null
 
 const selectClass = inputClass
@@ -75,6 +87,8 @@ export function ProfileForm({
     mpoCodeRequired: 'institute.errMpoCodeRequired',
     eiinInvalid: 'institute.errEiinInvalid',
     educationLevelInvalid: 'institute.errEducationLevelInvalid',
+    emailInvalid: 'institute.errEmailInvalid',
+    logoBadType: 'institute.errLogoBadType',
   } as const
   const errorMessage = (code: string) =>
     code in ERROR_KEYS ? t(ERROR_KEYS[code as keyof typeof ERROR_KEYS], lang) : code
@@ -173,6 +187,49 @@ export function ProfileForm({
                 ))}
               </select>
             </div>
+          </div>
+        </div>
+
+        {/* Print header (issue #92): these three lines plus the logo are what
+            every printable shows at the top. Address is free text on purpose —
+            the location hierarchy below has no street line. */}
+        <div className="mb-4 rounded-lg border border-line bg-paper p-5 shadow-card">
+          <h3 className="mb-1 font-bold">{t('institute.printHeader', lang)}</h3>
+          <p className="mb-3 text-xs text-muted">{t('institute.printHeaderHint', lang)}</p>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="sm:col-span-2">
+              <label className={labelClass} htmlFor="address_line">
+                {t('institute.addressLine', lang)}
+              </label>
+              <input
+                id="address_line"
+                name="address_line"
+                defaultValue={school.address_line ?? ''}
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label className={labelClass} htmlFor="mobile">
+                {t('institute.mobile', lang)}
+              </label>
+              <input id="mobile" name="mobile" defaultValue={school.mobile ?? ''} className={inputClass} />
+            </div>
+            <div>
+              <label className={labelClass} htmlFor="email">
+                {t('institute.email', lang)}
+              </label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                defaultValue={school.email ?? ''}
+                className={inputClass}
+              />
+            </div>
+          </div>
+          <div className="mt-4">
+            <span className={labelClass}>{t('institute.logo', lang)}</span>
+            <LogoControl lang={lang} isOwner={isOwner} hasLogo={!!school.logo_path} />
           </div>
         </div>
 
@@ -282,5 +339,121 @@ export function ProfileForm({
         </div>
       </fieldset>
     </form>
+  )
+}
+
+/** Logo upload (issue #92): bytes go client-direct to the private
+ *  'school-logos' bucket (the syllabus/gallery pattern), the server action
+ *  only records the path. Saved immediately — not on form submit — so the
+ *  preview below always reflects what will print. */
+function LogoControl({ lang, isOwner, hasLogo }: { lang: Lang; isOwner: boolean; hasLogo: boolean }) {
+  const router = useRouter()
+  const inputRef = useRef<HTMLInputElement>(null)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  // Cache-busts the <img> after a replace, since the URL never changes.
+  const [version, setVersion] = useState(0)
+  const [present, setPresent] = useState(hasLogo)
+
+  async function onPick(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setError(null)
+    if (!logoImageExtension(file.type)) {
+      setError(t('institute.errLogoBadType', lang))
+      return
+    }
+    if (file.size > LOGO_MAX_BYTES) {
+      setError(t('institute.errLogoTooBig', lang))
+      return
+    }
+    setBusy(true)
+    const { path, error: pathErr } = await schoolLogoUploadPath(file.type)
+    if (pathErr || !path) {
+      setError(pathErr ?? 'Upload failed')
+      setBusy(false)
+      return
+    }
+    const supabase = createSupabaseClient()
+    const { error: upErr } = await supabase.storage
+      .from('school-logos')
+      .upload(path, file, { contentType: file.type, upsert: true })
+    if (upErr) {
+      setError(upErr.message)
+      setBusy(false)
+      return
+    }
+    const res = await recordSchoolLogo(path)
+    setBusy(false)
+    if (inputRef.current) inputRef.current.value = ''
+    if (res.error) {
+      // Row update failed — drop the orphaned object rather than leave it.
+      await supabase.storage.from('school-logos').remove([path])
+      setError(res.error)
+      return
+    }
+    setPresent(true)
+    setVersion((v) => v + 1)
+    router.refresh()
+  }
+
+  async function onRemove() {
+    setError(null)
+    setBusy(true)
+    const res = await removeSchoolLogo()
+    setBusy(false)
+    if (res.error) setError(res.error)
+    else {
+      setPresent(false)
+      router.refresh()
+    }
+  }
+
+  return (
+    <div className="mt-1 flex flex-wrap items-center gap-3">
+      {present ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={`/api/school-logo?v=${version}`}
+          alt={t('institute.logo', lang)}
+          className="h-16 w-16 rounded-md border border-line object-contain"
+        />
+      ) : (
+        <span className="flex h-16 w-16 items-center justify-center rounded-md border border-dashed border-line text-xs text-muted">
+          —
+        </span>
+      )}
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        className="hidden"
+        onChange={onPick}
+      />
+      {isOwner && (
+        <>
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => inputRef.current?.click()}
+            className="cursor-pointer rounded-full bg-brand-500 px-4 py-1.5 text-xs font-semibold text-white hover:bg-brand-600 disabled:opacity-50"
+          >
+            {busy ? t('institute.logoUploading', lang) : t('institute.logoUpload', lang)}
+          </button>
+          {present && (
+            <button
+              type="button"
+              disabled={busy}
+              onClick={onRemove}
+              className="cursor-pointer rounded-full border border-line-strong px-4 py-1.5 text-xs font-semibold text-alert-deep disabled:opacity-50"
+            >
+              {t('institute.logoRemove', lang)}
+            </button>
+          )}
+        </>
+      )}
+      <span className="text-xs text-muted">{t('institute.logoHint', lang)}</span>
+      {error && <p className="w-full text-sm text-alert-deep">{error}</p>}
+    </div>
   )
 }

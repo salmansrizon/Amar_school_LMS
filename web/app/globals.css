@@ -65,5 +65,28 @@ body {
 @media print {
   body {
     background: var(--color-paper);
+    /* Themed papers and header rules must reach the paper (issue #92);
+       without this, engines drop backgrounds and borders "to save ink". */
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  /* Multi-page documents keep their institution header (PaginatedSheet puts
+     it in a thead) and never split a row, image or signature block across a
+     sheet boundary. */
+  thead {
+    display: table-header-group;
+  }
+  tfoot {
+    display: table-footer-group;
+  }
+  tr,
+  img {
+    break-inside: avoid;
+  }
+  h1,
+  h2,
+  h3 {
+    break-after: avoid;
   }
 }
