@@ -144,7 +144,6 @@ describe('Students I (issue #27)', () => {
       p_student_id: studentId,
       p_to_class: 'ST1 Other Class',
       p_to_section: 'B',
-      p_to_shift_id: null,
       p_note: 'guardian request',
     })
     expect(error).toBeNull()
@@ -164,38 +163,11 @@ describe('Students I (issue #27)', () => {
     expect(student?.roll_number).toBeNull() // reset on class change
   })
 
-  it('transfer_student keeps the current shift when none is submitted', async () => {
-    await ownerA.from('shifts').delete().eq('name', 'ST1 Shift')
-    const { data: shift } = await ownerA
-      .from('shifts')
-      .insert({ name: 'ST1 Shift', grace_minutes: 10 })
-      .select('id')
-      .single()
-    await ownerA.from('students').update({ shift_id: shift!.id }).eq('id', studentId)
-
-    const { error } = await ownerA.rpc('transfer_student', {
-      p_student_id: studentId,
-      p_to_class: 'ST1 Shift Keep Class',
-      p_to_section: null,
-      p_to_shift_id: null, // blank in the form — should NOT clear the shift
-      p_note: null,
-    })
-    expect(error).toBeNull()
-    const { data: student } = await ownerA
-      .from('students')
-      .select('shift_id')
-      .eq('id', studentId)
-      .single()
-    expect(student?.shift_id).toBe(shift!.id)
-    await ownerA.from('shifts').delete().eq('id', shift!.id)
-  })
-
   it('transfer_student rejects a student from another school', async () => {
     const { error } = await ownerB.rpc('transfer_student', {
       p_student_id: studentId,
       p_to_class: 'Hijack',
       p_to_section: null,
-      p_to_shift_id: null,
       p_note: null,
     })
     expect(error).not.toBeNull()

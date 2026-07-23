@@ -3,7 +3,7 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 
 // Seam: Publishing (issue #37, PRD §5.8) — notices/homework/lesson-plans/
 // daily-lessons/exam-prep share one `publications` table (kind discriminates,
-// RLS-scoped, target_shift_id tenancy-checked); gallery albums/photos are a
+// RLS-scoped; Shift targeting left with issue #100); gallery albums/photos are a
 // second table pair with a server-enforced, per-album-configurable image-count
 // and per-image-size cap (a row-locking trigger, not just an app-layer check).
 const URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -20,15 +20,12 @@ async function signedIn(email: string): Promise<SupabaseClient> {
 describe('Publishing (issue #37)', () => {
   let ownerA: SupabaseClient
   let ownerB: SupabaseClient
-  let shiftId: string
-  let foreignShiftId: string
   let albumId: string
 
   async function cleanup(client: SupabaseClient) {
     await client.from('publications').delete().like('title', 'PUB Test%')
     await client.from('gallery_photos').delete().like('file_name', 'PUB Test%')
     await client.from('gallery_albums').delete().like('title', 'PUB Test%')
-    await client.from('shifts').delete().like('name', 'PUB Test%')
   }
 
   beforeAll(async () => {
@@ -36,13 +33,6 @@ describe('Publishing (issue #37)', () => {
     ownerB = await signedIn('owner-b@test.local')
     await cleanup(ownerA)
     await cleanup(ownerB)
-
-    shiftId = (
-      await ownerA.from('shifts').insert({ name: 'PUB Test Shift' }).select('id').single()
-    ).data!.id
-    foreignShiftId = (
-      await ownerB.from('shifts').insert({ name: 'PUB Test Foreign Shift' }).select('id').single()
-    ).data!.id
   })
 
   afterAll(async () => {
@@ -60,7 +50,7 @@ describe('Publishing (issue #37)', () => {
     expect(data?.target_type).toBe('all')
   })
 
-  it('creates homework targeted at a specific class/shift/section', async () => {
+  it('creates homework targeted at a specific class/section', async () => {
     const { data, error } = await ownerA
       .from('publications')
       .insert({
@@ -69,7 +59,6 @@ describe('Publishing (issue #37)', () => {
         importance: 'important',
         target_type: 'specific',
         target_class_name: 'Class 6',
-        target_shift_id: shiftId,
         target_section: 'A',
       })
       .select('id')
@@ -83,17 +72,6 @@ describe('Publishing (issue #37)', () => {
       .from('publications')
       .insert({ kind: 'bogus', title: 'PUB Test Bad Kind' })
     expect(error).not.toBeNull()
-  })
-
-  it('rejects a specific target referencing another school\'s shift (tenancy trigger)', async () => {
-    const { error } = await ownerA.from('publications').insert({
-      kind: 'notice',
-      title: 'PUB Test Foreign Shift',
-      target_type: 'specific',
-      target_shift_id: foreignShiftId,
-    })
-    expect(error).not.toBeNull()
-    expect(error!.message).toContain('shift does not belong to this school')
   })
 
   it("RLS: another school's owner sees none of these publications", async () => {

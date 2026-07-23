@@ -26,7 +26,6 @@ function profileFields(formData: FormData) {
   return {
     class_name: text(formData, 'class_name'),
     section: text(formData, 'section'),
-    shift_id: text(formData, 'shift_id'),
     gender: text(formData, 'gender'),
     date_of_birth: text(formData, 'date_of_birth'),
     blood_group: text(formData, 'blood_group'),
@@ -117,7 +116,7 @@ export async function restoreStudent(id: string): Promise<{ error?: string }> {
   return {}
 }
 
-/** Class/shift transfer: goes through the transfer_student RPC so the history
+/** Class/section transfer: goes through the transfer_student RPC so the history
  *  row and the student update commit in a single transaction — otherwise a
  *  failure between two separate writes could leave an orphaned history row
  *  claiming a transfer that never applied. */
@@ -132,7 +131,6 @@ export async function transferStudent(formData: FormData): Promise<{ error?: str
     p_student_id: id,
     p_to_class: toClass,
     p_to_section: text(formData, 'to_section'),
-    p_to_shift_id: text(formData, 'to_shift_id'),
     p_note: text(formData, 'note'),
   })
   if (error) return { error: error.message }

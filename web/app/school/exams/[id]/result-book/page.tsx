@@ -3,7 +3,7 @@ import { notFound, redirect } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { createClient } from '@/lib/supabase/server'
-import { classShiftLabel } from '@/lib/students'
+import { classSectionLabel } from '@/lib/students'
 import { loadExamRosterResults } from '@/lib/exam-print-data'
 import { Badge } from '@/components/print/pieces'
 import { ExamPicker, type ExamOption } from './result-book-controls'
@@ -53,7 +53,7 @@ export default async function ResultBookPage({ params }: { params: Promise<{ id:
 
   const examOptions: ExamOption[] = (exams ?? []).map((e) => {
     const cls = e.class_id ? classById.get(e.class_id) : null
-    const clsLabel = cls ? classShiftLabel(cls.name, cls.section) : null
+    const clsLabel = cls ? classSectionLabel(cls.name, cls.section) : null
     return { id: e.id, label: `${e.name} ${e.exam_year}${clsLabel ? ` - ${clsLabel}` : ''}` }
   })
 

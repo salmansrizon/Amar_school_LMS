@@ -8,8 +8,8 @@ import { AttendanceTabs } from '../attendance-tabs'
 import { MarkAttendanceForm } from './mark-form'
 
 // Layout per ui/school-owner/attendance-student-mark.html: class/section/
-// shift/date filters, bulk all-present/all-absent, per-row present/absent +
-// absence cause, Roll number leading each row (roll_number/shift_id landed
+// class/section/date filters, bulk all-present/all-absent, per-row
+// present/absent + absence cause, Roll number leading each row (roll_number landed
 // with #27's admission profile, merged after this ticket first shipped).
 function todayIso(): string {
   return new Date().toISOString().slice(0, 10)
@@ -18,9 +18,9 @@ function todayIso(): string {
 export default async function MarkAttendancePage({
   searchParams,
 }: {
-  searchParams: Promise<{ class?: string; section?: string; shift?: string; date?: string }>
+  searchParams: Promise<{ class?: string; section?: string; date?: string }>
 }) {
-  const { class: className = '', section = '', shift = '', date = todayIso() } = await searchParams
+  const { class: className = '', section = '', date = todayIso() } = await searchParams
   const lang: Lang = await currentLang()
   const supabase = await createClient()
   const {
@@ -30,18 +30,16 @@ export default async function MarkAttendancePage({
   const { data: me } = await supabase.from('profiles').select('role').eq('id', user.id).single()
   if (me?.role !== 'school_owner' && me?.role !== 'staff_user') redirect('/login')
 
-  const [{ data: students }, { data: shifts }] = await Promise.all([
+  const [{ data: students }] = await Promise.all([
     supabase
       .from('students')
-      .select('id, full_name, class_name, section, roll_number, shift_id')
+      .select('id, full_name, class_name, section, roll_number')
       .order('full_name'),
-    supabase.from('shifts').select('id, name').order('created_at'),
   ])
   const roster = students ?? []
-  const shiftOptions = shifts ?? []
   const classes = studentClassOptions(roster)
   const sections = className ? studentSectionOptions(roster, className) : []
-  const visible = filterRoster(roster, className, section, shift)
+  const visible = filterRoster(roster, className, section)
   const visibleIds = visible.map((s) => s.id)
 
   const [{ data: records }, { data: notes }] = await Promise.all([
@@ -113,21 +111,7 @@ export default async function MarkAttendancePage({
             ))}
           </select>
         </div>
-        <div>
-          <label className="mb-1 block text-xs font-semibold text-muted">{t('attendance.shift', lang)}</label>
-          <select
-            name="shift"
-            defaultValue={shift}
-            className="w-full rounded-md border border-line bg-paper px-3 py-1.5 text-sm"
-          >
-            <option value="">{t('attendance.allShifts', lang)}</option>
-            {shiftOptions.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}
-              </option>
-            ))}
-          </select>
-        </div>
+
         <div>
           <label className="mb-1 block text-xs font-semibold text-muted">{t('attendance.date', lang)}</label>
           <input type="date" name="date" defaultValue={date} className="w-full rounded-md border border-line bg-paper px-3 py-1.5 text-sm" />

@@ -4,7 +4,7 @@ import { averageRating, isEntryLocked } from '@/lib/behaviour'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang, type MessageKey } from '@/lib/i18n'
 import { createClient } from '@/lib/supabase/server'
-import { classShiftLabel } from '@/lib/students'
+import { classSectionLabel } from '@/lib/students'
 import { AddEntryForm, EditableEntry } from './behaviour-controls'
 import { ArchiveToggle, PhotoControl, ProfileEditor } from './profile-controls'
 import { StudentSubjects, type AssignedSubject } from './subject-controls'
@@ -52,7 +52,7 @@ export default async function StudentDetailPage({
   const { data: student } = await supabase.from('students').select('*').eq('id', id).single()
   if (!student) notFound()
 
-  const [{ data: entries }, { data: classes }, { data: shifts }, { data: subjects }, { data: assignments }] =
+  const [{ data: entries }, { data: classes }, { data: subjects }, { data: assignments }] =
     await Promise.all([
       supabase
         .from('behaviour_log_entries')
@@ -60,7 +60,6 @@ export default async function StudentDetailPage({
         .eq('student_id', id)
         .order('created_at', { ascending: false }),
       supabase.from('classes').select('name, section').order('created_at'),
-      supabase.from('shifts').select('id, name').order('created_at'),
       supabase.from('subjects').select('id, name').order('name'),
       supabase.from('student_subjects').select('subject_id, is_optional').eq('student_id', id),
     ])
@@ -74,7 +73,6 @@ export default async function StudentDetailPage({
 
   const now = new Date()
   const avg = averageRating((entries ?? []).map((e) => e.rating))
-  const shiftName = shifts?.find((s) => s.id === student.shift_id)?.name ?? null
   const archived = student.archived_at !== null
   const locale = lang === 'bn' ? 'bn-BD' : 'en-GB'
   const flag = (on: boolean, onKey: MessageKey, offKey: MessageKey) => (
@@ -106,7 +104,7 @@ export default async function StudentDetailPage({
           <span>
             {[
               student.roll_number !== null ? `${t('students.roll', lang)} ${student.roll_number}` : null,
-              classShiftLabel(student.class_name, student.section, shiftName),
+              classSectionLabel(student.class_name, student.section),
             ]
               .filter(Boolean)
               .join(' · ')}
@@ -144,7 +142,7 @@ export default async function StudentDetailPage({
           <PhotoControl lang={lang} studentId={id} hasPhoto={student.photo_path !== null} />
         </div>
 
-        <ProfileEditor lang={lang} student={student} classes={classes ?? []} shifts={shifts ?? []}>
+        <ProfileEditor lang={lang} student={student} classes={classes ?? []}>
           <InfoCard title={t('students.identity', lang)}>
             <InfoRow label={t('students.name', lang)} value={student.full_name} />
             <InfoRow
@@ -165,8 +163,8 @@ export default async function StudentDetailPage({
             />
             <InfoRow label={t('students.bloodGroup', lang)} value={student.blood_group} />
             <InfoRow
-              label={t('students.classSectionShift', lang)}
-              value={classShiftLabel(student.class_name, student.section, shiftName)}
+              label={t('students.classSection', lang)}
+              value={classSectionLabel(student.class_name, student.section)}
             />
             <InfoRow label={t('students.roll', lang)} value={student.roll_number} />
             <InfoRow label={t('students.religion', lang)} value={student.religion} />

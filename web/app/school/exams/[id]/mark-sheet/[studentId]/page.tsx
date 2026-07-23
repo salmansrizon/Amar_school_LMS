@@ -3,7 +3,7 @@ import { notFound, redirect } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { createClient } from '@/lib/supabase/server'
-import { classShiftLabel } from '@/lib/students'
+import { classSectionLabel } from '@/lib/students'
 import { loadExamPrintContext } from '@/lib/exam-print-data'
 import { renderAuthenticityQr } from '@/lib/qr'
 import { PrintButton } from '@/components/print/print-button'
@@ -92,7 +92,7 @@ export default async function MarkSheetPage({
         examLabel={examLabel}
         studentName={ctx.student.full_name}
         roll={ctx.student.roll_number !== null ? String(ctx.student.roll_number) : '—'}
-        classSection={classShiftLabel(ctx.cls?.name, ctx.cls?.section) ?? '—'}
+        classSection={classSectionLabel(ctx.cls?.name, ctx.cls?.section) ?? '—'}
         guardianName={ctx.student.guardian_name ?? '—'}
         schemeType={ctx.scheme.schemeType}
         subjectRows={ctx.subjectResults.map((r) => ({

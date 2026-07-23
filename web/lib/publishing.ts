@@ -53,14 +53,14 @@ export interface PublicationRow {
   target_section?: string | null
 }
 
-/** "All Students" for an all-target row, else "Class 6 / A / Morning" (missing parts dropped). */
+/** "All Students" for an all-target row, else "Class 6 / A" (missing parts
+ *  dropped). Shift left publication targeting with issue #100. */
 export function targetAudienceLabel(
   row: { target_type: TargetType; target_class_name: string | null; target_section: string | null },
-  shiftName: string | null,
   lang: Lang,
 ): string {
   if (row.target_type === 'all') return lang === 'bn' ? 'সকল শিক্ষার্থী' : 'All Students'
-  return [row.target_class_name, row.target_section, shiftName].filter(Boolean).join(' / ')
+  return [row.target_class_name, row.target_section].filter(Boolean).join(' / ')
 }
 
 /** List search (title, case-insensitive) + optional kind filter, for the List tab. */
@@ -73,15 +73,14 @@ export function filterPublications<T extends PublicationRow>(
   return rows.filter((r) => (!q || r.title.toLowerCase().includes(q)) && (!kind || r.kind === kind))
 }
 
-/** A "specific" target needs at least one of class/shift/section chosen. */
+/** A "specific" target needs at least one of class/section chosen. */
 export function validateTargetSelection(
   targetType: TargetType,
   className: string,
-  shiftId: string,
   section: string,
 ): string | null {
   if (targetType === 'all') return null
-  if (!className && !shiftId && !section) return 'Choose at least one target filter'
+  if (!className && !section) return 'Choose at least one target filter'
   return null
 }
 

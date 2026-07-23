@@ -11,24 +11,21 @@ export function TransferForm({
   lang,
   studentId,
   classes,
-  shifts,
   currentClass,
   currentSection,
-  currentShiftId,
 }: {
   lang: Lang
   studentId: string
   classes: { name: string; section: string | null }[]
-  shifts: { id: string; name: string }[]
   currentClass: string | null
   currentSection: string | null
-  currentShiftId: string | null
 }) {
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
-  // Pre-filled with the student's current class/section/shift (mirrors the
-  // mockup) — a blank shift is treated as "unchanged" by the RPC, but
+  // Pre-filled with the student's current class/section (mirrors the mockup).
+  // Shift left the student side with issue #100: class + section carry the
+  // grouping now.
   // pre-filling avoids relying on that and keeps the form honest about what
   // will actually be submitted.
   const [toClass, setToClass] = useState(currentClass ?? '')
@@ -86,17 +83,6 @@ export function TransferForm({
             {sections.map((s) => (
               <option key={s} value={s}>
                 {s}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className={fieldLabelClass}>{t('students.newShift', lang)}</label>
-          <select name="to_shift_id" defaultValue={currentShiftId ?? ''} className={fieldClass}>
-            <option value="">—</option>
-            {shifts.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}
               </option>
             ))}
           </select>

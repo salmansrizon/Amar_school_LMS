@@ -22,7 +22,6 @@ const DRAFT_KEY = 'asm-sms-compose-draft'
 interface Draft {
   mode: ComposeMode
   className: string
-  shiftId: string
   section: string
   category: string
   manualNumbers: string
@@ -30,9 +29,8 @@ interface Draft {
 }
 
 const EMPTY_DRAFT: Draft = {
-  mode: 'class_shift_section',
+  mode: 'class_section',
   className: '',
-  shiftId: '',
   section: '',
   category: '',
   manualNumbers: '',
@@ -46,7 +44,6 @@ export function ComposeForm({
   classNames,
   sections,
   categories,
-  shifts,
 }: {
   lang: Lang
   students: ComposeStudentRow[]
@@ -54,7 +51,6 @@ export function ComposeForm({
   classNames: string[]
   sections: string[]
   categories: string[]
-  shifts: { id: string; name: string }[]
 }) {
   // Restore a locally-saved draft as the initial state (client-only; no
   // server draft storage exists for this screen — see "Save Draft" below).
@@ -79,7 +75,7 @@ export function ComposeForm({
       resolveRecipients(draft.mode, {
         students,
         employees,
-        filter: { className: draft.className, shiftId: draft.shiftId, section: draft.section },
+        filter: { className: draft.className, section: draft.section },
         category: draft.category,
         manualNumbers: draft.manualNumbers,
       }),
@@ -109,7 +105,6 @@ export function ComposeForm({
     const formData = new FormData()
     formData.set('mode', draft.mode)
     formData.set('class_name', draft.className)
-    formData.set('shift_id', draft.shiftId)
     formData.set('section', draft.section)
     formData.set('category', draft.category)
     formData.set('manual_numbers', draft.manualNumbers)
@@ -140,13 +135,13 @@ export function ComposeForm({
               value={draft.mode}
               onChange={(e) => update('mode', e.target.value as ComposeMode)}
             >
-              <option value="class_shift_section">{t('sms.modeClassShiftSection', lang)}</option>
+              <option value="class_section">{t('sms.modeClassSection', lang)}</option>
               <option value="group">{t('sms.modeGroup', lang)}</option>
               <option value="manual">{t('sms.modeManual', lang)}</option>
             </select>
           </div>
 
-          {draft.mode === 'class_shift_section' && (
+          {draft.mode === 'class_section' && (
             <>
               <div>
                 <label className={labelClass}>{t('sms.class', lang)}</label>
@@ -155,17 +150,6 @@ export function ComposeForm({
                   {classNames.map((c) => (
                     <option key={c} value={c}>
                       {c}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className={labelClass}>{t('sms.shift', lang)}</label>
-                <select className={selectClass} value={draft.shiftId} onChange={(e) => update('shiftId', e.target.value)}>
-                  <option value="">{t('sms.allShifts', lang)}</option>
-                  {shifts.map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.name}
                     </option>
                   ))}
                 </select>

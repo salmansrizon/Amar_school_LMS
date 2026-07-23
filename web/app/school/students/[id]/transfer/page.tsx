@@ -3,11 +3,11 @@ import { notFound, redirect } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { createClient } from '@/lib/supabase/server'
-import { classShiftLabel } from '@/lib/students'
+import { classSectionLabel } from '@/lib/students'
 import { TransferForm } from './transfer-form'
 
 // Layout per ui/school-owner/student-transfer-modal.html: the transfer form
-// (new class/section/shift + optional note) above the full transfer-history
+// (new class/section + optional note) above the full transfer-history
 // table (Date | From | To | Reason).
 
 const thClass = 'px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted'
@@ -31,24 +31,22 @@ export default async function StudentTransferPage({
 
   const { data: student } = await supabase
     .from('students')
-    .select('id, full_name, roll_number, class_name, section, shift_id')
+    .select('id, full_name, roll_number, class_name, section')
     .eq('id', id)
     .single()
   if (!student) notFound()
 
-  const [{ data: transfers }, { data: classes }, { data: shifts }] = await Promise.all([
+  const [{ data: transfers }, { data: classes }] = await Promise.all([
     supabase
       .from('student_transfers')
-      .select('id, from_class, from_section, from_shift_id, to_class, to_section, to_shift_id, note, transferred_at')
+      .select('id, from_class, from_section, to_class, to_section, note, transferred_at')
       .eq('student_id', id)
       .order('transferred_at', { ascending: false }),
     supabase.from('classes').select('name, section').order('created_at'),
-    supabase.from('shifts').select('id, name').order('created_at'),
   ])
 
-  const shiftName = (shiftId: string | null) => shifts?.find((s) => s.id === shiftId)?.name ?? null
   const locale = lang === 'bn' ? 'bn-BD' : 'en-GB'
-  const currentLabel = classShiftLabel(student.class_name, student.section, shiftName(student.shift_id))
+  const currentLabel = classSectionLabel(student.class_name, student.section)
   const headerBits = [
     student.roll_number !== null ? `${t('students.roll', lang)} ${student.roll_number}` : null,
     currentLabel,
@@ -72,10 +70,8 @@ export default async function StudentTransferPage({
           lang={lang}
           studentId={id}
           classes={classes ?? []}
-          shifts={shifts ?? []}
           currentClass={student.class_name}
           currentSection={student.section}
-          currentShiftId={student.shift_id}
         />
       </section>
 
@@ -89,8 +85,8 @@ export default async function StudentTransferPage({
               <thead>
                 <tr className="border-b border-line-strong">
                   <th className={thClass}>{t('students.transferDate', lang)}</th>
-                  <th className={thClass}>{t('students.fromClassSectionShift', lang)}</th>
-                  <th className={thClass}>{t('students.toClassSectionShift', lang)}</th>
+                  <th className={thClass}>{t('students.fromClassSection', lang)}</th>
+                  <th className={thClass}>{t('students.toClassSection', lang)}</th>
                   <th className={thClass}>{t('students.reason', lang)}</th>
                 </tr>
               </thead>
@@ -99,12 +95,12 @@ export default async function StudentTransferPage({
                   <tr key={tr.id} className="border-b border-line">
                     <td className={tdClass}>{new Date(tr.transferred_at).toLocaleDateString(locale)}</td>
                     <td className={tdClass}>
-                      {classShiftLabel(tr.from_class, tr.from_section, shiftName(tr.from_shift_id)) ?? (
+                      {classSectionLabel(tr.from_class, tr.from_section) ?? (
                         <span className="text-muted">—</span>
                       )}
                     </td>
                     <td className={tdClass}>
-                      {classShiftLabel(tr.to_class, tr.to_section, shiftName(tr.to_shift_id)) ?? (
+                      {classSectionLabel(tr.to_class, tr.to_section) ?? (
                         <span className="text-muted">—</span>
                       )}
                     </td>
