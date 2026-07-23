@@ -13,8 +13,8 @@
 -- school   dab00000-0000-4000-a000-000000000001
 -- owner    dab00000-0000-4000-a000-000000000010
 -- staff    dab00000-0000-4000-a000-000000000011
--- shift AM dab00000-0000-4000-a000-000000000020
--- shift PM dab00000-0000-4000-a000-000000000021
+-- office time AM dab00000-0000-4000-a000-000000000020
+-- office time PM dab00000-0000-4000-a000-000000000021
 -- grading  dab00000-0000-4000-a000-000000000030
 -- exam     dab00000-0000-4000-a000-000000000040
 -- classes  dab00000-0000-4000-a000-00000000020{1..6}
@@ -76,9 +76,9 @@ insert into staff_permissions (staff_user_id, screen_key) values
 on conflict do nothing;
 
 -- ===========================================================================
--- 3. Shifts, classes, rooms, subjects
+-- 3. Office times, classes, rooms, subjects
 -- ===========================================================================
-insert into shifts (id, school_id, name, grace_minutes, starts_at, ends_at) values
+insert into office_times (id, school_id, name, grace_minutes, starts_at, ends_at) values
   ('dab00000-0000-4000-a000-000000000020', 'dab00000-0000-4000-a000-000000000001', 'Morning', 10, '08:00', '12:00'),
   ('dab00000-0000-4000-a000-000000000021', 'dab00000-0000-4000-a000-000000000001', 'Day',     10, '12:30', '16:30')
 on conflict (id) do nothing;
@@ -160,7 +160,7 @@ where not exists (
 );
 
 -- ===========================================================================
--- 7. Employees (teachers/staff) + shift links
+-- 7. Employees (teachers/staff) + office time links
 -- ===========================================================================
 insert into employees (id, school_id, full_name, category, mobile, date_of_birth, joining_date,
                        qualification, department, subject_taught) values
@@ -172,7 +172,7 @@ insert into employees (id, school_id, full_name, category, mobile, date_of_birth
   ('dab00000-0000-4000-a000-000000000406', 'dab00000-0000-4000-a000-000000000001', 'Ruma Khatun',   'Office Staff','01710000006', '1992-09-14', '2019-03-01', 'B.Com.',           'Accounts',    '—')
 on conflict (id) do nothing;
 
-insert into employee_shifts (employee_id, shift_id)
+insert into employee_office_times (employee_id, office_time_id)
 select e, 'dab00000-0000-4000-a000-000000000020'::uuid
 from unnest(array[
   'dab00000-0000-4000-a000-000000000401','dab00000-0000-4000-a000-000000000402',
@@ -186,7 +186,6 @@ on conflict do nothing;
 do $$
 declare
   sch uuid := 'dab00000-0000-4000-a000-000000000001';
-  am  uuid := 'dab00000-0000-4000-a000-000000000020';
   exm uuid := 'dab00000-0000-4000-a000-000000000040';
 begin
   if exists (select 1 from students where school_id = sch) then
@@ -195,9 +194,9 @@ begin
   end if;
 
   -- Students (roll auto-assigned by assign_student_roll trigger).
-  insert into students (school_id, full_name, class_name, section, shift_id, gender, date_of_birth,
+  insert into students (school_id, full_name, class_name, section, gender, date_of_birth,
                         religion, guardian_name, guardian_relation, guardian_mobile, guardian_phone, village, district)
-  select sch, s.full_name, s.class_name, s.section, am, s.gender, s.dob::date,
+  select sch, s.full_name, s.class_name, s.section, s.gender, s.dob::date,
          s.religion, s.guardian, 'Father', s.mobile, s.mobile, 'Rampura', 'Dhaka'
   from (values
     ('Aminul Islam',   'Six',   'A', 'Male',   '2013-02-11', 'Islam', 'Rafiqul Islam',  '01810000001'),

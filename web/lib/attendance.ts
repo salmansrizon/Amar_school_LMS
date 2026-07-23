@@ -27,19 +27,19 @@ export type AttendanceStatus = 'present' | 'on_time' | 'late_entry' | 'exit_earl
 export function employeeStatus(
   entry: Date,
   exit: Date | null,
-  shiftStart: string | null,
-  shiftEnd: string | null,
+  officeStart: string | null,
+  officeEnd: string | null,
   graceMinutes: number,
 ): AttendanceStatus {
-  if (!shiftStart || !shiftEnd) return 'present'
+  if (!officeStart || !officeEnd) return 'present'
 
   const dayStart = new Date(entry)
-  const [startHours, startMinutes] = shiftStart.split(':').map(Number)
+  const [startHours, startMinutes] = officeStart.split(':').map(Number)
   dayStart.setUTCHours(startHours, startMinutes, 0, 0)
   const latestOnTime = dayStart.getTime() + graceMinutes * 60_000
 
   const dayEnd = new Date(entry)
-  const [endHours, endMinutes] = shiftEnd.split(':').map(Number)
+  const [endHours, endMinutes] = officeEnd.split(':').map(Number)
   dayEnd.setUTCHours(endHours, endMinutes, 0, 0)
 
   const late = entry.getTime() > latestOnTime
@@ -57,7 +57,7 @@ export function employeeStatus(
 // reconciliation job never writes (absence is the ABSENCE of an
 // attendance_records row, same convention as is_absent_working_day; leave is
 // a separate table). 'present' is not one of the 6 — it is employeeStatus's
-// pre-existing no-shift-configured fallback (also used for students), kept
+// pre-existing no-officeTime-configured fallback (also used for students), kept
 // here only so this type can wrap AttendanceStatus without narrowing it.
 // ui/school-owner/attendance-employee.html shows the 6 as one badge set.
 export type EmployeeDisplayStatus = AttendanceStatus | 'absent' | 'on_leave'
@@ -67,12 +67,12 @@ export function resolveEmployeeDisplayStatus(args: {
   onApprovedLeave: boolean
   entry: Date | null
   exit: Date | null
-  shiftStart: string | null
-  shiftEnd: string | null
+  officeStart: string | null
+  officeEnd: string | null
   graceMinutes: number
 }): EmployeeDisplayStatus {
   if (!args.hasRecord) {
     return args.onApprovedLeave ? 'on_leave' : 'absent'
   }
-  return employeeStatus(args.entry!, args.exit, args.shiftStart, args.shiftEnd, args.graceMinutes)
+  return employeeStatus(args.entry!, args.exit, args.officeStart, args.officeEnd, args.graceMinutes)
 }

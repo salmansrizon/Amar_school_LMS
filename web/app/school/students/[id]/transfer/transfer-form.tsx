@@ -24,7 +24,7 @@ export function TransferForm({
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
   // Pre-filled with the student's current class/section (mirrors the mockup).
-  // Shift left the student side with issue #100: class + section carry the
+  // OfficeTime left the student side with issue #100: class + section carry the
   // grouping now.
   // pre-filling avoids relying on that and keeps the form honest about what
   // will actually be submitted.

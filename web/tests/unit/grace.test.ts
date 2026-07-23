@@ -5,61 +5,61 @@ import { effectiveGrace, effectiveGraceWithSource } from '@/lib/grace'
 // is the MAX across every applicable configured value — never the stricter one.
 describe('effectiveGrace', () => {
   it('takes the max across all applicable levels', () => {
-    expect(effectiveGrace({ global: 5, category: 15, shifts: [10], override: 8 })).toBe(15)
+    expect(effectiveGrace({ global: 5, category: 15, officeTimes: [10], override: 8 })).toBe(15)
   })
 
-  it('multi-shift workers get the larger shift value', () => {
-    expect(effectiveGrace({ global: null, category: null, shifts: [10, 25], override: null })).toBe(25)
+  it('multi-officeTime workers get the larger officeTime value', () => {
+    expect(effectiveGrace({ global: null, category: null, officeTimes: [10, 25], override: null })).toBe(25)
   })
 
   it('a per-individual override smaller than an applicable value never forces stricter', () => {
-    // Override 5, shift 20 → 20. The override widens, never narrows.
-    expect(effectiveGrace({ global: null, category: null, shifts: [20], override: 5 })).toBe(20)
+    // Override 5, officeTime 20 → 20. The override widens, never narrows.
+    expect(effectiveGrace({ global: null, category: null, officeTimes: [20], override: 5 })).toBe(20)
   })
 
   it('an override larger than everything else wins', () => {
-    expect(effectiveGrace({ global: 5, category: 10, shifts: [15], override: 45 })).toBe(45)
+    expect(effectiveGrace({ global: 5, category: 10, officeTimes: [15], override: 45 })).toBe(45)
   })
 
   it('unconfigured levels are ignored; nothing configured means zero grace', () => {
-    expect(effectiveGrace({ global: null, category: null, shifts: [], override: null })).toBe(0)
-    expect(effectiveGrace({ global: 7, category: null, shifts: [], override: null })).toBe(7)
+    expect(effectiveGrace({ global: null, category: null, officeTimes: [], override: null })).toBe(0)
+    expect(effectiveGrace({ global: 7, category: null, officeTimes: [], override: null })).toBe(7)
   })
 })
 
 // Issue #30 (Attendance II): the employee-attendance screen annotates each
 // row with which level won — same MAX rule, plus the source label.
 describe('effectiveGraceWithSource', () => {
-  it('reports the winning level for the mockup example (global 10, category 15, shift 12, override 20 -> 20/override)', () => {
-    expect(effectiveGraceWithSource({ global: 10, category: 15, shifts: [12], override: 20 })).toEqual({
+  it('reports the winning level for the mockup example (global 10, category 15, officeTime 12, override 20 -> 20/override)', () => {
+    expect(effectiveGraceWithSource({ global: 10, category: 15, officeTimes: [12], override: 20 })).toEqual({
       minutes: 20,
       source: 'override',
     })
   })
 
-  it('multi-shift workers report the larger shift value as the shift source', () => {
-    expect(effectiveGraceWithSource({ global: 5, category: null, shifts: [10, 25], override: null })).toEqual({
+  it('multi-officeTime workers report the larger officeTime value as the officeTime source', () => {
+    expect(effectiveGraceWithSource({ global: 5, category: null, officeTimes: [10, 25], override: null })).toEqual({
       minutes: 25,
-      source: 'shift',
+      source: 'officeTime',
     })
   })
 
   it('a smaller override never wins the label even though it is configured', () => {
-    expect(effectiveGraceWithSource({ global: null, category: null, shifts: [20], override: 5 })).toEqual({
+    expect(effectiveGraceWithSource({ global: null, category: null, officeTimes: [20], override: 5 })).toEqual({
       minutes: 20,
-      source: 'shift',
+      source: 'officeTime',
     })
   })
 
-  it('ties resolve to the more specific level (override over shift over category over global)', () => {
-    expect(effectiveGraceWithSource({ global: 15, category: 15, shifts: [15], override: 15 })).toEqual({
+  it('ties resolve to the more specific level (override over officeTime over category over global)', () => {
+    expect(effectiveGraceWithSource({ global: 15, category: 15, officeTimes: [15], override: 15 })).toEqual({
       minutes: 15,
       source: 'override',
     })
   })
 
   it('nothing configured -> zero minutes and no source', () => {
-    expect(effectiveGraceWithSource({ global: null, category: null, shifts: [], override: null })).toEqual({
+    expect(effectiveGraceWithSource({ global: null, category: null, officeTimes: [], override: null })).toEqual({
       minutes: 0,
       source: null,
     })

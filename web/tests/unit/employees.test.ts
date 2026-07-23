@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { matchesEmployeeQuery, filterEmployees, employeeShiftNames } from '@/lib/employees'
+import { matchesEmployeeQuery, filterEmployees, employeeOfficeTimeNames } from '@/lib/employees'
 
 describe('matchesEmployeeQuery', () => {
   it('matches case-insensitively on name', () => {
@@ -26,26 +26,26 @@ describe('filterEmployees', () => {
   })
 })
 
-describe('employeeShiftNames', () => {
-  const shifts = [
+describe('employeeOfficeTimeNames', () => {
+  const officeTimes = [
     { id: 's1', name: 'Morning' },
     { id: 's2', name: 'Day' },
   ]
   const assignments = [
-    { employee_id: 'e1', shift_id: 's1' },
-    { employee_id: 'e1', shift_id: 's2' },
-    { employee_id: 'e2', shift_id: 's1' },
+    { employee_id: 'e1', office_time_id: 's1' },
+    { employee_id: 'e1', office_time_id: 's2' },
+    { employee_id: 'e2', office_time_id: 's1' },
   ]
 
-  it('joins multiple assigned shift names', () => {
-    expect(employeeShiftNames('e1', assignments, shifts)).toBe('Morning, Day')
+  it('joins multiple assigned officeTime names', () => {
+    expect(employeeOfficeTimeNames('e1', assignments, officeTimes)).toBe('Morning, Day')
   })
 
   it('returns a single name for one assignment', () => {
-    expect(employeeShiftNames('e2', assignments, shifts)).toBe('Morning')
+    expect(employeeOfficeTimeNames('e2', assignments, officeTimes)).toBe('Morning')
   })
 
-  it('returns null when no shifts are assigned', () => {
-    expect(employeeShiftNames('e3', assignments, shifts)).toBeNull()
+  it('returns null when no officeTimes are assigned', () => {
+    expect(employeeOfficeTimeNames('e3', assignments, officeTimes)).toBeNull()
   })
 })

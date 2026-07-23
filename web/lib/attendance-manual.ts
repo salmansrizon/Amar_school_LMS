@@ -28,7 +28,7 @@ export function studentSectionOptions(students: RosterStudent[], className: stri
 /**
  * Roster rows for the mark-attendance screen, filtered by class/section and
  * ordered by Roll number (matching attendance-student-mark.html) with
- * un-rolled students falling back to a name sort at the end. The Shift filter
+ * un-rolled students falling back to a name sort at the end. The OfficeTime filter
  * left with issue #100.
  */
 export function filterRoster(

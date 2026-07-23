@@ -104,31 +104,31 @@ export async function restoreEmployee(id: string): Promise<{ error?: string }> {
   return {}
 }
 
-export async function addShift(formData: FormData): Promise<{ error?: string }> {
+export async function addOfficeTime(formData: FormData): Promise<{ error?: string }> {
   const name = String(formData.get('name') ?? '').trim()
   if (!name) return { error: 'Name is required' }
   const grace = optionalMinutes(formData.get('grace_minutes'))
   if (Number.isNaN(grace)) return { error: 'Grace must be a non-negative integer' }
   const supabase = await createClient()
-  const { error } = await supabase.from('shifts').insert({ name, grace_minutes: grace })
+  const { error } = await supabase.from('office_times').insert({ name, grace_minutes: grace })
   if (error) return { error: error.message }
   revalidatePath(PAGE)
   return {}
 }
 
-export async function setShiftAssignment(
+export async function setOfficeTimeAssignment(
   employeeId: string,
-  shiftId: string,
+  officeTimeId: string,
   assigned: boolean,
 ): Promise<{ error?: string }> {
   const supabase = await createClient()
   const { error } = assigned
-    ? await supabase.from('employee_shifts').insert({ employee_id: employeeId, shift_id: shiftId })
+    ? await supabase.from('employee_office_times').insert({ employee_id: employeeId, office_time_id: officeTimeId })
     : await supabase
-        .from('employee_shifts')
+        .from('employee_office_times')
         .delete()
         .eq('employee_id', employeeId)
-        .eq('shift_id', shiftId)
+        .eq('office_time_id', officeTimeId)
   if (error) return { error: error.message }
   revalidatePath(PAGE)
   return {}

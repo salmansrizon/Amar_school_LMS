@@ -3,7 +3,7 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 
 // Seam: Publishing (issue #37, PRD §5.8) — notices/homework/lesson-plans/
 // daily-lessons/exam-prep share one `publications` table (kind discriminates,
-// RLS-scoped; Shift targeting left with issue #100); gallery albums/photos are a
+// RLS-scoped; OfficeTime targeting left with issue #100); gallery albums/photos are a
 // second table pair with a server-enforced, per-album-configurable image-count
 // and per-image-size cap (a row-locking trigger, not just an app-layer check).
 const URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
