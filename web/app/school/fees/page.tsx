@@ -5,6 +5,7 @@ import { t, type Lang } from '@/lib/i18n'
 import { createClient } from '@/lib/supabase/server'
 import { AccountingTabs } from './accounting-tabs'
 import { FeeForm, type CollectStudent, type ExistingFeeRecord } from './fee-form'
+import { selectClass } from '@/components/ui/field'
 
 // Layout per ui/school-owner/fee-collection.html: toolbar (search + Class +
 // Month filters) over a roster table (Roll | Name | Class/Section | Month |
@@ -14,8 +15,6 @@ import { FeeForm, type CollectStudent, type ExistingFeeRecord } from './fee-form
 
 const thClass = 'px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted'
 const tdClass = 'px-3 py-2 text-sm'
-const selectClass = 'rounded-md border border-line bg-paper px-3 py-1.5 text-sm'
-
 export default async function FeesPage({
   searchParams,
 }: {
@@ -119,7 +118,7 @@ export default async function FeesPage({
       <AccountingTabs active="collection" lang={lang} />
 
       <form className="mb-4 flex flex-wrap items-center gap-2" method="get">
-        <select name="class" defaultValue={selectedClass} className={selectClass}>
+        <select name="class" defaultValue={selectedClass} className={selectClass()}>
           <option value="">{t('fees.allClasses', lang)}</option>
           {classes?.map((c) => (
             <option key={c.id} value={c.id}>
@@ -128,7 +127,7 @@ export default async function FeesPage({
             </option>
           ))}
         </select>
-        <select name="month" defaultValue={String(month)} className={selectClass}>
+        <select name="month" defaultValue={String(month)} className={selectClass()}>
           {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
             <option key={m} value={m}>
               {m}

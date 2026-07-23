@@ -1,8 +1,8 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { inputClass } from '@/components/auth-card'
 import { t, type Lang } from '@/lib/i18n'
+import { selectClass } from '@/components/ui/field'
 
 // Result Book's exam picker (result-book.html's single "exam - class" select
 // — an exam already implies one class via exams.class_id, so this is really
@@ -22,7 +22,7 @@ export function ExamPicker({ examId, exams, lang }: { examId: string; exams: Exa
       value={examId}
       aria-label={t('resultBook.pickExam', lang)}
       onChange={(e) => router.push(`/school/exams/${e.target.value}/result-book`)}
-      className={`${inputClass} min-w-56`}
+      className={`${selectClass({ size: 'md', fullWidth: true })} min-w-56`}
     >
       {exams.map((e) => (
         <option key={e.id} value={e.id}>

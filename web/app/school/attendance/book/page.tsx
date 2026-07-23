@@ -15,6 +15,7 @@ import { PrintPage, InstituteHeader, PaginatedSheet } from '@/components/print/p
 import { PrintButton } from '@/components/print/print-button'
 import { AttendanceTabs } from '../attendance-tabs'
 import { loadInstitutePrintHeader } from '@/lib/institute-print'
+import { selectClass } from '@/components/ui/field'
 
 // Layout per ui/school-owner/attendance-book.html: class/section + month
 // filter, Filled/Blank toggle, print button, monthly P/A register grid
@@ -132,7 +133,7 @@ export default async function AttendanceBookPage({
           <select
             name="class"
             defaultValue={className}
-            className="rounded-md border border-line bg-paper px-3 py-1.5 text-sm"
+            className={selectClass()}
           >
             <option value="">{t('attendance.allClasses', lang)}</option>
             {classes.map((c) => (
@@ -144,7 +145,7 @@ export default async function AttendanceBookPage({
           <select
             name="section"
             defaultValue={section}
-            className="rounded-md border border-line bg-paper px-3 py-1.5 text-sm"
+            className={selectClass()}
           >
             <option value="">{t('attendance.allSections', lang)}</option>
             {sections.map((s) => (

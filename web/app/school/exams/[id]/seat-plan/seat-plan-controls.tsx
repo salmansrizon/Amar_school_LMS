@@ -6,6 +6,7 @@ import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
 import { countRollsInRange, overlappingRowIds } from '@/lib/exam-setup'
 import { t, type Lang } from '@/lib/i18n'
 import { generateSeatPlanFor, publishSeatPlan, removeSeatPlanRow, saveSeatPlanRow } from './actions'
+import { selectClass } from '@/components/ui/field'
 
 export interface RoomOption {
   id: string
@@ -231,7 +232,7 @@ export function AddSeatPlanRowForm({ examId, rooms, lang }: { examId: string; ro
     >
       <div>
         <label className={labelClass} htmlFor="room_id">{t('seatPlan.room', lang)}</label>
-        <select id="room_id" name="room_id" required defaultValue="" className={inputClass}>
+        <select id="room_id" name="room_id" required defaultValue="" className={selectClass({ size: 'md', fullWidth: true })}>
           <option value="" disabled>
             {t('seatPlan.pickRoom', lang)}
           </option>

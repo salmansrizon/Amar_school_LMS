@@ -7,13 +7,13 @@ import { t, type Lang } from '@/lib/i18n'
 import { countSmsSegments } from '@/lib/sms/segments'
 import { resolveRecipients, type ComposeMode, type ComposeStudentRow, type ComposeEmployeeRow } from '@/lib/sms/recipients'
 import { sendCompose } from './actions'
+import { selectClass } from '@/components/ui/field'
 
 // Themed to match the dashboard: rounded-2xl cards, brand-600 primary, rounded-lg
 // form controls with a visible focus ring.
 const cardClass = 'rounded-2xl border border-line/70 bg-paper/92 p-5 shadow-card backdrop-blur'
-const selectClass =
+const inputClass =
   'h-10 w-full rounded-lg border border-line-strong bg-paper px-3 text-sm outline-none transition focus:border-brand-500 focus-visible:ring-2 focus-visible:ring-brand-300'
-const inputClass = selectClass
 // Equal minimum width so the two actions stay the same size when labels swap bn/en.
 const actionBtn = 'min-w-[9rem]'
 
@@ -131,7 +131,7 @@ export function ComposeForm({
           <div>
             <label className={labelClass}>{t('sms.buildBy', lang)}</label>
             <select
-              className={selectClass}
+              className={selectClass({ size: 'md', fullWidth: true })}
               value={draft.mode}
               onChange={(e) => update('mode', e.target.value as ComposeMode)}
             >
@@ -145,7 +145,7 @@ export function ComposeForm({
             <>
               <div>
                 <label className={labelClass}>{t('sms.class', lang)}</label>
-                <select className={selectClass} value={draft.className} onChange={(e) => update('className', e.target.value)}>
+                <select className={selectClass({ size: 'md', fullWidth: true })} value={draft.className} onChange={(e) => update('className', e.target.value)}>
                   <option value="">{t('sms.allClasses', lang)}</option>
                   {classNames.map((c) => (
                     <option key={c} value={c}>
@@ -156,7 +156,7 @@ export function ComposeForm({
               </div>
               <div>
                 <label className={labelClass}>{t('sms.section', lang)}</label>
-                <select className={selectClass} value={draft.section} onChange={(e) => update('section', e.target.value)}>
+                <select className={selectClass({ size: 'md', fullWidth: true })} value={draft.section} onChange={(e) => update('section', e.target.value)}>
                   <option value="">{t('sms.allSections', lang)}</option>
                   {sections.map((s) => (
                     <option key={s} value={s}>
@@ -171,7 +171,7 @@ export function ComposeForm({
           {draft.mode === 'group' && (
             <div>
               <label className={labelClass}>{t('sms.category', lang)}</label>
-              <select className={selectClass} value={draft.category} onChange={(e) => update('category', e.target.value)}>
+              <select className={selectClass({ size: 'md', fullWidth: true })} value={draft.category} onChange={(e) => update('category', e.target.value)}>
                 <option value="">—</option>
                 {categories.map((c) => (
                   <option key={c} value={c}>

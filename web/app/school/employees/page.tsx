@@ -5,6 +5,7 @@ import { t, type Lang } from '@/lib/i18n'
 import { createClient } from '@/lib/supabase/server'
 import { employeeOfficeTimeNames, filterEmployees } from '@/lib/employees'
 import { AddOfficeTimeForm, CategoryGraceForm, DefaultGraceForm } from './employee-controls'
+import { selectClass } from '@/components/ui/field'
 
 // Layout per ui/school-owner/employees-list.html: search + category filter,
 // table Name | Category | Qualification | OfficeTime | Department | Status | View,
@@ -14,8 +15,6 @@ import { AddOfficeTimeForm, CategoryGraceForm, DefaultGraceForm } from './employ
 
 const thClass = 'px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted'
 const tdClass = 'px-3 py-2 text-sm'
-const selectClass = 'rounded-md border border-line bg-paper px-3 py-1.5 text-sm'
-
 export default async function EmployeesPage({
   searchParams,
 }: {
@@ -93,7 +92,7 @@ export default async function EmployeesPage({
             placeholder={t('employees.search', lang)}
             className="w-56 rounded-md border border-line bg-paper px-3 py-1.5 text-sm"
           />
-          <select name="category" defaultValue={category} className={selectClass}>
+          <select name="category" defaultValue={category} className={selectClass()}>
             <option value="">{t('employees.allCategories', lang)}</option>
             {categories.map((c) => (
               <option key={c} value={c}>

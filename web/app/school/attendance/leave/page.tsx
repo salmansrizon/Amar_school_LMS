@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/server'
 import { mergeLeaves, filterLeaves } from '@/lib/attendance-manual'
 import { AttendanceTabs } from '../attendance-tabs'
 import { LeaveActions, RequestLeaveForm } from './leave-controls'
+import { selectClass } from '@/components/ui/field'
 
 // Layout per ui/school-owner/leave-management.html: search + type filter,
 // unified Student/Employee leave table with Approve/Reject on pending rows.
@@ -72,7 +73,7 @@ export default async function LeaveManagementPage({
           placeholder={t('attendance.leaveSearch', lang)}
           className="w-56 rounded-md border border-line bg-paper px-3 py-1.5 text-sm"
         />
-        <select name="type" defaultValue={type} className="rounded-md border border-line bg-paper px-3 py-1.5 text-sm">
+        <select name="type" defaultValue={type} className={selectClass()}>
           <option value="">{t('attendance.leaveAllTypes', lang)}</option>
           <option value="student">{t('attendance.leaveStudentType', lang)}</option>
           <option value="employee">{t('attendance.leaveEmployeeType', lang)}</option>

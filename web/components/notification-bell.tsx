@@ -14,6 +14,9 @@ export function NotificationBell({ lang, buttonClass }: { lang: Lang; buttonClas
   const [open, setOpen] = useState(false)
   const [items, setItems] = useState<ActivityItem[] | null>(null)
   const [loading, setLoading] = useState(false)
+  // Where the phone-width sheet starts: measured from the bell as it opens, so
+  // it tracks the topbar's real height instead of hardcoding it (issue #118).
+  const [sheetTop, setSheetTop] = useState<number | null>(null)
   const ref = useRef<HTMLDivElement>(null)
 
   const dateFmt = new Intl.DateTimeFormat(lang === 'bn' ? 'bn-BD' : 'en-GB', {
@@ -26,6 +29,7 @@ export function NotificationBell({ lang, buttonClass }: { lang: Lang; buttonClas
   function toggle() {
     const next = !open
     setOpen(next)
+    if (next) setSheetTop(ref.current ? Math.round(ref.current.getBoundingClientRect().bottom + 8) : null)
     if (next && items === null && !loading) {
       setLoading(true)
       fetch('/api/school/recent-activity')
@@ -70,12 +74,21 @@ export function NotificationBell({ lang, buttonClass }: { lang: Lang; buttonClas
       </button>
 
       {open && (
-        <div className="absolute right-0 z-50 mt-2 w-80 max-w-[calc(100vw-1.5rem)] overflow-hidden rounded-2xl border border-line bg-paper shadow-xl">
-          <div className="flex items-center justify-between border-b border-line px-4 py-3">
+        // The bell is not flush with the viewport edge (language pill, avatar and
+        // logout sit to its right), so a popover anchored to it ran off the left
+        // edge on narrow phones. Below `sm` it detaches to a viewport-inset sheet
+        // that starts just under the bell; from `sm` up it anchors to the bell as
+        // before, where there is room (#118). The measured offset rides on a
+        // custom property so `sm:top-auto` can still drop it at wider widths.
+        <div
+          style={sheetTop === null ? undefined : ({ '--sheet-top': `${sheetTop}px` } as React.CSSProperties)}
+          className="fixed inset-x-3 top-[var(--sheet-top,4rem)] z-50 flex max-h-[calc(100dvh-var(--sheet-top,4rem)-0.75rem)] flex-col overflow-hidden rounded-2xl border border-line bg-paper shadow-xl sm:absolute sm:inset-x-auto sm:right-0 sm:top-auto sm:mt-2 sm:max-h-none sm:w-80 sm:max-w-[calc(100vw-1.5rem)]"
+        >
+          <div className="flex shrink-0 items-center justify-between border-b border-line px-4 py-3">
             <span className="text-sm font-bold uppercase tracking-wide text-muted">{t('dash.recentActivity', lang)}</span>
           </div>
 
-          <ul className="max-h-[60vh] overflow-y-auto p-1">
+          <ul className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-1 sm:max-h-[60vh] sm:flex-none">
             {loading && <li className="px-3 py-6 text-center text-sm text-muted">…</li>}
             {!loading && items?.length === 0 && (
               <li className="px-3 py-6 text-center text-sm text-muted">{t('dash.raNone', lang)}</li>
@@ -111,7 +124,7 @@ export function NotificationBell({ lang, buttonClass }: { lang: Lang; buttonClas
               })}
           </ul>
 
-          <div className="border-t border-line p-2">
+          <div className="shrink-0 border-t border-line p-2">
             <Link
               href="/school/activity"
               onClick={() => setOpen(false)}

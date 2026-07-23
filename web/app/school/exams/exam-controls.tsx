@@ -7,6 +7,7 @@ import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
 import { filterExams } from '@/lib/exam-setup'
 import { t, type Lang } from '@/lib/i18n'
 import { addExam, closeExam } from './actions'
+import { selectClass } from '@/components/ui/field'
 
 // Exams II (issue #47) repurposes this file for the exams-list.html toolbar +
 // row (search/class/status filter, Setup/Seat Plan/Close actions) — per-exam
@@ -174,7 +175,7 @@ export function ExamsListClient({
           placeholder={t('exams.searchPlaceholder', lang)}
           className={`${inputClass} max-w-xs`}
         />
-        <select value={classId} onChange={(e) => setClassId(e.target.value)} className={`${inputClass} max-w-48`}>
+        <select value={classId} onChange={(e) => setClassId(e.target.value)} className={`${selectClass({ size: 'md', fullWidth: true })} max-w-48`}>
           <option value="">{t('exams.allClasses', lang)}</option>
           {classes.map((c) => (
             <option key={c.id} value={c.id}>
@@ -183,7 +184,7 @@ export function ExamsListClient({
             </option>
           ))}
         </select>
-        <select value={status} onChange={(e) => setStatus(e.target.value)} className={`${inputClass} max-w-40`}>
+        <select value={status} onChange={(e) => setStatus(e.target.value)} className={`${selectClass({ size: 'md', fullWidth: true })} max-w-40`}>
           <option value="">{t('exams.allStatus', lang)}</option>
           <option value="open">{t('exams.open', lang)}</option>
           <option value="closed">{t('exams.closed', lang)}</option>

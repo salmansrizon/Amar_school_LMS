@@ -1,9 +1,9 @@
 'use client'
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { inputClass } from '@/components/auth-card'
 import { PRINT_THEMES } from '@/lib/print-themes'
 import type { Lang } from '@/lib/i18n'
+import { selectClass } from '@/components/ui/field'
 
 // Per-print colour override (issue #94, map #91): the school's saved default
 // applies unless this run says otherwise, so the choice lives in the URL and
@@ -31,7 +31,7 @@ export function ThemePicker({
         next.set('theme', e.target.value)
         router.push(`${pathname}?${next.toString()}`)
       }}
-      className={`${inputClass} max-w-48 print:hidden`}
+      className={`${selectClass({ size: 'md', fullWidth: true })} max-w-48 print:hidden`}
     >
       {PRINT_THEMES.map((theme) => (
         <option key={theme.key} value={theme.key}>

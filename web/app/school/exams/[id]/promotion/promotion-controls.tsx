@@ -2,9 +2,9 @@
 
 import { usePathname, useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
-import { inputClass } from '@/components/auth-card'
 import { t, type Lang } from '@/lib/i18n'
 import { makeOldStudents, promoteStudents, setClassFinal } from './actions'
+import { selectClass } from '@/components/ui/field'
 
 export interface ClassOption {
   id: string
@@ -42,7 +42,7 @@ export function ResultControlsBar({
     <div className="mb-4 flex flex-wrap items-center gap-2">
       <div>
         <label className="mb-1 block text-xs font-semibold text-muted">{t('promotion.resultSource', lang)}</label>
-        <select value={source} onChange={(e) => navigate(e.target.value, basis)} className={`${inputClass} min-w-56`}>
+        <select value={source} onChange={(e) => navigate(e.target.value, basis)} className={`${selectClass({ size: 'md', fullWidth: true })} min-w-56`}>
           <option value="exam">{t('promotion.thisExamOnly', lang)}</option>
           {combinations.map((c) => (
             <option key={c.id} value={c.id}>
@@ -53,7 +53,7 @@ export function ResultControlsBar({
       </div>
       <div>
         <label className="mb-1 block text-xs font-semibold text-muted">{t('promotion.rankBasis', lang)}</label>
-        <select value={basis} onChange={(e) => navigate(source, e.target.value)} className={`${inputClass} min-w-40`}>
+        <select value={basis} onChange={(e) => navigate(source, e.target.value)} className={`${selectClass({ size: 'md', fullWidth: true })} min-w-40`}>
           <option value="grade">{t('promotion.rankByGrade', lang)}</option>
           <option value="mark">{t('promotion.rankByMark', lang)}</option>
         </select>
@@ -100,7 +100,7 @@ export function PromotionTable({
     <>
       <div className="mb-3 max-w-sm">
         <label className="mb-1 block text-xs font-semibold text-muted">{t('promotion.promoteTo', lang)}</label>
-        <select value={toClassId} onChange={(e) => setToClassId(e.target.value)} className={inputClass}>
+        <select value={toClassId} onChange={(e) => setToClassId(e.target.value)} className={selectClass({ size: 'md', fullWidth: true })}>
           <option value="">—</option>
           {classes.map((c) => (
             <option key={c.id} value={c.id}>

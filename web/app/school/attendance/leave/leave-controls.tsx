@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { inputClass, labelClass } from '@/components/auth-card'
 import { t, type Lang } from '@/lib/i18n'
 import { requestLeave, approveLeave, rejectLeave } from '../manual-actions'
+import { dateInputClass, selectClass } from '@/components/ui/field'
 
 export function RequestLeaveForm({
   students,
@@ -37,7 +38,7 @@ export function RequestLeaveForm({
         <label className={labelClass} htmlFor="holder">
           {t('attendance.leavePerson', lang)}
         </label>
-        <select id="holder" name="holder" required className={inputClass}>
+        <select id="holder" name="holder" required className={selectClass({ size: 'md', fullWidth: true })}>
           <optgroup label={t('students.title', lang)}>
             {students.map((s) => (
               <option key={s.id} value={`student:${s.id}`}>
@@ -58,13 +59,13 @@ export function RequestLeaveForm({
         <label className={labelClass} htmlFor="from_day">
           {t('attendance.leaveFromCol', lang)}
         </label>
-        <input id="from_day" name="from_day" type="date" required className={inputClass} />
+        <input id="from_day" name="from_day" type="date" required className={dateInputClass({ size: 'md', fullWidth: true })} />
       </div>
       <div>
         <label className={labelClass} htmlFor="to_day">
           {t('attendance.leaveToCol', lang)}
         </label>
-        <input id="to_day" name="to_day" type="date" required className={inputClass} />
+        <input id="to_day" name="to_day" type="date" required className={dateInputClass({ size: 'md', fullWidth: true })} />
       </div>
       <div>
         <label className={labelClass} htmlFor="reason">

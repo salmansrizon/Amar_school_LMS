@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/server'
 import { currentAssetValue } from '@/lib/accounting'
 import { AccountingTabs } from '../accounting-tabs'
 import { NewAssetCategoryForm, NewAssetForm, type AssetCategoryOption } from './asset-controls'
+import { selectClass } from '@/components/ui/field'
 
 // Layout per ui/school-owner/asset-register.html: toolbar (search + Category
 // filter, "+ Add Asset") over an Asset Name | Category | Purchase Date |
@@ -97,7 +98,7 @@ export default async function AssetsPage({
             placeholder={t('assets.searchPlaceholder', lang)}
             className="h-9 rounded-md border border-line px-3 text-sm"
           />
-          <select name="category" defaultValue={category} className="h-9 rounded-md border border-line px-3 text-sm">
+          <select name="category" defaultValue={category} className={selectClass()}>
             <option value="">{t('assets.allCategories', lang)}</option>
             {categories?.map((c) => (
               <option key={c.id} value={c.id}>

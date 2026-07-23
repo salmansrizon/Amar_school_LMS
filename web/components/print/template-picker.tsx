@@ -1,7 +1,7 @@
 'use client'
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { inputClass } from '@/components/auth-card'
+import { selectClass } from '@/components/ui/field'
 
 // Mark sheet / progress report template switcher (mark-sheet-preview.html /
 // progress-report-preview.html's topbar <select>) — mirrors marks-entry's
@@ -30,7 +30,7 @@ export function TemplatePicker({
         next.set('template', e.target.value)
         router.push(`${pathname}?${next.toString()}`)
       }}
-      className={`${inputClass} max-w-48 print:hidden`}
+      className={`${selectClass({ size: 'md', fullWidth: true })} max-w-48 print:hidden`}
     >
       {options.map((label, i) => (
         <option key={label} value={i + 1}>
@@ -65,7 +65,7 @@ export function TemplatePicker2({
         next.set('template', e.target.value)
         router.push(`${pathname}?${next.toString()}`)
       }}
-      className={`${inputClass} max-w-48 print:hidden`}
+      className={`${selectClass({ size: 'md', fullWidth: true })} max-w-48 print:hidden`}
     >
       {options.map((label, i) => (
         <option key={label} value={i + 1}>

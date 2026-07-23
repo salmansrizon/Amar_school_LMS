@@ -5,6 +5,7 @@ import { t, type Lang } from '@/lib/i18n'
 import { createClient } from '@/lib/supabase/server'
 import { LogFeedbackForm, FeedbackRow } from './feedback-controls'
 import { AddDetails } from '@/components/add-details'
+import { selectClass } from '@/components/ui/field'
 
 // Layout per ui/school-owner/feedback-inbox.html: tabs (Inbox / Ratings
 // Dashboard), a search+status toolbar, and a data table with an expandable
@@ -67,7 +68,7 @@ export default async function FeedbackInboxPage({
             <select
               name="status"
               defaultValue={status}
-              className="rounded-md border border-line bg-paper px-3 py-1.5 text-sm"
+              className={selectClass()}
             >
               <option value="">{t('feedback.allStatus', lang)}</option>
               <option value="unread">{t('feedback.statusUnread', lang)}</option>

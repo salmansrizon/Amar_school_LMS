@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import { t, type Lang } from '@/lib/i18n'
 import { photoExtension, sectionsForClass } from '@/lib/students'
 import { admitStudent, studentPhotoPath, recordStudentPhoto } from '../actions'
+import { dateInputClass, selectClass } from '@/components/ui/field'
 
 const MAX_PHOTO_BYTES = 2 * 1024 * 1024 // mirrors the bucket's server-enforced cap
 
@@ -56,10 +57,10 @@ export function ProfileFields({
             <input name="full_name" required defaultValue={d('full_name')} className={fieldClass} />
           </Field>
           <Field label={t('students.dob', lang)}>
-            <input type="date" name="date_of_birth" defaultValue={d('date_of_birth')} className={fieldClass} />
+            <input type="date" name="date_of_birth" defaultValue={d('date_of_birth')} className={dateInputClass({ size: 'md', fullWidth: true })} />
           </Field>
           <Field label={t('students.gender', lang)}>
-            <select name="gender" defaultValue={d('gender')} className={fieldClass}>
+            <select name="gender" defaultValue={d('gender')} className={selectClass({ size: 'md', fullWidth: true })}>
               <option value="">—</option>
               <option value="male">{t('students.male', lang)}</option>
               <option value="female">{t('students.female', lang)}</option>
@@ -73,7 +74,7 @@ export function ProfileFields({
               name="class_name"
               value={className}
               onChange={(e) => setClassName(e.target.value)}
-              className={fieldClass}
+              className={selectClass({ size: 'md', fullWidth: true })}
             >
               <option value="">—</option>
               {classNames.map((c) => (
@@ -85,7 +86,7 @@ export function ProfileFields({
           </Field>
           <Field label={t('students.section', lang)}>
             {/* key remounts on class change so a stale section can't linger */}
-            <select key={className} name="section" defaultValue={d('section')} className={fieldClass}>
+            <select key={className} name="section" defaultValue={d('section')} className={selectClass({ size: 'md', fullWidth: true })}>
               <option value="">—</option>
               {sections.map((s) => (
                 <option key={s} value={s}>
@@ -126,7 +127,7 @@ export function ProfileFields({
             <input name="guardian_name" defaultValue={d('guardian_name')} className={fieldClass} />
           </Field>
           <Field label={t('students.relation', lang)}>
-            <select name="guardian_relation" defaultValue={d('guardian_relation')} className={fieldClass}>
+            <select name="guardian_relation" defaultValue={d('guardian_relation')} className={selectClass({ size: 'md', fullWidth: true })}>
               <option value="">—</option>
               <option value="father">{t('students.father', lang)}</option>
               <option value="mother">{t('students.mother', lang)}</option>
