@@ -13,8 +13,8 @@ import {
 const students = [
   { id: '1', full_name: 'Rakib Hasan', class_name: 'Class 8', section: 'A', roll_number: 2 },
   { id: '2', full_name: 'Tamim Iqbal', class_name: 'Class 8', section: 'B', roll_number: 1 },
-  { id: '3', full_name: 'Sadia Islam', class_name: 'Class 9', section: 'A', roll_number: null, shift_id: null },
-  { id: '4', full_name: 'Nusrat Jahan', class_name: null, section: null, roll_number: null, shift_id: null },
+  { id: '3', full_name: 'Sadia Islam', class_name: 'Class 9', section: 'A', roll_number: null, office_time_id: null },
+  { id: '4', full_name: 'Nusrat Jahan', class_name: null, section: null, roll_number: null, office_time_id: null },
 ]
 
 describe('studentClassOptions / studentSectionOptions', () => {

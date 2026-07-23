@@ -59,7 +59,7 @@ describe('targetAudienceLabel: mockup "Target Audience" column', () => {
     ).toBe('সকল শিক্ষার্থী')
   })
 
-  // Shift left publication targeting with issue #100.
+  // OfficeTime left publication targeting with issue #100.
   it('joins class / section for a specific target', () => {
     expect(
       targetAudienceLabel(

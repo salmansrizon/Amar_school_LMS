@@ -1,6 +1,6 @@
 // Streamed instantly while the dashboard's server queries resolve, so the user
 // sees the page structure immediately instead of a blank blocking wait. Mirrors
-// the real layout (KPI row + activity/quick-actions split) to avoid layout shift.
+// the real layout (KPI row + activity/quick-actions split) to avoid layout officeTime.
 export default function SchoolLoading() {
   return (
     <div className="animate-pulse" aria-hidden="true">

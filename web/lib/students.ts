@@ -11,7 +11,7 @@ export interface StudentListRow {
   archived_at: string | null
 }
 
-/** "Class 8 / A" — drops missing parts, null when nothing is set. Shift left
+/** "Class 8 / A" — drops missing parts, null when nothing is set. OfficeTime left
  *  the student side with issue #100; class + section carry the grouping. */
 export function classSectionLabel(
   className: string | null | undefined,

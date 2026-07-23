@@ -54,7 +54,7 @@ export interface PublicationRow {
 }
 
 /** "All Students" for an all-target row, else "Class 6 / A" (missing parts
- *  dropped). Shift left publication targeting with issue #100. */
+ *  dropped). OfficeTime left publication targeting with issue #100. */
 export function targetAudienceLabel(
   row: { target_type: TargetType; target_class_name: string | null; target_section: string | null },
   lang: Lang,

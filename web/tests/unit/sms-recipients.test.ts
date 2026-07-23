@@ -8,7 +8,7 @@ import {
   type ComposeEmployeeRow,
 } from '@/lib/sms/recipients'
 
-// Recipient-list resolution (issue #36, PRD §5.7): class/shift/section,
+// Recipient-list resolution (issue #36, PRD §5.7): class/officeTime/section,
 // teacher/staff/management group, or manual numbers. Pure so the same logic
 // drives both the "estimated recipients" live count and the actual send.
 
@@ -26,7 +26,7 @@ const employees: ComposeEmployeeRow[] = [
 ]
 
 describe('resolveClassSectionRecipients', () => {
-  it('filters by class, shift, and section together', () => {
+  it('filters by class, officeTime, and section together', () => {
     const result = resolveClassSectionRecipients(students, {
       className: 'Class 6',
       section: 'A',
@@ -34,7 +34,7 @@ describe('resolveClassSectionRecipients', () => {
     expect(result).toEqual([{ phone: '01711111111', name: 'Rahim', studentId: 's1' }])
   })
 
-  it('a blank field means "any" (matches "All Sections"/"All Shifts")', () => {
+  it('a blank field means "any" (matches "All Sections"/"All OfficeTimes")', () => {
     const result = resolveClassSectionRecipients(students, { className: 'Class 6' })
     expect(result.map((r) => r.studentId)).toEqual(['s1', 's2'])
   })
@@ -85,7 +85,7 @@ describe('parseManualNumbers', () => {
 describe('resolveRecipients (mode dispatch)', () => {
   const base = { students, employees, filter: {}, category: '', manualNumbers: '' }
 
-  it('dispatches to class/shift/section', () => {
+  it('dispatches to class/officeTime/section', () => {
     const result = resolveRecipients('class_section', { ...base, filter: { className: 'Class 7' } })
     expect(result).toEqual([{ phone: '01733333333', name: 'Salma', studentId: 's3' }])
   })

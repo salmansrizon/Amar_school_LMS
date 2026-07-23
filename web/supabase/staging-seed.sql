@@ -2,7 +2,7 @@
 -- Run after the existing seed-test.sql has been applied (users + schools exist).
 -- Idempotent: safe to re-run.
 --
--- Adds: locations, students, employees, shifts, exams, fee records,
+-- Adds: locations, students, employees, office times, exams, fee records,
 --       attendance records, off-days, SMS rules, behaviour log entries.
 -- All data belongs to Test School A (owner-a@test.local, password: test-password-123!).
 
@@ -12,7 +12,7 @@ declare
   school_b uuid;
   sid uuid;
   eid uuid;
-  shift_id uuid;
+  office_time_id uuid;
   i int;
   d date;
 begin
@@ -77,23 +77,23 @@ begin
   end loop;
 
   -- ═══════════════════════════════════════════════════════════════
-  -- 3. SHIFTS — 2 shifts for School A
+  -- 3. OFFICE TIMES — 2 windows for School A
   -- ═══════════════════════════════════════════════════════════════
-  delete from public.employee_shifts es
-  where es.shift_id in (select s.id from public.shifts s where s.school_id = school_a);
-  delete from public.shifts s where s.school_id = school_a and s.name like 'Staging %';
+  delete from public.employee_office_times es
+  where es.office_time_id in (select s.id from public.office_times s where s.school_id = school_a);
+  delete from public.office_times s where s.school_id = school_a and s.name like 'Staging %';
 
-  insert into public.shifts (school_id, name, grace_minutes, starts_at, ends_at)
+  insert into public.office_times (school_id, name, grace_minutes, starts_at, ends_at)
   values (school_a, 'Staging Morning', 20, '08:00', '14:00')
-  returning id into shift_id;
+  returning id into office_time_id;
 
-  insert into public.shifts (school_id, name, grace_minutes, starts_at, ends_at)
+  insert into public.office_times (school_id, name, grace_minutes, starts_at, ends_at)
   values (school_a, 'Staging Afternoon', 15, '12:00', '18:00');
 
   -- ═══════════════════════════════════════════════════════════════
   -- 4. EMPLOYEES — 5 employees for School A
   -- ═══════════════════════════════════════════════════════════════
-  delete from public.employee_shifts es
+  delete from public.employee_office_times es
   where es.employee_id in (select e.id from public.employees e where e.school_id = school_a and e.full_name like 'Staging %');
   delete from public.attendance_records
   where person_id in (select id from public.employees where school_id = school_a and full_name like 'Staging %')
@@ -103,12 +103,12 @@ begin
   insert into public.employees (school_id, full_name, category)
   values (school_a, 'Staging Teacher One', 'teacher')
   returning id into eid;
-  insert into public.employee_shifts (employee_id, shift_id) values (eid, shift_id);
+  insert into public.employee_office_times (employee_id, office_time_id) values (eid, office_time_id);
 
   insert into public.employees (school_id, full_name, category)
   values (school_a, 'Staging Teacher Two', 'teacher')
   returning id into eid;
-  insert into public.employee_shifts (employee_id, shift_id) values (eid, shift_id);
+  insert into public.employee_office_times (employee_id, office_time_id) values (eid, office_time_id);
 
   insert into public.employees (school_id, full_name, category)
   values (school_a, 'Staging Staff One', 'staff');

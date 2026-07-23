@@ -26,7 +26,7 @@ describe('RFID Attendance Event ingestion + reconciliation (issue #10)', () => {
   let ingestToken: string
   let employeeId: string
   let studentId: string
-  let shiftId: string
+  let officeTimeId: string
 
   beforeAll(async () => {
     ownerA = await signedIn('owner-a@test.local')
@@ -44,11 +44,11 @@ describe('RFID Attendance Event ingestion + reconciliation (issue #10)', () => {
     await ownerA.from('attendance_records').delete().eq('att_date', DAY)
     await ownerA.from('employees').delete().eq('full_name', 'RFID Test Employee')
     await ownerA.from('students').delete().eq('full_name', 'RFID Test Student')
-    await ownerA.from('shifts').delete().eq('name', 'RFID-Day')
+    await ownerA.from('office_times').delete().eq('name', 'RFID-Day')
 
-    shiftId = (
+    officeTimeId = (
       await ownerA
-        .from('shifts')
+        .from('office_times')
         .insert({ name: 'RFID-Day', grace_minutes: 20, starts_at: '08:00', ends_at: '14:00' })
         .select('id')
         .single()
@@ -56,7 +56,7 @@ describe('RFID Attendance Event ingestion + reconciliation (issue #10)', () => {
     employeeId = (
       await ownerA.from('employees').insert({ full_name: 'RFID Test Employee' }).select('id').single()
     ).data!.id
-    await ownerA.from('employee_shifts').insert({ employee_id: employeeId, shift_id: shiftId })
+    await ownerA.from('employee_office_times').insert({ employee_id: employeeId, office_time_id: officeTimeId })
     studentId = (
       await ownerA.from('students').insert({ full_name: 'RFID Test Student' }).select('id').single()
     ).data!.id
@@ -72,7 +72,7 @@ describe('RFID Attendance Event ingestion + reconciliation (issue #10)', () => {
     await ownerA.from('attendance_records').delete().eq('att_date', DAY)
     await ownerA.from('employees').delete().eq('id', employeeId)
     await ownerA.from('students').delete().eq('id', studentId)
-    await ownerA.from('shifts').delete().eq('id', shiftId)
+    await ownerA.from('office_times').delete().eq('id', officeTimeId)
   })
 
   it('rejects ingest with a wrong token', async () => {
@@ -133,7 +133,7 @@ describe('RFID Attendance Event ingestion + reconciliation (issue #10)', () => {
     expect(data![0].status).toBe('exit_early')
   })
 
-  it('works for the Student too (no shift window → present)', async () => {
+  it('works for the Student too (no officeTime window → present)', async () => {
     const { data } = await ownerA
       .from('attendance_records')
       .select('entry_at, exit_at, status')
@@ -204,7 +204,7 @@ describe('RFID Attendance Event ingestion + reconciliation (issue #10)', () => {
     expect(data).toHaveLength(1)
     expect(data![0].entry_at).toBe(`${DAY}T07:58:00+00:00`) // original entry kept
     expect(data![0].exit_at).toBe(`${DAY}T14:30:00+00:00`) // widened by the late tap
-    expect(data![0].status).toBe('on_time') // exit now ≥ shift end 14:00 → no longer exit_early
+    expect(data![0].status).toBe('on_time') // exit now ≥ officeTime end 14:00 → no longer exit_early
   })
 
   it('rejects assigning a card to another school\'s student (cross-tenant)', async () => {

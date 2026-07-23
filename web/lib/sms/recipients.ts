@@ -41,7 +41,7 @@ export interface ClassSectionFilter {
 /** Class/Section recipients: a blank filter field means "any" (the "All
  *  Sections" option); students without a recorded guardian phone are silently
  *  skipped rather than erroring, since a school-wide send should still reach
- *  everyone who has a number on file. Shift left the student side with #100. */
+ *  everyone who has a number on file. OfficeTime left the student side with #100. */
 export function resolveClassSectionRecipients(
   students: ComposeStudentRow[],
   filter: ClassSectionFilter,
