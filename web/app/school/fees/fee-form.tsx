@@ -6,6 +6,7 @@ import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
 import { t, type Lang } from '@/lib/i18n'
 import { totalPayable, dueAmount } from '@/lib/fees'
 import { saveFeeRecord, calculateAbsentFine } from './actions'
+import { selectClass } from '@/components/ui/field'
 
 export interface CollectStudent {
   id: string
@@ -185,7 +186,7 @@ export function FeeForm({
           id="payment_method"
           value={method}
           onChange={(e) => setMethod(e.target.value)}
-          className={inputClass}
+          className={selectClass({ size: 'md', fullWidth: true })}
         >
           <option value="cash">{t('fees.cash', lang)}</option>
           <option value="cheque">{t('fees.cheque', lang)}</option>

@@ -6,6 +6,7 @@ import { t, type Lang } from '@/lib/i18n'
 import { createClient } from '@/lib/supabase/server'
 import { AccountingTabs } from '../accounting-tabs'
 import { NewVoucherCategoryForm, NewVoucherForm, type CategoryOption } from './voucher-controls'
+import { dateInputClass, selectClass } from '@/components/ui/field'
 
 // Layout per ui/school-owner/vouchers-list.html: toolbar (search + Type +
 // date-range filters, "+ New Voucher") over a Voucher No | Date | Type |
@@ -112,13 +113,13 @@ export default async function VouchersPage({
             placeholder={t('vouchers.searchPlaceholder', lang)}
             className="h-9 rounded-md border border-line px-3 text-sm"
           />
-          <select name="type" defaultValue={type} className="h-9 rounded-md border border-line px-3 text-sm">
+          <select name="type" defaultValue={type} className={selectClass()}>
             <option value="">{t('vouchers.allTypes', lang)}</option>
             <option value="income">{t('vouchers.income', lang)}</option>
             <option value="expense">{t('vouchers.expense', lang)}</option>
           </select>
-          <input name="from" type="date" defaultValue={from} className="h-9 rounded-md border border-line px-3 text-sm" />
-          <input name="to" type="date" defaultValue={to} className="h-9 rounded-md border border-line px-3 text-sm" />
+          <input name="from" type="date" defaultValue={from} className={dateInputClass()} />
+          <input name="to" type="date" defaultValue={to} className={dateInputClass()} />
           <button
             type="submit"
             className="cursor-pointer rounded-full border border-line px-3 py-1 text-xs font-semibold hover:bg-paper-muted"

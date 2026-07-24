@@ -5,6 +5,7 @@ import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { createClient } from '@/lib/supabase/server'
 import { filterStudents, behaviourAverages } from '@/lib/students'
+import { selectClass } from '@/components/ui/field'
 
 // Layout per ui/school-owner/students-list.html: search (name/roll/guardian) +
 // class/section filters, table Roll | Name | Class/Section | Guardian |
@@ -12,8 +13,6 @@ import { filterStudents, behaviourAverages } from '@/lib/students'
 
 const thClass = 'px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted'
 const tdClass = 'px-3 py-2 text-sm'
-const selectClass = 'rounded-md border border-line bg-paper px-3 py-1.5 text-sm'
-
 function avgBadge(avg: number | undefined) {
   if (avg === undefined) return <span className="text-muted">—</span>
   const tone =
@@ -75,7 +74,7 @@ export default async function StudentsPage({
             placeholder={t('students.search', lang)}
             className="w-56 rounded-md border border-line bg-paper px-3 py-1.5 text-sm"
           />
-          <select name="class" defaultValue={klass} className={selectClass}>
+          <select name="class" defaultValue={klass} className={selectClass()}>
             <option value="">{t('students.allClasses', lang)}</option>
             {classNames.map((c) => (
               <option key={c} value={c}>
@@ -83,7 +82,7 @@ export default async function StudentsPage({
               </option>
             ))}
           </select>
-          <select name="section" defaultValue={section} className={selectClass}>
+          <select name="section" defaultValue={section} className={selectClass()}>
             <option value="">{t('students.allSections', lang)}</option>
             {sections.map((s) => (
               <option key={s} value={s}>

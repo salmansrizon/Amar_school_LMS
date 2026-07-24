@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/server'
 import { countFor, studentCounts } from '@/lib/classes'
 import { AddClassForm, AddSubjectForm, DeleteButton } from './class-controls'
 import { AddDetails } from '@/components/add-details'
+import { selectClass } from '@/components/ui/field'
 
 // Layout per ui/school-owner/classes-list.html: three anchored sections
 // (Classes / Rooms / Subjects), each a toolbar + data table. Each class row
@@ -93,7 +94,7 @@ export default async function ClassesPage({
             <select
               name="level"
               defaultValue={level}
-              className="rounded-md border border-line bg-paper px-3 py-1.5 text-sm"
+              className={selectClass()}
             >
               <option value="">{t('classes.allLevels', lang)}</option>
               {levels.map((l) => (

@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { t, type Lang } from '@/lib/i18n'
 import { setStudentSubject, removeStudentSubject } from '../subject-assignment/actions'
+import { selectClass } from '@/components/ui/field'
 
 export interface AssignedSubject {
   subject_id: string
@@ -102,7 +103,7 @@ export function StudentSubjects({
             })
           }}
         >
-          <select name="subject_id" required className="rounded-md border border-line-strong bg-paper px-2 py-1 text-sm">
+          <select name="subject_id" required className={selectClass()}>
             <option value="">{t('subjects.addSubject', lang)}</option>
             {unassigned.map((s) => (
               <option key={s.id} value={s.id}>

@@ -65,18 +65,24 @@ export function SearchPalette({
   }
 
   return (
+    // On phones the palette sits just below the top edge instead of 12vh down:
+    // the on-screen keyboard eats the lower half of the viewport, so a tall top
+    // offset pushed the input and results out of reach (issue #118).
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 p-4 pt-[12vh]"
+      className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 p-3 pt-4 sm:p-4 sm:pt-[12vh]"
       role="dialog"
       aria-modal="true"
       aria-label={t('shell.search', lang)}
       onClick={onClose}
     >
+      {/* Height is capped to the *visible* viewport (dvh) and the panel is a
+          flex column, so the input and hint stay pinned while only the results
+          scroll — however little room the keyboard leaves. */}
       <div
-        className="w-full max-w-xl overflow-hidden rounded-2xl border border-line bg-paper shadow-xl"
+        className="flex max-h-[calc(100dvh-2rem)] w-full max-w-xl flex-col overflow-hidden rounded-2xl border border-line bg-paper shadow-xl sm:max-h-[76dvh]"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center gap-3 border-b border-line px-4">
+        <div className="flex shrink-0 items-center gap-3 border-b border-line px-4">
           <Icon name="search" className="size-5 shrink-0 text-muted" />
           <input
             ref={inputRef}
@@ -107,10 +113,10 @@ export function SearchPalette({
         </div>
 
         {!q.trim() && (
-          <div className="px-4 pt-3 text-xs font-semibold uppercase tracking-wide text-muted">{t('search.suggested', lang)}</div>
+          <div className="shrink-0 px-4 pt-3 text-xs font-semibold uppercase tracking-wide text-muted">{t('search.suggested', lang)}</div>
         )}
 
-        <ul className="max-h-[50vh] overflow-y-auto p-2">
+        <ul className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-2">
           {results.length === 0 && <li className="px-3 py-6 text-center text-sm text-muted">{t('search.noResults', lang)}</li>}
           {results.map((e, i) => (
             <li key={e.href}>
@@ -132,7 +138,7 @@ export function SearchPalette({
           ))}
         </ul>
 
-        <div className="border-t border-line px-4 py-2 text-xs text-muted">{t('search.hint', lang)}</div>
+        <div className="shrink-0 border-t border-line px-4 py-2 text-xs text-muted">{t('search.hint', lang)}</div>
       </div>
     </div>
   )

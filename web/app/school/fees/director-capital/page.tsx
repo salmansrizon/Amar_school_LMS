@@ -6,6 +6,7 @@ import { t, type Lang } from '@/lib/i18n'
 import { createClient } from '@/lib/supabase/server'
 import { AccountingTabs } from '../accounting-tabs'
 import { TransactionForm } from './director-capital-controls'
+import { dateInputClass } from '@/components/ui/field'
 
 // Layout per ui/school-owner/director-capital.html: toolbar (date-range
 // filter, "+ Invest" / "+ Withdraw") over a Date | Type | Amount | Running
@@ -59,8 +60,8 @@ export default async function DirectorCapitalPage({
 
       <Form className="mb-4 flex flex-wrap items-center justify-between gap-2" action="/school/fees/director-capital">
         <div className="flex items-center gap-2">
-          <input name="from" type="date" defaultValue={from} className="h-9 rounded-md border border-line px-3 text-sm" />
-          <input name="to" type="date" defaultValue={to} className="h-9 rounded-md border border-line px-3 text-sm" />
+          <input name="from" type="date" defaultValue={from} className={dateInputClass()} />
+          <input name="to" type="date" defaultValue={to} className={dateInputClass()} />
           <button
             type="submit"
             className="cursor-pointer rounded-full border border-line px-3 py-1 text-xs font-semibold hover:bg-paper-muted"

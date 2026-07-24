@@ -15,6 +15,7 @@ import {
   type PublicationKind,
 } from '@/lib/publishing'
 import { NoticeTabs } from './notice-tabs'
+import { selectClass } from '@/components/ui/field'
 
 // Layout per ui/school-owner/notices-list.html: one shared list for notices,
 // homework, lesson plans, daily lessons and exam-prep (kind filter + search),
@@ -69,7 +70,7 @@ export default async function NoticesPage({
           <select
             name="kind"
             defaultValue={kind}
-            className="rounded-md border border-line bg-paper px-3 py-1.5 text-sm"
+            className={selectClass()}
           >
             <option value="">{t('notices.allTypes', lang)}</option>
             {PUBLICATION_KINDS.map((k) => (

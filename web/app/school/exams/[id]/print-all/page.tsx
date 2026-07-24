@@ -15,6 +15,7 @@ import { MarkSheetTemplate } from '../mark-sheet/[studentId]/templates'
 import { ProgressReportTemplate } from '../progress-report/[studentId]/templates'
 import { loadInstitutePrintHeader, loadPrintThemeKey } from '@/lib/institute-print'
 import { PRINT_THEMES, resolveTheme } from '@/lib/print-themes'
+import { selectClass } from '@/components/ui/field'
 
 // Batch "print all" (issue #48, PRD §5.5): one page renders N PrintPages (one
 // per matching roster student) and calls window.print() once — ADR 0007's
@@ -84,7 +85,7 @@ export default async function PrintAllPage({
     <Form action={`/school/exams/${examId}/print-all`} className="mb-4 flex flex-wrap items-end gap-3 print:hidden">
       <div>
         <label className="mb-1 block text-xs font-semibold text-muted">{t('printAll.doc', lang)}</label>
-        <select name="doc" defaultValue={doc} className="h-9 rounded-md border border-line px-2 text-sm">
+        <select name="doc" defaultValue={doc} className={selectClass()}>
           <option value="admit-card">{t('admitCard.docWord', lang)}</option>
           <option value="mark-sheet">{t('markSheet.docWord', lang)}</option>
           <option value="progress-report">{t('progressReport.docWord', lang)}</option>
@@ -92,7 +93,7 @@ export default async function PrintAllPage({
       </div>
       <div>
         <label className="mb-1 block text-xs font-semibold text-muted">{t('printAll.template', lang)}</label>
-        <select name="template" defaultValue={template} className="h-9 rounded-md border border-line px-2 text-sm">
+        <select name="template" defaultValue={template} className={selectClass()}>
           <option value="1">{t('markSheet.template1', lang)}</option>
           <option value="2">{t('markSheet.template2', lang)}</option>
           <option value="3">{t('markSheet.template3', lang)}</option>
@@ -106,7 +107,7 @@ export default async function PrintAllPage({
           <select
             name="theme"
             defaultValue={admitCardTheme.key}
-            className="h-9 rounded-md border border-line px-2 text-sm"
+            className={selectClass()}
           >
             {PRINT_THEMES.map((themeOption) => (
               <option key={themeOption.key} value={themeOption.key}>

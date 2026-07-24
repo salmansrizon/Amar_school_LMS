@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react'
 import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
 import { t, type Lang } from '@/lib/i18n'
 import { addBehaviourEntry, updateBehaviourEntry, sendBehaviourSms } from '../actions'
+import { dateInputClass } from '@/components/ui/field'
 
 export function AddEntryForm({ studentId, lang }: { studentId: string; lang: Lang }) {
   const [error, setError] = useState<string | null>(null)
@@ -35,7 +36,7 @@ export function AddEntryForm({ studentId, lang }: { studentId: string; lang: Lan
       </div>
       <div>
         <label className={labelClass} htmlFor="remind_date">{t('behaviour.remind', lang)}</label>
-        <input id="remind_date" name="remind_date" type="date" className={inputClass} />
+        <input id="remind_date" name="remind_date" type="date" className={dateInputClass({ size: 'md', fullWidth: true })} />
       </div>
       <div className="flex items-end">
         <button type="submit" disabled={pending} className={primaryBtnClass}>
@@ -136,7 +137,7 @@ export function EditableEntry({
       <textarea name="note" defaultValue={entry.note} required rows={2} className={`${inputClass} h-auto py-2`} />
       <div className="flex items-center gap-2">
         <input name="rating" type="number" min={0} max={10} defaultValue={entry.rating} required className={`${inputClass} w-24`} />
-        <input name="remind_date" type="date" defaultValue={entry.remind_date ?? ''} className={`${inputClass} w-40`} />
+        <input name="remind_date" type="date" defaultValue={entry.remind_date ?? ''} className={`${dateInputClass({ size: 'md' })} w-40`} />
         <button type="submit" disabled={pending} className="h-9 cursor-pointer rounded-full bg-brand-500 px-4 text-xs font-semibold text-white hover:bg-brand-600 disabled:opacity-50">
           {t('behaviour.save', lang)}
         </button>

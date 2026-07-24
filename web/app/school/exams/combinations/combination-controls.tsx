@@ -5,6 +5,7 @@ import { useState, useTransition } from 'react'
 import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
 import { t, type Lang } from '@/lib/i18n'
 import { addCombination, addCombinationMember, removeCombination, removeCombinationMember } from './actions'
+import { selectClass } from '@/components/ui/field'
 
 export interface ClassOption {
   id: string
@@ -79,7 +80,7 @@ export function AddCombinationForm({
         <label className={labelClass} htmlFor="combination_class">
           {t('combinations.class', lang)}
         </label>
-        <select id="combination_class" name="class_id" defaultValue="" className={inputClass}>
+        <select id="combination_class" name="class_id" defaultValue="" className={selectClass({ size: 'md', fullWidth: true })}>
           <option value="">{t('combinations.anyClass', lang)}</option>
           {classes.map((c) => (
             <option key={c.id} value={c.id}>
@@ -93,7 +94,7 @@ export function AddCombinationForm({
         <label className={labelClass} htmlFor="combination_strategy">
           {t('combinations.strategy', lang)}
         </label>
-        <select id="combination_strategy" name="strategy" defaultValue="sum" className={inputClass}>
+        <select id="combination_strategy" name="strategy" defaultValue="sum" className={selectClass({ size: 'md', fullWidth: true })}>
           <option value="sum">{t('combinations.strategySum', lang)}</option>
           <option value="weighted_percentage">{t('combinations.strategyWeighted', lang)}</option>
         </select>
@@ -102,7 +103,7 @@ export function AddCombinationForm({
         <label className={labelClass} htmlFor="combination_scheme">
           {t('combinations.gradingScheme', lang)}
         </label>
-        <select id="combination_scheme" name="grading_scheme_id" defaultValue="" className={inputClass}>
+        <select id="combination_scheme" name="grading_scheme_id" defaultValue="" className={selectClass({ size: 'md', fullWidth: true })}>
           <option value="">{t('examSetup.noScheme', lang)}</option>
           {schemes.map((s) => (
             <option key={s.id} value={s.id}>
@@ -246,7 +247,7 @@ function AddMemberForm({ combinationId, exams, lang }: { combinationId: string; 
         <label className={labelClass} htmlFor={`member_exam_${combinationId}`}>
           {t('combinations.exam', lang)}
         </label>
-        <select id={`member_exam_${combinationId}`} name="exam_id" required defaultValue="" className={`${inputClass} h-8`}>
+        <select id={`member_exam_${combinationId}`} name="exam_id" required defaultValue="" className={selectClass({ size: 'xs', fullWidth: true })}>
           <option value="" disabled>
             {t('combinations.exam', lang)}
           </option>

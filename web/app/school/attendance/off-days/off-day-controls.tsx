@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { inputClass, labelClass } from '@/components/auth-card'
 import { t, type Lang } from '@/lib/i18n'
 import { addOffDay, deleteOffDay } from '../manual-actions'
+import { dateInputClass } from '@/components/ui/field'
 
 export function AddOffDayForm({ lang }: { lang: Lang }) {
   const [error, setError] = useState<string | null>(null)
@@ -29,7 +30,7 @@ export function AddOffDayForm({ lang }: { lang: Lang }) {
         <label className={labelClass} htmlFor="day">
           {t('attendance.offDayDate', lang)}
         </label>
-        <input id="day" name="day" type="date" required className={inputClass} />
+        <input id="day" name="day" type="date" required className={dateInputClass({ size: 'md', fullWidth: true })} />
       </div>
       <div>
         <label className={labelClass} htmlFor="label">

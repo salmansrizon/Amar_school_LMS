@@ -57,6 +57,62 @@ body {
   }
 }
 
+/* Native `<select>` and `<input type="date">` are the only controls the browser
+   still paints with its own chrome — an OS dropdown arrow and an OS calendar
+   glyph that match neither the app's inputs nor its buttons (issue #119). The
+   markers are replaced here, app-wide, so every control picks up the Family look
+   whether or not its call site uses the shared `selectClass` / `dateInputClass`
+   helpers (`components/ui/field.ts`). Sizing and colour stay with utilities on each
+   element — base-layer rules lose to any utility class.
+
+   The date indicator is a pseudo-element, so its glyph is a CSS *mask* tinted
+   with `--color-muted` — the token stays the single source of truth (ADR 0006)
+   and the marker follows a future dark theme (ADR 0005). The select chevron
+   cannot do the same: a mask on `<select>` masks the whole control, not just
+   the arrow, so it has to be a coloured background image and the stroke hex is
+   necessarily baked into the data-URI (this is what Tailwind's own forms plugin
+   does). That hex is `--color-muted` — change the two together. */
+@layer base {
+  select {
+    appearance: none;
+    -webkit-appearance: none;
+    /* stroke = --color-muted (#767676) */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%23767676' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5.5 8 4.5 4.5L14.5 8'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.55rem center;
+    background-size: 1rem 1rem;
+    padding-inline-end: 2rem;
+    cursor: pointer;
+  }
+
+  /* List boxes have no dropdown arrow to replace. */
+  select[multiple],
+  select[size]:not([size='0']):not([size='1']) {
+    background-image: none;
+    padding-inline-end: revert;
+  }
+
+  /* The date field's calendar button: Family calendar glyph, a square hit area,
+     and a hover cue so it reads as clickable. */
+  input[type='date']::-webkit-calendar-picker-indicator {
+    background-color: var(--color-muted);
+    background-image: none;
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4.5' width='14' height='13' rx='2.5'/%3E%3Cpath d='M3 8.5h14M7 3v3M13 3v3'/%3E%3C/svg%3E");
+    mask-repeat: no-repeat;
+    mask-position: center;
+    mask-size: contain;
+    width: 1rem;
+    height: 1rem;
+    cursor: pointer;
+    opacity: 0.75;
+    transition: opacity 0.15s ease;
+  }
+  input[type='date']:hover::-webkit-calendar-picker-indicator,
+  input[type='date']:focus::-webkit-calendar-picker-indicator {
+    opacity: 1;
+  }
+}
+
 /* Printables (ADR 0007): the browser IS the PDF renderer. */
 @page {
   size: A4;

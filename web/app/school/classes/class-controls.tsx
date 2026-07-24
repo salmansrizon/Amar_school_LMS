@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react'
 import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
 import { t, type Lang } from '@/lib/i18n'
 import { addClass, addSubject, removeItem } from './actions'
+import { selectClass } from '@/components/ui/field'
 
 function useSubmit(action: (data: FormData) => Promise<{ error?: string }>) {
   const [error, setError] = useState<string | null>(null)
@@ -62,7 +63,7 @@ export function AddSubjectForm({
     <form className="grid gap-3 sm:grid-cols-3" onSubmit={onSubmit}>
       <div>
         <label className={labelClass} htmlFor="subject_class">{t('classes.class', lang)}</label>
-        <select id="subject_class" name="class_id" required className={inputClass} defaultValue="">
+        <select id="subject_class" name="class_id" required className={selectClass({ size: 'md', fullWidth: true })} defaultValue="">
           <option value="" disabled>
             {t('classes.selectClass', lang)}
           </option>

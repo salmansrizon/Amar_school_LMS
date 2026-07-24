@@ -2,11 +2,12 @@
 
 import { usePathname, useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
-import { inputClass, primaryBtnClass } from '@/components/auth-card'
+import { primaryBtnClass } from '@/components/auth-card'
 import { subjectFullMarks } from '@/lib/exam-setup'
 import { evaluateSubject, type GradingScheme } from '@/lib/grading'
 import { t, type Lang } from '@/lib/i18n'
 import { saveMarks } from './actions'
+import { selectClass } from '@/components/ui/field'
 
 export interface SubjectOption {
   id: string
@@ -36,7 +37,7 @@ export function SubjectPicker({
       value={selectedId}
       aria-label={t('markEntry.pickSubject', lang)}
       onChange={(e) => router.push(`${pathname}?subject=${e.target.value}`)}
-      className={`${inputClass} max-w-56`}
+      className={`${selectClass({ size: 'md', fullWidth: true })} max-w-56`}
     >
       {subjects.map((s) => (
         <option key={s.id} value={s.id}>

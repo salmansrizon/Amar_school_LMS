@@ -7,6 +7,7 @@ import { dateToDayOfWeek, sortRoutineEntries } from '@/lib/exam-setup'
 import { dayLabel } from '@/lib/routine'
 import { t, type Lang } from '@/lib/i18n'
 import { addRoutineEntry, removeRoutineEntry } from './actions'
+import { dateInputClass, selectClass } from '@/components/ui/field'
 
 export interface Option {
   id: string
@@ -131,7 +132,7 @@ export function AddRoutineEntryForm({
     >
       <div>
         <label className={labelClass} htmlFor="exam_date">{t('examRoutine.date', lang)}</label>
-        <input id="exam_date" name="exam_date" type="date" required className={inputClass} />
+        <input id="exam_date" name="exam_date" type="date" required className={dateInputClass({ size: 'md', fullWidth: true })} />
       </div>
       <div>
         <label className={labelClass} htmlFor="start_time">{t('examRoutine.startTime', lang)}</label>
@@ -143,7 +144,7 @@ export function AddRoutineEntryForm({
       </div>
       <div>
         <label className={labelClass} htmlFor="subject_id">{t('examRoutine.subject', lang)}</label>
-        <select id="subject_id" name="subject_id" required defaultValue="" className={inputClass}>
+        <select id="subject_id" name="subject_id" required defaultValue="" className={selectClass({ size: 'md', fullWidth: true })}>
           <option value="" disabled>
             {t('examRoutine.pickSubject', lang)}
           </option>
@@ -156,7 +157,7 @@ export function AddRoutineEntryForm({
       </div>
       <div>
         <label className={labelClass} htmlFor="room_id">{t('examRoutine.room', lang)}</label>
-        <select id="room_id" name="room_id" defaultValue="" className={inputClass}>
+        <select id="room_id" name="room_id" defaultValue="" className={selectClass({ size: 'md', fullWidth: true })}>
           <option value="">{t('examRoutine.pickRoom', lang)}</option>
           {rooms.map((r) => (
             <option key={r.id} value={r.id}>

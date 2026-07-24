@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/server'
 import { effectiveGraceWithSource, type GraceSource } from '@/lib/grace'
 import { resolveEmployeeDisplayStatus, type EmployeeDisplayStatus } from '@/lib/attendance'
 import { AttendanceTabs } from '../attendance-tabs'
+import { dateInputClass } from '@/components/ui/field'
 
 // Layout per ui/school-owner/attendance-employee.html: search + date filter,
 // one row per employee with In/Out/Status/Applied-Grace, the 6-state status
@@ -161,7 +162,7 @@ export default async function EmployeeAttendancePage({
           placeholder={t('attendance.employeeSearch', lang)}
           className="w-56 rounded-md border border-line bg-paper px-3 py-1.5 text-sm"
         />
-        <input type="date" name="date" defaultValue={date} className="rounded-md border border-line bg-paper px-3 py-1.5 text-sm" />
+        <input type="date" name="date" defaultValue={date} className={dateInputClass()} />
         <button
           type="submit"
           className="cursor-pointer rounded-full border border-line px-3 py-1 text-xs font-semibold hover:bg-paper-muted"
