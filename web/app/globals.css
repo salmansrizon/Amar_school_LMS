@@ -119,6 +119,17 @@ body {
   margin: 14mm;
 }
 @media print {
+  /* The app shell locks the document to one viewport height (html/body are
+     full-height so only the main area scrolls on screen). In print that fixed
+     100vh is taller than the printable sheet, so every printable emitted a
+     trailing blank page. Collapse the document to its content height for print
+     so a one-card printable is exactly one page (ui.md #148 / print bug). */
+  html,
+  body {
+    height: auto !important;
+    min-height: 0 !important;
+  }
+
   body {
     background: var(--color-paper);
     /* Themed papers and header rules must reach the paper (issue #92);
