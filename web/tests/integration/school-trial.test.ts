@@ -21,7 +21,7 @@ describe('Time-boxed trials + status (issue #111)', () => {
 
   beforeAll(async () => {
     admin = await signedIn('super@test.local')
-    owner = await signedIn('owner@test.local')
+    owner = await signedIn('owner-a@test.local')
     const { data, error } = await admin
       .from('schools')
       .insert({ name: `ZZ Trial ${crypto.randomUUID().slice(0, 8)}` })
