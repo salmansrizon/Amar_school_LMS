@@ -1,8 +1,7 @@
 import Link from 'next/link'
-import { redirect } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
 import { t } from '@/lib/i18n'
-import { createClient } from '@/lib/supabase/server'
+import { getSchoolContext } from '@/lib/school/context'
 import { SmsTabs } from './tabs'
 import { ComposeForm } from './compose-form'
 import { COMPOSE_STUDENT_COLUMNS, COMPOSE_EMPLOYEE_COLUMNS } from '@/lib/sms/recipients'
@@ -12,13 +11,7 @@ import { COMPOSE_STUDENT_COLUMNS, COMPOSE_EMPLOYEE_COLUMNS } from '@/lib/sms/rec
 // group, or manual numbers; live character/segment counting client-side.
 export default async function SmsComposePage() {
   const lang = await currentLang()
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
-  const { data: me } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-  if (me?.role !== 'school_owner' && me?.role !== 'staff_user') redirect('/login')
+  const { supabase } = await getSchoolContext()
 
   // Withdrawn/archived students and employees are excluded — matches the
   // active-only default every other list screen in this app uses (e.g.

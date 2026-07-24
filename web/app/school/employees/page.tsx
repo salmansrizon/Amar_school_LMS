@@ -1,9 +1,8 @@
 import Form from 'next/form'
 import Link from 'next/link'
-import { redirect } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
-import { createClient } from '@/lib/supabase/server'
+import { getSchoolContext } from '@/lib/school/context'
 import { employeeOfficeTimeNames, filterEmployees } from '@/lib/employees'
 import { AddOfficeTimeForm, CategoryGraceForm, DefaultGraceForm } from './employee-controls'
 import { selectClass } from '@/components/ui/field'
@@ -23,19 +22,7 @@ export default async function EmployeesPage({
 }) {
   const { q = '', category = '' } = await searchParams
   const lang: Lang = await currentLang()
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
-
-  const { data: me } = await supabase
-    .from('profiles')
-    .select('role, school_id')
-    .eq('id', user.id)
-    .single()
-  // Defense in depth alongside the proxy gate: /school pages are for school roles.
-  if (!me?.school_id || (me.role !== 'school_owner' && me.role !== 'staff_user')) redirect('/login')
+  const { supabase, schoolId } = await getSchoolContext()
 
   const [
     { data: school },
@@ -44,7 +31,7 @@ export default async function EmployeesPage({
     { data: employees },
     { data: assignments },
   ] = await Promise.all([
-    supabase.from('schools').select('default_grace_minutes').eq('id', me.school_id).single(),
+    supabase.from('schools').select('default_grace_minutes').eq('id', schoolId).single(),
     supabase.from('office_times').select('id, name, grace_minutes').order('name'),
     supabase.from('category_grace_minutes').select('category, grace_minutes').order('category'),
     supabase

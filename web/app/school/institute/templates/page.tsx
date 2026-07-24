@@ -1,8 +1,7 @@
 import Link from 'next/link'
-import { redirect } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang, type MessageKey } from '@/lib/i18n'
-import { createClient } from '@/lib/supabase/server'
+import { getSchoolContext } from '@/lib/school/context'
 import { InstituteTabs } from '../tabs'
 
 // Blank printable templates (issue #39, PRD §5.11) per
@@ -26,13 +25,7 @@ const tdClass = 'px-3 py-2 text-sm'
 
 export default async function TemplatesPage() {
   const lang: Lang = await currentLang()
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
-  const { data: me } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-  if (me?.role !== 'school_owner' && me?.role !== 'staff_user') redirect('/login')
+  await getSchoolContext() // auth + role gate (redirects if not a School member)
 
   return (
     <main className="mx-auto w-full max-w-4xl flex-1 p-6">
