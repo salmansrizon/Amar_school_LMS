@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { t, type Lang } from '@/lib/i18n'
 import { createEmployee } from '../actions'
+import { dateInputClass } from '@/components/ui/field'
 
 export const fieldClass =
   'w-full rounded-md border border-line bg-paper px-3 py-2 text-sm focus:border-brand-500 focus:outline-none'
@@ -49,10 +50,10 @@ export function ProfileFields({
             <input name="mobile" defaultValue={d('mobile')} className={fieldClass} placeholder="01xxxxxxxxx" />
           </Field>
           <Field label={t('employees.dob', lang)}>
-            <input type="date" name="date_of_birth" defaultValue={d('date_of_birth')} className={fieldClass} />
+            <input type="date" name="date_of_birth" defaultValue={d('date_of_birth')} className={dateInputClass({ size: 'md', fullWidth: true })} />
           </Field>
           <Field label={t('employees.joiningDate', lang)}>
-            <input type="date" name="joining_date" defaultValue={d('joining_date')} className={fieldClass} />
+            <input type="date" name="joining_date" defaultValue={d('joining_date')} className={dateInputClass({ size: 'md', fullWidth: true })} />
           </Field>
         </div>
       </Card>

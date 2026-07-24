@@ -8,6 +8,7 @@ import { createClient } from '@/lib/supabase/server'
 import { classSectionLabel } from '@/lib/students'
 import { loadExamRosterResults } from '@/lib/exam-print-data'
 import { Badge } from '@/components/print/pieces'
+import { selectClass } from '@/components/ui/field'
 
 // Result Inquiry (issue #48, PRD §5.5), per ui/school-owner/result-inquiry.html
 // — plain GET-form search (mirrors ledger/page.tsx's date-range filter, no
@@ -70,7 +71,7 @@ export default async function ResultInquiryPage({
     <Form className="card mb-4 grid gap-3 rounded-lg border border-line bg-paper p-5 shadow-card sm:grid-cols-4" action="/school/exams/result-inquiry">
       <div>
         <label className="mb-1 block text-xs font-semibold text-muted">{t('resultInquiry.exam', lang)}</label>
-        <select name="exam" defaultValue={examId} className="h-9 w-full rounded-md border border-line px-2 text-sm">
+        <select name="exam" defaultValue={examId} className={selectClass({ fullWidth: true })}>
           {exams.map((e) => (
             <option key={e.id} value={e.id}>
               {e.name} {e.exam_year}
@@ -80,7 +81,7 @@ export default async function ResultInquiryPage({
       </div>
       <div>
         <label className="mb-1 block text-xs font-semibold text-muted">{t('resultInquiry.subject', lang)}</label>
-        <select name="subject" defaultValue={subjectParam} className="h-9 w-full rounded-md border border-line px-2 text-sm">
+        <select name="subject" defaultValue={subjectParam} className={selectClass({ fullWidth: true })}>
           <option value="">{t('resultInquiry.allSubjects', lang)}</option>
           {(roster?.subjects ?? []).map((s) => (
             <option key={s.id} value={s.id}>

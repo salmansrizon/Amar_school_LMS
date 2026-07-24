@@ -6,6 +6,7 @@ import { t } from '@/lib/i18n'
 import { createClient } from '@/lib/supabase/server'
 import { SmsTabs } from '../tabs'
 import { aggregateSmsLog, summarizeSmsLog, type SmsLogRow } from '@/lib/sms/log'
+import { dateInputClass } from '@/components/ui/field'
 
 // Send Log (issue #36, PRD §5.7 "send summary/log with date-range totals")
 // per ui/school-owner/sms-log.html. sms_log holds one row per recipient for
@@ -59,8 +60,8 @@ export default async function SmsLogPage({
       <SmsTabs active="/school/sms/log" lang={lang} />
 
       <Form className="mb-4 flex flex-wrap items-center gap-2" action="/school/sms/log">
-        <input type="date" name="start" defaultValue={rangeStart} className={dateInputClass} />
-        <input type="date" name="end" defaultValue={rangeEnd} className={dateInputClass} />
+        <input type="date" name="start" defaultValue={rangeStart} className={dateInputClass()} />
+        <input type="date" name="end" defaultValue={rangeEnd} className={dateInputClass()} />
         <button
           type="submit"
           className="cursor-pointer rounded-full border border-line px-3 py-1 text-xs font-semibold hover:bg-paper-muted"
@@ -132,4 +133,3 @@ export default async function SmsLogPage({
 
 const thClass = 'px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted'
 const tdClass = 'px-3 py-2 text-sm'
-const dateInputClass = 'h-9 rounded-lg border border-line-strong bg-paper px-2 text-sm outline-none transition focus:border-brand-500 focus-visible:ring-2 focus-visible:ring-brand-300'

@@ -6,6 +6,7 @@ import { t, type Lang } from '@/lib/i18n'
 import { sectionsForClass } from '@/lib/students'
 import { fieldClass, fieldLabelClass } from '../../new/admission-form'
 import { transferStudent } from '../../actions'
+import { selectClass } from '@/components/ui/field'
 
 export function TransferForm({
   lang,
@@ -60,7 +61,7 @@ export function TransferForm({
             required
             value={toClass}
             onChange={(e) => setToClass(e.target.value)}
-            className={fieldClass}
+            className={selectClass({ size: 'md', fullWidth: true })}
           >
             <option value="">—</option>
             {classNames.map((c) => (
@@ -77,7 +78,7 @@ export function TransferForm({
             key={toClass}
             name="to_section"
             defaultValue={toClass === currentClass ? (currentSection ?? '') : ''}
-            className={fieldClass}
+            className={selectClass({ size: 'md', fullWidth: true })}
           >
             <option value="">—</option>
             {sections.map((s) => (

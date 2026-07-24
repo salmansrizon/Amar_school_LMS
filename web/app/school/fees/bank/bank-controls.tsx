@@ -6,6 +6,7 @@ import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
 import { insufficientBalance } from '@/lib/accounting'
 import { t, type Lang } from '@/lib/i18n'
 import { recordBankTransaction, saveBankAccount } from './actions'
+import { dateInputClass, selectClass } from '@/components/ui/field'
 
 /** "+ New Account" form: Name, Type (Cash/Bank), Opening Balance. No
  *  dedicated mockup screen for this (bank-cash-accounts.html only shows the
@@ -45,7 +46,7 @@ export function NewAccountForm({ lang }: { lang: Lang }) {
         <label className={labelClass} htmlFor="acc_type">
           {t('bank.type', lang)}
         </label>
-        <select id="acc_type" name="type" required defaultValue="cash" className={inputClass}>
+        <select id="acc_type" name="type" required defaultValue="cash" className={selectClass({ size: 'md', fullWidth: true })}>
           <option value="cash">{t('bank.cash', lang)}</option>
           <option value="bank">{t('bank.bankType', lang)}</option>
         </select>
@@ -154,7 +155,7 @@ export function TransactionForm({
           <label className={labelClass} htmlFor="txn_date">
             {t('vouchers.date', lang)}
           </label>
-          <input id="txn_date" name="txn_date" type="date" defaultValue={today} className={inputClass} />
+          <input id="txn_date" name="txn_date" type="date" defaultValue={today} className={dateInputClass({ size: 'md', fullWidth: true })} />
         </div>
         {accountType === 'bank' && (
           <>
@@ -167,7 +168,7 @@ export function TransactionForm({
                 name="payment_method"
                 value={paymentMethod}
                 onChange={(e) => setPaymentMethod(e.target.value === 'cheque' ? 'cheque' : 'cash')}
-                className={inputClass}
+                className={selectClass({ size: 'md', fullWidth: true })}
               >
                 <option value="cash">{t('fees.cash', lang)}</option>
                 <option value="cheque">{t('fees.cheque', lang)}</option>
@@ -185,7 +186,7 @@ export function TransactionForm({
                   <label className={labelClass} htmlFor="cheque_date">
                     {t('bank.chequeDate', lang)}
                   </label>
-                  <input id="cheque_date" name="cheque_date" type="date" className={inputClass} />
+                  <input id="cheque_date" name="cheque_date" type="date" className={dateInputClass({ size: 'md', fullWidth: true })} />
                 </div>
               </>
             )}

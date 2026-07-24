@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/server'
 import { CHECKLIST_ITEMS, completedCount, checklistStatus, filterChecklistRange, type ChecklistRow } from '@/lib/institute'
 import { InstituteTabs } from '../tabs'
 import { ChecklistForm } from './checklist-form'
+import { dateInputClass } from '@/components/ui/field'
 
 // Administrative daily checklist + date-range report (issue #39, PRD §5.11)
 // per ui/school-owner/activity-checklist.html.
@@ -76,8 +77,8 @@ export default async function ChecklistPage({
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <h3 className="font-bold">{t('institute.dateRangeReport', lang)}</h3>
           <Form className="flex flex-wrap items-center gap-2" action="/school/institute/checklist">
-            <input type="date" name="start" defaultValue={rangeStart} className={dateInputClass} />
-            <input type="date" name="end" defaultValue={rangeEnd} className={dateInputClass} />
+            <input type="date" name="start" defaultValue={rangeStart} className={dateInputClass()} />
+            <input type="date" name="end" defaultValue={rangeEnd} className={dateInputClass()} />
             <button
               type="submit"
               className="cursor-pointer rounded-full border border-line px-3 py-1 text-xs font-semibold hover:bg-paper-muted"
@@ -126,4 +127,3 @@ export default async function ChecklistPage({
 
 const thClass = 'px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted'
 const tdClass = 'px-3 py-2 text-sm'
-const dateInputClass = 'h-9 rounded-sm border border-line-strong bg-paper px-2 text-sm outline-none focus:border-brand-500'

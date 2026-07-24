@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react'
 import { inputClass, labelClass } from '@/components/auth-card'
 import { t, type Lang } from '@/lib/i18n'
 import { assignCard, removeCard, setAutomaticAttendance } from './actions'
+import { selectClass } from '@/components/ui/field'
 
 export function AssignCardForm({
   students,
@@ -38,7 +39,7 @@ export function AssignCardForm({
       </div>
       <div>
         <label className={labelClass} htmlFor="holder">{t('attendance.holder', lang)}</label>
-        <select id="holder" name="holder" required className={inputClass}>
+        <select id="holder" name="holder" required className={selectClass({ size: 'md', fullWidth: true })}>
           <optgroup label={t('students.title', lang)}>
             {students.map((s) => (
               <option key={s.id} value={`student:${s.id}`}>{s.full_name}</option>

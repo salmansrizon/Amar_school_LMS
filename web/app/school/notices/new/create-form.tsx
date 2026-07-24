@@ -15,6 +15,7 @@ import {
   type TargetType,
 } from '@/lib/publishing'
 import { createPublication, publicationImageUploadPath } from '../actions'
+import { selectClass } from '@/components/ui/field'
 
 const textareaClass =
   'w-full rounded-sm border border-line-strong bg-paper px-3 py-2 text-sm outline-none focus:border-brand-500'
@@ -102,7 +103,7 @@ export function CreateNoticeForm({
         <div>
           <label className={labelClass}>{t('notices.type', lang)}</label>
           <select
-            className={inputClass}
+            className={selectClass({ size: 'md', fullWidth: true })}
             value={kind}
             onChange={(e) => setKind(e.target.value as PublicationKind)}
           >
@@ -116,7 +117,7 @@ export function CreateNoticeForm({
         <div>
           <label className={labelClass}>{t('notices.importance', lang)}</label>
           <select
-            className={inputClass}
+            className={selectClass({ size: 'md', fullWidth: true })}
             value={importance}
             onChange={(e) => setImportance(e.target.value as Importance)}
           >
@@ -139,7 +140,7 @@ export function CreateNoticeForm({
         <div>
           <label className={labelClass}>{t('notices.colTarget', lang)}</label>
           <select
-            className={inputClass}
+            className={selectClass({ size: 'md', fullWidth: true })}
             value={targetType}
             onChange={(e) => setTargetType(e.target.value as TargetType)}
           >
@@ -153,7 +154,7 @@ export function CreateNoticeForm({
             <div>
               <label className={labelClass}>{t('classes.class', lang)}</label>
               <select
-                className={inputClass}
+                className={selectClass({ size: 'md', fullWidth: true })}
                 value={targetClassName}
                 onChange={(e) => setTargetClassName(e.target.value)}
               >
@@ -168,7 +169,7 @@ export function CreateNoticeForm({
             <div>
               <label className={labelClass}>{t('classes.section', lang)}</label>
               <select
-                className={inputClass}
+                className={selectClass({ size: 'md', fullWidth: true })}
                 value={targetSection}
                 onChange={(e) => setTargetSection(e.target.value)}
               >

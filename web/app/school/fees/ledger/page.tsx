@@ -9,6 +9,7 @@ import { PrintPage, InstituteHeader, PaginatedSheet, QrFooterRow } from '@/compo
 import { PrintButton } from '@/components/print/print-button'
 import { AccountingTabs } from '../accounting-tabs'
 import { loadInstitutePrintHeader } from '@/lib/institute-print'
+import { dateInputClass } from '@/components/ui/field'
 
 // Layout per ui/school-owner/general-ledger.html: a date-range toolbar over a
 // Date | Source | Description | Debit | Credit | Balance table, combining
@@ -164,8 +165,8 @@ export default async function GeneralLedgerPage({
 
       <Form className="mb-4 flex flex-wrap items-center gap-2 print:hidden" action="/school/fees/ledger">
         <label className="text-xs text-muted">{t('ledger.dateRange', lang)}</label>
-        <input name="from" type="date" defaultValue={from} className="h-9 rounded-md border border-line px-3 text-sm" />
-        <input name="to" type="date" defaultValue={to} className="h-9 rounded-md border border-line px-3 text-sm" />
+        <input name="from" type="date" defaultValue={from} className={dateInputClass()} />
+        <input name="to" type="date" defaultValue={to} className={dateInputClass()} />
         <button
           type="submit"
           className="cursor-pointer rounded-full border border-line px-3 py-1 text-xs font-semibold hover:bg-paper-muted"

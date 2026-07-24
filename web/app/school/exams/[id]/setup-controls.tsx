@@ -7,6 +7,7 @@ import { subjectFullMarks } from '@/lib/exam-setup'
 import { t, type Lang } from '@/lib/i18n'
 import { CloseExamModal } from '../exam-controls'
 import { assignSubjectTeacher, setExamGradingScheme, updateExamBasicInfo } from './actions'
+import { dateInputClass, selectClass } from '@/components/ui/field'
 
 export interface ClassOption {
   id: string
@@ -167,7 +168,7 @@ export function BasicInfoForm({
       </div>
       <div>
         <label className={labelClass} htmlFor="class_id">{t('exams.class', lang)}</label>
-        <select id="class_id" name="class_id" defaultValue={classId ?? ''} disabled={disabled} className={inputClass}>
+        <select id="class_id" name="class_id" defaultValue={classId ?? ''} disabled={disabled} className={selectClass({ size: 'md', fullWidth: true })}>
           <option value="">{t('exams.allClasses', lang)}</option>
           {classes.map((c) => (
             <option key={c.id} value={c.id}>
@@ -199,7 +200,7 @@ export function BasicInfoForm({
           type="date"
           defaultValue={startDate ?? ''}
           disabled={disabled}
-          className={inputClass}
+          className={dateInputClass({ size: 'md', fullWidth: true })}
         />
       </div>
       {error && <p className="text-sm text-alert-deep sm:col-span-2">{error}</p>}
@@ -236,7 +237,7 @@ export function GradingSchemeSelect({
         id="grading_scheme_id"
         defaultValue={schemeId ?? ''}
         disabled={disabled || pending}
-        className={inputClass}
+        className={selectClass({ size: 'md', fullWidth: true })}
         onChange={(e) => {
           const value = e.target.value || null
           startTransition(async () => {
@@ -320,7 +321,7 @@ function SubjectTeacherRow({
           defaultValue={subject.teacher_id ?? ''}
           disabled={disabled || pending}
           aria-label={t('examSetup.assignedTeacher', lang)}
-          className={`${inputClass} h-8`}
+          className={selectClass({ size: 'xs', fullWidth: true })}
           onChange={(e) => {
             const teacherId = e.target.value || null
             startTransition(async () => {

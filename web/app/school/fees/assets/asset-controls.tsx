@@ -6,6 +6,7 @@ import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
 import { t, type Lang } from '@/lib/i18n'
 import { AttachmentPicker, type AttachmentMeta } from '../attachment-picker'
 import { saveAsset, saveAssetCategory } from './actions'
+import { dateInputClass, selectClass } from '@/components/ui/field'
 
 export interface AssetCategoryOption {
   id: string
@@ -56,7 +57,7 @@ export function NewAssetForm({ categories, lang }: { categories: AssetCategoryOp
         <label className={labelClass} htmlFor="category_id">
           {t('assets.category', lang)}
         </label>
-        <select id="category_id" name="category_id" required defaultValue="" className={inputClass}>
+        <select id="category_id" name="category_id" required defaultValue="" className={selectClass({ size: 'md', fullWidth: true })}>
           <option value="" disabled>
             {t('assets.pickCategory', lang)}
           </option>
@@ -77,7 +78,7 @@ export function NewAssetForm({ categories, lang }: { categories: AssetCategoryOp
         <label className={labelClass} htmlFor="purchase_date">
           {t('assets.purchaseDate', lang)}
         </label>
-        <input id="purchase_date" name="purchase_date" type="date" defaultValue={today} className={inputClass} />
+        <input id="purchase_date" name="purchase_date" type="date" defaultValue={today} className={dateInputClass({ size: 'md', fullWidth: true })} />
       </div>
       <div>
         <label className={labelClass} htmlFor="purchase_value">

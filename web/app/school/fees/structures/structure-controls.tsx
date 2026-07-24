@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react'
 import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
 import { t, type Lang } from '@/lib/i18n'
 import { saveFeeStructure, copyFeeStructure } from './actions'
+import { selectClass } from '@/components/ui/field'
 
 export interface ClassOption {
   id: string
@@ -34,7 +35,7 @@ function ClassSelect({
   lang: Lang
 }) {
   return (
-    <select id={id} name={name} required defaultValue={defaultValue} className={inputClass}>
+    <select id={id} name={name} required defaultValue={defaultValue} className={selectClass({ size: 'md', fullWidth: true })}>
       <option value="" disabled>
         {t('fees.pickClass', lang)}
       </option>
@@ -117,7 +118,7 @@ export function FeeStructureForm({
           id={`fs_type_${editing?.id ?? 'new'}`}
           name="fee_type"
           defaultValue={editing?.fee_type ?? 'monthly'}
-          className={inputClass}
+          className={selectClass({ size: 'md', fullWidth: true })}
         >
           <option value="monthly">{t('fees.monthly', lang)}</option>
           <option value="one_time_yearly">{t('fees.oneTimeYearly', lang)}</option>

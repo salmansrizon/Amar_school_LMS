@@ -13,6 +13,7 @@ import { canOpenScreen } from '@/lib/auth/screens'
 import type { ScreenKey } from '@/lib/auth/screens'
 import type { Role } from '@/lib/auth/routing'
 import { SCHOOL_MODULES, type SchoolNavItem } from '@/lib/school-nav'
+import { sidebarCookieAssignment } from '@/lib/ui-prefs'
 
 // Persistent sidebar + topbar for the whole /school/* route group, restructured
 // to ui/school-owner/dashboard.html's reference image: light icon nav + bottom
@@ -184,6 +185,7 @@ export function SchoolShell({
   schoolName,
   fullName,
   lang,
+  initialCollapsed = false,
   children,
 }: {
   role: Role
@@ -191,12 +193,23 @@ export function SchoolShell({
   schoolName: string
   fullName: string
   lang: Lang
+  /** Persisted collapse choice, read from the cookie server-side (issue #115). */
+  initialCollapsed?: boolean
   children: React.ReactNode
 }) {
   const pathname = usePathname()
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
-  const [collapsed, setCollapsed] = useState(false)
+  const [collapsed, setCollapsed] = useState(initialCollapsed)
+
+  // Collapsing is a deliberate preference, so it is written back to the cookie the
+  // layout reads — the sidebar keeps its state across filters, refreshes and logins.
+  const toggleCollapsed = () =>
+    setCollapsed((v) => {
+      const next = !v
+      document.cookie = sidebarCookieAssignment(next)
+      return next
+    })
 
   // ⌘K / Ctrl+K opens the global search.
   useEffect(() => {
@@ -227,7 +240,7 @@ export function SchoolShell({
           lang={lang}
           schoolName={schoolName}
           collapsed={collapsed}
-          onToggleCollapse={() => setCollapsed((v) => !v)}
+          onToggleCollapse={toggleCollapsed}
         />
       </aside>
 

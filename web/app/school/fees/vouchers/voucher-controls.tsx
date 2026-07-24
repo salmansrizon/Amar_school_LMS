@@ -6,6 +6,7 @@ import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
 import { t, type Lang } from '@/lib/i18n'
 import { AttachmentPicker, type AttachmentMeta } from '../attachment-picker'
 import { saveVoucher, saveVoucherCategory } from './actions'
+import { dateInputClass, selectClass } from '@/components/ui/field'
 
 export interface CategoryOption {
   id: string
@@ -57,7 +58,7 @@ export function NewVoucherForm({ categories, lang }: { categories: CategoryOptio
         <label className={labelClass} htmlFor="category_id">
           {t('vouchers.category', lang)}
         </label>
-        <select id="category_id" name="category_id" required defaultValue="" className={inputClass}>
+        <select id="category_id" name="category_id" required defaultValue="" className={selectClass({ size: 'md', fullWidth: true })}>
           <option value="" disabled>
             {t('vouchers.pickCategory', lang)}
           </option>
@@ -72,7 +73,7 @@ export function NewVoucherForm({ categories, lang }: { categories: CategoryOptio
         <label className={labelClass} htmlFor="txn_date">
           {t('vouchers.date', lang)}
         </label>
-        <input id="txn_date" name="txn_date" type="date" defaultValue={today} className={inputClass} />
+        <input id="txn_date" name="txn_date" type="date" defaultValue={today} className={dateInputClass({ size: 'md', fullWidth: true })} />
       </div>
       <div className="sm:col-span-2">
         <label className={labelClass} htmlFor="description">
@@ -136,7 +137,7 @@ export function NewVoucherCategoryForm({ lang }: { lang: Lang }) {
         <label className={labelClass} htmlFor="cat_type">
           {t('vouchers.type', lang)}
         </label>
-        <select id="cat_type" name="type" required defaultValue="income" className={inputClass}>
+        <select id="cat_type" name="type" required defaultValue="income" className={selectClass({ size: 'md', fullWidth: true })}>
           <option value="income">{t('vouchers.income', lang)}</option>
           <option value="expense">{t('vouchers.expense', lang)}</option>
         </select>

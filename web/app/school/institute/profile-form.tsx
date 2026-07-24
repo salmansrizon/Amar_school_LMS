@@ -16,6 +16,7 @@ import {
   schoolLogoUploadPath,
   updateInstituteProfile,
 } from './actions'
+import { selectClass } from '@/components/ui/field'
 
 type SchoolRow = {
   id: string
@@ -33,8 +34,6 @@ type SchoolRow = {
   email: string | null
   logo_path: string | null
 } | null
-
-const selectClass = inputClass
 
 /** Walk parent_id up from `id` to the root, returning [division, district, upazila, union]
  *  ids at whichever levels are actually set (shorter than 4 when the chain stops early). */
@@ -155,7 +154,7 @@ export function ProfileForm({
                 id="mpo_enlisted"
                 name="mpo_enlisted"
                 defaultValue={String(school.mpo_enlisted)}
-                className={selectClass}
+                className={selectClass({ size: 'md', fullWidth: true })}
               >
                 <option value="true">{t('institute.yes', lang)}</option>
                 <option value="false">{t('institute.no', lang)}</option>
@@ -182,7 +181,7 @@ export function ProfileForm({
               <label className={labelClass} htmlFor="cluster_id">
                 {t('institute.cluster', lang)}
               </label>
-              <select id="cluster_id" name="cluster_id" defaultValue={school.cluster_id ?? ''} className={selectClass}>
+              <select id="cluster_id" name="cluster_id" defaultValue={school.cluster_id ?? ''} className={selectClass({ size: 'md', fullWidth: true })}>
                 <option value="">{t('institute.clusterNone', lang)}</option>
                 {clusters.map((c) => (
                   <option key={c.id} value={c.id}>
@@ -246,7 +245,7 @@ export function ProfileForm({
             <div>
               <label className={labelClass}>{t('institute.division', lang)}</label>
               <select
-                className={selectClass}
+                className={selectClass({ size: 'md', fullWidth: true })}
                 value={divisionId}
                 onChange={(e) => {
                   setDivisionId(e.target.value)
@@ -266,7 +265,7 @@ export function ProfileForm({
             <div>
               <label className={labelClass}>{t('institute.district', lang)}</label>
               <select
-                className={selectClass}
+                className={selectClass({ size: 'md', fullWidth: true })}
                 value={districtId}
                 disabled={!divisionId}
                 onChange={(e) => {
@@ -286,7 +285,7 @@ export function ProfileForm({
             <div>
               <label className={labelClass}>{t('institute.upazila', lang)}</label>
               <select
-                className={selectClass}
+                className={selectClass({ size: 'md', fullWidth: true })}
                 value={upazilaId}
                 disabled={!districtId}
                 onChange={(e) => {
@@ -305,7 +304,7 @@ export function ProfileForm({
             <div>
               <label className={labelClass}>{t('institute.union', lang)}</label>
               <select
-                className={selectClass}
+                className={selectClass({ size: 'md', fullWidth: true })}
                 value={unionId}
                 disabled={!upazilaId}
                 onChange={(e) => setUnionId(e.target.value)}
@@ -495,7 +494,7 @@ function ThemeControl({ lang, isOwner, selected }: { lang: Lang; isOwner: boolea
               else router.refresh()
             })
           }}
-          className={`${inputClass} max-w-56`}
+          className={`${selectClass({ size: 'md', fullWidth: true })} max-w-56`}
         >
           {PRINT_THEMES.map((theme) => (
             <option key={theme.key} value={theme.key}>

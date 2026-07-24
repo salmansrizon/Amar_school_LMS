@@ -10,6 +10,7 @@ import {
   addGradeBand,
   removeGradeBand,
 } from './actions'
+import { selectClass } from '@/components/ui/field'
 
 function useSubmit(action: (data: FormData) => Promise<{ error?: string }>) {
   const [error, setError] = useState<string | null>(null)
@@ -38,7 +39,7 @@ export function AddGradingSchemeForm({ lang }: { lang: Lang }) {
       </div>
       <div>
         <label className={labelClass} htmlFor="scheme_type">{t('grading.schemeType', lang)}</label>
-        <select id="scheme_type" name="scheme_type" required defaultValue="grade_point" className={inputClass}>
+        <select id="scheme_type" name="scheme_type" required defaultValue="grade_point" className={selectClass({ size: 'md', fullWidth: true })}>
           <option value="grade_point">{t('grading.typeGradePoint', lang)}</option>
           <option value="letter">{t('grading.typeLetter', lang)}</option>
           <option value="numeric">{t('grading.typeNumeric', lang)}</option>
@@ -65,7 +66,7 @@ export function AddGradingSchemeForm({ lang }: { lang: Lang }) {
           name="pass_rule_strategy"
           required
           defaultValue="individual"
-          className={inputClass}
+          className={selectClass({ size: 'md', fullWidth: true })}
         >
           <option value="individual">{t('grading.ruleIndividual', lang)}</option>
           <option value="combined_average">{t('grading.ruleCombinedAverage', lang)}</option>

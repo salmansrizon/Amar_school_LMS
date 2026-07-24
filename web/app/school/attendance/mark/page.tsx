@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/server'
 import { filterRoster, studentClassOptions, studentSectionOptions } from '@/lib/attendance-manual'
 import { AttendanceTabs } from '../attendance-tabs'
 import { MarkAttendanceForm } from './mark-form'
+import { dateInputClass, selectClass } from '@/components/ui/field'
 
 // Layout per ui/school-owner/attendance-student-mark.html: class/section/
 // class/section/date filters, bulk all-present/all-absent, per-row
@@ -87,7 +88,7 @@ export default async function MarkAttendancePage({
           <select
             name="class"
             defaultValue={className}
-            className="w-full rounded-md border border-line bg-paper px-3 py-1.5 text-sm"
+            className={selectClass({ fullWidth: true })}
           >
             <option value="">{t('attendance.allClasses', lang)}</option>
             {classes.map((c) => (
@@ -102,7 +103,7 @@ export default async function MarkAttendancePage({
           <select
             name="section"
             defaultValue={section}
-            className="w-full rounded-md border border-line bg-paper px-3 py-1.5 text-sm"
+            className={selectClass({ fullWidth: true })}
           >
             <option value="">{t('attendance.allSections', lang)}</option>
             {sections.map((s) => (
@@ -115,7 +116,7 @@ export default async function MarkAttendancePage({
 
         <div>
           <label className="mb-1 block text-xs font-semibold text-muted">{t('attendance.date', lang)}</label>
-          <input type="date" name="date" defaultValue={date} className="w-full rounded-md border border-line bg-paper px-3 py-1.5 text-sm" />
+          <input type="date" name="date" defaultValue={date} className={dateInputClass({ fullWidth: true })} />
         </div>
         <div className="flex items-end">
           <button

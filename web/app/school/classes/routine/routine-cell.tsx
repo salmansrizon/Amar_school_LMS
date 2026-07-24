@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { t, type Lang } from '@/lib/i18n'
 import { setSlot, publishRoutine } from './actions'
+import { selectClass } from '@/components/ui/field'
 
 export interface Option {
   id: string
@@ -15,9 +16,6 @@ interface CellState {
   teacher_id: string | null
   room_id: string | null
 }
-
-const selectClass =
-  'w-full rounded-md border border-line-strong bg-paper px-1.5 py-1 text-xs focus:border-brand-500 focus:outline-none'
 
 function labelOf(options: Option[], id: string | null): string | null {
   if (!id) return null
@@ -96,7 +94,7 @@ export function SlotCell({
       <select
         name="subject_id"
         defaultValue={slot?.subject_id ?? ''}
-        className={selectClass}
+        className={selectClass({ size: 'xs', fullWidth: true })}
         aria-label={t('routine.subject', lang)}
       >
         <option value="">{t('routine.subject', lang)}</option>
@@ -109,7 +107,7 @@ export function SlotCell({
       <select
         name="teacher_id"
         defaultValue={slot?.teacher_id ?? ''}
-        className={selectClass}
+        className={selectClass({ size: 'xs', fullWidth: true })}
         aria-label={t('routine.teacher', lang)}
       >
         <option value="">{t('routine.teacher', lang)}</option>
@@ -122,7 +120,7 @@ export function SlotCell({
       <select
         name="room_id"
         defaultValue={slot?.room_id ?? ''}
-        className={selectClass}
+        className={selectClass({ size: 'xs', fullWidth: true })}
         aria-label={t('routine.room', lang)}
       >
         <option value="">{t('routine.room', lang)}</option>
@@ -216,7 +214,7 @@ export function ClassPicker({
     <select
       value={selected}
       onChange={(e) => router.push(`${basePath}?class=${e.target.value}`)}
-      className="min-w-40 rounded-md border border-line bg-paper px-3 py-1.5 text-sm"
+      className={`${selectClass()} min-w-40`}
       aria-label={t(pickLabelKey, lang)}
     >
       <option value="" disabled>

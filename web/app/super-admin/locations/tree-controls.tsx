@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react'
 import { childType, LOCATION_LABEL, type LocationNode, type LocationRow } from '@/lib/locations'
 import { t, type Lang } from '@/lib/i18n'
 import { addCluster, addLocation, deleteCluster, deleteLocation } from './actions'
+import { selectClass } from '@/components/ui/field'
 
 const smallInput =
   'h-8 rounded-sm border border-line-strong bg-paper px-2 text-sm outline-none focus:border-brand-500'
@@ -122,7 +123,7 @@ export function AddClusterForm({ locations, lang }: { locations: LocationRow[]; 
       }}
     >
       <input name="name" required placeholder={t('locations.clusterName', lang)} className={smallInput} />
-      <select name="location_id" required className={smallInput}>
+      <select name="location_id" required className={selectClass({ size: 'xs' })}>
         {locations.map((l) => (
           <option key={l.id} value={l.id}>
             {LOCATION_LABEL[l.type][lang]} — {l.name}

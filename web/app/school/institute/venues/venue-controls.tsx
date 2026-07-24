@@ -6,6 +6,7 @@ import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
 import { t, type Lang, type MessageKey } from '@/lib/i18n'
 import type { BuildingRow } from '@/lib/venues'
 import { deleteBuilding, deleteRoom, saveBuilding, saveRoom } from './actions'
+import { selectClass } from '@/components/ui/field'
 
 // Venues tab controls (issue #93). Buildings and rooms share one add/edit form
 // shape: an existing row passes its id, a new one doesn't.
@@ -127,7 +128,7 @@ export function RoomForm({
           id={`room_building_${key}`}
           name="building_id"
           defaultValue={room?.building_id ?? buildingId ?? ''}
-          className={inputClass}
+          className={selectClass({ size: 'md', fullWidth: true })}
         >
           {buildings.map((b) => (
             <option key={b.id} value={b.id}>
@@ -144,7 +145,7 @@ export function RoomForm({
           id={`room_active_${key}`}
           name="is_active"
           defaultValue={String(room?.is_active ?? true)}
-          className={inputClass}
+          className={selectClass({ size: 'md', fullWidth: true })}
         >
           <option value="true">{t('venues.active', lang)}</option>
           <option value="false">{t('venues.inactive', lang)}</option>
