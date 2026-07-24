@@ -103,11 +103,13 @@ export default async function VenuesPage() {
                             {t(room.is_active ? 'venues.active' : 'venues.inactive', lang)}
                           </span>
                         </td>
-                        <td className={`${tdClass} space-y-2`}>
-                          <EditToggle lang={lang}>
-                            <RoomForm lang={lang} buildings={buildingRows} room={room} />
-                          </EditToggle>
-                          <DeleteVenueButton lang={lang} kind="room" id={room.id} />
+                        <td className={tdClass}>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <EditToggle lang={lang}>
+                              <RoomForm lang={lang} buildings={buildingRows} room={room} />
+                            </EditToggle>
+                            <DeleteVenueButton lang={lang} kind="room" id={room.id} />
+                          </div>
                         </td>
                       </tr>
                     ))}

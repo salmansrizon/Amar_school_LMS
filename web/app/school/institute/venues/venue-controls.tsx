@@ -176,13 +176,13 @@ export function EditToggle({ lang, children }: { lang: Lang; children: React.Rea
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="cursor-pointer text-xs font-semibold text-brand-600 hover:underline"
+        className="inline-flex cursor-pointer items-center rounded-full border border-brand-100 bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-600 transition hover:bg-brand-100 hover:text-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"
       >
         {t('venues.edit', lang)}
       </button>
     )
   return (
-    <div className="rounded-md border border-line bg-paper-muted p-3">
+    <div className="w-full rounded-md border border-line bg-paper-muted p-3">
       <EditCloseContext.Provider value={() => setOpen(false)}>{children}</EditCloseContext.Provider>
       <button
         type="button"
@@ -230,7 +230,7 @@ export function DeleteVenueButton({
         type="button"
         disabled={pending}
         onClick={onClick}
-        className="cursor-pointer text-xs font-semibold text-alert-deep hover:underline disabled:opacity-50"
+        className="inline-flex cursor-pointer items-center rounded-full border border-alert-deep/30 px-3 py-1 text-xs font-semibold text-alert-deep transition hover:bg-alert-soft disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-alert-deep/30"
       >
         {t('venues.delete', lang)}
       </button>
