@@ -1,3 +1,4 @@
+import Form from 'next/form'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
@@ -86,7 +87,7 @@ export default async function EmployeesPage({
       </section>
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <form className="flex flex-wrap items-center gap-2" method="get">
+        <Form className="flex flex-wrap items-center gap-2" action="/school/employees">
           <input
             name="q"
             defaultValue={q}
@@ -107,7 +108,7 @@ export default async function EmployeesPage({
           >
             {t('classes.filter', lang)}
           </button>
-        </form>
+        </Form>
         <div className="flex gap-2">
           <Link
             href="/school/employees/archive"

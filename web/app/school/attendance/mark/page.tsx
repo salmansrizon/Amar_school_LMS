@@ -1,3 +1,4 @@
+import Form from 'next/form'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
@@ -80,7 +81,7 @@ export default async function MarkAttendancePage({
 
       <AttendanceTabs active="/school/attendance/mark" lang={lang} />
 
-      <form className="mb-4 grid gap-3 rounded-lg border border-line bg-paper p-5 shadow-card sm:grid-cols-5" method="get">
+      <Form className="mb-4 grid gap-3 rounded-lg border border-line bg-paper p-5 shadow-card sm:grid-cols-5" action="/school/attendance/mark">
         <div>
           <label className="mb-1 block text-xs font-semibold text-muted">{t('attendance.class', lang)}</label>
           <select
@@ -124,7 +125,7 @@ export default async function MarkAttendancePage({
             {t('classes.filter', lang)}
           </button>
         </div>
-      </form>
+      </Form>
 
       {!visible.length ? (
         <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted shadow-card">

@@ -1,3 +1,4 @@
+import Form from 'next/form'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
@@ -65,7 +66,7 @@ export default async function LeaveManagementPage({
         <RequestLeaveForm students={students ?? []} employees={employees ?? []} lang={lang} />
       </section>
 
-      <form className="mb-4 flex flex-wrap items-center gap-2" method="get">
+      <Form className="mb-4 flex flex-wrap items-center gap-2" action="/school/attendance/leave">
         <input
           name="q"
           defaultValue={q}
@@ -83,7 +84,7 @@ export default async function LeaveManagementPage({
         >
           {t('classes.filter', lang)}
         </button>
-      </form>
+      </Form>
 
       <section className="rounded-lg border border-line bg-paper p-5 shadow-card">
         {!visible.length ? (

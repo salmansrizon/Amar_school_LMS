@@ -1,3 +1,4 @@
+import Form from 'next/form'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
@@ -57,7 +58,7 @@ export default async function SmsLogPage({
 
       <SmsTabs active="/school/sms/log" lang={lang} />
 
-      <form className="mb-4 flex flex-wrap items-center gap-2" method="get">
+      <Form className="mb-4 flex flex-wrap items-center gap-2" action="/school/sms/log">
         <input type="date" name="start" defaultValue={rangeStart} className={dateInputClass} />
         <input type="date" name="end" defaultValue={rangeEnd} className={dateInputClass} />
         <button
@@ -66,7 +67,7 @@ export default async function SmsLogPage({
         >
           {t('sms.apply', lang)}
         </button>
-      </form>
+      </Form>
 
       <div className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
         <div className="rounded-2xl border border-line/70 bg-paper/92 p-5 shadow-card backdrop-blur">

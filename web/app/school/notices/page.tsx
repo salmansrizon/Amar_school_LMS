@@ -1,3 +1,4 @@
+import Form from 'next/form'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
@@ -58,7 +59,7 @@ export default async function NoticesPage({
       <NoticeTabs active="list" lang={lang} />
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <form className="flex flex-wrap items-center gap-2" method="get">
+        <Form className="flex flex-wrap items-center gap-2" action="/school/notices">
           <input
             name="q"
             defaultValue={q}
@@ -83,7 +84,7 @@ export default async function NoticesPage({
           >
             {t('classes.filter', lang)}
           </button>
-        </form>
+        </Form>
         <Link
           href="/school/notices/new"
           className="cursor-pointer rounded-full bg-brand-500 px-4 py-1.5 text-xs font-semibold text-white hover:bg-brand-600"

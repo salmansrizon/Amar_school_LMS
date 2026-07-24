@@ -1,3 +1,4 @@
+import Form from 'next/form'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
@@ -56,7 +57,7 @@ export default async function DirectorCapitalPage({
 
       <AccountingTabs active="directorCapital" lang={lang} />
 
-      <form method="get" className="mb-4 flex flex-wrap items-center justify-between gap-2">
+      <Form className="mb-4 flex flex-wrap items-center justify-between gap-2" action="/school/fees/director-capital">
         <div className="flex items-center gap-2">
           <input name="from" type="date" defaultValue={from} className="h-9 rounded-md border border-line px-3 text-sm" />
           <input name="to" type="date" defaultValue={to} className="h-9 rounded-md border border-line px-3 text-sm" />
@@ -81,7 +82,7 @@ export default async function DirectorCapitalPage({
             {t('directorCapital.withdraw', lang)}
           </Link>
         </div>
-      </form>
+      </Form>
 
       {action && <TransactionForm balance={balance} action={action} lang={lang} />}
 

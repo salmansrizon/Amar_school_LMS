@@ -1,3 +1,4 @@
+import Form from 'next/form'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
@@ -153,7 +154,7 @@ export default async function EmployeeAttendancePage({
 
       <AttendanceTabs active="/school/attendance/employee" lang={lang} />
 
-      <form className="mb-4 flex flex-wrap items-center gap-2" method="get">
+      <Form className="mb-4 flex flex-wrap items-center gap-2" action="/school/attendance/employee">
         <input
           name="q"
           defaultValue={q}
@@ -167,7 +168,7 @@ export default async function EmployeeAttendancePage({
         >
           {t('classes.filter', lang)}
         </button>
-      </form>
+      </Form>
 
       <section className="mb-4 rounded-lg border border-line bg-paper p-5 shadow-card">
         {!rows.length ? (

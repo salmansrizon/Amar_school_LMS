@@ -1,3 +1,4 @@
+import Form from 'next/form'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
@@ -82,7 +83,7 @@ export default async function ClassesPage({
       {/* Classes */}
       <section id="classes" className="mb-8 rounded-lg border border-line bg-paper p-5 shadow-card">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-          <form className="flex flex-wrap items-center gap-2" method="get">
+          <Form className="flex flex-wrap items-center gap-2" action="/school/classes">
             <input
               name="q"
               defaultValue={q}
@@ -107,7 +108,7 @@ export default async function ClassesPage({
             >
               {t('classes.filter', lang)}
             </button>
-          </form>
+          </Form>
           <AddDetails label={t('classes.addClass', lang)}>
             <AddClassForm lang={lang} />
           </AddDetails>
