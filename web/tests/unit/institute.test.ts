@@ -5,6 +5,8 @@ import {
   completedCount,
   checklistStatus,
   pendingChecklistItems,
+  applyTick,
+  ticksFromForm,
   filterChecklistRange,
   matchesLogisticsQuery,
   type ActivityChecklistItem,
@@ -132,6 +134,34 @@ describe('completedCount / checklistStatus', () => {
 
   it('reports "none" for an empty template', () => {
     expect(checklistStatus([], { a: true })).toBe('none')
+  })
+})
+
+describe('applyTick', () => {
+  it('sets an id when done', () => {
+    expect(applyTick({ a: true }, 'b', true)).toEqual({ a: true, b: true })
+  })
+  it('drops an id when not done (not a false value)', () => {
+    expect(applyTick({ a: true, b: true }, 'b', false)).toEqual({ a: true })
+  })
+  it('treats a null map as empty', () => {
+    expect(applyTick(null, 'a', true)).toEqual({ a: true })
+    expect(applyTick(null, 'a', false)).toEqual({})
+  })
+  it('does not mutate the input map', () => {
+    const orig = { a: true }
+    applyTick(orig, 'b', true)
+    expect(orig).toEqual({ a: true })
+  })
+})
+
+describe('ticksFromForm', () => {
+  it('keeps only the ids the predicate marks on, storing true', () => {
+    const on = new Set(['a', 'd'])
+    expect(ticksFromForm(ITEMS, (id) => on.has(id))).toEqual({ a: true, d: true })
+  })
+  it('is empty when nothing is on', () => {
+    expect(ticksFromForm(ITEMS, () => false)).toEqual({})
   })
 })
 

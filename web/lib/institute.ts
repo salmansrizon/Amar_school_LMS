@@ -84,6 +84,30 @@ export function isTicked(ticks: ChecklistTicks | null | undefined, id: string): 
   return Boolean(ticks?.[id])
 }
 
+// Write algebra for the ticks map — the single owner of its shape (store only
+// ticked ids; absent/false = unchecked). Both server writers (the dashboard
+// toggle and the full-form save) and the dashboard's optimistic client state go
+// through these, so the map contract lives in one place, not re-encoded per
+// call site (#150 deepening).
+
+/** Merge one item's tick into a day's map: set the id when done, drop it when
+ *  not — keeping the map a clean set of what's ticked. */
+export function applyTick(existing: ChecklistTicks | null | undefined, itemId: string, done: boolean): ChecklistTicks {
+  const next: ChecklistTicks = { ...(existing ?? {}) }
+  if (done) next[itemId] = true
+  else delete next[itemId]
+  return next
+}
+
+/** Build a fresh tick map from the current template and a "is this id ticked?"
+ *  predicate (e.g. a form's checkbox state) — the full-save counterpart to
+ *  applyTick. Only ticked ids are stored. */
+export function ticksFromForm(items: readonly { id: string }[], isOn: (id: string) => boolean): ChecklistTicks {
+  const ticks: ChecklistTicks = {}
+  for (const item of items) if (isOn(item.id)) ticks[item.id] = true
+  return ticks
+}
+
 /** How many of the current template items are ticked for this day. */
 export function completedCount(items: ActivityChecklistItem[], ticks: ChecklistTicks | null): number {
   return items.reduce((n, item) => n + (isTicked(ticks, item.id) ? 1 : 0), 0)

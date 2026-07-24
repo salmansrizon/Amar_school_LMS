@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { requireSchoolMember } from '@/lib/auth/require-role'
 import { createClient } from '@/lib/supabase/server'
-import type { ActivityChecklistItem, ChecklistTicks } from '@/lib/institute'
+import { ticksFromForm, type ActivityChecklistItem } from '@/lib/institute'
 
 // Administrative daily checklist (issue #39, PRD §5.11) with an editable item
 // template (ui.md issue 4 / #150). Items are school-scoped master data
@@ -30,10 +30,7 @@ export async function saveChecklist(formData: FormData): Promise<{ error?: strin
   if (!(await requireSchoolMember(supabase))) return { error: 'Unauthorized' }
 
   const { data: items } = await supabase.from('activity_checklist_items').select('id')
-  const ticks: ChecklistTicks = {}
-  for (const item of items ?? []) {
-    if (formData.get(item.id) === 'on') ticks[item.id] = true
-  }
+  const ticks = ticksFromForm(items ?? [], (id) => formData.get(id) === 'on')
 
   const { error } = await supabase
     .from('daily_checklists')

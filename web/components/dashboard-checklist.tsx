@@ -4,6 +4,7 @@ import { useMemo, useState, useTransition } from 'react'
 import Link from 'next/link'
 import { t, type Lang } from '@/lib/i18n'
 import {
+  applyTick,
   itemLabel,
   pendingChecklistItems,
   type ActivityChecklistItem,
@@ -46,12 +47,12 @@ export function DashboardChecklist({
 
   function toggle(id: string) {
     const next = !state[id]
-    setState((s) => ({ ...s, [id]: next }))
+    setState((s) => applyTick(s, id, next))
     setError(null)
     startTransition(async () => {
       const result = await toggleDailyChecklist(date, id, next)
       if (result.error) {
-        setState((s) => ({ ...s, [id]: !next })) // revert
+        setState((s) => applyTick(s, id, !next)) // revert
         setError(result.error)
       }
     })

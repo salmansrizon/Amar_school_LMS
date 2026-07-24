@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { requireSchoolMember } from '@/lib/auth/require-role'
 import { createClient } from '@/lib/supabase/server'
-import type { ChecklistTicks } from '@/lib/institute'
+import { applyTick, type ChecklistTicks } from '@/lib/institute'
 
 // Dashboard Activity Checklist toggle (issue #117, template model #150).
 // Surfaces the same daily_checklists row the Institute checklist (#39) owns, so
@@ -38,9 +38,7 @@ export async function toggleDailyChecklist(
     .eq('checklist_date', checklistDate)
     .maybeSingle()
 
-  const ticks: ChecklistTicks = { ...((existing?.ticks as ChecklistTicks) ?? {}) }
-  if (done) ticks[itemId] = true
-  else delete ticks[itemId]
+  const ticks = applyTick(existing?.ticks as ChecklistTicks | null, itemId, done)
 
   const { error } = await supabase
     .from('daily_checklists')
