@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { createContext, useContext, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
 import { t, type Lang, type MessageKey } from '@/lib/i18n'
@@ -10,6 +10,14 @@ import { selectClass } from '@/components/ui/field'
 
 // Venues tab controls (issue #93). Buildings and rooms share one add/edit form
 // shape: an existing row passes its id, a new one doesn't.
+
+// EditToggle hands its "close" down through context rather than a render-prop
+// child: the Venues page is a Server Component, and a function child (or an
+// onDone function prop) passed to a Client Component isn't serializable across
+// the RSC boundary — it threw "Functions are not valid as a child of Client
+// Components" and blanked the page (ui.md issue 3 / #149). Elements are
+// serializable; the close callback travels via this client-only context.
+const EditCloseContext = createContext<() => void>(() => {})
 
 const ERROR_KEYS: Record<string, MessageKey> = {
   buildingNameRequired: 'venues.errBuildingNameRequired',
@@ -46,13 +54,13 @@ function useSubmit(action: (data: FormData) => Promise<{ error?: string }>, lang
 export function BuildingForm({
   lang,
   building,
-  onDone,
 }: {
   lang: Lang
   building?: BuildingRow
-  onDone?: () => void
 }) {
-  const { error, pending, onSubmit } = useSubmit(saveBuilding, lang, onDone)
+  // Closes the surrounding EditToggle on success; a no-op for the add form.
+  const close = useContext(EditCloseContext)
+  const { error, pending, onSubmit } = useSubmit(saveBuilding, lang, close)
   return (
     <form className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end" onSubmit={onSubmit}>
       {building && <input type="hidden" name="id" value={building.id} />}
@@ -81,15 +89,14 @@ export function RoomForm({
   buildings,
   buildingId,
   room,
-  onDone,
 }: {
   lang: Lang
   buildings: BuildingRow[]
   buildingId?: string
   room?: { id: string; name: string; capacity: number; building_id: string; is_active: boolean }
-  onDone?: () => void
 }) {
-  const { error, pending, onSubmit } = useSubmit(saveRoom, lang, onDone)
+  const close = useContext(EditCloseContext)
+  const { error, pending, onSubmit } = useSubmit(saveRoom, lang, close)
   const key = room?.id ?? `new_${buildingId ?? ''}`
   return (
     <form className="grid gap-3 sm:grid-cols-4 sm:items-end" onSubmit={onSubmit}>
@@ -159,8 +166,10 @@ export function RoomForm({
   )
 }
 
-/** Inline edit toggle — the row turns into its form in place. */
-export function EditToggle({ lang, children }: { lang: Lang; children: (close: () => void) => React.ReactNode }) {
+/** Inline edit toggle — the row turns into its form in place. Children are
+ *  plain elements (RSC-serializable); the form reads its close callback from
+ *  EditCloseContext rather than a render-prop. */
+export function EditToggle({ lang, children }: { lang: Lang; children: React.ReactNode }) {
   const [open, setOpen] = useState(false)
   if (!open)
     return (
@@ -174,7 +183,7 @@ export function EditToggle({ lang, children }: { lang: Lang; children: (close: (
     )
   return (
     <div className="rounded-md border border-line bg-paper-muted p-3">
-      {children(() => setOpen(false))}
+      <EditCloseContext.Provider value={() => setOpen(false)}>{children}</EditCloseContext.Provider>
       <button
         type="button"
         onClick={() => setOpen(false)}

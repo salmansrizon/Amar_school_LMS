@@ -97,8 +97,13 @@ export function PaginatedSheet({
   header: ReactNode
   children: ReactNode
 }) {
+  // table-fixed so the single content column is pinned to the sheet width: an
+  // over-wide child (e.g. the 31-column attendance register) then scrolls inside
+  // its own overflow-x-auto wrapper instead of stretching this cell — and the
+  // whole sheet — past the page (ui.md issue 1 / #147). Auto layout let the cell
+  // grow to its widest child, spilling the register out of the viewport.
   return (
-    <table className="w-full border-collapse">
+    <table className="w-full table-fixed border-collapse">
       <thead className="table-header-group">
         <tr>
           <th className="p-0 text-left font-normal">{header}</th>

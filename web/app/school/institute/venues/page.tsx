@@ -72,7 +72,7 @@ export default async function VenuesPage() {
 
             <div className="mb-4">
               <EditToggle lang={lang}>
-                {(close) => <BuildingForm lang={lang} building={building} onDone={close} />}
+                <BuildingForm lang={lang} building={building} />
               </EditToggle>
             </div>
 
@@ -105,9 +105,7 @@ export default async function VenuesPage() {
                         </td>
                         <td className={`${tdClass} space-y-2`}>
                           <EditToggle lang={lang}>
-                            {(close) => (
-                              <RoomForm lang={lang} buildings={buildingRows} room={room} onDone={close} />
-                            )}
+                            <RoomForm lang={lang} buildings={buildingRows} room={room} />
                           </EditToggle>
                           <DeleteVenueButton lang={lang} kind="room" id={room.id} />
                         </td>

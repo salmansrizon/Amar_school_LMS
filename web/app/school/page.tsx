@@ -8,7 +8,7 @@ import { Icon } from '@/components/school-icons'
 import { UpcomingList } from '@/components/upcoming-list'
 import { DashboardChecklist } from '@/components/dashboard-checklist'
 import { attendanceRate, isSubscriptionActive, buildUpcoming } from '@/lib/dashboard'
-import { CHECKLIST_ITEMS, type ChecklistItemKey } from '@/lib/institute'
+import type { ActivityChecklistItem, ChecklistTicks } from '@/lib/institute'
 
 // School Owner / Staff dashboard home, per ui/school-owner/dashboard.html:
 // KPI tiles + (Recent Activity | Quick Actions) split. The module nav lives
@@ -75,6 +75,7 @@ export default async function SchoolHome() {
     { data: subjectRows },
     { data: classRows },
     { data: checklistRow },
+    { data: checklistItemRows },
   ] = await Promise.all([
     supabase.from('students').select('*', { count: 'exact', head: true }).is('archived_at', null),
     supabase.from('employees').select('*', { count: 'exact', head: true }).is('archived_at', null),
@@ -96,12 +97,18 @@ export default async function SchoolHome() {
     supabase.from('classes').select('id, name'),
     supabase
       .from('daily_checklists')
-      .select(CHECKLIST_ITEMS.map((i) => i.key).join(', '))
+      .select('ticks')
       .eq('checklist_date', today)
       .maybeSingle(),
+    supabase
+      .from('activity_checklist_items')
+      .select('id, label_bn, label_en, sort_order')
+      .order('sort_order', { ascending: true })
+      .order('created_at', { ascending: true }),
   ])
 
-  const todayChecklist = (checklistRow ?? null) as Record<ChecklistItemKey, boolean> | null
+  const checklistItems = (checklistItemRows ?? []) as ActivityChecklistItem[]
+  const todayTicks = ((checklistRow?.ticks as ChecklistTicks | undefined) ?? null)
 
   const totalStudents = studentCount ?? 0
   const totalEmployees = employeeCount ?? 0
@@ -189,9 +196,9 @@ export default async function SchoolHome() {
         />
       </div>
 
-      {/* Activity Checklist (issue #117): today's daily_checklists items as a
-          checkable card grid, unchecked = due (highlighted), above Upcoming. */}
-      <DashboardChecklist lang={lang} date={today} row={todayChecklist} />
+      {/* Activity Checklist (issue #117, template #150): today's ticks over the
+          editable item template as a checkable card grid, unchecked = due. */}
+      <DashboardChecklist lang={lang} date={today} items={checklistItems} ticks={todayTicks} />
 
       {/* Upcoming Activity + Quick Actions, per the mockup's dash-split (2fr/1fr) */}
       <div className="mt-8 grid gap-6 lg:grid-cols-3">
