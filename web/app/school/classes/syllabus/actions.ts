@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { currentActor } from '@/lib/school/actor'
 
 // The file bytes are uploaded client-side straight to Storage (avoids the Next
 // server-action body limit); these actions only manage the metadata row and the
@@ -16,21 +17,12 @@ function pathFor(schoolId: string, classId: string): string {
 }
 
 async function ownPath(classId: string): Promise<{ path?: string; error?: string }> {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) return { error: 'Not authenticated' }
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('school_id')
-    .eq('id', user.id)
-    .single()
-  if (!profile?.school_id) return { error: 'No school on profile' }
+  const actor = await currentActor()
+  if ('error' in actor) return { error: actor.error }
   // RLS-scoped: a class the caller can't see returns nothing.
-  const { data: cls } = await supabase.from('classes').select('id').eq('id', classId).maybeSingle()
+  const { data: cls } = await actor.supabase.from('classes').select('id').eq('id', classId).maybeSingle()
   if (!cls) return { error: 'Class not found' }
-  return { path: pathFor(profile.school_id, classId) }
+  return { path: pathFor(actor.schoolId, classId) }
 }
 
 /** The deterministic object path a client must upload to for this class. */

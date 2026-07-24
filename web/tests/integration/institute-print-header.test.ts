@@ -105,10 +105,17 @@ describe('Print chrome foundation (issue #92)', () => {
       expect(signed?.signedUrl).toBeTruthy()
     })
 
-    it("another School's Owner can neither read nor overwrite that object", async () => {
+    it("another School's Owner may read the (public) logo but cannot overwrite it", async () => {
+      // School logos are intentionally world-readable since the multi-tenant
+      // work (migration 0063): the branded, pre-auth login on a School's
+      // subdomain must show its logo, so any caller — a different tenant, or
+      // an anonymous visitor — can read one. Writes stay owner-scoped (0056).
       const path = `${schoolAId}/logo.png`
-      const { error: readErr } = await ownerB.storage.from('school-logos').createSignedUrl(path, 60)
-      expect(readErr).not.toBeNull()
+      const { data: signed, error: readErr } = await ownerB.storage
+        .from('school-logos')
+        .createSignedUrl(path, 60)
+      expect(readErr).toBeNull()
+      expect(signed?.signedUrl).toBeTruthy()
 
       const { error: writeErr } = await ownerB.storage
         .from('school-logos')

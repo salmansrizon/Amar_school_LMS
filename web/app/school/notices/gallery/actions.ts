@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { currentActor } from '@/lib/school/actor'
 import { galleryImageExtension } from '@/lib/publishing'
 
 // Photo bytes are uploaded client-side straight to the private 'gallery'
@@ -11,21 +12,6 @@ import { galleryImageExtension } from '@/lib/publishing'
 // file is not the authority, just the entry point that surfaces its errors.
 
 const ALBUMS_PAGE = '/school/notices/gallery'
-
-async function myProfile(): Promise<{ userId: string; schoolId: string } | { error: string }> {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) return { error: 'Not authenticated' }
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('school_id')
-    .eq('id', user.id)
-    .single()
-  if (!profile?.school_id) return { error: 'No school on profile' }
-  return { userId: user.id, schoolId: profile.school_id }
-}
 
 export async function createAlbum(formData: FormData): Promise<{ error?: string }> {
   const title = String(formData.get('title') ?? '').trim()
@@ -67,7 +53,7 @@ export async function galleryUploadPath(
   albumId: string,
   mimeType: string,
 ): Promise<{ path?: string; error?: string }> {
-  const me = await myProfile()
+  const me = await currentActor()
   if ('error' in me) return { error: me.error }
   const ext = galleryImageExtension(mimeType)
   if (!ext) return { error: 'Only JPEG, PNG or WebP images are allowed' }

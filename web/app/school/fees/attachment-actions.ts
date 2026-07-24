@@ -1,6 +1,6 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { currentActor } from '@/lib/school/actor'
 
 // Accounting II (issue #35, PRD §5.6): vouchers and assets share one private
 // Storage bucket (`accounting-attachments`, 0055) with the same
@@ -17,12 +17,7 @@ export async function accountingAttachmentUploadPath(
   kind: AttachmentKind,
   ext: string,
 ): Promise<{ path?: string; error?: string }> {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) return { error: 'Not authenticated' }
-  const { data: profile } = await supabase.from('profiles').select('school_id').eq('id', user.id).single()
-  if (!profile?.school_id) return { error: 'No school on profile' }
-  return { path: `${profile.school_id}/${kind}/${crypto.randomUUID()}.${ext}` }
+  const actor = await currentActor()
+  if ('error' in actor) return { error: actor.error }
+  return { path: `${actor.schoolId}/${kind}/${crypto.randomUUID()}.${ext}` }
 }

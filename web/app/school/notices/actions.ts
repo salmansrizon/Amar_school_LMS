@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { currentActor } from '@/lib/school/actor'
 import { galleryImageExtension, validateTargetSelection } from '@/lib/publishing'
 import type { Importance, PublicationKind, TargetType } from '@/lib/publishing'
 
@@ -13,26 +14,11 @@ import type { Importance, PublicationKind, TargetType } from '@/lib/publishing'
 
 const LIST_PAGE = '/school/notices'
 
-async function myProfile(): Promise<{ userId: string; schoolId: string } | { error: string }> {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) return { error: 'Not authenticated' }
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('school_id')
-    .eq('id', user.id)
-    .single()
-  if (!profile?.school_id) return { error: 'No school on profile' }
-  return { userId: user.id, schoolId: profile.school_id }
-}
-
 /** The deterministic object path a client must upload the optional image to. */
 export async function publicationImageUploadPath(
   mimeType: string,
 ): Promise<{ path?: string; error?: string }> {
-  const me = await myProfile()
+  const me = await currentActor()
   if ('error' in me) return { error: me.error }
   const ext = galleryImageExtension(mimeType)
   if (!ext) return { error: 'Only JPEG, PNG or WebP images are allowed' }
@@ -50,7 +36,7 @@ export async function createPublication(input: {
   imagePath: string | null
   linkUrl: string
 }): Promise<{ error?: string; id?: string }> {
-  const me = await myProfile()
+  const me = await currentActor()
   if ('error' in me) return { error: me.error }
   const title = input.title.trim()
   if (!title) return { error: 'Title is required' }

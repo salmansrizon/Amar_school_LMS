@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { currentActor } from '@/lib/school/actor'
 import { smsGateway } from '@/lib/sms/gateway'
 import { photoExtension, behaviourSmsBody } from '@/lib/students'
 
@@ -148,24 +149,15 @@ export async function studentPhotoPath(
 ): Promise<{ path?: string; error?: string }> {
   const ext = photoExtension(mimeType)
   if (!ext) return { error: 'JPEG, PNG or WebP only' }
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) return { error: 'Not authenticated' }
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('school_id')
-    .eq('id', user.id)
-    .single()
-  if (!profile?.school_id) return { error: 'No school on profile' }
-  const { data: student } = await supabase
+  const actor = await currentActor()
+  if ('error' in actor) return { error: actor.error }
+  const { data: student } = await actor.supabase
     .from('students')
     .select('id')
     .eq('id', studentId)
     .maybeSingle()
   if (!student) return { error: 'Student not found' }
-  return { path: `${profile.school_id}/${studentId}.${ext}` }
+  return { path: `${actor.schoolId}/${studentId}.${ext}` }
 }
 
 /** Records the uploaded photo's path on the student row (after upload). */
