@@ -8,6 +8,7 @@ import { classSectionLabel } from '@/lib/students'
 import { AddEntryForm, EditableEntry } from './behaviour-controls'
 import { ArchiveToggle, PhotoControl, ProfileEditor } from './profile-controls'
 import { StudentSubjects, type AssignedSubject } from './subject-controls'
+import { PrintTrigger } from '@/components/print/print-trigger'
 
 // Layout per ui/school-owner/student-detail.html: status + roll header with
 // Transfer/Print actions, photo card beside carded profile sections (Identity /
@@ -111,22 +112,14 @@ export default async function StudentDetailPage({
           </span>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <Link
+          <PrintTrigger
             href={`/school/students/${id}/print/admission`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted"
-          >
-            {t('students.printAdmission', lang)}
-          </Link>
-          <Link
+            label={t('students.printAdmission', lang)}
+          />
+          <PrintTrigger
             href={`/school/students/${id}/print/id-card`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted"
-          >
-            {t('students.printIdCard', lang)}
-          </Link>
+            label={t('students.printIdCard', lang)}
+          />
           <Link
             href={`/school/students/${id}/transfer`}
             className="rounded-full border border-line-strong px-4 py-1.5 text-xs font-semibold hover:bg-paper-muted"
