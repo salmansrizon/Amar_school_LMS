@@ -1,9 +1,9 @@
 -- Public, unauthenticated student ID-card verification (issues #140/#141/#144).
 --
 -- The printed card carries a QR that anyone can scan to check the card is
--- genuine. It links to /verify/<token>, where <token> is an opaque 128-bit
--- random string — NOT the internal student id — so it leaks nothing and can't
--- be enumerated. Validity is derived live from archived_at: the moment a
+-- genuine. It links to /verify/<token>, where <token> is an opaque random
+-- string (a hyphen-stripped UUIDv4, ~122 bits of entropy) — NOT the internal
+-- student id — so it leaks nothing and can't be enumerated. Validity is derived live from archived_at: the moment a
 -- student is archived (transferred out / graduated / left), every printed card
 -- flips to INVALID on the next scan. There is no stored "valid" flag to go
 -- stale, so the card's scope ends exactly when the enrollment does (#140).

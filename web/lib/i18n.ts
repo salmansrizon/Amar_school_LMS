@@ -691,7 +691,6 @@ const dict = {
     en: 'Powered by Amar School Management',
   },
   'print.qr': { bn: 'QR কোড', en: 'QR Code' },
-  'verify.title': { bn: 'পরিচয়পত্র যাচাই', en: 'ID Card Verification' },
   'verify.valid': { bn: 'বৈধ পরিচয়পত্র', en: 'Valid ID card' },
   'verify.invalid': { bn: 'অবৈধ পরিচয়পত্র', en: 'Invalid ID card' },
   'verify.validNote': {

@@ -84,8 +84,9 @@ export default async function IdCardPrintPage({ params }: { params: Promise<{ id
           <div
             className="mx-auto mt-3 flex size-24 items-center justify-center"
             aria-label={t('print.qr', lang)}
-            // The SVG comes from web/lib/qr.ts (the `qrcode` package), never
-            // from user input — safe to inject directly.
+            // qrSvg is the `qrcode` package's output — SVG <path> geometry, not
+            // the payload string echoed back — so injecting it is safe even
+            // though the encoded URL includes the request host.
             dangerouslySetInnerHTML={{ __html: qrSvg }}
           />
         </div>
