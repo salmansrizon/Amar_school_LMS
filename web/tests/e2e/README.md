@@ -11,10 +11,11 @@ End-to-end browser coverage for the **docs/ui.md** enhancements (map #140):
 | #152 | Print Admission Form + ID Card stay on the same page (no new tab) |
 | #150 | Activity Checklist template CRUD UI + dashboard reflects it |
 
-The heavy add/edit/reorder/delete round-trip for #150 is covered by the **unit**
-(`tests/unit/institute.test.ts`) and **integration** (`tests/integration/institute-setup.test.ts`)
-suites, which don't mutate shared data. These e2e tests are read-only /
-non-destructive so they're safe to run against a shared staging deploy.
+The #150 test drives the real add / edit / reorder / delete round-trip and
+self-cleans (deletes any `E2E …` rows it creates), so it's repeatable and leaves
+the template as it found it. The other tests are read-only. Auth is done once by
+`auth.setup.ts` (saved to `playwright/.auth/owner.json`, git-ignored) and reused,
+so the auth backend isn't hit per test.
 
 ## Running
 

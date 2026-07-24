@@ -1,4 +1,4 @@
-import { test, expect, type Page } from '@playwright/test'
+import { test, expect } from '@playwright/test'
 
 // End-to-end coverage for the docs/ui.md Round-2 enhancements (map #140):
 //   #147 attendance register fits the viewport (horizontal scroll)
@@ -9,32 +9,9 @@ import { test, expect, type Page } from '@playwright/test'
 //   #152 Print Admission Form + ID Card stay on the same page (no new tab)
 //   #153 sidebar nav icons are uniform and aligned
 //
-// Needs a running app (local dev or a deploy) — set PLAYWRIGHT_BASE_URL.
-// Auth uses the seeded demo owner; override with E2E_EMAIL / E2E_PASSWORD.
-
-const EMAIL = process.env.E2E_EMAIL || 'demo.owner@amarschool.test'
-const PASSWORD = process.env.E2E_PASSWORD || 'DemoOwner#2026'
-
-/** Log in and switch the UI to English so selectors are language-stable. */
-async function login(page: Page) {
-  await page.goto('/login')
-  await page.locator('input[type="email"], input[name="email"]').first().fill(EMAIL)
-  await page.locator('input[type="password"], input[name="password"]').first().fill(PASSWORD)
-  await Promise.all([
-    page.waitForURL(/\/school(\/|$)/, { timeout: 20_000 }),
-    page.locator('button[type="submit"]').first().click(),
-  ])
-  // Flip to English (topbar language pill) for stable, non-Bengali labels.
-  const en = page.getByRole('button', { name: /^EN$/ }).or(page.getByText(/^EN$/))
-  if (await en.count()) {
-    await en.first().click().catch(() => {})
-    await page.waitForLoadState('networkidle').catch(() => {})
-  }
-}
-
-test.beforeEach(async ({ page }) => {
-  await login(page)
-})
+// Needs a running app (local dev or a deploy) — set PLAYWRIGHT_BASE_URL. Auth is
+// handled once by auth.setup.ts (storageState), so these tests start signed in
+// as the demo owner with the UI in English.
 
 test('#153 sidebar nav icons are uniform size and vertically aligned', async ({ page }) => {
   await page.goto('/school')
@@ -136,33 +113,81 @@ test('#152 Print Admission Form + ID Card stay on the same page (no new tab)', a
   expect(printFrames.length).toBeGreaterThan(0)
 })
 
-test('#150 Activity Checklist template — CRUD UI present and dashboard reflects it', async ({ page }) => {
-  // The full add/edit/reorder/delete round-trip is covered by the unit
-  // (lib/institute) and integration (institute-setup) suites, which don't
-  // mutate shared staging data. This e2e asserts the management UI is wired and
-  // the template drives the dashboard — deterministic and side-effect-free.
+test('#150 Activity Checklist template — add, edit, reorder, delete + dashboard reflects it', async ({ page }) => {
+  test.setTimeout(90_000)
+  const stamp = Date.now()
+  const label = `E2E Item ${stamp}`
+  const edited = `E2E Edited ${stamp}`
+  page.on('dialog', (d) => d.accept()) // delete confirm
+  const settle = () => page.waitForLoadState('networkidle')
+
+  // Manager list rows are <li>; the add form lives in a trailing <form>. Scope
+  // by structure, not by text, so a row entering edit mode (text -> inputs)
+  // stays addressable.
+  const rows = page.locator('ul > li').filter({ has: page.getByRole('button', { name: /^edit$/i }) })
+  const rowByText = (txt: string) => page.locator('ul > li').filter({ hasText: txt })
+
+  // Delete every E2E row, tolerating the re-render detach between locating and
+  // clicking (each delete revalidates the list).
+  const deleteE2E = async () => {
+    for (let i = 0; i < 25; i++) {
+      if (!(await rowByText('E2E ').count())) break
+      await rowByText('E2E ').first().getByRole('button', { name: /^delete$/i }).click({ timeout: 5000 }).catch(() => {})
+      await settle()
+      await page.waitForTimeout(200)
+    }
+    await expect(rowByText('E2E ')).toHaveCount(0)
+  }
+
   await page.goto('/school/institute/checklist')
-  await page.waitForLoadState('networkidle')
+  await settle()
+  await deleteE2E()
+  const before = await rows.count()
 
-  // Manager: the add-item form (both label inputs + Add item).
+  // ADD
   const addForm = page.locator('form').filter({ has: page.locator('input[name="label_en"]') }).last()
-  await expect(addForm.locator('input[name="label_en"]')).toBeVisible()
-  await expect(addForm.locator('input[name="label_bn"]')).toBeVisible()
-  await expect(addForm.getByRole('button', { name: /add item/i })).toBeVisible()
+  await addForm.locator('input[name="label_en"]').fill(label)
+  await addForm.locator('input[name="label_bn"]').fill(`${label} BN`)
+  await addForm.getByRole('button', { name: /add item/i }).click()
+  await expect(rowByText(label)).toHaveCount(1)
+  expect(await rows.count()).toBe(before + 1)
+  await settle()
 
-  // At least the seeded template items, each with edit / delete / reorder controls.
-  const items = page.locator('ul > li').filter({ has: page.getByRole('button', { name: /^edit$/i }) })
-  expect(await items.count()).toBeGreaterThan(0)
-  const first = items.first()
-  await expect(first.getByRole('button', { name: /^delete$/i })).toBeVisible()
-  await expect(first.getByRole('button', { name: /move up|move down/i }).first()).toBeVisible()
+  // REORDER — new item is last; move it up, then back down (asserts both work).
+  const target = rowByText(label).first()
+  await expect(target.getByRole('button', { name: /move up/i })).toBeEnabled()
+  await target.getByRole('button', { name: /move up/i }).click()
+  await settle()
+  await expect(rowByText(label).first().getByRole('button', { name: /move down/i })).toBeEnabled()
+  await rowByText(label).first().getByRole('button', { name: /move down/i }).click()
+  await settle()
+  await expect(rowByText(label)).toHaveCount(1)
 
-  // The daily tick form lists the template as checkboxes.
-  expect(await page.locator('input[type="checkbox"]').count()).toBeGreaterThan(0)
+  // EDIT — reload first so the row is a clean mount (a reorder transition can
+  // otherwise leave its inline Save button briefly disabled). The editing row
+  // is the only <li> with a <form>.
+  await page.goto('/school/institute/checklist')
+  await settle()
+  await rowByText(label).first().getByRole('button', { name: /^edit$/i }).click()
+  const editForm = page.locator('ul > li form').filter({ has: page.locator('input[name="label_en"]') })
+  await expect(editForm.locator('input[name="label_en"]')).toBeVisible()
+  await editForm.locator('input[name="label_en"]').fill(edited)
+  const saveBtn = editForm.getByRole('button', { name: /^save$/i })
+  await expect(saveBtn).toBeEnabled()
+  await saveBtn.click()
+  await expect(rowByText(edited)).toHaveCount(1)
+  await expect(rowByText(label)).toHaveCount(0)
+  await settle()
 
-  // Dashboard shows the same template as tickable activity cards.
+  // DASHBOARD reflects the edited template.
   await page.goto('/school')
-  await page.waitForLoadState('networkidle')
-  const checklistSection = page.locator('section').filter({ hasText: /activity checklist/i })
-  await expect(checklistSection.getByRole('button').first()).toBeVisible()
+  await settle()
+  await expect(page.getByText(edited).first()).toBeVisible()
+
+  // DELETE — leaves the template as it started.
+  await page.goto('/school/institute/checklist')
+  await settle()
+  await rowByText(edited).first().getByRole('button', { name: /^delete$/i }).click()
+  await expect(rowByText(edited)).toHaveCount(0)
+  expect(await rows.count()).toBe(before)
 })
