@@ -3,6 +3,9 @@
 // global default, category default, each assigned officeTime, and the
 // per-individual override. An override can widen the window, never narrow it.
 // Mirrors public.effective_grace_minutes (migration 0012); SQL is the authority.
+//
+// effectiveGraceWithSource is the single implementation of the rule;
+// effectiveGrace is the value-only view of it, so the MAX lives in one place.
 
 export interface GraceInputs {
   global: number | null
@@ -11,17 +14,14 @@ export interface GraceInputs {
   override: number | null
 }
 
-export function effectiveGrace({ global, category, officeTimes, override }: GraceInputs): number {
-  const applicable = [global, category, ...officeTimes, override].filter(
-    (v): v is number => v !== null && v !== undefined,
-  )
-  return applicable.length ? Math.max(...applicable) : 0
+export function effectiveGrace(inputs: GraceInputs): number {
+  return effectiveGraceWithSource(inputs).minutes
 }
 
 // Issue #30 (Attendance II): the employee-attendance screen must show which
 // level the effective grace came from (ui/school-owner/attendance-employee.html
-// annotates each row with "20 min (individual override)" etc.) — same MAX
-// rule as effectiveGrace, but keeping the winning source alongside the value.
+// annotates each row with "20 min (individual override)" etc.) — the same MAX
+// rule, keeping the winning source alongside the value.
 export type GraceSource = 'global' | 'category' | 'officeTime' | 'override'
 
 export function effectiveGraceWithSource({

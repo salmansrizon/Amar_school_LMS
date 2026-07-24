@@ -1,9 +1,8 @@
 import Form from 'next/form'
 import Link from 'next/link'
-import { redirect } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
-import { createClient } from '@/lib/supabase/server'
+import { getSchoolContext } from '@/lib/school/context'
 import { albumCountLabel, albumIsFull } from '@/lib/publishing'
 import { NoticeTabs } from '../notice-tabs'
 import { CreateAlbumForm } from './gallery-controls'
@@ -18,13 +17,7 @@ export default async function GalleryAlbumsPage({
 }) {
   const { q = '' } = await searchParams
   const lang: Lang = await currentLang()
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
-  const { data: me } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-  if (me?.role !== 'school_owner' && me?.role !== 'staff_user') redirect('/login')
+  const { supabase } = await getSchoolContext()
 
   const [{ data: albums }, { data: photos }] = await Promise.all([
     supabase.from('gallery_albums').select('id, title, max_images').order('created_at', { ascending: false }),

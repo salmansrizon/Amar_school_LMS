@@ -1,8 +1,8 @@
 import Link from 'next/link'
-import { notFound, redirect } from 'next/navigation'
+import { notFound } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang, type MessageKey } from '@/lib/i18n'
-import { createClient } from '@/lib/supabase/server'
+import { getSchoolContext } from '@/lib/school/context'
 import { subjectsForClass } from '@/lib/students'
 import {
   BasicInfoForm,
@@ -36,14 +36,7 @@ const EXAM_DOCUMENTS: { href: string; label: MessageKey; hint: MessageKey }[] = 
 export default async function ExamSetupPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const lang: Lang = await currentLang()
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
-  // Defense in depth alongside the proxy gate: /school pages are for school roles.
-  const { data: me } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-  if (me?.role !== 'school_owner' && me?.role !== 'staff_user') redirect('/login')
+  const { supabase } = await getSchoolContext()
 
   const { data: exam } = await supabase
     .from('exams')

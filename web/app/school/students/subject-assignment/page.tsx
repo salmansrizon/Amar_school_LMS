@@ -1,8 +1,7 @@
 import Link from 'next/link'
-import { redirect } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
-import { createClient } from '@/lib/supabase/server'
+import { getSchoolContext } from '@/lib/school/context'
 import { subjectsForClass } from '@/lib/students'
 import { ClassPicker } from '../../classes/routine/routine-cell'
 import { BulkAssignForm } from './bulk-assign-form'
@@ -17,14 +16,7 @@ export default async function SubjectAssignmentPage({
   searchParams: Promise<{ class?: string }>
 }) {
   const lang: Lang = await currentLang()
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
-  // Defense in depth alongside the proxy gate: /school pages are for school roles.
-  const { data: me } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-  if (me?.role !== 'school_owner' && me?.role !== 'staff_user') redirect('/login')
+  const { supabase } = await getSchoolContext()
 
   const { class: selectedClass = '' } = await searchParams
   const { data: classes } = await supabase
@@ -66,7 +58,7 @@ export default async function SubjectAssignmentPage({
 }
 
 async function AssignmentPanel({ classId, lang }: { classId: string; lang: Lang }) {
-  const supabase = await createClient()
+  const { supabase } = await getSchoolContext()
   const { data: cls } = await supabase
     .from('classes')
     .select('id, name, section')

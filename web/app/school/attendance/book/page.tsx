@@ -1,9 +1,8 @@
 import Form from 'next/form'
 import Link from 'next/link'
-import { redirect } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
-import { createClient } from '@/lib/supabase/server'
+import { getSchoolContext } from '@/lib/school/context'
 import {
   filterRoster,
   monthGrid,
@@ -51,13 +50,7 @@ export default async function AttendanceBookPage({
   } = await searchParams
   const mode = modeParam === 'blank' ? 'blank' : 'filled'
   const lang: Lang = await currentLang()
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
-  const { data: me } = await supabase.from('profiles').select('role, school_id').eq('id', user.id).single()
-  if (!me?.school_id || (me.role !== 'school_owner' && me.role !== 'staff_user')) redirect('/login')
+  const { supabase } = await getSchoolContext()
 
   const [yearStr, monthStr] = monthParam.split('-')
   const year = Number(yearStr) || new Date().getUTCFullYear()

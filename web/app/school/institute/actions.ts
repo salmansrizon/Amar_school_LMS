@@ -1,8 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { requireSchoolOwner } from '@/lib/auth/require-role'
-import { createClient } from '@/lib/supabase/server'
+import { currentOwner } from '@/lib/school/actor'
 import { validateInstituteProfile, type InstituteProfileInput } from '@/lib/institute'
 import { logoImageExtension } from '@/lib/institute-print'
 import { isThemeKey, type ThemedDocType } from '@/lib/print-themes'
@@ -33,19 +32,12 @@ export async function updateInstituteProfile(formData: FormData): Promise<{ erro
   const err = validateInstituteProfile(input)
   if (err) return { error: err }
 
-  const supabase = await createClient()
-  if (!(await requireSchoolOwner(supabase))) return { error: 'Unauthorized' }
+  const actor = await currentOwner()
+  if ('error' in actor) return { error: actor.error }
+  const { supabase, schoolId } = actor
 
   const locationId = optStr(formData, 'location_id')
   const clusterId = optStr(formData, 'cluster_id')
-
-  const { data: userRes } = await supabase.auth.getUser()
-  const { data: me } = await supabase
-    .from('profiles')
-    .select('school_id')
-    .eq('id', userRes.user!.id)
-    .single()
-  if (!me?.school_id) return { error: 'Unauthorized' }
 
   const { error } = await supabase
     .from('schools')
@@ -63,7 +55,7 @@ export async function updateInstituteProfile(formData: FormData): Promise<{ erro
       mobile: input.mobile ?? null,
       email: input.email ?? null,
     })
-    .eq('id', me.school_id)
+    .eq('id', schoolId)
   if (error) return { error: error.message }
   revalidatePath(PAGE)
   return {}
@@ -76,18 +68,12 @@ export async function savePrintTheme(
   paletteKey: string,
 ): Promise<{ error?: string }> {
   if (!isThemeKey(paletteKey)) return { error: 'unknownTheme' }
-  const supabase = await createClient()
-  if (!(await requireSchoolOwner(supabase))) return { error: 'Unauthorized' }
-  const { data: userRes } = await supabase.auth.getUser()
-  const { data: me } = await supabase
-    .from('profiles')
-    .select('school_id')
-    .eq('id', userRes.user!.id)
-    .single()
-  if (!me?.school_id) return { error: 'Unauthorized' }
+  const actor = await currentOwner()
+  if ('error' in actor) return { error: actor.error }
+  const { supabase, schoolId } = actor
 
   const { error } = await supabase.from('school_print_themes').upsert(
-    { school_id: me.school_id, doc_type: docType, palette_key: paletteKey, updated_at: new Date().toISOString() },
+    { school_id: schoolId, doc_type: docType, palette_key: paletteKey, updated_at: new Date().toISOString() },
     { onConflict: 'school_id,doc_type' },
   )
   if (error) return { error: error.message }
@@ -103,34 +89,21 @@ export async function schoolLogoUploadPath(
 ): Promise<{ path?: string; error?: string }> {
   const ext = logoImageExtension(mimeType)
   if (!ext) return { error: 'logoBadType' }
-  const supabase = await createClient()
-  if (!(await requireSchoolOwner(supabase))) return { error: 'Unauthorized' }
-  const { data: userRes } = await supabase.auth.getUser()
-  const { data: me } = await supabase
-    .from('profiles')
-    .select('school_id')
-    .eq('id', userRes.user!.id)
-    .single()
-  if (!me?.school_id) return { error: 'Unauthorized' }
-  return { path: `${me.school_id}/logo.${ext}` }
+  const actor = await currentOwner()
+  if ('error' in actor) return { error: actor.error }
+  return { path: `${actor.schoolId}/logo.${ext}` }
 }
 
 /** Records the uploaded object on the School row; the old object is removed
  *  when the new one landed under a different extension. */
 export async function recordSchoolLogo(path: string): Promise<{ error?: string }> {
-  const supabase = await createClient()
-  if (!(await requireSchoolOwner(supabase))) return { error: 'Unauthorized' }
-  const { data: userRes } = await supabase.auth.getUser()
-  const { data: me } = await supabase
-    .from('profiles')
-    .select('school_id')
-    .eq('id', userRes.user!.id)
-    .single()
-  if (!me?.school_id) return { error: 'Unauthorized' }
-  if (!path.startsWith(`${me.school_id}/`)) return { error: 'Unauthorized' }
+  const actor = await currentOwner()
+  if ('error' in actor) return { error: actor.error }
+  const { supabase, schoolId } = actor
+  if (!path.startsWith(`${schoolId}/`)) return { error: 'Unauthorized' }
 
-  const { data: school } = await supabase.from('schools').select('logo_path').eq('id', me.school_id).maybeSingle()
-  const { error } = await supabase.from('schools').update({ logo_path: path }).eq('id', me.school_id)
+  const { data: school } = await supabase.from('schools').select('logo_path').eq('id', schoolId).maybeSingle()
+  const { error } = await supabase.from('schools').update({ logo_path: path }).eq('id', schoolId)
   if (error) return { error: error.message }
   if (school?.logo_path && school.logo_path !== path) {
     await supabase.storage.from('school-logos').remove([school.logo_path])
@@ -140,18 +113,12 @@ export async function recordSchoolLogo(path: string): Promise<{ error?: string }
 }
 
 export async function removeSchoolLogo(): Promise<{ error?: string }> {
-  const supabase = await createClient()
-  if (!(await requireSchoolOwner(supabase))) return { error: 'Unauthorized' }
-  const { data: userRes } = await supabase.auth.getUser()
-  const { data: me } = await supabase
-    .from('profiles')
-    .select('school_id')
-    .eq('id', userRes.user!.id)
-    .single()
-  if (!me?.school_id) return { error: 'Unauthorized' }
+  const actor = await currentOwner()
+  if ('error' in actor) return { error: actor.error }
+  const { supabase, schoolId } = actor
 
-  const { data: school } = await supabase.from('schools').select('logo_path').eq('id', me.school_id).maybeSingle()
-  const { error } = await supabase.from('schools').update({ logo_path: null }).eq('id', me.school_id)
+  const { data: school } = await supabase.from('schools').select('logo_path').eq('id', schoolId).maybeSingle()
+  const { error } = await supabase.from('schools').update({ logo_path: null }).eq('id', schoolId)
   if (error) return { error: error.message }
   if (school?.logo_path) await supabase.storage.from('school-logos').remove([school.logo_path])
   revalidatePath(PAGE)

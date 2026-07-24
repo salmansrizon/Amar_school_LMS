@@ -1,8 +1,8 @@
 import Link from 'next/link'
-import { notFound, redirect } from 'next/navigation'
+import { notFound } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
-import { createClient } from '@/lib/supabase/server'
+import { getSchoolContext } from '@/lib/school/context'
 import { DeleteAlbumButton } from '../gallery-controls'
 import { PhotoGrid } from './photo-controls'
 
@@ -16,13 +16,7 @@ export default async function AlbumDetailPage({
 }) {
   const { albumId } = await params
   const lang: Lang = await currentLang()
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
-  const { data: me } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-  if (me?.role !== 'school_owner' && me?.role !== 'staff_user') redirect('/login')
+  const { supabase } = await getSchoolContext()
 
   const { data: album } = await supabase
     .from('gallery_albums')

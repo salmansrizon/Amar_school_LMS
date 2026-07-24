@@ -1,8 +1,8 @@
 import Link from 'next/link'
-import { notFound, redirect } from 'next/navigation'
+import { notFound } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
-import { createClient } from '@/lib/supabase/server'
+import { getSchoolContext } from '@/lib/school/context'
 import { OfficeTimeToggle } from '../employee-controls'
 import { ArchiveToggle, ProfileEditor } from './profile-controls'
 
@@ -37,18 +37,7 @@ export default async function EmployeeDetailPage({
 }) {
   const { id } = await params
   const lang: Lang = await currentLang()
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
-  // Defense in depth alongside the proxy gate: /school pages are for school roles.
-  const { data: me } = await supabase
-    .from('profiles')
-    .select('role, school_id')
-    .eq('id', user.id)
-    .single()
-  if (!me?.school_id || (me.role !== 'school_owner' && me.role !== 'staff_user')) redirect('/login')
+  const { supabase, schoolId } = await getSchoolContext()
 
   const { data: employee } = await supabase.from('employees').select('*').eq('id', id).single()
   if (!employee) notFound()
@@ -60,7 +49,7 @@ export default async function EmployeeDetailPage({
     { data: categories },
     { data: effective },
   ] = await Promise.all([
-    supabase.from('schools').select('default_grace_minutes').eq('id', me.school_id).single(),
+    supabase.from('schools').select('default_grace_minutes').eq('id', schoolId).single(),
     supabase.from('office_times').select('id, name, grace_minutes').order('name'),
     supabase.from('employee_office_times').select('employee_id, office_time_id').eq('employee_id', id),
     supabase.from('category_grace_minutes').select('category, grace_minutes').order('category'),

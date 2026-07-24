@@ -1,8 +1,7 @@
 import Link from 'next/link'
-import { redirect } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
 import { t } from '@/lib/i18n'
-import { createClient } from '@/lib/supabase/server'
+import { getSchoolContext } from '@/lib/school/context'
 import { SmsTabs } from '../tabs'
 import { AddOffDayForm, DeleteOffDayButton, AddRuleForm, DeleteRuleButton, AddLeaveForm, DeleteLeaveButton } from '../sms-controls'
 
@@ -11,17 +10,7 @@ import { AddOffDayForm, DeleteOffDayButton, AddRuleForm, DeleteRuleButton, AddLe
 // calendar, exact/range rules, and student leave management are unchanged.
 export default async function SmsRulesPage() {
   const lang = await currentLang()
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
-  const { data: me } = await supabase
-    .from('profiles')
-    .select('role, school_id')
-    .eq('id', user.id)
-    .single()
-  if (me?.role !== 'school_owner' && me?.role !== 'staff_user') redirect('/login')
+  const { supabase } = await getSchoolContext()
 
   const [offDays, rules, students, leaves] = await Promise.all([
     supabase.from('off_days').select('day, label').order('day', { ascending: false }).limit(100),
