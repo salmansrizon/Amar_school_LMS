@@ -19,7 +19,7 @@
 // loop a third time.
 import type { createClient } from '@/lib/supabase/server'
 import { subjectsForClass } from '@/lib/students'
-import { subjectFullMarks } from '@/lib/exam-setup'
+import { subjectFullMarks, type SubjectMarksConfig } from '@/lib/exam-setup'
 import {
   evaluateSubject,
   evaluateOverallResult,
@@ -86,6 +86,74 @@ export interface ExamRosterResult {
  * `scheme` null and `rows` empty, letting callers render their own
  * "not ready yet" messaging rather than a 404 (matches marks-entry/promotion).
  */
+/** One roster student, as fetched for result assembly. */
+export interface RosterStudent {
+  id: string
+  full_name: string
+  roll_number: number | null
+  guardian_name: string | null
+}
+
+/**
+ * The pure heart of a printed exam result: given the already-fetched roster,
+ * subjects, marks and optional-subject flags, produce the per-student result
+ * rows (per-subject evaluation, overall, totals, class rank). This is the
+ * assembly that used to be inlined inside the DB fetch below — extracted so
+ * the parts that carry the real bugs (optional-subject handling, ranking,
+ * totals) have a test seam: fixtures in, rows out, no Supabase.
+ *
+ * `marksMap` and `optionalMap` are keyed `${studentId}:${subjectId}`.
+ */
+export function assembleRosterRows<S extends { id: string; name: string } & SubjectMarksConfig>(
+  subjects: S[],
+  roster: RosterStudent[],
+  marksMap: Map<string, number>,
+  optionalMap: Map<string, boolean>,
+  scheme: GradingScheme,
+  basis: RankBasis,
+): ExamRosterResultRow[] {
+  const overallByStudent = new Map<string, OverallResult>()
+  const subjectResultsByStudent = new Map<string, SubjectResult[]>()
+  for (const s of roster) {
+    const marks: SubjectMark[] = subjects.map((sub) => ({
+      subjectId: sub.id,
+      fullMarks: subjectFullMarks(sub),
+      obtainedMarks: marksMap.get(`${s.id}:${sub.id}`) ?? 0,
+      isOptional: optionalMap.get(`${s.id}:${sub.id}`) ?? false,
+    }))
+    const results = marks.map((m) => evaluateSubject(m, scheme))
+    overallByStudent.set(s.id, evaluateOverallResult(results, scheme))
+    subjectResultsByStudent.set(s.id, results)
+  }
+
+  const rankable: RankableResult[] = roster.map((s) => {
+    const o = overallByStudent.get(s.id)
+    return { studentId: s.id, passed: o?.passed ?? false, gpa: o?.gpa ?? null, percent: o?.percent ?? 0 }
+  })
+  const rankedById = new Map(rankResults(rankable, basis).map((r) => [r.studentId, r]))
+  const rankOutOf = roster.length
+
+  return roster.map((s) => {
+    const subjectResults = subjectResultsByStudent.get(s.id) ?? []
+    return {
+      studentId: s.id,
+      fullName: s.full_name,
+      rollNumber: s.roll_number,
+      guardianName: s.guardian_name,
+      subjectResults: subjectResults.map((r) => ({
+        subjectId: r.subjectId,
+        subjectName: subjects.find((sub) => sub.id === r.subjectId)?.name ?? r.subjectId,
+        result: r,
+      })),
+      totalFull: subjectResults.reduce((sum, r) => sum + r.fullMarks, 0),
+      totalObtained: subjectResults.reduce((sum, r) => sum + r.obtainedMarks, 0),
+      overall: overallByStudent.get(s.id) ?? null,
+      rankPosition: rankedById.get(s.id)?.position ?? null,
+      rankOutOf,
+    }
+  })
+}
+
 export async function loadExamRosterResults(
   supabase: SupabaseServerClient,
   examId: string,
@@ -138,46 +206,7 @@ export async function loadExamRosterResults(
         (marksRows ?? []).map((m) => [`${m.student_id}:${m.subject_id}`, Number(m.obtained_marks)]),
       )
 
-      const overallByStudent = new Map<string, OverallResult>()
-      const subjectResultsByStudent = new Map<string, SubjectResult[]>()
-      for (const s of roster ?? []) {
-        const marks: SubjectMark[] = subjects.map((sub) => ({
-          subjectId: sub.id,
-          fullMarks: subjectFullMarks(sub),
-          obtainedMarks: marksMap.get(`${s.id}:${sub.id}`) ?? 0,
-          isOptional: optionalMap.get(`${s.id}:${sub.id}`) ?? false,
-        }))
-        const results = marks.map((m) => evaluateSubject(m, scheme as GradingScheme))
-        overallByStudent.set(s.id, evaluateOverallResult(results, scheme as GradingScheme))
-        subjectResultsByStudent.set(s.id, results)
-      }
-
-      const rankable: RankableResult[] = (roster ?? []).map((s) => {
-        const o = overallByStudent.get(s.id)
-        return { studentId: s.id, passed: o?.passed ?? false, gpa: o?.gpa ?? null, percent: o?.percent ?? 0 }
-      })
-      const rankedById = new Map(rankResults(rankable, basis).map((r) => [r.studentId, r]))
-      const rankOutOf = roster?.length ?? 0
-
-      rows = (roster ?? []).map((s) => {
-        const subjectResults = subjectResultsByStudent.get(s.id) ?? []
-        return {
-          studentId: s.id,
-          fullName: s.full_name,
-          rollNumber: s.roll_number,
-          guardianName: s.guardian_name,
-          subjectResults: subjectResults.map((r) => ({
-            subjectId: r.subjectId,
-            subjectName: subjects.find((sub) => sub.id === r.subjectId)?.name ?? r.subjectId,
-            result: r,
-          })),
-          totalFull: subjectResults.reduce((sum, r) => sum + r.fullMarks, 0),
-          totalObtained: subjectResults.reduce((sum, r) => sum + r.obtainedMarks, 0),
-          overall: overallByStudent.get(s.id) ?? null,
-          rankPosition: rankedById.get(s.id)?.position ?? null,
-          rankOutOf,
-        }
-      })
+      rows = assembleRosterRows(subjects, roster ?? [], marksMap, optionalMap, scheme, basis)
     }
   }
 
