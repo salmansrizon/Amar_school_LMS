@@ -26,6 +26,11 @@ export interface SchoolHeader {
   eiin_no: string | null
 }
 
+export interface ClaimCode {
+  code: string
+  redeemed_at: string | null
+}
+
 // Per-school super-admin controls: edit header info, subdomain rename, trial,
 // owner reset, claim code (issue #111).
 export function SchoolManagement({
@@ -33,12 +38,14 @@ export function SchoolManagement({
   subdomain,
   hasOwner,
   header,
+  codes,
   lang,
 }: {
   schoolId: string
   subdomain: string | null
   hasOwner: boolean
   header: SchoolHeader
+  codes: ClaimCode[]
   lang: Lang
 }) {
   const [slug, setSlug] = useState(subdomain ?? '')
@@ -157,6 +164,29 @@ export function SchoolManagement({
           {t('schools.claimCode', lang)}: <span className="font-mono">{code}</span>
         </p>
       )}
+
+      {/* Claim-code registry: outstanding vs redeemed (issue #111). */}
+      <div className="flex flex-col gap-1">
+        <span className="text-xs font-semibold text-muted">{t('schools.claimCodes', lang)}</span>
+        {codes.length === 0 ? (
+          <span className="text-xs text-muted">{t('schools.noCodes', lang)}</span>
+        ) : (
+          <ul className="flex flex-col gap-1">
+            {codes.map((c) => (
+              <li key={c.code} className="flex items-center gap-2 text-sm">
+                <span className="font-mono">{c.code}</span>
+                <span
+                  className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
+                    c.redeemed_at ? 'bg-paper-muted text-muted' : 'bg-mint-soft text-mint-deep'
+                  }`}
+                >
+                  {c.redeemed_at ? t('schools.redeemed', lang) : t('schools.available', lang)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
       {note && <p className="text-sm text-mint-deep">{note}</p>}
       {error && <p className="text-sm text-alert-deep">{error}</p>}
     </div>
