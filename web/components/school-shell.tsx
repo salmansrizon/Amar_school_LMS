@@ -53,12 +53,11 @@ function NavLinks({
     titleKey: MessageKey
     children?: SchoolNavItem[]
   }[] = [{ screen: 'dashboard', href: '/school', titleKey: 'dash.dashboard' }, ...SCHOOL_MODULES]
-  // One link renderer, used for both levels: a child differs only by indent
-  // (issue #101). Grants are still checked per entry — nesting is presentation.
-  const renderLink = (
-    item: { screen: ScreenKey | 'dashboard'; href: string; titleKey: MessageKey },
-    child = false,
-  ) => {
+  // One link renderer for both levels. Parent and child rows share the same
+  // icon size, font size, and left alignment so every icon lines up in one
+  // vertical column (ui.md issue 1 / #142) — nesting is grouping only, not an
+  // indent. Grants are still checked per entry.
+  const renderLink = (item: { screen: ScreenKey | 'dashboard'; href: string; titleKey: MessageKey }) => {
     if (item.screen !== 'dashboard' && !canOpenScreen(role, grants, item.screen)) return null
     const active = item.href === '/school' ? pathname === '/school' : pathname.startsWith(item.href)
     const label = t(item.titleKey, lang)
@@ -70,12 +69,12 @@ function NavLinks({
         aria-current={active ? 'page' : undefined}
         title={collapsed ? label : undefined}
         className={`flex min-h-11 items-center gap-3 rounded-xl py-2.5 text-sm font-semibold transition ${FOCUS} ${
-          collapsed ? 'justify-center px-0' : child ? 'pl-9 pr-3' : 'px-3'
+          collapsed ? 'justify-center px-0' : 'px-3'
         } ${active ? 'bg-brand-50 text-brand-700' : 'text-muted hover:bg-brand-50/60 hover:text-brand-600'}`}
       >
         <Icon
           name={item.screen}
-          className={`shrink-0 ${child ? 'size-4' : 'size-5'} ${active ? 'text-brand-600' : 'text-muted'}`}
+          className={`size-5 shrink-0 ${active ? 'text-brand-600' : 'text-muted'}`}
         />
         {!collapsed && <span className="truncate">{label}</span>}
       </Link>
@@ -91,7 +90,7 @@ function NavLinks({
         return (
           <div key={item.href} className="flex flex-col gap-1">
             {parent}
-            {children.map((child) => renderLink(child, true))}
+            {children.map((child) => renderLink(child))}
           </div>
         )
       })}
@@ -226,10 +225,13 @@ export function SchoolShell({
   return (
     // Fixed app-shell: the viewport height is locked and only the main content
     // area scrolls, so the sidebar and topbar stay put while the page scrolls.
-    <div className="relative flex h-dvh overflow-hidden">
+    // Printing a page under this shell must yield only the printable, no chrome
+    // (issue #145): the sidebar, topbar and scroll frame are all print:hidden /
+    // print-neutralised so window.print() emits just the <main> content.
+    <div className="relative flex h-dvh overflow-hidden print:block print:h-auto print:overflow-visible">
       {/* Desktop sidebar (collapsible to an icon-only rail) */}
       <aside
-        className={`hidden h-full shrink-0 flex-col border-r border-line/70 bg-paper py-5 transition-[width] lg:flex ${
+        className={`hidden h-full shrink-0 flex-col border-r border-line/70 bg-paper py-5 transition-[width] print:hidden lg:flex ${
           collapsed ? 'w-20 px-2' : 'w-64 px-4'
         }`}
       >
@@ -269,9 +271,9 @@ export function SchoolShell({
         </div>
       )}
 
-      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden print:block print:overflow-visible">
         {/* Topbar (fixed — outside the scroll area) */}
-        <header className="z-20 shrink-0 border-b border-line/70 bg-paper/90 px-4 py-3 backdrop-blur">
+        <header className="z-20 shrink-0 border-b border-line/70 bg-paper/90 px-4 py-3 backdrop-blur print:hidden">
           <div className="flex items-center gap-3">
             <button
               type="button"
@@ -329,10 +331,10 @@ export function SchoolShell({
           </div>
         </header>
 
-        <main className="relative flex-1 overflow-hidden bg-paper-muted">
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgb(47_126_255_/_0.06),_transparent_28%),radial-gradient(circle_at_top_right,_rgb(0_210_106_/_0.06),_transparent_24%)]" />
-          <div className="relative h-full overflow-y-auto overflow-x-hidden">
-            <div className="mx-auto w-full max-w-7xl px-4 pt-6 pb-10 sm:px-6 lg:px-8">{children}</div>
+        <main className="relative flex-1 overflow-hidden bg-paper-muted print:overflow-visible print:bg-transparent">
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgb(47_126_255_/_0.06),_transparent_28%),radial-gradient(circle_at_top_right,_rgb(0_210_106_/_0.06),_transparent_24%)] print:hidden" />
+          <div className="relative h-full overflow-y-auto overflow-x-hidden print:h-auto print:overflow-visible">
+            <div className="mx-auto w-full max-w-7xl px-4 pt-6 pb-10 sm:px-6 lg:px-8 print:mx-0 print:max-w-none print:p-0">{children}</div>
           </div>
         </main>
       </div>

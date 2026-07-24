@@ -691,6 +691,22 @@ const dict = {
     en: 'Powered by Amar School Management',
   },
   'print.qr': { bn: 'QR কোড', en: 'QR Code' },
+  'verify.valid': { bn: 'বৈধ পরিচয়পত্র', en: 'Valid ID card' },
+  'verify.invalid': { bn: 'অবৈধ পরিচয়পত্র', en: 'Invalid ID card' },
+  'verify.validNote': {
+    bn: 'এই শিক্ষার্থী বর্তমানে প্রতিষ্ঠানে নথিভুক্ত।',
+    en: 'This student is currently enrolled at the institution.',
+  },
+  'verify.invalidNote': {
+    bn: 'এই পরিচয়পত্র আর বৈধ নয় — শিক্ষার্থী আর নথিভুক্ত নেই।',
+    en: 'This card is no longer valid — the student is no longer enrolled.',
+  },
+  'verify.notFound': { bn: 'পরিচয়পত্র খুঁজে পাওয়া যায়নি', en: 'Card not found' },
+  'verify.notFoundNote': {
+    bn: 'এই QR কোডটি কোনো পরিচয়পত্রের সাথে মেলে না।',
+    en: 'This QR code does not match any ID card.',
+  },
+  'verify.issuedBy': { bn: 'প্রদানকারী', en: 'Issued by' },
   'markSheet.title': { bn: 'মার্কশিট প্রিভিউ', en: 'Mark Sheet Preview' },
   'markSheet.sampleNote': {
     bn: 'নমুনা তথ্য — প্রকৃত ফলাফল পরীক্ষার মডিউল চালু হলে দেখা যাবে।',

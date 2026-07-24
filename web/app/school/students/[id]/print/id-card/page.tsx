@@ -1,11 +1,13 @@
 import Link from 'next/link'
+import { headers } from 'next/headers'
 import { notFound, redirect } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
 import { t } from '@/lib/i18n'
 import { createClient } from '@/lib/supabase/server'
-import { PrintPage, QrFooterRow } from '@/components/print/pieces'
+import { PrintPage } from '@/components/print/pieces'
 import { PrintButton } from '@/components/print/print-button'
 import { loadInstitutePrintHeader } from '@/lib/institute-print'
+import { renderAuthenticityQr } from '@/lib/qr'
 
 // Printable student ID card (issue #46, PRD §5.1). ADR 0007: browser-native
 // print. A photo upload flow lands with the admission profile (#27); until
@@ -28,13 +30,22 @@ export default async function IdCardPrintPage({ params }: { params: Promise<{ id
     loadInstitutePrintHeader(supabase, lang),
     supabase
       .from('students')
-      .select('full_name, class_name, section, roll_number, blood_group, guardian_mobile')
+      .select('full_name, class_name, section, roll_number, blood_group, guardian_mobile, public_token')
       .eq('id', id)
       .maybeSingle(),
   ])
   if (!institute || !student) notFound()
 
   const v = (x: string | number | null | undefined) => (x === null || x === undefined || x === '' ? dash : x)
+
+  // Real, scannable QR (issues #143/#144): an absolute URL to the public,
+  // unauthenticated verification page. Built from the request host so it works
+  // on any tenant subdomain (#104). The token is opaque — never the row id.
+  const h = await headers()
+  const host = h.get('host')
+  const proto = h.get('x-forwarded-proto') ?? 'https'
+  const verifyUrl = `${proto}://${host}/verify/${student.public_token}`
+  const qrSvg = await renderAuthenticityQr(verifyUrl)
 
   return (
     <main className="mx-auto w-full max-w-4xl flex-1 p-6">
@@ -68,8 +79,17 @@ export default async function IdCardPrintPage({ params }: { params: Promise<{ id
             <dt className="text-muted">{t('students.guardianMobile', lang)}</dt>
             <dd>{v(student.guardian_mobile)}</dd>
           </dl>
+          {/* QR sits at the bottom of the card, centred under the mobile number
+              (#143). Scanning it opens the public verification page (#144). */}
+          <div
+            className="mx-auto mt-3 flex size-24 items-center justify-center"
+            aria-label={t('print.qr', lang)}
+            // qrSvg is the `qrcode` package's output — SVG <path> geometry, not
+            // the payload string echoed back — so injecting it is safe even
+            // though the encoded URL includes the request host.
+            dangerouslySetInnerHTML={{ __html: qrSvg }}
+          />
         </div>
-        <QrFooterRow qrLabel={t('print.qr', lang)} poweredBy={t('print.poweredBy', lang)} />
       </PrintPage>
     </main>
   )
