@@ -123,7 +123,7 @@ function ItemRow({
               type="button"
               disabled={pending}
               onClick={() => {
-                if (confirm(t('institute.checklistDeleteConfirm', lang))) run(() => deleteChecklistItem(item.id))
+                if (window.confirm(t('institute.checklistDeleteConfirm', lang))) run(() => deleteChecklistItem(item.id))
               }}
               className="cursor-pointer rounded-full border border-alert-deep/40 px-3 py-1 text-xs font-semibold text-alert-deep hover:bg-alert-soft disabled:opacity-50"
             >

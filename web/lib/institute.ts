@@ -71,15 +71,8 @@ export type ChecklistTicks = Record<string, boolean>
 
 export type ChecklistRow = { checklist_date: string; ticks: ChecklistTicks }
 
-/** The 5 items every school starts with — kept only as the reference default
- *  (the DB seed lives in migration 0066); the app reads real items from the DB. */
-export const DEFAULT_CHECKLIST_ITEMS: { label_bn: string; label_en: string }[] = [
-  { label_bn: 'পতাকা উত্তোলন করা হয়েছে', label_en: 'Flag hoisted' },
-  { label_bn: 'জাতীয় সংগীত পরিবেশিত হয়েছে', label_en: 'National anthem rendered' },
-  { label_bn: 'সমাবেশ অনুষ্ঠিত হয়েছে', label_en: 'Assembly held' },
-  { label_bn: 'সময়মতো ক্লাস শুরু হয়েছে', label_en: 'Classes started on time' },
-  { label_bn: 'প্রাঙ্গণ পরিষ্কার করা হয়েছে', label_en: 'Premises cleaned' },
-]
+// The 5 items every school starts with are seeded per school in migration 0066
+// (the DB is the source of truth); the app reads real items from there.
 
 /** This item's label in the active language. */
 export function itemLabel(item: ActivityChecklistItem, lang: 'bn' | 'en'): string {
