@@ -25,7 +25,10 @@ export default async function SchoolsPage() {
   if (me?.role !== 'super_admin') redirect('/super-admin')
 
   const [{ data: schools }, { data: redeemed }, { data: owners }] = await Promise.all([
-    supabase.from('schools').select('id, name, subscription_expires_at, subdomain').order('name'),
+    supabase
+      .from('schools')
+      .select('id, name, subscription_expires_at, subdomain, address_line, mobile, email, eiin_no')
+      .order('name'),
     supabase.rpc('schools_with_code_history'),
     supabase.from('profiles').select('school_id').eq('role', 'school_owner'),
   ])
@@ -85,6 +88,12 @@ export default async function SchoolsPage() {
                 schoolId={s.id}
                 subdomain={s.subdomain}
                 hasOwner={withOwner.has(s.id)}
+                header={{
+                  address_line: s.address_line,
+                  mobile: s.mobile,
+                  email: s.email,
+                  eiin_no: s.eiin_no,
+                }}
                 lang={lang}
               />
             </section>

@@ -6,7 +6,10 @@ import type { MessageKey } from '@/lib/i18n'
 export function claimErrorKey(message: string | undefined): MessageKey {
   const m = (message ?? '').toLowerCase()
   if (m.includes('already used') || m.includes('invalid code')) return 'claim.invalidCode'
-  if (m.includes('subdomain already taken')) return 'claim.slugTaken'
+  // 'subdomain already taken' (pre-check) or a raw unique_violation on a race.
+  if (m.includes('subdomain already taken') || m.includes('duplicate key') || m.includes('unique')) {
+    return 'claim.slugTaken'
+  }
   if (m.includes('invalid subdomain')) return 'claim.slugInvalid'
   if (m.includes('profile already exists')) return 'claim.alreadyOwner'
   return 'claim.failed'

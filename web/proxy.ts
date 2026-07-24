@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { canAccess, homeFor, isProtectedPath, type Role } from '@/lib/auth/routing'
 import { canOpenScreen, screenKeyForPath } from '@/lib/auth/screens'
 import { resolveHost, rootDomain } from '@/lib/auth/tenant-host'
-import { tenantRoute, type TenantSession } from '@/lib/auth/tenant-routing'
+import { isSchoolPath, tenantRoute, type TenantSession } from '@/lib/auth/tenant-routing'
 
 // Optimistic auth gate for the role route groups (ADR 0003) + subdomain→tenant
 // routing (issue #109). Pages and RLS re-verify — this layer only routes:
@@ -45,22 +45,26 @@ export async function proxy(request: NextRequest) {
     schoolForHostId = (data as { id: string }[] | null)?.[0]?.id ?? null
   }
 
-  // The caller's own role + school + subdomain, for cross-subdomain bouncing.
+  // The caller's own role + school + subdomain, for cross-subdomain bouncing and
+  // role gating. Skip the lookup on public apex paths (marketing/login) that
+  // need neither — only tenant hosts, /school, and protected groups do.
   let session: TenantSession | null = null
   let profileRole: Role | null = null
-  if (user) {
+  const needsProfile =
+    !!user && (host.kind === 'tenant' || isSchoolPath(path) || isProtectedPath(path))
+  if (needsProfile) {
     const { data: profile } = await supabase
       .from('profiles')
       .select('role, school_id, schools(subdomain)')
-      .eq('id', user.id)
+      .eq('id', user!.id)
       .single()
     if (profile) {
       profileRole = profile.role as Role
-      const ownSubdomain =
-        (profile.schools as { subdomain: string | null } | { subdomain: string | null }[] | null)
-          ? extractSubdomain(profile.schools)
-          : null
-      session = { role: profileRole, schoolId: profile.school_id ?? null, ownSubdomain }
+      session = {
+        role: profileRole,
+        schoolId: profile.school_id ?? null,
+        ownSubdomain: extractSubdomain(profile.schools),
+      }
     }
   }
 

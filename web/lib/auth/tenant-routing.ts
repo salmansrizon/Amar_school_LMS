@@ -28,7 +28,7 @@ export type TenantAction =
   /** Bounce to the same path on the user's own subdomain. */
   | { type: 'redirect-subdomain'; slug: string; path: string }
 
-function isSchoolPath(path: string): boolean {
+export function isSchoolPath(path: string): boolean {
   return path === '/school' || path.startsWith('/school/')
 }
 

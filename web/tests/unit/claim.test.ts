@@ -6,8 +6,9 @@ describe('claimErrorKey', () => {
     expect(claimErrorKey('invalid code')).toBe('claim.invalidCode')
     expect(claimErrorKey('code already used')).toBe('claim.invalidCode')
   })
-  it('maps taken subdomain', () => {
+  it('maps taken subdomain (pre-check + race unique_violation)', () => {
     expect(claimErrorKey('subdomain already taken')).toBe('claim.slugTaken')
+    expect(claimErrorKey('duplicate key value violates unique constraint')).toBe('claim.slugTaken')
   })
   it('maps invalid subdomain', () => {
     expect(claimErrorKey('invalid subdomain')).toBe('claim.slugInvalid')
