@@ -90,7 +90,7 @@ export function DashboardChecklist({
               className={`group relative flex min-h-24 flex-col justify-between gap-3 rounded-2xl border p-4 text-left shadow-card backdrop-blur transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 focus-visible:ring-offset-2 ${
                 checked
                   ? 'border-mint-deep/30 bg-mint-soft/60'
-                  : 'border-sun-deep/40 bg-sun-soft/50 motion-safe:animate-pulse'
+                  : 'border-sun-deep/40 bg-sun-soft/50'
               }`}
             >
               <div className="flex items-center justify-between gap-2">
@@ -104,7 +104,7 @@ export function DashboardChecklist({
                   </svg>
                 </span>
                 {!checked && (
-                  <span className="rounded-full bg-sun-deep/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-sun-deep">
+                  <span className="rounded-full bg-sun-deep/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-sun-deep motion-safe:animate-pulse">
                     {t('dash.checklistDue', lang)}
                   </span>
                 )}

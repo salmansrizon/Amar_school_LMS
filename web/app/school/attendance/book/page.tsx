@@ -205,7 +205,7 @@ export default async function AttendanceBookPage({
             }
           >
 
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto print:overflow-visible">
             <table className="w-full border-collapse text-xs whitespace-nowrap">
               <thead>
                 <tr>
