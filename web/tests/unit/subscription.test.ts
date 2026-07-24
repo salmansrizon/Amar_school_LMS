@@ -34,8 +34,17 @@ describe('expiryAfterDecrease (issue #6)', () => {
 })
 
 describe('subscriptionStatus', () => {
-  it('no code history → trial, regardless of expiry field', () => {
+  it('no code history + no expiry → open-ended trial', () => {
     expect(subscriptionStatus(false, null, TODAY)).toBe('trial')
+  })
+  it('no code history + future expiry → trial (active demo window)', () => {
+    expect(subscriptionStatus(false, new Date('2026-07-20'), TODAY)).toBe('trial')
+  })
+  it('no code history + expiry today → still trial', () => {
+    expect(subscriptionStatus(false, new Date('2026-07-08'), TODAY)).toBe('trial')
+  })
+  it('no code history + past expiry → expired (trial lapsed)', () => {
+    expect(subscriptionStatus(false, new Date('2026-07-07'), TODAY)).toBe('expired')
   })
   it('code history + future expiry → active', () => {
     expect(subscriptionStatus(true, new Date('2026-09-01'), TODAY)).toBe('active')

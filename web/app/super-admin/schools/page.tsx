@@ -5,6 +5,8 @@ import { t } from '@/lib/i18n'
 import { subscriptionStatus } from '@/lib/subscription'
 import { createClient } from '@/lib/supabase/server'
 import { SchoolSubscriptionControls } from './subscription-controls'
+import { SchoolManagement } from './school-management'
+import { CreateSchoolForm } from './create-school-form'
 
 const STATUS_STYLE = {
   trial: 'bg-sky-soft text-sky-deep',
@@ -22,13 +24,18 @@ export default async function SchoolsPage() {
   const { data: me } = await supabase.from('profiles').select('role').eq('id', user.id).single()
   if (me?.role !== 'super_admin') redirect('/super-admin')
 
-  const [{ data: schools }, { data: redeemed }] = await Promise.all([
-    supabase.from('schools').select('id, name, subscription_expires_at').order('name'),
+  const [{ data: schools }, { data: redeemed }, { data: owners }] = await Promise.all([
+    supabase
+      .from('schools')
+      .select('id, name, subscription_expires_at, subdomain, address_line, mobile, email, eiin_no')
+      .order('name'),
     supabase.rpc('schools_with_code_history'),
+    supabase.from('profiles').select('school_id').eq('role', 'school_owner'),
   ])
   // `returns setof uuid` (scalar) → PostgREST returns bare strings, not
   // {column: value} objects (verified against the live API).
   const withHistory = new Set((redeemed ?? []) as string[])
+  const withOwner = new Set((owners ?? []).map((o) => o.school_id as string))
   const today = new Date(new Date().toISOString().slice(0, 10))
 
   const statusKey = { trial: 'schools.trial', active: 'schools.active', expired: 'schools.expired' } as const
@@ -41,6 +48,11 @@ export default async function SchoolsPage() {
           ← {t('home.superAdmin', lang)}
         </Link>
       </div>
+
+      <section className="mb-6 rounded-lg border border-line bg-paper p-5 shadow-card">
+        <h2 className="mb-3 font-bold">{t('schools.create', lang)}</h2>
+        <CreateSchoolForm lang={lang} />
+      </section>
 
       <div className="flex flex-col gap-4">
         {schools?.map((s) => {
@@ -61,10 +73,27 @@ export default async function SchoolsPage() {
                   )}
                 </span>
               </div>
+              {s.subdomain && (
+                <p className="mb-2 text-sm text-muted">
+                  {t('schools.subdomain', lang)}: <span className="font-mono">{s.subdomain}</span>
+                </p>
+              )}
               <SchoolSubscriptionControls
                 schoolId={s.id}
                 expiry={s.subscription_expires_at}
                 status={status}
+                lang={lang}
+              />
+              <SchoolManagement
+                schoolId={s.id}
+                subdomain={s.subdomain}
+                hasOwner={withOwner.has(s.id)}
+                header={{
+                  address_line: s.address_line,
+                  mobile: s.mobile,
+                  email: s.email,
+                  eiin_no: s.eiin_no,
+                }}
                 lang={lang}
               />
             </section>

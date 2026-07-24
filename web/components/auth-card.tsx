@@ -1,15 +1,48 @@
 import { LangSwitch } from '@/components/lang-switch'
 import { t, type Lang } from '@/lib/i18n'
+import { brandInitial, type SchoolBrand } from '@/lib/school-branding'
 
 export function AuthCard({
   lang,
   title,
+  brand,
   children,
 }: {
   lang: Lang
   title: string
+  /** When present, render the school's logo + name beside the form (issue #110). */
+  brand?: SchoolBrand | null
   children: React.ReactNode
 }) {
+  if (brand) {
+    return (
+      <main className="flex flex-1 items-center justify-center p-4">
+        <div className="grid w-full max-w-3xl overflow-hidden rounded-lg border border-line bg-paper shadow-card sm:grid-cols-2">
+          <div className="flex flex-col items-center justify-center gap-3 border-b border-line bg-brand-50 p-8 text-center sm:border-b-0 sm:border-r">
+            {brand.logoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={brand.logoUrl} alt="" className="size-20 rounded-md object-contain" />
+            ) : (
+              <span className="flex size-20 items-center justify-center rounded-md bg-brand-500 text-2xl font-bold text-white">
+                {brandInitial(brand.name)}
+              </span>
+            )}
+            <span className="text-lg font-extrabold">{brand.name}</span>
+            <span className="text-xs text-muted">{t('brandedLogin.tagline', lang)}</span>
+          </div>
+          <div className="p-6">
+            <div className="mb-4 flex items-center justify-between">
+              <span className="text-xs font-semibold text-muted">{t('app.name', lang)}</span>
+              <LangSwitch lang={lang} />
+            </div>
+            <h1 className="mb-4 text-xl font-bold">{title}</h1>
+            {children}
+          </div>
+        </div>
+      </main>
+    )
+  }
+
   return (
     <main className="flex flex-1 items-center justify-center p-4">
       <div className="w-full max-w-sm rounded-lg border border-line bg-paper p-6 shadow-card">

@@ -24,18 +24,9 @@ export async function GET(request: Request) {
   } = await supabase.auth.getUser()
   if (!user) return NextResponse.redirect(new URL('/login', url.origin))
 
-  // First confirmed visit after signup: create the School + owner profile.
-  let { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-  if (!profile) {
-    const schoolName = user.user_metadata?.school_name
-    if (typeof schoolName === 'string' && schoolName.trim()) {
-      const { error: rpcError } = await supabase.rpc('register_school', {
-        school_name: schoolName.trim(),
-      })
-      if (!rpcError) profile = { role: 'school_owner' }
-    }
-  }
-
-  const dest = profile ? homeFor(profile.role as Role) : '/login'
+  // Self-service registration was removed (issue #111, decision #107). An
+  // unbound confirmed user is a school owner who must redeem a claim code.
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+  const dest = profile ? homeFor(profile.role as Role) : '/claim'
   return NextResponse.redirect(new URL(dest, url.origin))
 }

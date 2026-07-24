@@ -29,13 +29,21 @@ export function expiryAfterDecrease(currentExpiry: Date, months: number): Date {
 
 export type SubscriptionStatus = 'trial' | 'active' | 'expired'
 
-/** Trial is defined purely by the absence of code history (CONTEXT.md). */
+/**
+ * A school with no code history is on a trial (issue #111): time-boxed to its
+ * expiry when one is set (demo window), or open-ended when none was ever set
+ * (a school that never got a trial must not silently flip to expired). A school
+ * with code history is active while its paid expiry holds, else expired.
+ */
 export function subscriptionStatus(
   hasCodeHistory: boolean,
   expiry: Date | null,
   today: Date,
 ): SubscriptionStatus {
-  if (!hasCodeHistory) return 'trial'
+  if (!hasCodeHistory) {
+    if (expiry === null) return 'trial'
+    return expiry >= today ? 'trial' : 'expired'
+  }
   if (expiry && expiry >= today) return 'active'
   return 'expired'
 }
