@@ -108,34 +108,32 @@ describe('Institute Setup & Misc (issue #39)', () => {
 
   describe('daily checklist', () => {
     it('lets a school member upsert and then read back today’s checklist', async () => {
+      // Tick state is a jsonb map of item id -> true (#150); the keys here are
+      // opaque to this tenant-isolation test.
       const { error: insertErr } = await ownerA.from('daily_checklists').insert({
         checklist_date: CHECKLIST_DATE,
-        flag_hoisted: true,
-        anthem_rendered: true,
-        assembly_held: true,
-        classes_started_on_time: false,
-        premises_cleaned: true,
+        ticks: { 'item-1': true, 'item-2': true },
       })
       expect(insertErr).toBeNull()
 
       const { error: upsertErr } = await ownerA
         .from('daily_checklists')
-        .update({ classes_started_on_time: true })
+        .update({ ticks: { 'item-1': true, 'item-2': true, 'item-3': true } })
         .eq('checklist_date', CHECKLIST_DATE)
       expect(upsertErr).toBeNull()
 
       const { data } = await ownerA
         .from('daily_checklists')
-        .select('classes_started_on_time')
+        .select('ticks')
         .eq('checklist_date', CHECKLIST_DATE)
         .single()
-      expect(data?.classes_started_on_time).toBe(true)
+      expect((data?.ticks as Record<string, boolean>)?.['item-3']).toBe(true)
     })
 
     it('a granted Staff User (not just the Owner) can also write checklist rows', async () => {
       const { error } = await staff
         .from('daily_checklists')
-        .update({ premises_cleaned: true })
+        .update({ ticks: { 'item-9': true } })
         .eq('checklist_date', CHECKLIST_DATE)
       expect(error).toBeNull()
     })

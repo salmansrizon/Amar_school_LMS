@@ -2,15 +2,25 @@ import { describe, it, expect } from 'vitest'
 import {
   EDUCATION_LEVELS,
   validateInstituteProfile,
-  CHECKLIST_ITEMS,
   completedCount,
   checklistStatus,
   pendingChecklistItems,
   filterChecklistRange,
   matchesLogisticsQuery,
+  type ActivityChecklistItem,
   type ChecklistRow,
   type InstituteProfileInput,
 } from '@/lib/institute'
+
+// The checklist is now an editable template of items (ids) plus a per-day tick
+// map of item id -> true; helpers take both, hardcoding nothing.
+const ITEMS: ActivityChecklistItem[] = [
+  { id: 'a', label_bn: 'পতাকা', label_en: 'Flag hoisted', sort_order: 0 },
+  { id: 'b', label_bn: 'সংগীত', label_en: 'Anthem', sort_order: 1 },
+  { id: 'c', label_bn: 'সমাবেশ', label_en: 'Assembly', sort_order: 2 },
+  { id: 'd', label_bn: 'ক্লাস', label_en: 'Classes on time', sort_order: 3 },
+  { id: 'e', label_bn: 'পরিষ্কার', label_en: 'Premises cleaned', sort_order: 4 },
+]
 
 // Institute Setup & Misc (issue #39, PRD §5.11) domain seams: profile field
 // validation and checklist date-range reporting, kept pure for unit testing.
@@ -95,74 +105,52 @@ describe('EDUCATION_LEVELS', () => {
   })
 })
 
+// Default day: a,b,c,e ticked, d pending (4 of 5).
 const checklistRow = (over: Partial<ChecklistRow> = {}): ChecklistRow => ({
   checklist_date: '2026-07-05',
-  flag_hoisted: true,
-  anthem_rendered: true,
-  assembly_held: true,
-  classes_started_on_time: false,
-  premises_cleaned: true,
+  ticks: { a: true, b: true, c: true, e: true },
   ...over,
 })
 
 describe('completedCount / checklistStatus', () => {
-  it('counts checked items out of the fixed 5', () => {
-    expect(completedCount(checklistRow())).toBe(4)
-    expect(CHECKLIST_ITEMS.length).toBe(5)
+  it('counts ticked items against the current template', () => {
+    expect(completedCount(ITEMS, checklistRow().ticks)).toBe(4)
+    expect(ITEMS.length).toBe(5)
   })
 
-  it('reports "partial" when some but not all items are checked', () => {
-    expect(checklistStatus(checklistRow())).toBe('partial')
+  it('reports "partial" when some but not all items are ticked', () => {
+    expect(checklistStatus(ITEMS, checklistRow().ticks)).toBe('partial')
   })
 
-  it('reports "complete" when every item is checked', () => {
-    expect(
-      checklistStatus(
-        checklistRow({
-          classes_started_on_time: true,
-        }),
-      ),
-    ).toBe('complete')
+  it('reports "complete" when every item is ticked', () => {
+    expect(checklistStatus(ITEMS, { a: true, b: true, c: true, d: true, e: true })).toBe('complete')
   })
 
-  it('reports "none" when nothing is checked', () => {
-    expect(
-      checklistStatus({
-        checklist_date: '2026-07-05',
-        flag_hoisted: false,
-        anthem_rendered: false,
-        assembly_held: false,
-        classes_started_on_time: false,
-        premises_cleaned: false,
-      }),
-    ).toBe('none')
+  it('reports "none" when nothing is ticked', () => {
+    expect(checklistStatus(ITEMS, {})).toBe('none')
+  })
+
+  it('reports "none" for an empty template', () => {
+    expect(checklistStatus([], { a: true })).toBe('none')
   })
 })
 
 describe('pendingChecklistItems', () => {
-  it('returns the unchecked item keys (the "due today" set)', () => {
-    // checklistRow() has only classes_started_on_time false.
-    expect(pendingChecklistItems(checklistRow())).toEqual(['classes_started_on_time'])
+  it('returns the un-ticked item ids (the "due today" set)', () => {
+    // checklistRow() leaves only item d pending.
+    expect(pendingChecklistItems(ITEMS, checklistRow().ticks)).toEqual(['d'])
   })
 
-  it('treats a missing row as every item pending — nothing recorded today yet', () => {
-    expect(pendingChecklistItems(null)).toEqual(CHECKLIST_ITEMS.map((i) => i.key))
+  it('treats a missing tick map as every item pending — nothing recorded today yet', () => {
+    expect(pendingChecklistItems(ITEMS, null)).toEqual(ITEMS.map((i) => i.id))
   })
 
   it('returns an empty list when the whole checklist is complete', () => {
-    expect(pendingChecklistItems(checklistRow({ classes_started_on_time: true }))).toEqual([])
+    expect(pendingChecklistItems(ITEMS, { a: true, b: true, c: true, d: true, e: true })).toEqual([])
   })
 
-  it('preserves the fixed CHECKLIST_ITEMS order', () => {
-    expect(
-      pendingChecklistItems({
-        flag_hoisted: false,
-        anthem_rendered: true,
-        assembly_held: false,
-        classes_started_on_time: true,
-        premises_cleaned: false,
-      }),
-    ).toEqual(['flag_hoisted', 'assembly_held', 'premises_cleaned'])
+  it('preserves the template (sort) order', () => {
+    expect(pendingChecklistItems(ITEMS, { b: true, d: true })).toEqual(['a', 'c', 'e'])
   })
 })
 

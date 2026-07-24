@@ -50,43 +50,69 @@ export function validateInstituteProfile(input: InstituteProfileInput): Institut
   return null
 }
 
-// Administrative daily checklist (PRD §5.11).
+// Administrative daily checklist (PRD §5.11, ui.md issue 4 / #150).
+//
+// The item list is now an editable, school-scoped template
+// (activity_checklist_items) rather than a fixed 5, and a day's tick state is a
+// jsonb map of item id -> true (daily_checklists.ticks). Helpers take the
+// current template plus that map, so nothing here hardcodes the items.
 
-export const CHECKLIST_ITEMS = [
-  { key: 'flag_hoisted', label: { bn: 'পতাকা উত্তোলন করা হয়েছে', en: 'Flag hoisted' } },
-  {
-    key: 'anthem_rendered',
-    label: { bn: 'জাতীয় সংগীত পরিবেশিত হয়েছে', en: 'National anthem rendered' },
-  },
-  { key: 'assembly_held', label: { bn: 'সমাবেশ অনুষ্ঠিত হয়েছে', en: 'Assembly held' } },
-  {
-    key: 'classes_started_on_time',
-    label: { bn: 'সময়মতো ক্লাস শুরু হয়েছে', en: 'Classes started on time' },
-  },
-  { key: 'premises_cleaned', label: { bn: 'প্রাঙ্গণ পরিষ্কার করা হয়েছে', en: 'Premises cleaned' } },
-] as const
-
-export type ChecklistItemKey = (typeof CHECKLIST_ITEMS)[number]['key']
-
-export type ChecklistRow = { checklist_date: string } & Record<ChecklistItemKey, boolean>
-
-/** How many of the fixed 5 items are checked on this row. */
-export function completedCount(row: ChecklistRow): number {
-  return CHECKLIST_ITEMS.reduce((n, item) => n + (row[item.key] ? 1 : 0), 0)
+export interface ActivityChecklistItem {
+  id: string
+  label_bn: string
+  label_en: string
+  sort_order: number
 }
 
-/** The still-unchecked item keys for a day, in the fixed CHECKLIST_ITEMS
- *  order — the "due today" set the dashboard widget highlights. A missing row
- *  (nothing recorded yet) means every item is pending. */
-export function pendingChecklistItems(row: Record<ChecklistItemKey, boolean> | null): ChecklistItemKey[] {
-  return CHECKLIST_ITEMS.filter((item) => !row?.[item.key]).map((item) => item.key)
+/** A day's tick state: item id -> whether it was checked. A missing key (or a
+ *  false value) means unchecked; keys for since-deleted items are simply
+ *  ignored, since counts and status are always taken against the live items. */
+export type ChecklistTicks = Record<string, boolean>
+
+export type ChecklistRow = { checklist_date: string; ticks: ChecklistTicks }
+
+/** The 5 items every school starts with — kept only as the reference default
+ *  (the DB seed lives in migration 0066); the app reads real items from the DB. */
+export const DEFAULT_CHECKLIST_ITEMS: { label_bn: string; label_en: string }[] = [
+  { label_bn: 'পতাকা উত্তোলন করা হয়েছে', label_en: 'Flag hoisted' },
+  { label_bn: 'জাতীয় সংগীত পরিবেশিত হয়েছে', label_en: 'National anthem rendered' },
+  { label_bn: 'সমাবেশ অনুষ্ঠিত হয়েছে', label_en: 'Assembly held' },
+  { label_bn: 'সময়মতো ক্লাস শুরু হয়েছে', label_en: 'Classes started on time' },
+  { label_bn: 'প্রাঙ্গণ পরিষ্কার করা হয়েছে', label_en: 'Premises cleaned' },
+]
+
+/** This item's label in the active language. */
+export function itemLabel(item: ActivityChecklistItem, lang: 'bn' | 'en'): string {
+  return lang === 'bn' ? item.label_bn : item.label_en
+}
+
+/** Whether an item id is ticked in a day's tick map. */
+export function isTicked(ticks: ChecklistTicks | null | undefined, id: string): boolean {
+  return Boolean(ticks?.[id])
+}
+
+/** How many of the current template items are ticked for this day. */
+export function completedCount(items: ActivityChecklistItem[], ticks: ChecklistTicks | null): number {
+  return items.reduce((n, item) => n + (isTicked(ticks, item.id) ? 1 : 0), 0)
+}
+
+/** The still-unchecked item ids for a day, in template order — the "due today"
+ *  set the dashboard widget highlights. A null tick map means every item is
+ *  pending. */
+export function pendingChecklistItems(
+  items: ActivityChecklistItem[],
+  ticks: ChecklistTicks | null,
+): string[] {
+  return items.filter((item) => !isTicked(ticks, item.id)).map((item) => item.id)
 }
 
 export type ChecklistStatus = 'complete' | 'partial' | 'none'
 
-export function checklistStatus(row: ChecklistRow): ChecklistStatus {
-  const n = completedCount(row)
-  if (n === CHECKLIST_ITEMS.length) return 'complete'
+/** complete = every item ticked, none = zero ticked (or no items), else
+ *  partial. An empty template reads as 'none'. */
+export function checklistStatus(items: ActivityChecklistItem[], ticks: ChecklistTicks | null): ChecklistStatus {
+  const n = completedCount(items, ticks)
+  if (items.length > 0 && n === items.length) return 'complete'
   if (n === 0) return 'none'
   return 'partial'
 }

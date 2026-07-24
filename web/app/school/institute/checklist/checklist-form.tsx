@@ -3,17 +3,19 @@
 import { useState, useTransition } from 'react'
 import { primaryBtnClass } from '@/components/auth-card'
 import { t, type Lang } from '@/lib/i18n'
-import { CHECKLIST_ITEMS, type ChecklistItemKey } from '@/lib/institute'
+import { itemLabel, isTicked, type ActivityChecklistItem, type ChecklistTicks } from '@/lib/institute'
 import { saveChecklist } from './actions'
 
 export function ChecklistForm({
   lang,
   date,
-  row,
+  items,
+  ticks,
 }: {
   lang: Lang
   date: string
-  row: Record<ChecklistItemKey, boolean> | null
+  items: ActivityChecklistItem[]
+  ticks: ChecklistTicks | null
 }) {
   const [error, setError] = useState<string | null>(null)
   const [saved, setSaved] = useState(false)
@@ -31,14 +33,18 @@ export function ChecklistForm({
     })
   }
 
+  if (!items.length) {
+    return <p className="text-sm text-muted">{t('institute.checklistNoItems', lang)}</p>
+  }
+
   return (
     <form onSubmit={onSubmit}>
       <input type="hidden" name="checklist_date" value={date} />
       <div className="grid gap-2">
-        {CHECKLIST_ITEMS.map((item) => (
-          <label key={item.key} className="flex items-center gap-2 text-sm">
-            <input type="checkbox" name={item.key} defaultChecked={row?.[item.key] ?? false} />
-            {item.label[lang]}
+        {items.map((item) => (
+          <label key={item.id} className="flex items-center gap-2 text-sm">
+            <input type="checkbox" name={item.id} defaultChecked={isTicked(ticks, item.id)} />
+            {itemLabel(item, lang)}
           </label>
         ))}
       </div>

@@ -3,57 +3,62 @@
 import { useMemo, useState, useTransition } from 'react'
 import Link from 'next/link'
 import { t, type Lang } from '@/lib/i18n'
-import { CHECKLIST_ITEMS, pendingChecklistItems, type ChecklistItemKey } from '@/lib/institute'
+import {
+  itemLabel,
+  pendingChecklistItems,
+  type ActivityChecklistItem,
+  type ChecklistTicks,
+} from '@/lib/institute'
 import { Icon } from '@/components/school-icons'
 import { toggleDailyChecklist } from '@/app/school/dashboard-checklist-actions'
 
-// Dashboard Activity Checklist (issue #117): a checkable card grid above the
-// Upcoming feed. Reuses the daily_checklists model the Institute checklist
-// (#39) already owns — an item is "due" while unchecked today, highlighted
-// with a motion-safe pulse. Tapping a card optimistically toggles it and
-// persists via the toggleDailyChecklist server action; a failure reverts.
-
-type State = Record<ChecklistItemKey, boolean>
-
-function toState(row: Record<ChecklistItemKey, boolean> | null): State {
-  return Object.fromEntries(CHECKLIST_ITEMS.map((i) => [i.key, row?.[i.key] ?? false])) as State
-}
+// Dashboard Activity Checklist (issue #117, editable template #150): a checkable
+// card grid above the Upcoming feed, built from the school's checklist item
+// template plus today's tick map. An item is "due" while unticked today; only
+// its DUE status badge pulses (ui.md issue 5). Tapping a card optimistically
+// toggles it and persists via the toggleDailyChecklist server action; a failure
+// reverts.
 
 export function DashboardChecklist({
   lang,
   date,
-  row,
+  items,
+  ticks,
 }: {
   lang: Lang
   date: string
-  row: Record<ChecklistItemKey, boolean> | null
+  items: ActivityChecklistItem[]
+  ticks: ChecklistTicks | null
 }) {
-  const [state, setState] = useState<State>(() => toState(row))
+  const [state, setState] = useState<ChecklistTicks>(() => ({ ...(ticks ?? {}) }))
   const [error, setError] = useState<string | null>(null)
   const [, startTransition] = useTransition()
 
-  // The still-due (unchecked) set drives both the count and each card's
+  // The still-due (unticked) set drives both the count and each card's
   // highlight — one source of truth shared with the Institute checklist.
-  const dueSet = useMemo(() => new Set(pendingChecklistItems(state)), [state])
-  const total = CHECKLIST_ITEMS.length
+  const dueSet = useMemo(() => new Set(pendingChecklistItems(items, state)), [items, state])
+  const total = items.length
   const done = total - dueSet.size
-  const allDone = dueSet.size === 0
+  const allDone = total > 0 && dueSet.size === 0
 
   const numLocale = lang === 'bn' ? 'bn-BD' : 'en-US'
   const fmt = (n: number) => n.toLocaleString(numLocale)
 
-  function toggle(key: ChecklistItemKey) {
-    const next = !state[key]
-    setState((s) => ({ ...s, [key]: next }))
+  function toggle(id: string) {
+    const next = !state[id]
+    setState((s) => ({ ...s, [id]: next }))
     setError(null)
     startTransition(async () => {
-      const result = await toggleDailyChecklist(date, key, next)
+      const result = await toggleDailyChecklist(date, id, next)
       if (result.error) {
-        setState((s) => ({ ...s, [key]: !next })) // revert
+        setState((s) => ({ ...s, [id]: !next })) // revert
         setError(result.error)
       }
     })
   }
+
+  // No template configured yet — nothing to show on the dashboard.
+  if (!items.length) return null
 
   return (
     <section className="mt-8">
@@ -79,13 +84,13 @@ export function DashboardChecklist({
       </div>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-        {CHECKLIST_ITEMS.map((item) => {
-          const checked = !dueSet.has(item.key)
+        {items.map((item) => {
+          const checked = !dueSet.has(item.id)
           return (
             <button
-              key={item.key}
+              key={item.id}
               type="button"
-              onClick={() => toggle(item.key)}
+              onClick={() => toggle(item.id)}
               aria-pressed={checked}
               className={`group relative flex min-h-24 flex-col justify-between gap-3 rounded-2xl border p-4 text-left shadow-card backdrop-blur transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 focus-visible:ring-offset-2 ${
                 checked
@@ -109,7 +114,7 @@ export function DashboardChecklist({
                   </span>
                 )}
               </div>
-              <span className={`text-sm font-semibold ${checked ? 'text-mint-deep' : 'text-ink'}`}>{item.label[lang]}</span>
+              <span className={`text-sm font-semibold ${checked ? 'text-mint-deep' : 'text-ink'}`}>{itemLabel(item, lang)}</span>
             </button>
           )
         })}
