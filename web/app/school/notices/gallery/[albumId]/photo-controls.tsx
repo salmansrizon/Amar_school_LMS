@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { formatBytes } from '@/lib/routine'
 import { albumCountLabel, albumIsFull, galleryImageExtension, photoExceedsCap } from '@/lib/publishing'
 import { t, type Lang } from '@/lib/i18n'
+import { compressImage, IMAGE_PRESETS } from '@/lib/image/compress'
 import { deleteGalleryPhoto, galleryUploadPath, recordGalleryPhoto } from '../actions'
 
 export function PhotoGrid({
@@ -36,19 +37,22 @@ export function PhotoGrid({
       setError(t('gallery.badType', lang))
       return
     }
-    if (photoExceedsCap(file.size, maxImageSizeBytes)) {
-      setError(t('gallery.tooBig', lang))
-      return
-    }
     if (full) {
       setError(t('gallery.albumFull', lang))
       return
     }
     setBusy(true)
+    // Compress before the cap check so large photos fit the album's byte cap.
+    const photo = await compressImage(file, IMAGE_PRESETS.gallery)
+    if (photoExceedsCap(photo.size, maxImageSizeBytes)) {
+      setError(t('gallery.tooBig', lang))
+      setBusy(false)
+      return
+    }
     // Ask the server for the canonical path (derived from the caller's School),
     // then upload the bytes straight to Storage; the row-locking cap trigger
     // is still the real authority when the row gets recorded below.
-    const { path, error: pathErr } = await galleryUploadPath(albumId, file.type)
+    const { path, error: pathErr } = await galleryUploadPath(albumId, photo.type)
     if (pathErr || !path) {
       setError(pathErr ?? 'Upload failed')
       setBusy(false)
@@ -57,13 +61,13 @@ export function PhotoGrid({
     const supabase = createClient()
     const { error: upErr } = await supabase.storage
       .from('gallery')
-      .upload(path, file, { contentType: file.type })
+      .upload(path, photo, { contentType: photo.type })
     if (upErr) {
       setError(upErr.message)
       setBusy(false)
       return
     }
-    const res = await recordGalleryPhoto(albumId, path, file.name, file.size)
+    const res = await recordGalleryPhoto(albumId, path, file.name, photo.size)
     setBusy(false)
     if (inputRef.current) inputRef.current.value = ''
     if (res.error) {
