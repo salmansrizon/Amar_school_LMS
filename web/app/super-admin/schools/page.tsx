@@ -24,18 +24,28 @@ export default async function SchoolsPage() {
   const { data: me } = await supabase.from('profiles').select('role').eq('id', user.id).single()
   if (me?.role !== 'super_admin') redirect('/super-admin')
 
-  const [{ data: schools }, { data: redeemed }, { data: owners }] = await Promise.all([
+  const [{ data: schools }, { data: redeemed }, { data: owners }, { data: claimCodes }] = await Promise.all([
     supabase
       .from('schools')
       .select('id, name, subscription_expires_at, subdomain, address_line, mobile, email, eiin_no')
       .order('name'),
     supabase.rpc('schools_with_code_history'),
     supabase.from('profiles').select('school_id').eq('role', 'school_owner'),
+    supabase
+      .from('school_claim_codes')
+      .select('code, school_id, redeemed_at')
+      .order('created_at', { ascending: false }),
   ])
   // `returns setof uuid` (scalar) → PostgREST returns bare strings, not
   // {column: value} objects (verified against the live API).
   const withHistory = new Set((redeemed ?? []) as string[])
   const withOwner = new Set((owners ?? []).map((o) => o.school_id as string))
+  const codesBySchool = new Map<string, { code: string; redeemed_at: string | null }[]>()
+  for (const c of claimCodes ?? []) {
+    const list = codesBySchool.get(c.school_id) ?? []
+    list.push({ code: c.code, redeemed_at: c.redeemed_at })
+    codesBySchool.set(c.school_id, list)
+  }
   const today = new Date(new Date().toISOString().slice(0, 10))
 
   const statusKey = { trial: 'schools.trial', active: 'schools.active', expired: 'schools.expired' } as const
@@ -94,6 +104,7 @@ export default async function SchoolsPage() {
                   email: s.email,
                   eiin_no: s.eiin_no,
                 }}
+                codes={codesBySchool.get(s.id) ?? []}
                 lang={lang}
               />
             </section>
