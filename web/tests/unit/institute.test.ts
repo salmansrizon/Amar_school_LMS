@@ -5,6 +5,7 @@ import {
   CHECKLIST_ITEMS,
   completedCount,
   checklistStatus,
+  pendingChecklistItems,
   filterChecklistRange,
   matchesLogisticsQuery,
   type ChecklistRow,
@@ -135,6 +136,33 @@ describe('completedCount / checklistStatus', () => {
         premises_cleaned: false,
       }),
     ).toBe('none')
+  })
+})
+
+describe('pendingChecklistItems', () => {
+  it('returns the unchecked item keys (the "due today" set)', () => {
+    // checklistRow() has only classes_started_on_time false.
+    expect(pendingChecklistItems(checklistRow())).toEqual(['classes_started_on_time'])
+  })
+
+  it('treats a missing row as every item pending — nothing recorded today yet', () => {
+    expect(pendingChecklistItems(null)).toEqual(CHECKLIST_ITEMS.map((i) => i.key))
+  })
+
+  it('returns an empty list when the whole checklist is complete', () => {
+    expect(pendingChecklistItems(checklistRow({ classes_started_on_time: true }))).toEqual([])
+  })
+
+  it('preserves the fixed CHECKLIST_ITEMS order', () => {
+    expect(
+      pendingChecklistItems({
+        flag_hoisted: false,
+        anthem_rendered: true,
+        assembly_held: false,
+        classes_started_on_time: true,
+        premises_cleaned: false,
+      }),
+    ).toEqual(['flag_hoisted', 'assembly_held', 'premises_cleaned'])
   })
 })
 

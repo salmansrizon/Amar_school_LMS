@@ -6,7 +6,9 @@ import { getSchoolContext } from '@/lib/school/context'
 import { SCHOOL_QUICK_ACTIONS } from '@/lib/school-nav'
 import { Icon } from '@/components/school-icons'
 import { UpcomingList } from '@/components/upcoming-list'
+import { DashboardChecklist } from '@/components/dashboard-checklist'
 import { attendanceRate, isSubscriptionActive, buildUpcoming } from '@/lib/dashboard'
+import { CHECKLIST_ITEMS, type ChecklistItemKey } from '@/lib/institute'
 
 // School Owner / Staff dashboard home, per ui/school-owner/dashboard.html:
 // KPI tiles + (Recent Activity | Quick Actions) split. The module nav lives
@@ -72,6 +74,7 @@ export default async function SchoolHome() {
     { data: todaySlots },
     { data: subjectRows },
     { data: classRows },
+    { data: checklistRow },
   ] = await Promise.all([
     supabase.from('students').select('*', { count: 'exact', head: true }).is('archived_at', null),
     supabase.from('employees').select('*', { count: 'exact', head: true }).is('archived_at', null),
@@ -91,7 +94,14 @@ export default async function SchoolHome() {
     supabase.from('routine_slots').select('class_id, period, subject_id').eq('day_of_week', todayDow).order('period').limit(8),
     supabase.from('subjects').select('id, name'),
     supabase.from('classes').select('id, name'),
+    supabase
+      .from('daily_checklists')
+      .select(CHECKLIST_ITEMS.map((i) => i.key).join(', '))
+      .eq('checklist_date', today)
+      .maybeSingle(),
   ])
+
+  const todayChecklist = (checklistRow ?? null) as Record<ChecklistItemKey, boolean> | null
 
   const totalStudents = studentCount ?? 0
   const totalEmployees = employeeCount ?? 0
@@ -178,6 +188,10 @@ export default async function SchoolHome() {
           valueClass={subActive ? 'text-brand-700' : 'text-alert-deep'}
         />
       </div>
+
+      {/* Activity Checklist (issue #117): today's daily_checklists items as a
+          checkable card grid, unchecked = due (highlighted), above Upcoming. */}
+      <DashboardChecklist lang={lang} date={today} row={todayChecklist} />
 
       {/* Upcoming Activity + Quick Actions, per the mockup's dash-split (2fr/1fr) */}
       <div className="mt-8 grid gap-6 lg:grid-cols-3">

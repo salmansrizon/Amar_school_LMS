@@ -75,6 +75,13 @@ export function completedCount(row: ChecklistRow): number {
   return CHECKLIST_ITEMS.reduce((n, item) => n + (row[item.key] ? 1 : 0), 0)
 }
 
+/** The still-unchecked item keys for a day, in the fixed CHECKLIST_ITEMS
+ *  order — the "due today" set the dashboard widget highlights. A missing row
+ *  (nothing recorded yet) means every item is pending. */
+export function pendingChecklistItems(row: Record<ChecklistItemKey, boolean> | null): ChecklistItemKey[] {
+  return CHECKLIST_ITEMS.filter((item) => !row?.[item.key]).map((item) => item.key)
+}
+
 export type ChecklistStatus = 'complete' | 'partial' | 'none'
 
 export function checklistStatus(row: ChecklistRow): ChecklistStatus {
