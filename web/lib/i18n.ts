@@ -250,6 +250,24 @@ const dict = {
   'sa.school.dangerZone': { bn: 'বিপজ্জনক অঞ্চল', en: 'Danger zone' },
   'sa.school.backToList': { bn: 'সব স্কুল', en: 'All schools' },
 
+  // Government officials (#164)
+  'sa.gov.title': { bn: 'সরকারি কর্মকর্তা', en: 'Government Officials' },
+  'sa.gov.create': { bn: 'নতুন কর্মকর্তা', en: 'New official' },
+  'sa.gov.list': { bn: 'কর্মকর্তা তালিকা', en: 'Officials' },
+  'sa.gov.none': { bn: 'কোনো সরকারি কর্মকর্তা নেই', en: 'No government officials yet' },
+  'sa.gov.designation': { bn: 'পদবি', en: 'Designation' },
+  'sa.gov.designationPlaceholder': { bn: 'যেমন: উপজেলা শিক্ষা কর্মকর্তা', en: 'e.g. Upazila Education Officer' },
+  'sa.gov.eduScope': { bn: 'শিক্ষা স্তরের আওতা', en: 'Education-level scope' },
+  'sa.gov.profile': { bn: 'প্রোফাইল', en: 'Profile' },
+  'sa.gov.save': { bn: 'প্রোফাইল সংরক্ষণ', en: 'Save profile' },
+  'sa.gov.saved': { bn: 'সংরক্ষিত হয়েছে', en: 'Saved' },
+  'sa.gov.territory': { bn: 'টেরিটরি বরাদ্দ', en: 'Territory assignments' },
+  'sa.gov.extendedAccess': { bn: 'বর্ধিত অ্যাক্সেস', en: 'Extended access' },
+  'sa.gov.backToList': { bn: 'সব কর্মকর্তা', en: 'All officials' },
+  'sa.gov.eduPrimary': { bn: 'প্রাথমিক', en: 'Primary' },
+  'sa.gov.eduSecondary': { bn: 'মাধ্যমিক', en: 'Secondary' },
+  'sa.gov.eduHigherSecondary': { bn: 'উচ্চ মাধ্যমিক', en: 'Higher Secondary' },
+
   // Blocked-account gate (owner/staff of a deactivated school) (#161)
   'blocked.title': { bn: 'অ্যাকাউন্ট স্থগিত', en: 'Account suspended' },
   'blocked.message': { bn: 'আপনার স্কুলের অ্যাক্সেস সাময়িকভাবে বন্ধ করা হয়েছে। অনুগ্রহ করে অ্যাডমিনের সাথে যোগাযোগ করুন।', en: 'Access to your school has been suspended. Please contact the administrator.' },

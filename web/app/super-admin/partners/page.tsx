@@ -8,16 +8,17 @@ export default async function PartnersPage() {
   const lang = await currentLang()
   const { supabase } = await getSuperAdminContext()
 
+  // Dealers only — Government Officials have their own surface (#164).
   const { data: partners } = await supabase
     .from('profiles')
     .select('id, full_name, role')
-    .in('role', ['dealer', 'gov_official'])
+    .eq('role', 'dealer')
     .order('created_at')
 
   return (
     <main className="mx-auto w-full max-w-2xl flex-1 p-6">
       <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-extrabold">{t('partners.title', lang)}</h1>
+        <h1 className="text-2xl font-extrabold">{t('sa.nav.dealers', lang)}</h1>
         <Link href="/super-admin" className="text-sm text-brand-600 hover:underline">
           ← {t('home.superAdmin', lang)}
         </Link>
@@ -36,7 +37,7 @@ export default async function PartnersPage() {
               <span className="text-sm font-medium">
                 {p.full_name ?? p.id}{' '}
                 <span className="ml-1 rounded-full bg-sky-soft px-2 py-0.5 text-xs font-semibold text-sky-deep">
-                  {t(p.role === 'dealer' ? 'partners.dealer' : 'partners.gov', lang)}
+                  {t('partners.dealer', lang)}
                 </span>
               </span>
               <Link

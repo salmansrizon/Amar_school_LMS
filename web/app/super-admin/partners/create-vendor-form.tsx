@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
 import { t, type Lang } from '@/lib/i18n'
 import { createVendorUser } from './actions'
-import { selectClass } from '@/components/ui/field'
 
 export function CreateVendorForm({ lang }: { lang: Lang }) {
   const [error, setError] = useState<string | null>(null)
@@ -23,16 +22,11 @@ export function CreateVendorForm({ lang }: { lang: Lang }) {
 
   return (
     <form onSubmit={onSubmit} className="grid gap-3 sm:grid-cols-2">
+      {/* Dealers only — Government Officials are created on their own page (#164). */}
+      <input type="hidden" name="role" value="dealer" />
       <div>
         <label className={labelClass} htmlFor="v_full_name">{t('staff.fullName', lang)}</label>
         <input id="v_full_name" name="full_name" required className={inputClass} />
-      </div>
-      <div>
-        <label className={labelClass} htmlFor="v_role">{t('partners.role', lang)}</label>
-        <select id="v_role" name="role" required className={selectClass({ size: 'md', fullWidth: true })}>
-          <option value="dealer">{t('partners.dealer', lang)}</option>
-          <option value="gov_official">{t('partners.gov', lang)}</option>
-        </select>
       </div>
       <div>
         <label className={labelClass} htmlFor="v_email">{t('login.email', lang)}</label>
