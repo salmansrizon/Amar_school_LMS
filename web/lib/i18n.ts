@@ -290,6 +290,8 @@ const dict = {
   'sa.flags.sms': { bn: 'SMS', en: 'SMS' },
   'sa.flags.publishing': { bn: 'প্রকাশনা', en: 'Publishing' },
   'sa.flags.library': { bn: 'লাইব্রেরি', en: 'Library' },
+  'sa.flags.smsMetering': { bn: 'প্রিপেইড SMS প্রয়োগ', en: 'Prepaid SMS enforcement' },
+  'sms.creditExhausted': { bn: 'SMS ক্রেডিট শেষ — টপ-আপের জন্য অ্যাডমিনের সাথে যোগাযোগ করুন।', en: 'Insufficient SMS credit — contact admin to top up.' },
 
   // Clusters (#167)
   'sa.clusters.title': { bn: 'ক্লাস্টার ব্যবস্থাপনা', en: 'Clusters' },
