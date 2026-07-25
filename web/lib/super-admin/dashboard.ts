@@ -52,8 +52,9 @@ export interface SchoolKpis {
   soonExpiring: SoonExpiring[]
 }
 
-function daysBetween(from: Date, to: Date): number {
-  return Math.round((to.getTime() - from.getTime()) / 86_400_000)
+/** Whole days from `today` to `expiry` (negative once lapsed). */
+export function daysUntil(today: Date, expiry: Date): number {
+  return Math.round((expiry.getTime() - today.getTime()) / 86_400_000)
 }
 
 /** Counts by lifecycle status + the soon-expiring list (active/trial schools
@@ -66,7 +67,7 @@ export function summarizeSchools(rows: SchoolRow[], today: Date): SchoolKpis {
     kpis[status] += 1
     if ((status === 'active' || status === 'trial') && row.subscription_expires_at) {
       const expiry = new Date(row.subscription_expires_at + 'T00:00:00Z')
-      const daysLeft = daysBetween(today, expiry)
+      const daysLeft = daysUntil(today, expiry)
       if (daysLeft >= 0 && daysLeft <= SOON_EXPIRING_DAYS) {
         kpis.soonExpiring.push({ id: row.id, name: row.name, expiry: row.subscription_expires_at, daysLeft })
       }

@@ -217,6 +217,16 @@ const dict = {
   'sa.soonExpiring.days': { bn: 'দিন বাকি', en: 'days left' },
   'sa.expiry.viewUpcoming': { bn: 'আসন্ন মেয়াদ দেখুন', en: 'View upcoming expiry' },
 
+  // Subscription expiry management (#162)
+  'sa.expiry.set': { bn: 'মেয়াদ নির্ধারণ / বাড়ান', en: 'Set / extend expiry' },
+  'sa.expiry.date': { bn: 'নতুন মেয়াদের তারিখ', en: 'New expiry date' },
+  'sa.expiry.save': { bn: 'সংরক্ষণ', en: 'Save' },
+  'sa.expiry.saved': { bn: 'মেয়াদ হালনাগাদ হয়েছে', en: 'Expiry updated' },
+  'sa.expiry.hint': { bn: 'স্কুলের সাবস্ক্রিপশন মেয়াদ সরাসরি নির্ধারণ করুন (কোড ছাড়াই)।', en: 'Set the school’s subscription expiry directly (no code needed).' },
+  'sa.expiry.upcomingTitle': { bn: 'আসন্ন মেয়াদ', en: 'Upcoming expiry' },
+  'sa.expiry.overdue': { bn: 'মেয়াদোত্তীর্ণ', en: 'Expired' },
+  'sa.expiry.none': { bn: 'মেয়াদসহ কোনো স্কুল নেই', en: 'No schools with an expiry set' },
+
   // Super-admin school detail + lifecycle (#161)
   'sa.school.detail': { bn: 'স্কুল বিস্তারিত', en: 'School detail' },
   'sa.school.viewDetail': { bn: 'ব্যবস্থাপনা', en: 'Manage' },

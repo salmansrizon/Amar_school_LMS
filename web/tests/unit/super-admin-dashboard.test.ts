@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { lifecycleStatus, summarizeSchools, type SchoolRow } from '@/lib/super-admin/dashboard'
+import { daysUntil, lifecycleStatus, summarizeSchools, type SchoolRow } from '@/lib/super-admin/dashboard'
 
 const TODAY = new Date('2026-07-25T00:00:00Z')
 
@@ -30,6 +30,14 @@ describe('lifecycleStatus', () => {
   })
   it('no history, no expiry → open-ended trial', () => {
     expect(lifecycleStatus(row({}), TODAY)).toBe('trial')
+  })
+})
+
+describe('daysUntil', () => {
+  it('counts whole days ahead, and goes negative once lapsed', () => {
+    expect(daysUntil(TODAY, new Date('2026-07-30T00:00:00Z'))).toBe(5)
+    expect(daysUntil(TODAY, new Date('2026-07-25T00:00:00Z'))).toBe(0)
+    expect(daysUntil(TODAY, new Date('2026-07-20T00:00:00Z'))).toBe(-5)
   })
 })
 

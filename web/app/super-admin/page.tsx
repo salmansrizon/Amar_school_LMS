@@ -68,7 +68,7 @@ export default async function SuperAdminDashboard() {
       <section className="rounded-lg border border-line bg-paper p-5 shadow-card">
         <div className="mb-3 flex items-center justify-between">
           <h2 className="font-bold">{t('sa.soonExpiring.title', lang)}</h2>
-          <Link href="/super-admin/schools" className="text-sm text-brand-600 hover:underline">
+          <Link href="/super-admin/schools/upcoming" className="text-sm text-brand-600 hover:underline">
             {t('sa.expiry.viewUpcoming', lang)}
           </Link>
         </div>

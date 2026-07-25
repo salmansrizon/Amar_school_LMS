@@ -8,6 +8,7 @@ import { buildActivationUrl } from '@/lib/super-admin/activation'
 import { lifecycleStatus, startOfUtcToday } from '@/lib/super-admin/dashboard'
 import { LIFECYCLE_STATUS_KEY, LIFECYCLE_STATUS_STYLE } from '@/lib/super-admin/status-ui'
 import { SchoolDetailControls } from './school-detail-controls'
+import { SchoolExpiryControl } from './expiry-control'
 
 // Super-admin school detail (map #158, ticket #161): the lifecycle surface for
 // one school — status, activation links, force-offline block, and the delete
@@ -75,6 +76,10 @@ export default async function SchoolDetailPage({ params }: { params: Promise<{ i
           )}
         </div>
       </section>
+
+      <div className="mb-4">
+        <SchoolExpiryControl schoolId={school.id} expiry={school.subscription_expires_at} lang={lang} />
+      </div>
 
       <SchoolDetailControls
         schoolId={school.id}
