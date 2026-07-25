@@ -5,6 +5,7 @@ import { requireSuperAdmin } from '@/lib/auth/require-role'
 import { createClient } from '@/lib/supabase/server'
 import { rootDomain } from '@/lib/auth/tenant-host'
 import { normalizeSlug, validateSlug } from '@/lib/subdomain'
+import { isFeatureFlag } from '@/lib/super-admin/feature-flags'
 
 // Super-admin B2B panel actions (issue #111). RLS is the authority; these give
 // clean errors + revalidate the list.
@@ -121,6 +122,75 @@ export async function sendOwnerReset(schoolId: string): Promise<{ error?: string
     redirectTo: `${base}/auth/callback?next=/reset-password/update`,
   })
   if (error) return { error: error.message }
+  return {}
+}
+
+/** Set/extend the school's subscription expiry directly (issue #162 — the
+ *  single-expiry model). Complements startTrial / redeemCode / decreaseExpiry:
+ *  the admin can extend a lapsed window or correct an active one without a code.
+ *  `date` is a plain YYYY-MM-DD; status is recomputed on read. */
+export async function setSubscriptionExpiry(schoolId: string, date: string): Promise<{ error?: string }> {
+  const supabase = await createClient()
+  if (!(await requireSuperAdmin(supabase))) return { error: 'Unauthorized' }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return { error: 'invalid date' }
+  const { error } = await supabase
+    .from('schools')
+    .update({ subscription_expires_at: date })
+    .eq('id', schoolId)
+  if (error) return { error: error.message }
+  revalidatePath(`/super-admin/schools/${schoolId}`)
+  revalidatePath('/super-admin/schools')
+  return {}
+}
+
+/** Block/unblock a school (issue #161). Blocking stamps `deactivated_at`, which
+ *  the login gate (proxy + login form) denies on — a hard switch, separate from
+ *  subscription expiry. Unblocking clears it. */
+export async function setSchoolBlocked(schoolId: string, blocked: boolean): Promise<{ error?: string }> {
+  const supabase = await createClient()
+  if (!(await requireSuperAdmin(supabase))) return { error: 'Unauthorized' }
+  const { error } = await supabase
+    .from('schools')
+    .update({ deactivated_at: blocked ? new Date().toISOString() : null })
+    .eq('id', schoolId)
+  if (error) return { error: error.message }
+  revalidatePath(`/super-admin/schools/${schoolId}`)
+  revalidatePath('/super-admin/schools')
+  return {}
+}
+
+/** Permanently delete a school (issue #161). Child tables cascade (FKs are
+ *  ON DELETE CASCADE). `.select()` so an RLS-blocked delete surfaces as a
+ *  visible failure rather than a silent 204. */
+export async function deleteSchool(schoolId: string): Promise<{ error?: string }> {
+  const supabase = await createClient()
+  if (!(await requireSuperAdmin(supabase))) return { error: 'Unauthorized' }
+  const { data, error } = await supabase.from('schools').delete().eq('id', schoolId).select('id')
+  if (error) return { error: error.message }
+  if (!data?.length) return { error: 'school not deleted' }
+  revalidatePath('/super-admin/schools')
+  return {}
+}
+
+/** Toggle a per-school feature flag (issue #168). Storage only — nothing
+ *  enforces the flag yet. Unknown keys are rejected so the table stays to the
+ *  curated flag set. */
+export async function setFeatureFlag(
+  schoolId: string,
+  flagKey: string,
+  enabled: boolean,
+): Promise<{ error?: string }> {
+  const supabase = await createClient()
+  if (!(await requireSuperAdmin(supabase))) return { error: 'Unauthorized' }
+  if (!isFeatureFlag(flagKey)) return { error: 'unknown flag' }
+  const { error } = await supabase
+    .from('school_feature_flags')
+    .upsert(
+      { school_id: schoolId, flag_key: flagKey, enabled, updated_at: new Date().toISOString() },
+      { onConflict: 'school_id,flag_key' },
+    )
+  if (error) return { error: error.message }
+  revalidatePath(`/super-admin/schools/${schoolId}`)
   return {}
 }
 

@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { AuthCard, inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
 import { postLoginDestination } from '@/lib/auth/post-login'
+import { isSchoolMemberRole } from '@/lib/auth/routing'
+import { firstRelation } from '@/lib/supabase/relation'
 import { t } from '@/lib/i18n'
 import { useLang } from '@/lib/use-lang'
 import { createClient } from '@/lib/supabase/client'
@@ -16,20 +18,36 @@ export function LoginForm({ brand }: { brand: SchoolBrand | null }) {
   const lang = useLang()
   const router = useRouter()
   const [error, setError] = useState(false)
+  const [blocked, setBlocked] = useState(false)
   const [busy, setBusy] = useState(false)
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setBusy(true)
     setError(false)
+    setBlocked(false)
     const form = new FormData(e.currentTarget)
     const supabase = createClient()
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email: String(form.get('email')),
       password: String(form.get('password')),
     })
     if (error) {
       setError(true)
+      setBusy(false)
+      return
+    }
+    // Hard block: a deactivated school (issue #161) denies its owner/staff login.
+    // Sign back out so no session lingers, and show the suspension message.
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role, schools(deactivated_at)')
+      .eq('id', data.user.id)
+      .single()
+    const school = firstRelation(profile?.schools)
+    if (isSchoolMemberRole(profile?.role) && (school?.deactivated_at ?? null) !== null) {
+      await supabase.auth.signOut()
+      setBlocked(true)
       setBusy(false)
       return
     }
@@ -48,6 +66,7 @@ export function LoginForm({ brand }: { brand: SchoolBrand | null }) {
           <input id="password" name="password" type="password" required className={inputClass} />
         </div>
         {error && <p className="text-sm text-alert-deep">{t('login.failed', lang)}</p>}
+        {blocked && <p className="text-sm text-alert-deep">{t('blocked.message', lang)}</p>}
         <button type="submit" disabled={busy} className={primaryBtnClass}>
           {t('login.submit', lang)}
         </button>

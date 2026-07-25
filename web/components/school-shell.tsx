@@ -185,6 +185,7 @@ export function SchoolShell({
   fullName,
   lang,
   initialCollapsed = false,
+  banner,
   children,
 }: {
   role: Role
@@ -194,6 +195,8 @@ export function SchoolShell({
   lang: Lang
   /** Persisted collapse choice, read from the cookie server-side (issue #115). */
   initialCollapsed?: boolean
+  /** Optional strip under the topbar (e.g. the subscription reminder, #169). */
+  banner?: React.ReactNode
   children: React.ReactNode
 }) {
   const pathname = usePathname()
@@ -330,6 +333,8 @@ export function SchoolShell({
             </div>
           </div>
         </header>
+
+        {banner && <div className="shrink-0 print:hidden">{banner}</div>}
 
         <main className="relative flex-1 overflow-hidden bg-paper-muted print:overflow-visible print:bg-transparent">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgb(47_126_255_/_0.06),_transparent_28%),radial-gradient(circle_at_top_right,_rgb(0_210_106_/_0.06),_transparent_24%)] print:hidden" />

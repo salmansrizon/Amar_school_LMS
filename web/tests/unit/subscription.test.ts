@@ -1,5 +1,12 @@
 import { describe, it, expect } from 'vitest'
-import { expiryAfterRedemption, expiryAfterDecrease, subscriptionStatus } from '@/lib/subscription'
+import {
+  expiryAfterRedemption,
+  expiryAfterDecrease,
+  subscriptionStatus,
+  daysUntilExpiry,
+  startOfUtcToday,
+  shouldShowReminder,
+} from '@/lib/subscription'
 
 // Mirrors the SQL rules in redeem_code / decrease_expiry (issues #5, #6).
 const TODAY = new Date('2026-07-08')
@@ -54,5 +61,40 @@ describe('subscriptionStatus', () => {
   })
   it('code history + past expiry → expired', () => {
     expect(subscriptionStatus(true, new Date('2026-07-07'), TODAY)).toBe('expired')
+  })
+})
+
+describe('date helpers (#169)', () => {
+  it('startOfUtcToday returns a UTC-midnight Date', () => {
+    const d = startOfUtcToday()
+    expect(d.getUTCHours()).toBe(0)
+    expect(d.getUTCMinutes()).toBe(0)
+  })
+  it('daysUntilExpiry counts whole days ahead and goes negative once lapsed', () => {
+    const today = startOfUtcToday().toISOString().slice(0, 10)
+    expect(daysUntilExpiry(today)).toBe(0)
+    const plus3 = new Date(startOfUtcToday().getTime() + 3 * 86_400_000).toISOString().slice(0, 10)
+    expect(daysUntilExpiry(plus3)).toBe(3)
+    const minus2 = new Date(startOfUtcToday().getTime() - 2 * 86_400_000).toISOString().slice(0, 10)
+    expect(daysUntilExpiry(minus2)).toBe(-2)
+  })
+})
+
+describe('shouldShowReminder (#169)', () => {
+  const soon = new Date(startOfUtcToday().getTime() + 3 * 86_400_000).toISOString().slice(0, 10)
+  const far = new Date(startOfUtcToday().getTime() + 30 * 86_400_000).toISOString().slice(0, 10)
+  const past = new Date(startOfUtcToday().getTime() - 1 * 86_400_000).toISOString().slice(0, 10)
+  it('active/trial within 7 days, not dismissed → show', () => {
+    expect(shouldShowReminder('active', soon, undefined)).toBe(true)
+    expect(shouldShowReminder('trial', soon, undefined)).toBe(true)
+  })
+  it('dismissed for this exact expiry → hide', () => {
+    expect(shouldShowReminder('active', soon, soon)).toBe(false)
+  })
+  it('outside the window, expired, or blocked status → hide', () => {
+    expect(shouldShowReminder('active', far, undefined)).toBe(false)
+    expect(shouldShowReminder('active', past, undefined)).toBe(false)
+    expect(shouldShowReminder('expired', soon, undefined)).toBe(false)
+    expect(shouldShowReminder('active', null, undefined)).toBe(false)
   })
 })

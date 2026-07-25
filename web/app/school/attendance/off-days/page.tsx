@@ -4,7 +4,7 @@ import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { monthGrid, type OffDay } from '@/lib/attendance-manual'
 import { AttendanceTabs } from '../attendance-tabs'
-import { AddOffDayForm, DeleteOffDayButton } from './off-day-controls'
+import { AddOffDayForm, DeleteOffDayButton, ImportCentralButton } from './off-day-controls'
 
 // Layout per ui/school-owner/off-day-calendar.html: 12-month grid shading
 // off-days (red) and significant days (blue); every Saturday shades as the
@@ -69,6 +69,9 @@ export default async function OffDayCalendarPage({
       <section className="mb-6 rounded-lg border border-line bg-paper p-5 shadow-card">
         <h3 className="mb-3 font-bold">{t('attendance.offDayAddTitle', lang)}</h3>
         <AddOffDayForm lang={lang} />
+        <div className="mt-3 border-t border-line pt-3">
+          <ImportCentralButton lang={lang} />
+        </div>
       </section>
 
       <div className="mb-4 flex flex-wrap items-center gap-4 text-sm">

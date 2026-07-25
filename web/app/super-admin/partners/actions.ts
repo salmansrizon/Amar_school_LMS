@@ -32,7 +32,10 @@ export async function addAssignment(formData: FormData): Promise<{ error?: strin
     tier: tier || null,
   })
   if (error) return { error: error.message }
+  // Assignment controls are reused on the gov-official detail page (#164), so
+  // revalidate both surfaces; the non-current path just no-ops.
   revalidatePath(`/super-admin/partners/${assignee}`)
+  revalidatePath(`/super-admin/gov-officials/${assignee}`)
   return {}
 }
 
@@ -42,5 +45,6 @@ export async function removeAssignment(id: string, assignee: string): Promise<{ 
   const { error } = await supabase.from('territory_assignments').delete().eq('id', id)
   if (error) return { error: error.message }
   revalidatePath(`/super-admin/partners/${assignee}`)
+  revalidatePath(`/super-admin/gov-officials/${assignee}`)
   return {}
 }

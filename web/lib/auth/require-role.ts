@@ -58,3 +58,14 @@ export async function requireSchoolMemberProfile(
   const ok = isSchoolMember(role)
   return { ok, schoolId: ok ? schoolId : null }
 }
+
+/** School Owner check that also returns their school_id — for owner-only actions
+ *  that must resolve the caller's school (e.g. redeeming their own subscription,
+ *  #169). */
+export async function requireSchoolOwnerProfile(
+  supabase: SupabaseClient,
+): Promise<{ ok: boolean; schoolId: string | null }> {
+  const { role, schoolId } = await callerProfile(supabase)
+  const ok = role === 'school_owner'
+  return { ok, schoolId: ok ? schoolId : null }
+}

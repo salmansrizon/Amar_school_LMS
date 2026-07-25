@@ -106,3 +106,28 @@ export async function deleteOffDay(day: string): Promise<{ error?: string }> {
   revalidatePath(OFFDAY_PAGE)
   return {}
 }
+
+/** Import the super-admin's central off-day template (issue #166) into this
+ *  school's off_days. Existing days are left untouched (ignoreDuplicates); the
+ *  central label falls back Bangla → English. Returns how many were newly added. */
+export async function importCentralOffDays(): Promise<{ error?: string; imported?: number }> {
+  const supabase = await createClient()
+  if (!(await requireSchoolMember(supabase))) return { error: 'Unauthorized' }
+
+  const { data: central, error: readError } = await supabase
+    .from('central_off_days')
+    .select('day, label_bn, label_en')
+  if (readError) return { error: readError.message }
+  if (!central?.length) return { imported: 0 }
+
+  // school_id defaults to app_current_school_id(); central days import as
+  // regular (non-significant) off-days.
+  const rows = central.map((c) => ({ day: c.day, label: c.label_bn ?? c.label_en ?? null }))
+  const { data, error } = await supabase
+    .from('off_days')
+    .upsert(rows, { onConflict: 'school_id,day', ignoreDuplicates: true })
+    .select('day')
+  if (error) return { error: error.message }
+  revalidatePath(OFFDAY_PAGE)
+  return { imported: data?.length ?? 0 }
+}
