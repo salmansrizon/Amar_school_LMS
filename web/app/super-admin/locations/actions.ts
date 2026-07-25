@@ -41,7 +41,9 @@ export async function addCluster(formData: FormData): Promise<{ error?: string }
     location_id: String(formData.get('location_id')),
   })
   if (error) return { error: error.message }
+  // Clusters are also managed on the dedicated /clusters page (#167).
   revalidatePath('/super-admin/locations')
+  revalidatePath('/super-admin/clusters')
   return {}
 }
 
@@ -51,5 +53,6 @@ export async function deleteCluster(id: string): Promise<{ error?: string }> {
   const { error } = await supabase.from('clusters').delete().eq('id', id)
   if (error) return { error: error.message }
   revalidatePath('/super-admin/locations')
+  revalidatePath('/super-admin/clusters')
   return {}
 }

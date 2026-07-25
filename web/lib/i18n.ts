@@ -250,6 +250,18 @@ const dict = {
   'sa.school.dangerZone': { bn: 'বিপজ্জনক অঞ্চল', en: 'Danger zone' },
   'sa.school.backToList': { bn: 'সব স্কুল', en: 'All schools' },
 
+  // Clusters (#167)
+  'sa.clusters.title': { bn: 'ক্লাস্টার ব্যবস্থাপনা', en: 'Clusters' },
+  'sa.clusters.create': { bn: 'নতুন ক্লাস্টার', en: 'New cluster' },
+  'sa.clusters.name': { bn: 'ক্লাস্টারের নাম', en: 'Cluster name' },
+  'sa.clusters.rename': { bn: 'নাম পরিবর্তন', en: 'Rename' },
+  'sa.clusters.schools': { bn: 'অন্তর্ভুক্ত স্কুল', en: 'Member schools' },
+  'sa.clusters.assign': { bn: 'স্কুল যুক্ত করুন', en: 'Add school' },
+  'sa.clusters.remove': { bn: 'সরান', en: 'Remove' },
+  'sa.clusters.none': { bn: 'কোনো ক্লাস্টার নেই', en: 'No clusters yet' },
+  'sa.clusters.noSchools': { bn: 'কোনো স্কুল যুক্ত নেই', en: 'No schools assigned' },
+  'sa.clusters.noUnassigned': { bn: 'যুক্ত করার মতো স্কুল নেই', en: 'No unassigned schools' },
+
   // Central off-day calendar (#166)
   'sa.offday.title': { bn: 'কেন্দ্রীয় ছুটির তালিকা', en: 'Central off-day calendar' },
   'sa.offday.add': { bn: 'ছুটি যোগ করুন', en: 'Add off-day' },
