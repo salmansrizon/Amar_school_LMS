@@ -1,19 +1,12 @@
 import Link from 'next/link'
-import { redirect } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
 import { t } from '@/lib/i18n'
-import { createClient } from '@/lib/supabase/server'
+import { getSuperAdminContext } from '@/lib/super-admin/context'
 import { CreateVendorForm } from './create-vendor-form'
 
 export default async function PartnersPage() {
   const lang = await currentLang()
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
-  const { data: me } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-  if (me?.role !== 'super_admin') redirect('/super-admin')
+  const { supabase } = await getSuperAdminContext()
 
   const { data: partners } = await supabase
     .from('profiles')
