@@ -232,6 +232,17 @@ const dict = {
   'sa.dash.schools': { bn: 'স্কুল', en: 'schools' },
   'sa.action.createSchool': { bn: 'স্কুল তৈরি', en: 'Create school' },
   'sa.action.generateCode': { bn: 'কোড তৈরি', en: 'Generate code' },
+  // Renewals chase list + recent-activity feed (map #171 T5)
+  'sa.dash.renewals': { bn: 'নবায়ন বাকি', en: 'Renewals due' },
+  'sa.dash.noRenewals': { bn: 'আগামী দিনে কোনো নবায়ন নেই', en: 'No renewals due soon' },
+  'sa.dash.remind': { bn: 'মনে করান', en: 'Remind' },
+  'sa.dash.reminded': { bn: 'পাঠানো হয়েছে', en: 'Reminded' },
+  'sa.dash.remindFailed': { bn: 'পাঠানো যায়নি', en: 'Send failed' },
+  'sa.dash.createCode': { bn: 'কোড', en: 'Create code' },
+  'sa.dash.recentActivity': { bn: 'সাম্প্রতিক কার্যকলাপ', en: 'Recent activity' },
+  'sa.dash.noActivity': { bn: 'সাম্প্রতিক কোনো কার্যকলাপ নেই', en: 'No recent activity' },
+  'sa.activity.redeemed': { bn: 'কোড রিডিম করেছে', en: 'redeemed a code' },
+  'sa.activity.newSchool': { bn: 'যুক্ত হয়েছে', en: 'joined' },
 
   // Subscription expiry management (#162)
   'sa.expiry.set': { bn: 'মেয়াদ নির্ধারণ / বাড়ান', en: 'Set / extend expiry' },

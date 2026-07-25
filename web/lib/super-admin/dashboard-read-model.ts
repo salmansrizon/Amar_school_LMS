@@ -14,13 +14,17 @@ import {
   latestIncome,
   pendingCollection,
   dormantCount,
+  payableForecast,
   type CodeRow,
   type IncomeBucket,
   type LatestIncome,
   type PendingCollection,
+  type PayableForecast,
 } from '@/lib/super-admin/financials'
 
 export const DEFAULT_TREND_MONTHS = 12
+/** How many recent events the activity feed shows. */
+export const ACTIVITY_LIMIT = 8
 
 /** The school columns the dashboard reads (subset of the schools table). */
 export interface SchoolFetchRow {
@@ -28,6 +32,45 @@ export interface SchoolFetchRow {
   name: string
   subscription_expires_at: string | null
   deactivated_at: string | null
+  created_at: string
+}
+
+/** One derived entry in the recent-activity feed (map #171 T5). Derive-only:
+ *  redemptions (code redeemed_at) and new schools (created_at). SMS top-ups join
+ *  once T6 lands sms_credit_ledger. */
+export interface ActivityEvent {
+  kind: 'redemption' | 'new_school'
+  /** ISO timestamp the event happened. */
+  at: string
+  schoolId: string | null
+  schoolName: string
+  /** ৳ paid, for redemptions. */
+  amount?: number
+}
+
+/** Recent events newest-first, capped at `limit`. */
+export function buildRecentActivity(
+  schools: SchoolFetchRow[],
+  codes: CodeRow[],
+  limit: number = ACTIVITY_LIMIT,
+): ActivityEvent[] {
+  const nameById = new Map(schools.map((s) => [s.id, s.name]))
+  const events: ActivityEvent[] = []
+  for (const c of codes) {
+    if (!c.redeemed_at || !c.redeemed_school_id) continue
+    events.push({
+      kind: 'redemption',
+      at: c.redeemed_at,
+      schoolId: c.redeemed_school_id,
+      schoolName: nameById.get(c.redeemed_school_id) ?? '—',
+      amount: c.price,
+    })
+  }
+  for (const s of schools) {
+    events.push({ kind: 'new_school', at: s.created_at, schoolId: s.id, schoolName: s.name })
+  }
+  events.sort((a, b) => (a.at < b.at ? 1 : a.at > b.at ? -1 : 0))
+  return events.slice(0, limit)
 }
 
 /** Raw rows the three queries return, before any shaping. */
@@ -50,6 +93,9 @@ export interface DashboardViewModel {
   incomeSeries: IncomeBucket[]
   pending: PendingCollection
   dormant: number
+  /** Renewals-due chase list: soon-expiring schools + their last-paid forecast. */
+  payable: PayableForecast
+  activity: ActivityEvent[]
 }
 
 /** Pure: shape raw rows into the finished view model. Owns the uuid-string Set
@@ -75,6 +121,8 @@ export function buildDashboardViewModel(
     incomeSeries: series,
     pending: pendingCollection(data.codes),
     dormant: dormantCount(kpis),
+    payable: payableForecast(kpis.soonExpiring, data.codes),
+    activity: buildRecentActivity(data.schools, data.codes),
   }
 }
 
@@ -85,7 +133,7 @@ export async function loadSuperAdminDashboard(
   trendMonths: number = DEFAULT_TREND_MONTHS,
 ): Promise<DashboardViewModel> {
   const [{ data: schools }, { data: history }, { data: codes }] = await Promise.all([
-    supabase.from('schools').select('id, name, subscription_expires_at, deactivated_at').order('name'),
+    supabase.from('schools').select('id, name, subscription_expires_at, deactivated_at, created_at').order('name'),
     supabase.rpc('schools_with_code_history'),
     supabase.from('subscription_codes').select('price, redeemed_at, redeemed_school_id'),
   ])

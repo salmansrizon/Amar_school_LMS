@@ -12,14 +12,14 @@ const CLOCK = { today: new Date('2026-07-15T00:00:00Z'), asOf: new Date('2026-07
 
 const data: DashboardData = {
   schools: [
-    // active: has code history + future expiry
-    { id: 'a', name: 'Alpha', subscription_expires_at: '2026-09-01', deactivated_at: null },
+    // active: has code history + future expiry (soon-expiring for payable)
+    { id: 'a', name: 'Alpha', subscription_expires_at: '2026-07-18', deactivated_at: null, created_at: '2026-01-01T00:00:00Z' },
     // expired: has history but lapsed
-    { id: 'b', name: 'Beta', subscription_expires_at: '2026-06-01', deactivated_at: null },
+    { id: 'b', name: 'Beta', subscription_expires_at: '2026-06-01', deactivated_at: null, created_at: '2026-02-01T00:00:00Z' },
     // paused/blocked: deactivated wins over a healthy expiry
-    { id: 'c', name: 'Gamma', subscription_expires_at: '2027-01-01', deactivated_at: '2026-07-01T00:00:00Z' },
+    { id: 'c', name: 'Gamma', subscription_expires_at: '2027-01-01', deactivated_at: '2026-07-01T00:00:00Z', created_at: '2026-03-01T00:00:00Z' },
     // trial: no code history, no expiry
-    { id: 'd', name: 'Delta', subscription_expires_at: null, deactivated_at: null },
+    { id: 'd', name: 'Delta', subscription_expires_at: null, deactivated_at: null, created_at: '2026-07-10T00:00:00Z' },
   ],
   history: ['a', 'b', 'c'], // bare uuid strings from the RPC
   codes: [
@@ -52,5 +52,19 @@ describe('buildDashboardViewModel', () => {
   it('sums pending collection and dormant = expired + paused', () => {
     expect(vm.pending).toEqual({ count: 1, total: 9999 })
     expect(vm.dormant).toBe(2) // Beta (expired) + Gamma (paused)
+  })
+
+  it('forecasts payable from soon-expiring schools (last-paid)', () => {
+    // Alpha expires 2026-07-18 (3 days out) → the only renewal due
+    expect(vm.payable.rows.map((r) => r.id)).toEqual(['a'])
+    expect(vm.payable.rows[0].lastPaid).toBe(5000)
+    expect(vm.payable.total).toBe(5000)
+  })
+
+  it('builds a newest-first activity feed from redemptions + new schools', () => {
+    expect(vm.activity[0]).toMatchObject({ kind: 'new_school', schoolId: 'd', at: '2026-07-10T00:00:00Z' })
+    expect(vm.activity[1]).toMatchObject({ kind: 'redemption', schoolId: 'a', amount: 5000 })
+    // 2 redemptions + 4 new-school events, all under the cap
+    expect(vm.activity).toHaveLength(6)
   })
 })

@@ -5,6 +5,8 @@ import { getSuperAdminContext } from '@/lib/super-admin/context'
 import { loadSuperAdminDashboard } from '@/lib/super-admin/dashboard-read-model'
 import { PageHeader, KpiCard, SectionCard, QuickAction, formatTaka } from '@/components/super-admin/dashboard-ui'
 import { BarTrend, StatusDonut } from '@/components/super-admin/charts'
+import { RenewalsChaseList } from './renewals-chase-list'
+import { RecentActivity } from './recent-activity'
 
 // Super-admin business dashboard landing (map #171, T3): the money and the fleet
 // at a glance — income KPIs + trend, school-status donut, and the soon-expiring
@@ -37,7 +39,8 @@ export default async function SuperAdminDashboard() {
   const lang = await currentLang()
   const { supabase } = await getSuperAdminContext()
 
-  const { kpis: kpi, income, incomeSeries: series, pending, dormant } = await loadSuperAdminDashboard(supabase)
+  const { kpis: kpi, income, incomeSeries: series, pending, dormant, payable, activity } =
+    await loadSuperAdminDashboard(supabase)
 
   const donut = [
     { label: t('sa.kpi.active', lang), value: kpi.active, colorClass: 'text-mint-deep' },
@@ -109,9 +112,9 @@ export default async function SuperAdminDashboard() {
         </div>
       </section>
 
-      <section className="mt-4">
+      <section className="mt-4 grid gap-4 lg:grid-cols-2">
         <SectionCard
-          title={t('sa.soonExpiring.title', lang)}
+          title={t('sa.dash.renewals', lang)}
           action={
             <Link href="/super-admin/schools/upcoming" className="text-sm font-semibold text-brand-600 hover:underline">
               {t('sa.expiry.viewUpcoming', lang)}
@@ -119,31 +122,11 @@ export default async function SuperAdminDashboard() {
           }
           bodyClassName="p-0"
         >
-          {kpi.soonExpiring.length === 0 ? (
-            <p className="p-4 text-sm text-muted sm:p-5">{t('sa.soonExpiring.none', lang)}</p>
-          ) : (
-            <ul className="divide-y divide-line/70 text-sm">
-              {kpi.soonExpiring.map((s) => (
-                <li key={s.id} className="flex items-center justify-between gap-3 px-4 py-3 sm:px-5">
-                  <Link href={`/super-admin/schools/${s.id}`} className="truncate font-semibold text-brand-700 hover:underline">
-                    {s.name}
-                  </Link>
-                  <span className="flex shrink-0 items-center gap-2">
-                    <span className="text-muted">{s.expiry}</span>
-                    <span
-                      className={`rounded-full px-2 py-0.5 text-xs font-bold ${
-                        s.daysLeft <= 2 ? 'bg-alert-soft text-alert-deep' : 'bg-sky-soft text-sky-deep'
-                      }`}
-                    >
-                      {s.daysLeft === 0
-                        ? t('sa.soonExpiring.today', lang)
-                        : `${s.daysLeft} ${t('sa.soonExpiring.days', lang)}`}
-                    </span>
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
+          <RenewalsChaseList rows={payable.rows} lang={lang} />
+        </SectionCard>
+
+        <SectionCard title={t('sa.dash.recentActivity', lang)} bodyClassName="p-0">
+          <RecentActivity events={activity} lang={lang} />
         </SectionCard>
       </section>
     </main>
