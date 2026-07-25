@@ -250,6 +250,19 @@ const dict = {
   'sa.school.dangerZone': { bn: 'বিপজ্জনক অঞ্চল', en: 'Danger zone' },
   'sa.school.backToList': { bn: 'সব স্কুল', en: 'All schools' },
 
+  // Super-admin SMS to schools (#165)
+  'sa.sms.title': { bn: 'স্কুলে SMS', en: 'SMS to schools' },
+  'sa.sms.location': { bn: 'এলাকা / লোকেশন', en: 'Area / location' },
+  'sa.sms.allLocations': { bn: 'সব লোকেশন', en: 'All locations' },
+  'sa.sms.message': { bn: 'বার্তা', en: 'Message' },
+  'sa.sms.recipients': { bn: 'প্রাপক', en: 'Recipients' },
+  'sa.sms.segments': { bn: 'সেগমেন্ট', en: 'Segments' },
+  'sa.sms.send': { bn: 'পাঠান', en: 'Send' },
+  'sa.sms.sent': { bn: 'পাঠানো হয়েছে', en: 'Sent' },
+  'sa.sms.failed': { bn: 'ব্যর্থ', en: 'Failed' },
+  'sa.sms.noRecipients': { bn: 'নির্বাচিত এলাকায় মোবাইল নম্বরসহ কোনো স্কুল নেই', en: 'No schools with a mobile number in the selected area' },
+  'sa.sms.result': { bn: 'ফলাফল', en: 'Result' },
+
   // Government officials (#164)
   'sa.gov.title': { bn: 'সরকারি কর্মকর্তা', en: 'Government Officials' },
   'sa.gov.create': { bn: 'নতুন কর্মকর্তা', en: 'New official' },
