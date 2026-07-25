@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { inputClass, labelClass } from '@/components/auth-card'
 import { t, type Lang } from '@/lib/i18n'
-import { addOffDay, deleteOffDay } from '../manual-actions'
+import { addOffDay, deleteOffDay, importCentralOffDays } from '../manual-actions'
 import { dateInputClass } from '@/components/ui/field'
 
 export function AddOffDayForm({ lang }: { lang: Lang }) {
@@ -51,6 +51,45 @@ export function AddOffDayForm({ lang }: { lang: Lang }) {
       </button>
       {error && <p className="w-full text-sm text-alert-deep">{error}</p>}
     </form>
+  )
+}
+
+// Import the super-admin central holiday template into this school's off-days
+// (issue #166). Shows how many were newly added, or that there were none.
+export function ImportCentralButton({ lang }: { lang: Lang }) {
+  const router = useRouter()
+  const [pending, startTransition] = useTransition()
+  const [note, setNote] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <button
+        type="button"
+        disabled={pending}
+        onClick={() =>
+          startTransition(async () => {
+            setError(null)
+            setNote(null)
+            const result = await importCentralOffDays()
+            if (result.error) setError(result.error)
+            else {
+              setNote(
+                result.imported
+                  ? `${t('attendance.importCentralDone', lang)} (${result.imported})`
+                  : t('attendance.importCentralNone', lang),
+              )
+              router.refresh()
+            }
+          })
+        }
+        className="h-10 cursor-pointer rounded-full border border-line-strong px-5 text-sm font-semibold hover:bg-paper-muted disabled:opacity-50"
+      >
+        {t('attendance.importCentral', lang)}
+      </button>
+      {note && <span className="text-sm text-mint-deep">{note}</span>}
+      {error && <span className="text-sm text-alert-deep">{error}</span>}
+    </div>
   )
 }
 

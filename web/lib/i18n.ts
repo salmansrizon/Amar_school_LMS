@@ -250,6 +250,19 @@ const dict = {
   'sa.school.dangerZone': { bn: 'বিপজ্জনক অঞ্চল', en: 'Danger zone' },
   'sa.school.backToList': { bn: 'সব স্কুল', en: 'All schools' },
 
+  // Central off-day calendar (#166)
+  'sa.offday.title': { bn: 'কেন্দ্রীয় ছুটির তালিকা', en: 'Central off-day calendar' },
+  'sa.offday.add': { bn: 'ছুটি যোগ করুন', en: 'Add off-day' },
+  'sa.offday.date': { bn: 'তারিখ', en: 'Date' },
+  'sa.offday.labelBn': { bn: 'শিরোনাম (বাংলা)', en: 'Label (Bangla)' },
+  'sa.offday.labelEn': { bn: 'শিরোনাম (English)', en: 'Label (English)' },
+  'sa.offday.none': { bn: 'এখনো কোনো কেন্দ্রীয় ছুটি নেই', en: 'No central off-days yet' },
+  'sa.offday.delete': { bn: 'মুছুন', en: 'Delete' },
+  // School-side import (on /school/attendance/off-days)
+  'attendance.importCentral': { bn: 'কেন্দ্রীয় তালিকা থেকে ইমপোর্ট', en: 'Import from central list' },
+  'attendance.importCentralDone': { bn: 'ইমপোর্ট সম্পন্ন', en: 'Imported' },
+  'attendance.importCentralNone': { bn: 'ইমপোর্ট করার মতো নতুন ছুটি নেই', en: 'No new off-days to import' },
+
   // Super-admin SMS to schools (#165)
   'sa.sms.title': { bn: 'স্কুলে SMS', en: 'SMS to schools' },
   'sa.sms.location': { bn: 'এলাকা / লোকেশন', en: 'Area / location' },
