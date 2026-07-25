@@ -124,6 +124,35 @@ export async function sendOwnerReset(schoolId: string): Promise<{ error?: string
   return {}
 }
 
+/** Block/unblock a school (issue #161). Blocking stamps `deactivated_at`, which
+ *  the login gate (proxy + login form) denies on — a hard switch, separate from
+ *  subscription expiry. Unblocking clears it. */
+export async function setSchoolBlocked(schoolId: string, blocked: boolean): Promise<{ error?: string }> {
+  const supabase = await createClient()
+  if (!(await requireSuperAdmin(supabase))) return { error: 'Unauthorized' }
+  const { error } = await supabase
+    .from('schools')
+    .update({ deactivated_at: blocked ? new Date().toISOString() : null })
+    .eq('id', schoolId)
+  if (error) return { error: error.message }
+  revalidatePath(`/super-admin/schools/${schoolId}`)
+  revalidatePath('/super-admin/schools')
+  return {}
+}
+
+/** Permanently delete a school (issue #161). Child tables cascade (FKs are
+ *  ON DELETE CASCADE). `.select()` so an RLS-blocked delete surfaces as a
+ *  visible failure rather than a silent 204. */
+export async function deleteSchool(schoolId: string): Promise<{ error?: string }> {
+  const supabase = await createClient()
+  if (!(await requireSuperAdmin(supabase))) return { error: 'Unauthorized' }
+  const { data, error } = await supabase.from('schools').delete().eq('id', schoolId).select('id')
+  if (error) return { error: error.message }
+  if (!data?.length) return { error: 'school not deleted' }
+  revalidatePath('/super-admin/schools')
+  return {}
+}
+
 function strOrNull(value: FormDataEntryValue | null): string | null {
   const s = String(value ?? '').trim()
   return s === '' ? null : s

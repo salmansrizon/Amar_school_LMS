@@ -19,6 +19,12 @@ export function homeFor(role: Role): string {
   return ROLE_HOME[role]
 }
 
+/** The two roles that live in the /school group. One predicate so the login
+ *  gate (proxy + login form) can't drift as roles change. */
+export function isSchoolMemberRole(role: string | null | undefined): boolean {
+  return role === 'school_owner' || role === 'staff_user'
+}
+
 export function isProtectedPath(pathname: string): boolean {
   return groupOf(pathname) !== undefined
 }

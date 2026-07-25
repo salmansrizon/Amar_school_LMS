@@ -1,9 +1,10 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
-import { canAccess, homeFor, isProtectedPath, type Role } from '@/lib/auth/routing'
+import { canAccess, homeFor, isProtectedPath, isSchoolMemberRole, type Role } from '@/lib/auth/routing'
 import { canOpenScreen, screenKeyForPath } from '@/lib/auth/screens'
 import { resolveHost, rootDomain } from '@/lib/auth/tenant-host'
 import { isSchoolPath, tenantRoute, type TenantSession } from '@/lib/auth/tenant-routing'
+import { firstRelation } from '@/lib/supabase/relation'
 
 // Optimistic auth gate for the role route groups (ADR 0003) + subdomain→tenant
 // routing (issue #109). Pages and RLS re-verify — this layer only routes:
@@ -50,16 +51,18 @@ export async function proxy(request: NextRequest) {
   // need neither — only tenant hosts, /school, and protected groups do.
   let session: TenantSession | null = null
   let profileRole: Role | null = null
+  let schoolDeactivated = false
   const needsProfile =
     !!user && (host.kind === 'tenant' || isSchoolPath(path) || isProtectedPath(path))
   if (needsProfile) {
     const { data: profile } = await supabase
       .from('profiles')
-      .select('role, school_id, schools(subdomain)')
+      .select('role, school_id, schools(subdomain, deactivated_at)')
       .eq('id', user!.id)
       .single()
     if (profile) {
       profileRole = profile.role as Role
+      schoolDeactivated = extractDeactivated(profile.schools)
       session = {
         role: profileRole,
         schoolId: profile.school_id ?? null,
@@ -97,6 +100,14 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL(homeFor(role), request.url))
   }
 
+  // Hard block: a deactivated school (schools.deactivated_at, issue #161) denies
+  // its owner/staff any /school access. Separate from subscription expiry (#169)
+  // — this is a manual super-admin switch, so the message is a suspension, not a
+  // renewal prompt. Pages re-verify; this is the optimistic gate.
+  if (isSchoolMemberRole(role) && schoolDeactivated) {
+    return NextResponse.rewrite(new URL('/account-blocked', request.url))
+  }
+
   // Staff Users: per-screen allow-list (issue #2) — server-enforced, not just nav.
   const screen = screenKeyForPath(path)
   if (role === 'staff_user' && screen) {
@@ -119,9 +130,14 @@ export async function proxy(request: NextRequest) {
 function extractSubdomain(
   rel: { subdomain: string | null } | { subdomain: string | null }[] | null,
 ): string | null {
-  if (!rel) return null
-  const row = Array.isArray(rel) ? rel[0] : rel
-  return row?.subdomain ?? null
+  return firstRelation(rel)?.subdomain ?? null
+}
+
+/** True when the caller's school carries the block flag (issue #161). */
+function extractDeactivated(
+  rel: { deactivated_at: string | null } | { deactivated_at: string | null }[] | null,
+): boolean {
+  return (firstRelation(rel)?.deactivated_at ?? null) !== null
 }
 
 export const config = {

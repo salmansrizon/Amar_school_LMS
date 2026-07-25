@@ -1,9 +1,8 @@
 import Link from 'next/link'
-import { redirect } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
 import { t } from '@/lib/i18n'
 import { subscriptionStatus } from '@/lib/subscription'
-import { createClient } from '@/lib/supabase/server'
+import { getSuperAdminContext } from '@/lib/super-admin/context'
 import { SchoolSubscriptionControls } from './subscription-controls'
 import { SchoolManagement } from './school-management'
 import { CreateSchoolForm } from './create-school-form'
@@ -16,18 +15,12 @@ const STATUS_STYLE = {
 
 export default async function SchoolsPage() {
   const lang = await currentLang()
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
-  const { data: me } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-  if (me?.role !== 'super_admin') redirect('/super-admin')
+  const { supabase } = await getSuperAdminContext()
 
   const [{ data: schools }, { data: redeemed }, { data: owners }, { data: claimCodes }] = await Promise.all([
     supabase
       .from('schools')
-      .select('id, name, subscription_expires_at, subdomain, address_line, mobile, email, eiin_no')
+      .select('id, name, subscription_expires_at, subdomain, address_line, mobile, email, eiin_no, deactivated_at')
       .order('name'),
     supabase.rpc('schools_with_code_history'),
     supabase.from('profiles').select('school_id').eq('role', 'school_owner'),
@@ -73,6 +66,11 @@ export default async function SchoolsPage() {
               <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
                 <h2 className="font-bold">{s.name}</h2>
                 <span className="flex items-center gap-2 text-sm">
+                  {s.deactivated_at && (
+                    <span className="rounded-full bg-alert-soft px-2 py-0.5 text-xs font-semibold text-alert-deep">
+                      {t('schools.blocked', lang)}
+                    </span>
+                  )}
                   <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${STATUS_STYLE[status]}`}>
                     {t(statusKey[status], lang)}
                   </span>
@@ -81,6 +79,12 @@ export default async function SchoolsPage() {
                       {t('schools.expiry', lang)}: {s.subscription_expires_at}
                     </span>
                   )}
+                  <Link
+                    href={`/super-admin/schools/${s.id}`}
+                    className="rounded-full border border-line-strong px-3 py-0.5 text-xs font-semibold hover:bg-paper-muted"
+                  >
+                    {t('sa.school.viewDetail', lang)}
+                  </Link>
                 </span>
               </div>
               {s.subdomain && (

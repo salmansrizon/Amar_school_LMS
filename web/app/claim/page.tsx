@@ -23,11 +23,16 @@ export default function ClaimPage() {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [slug, setSlug] = useState('')
+  // Prefilled from the super-admin activation link (?code=…, issue #161); the
+  // owner can still edit it. Controlled so the query-string value populates it.
+  const [code, setCode] = useState('')
   const [success, setSuccess] = useState(false)
 
   useEffect(() => {
     const supabase = createClient()
     supabase.auth.getUser().then(async ({ data: { user } }) => {
+      const codeParam = new URLSearchParams(window.location.search).get('code')
+      if (codeParam) setCode(codeParam)
       if (!user) {
         setPhase('need-account')
         return
@@ -69,10 +74,9 @@ export default function ClaimPage() {
     }
     setBusy(true)
     setError(null)
-    const form = new FormData(e.currentTarget)
     const supabase = createClient()
     const { error } = await supabase.rpc('redeem_school_claim_code', {
-      code_text: String(form.get('code')).trim(),
+      code_text: code.trim(),
       desired_subdomain: normalizeSlug(slug),
     })
     if (error) {
@@ -130,7 +134,14 @@ export default function ClaimPage() {
       <form onSubmit={onClaim} className="flex flex-col gap-3">
         <div>
           <label className={labelClass} htmlFor="code">{t('claim.code', lang)}</label>
-          <input id="code" name="code" required className={`${inputClass} font-mono`} />
+          <input
+            id="code"
+            name="code"
+            required
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            className={`${inputClass} font-mono`}
+          />
         </div>
         <div>
           <label className={labelClass} htmlFor="subdomain">{t('claim.subdomain', lang)}</label>

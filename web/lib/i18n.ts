@@ -190,6 +190,7 @@ const dict = {
   'schools.redeemed': { bn: 'ব্যবহৃত', en: 'Redeemed' },
   'schools.available': { bn: 'উপলব্ধ', en: 'Available' },
   'schools.noCodes': { bn: 'কোনো ক্লেইম কোড নেই', en: 'No claim codes' },
+  'schools.blocked': { bn: 'ব্লককৃত', en: 'Blocked' },
 
   // Super-admin panel shell + dashboard (map #158, ticket #160)
   'sa.title': { bn: 'সুপার অ্যাডমিন প্যানেল', en: 'Super Admin Panel' },
@@ -215,6 +216,33 @@ const dict = {
   'sa.soonExpiring.today': { bn: 'আজ', en: 'Today' },
   'sa.soonExpiring.days': { bn: 'দিন বাকি', en: 'days left' },
   'sa.expiry.viewUpcoming': { bn: 'আসন্ন মেয়াদ দেখুন', en: 'View upcoming expiry' },
+
+  // Super-admin school detail + lifecycle (#161)
+  'sa.school.detail': { bn: 'স্কুল বিস্তারিত', en: 'School detail' },
+  'sa.school.viewDetail': { bn: 'ব্যবস্থাপনা', en: 'Manage' },
+  'sa.school.status': { bn: 'অবস্থা', en: 'Status' },
+  'sa.school.expiry': { bn: 'মেয়াদ শেষ', en: 'Expires' },
+  'sa.school.noExpiry': { bn: 'মেয়াদ নির্ধারিত নেই', en: 'No expiry set' },
+  'sa.school.block': { bn: 'স্কুল ব্লক করুন', en: 'Block school' },
+  'sa.school.unblock': { bn: 'ব্লক তুলে নিন', en: 'Unblock school' },
+  'sa.school.blockedSince': { bn: 'ব্লককৃত', en: 'Blocked' },
+  'sa.school.blockedNote': { bn: 'ব্লককৃত স্কুলের মালিক ও স্টাফ লগইন করতে পারবে না (সাবস্ক্রিপশন থেকে স্বতন্ত্র)।', en: 'A blocked school’s owner and staff cannot log in (independent of subscription).' },
+  'sa.school.blockConfirm': { bn: 'এই স্কুলটি ব্লক করবেন? মালিক ও স্টাফ লগইন করতে পারবে না।', en: 'Block this school? Owner and staff will be unable to log in.' },
+  'sa.school.delete': { bn: 'স্কুল মুছুন', en: 'Delete school' },
+  'sa.school.deleteNote': { bn: 'এই স্কুল ও তার সব তথ্য স্থায়ীভাবে মুছে যাবে। এটি ফেরানো যাবে না।', en: 'Permanently deletes this school and all its data. This cannot be undone.' },
+  'sa.school.deleteHint': { bn: 'নিশ্চিত করতে স্কুলের নাম হুবহু লিখুন', en: 'Type the school name exactly to confirm' },
+  'sa.school.activationLink': { bn: 'অ্যাক্টিভেশন লিংক (মালিক ক্লেইম)', en: 'Activation link (owner claim)' },
+  'sa.school.activationHint': { bn: 'লিংকটি মালিককে দিন; তারা অ্যাকাউন্ট তৈরি করে সাবডোমেইন বাছবে।', en: 'Send this link to the owner; they create an account and pick a subdomain.' },
+  'sa.school.newActivation': { bn: 'নতুন অ্যাক্টিভেশন লিংক', en: 'New activation link' },
+  'sa.school.noActivation': { bn: 'কোনো সক্রিয় অ্যাক্টিভেশন লিংক নেই', en: 'No active activation link' },
+  'sa.school.copyLink': { bn: 'কপি', en: 'Copy' },
+  'sa.school.copied': { bn: 'কপি হয়েছে', en: 'Copied' },
+  'sa.school.dangerZone': { bn: 'বিপজ্জনক অঞ্চল', en: 'Danger zone' },
+  'sa.school.backToList': { bn: 'সব স্কুল', en: 'All schools' },
+
+  // Blocked-account gate (owner/staff of a deactivated school) (#161)
+  'blocked.title': { bn: 'অ্যাকাউন্ট স্থগিত', en: 'Account suspended' },
+  'blocked.message': { bn: 'আপনার স্কুলের অ্যাক্সেস সাময়িকভাবে বন্ধ করা হয়েছে। অনুগ্রহ করে অ্যাডমিনের সাথে যোগাযোগ করুন।', en: 'Access to your school has been suspended. Please contact the administrator.' },
 
   'employees.title': { bn: 'কর্মচারী', en: 'Employees' },
   'employees.add': { bn: 'নতুন কর্মচারী', en: 'New employee' },
