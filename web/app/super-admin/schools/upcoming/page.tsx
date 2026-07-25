@@ -2,7 +2,8 @@ import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
 import { t } from '@/lib/i18n'
 import { getSuperAdminContext } from '@/lib/super-admin/context'
-import { daysUntil, startOfUtcToday, SOON_EXPIRING_DAYS } from '@/lib/super-admin/dashboard'
+import { daysUntil, startOfUtcToday } from '@/lib/subscription'
+import { SOON_EXPIRING_DAYS } from '@/lib/super-admin/dashboard'
 
 // Upcoming-expiry view (issue #162): every school that has a subscription
 // expiry, soonest first, highlighting the ones within SOON_EXPIRING_DAYS (the

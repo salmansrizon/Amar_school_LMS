@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { daysUntil, lifecycleStatus, summarizeSchools, type SchoolRow } from '@/lib/super-admin/dashboard'
+import { daysUntil } from '@/lib/subscription'
+import { lifecycleStatus, summarizeSchools, type SchoolRow } from '@/lib/super-admin/dashboard'
 
 const TODAY = new Date('2026-07-25T00:00:00Z')
 

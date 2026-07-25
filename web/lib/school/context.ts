@@ -19,6 +19,8 @@ export interface SchoolContext {
   schoolId: string
   schoolName: string | null
   subscriptionExpiresAt: string | null
+  /** trial | active | expired, computed on read by school_subscription_status. */
+  subscriptionStatus: string | null
   grants: readonly string[]
 }
 
@@ -37,12 +39,15 @@ export const getSchoolContext = cache(async (): Promise<SchoolContext> => {
   if (!profile || (profile.role !== 'school_owner' && profile.role !== 'staff_user')) redirect('/login')
   const role = profile.role as Role
 
-  // School + grants are independent → fetch in parallel, not in a waterfall.
-  const [{ data: school }, grantsRes] = await Promise.all([
+  // School, grants and subscription status are independent → fetch in parallel,
+  // not in a waterfall. Status lives here (inside the cached seam) so the layout
+  // gate (#169) and any page share the single round-trip.
+  const [{ data: school }, grantsRes, { data: status }] = await Promise.all([
     supabase.from('schools').select('name, subscription_expires_at').eq('id', profile.school_id).maybeSingle(),
     role === 'staff_user'
       ? supabase.from('staff_permissions').select('screen_key').eq('staff_user_id', user.id)
       : Promise.resolve({ data: [] as { screen_key: string }[] }),
+    supabase.rpc('school_subscription_status', { sid: profile.school_id }),
   ])
 
   return {
@@ -54,6 +59,7 @@ export const getSchoolContext = cache(async (): Promise<SchoolContext> => {
     schoolId: profile.school_id,
     schoolName: school?.name ?? null,
     subscriptionExpiresAt: school?.subscription_expires_at ?? null,
+    subscriptionStatus: (status as string | null) ?? null,
     grants: (grantsRes.data ?? []).map((p) => p.screen_key),
   }
 })

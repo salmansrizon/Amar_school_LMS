@@ -319,6 +319,17 @@ const dict = {
   'blocked.title': { bn: 'অ্যাকাউন্ট স্থগিত', en: 'Account suspended' },
   'blocked.message': { bn: 'আপনার স্কুলের অ্যাক্সেস সাময়িকভাবে বন্ধ করা হয়েছে। অনুগ্রহ করে অ্যাডমিনের সাথে যোগাযোগ করুন।', en: 'Access to your school has been suspended. Please contact the administrator.' },
 
+  // School-side subscription gate + reminder banner (#169)
+  'sub.expired.title': { bn: 'আপনার সাবস্ক্রিপশনের মেয়াদ শেষ', en: 'Your subscription has expired' },
+  'sub.expired.ownerMsg': { bn: 'চালিয়ে যেতে একটি সাবস্ক্রিপশন কোড প্রয়োগ করুন, অথবা অ্যাডমিনের সাথে যোগাযোগ করুন।', en: 'Redeem a subscription code to continue, or contact the administrator.' },
+  'sub.expired.staffMsg': { bn: 'সাবস্ক্রিপশনের মেয়াদ শেষ — অনুগ্রহ করে আপনার স্কুল মালিকের সাথে যোগাযোগ করুন।', en: 'Subscription expired — please contact your school owner.' },
+  'sub.expired.redeem': { bn: 'কোড প্রয়োগ করুন', en: 'Redeem code' },
+  'sub.expired.placeholder': { bn: 'সাবস্ক্রিপশন কোড লিখুন', en: 'Enter subscription code' },
+  'sub.expired.contactAdmin': { bn: 'সহায়তার জন্য অ্যাডমিনের সাথে যোগাযোগ করুন।', en: 'Contact the administrator for help.' },
+  'sub.reminder.today': { bn: 'আপনার সাবস্ক্রিপশন আজ শেষ হচ্ছে।', en: 'Your subscription expires today.' },
+  'sub.reminder.days': { bn: 'দিনের মধ্যে আপনার সাবস্ক্রিপশন শেষ হবে।', en: 'days left on your subscription.' },
+  'sub.reminder.dismiss': { bn: 'বন্ধ করুন', en: 'Dismiss' },
+
   'employees.title': { bn: 'কর্মচারী', en: 'Employees' },
   'employees.add': { bn: 'নতুন কর্মচারী', en: 'New employee' },
   'employees.name': { bn: 'পূর্ণ নাম', en: 'Full name' },

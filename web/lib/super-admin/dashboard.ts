@@ -5,7 +5,7 @@
 // subscription.ts already does for the school list) and layers the hard-block
 // flag on top.
 
-import { subscriptionStatus, type SubscriptionStatus } from '@/lib/subscription'
+import { daysUntil, subscriptionStatus, type SubscriptionStatus } from '@/lib/subscription'
 
 /** A school is either hard-blocked (deactivated) or in one of the billing
  *  states. Blocked wins — a deactivated school is blocked regardless of expiry. */
@@ -21,12 +21,6 @@ export interface SchoolRow {
 
 /** How many days out counts as "soon expiring" for the dashboard highlight. */
 export const SOON_EXPIRING_DAYS = 7
-
-/** Today at UTC-midnight — the reference point for status/expiry comparisons,
- *  matching the `date`-typed subscription_expires_at (compared as UTC dates). */
-export function startOfUtcToday(): Date {
-  return new Date(new Date().toISOString().slice(0, 10) + 'T00:00:00Z')
-}
 
 export function lifecycleStatus(row: SchoolRow, today: Date): LifecycleStatus {
   if (row.deactivated_at) return 'blocked'
@@ -50,11 +44,6 @@ export interface SchoolKpis {
   expired: number
   blocked: number
   soonExpiring: SoonExpiring[]
-}
-
-/** Whole days from `today` to `expiry` (negative once lapsed). */
-export function daysUntil(today: Date, expiry: Date): number {
-  return Math.round((expiry.getTime() - today.getTime()) / 86_400_000)
 }
 
 /** Counts by lifecycle status + the soon-expiring list (active/trial schools

@@ -2,7 +2,8 @@ import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type MessageKey } from '@/lib/i18n'
 import { getSuperAdminContext } from '@/lib/super-admin/context'
-import { startOfUtcToday, summarizeSchools, type SchoolRow } from '@/lib/super-admin/dashboard'
+import { startOfUtcToday } from '@/lib/subscription'
+import { summarizeSchools, type SchoolRow } from '@/lib/super-admin/dashboard'
 
 // Super-admin KPI dashboard landing (map #158, ticket #160): school counts by
 // lifecycle status, the soon-expiring list, plus gov-official / dealer / codes
