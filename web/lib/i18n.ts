@@ -217,6 +217,23 @@ const dict = {
   'sa.soonExpiring.days': { bn: 'দিন বাকি', en: 'days left' },
   'sa.expiry.viewUpcoming': { bn: 'আসন্ন মেয়াদ দেখুন', en: 'View upcoming expiry' },
 
+  // Business dashboard (map #171, T3)
+  'sa.dash.title': { bn: 'ব্যবসার সারসংক্ষেপ', en: 'Business overview' },
+  'sa.dash.subtitle': { bn: 'আয়, স্কুল ও নবায়নের এক নজরে চিত্র', en: 'Income, schools and renewals at a glance' },
+  'sa.kpi.incomeMonth': { bn: 'এ মাসের আয়', en: 'This month income' },
+  'sa.kpi.activeSchools': { bn: 'সক্রিয় স্কুল', en: 'Active schools' },
+  'sa.kpi.expiringSoon': { bn: 'শীঘ্রই মেয়াদ শেষ', en: 'Expiring soon' },
+  'sa.kpi.pending': { bn: 'অপেক্ষমাণ আদায়', en: 'Pending collection' },
+  'sa.kpi.dormant': { bn: 'নিষ্ক্রিয়', en: 'Dormant' },
+  'sa.dash.vsLastMonth': { bn: 'গত মাসের তুলনায়', en: 'vs last month' },
+  'sa.dash.pendingCodes': { bn: 'অব্যবহৃত কোড', en: 'unredeemed codes' },
+  'sa.dash.next7Days': { bn: 'আগামী ৭ দিনে', en: 'in the next 7 days' },
+  'sa.dash.incomeTrend': { bn: 'আয়ের ধারা', en: 'Income trend' },
+  'sa.dash.statusMix': { bn: 'স্কুল স্ট্যাটাস', en: 'School status' },
+  'sa.dash.schools': { bn: 'স্কুল', en: 'schools' },
+  'sa.action.createSchool': { bn: 'স্কুল তৈরি', en: 'Create school' },
+  'sa.action.generateCode': { bn: 'কোড তৈরি', en: 'Generate code' },
+
   // Subscription expiry management (#162)
   'sa.expiry.set': { bn: 'মেয়াদ নির্ধারণ / বাড়ান', en: 'Set / extend expiry' },
   'sa.expiry.date': { bn: 'নতুন মেয়াদের তারিখ', en: 'New expiry date' },

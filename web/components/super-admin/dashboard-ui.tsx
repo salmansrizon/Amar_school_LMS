@@ -8,6 +8,12 @@ import { FOCUS_RING } from '@/lib/ui-tokens'
 // (T4) build entirely out of these, so spacing / radius / typography stay in one
 // place. Tokens (brand/ink/muted/line/paper) match components/school-shell.tsx.
 
+/** BDT money for display — grouped digits with the ৳ sign. The data layer keeps
+ *  amounts as plain numbers (map #171 T2); formatting is the UI's job. */
+export function formatTaka(n: number): string {
+  return `৳${Math.round(n).toLocaleString('en-US')}`
+}
+
 /** Page title strip: heading + optional subtitle on the left, actions on the
  *  right (quick-action buttons, filters). Wraps gracefully on narrow screens. */
 export function PageHeader({

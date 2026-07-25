@@ -1,26 +1,55 @@
 import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
-import { t, type MessageKey } from '@/lib/i18n'
+import { t } from '@/lib/i18n'
 import { getSuperAdminContext } from '@/lib/super-admin/context'
 import { startOfUtcToday } from '@/lib/subscription'
 import { summarizeSchools, type SchoolRow } from '@/lib/super-admin/dashboard'
+import {
+  incomeSeries,
+  latestIncome,
+  pendingCollection,
+  dormantCount,
+  type CodeRow,
+} from '@/lib/super-admin/financials'
+import { PageHeader, KpiCard, SectionCard, QuickAction, formatTaka } from '@/components/super-admin/dashboard-ui'
+import { BarTrend, StatusDonut } from '@/components/super-admin/charts'
 
-// Super-admin KPI dashboard landing (map #158, ticket #160): school counts by
-// lifecycle status, the soon-expiring list, plus gov-official / dealer / codes
-// tallies. Replaces the bare RoleShell card; the sidebar comes from the layout.
-// The role gate lives in getSuperAdminContext (shared with the layout).
+// Super-admin business dashboard landing (map #171, T3): the money and the fleet
+// at a glance — income KPIs + trend, school-status donut, and the soon-expiring
+// list. Built on the T1 design primitives over the T2 financial data layer; the
+// role gate lives in getSuperAdminContext (shared with the layout). Deep,
+// actionable lists (the renewals chase list) land on T5.
+const TREND_MONTHS = 12
+
+// Inline KPI-card icons (stroke paths handed to KpiCard's StrokeIcon).
+const ICON = {
+  income: <path d="M3 17l6-6 4 4 8-8M21 7v5M21 7h-5" />,
+  schools: (
+    <>
+      <path d="M3 21h18" />
+      <path d="M5 21V7l7-4 7 4v14" />
+      <path d="M9 21v-6h6v6" />
+    </>
+  ),
+  clock: (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7v5l3 2" />
+    </>
+  ),
+  pending: <path d="M4 4h16v4l-6 4 6 4v4H4v-4l6-4-6-4z" />,
+  plus: <path d="M12 5v14M5 12h14" />,
+} as const
+
 export default async function SuperAdminDashboard() {
   const lang = await currentLang()
   const { supabase } = await getSuperAdminContext()
 
-  const [{ data: schools }, { data: history }, { count: govCount }, { count: dealerCount }, { count: codesOutstanding }] =
-    await Promise.all([
-      supabase.from('schools').select('id, name, subscription_expires_at, deactivated_at').order('name'),
-      supabase.rpc('schools_with_code_history'),
-      supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'gov_official'),
-      supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'dealer'),
-      supabase.from('subscription_codes').select('id', { count: 'exact', head: true }).is('redeemed_at', null),
-    ])
+  const [{ data: schools }, { data: history }, { data: codes }] = await Promise.all([
+    supabase.from('schools').select('id, name, subscription_expires_at, deactivated_at').order('name'),
+    supabase.rpc('schools_with_code_history'),
+    supabase.from('subscription_codes').select('price, redeemed_at, redeemed_school_id'),
+  ])
 
   // `schools_with_code_history` returns setof uuid → bare strings, not objects.
   const withHistory = new Set((history ?? []) as string[])
@@ -33,71 +62,118 @@ export default async function SuperAdminDashboard() {
   }))
   const kpi = summarizeSchools(rows, startOfUtcToday())
 
-  const cards: { key: MessageKey; value: number; href?: string; tone: string }[] = [
-    { key: 'sa.kpi.totalSchools', value: kpi.total, href: '/super-admin/schools', tone: 'text-ink' },
-    { key: 'sa.kpi.trial', value: kpi.trial, tone: 'text-sky-deep' },
-    { key: 'sa.kpi.active', value: kpi.active, tone: 'text-mint-deep' },
-    { key: 'sa.kpi.expired', value: kpi.expired, tone: 'text-alert-deep' },
-    { key: 'sa.kpi.blocked', value: kpi.blocked, tone: 'text-alert-deep' },
-    { key: 'sa.kpi.govOfficials', value: govCount ?? 0, href: '/super-admin/gov-officials', tone: 'text-ink' },
-    { key: 'sa.kpi.dealers', value: dealerCount ?? 0, href: '/super-admin/partners', tone: 'text-ink' },
-    { key: 'sa.kpi.codesOutstanding', value: codesOutstanding ?? 0, href: '/super-admin/codes', tone: 'text-ink' },
+  const codeRows = (codes ?? []) as CodeRow[]
+  const series = incomeSeries(codeRows, { asOf: new Date(), months: TREND_MONTHS })
+  const income = latestIncome(series)
+  const pending = pendingCollection(codeRows)
+  const dormant = dormantCount(kpi)
+
+  const donut = [
+    { label: t('sa.kpi.active', lang), value: kpi.active, colorClass: 'text-mint-deep' },
+    { label: t('sa.kpi.trial', lang), value: kpi.trial, colorClass: 'text-sky-deep' },
+    { label: t('sa.kpi.expired', lang), value: kpi.expired, colorClass: 'text-alert-deep' },
+    { label: t('sa.kpi.blocked', lang), value: kpi.blocked, colorClass: 'text-amber-600' },
   ]
 
   return (
-    <main className="mx-auto w-full max-w-5xl flex-1 p-6">
-      <h1 className="mb-4 text-2xl font-extrabold">{t('sa.nav.dashboard', lang)}</h1>
+    <main className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
+      <PageHeader
+        title={t('sa.dash.title', lang)}
+        subtitle={t('sa.dash.subtitle', lang)}
+        actions={
+          <>
+            <QuickAction href="/super-admin/schools" label={t('sa.action.createSchool', lang)} icon={ICON.plus} />
+            <QuickAction
+              href="/super-admin/codes"
+              label={t('sa.action.generateCode', lang)}
+              variant="ghost"
+              icon={ICON.plus}
+            />
+          </>
+        }
+      />
 
-      <section className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        {cards.map((c) => {
-          const body = (
-            <div className="rounded-lg border border-line bg-paper p-4 shadow-card transition hover:border-brand-300">
-              <div className={`text-3xl font-extrabold ${c.tone}`}>{c.value}</div>
-              <div className="mt-1 text-xs font-semibold text-muted">{t(c.key, lang)}</div>
-            </div>
-          )
-          return c.href ? (
-            <Link key={c.key} href={c.href}>
-              {body}
-            </Link>
-          ) : (
-            <div key={c.key}>{body}</div>
-          )
-        })}
+      <section className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
+        <KpiCard
+          label={t('sa.kpi.incomeMonth', lang)}
+          value={formatTaka(income.total)}
+          delta={income.delta ?? undefined}
+          hint={t('sa.dash.vsLastMonth', lang)}
+          tone="green"
+          icon={ICON.income}
+        />
+        <KpiCard
+          label={t('sa.kpi.activeSchools', lang)}
+          value={`${kpi.active} / ${kpi.total}`}
+          hint={`${kpi.trial} ${t('sa.kpi.trial', lang).toLowerCase()} · ${kpi.expired} ${t('sa.kpi.expired', lang).toLowerCase()} · ${dormant} ${t('sa.kpi.dormant', lang).toLowerCase()}`}
+          tone="brand"
+          icon={ICON.schools}
+        />
+        <KpiCard
+          label={t('sa.kpi.expiringSoon', lang)}
+          value={kpi.soonExpiring.length}
+          hint={t('sa.dash.next7Days', lang)}
+          tone="amber"
+          icon={ICON.clock}
+        />
+        <KpiCard
+          label={t('sa.kpi.pending', lang)}
+          value={formatTaka(pending.total)}
+          hint={`${pending.count} ${t('sa.dash.pendingCodes', lang)}`}
+          tone="rose"
+          icon={ICON.pending}
+        />
       </section>
 
-      <section className="rounded-lg border border-line bg-paper p-5 shadow-card">
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="font-bold">{t('sa.soonExpiring.title', lang)}</h2>
-          <Link href="/super-admin/schools/upcoming" className="text-sm text-brand-600 hover:underline">
-            {t('sa.expiry.viewUpcoming', lang)}
-          </Link>
+      <section className="mt-4 grid gap-4 lg:grid-cols-5">
+        <div className="lg:col-span-3">
+          <SectionCard title={t('sa.dash.incomeTrend', lang)}>
+            <BarTrend data={series} formatValue={formatTaka} />
+          </SectionCard>
         </div>
-        {kpi.soonExpiring.length === 0 ? (
-          <p className="text-sm text-muted">{t('sa.soonExpiring.none', lang)}</p>
-        ) : (
-          <ul className="divide-y divide-line text-sm">
-            {kpi.soonExpiring.map((s) => (
-              <li key={s.id} className="flex items-center justify-between py-2">
-                <Link href={`/super-admin/schools/${s.id}`} className="font-medium text-brand-700 hover:underline">
-                  {s.name}
-                </Link>
-                <span className="flex items-center gap-2">
-                  <span className="text-muted">{s.expiry}</span>
-                  <span
-                    className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
-                      s.daysLeft <= 2 ? 'bg-alert-soft text-alert-deep' : 'bg-sky-soft text-sky-deep'
-                    }`}
-                  >
-                    {s.daysLeft === 0
-                      ? t('sa.soonExpiring.today', lang)
-                      : `${s.daysLeft} ${t('sa.soonExpiring.days', lang)}`}
+        <div className="lg:col-span-2">
+          <SectionCard title={t('sa.dash.statusMix', lang)}>
+            <StatusDonut segments={donut} centerValue={kpi.total} centerLabel={t('sa.dash.schools', lang)} />
+          </SectionCard>
+        </div>
+      </section>
+
+      <section className="mt-4">
+        <SectionCard
+          title={t('sa.soonExpiring.title', lang)}
+          action={
+            <Link href="/super-admin/schools/upcoming" className="text-sm font-semibold text-brand-600 hover:underline">
+              {t('sa.expiry.viewUpcoming', lang)}
+            </Link>
+          }
+          bodyClassName="p-0"
+        >
+          {kpi.soonExpiring.length === 0 ? (
+            <p className="p-4 text-sm text-muted sm:p-5">{t('sa.soonExpiring.none', lang)}</p>
+          ) : (
+            <ul className="divide-y divide-line/70 text-sm">
+              {kpi.soonExpiring.map((s) => (
+                <li key={s.id} className="flex items-center justify-between gap-3 px-4 py-3 sm:px-5">
+                  <Link href={`/super-admin/schools/${s.id}`} className="truncate font-semibold text-brand-700 hover:underline">
+                    {s.name}
+                  </Link>
+                  <span className="flex shrink-0 items-center gap-2">
+                    <span className="text-muted">{s.expiry}</span>
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-xs font-bold ${
+                        s.daysLeft <= 2 ? 'bg-alert-soft text-alert-deep' : 'bg-sky-soft text-sky-deep'
+                      }`}
+                    >
+                      {s.daysLeft === 0
+                        ? t('sa.soonExpiring.today', lang)
+                        : `${s.daysLeft} ${t('sa.soonExpiring.days', lang)}`}
+                    </span>
                   </span>
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </SectionCard>
       </section>
     </main>
   )
