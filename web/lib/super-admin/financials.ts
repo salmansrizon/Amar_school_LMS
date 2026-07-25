@@ -122,6 +122,23 @@ export function perSchoolLedger(codes: CodeRow[]): SchoolLedgerEntry[] {
   return [...bySchool.values()]
 }
 
+/** Every school's last-paid price in one pass — schoolId → price of its most
+ *  recently redeemed code. The map form is for callers that need it per school
+ *  across a whole list (e.g. the schools manager), avoiding a rescan each row. */
+export function lastPaidBySchool(codes: CodeRow[]): Map<string, number> {
+  const latestAt = new Map<string, string>()
+  const price = new Map<string, number>()
+  for (const c of codes) {
+    if (!c.redeemed_school_id || !c.redeemed_at) continue
+    const prev = latestAt.get(c.redeemed_school_id)
+    if (prev === undefined || c.redeemed_at > prev) {
+      latestAt.set(c.redeemed_school_id, c.redeemed_at)
+      price.set(c.redeemed_school_id, c.price)
+    }
+  }
+  return price
+}
+
 /** Price of a school's most recently redeemed code, or null when it never paid —
  *  the best estimate for what its renewal will cost (payable forecast). */
 export function lastPaidPrice(codes: CodeRow[], schoolId: string): number | null {

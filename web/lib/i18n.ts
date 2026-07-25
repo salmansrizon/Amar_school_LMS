@@ -190,7 +190,6 @@ const dict = {
   'schools.redeemed': { bn: 'ব্যবহৃত', en: 'Redeemed' },
   'schools.available': { bn: 'উপলব্ধ', en: 'Available' },
   'schools.noCodes': { bn: 'কোনো ক্লেইম কোড নেই', en: 'No claim codes' },
-  'schools.blocked': { bn: 'ব্লককৃত', en: 'Blocked' },
 
   // Super-admin panel shell + dashboard (map #158, ticket #160)
   'sa.title': { bn: 'সুপার অ্যাডমিন প্যানেল', en: 'Super Admin Panel' },
@@ -250,11 +249,16 @@ const dict = {
   'sa.school.status': { bn: 'অবস্থা', en: 'Status' },
   'sa.school.expiry': { bn: 'মেয়াদ শেষ', en: 'Expires' },
   'sa.school.noExpiry': { bn: 'মেয়াদ নির্ধারিত নেই', en: 'No expiry set' },
-  'sa.school.block': { bn: 'স্কুল ব্লক করুন', en: 'Block school' },
-  'sa.school.unblock': { bn: 'ব্লক তুলে নিন', en: 'Unblock school' },
-  'sa.school.blockedSince': { bn: 'ব্লককৃত', en: 'Blocked' },
-  'sa.school.blockedNote': { bn: 'ব্লককৃত স্কুলের মালিক ও স্টাফ লগইন করতে পারবে না (সাবস্ক্রিপশন থেকে স্বতন্ত্র)।', en: 'A blocked school’s owner and staff cannot log in (independent of subscription).' },
-  'sa.school.blockConfirm': { bn: 'এই স্কুলটি ব্লক করবেন? মালিক ও স্টাফ লগইন করতে পারবে না।', en: 'Block this school? Owner and staff will be unable to log in.' },
+  // Pause / Resume (map #171 T4) — the deactivated_at flag surfaced as a
+  // non-payment suspension the admin agrees with the owner and reverses on pay.
+  'sa.school.pause': { bn: 'সাবস্ক্রিপশন পজ করুন', en: 'Pause subscription' },
+  'sa.school.resume': { bn: 'সাবস্ক্রিপশন চালু করুন', en: 'Resume subscription' },
+  'sa.school.paused': { bn: 'পজকৃত', en: 'Paused' },
+  'sa.school.pauseNote': { bn: 'পজকৃত স্কুলের মালিক ও স্টাফ লগইন করতে পারবে না; পেমেন্ট পেলে চালু করুন।', en: 'A paused school’s owner and staff cannot log in; resume once they pay.' },
+  'sa.school.pauseConfirm': { bn: 'এই স্কুলের সাবস্ক্রিপশন পজ করবেন? মালিক ও স্টাফ লগইন করতে পারবে না।', en: 'Pause this school’s subscription? Owner and staff will be unable to log in.' },
+  'sa.school.monthsPaid': { bn: 'পরিশোধিত মাস', en: 'Months paid' },
+  'sa.school.totalPaid': { bn: 'মোট পরিশোধ', en: 'Total paid' },
+  'sa.school.lastPaid': { bn: 'সর্বশেষ মূল্য', en: 'Last paid' },
   'sa.school.delete': { bn: 'স্কুল মুছুন', en: 'Delete school' },
   'sa.school.deleteNote': { bn: 'এই স্কুল ও তার সব তথ্য স্থায়ীভাবে মুছে যাবে। এটি ফেরানো যাবে না।', en: 'Permanently deletes this school and all its data. This cannot be undone.' },
   'sa.school.deleteHint': { bn: 'নিশ্চিত করতে স্কুলের নাম হুবহু লিখুন', en: 'Type the school name exactly to confirm' },

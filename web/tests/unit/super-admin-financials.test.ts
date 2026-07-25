@@ -8,6 +8,7 @@ import {
   pendingCollection,
   perSchoolLedger,
   lastPaidPrice,
+  lastPaidBySchool,
   payableForecast,
   type CodeRow,
 } from '@/lib/super-admin/financials'
@@ -121,6 +122,21 @@ describe('lastPaidPrice', () => {
   })
   it('is null for a school with no redeemed codes', () => {
     expect(lastPaidPrice([], 'ghost')).toBeNull()
+  })
+})
+
+describe('lastPaidBySchool', () => {
+  it('maps each school to its most-recently-redeemed price in one pass', () => {
+    const codes = [
+      code({ price: 5000, redeemed_at: '2026-05-01T00:00:00Z', redeemed_school_id: 'a' }),
+      code({ price: 6000, redeemed_at: '2026-07-01T00:00:00Z', redeemed_school_id: 'a' }),
+      code({ price: 3000, redeemed_at: '2026-06-01T00:00:00Z', redeemed_school_id: 'b' }),
+      code({ price: 1000, redeemed_at: null }), // unredeemed ignored
+    ]
+    const map = lastPaidBySchool(codes)
+    expect(map.get('a')).toBe(6000)
+    expect(map.get('b')).toBe(3000)
+    expect(map.has('ghost')).toBe(false)
   })
 })
 
