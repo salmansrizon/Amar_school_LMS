@@ -5,6 +5,7 @@ import { requireSuperAdmin } from '@/lib/auth/require-role'
 import { createClient } from '@/lib/supabase/server'
 import { rootDomain } from '@/lib/auth/tenant-host'
 import { normalizeSlug, validateSlug } from '@/lib/subdomain'
+import { isFeatureFlag } from '@/lib/super-admin/feature-flags'
 
 // Super-admin B2B panel actions (issue #111). RLS is the authority; these give
 // clean errors + revalidate the list.
@@ -168,6 +169,28 @@ export async function deleteSchool(schoolId: string): Promise<{ error?: string }
   if (error) return { error: error.message }
   if (!data?.length) return { error: 'school not deleted' }
   revalidatePath('/super-admin/schools')
+  return {}
+}
+
+/** Toggle a per-school feature flag (issue #168). Storage only — nothing
+ *  enforces the flag yet. Unknown keys are rejected so the table stays to the
+ *  curated flag set. */
+export async function setFeatureFlag(
+  schoolId: string,
+  flagKey: string,
+  enabled: boolean,
+): Promise<{ error?: string }> {
+  const supabase = await createClient()
+  if (!(await requireSuperAdmin(supabase))) return { error: 'Unauthorized' }
+  if (!isFeatureFlag(flagKey)) return { error: 'unknown flag' }
+  const { error } = await supabase
+    .from('school_feature_flags')
+    .upsert(
+      { school_id: schoolId, flag_key: flagKey, enabled, updated_at: new Date().toISOString() },
+      { onConflict: 'school_id,flag_key' },
+    )
+  if (error) return { error: error.message }
+  revalidatePath(`/super-admin/schools/${schoolId}`)
   return {}
 }
 

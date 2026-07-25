@@ -9,6 +9,7 @@ import { lifecycleStatus, startOfUtcToday } from '@/lib/super-admin/dashboard'
 import { LIFECYCLE_STATUS_KEY, LIFECYCLE_STATUS_STYLE } from '@/lib/super-admin/status-ui'
 import { SchoolDetailControls } from './school-detail-controls'
 import { SchoolExpiryControl } from './expiry-control'
+import { FeatureFlagToggles } from './feature-flags'
 
 // Super-admin school detail (map #158, ticket #161): the lifecycle surface for
 // one school — status, activation links, force-offline block, and the delete
@@ -19,7 +20,7 @@ export default async function SchoolDetailPage({ params }: { params: Promise<{ i
   const lang = await currentLang()
   const { supabase } = await getSuperAdminContext()
 
-  const [{ data: school }, { data: history }, { data: codes }] = await Promise.all([
+  const [{ data: school }, { data: history }, { data: codes }, { data: flags }] = await Promise.all([
     supabase
       .from('schools')
       .select('id, name, subscription_expires_at, deactivated_at, subdomain')
@@ -31,6 +32,7 @@ export default async function SchoolDetailPage({ params }: { params: Promise<{ i
       .select('code, redeemed_at')
       .eq('school_id', id)
       .order('created_at', { ascending: false }),
+    supabase.from('school_feature_flags').select('flag_key').eq('school_id', id).eq('enabled', true),
   ])
   if (!school) notFound()
 
@@ -79,6 +81,14 @@ export default async function SchoolDetailPage({ params }: { params: Promise<{ i
 
       <div className="mb-4">
         <SchoolExpiryControl schoolId={school.id} expiry={school.subscription_expires_at} lang={lang} />
+      </div>
+
+      <div className="mb-4">
+        <FeatureFlagToggles
+          schoolId={school.id}
+          enabled={(flags ?? []).map((f) => f.flag_key)}
+          lang={lang}
+        />
       </div>
 
       <SchoolDetailControls

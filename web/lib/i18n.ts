@@ -250,6 +250,15 @@ const dict = {
   'sa.school.dangerZone': { bn: 'বিপজ্জনক অঞ্চল', en: 'Danger zone' },
   'sa.school.backToList': { bn: 'সব স্কুল', en: 'All schools' },
 
+  // Feature flags (#168)
+  'sa.flags.title': { bn: 'ফিচার ফ্ল্যাগ', en: 'Feature flags' },
+  'sa.flags.hint': { bn: 'সংরক্ষণ ও টগল কেবল — এখনো প্রয়োগ হয় না।', en: 'Storage + toggle only — not enforced yet.' },
+  'sa.flags.exams': { bn: 'পরীক্ষা', en: 'Exams' },
+  'sa.flags.accounting': { bn: 'হিসাব', en: 'Accounting' },
+  'sa.flags.sms': { bn: 'SMS', en: 'SMS' },
+  'sa.flags.publishing': { bn: 'প্রকাশনা', en: 'Publishing' },
+  'sa.flags.library': { bn: 'লাইব্রেরি', en: 'Library' },
+
   // Clusters (#167)
   'sa.clusters.title': { bn: 'ক্লাস্টার ব্যবস্থাপনা', en: 'Clusters' },
   'sa.clusters.create': { bn: 'নতুন ক্লাস্টার', en: 'New cluster' },
