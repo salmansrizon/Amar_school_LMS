@@ -2,24 +2,16 @@ import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
 import { t } from '@/lib/i18n'
 import { getSuperAdminContext } from '@/lib/super-admin/context'
-import { startOfUtcToday } from '@/lib/subscription'
-import { summarizeSchools, type SchoolRow } from '@/lib/super-admin/dashboard'
-import {
-  incomeSeries,
-  latestIncome,
-  pendingCollection,
-  dormantCount,
-  type CodeRow,
-} from '@/lib/super-admin/financials'
+import { loadSuperAdminDashboard } from '@/lib/super-admin/dashboard-read-model'
 import { PageHeader, KpiCard, SectionCard, QuickAction, formatTaka } from '@/components/super-admin/dashboard-ui'
 import { BarTrend, StatusDonut } from '@/components/super-admin/charts'
 
 // Super-admin business dashboard landing (map #171, T3): the money and the fleet
 // at a glance — income KPIs + trend, school-status donut, and the soon-expiring
-// list. Built on the T1 design primitives over the T2 financial data layer; the
-// role gate lives in getSuperAdminContext (shared with the layout). Deep,
-// actionable lists (the renewals chase list) land on T5.
-const TREND_MONTHS = 12
+// list. The fetch→shape→aggregate composition lives in the dashboard read model
+// (arch review); this page just calls it and renders. Role gate is in
+// getSuperAdminContext (shared with the layout). Deep, actionable lists (the
+// renewals chase list) land on T5.
 
 // Inline KPI-card icons (stroke paths handed to KpiCard's StrokeIcon).
 const ICON = {
@@ -45,28 +37,7 @@ export default async function SuperAdminDashboard() {
   const lang = await currentLang()
   const { supabase } = await getSuperAdminContext()
 
-  const [{ data: schools }, { data: history }, { data: codes }] = await Promise.all([
-    supabase.from('schools').select('id, name, subscription_expires_at, deactivated_at').order('name'),
-    supabase.rpc('schools_with_code_history'),
-    supabase.from('subscription_codes').select('price, redeemed_at, redeemed_school_id'),
-  ])
-
-  // `schools_with_code_history` returns setof uuid → bare strings, not objects.
-  const withHistory = new Set((history ?? []) as string[])
-  const rows: SchoolRow[] = (schools ?? []).map((s) => ({
-    id: s.id,
-    name: s.name,
-    subscription_expires_at: s.subscription_expires_at,
-    deactivated_at: s.deactivated_at,
-    hasCodeHistory: withHistory.has(s.id),
-  }))
-  const kpi = summarizeSchools(rows, startOfUtcToday())
-
-  const codeRows = (codes ?? []) as CodeRow[]
-  const series = incomeSeries(codeRows, { asOf: new Date(), months: TREND_MONTHS })
-  const income = latestIncome(series)
-  const pending = pendingCollection(codeRows)
-  const dormant = dormantCount(kpi)
+  const { kpis: kpi, income, incomeSeries: series, pending, dormant } = await loadSuperAdminDashboard(supabase)
 
   const donut = [
     { label: t('sa.kpi.active', lang), value: kpi.active, colorClass: 'text-mint-deep' },
