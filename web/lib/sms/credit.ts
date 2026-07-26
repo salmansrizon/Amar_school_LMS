@@ -22,11 +22,17 @@ export const SMS_LOW_BALANCE = 20
 
 export type BalanceLevel = 'ok' | 'low' | 'empty'
 
-/** Bucket a balance for owner-side styling (badge / banner). */
-export function smsBalanceLevel(balance: number): BalanceLevel {
+/** Bucket any balance against a low threshold: empty ≤ 0, low ≤ threshold, else
+ *  ok. Shared by the per-school credit badge and the master pool (#188). */
+export function balanceLevel(balance: number, low: number): BalanceLevel {
   if (balance <= 0) return 'empty'
-  if (balance <= SMS_LOW_BALANCE) return 'low'
+  if (balance <= low) return 'low'
   return 'ok'
+}
+
+/** Bucket a school's SMS balance for owner-side styling (badge / banner). */
+export function smsBalanceLevel(balance: number): BalanceLevel {
+  return balanceLevel(balance, SMS_LOW_BALANCE)
 }
 
 export interface SchoolSmsCredit {

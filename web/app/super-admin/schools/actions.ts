@@ -211,6 +211,8 @@ export async function topUpSmsCredits(
   const {
     data: { user },
   } = await supabase.auth.getUser()
+  // Allocation grants per-school credits only; it does NOT touch the master pool
+  // (#188 gateway-balance model — the pool drops on actual sends, not on grant).
   const { error } = await supabase.from('sms_credit_ledger').insert({
     school_id: schoolId,
     delta: credits,

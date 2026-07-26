@@ -1,5 +1,6 @@
 'use server'
 
+import { revalidatePath } from 'next/cache'
 import { requireSuperAdmin } from '@/lib/auth/require-role'
 import { createClient } from '@/lib/supabase/server'
 import { smsGateway } from '@/lib/sms/gateway'
@@ -12,6 +13,33 @@ import { smsGateway } from '@/lib/sms/gateway'
 export interface RenewalReminderResult {
   error?: string
   sent?: boolean
+}
+
+/** Record a master-pool SMS purchase from the gateway (#188): buy `qty` SMS for
+ *  `amount` ৳. Grows the pool the admin allocates from. Super-admin only. */
+export async function recordSmsPurchase(
+  qty: number,
+  amount: number,
+  note: string | null,
+): Promise<{ error?: string }> {
+  const supabase = await createClient()
+  if (!(await requireSuperAdmin(supabase))) return { error: 'Unauthorized' }
+  if (!Number.isInteger(qty) || qty <= 0) return { error: 'quantity must be a positive whole number' }
+  if (!Number.isFinite(amount) || amount < 0) return { error: 'invalid amount' }
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  const { error } = await supabase.from('sms_pool_ledger').insert({
+    delta: qty,
+    reason: 'buy',
+    amount,
+    note,
+    created_by: user?.id ?? null,
+  })
+  if (error) return { error: 'purchase failed' }
+  revalidatePath('/super-admin')
+  return {}
 }
 
 /** Bilingual (bn-primary) renewal nudge to one owner. */
