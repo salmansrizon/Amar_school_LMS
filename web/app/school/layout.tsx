@@ -6,6 +6,7 @@ import { SchoolShell } from '@/components/school-shell'
 import { SubscriptionGate } from '@/components/subscription-gate'
 import { SubscriptionBanner, SUB_REMINDER_COOKIE } from '@/components/subscription-banner'
 import { getSchoolContext } from '@/lib/school/context'
+import { loadSchoolSmsCredit } from '@/lib/sms/credit'
 import { daysUntilExpiry, shouldShowReminder } from '@/lib/subscription'
 
 // Persistent chrome for every /school/* page (sidebar + topbar per the reference
@@ -22,6 +23,7 @@ export default async function SchoolLayout({ children }: { children: React.React
   const collapsed = await sidebarCollapsed()
   const ctx = await getSchoolContext()
   const status = ctx.subscriptionStatus
+  const smsCredit = await loadSchoolSmsCredit(ctx.supabase, ctx.schoolId)
 
   const shellProps = {
     role: ctx.role,
@@ -30,6 +32,7 @@ export default async function SchoolLayout({ children }: { children: React.React
     fullName: ctx.fullName,
     lang,
     initialCollapsed: collapsed,
+    smsCredit,
   }
 
   if (status === 'expired') {

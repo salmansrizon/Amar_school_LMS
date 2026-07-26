@@ -16,6 +16,14 @@ import type { ScreenKey } from '@/lib/auth/screens'
 import type { Role } from '@/lib/auth/routing'
 import { SCHOOL_MODULES, type SchoolNavItem } from '@/lib/school-nav'
 import { sidebarCookieAssignment } from '@/lib/ui-prefs'
+import type { SchoolSmsCredit } from '@/lib/sms/credit'
+
+// SMS-balance badge styling by level (map #171 T9).
+const SMS_BADGE_STYLE = {
+  ok: 'border-line-strong text-muted hover:bg-brand-50 hover:text-brand-600',
+  low: 'border-amber-300 bg-amber-50 text-amber-600 hover:bg-amber-100',
+  empty: 'border-alert/40 bg-alert-soft text-alert-deep hover:bg-alert-soft',
+} as const
 
 // Persistent sidebar + topbar for the whole /school/* route group, restructured
 // to ui/school-owner/dashboard.html's reference image: light icon nav + bottom
@@ -176,6 +184,7 @@ export function SchoolShell({
   lang,
   initialCollapsed = false,
   banner,
+  smsCredit = null,
   children,
 }: {
   role: Role
@@ -187,6 +196,8 @@ export function SchoolShell({
   initialCollapsed?: boolean
   /** Optional strip under the topbar (e.g. the subscription reminder, #169). */
   banner?: React.ReactNode
+  /** Prepaid SMS balance, when metering is on for this school (map #171 T9). */
+  smsCredit?: SchoolSmsCredit | null
   children: React.ReactNode
 }) {
   const pathname = usePathname()
@@ -298,6 +309,16 @@ export function SchoolShell({
             </button>
 
             <div className="ml-auto flex shrink-0 flex-nowrap items-center gap-1 sm:gap-2">
+              {smsCredit && (
+                <Link
+                  href="/school/sms"
+                  title={t('sms.balance', lang)}
+                  className={`inline-flex min-h-9 items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-bold transition ${FOCUS_RING} ${SMS_BADGE_STYLE[smsCredit.level]}`}
+                >
+                  <Icon name="sms" className="size-4 shrink-0" />
+                  <span>{smsCredit.balance}</span>
+                </Link>
+              )}
               <NotificationBell lang={lang} buttonClass={ICON_BUTTON} />
 
               <span className="mx-1 hidden h-6 w-px bg-line sm:block" />

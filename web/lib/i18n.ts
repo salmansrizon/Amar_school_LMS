@@ -306,6 +306,11 @@ const dict = {
   'sa.flags.library': { bn: 'লাইব্রেরি', en: 'Library' },
   'sa.flags.smsMetering': { bn: 'প্রিপেইড SMS প্রয়োগ', en: 'Prepaid SMS enforcement' },
   'sms.creditExhausted': { bn: 'SMS ক্রেডিট শেষ — টপ-আপের জন্য অ্যাডমিনের সাথে যোগাযোগ করুন।', en: 'Insufficient SMS credit — contact admin to top up.' },
+  // Owner-side SMS balance (map #171 T9)
+  'sms.balance': { bn: 'SMS ব্যালেন্স', en: 'SMS balance' },
+  'sms.creditsLeft': { bn: 'ক্রেডিট বাকি', en: 'credits left' },
+  'sms.lowBalance': { bn: 'SMS ক্রেডিট কম — শীঘ্রই টপ-আপের জন্য অ্যাডমিনের সাথে যোগাযোগ করুন।', en: 'Low SMS balance — contact admin to top up soon.' },
+  'sms.balanceEmpty': { bn: 'SMS ক্রেডিট শেষ — পাঠাতে অ্যাডমিনের কাছে টপ-আপ করান।', en: 'Out of SMS credit — ask admin to top up to keep sending.' },
 
   // Clusters (#167)
   'sa.clusters.title': { bn: 'ক্লাস্টার ব্যবস্থাপনা', en: 'Clusters' },
