@@ -7,6 +7,8 @@ import { PageHeader, KpiCard, SectionCard, QuickAction, formatTaka } from '@/com
 import { BarTrend, StatusDonut } from '@/components/super-admin/charts'
 import { RenewalsChaseList } from './renewals-chase-list'
 import { RecentActivity } from './recent-activity'
+import { SmsPoolPanel } from './sms-pool-panel'
+import { loadSmsPool } from '@/lib/sms/pool'
 
 // Super-admin business dashboard landing (map #171, T3): the money and the fleet
 // at a glance — income KPIs + trend, school-status donut, and the soon-expiring
@@ -42,6 +44,7 @@ export default async function SuperAdminDashboard() {
 
   const { kpis: kpi, income, smsIncome, incomeSeries: series, pending, dormant, payable, activity } =
     await loadSuperAdminDashboard(supabase)
+  const smsPool = await loadSmsPool(supabase)
 
   const donut = [
     { label: t('sa.kpi.active', lang), value: kpi.active, colorClass: 'text-mint-deep' },
@@ -119,6 +122,10 @@ export default async function SuperAdminDashboard() {
             <StatusDonut segments={donut} centerValue={kpi.total} centerLabel={t('sa.dash.schools', lang)} />
           </SectionCard>
         </div>
+      </section>
+
+      <section className="mt-4">
+        <SmsPoolPanel pool={smsPool} lang={lang} />
       </section>
 
       <section className="mt-4 grid gap-4 lg:grid-cols-2">

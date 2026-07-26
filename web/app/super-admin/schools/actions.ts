@@ -202,27 +202,27 @@ export async function topUpSmsCredits(
   credits: number,
   amount: number,
   note: string | null,
-): Promise<{ error?: string }> {
+): Promise<{ error?: string; poolLow?: boolean }> {
   const supabase = await createClient()
   if (!(await requireSuperAdmin(supabase))) return { error: 'Unauthorized' }
   if (!Number.isInteger(credits) || credits <= 0) return { error: 'credits must be a positive whole number' }
   if (!Number.isFinite(amount) || amount < 0) return { error: 'invalid amount' }
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  const { error } = await supabase.from('sms_credit_ledger').insert({
-    school_id: schoolId,
-    delta: credits,
-    reason: 'topup',
-    amount,
-    note,
-    created_by: user?.id ?? null,
+  // Allocation writes the per-school credit AND the master-pool draw-down (#188)
+  // in one atomic RPC, so the two ledgers can't drift. Returns the new pool
+  // balance; a negative result means the pool couldn't cover it — warn (never
+  // block) so the admin re-buys from the gateway rather than getting stuck.
+  const { data: poolBalance, error } = await supabase.rpc('sms_allocate_to_school', {
+    p_school: schoolId,
+    p_credits: credits,
+    p_amount: amount,
+    p_note: note,
   })
   if (error) return { error: 'top-up failed' }
+
   revalidatePath(`/super-admin/schools/${schoolId}`)
-  revalidatePath('/super-admin') // the landing SMS-income card
-  return {}
+  revalidatePath('/super-admin') // the landing SMS-income + pool cards
+  return { poolLow: (poolBalance as number | null ?? 0) < 0 }
 }
 
 function strOrNull(value: FormDataEntryValue | null): string | null {
