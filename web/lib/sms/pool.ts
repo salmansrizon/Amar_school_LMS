@@ -1,16 +1,16 @@
-// Super-admin master SMS pool (map #171, #188) — the vendor's own SMS balance
-// bought from the gateway. Reserve model: buy (+) grows it, allocating credits to
-// a school (−) draws it down; the pool = SMS not yet handed to any school. The
-// send path is deliberately untouched (allocation already removed the credits, so
-// decrementing again on send would double-count). Pure balance helpers so the
-// admin display is unit-testable without a database, mirroring lib/sms/credit.ts.
+// Super-admin master SMS pool (map #171, #188) — the vendor's SMS balance at the
+// gateway. Gateway-balance model: buy (+) tops it up, every school send (−) draws
+// it down; the pool = SMS still available at the gateway (bought − sent). Display
+// only — allocation to schools does not touch it (that grants per-school credits;
+// the pool mirrors real consumption so the admin sees the total drop and re-buys).
+// Pure balance helpers so the admin display is unit-testable without a database.
 
 import { cache } from 'react'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { balanceLevel, type BalanceLevel } from '@/lib/sms/credit'
 
 export interface PoolLedgerRow {
-  /** +bought (buy) / −allocated (allocate) / ±correction (adjust). */
+  /** +bought (buy) / −sent (send) / ±correction (adjust). */
   delta: number
 }
 
@@ -33,8 +33,8 @@ export interface SmsPool {
   level: PoolLevel
   /** Total ever bought (Σ positive deltas) — the "SMS brought" figure. */
   bought: number
-  /** Total ever allocated out (Σ negative deltas, as a positive number). */
-  allocated: number
+  /** Total ever sent/consumed (Σ negative deltas, as a positive number). */
+  sent: number
 }
 
 /** The master pool for the super-admin surface. Reads all rows (super-admin RLS)
@@ -45,10 +45,10 @@ export const loadSmsPool = cache(async (supabase: SupabaseClient): Promise<SmsPo
   const rows = (data ?? []) as PoolLedgerRow[]
   const balance = poolBalance(rows)
   let bought = 0
-  let allocated = 0
+  let sent = 0
   for (const r of rows) {
     if (r.delta > 0) bought += r.delta
-    else allocated += -r.delta
+    else sent += -r.delta
   }
-  return { balance, level: poolLevel(balance), bought, allocated }
+  return { balance, level: poolLevel(balance), bought, sent }
 })

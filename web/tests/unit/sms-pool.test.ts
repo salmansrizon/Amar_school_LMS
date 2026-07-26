@@ -2,13 +2,13 @@ import { describe, it, expect } from 'vitest'
 import { poolBalance, poolLevel, SMS_POOL_LOW } from '@/lib/sms/pool'
 
 describe('poolBalance', () => {
-  it('is the signed sum of every pool ledger row (buy + / allocate −)', () => {
+  it('is the signed sum of every pool ledger row (buy + / send −)', () => {
     expect(poolBalance([{ delta: 10000 }, { delta: -5000 }, { delta: -2000 }])).toBe(3000)
   })
   it('is 0 for an empty pool', () => {
     expect(poolBalance([])).toBe(0)
   })
-  it('can go negative when allocations outran purchases', () => {
+  it('can go negative when sends outran purchases', () => {
     expect(poolBalance([{ delta: 1000 }, { delta: -1500 }])).toBe(-500)
   })
 })

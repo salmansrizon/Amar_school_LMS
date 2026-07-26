@@ -236,9 +236,9 @@ const dict = {
   'sa.sms.reasonAdjust': { bn: 'সমন্বয়', en: 'Adjust' },
   // Master SMS pool (#188)
   'sa.pool.title': { bn: 'SMS পুল', en: 'SMS pool' },
-  'sa.pool.remaining': { bn: 'উপলব্ধ (অবরাদ্দকৃত)', en: 'Available (unallocated)' },
+  'sa.pool.remaining': { bn: 'উপলব্ধ (গেটওয়ে)', en: 'Available (gateway)' },
   'sa.pool.bought': { bn: 'মোট ক্রয়', en: 'Total bought' },
-  'sa.pool.allocated': { bn: 'বরাদ্দকৃত', en: 'Allocated' },
+  'sa.pool.sent': { bn: 'প্রেরিত', en: 'Sent' },
   'sa.pool.buy': { bn: 'ক্রয় যোগ করুন', en: 'Record purchase' },
   'sa.pool.qty': { bn: 'SMS সংখ্যা', en: 'SMS quantity' },
   'sa.pool.cost': { bn: 'মূল্য (৳)', en: 'Cost (৳)' },

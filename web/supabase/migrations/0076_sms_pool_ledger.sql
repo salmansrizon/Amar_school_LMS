@@ -1,14 +1,15 @@
 -- 0076_sms_pool_ledger.sql
--- Super-admin master SMS pool (#188): the vendor's own SMS balance bought from
--- the gateway. Reserve model — buy (+), allocate to a school (−). Balance =
--- unallocated SMS. Super-admin only. The send path is untouched (allocation
--- already removed the credits from the pool; the per-school ledger in 0074
--- handles consumption).
+-- Super-admin master SMS pool (#188): the vendor's SMS balance at the gateway.
+-- Gateway-balance model — buy (+) tops it up, every school send (−) draws it
+-- down. Balance = SMS still available at the gateway (bought − sent). This is
+-- DISPLAY only: it does not touch the send/gateway API — allocation to schools
+-- is unaffected (that just grants per-school credits); the pool simply mirrors
+-- real consumption so the admin sees the total dropping and re-buys.
 
 create table public.sms_pool_ledger (
   id uuid primary key default gen_random_uuid(),
   delta integer not null,
-  reason text not null check (reason in ('buy', 'allocate', 'adjust')),
+  reason text not null check (reason in ('buy', 'send', 'adjust')),
   -- ৳ cost on a purchase; only 'buy' rows carry it, and every 'buy' row must.
   amount numeric(12, 2) check (amount is null or amount >= 0),
   note text,
@@ -25,31 +26,24 @@ create policy "super admin reads sms pool" on public.sms_pool_ledger
   for select using (public.app_current_role() = 'super_admin');
 
 -- Super-admin records purchases / corrections directly (recordSmsPurchase).
--- Allocations go through the atomic RPC below, not a direct insert.
+-- 'send' rows are written by sms_record_debit (SECURITY DEFINER, below).
 create policy "super admin writes sms pool" on public.sms_pool_ledger
-  for insert with check (public.app_current_role() = 'super_admin');
+  for insert with check (public.app_current_role() = 'super_admin' and reason in ('buy', 'adjust'));
 
--- Allocate to a school atomically: the per-school credit row AND the pool
--- draw-down in ONE transaction, so the two ledgers can never drift (a
--- fire-and-forget second insert could leave the pool overstated). Returns the
--- new pool balance so the caller can warn when it has gone negative.
-create or replace function public.sms_allocate_to_school(
-  p_school uuid, p_credits integer, p_amount numeric, p_note text
-) returns integer
+-- Extend the per-school send debit (0074) to ALSO draw down the master pool, so
+-- the vendor's gateway balance drops as any school sends. Runs as definer, so it
+-- writes the pool row regardless of the pool insert policy above.
+create or replace function public.sms_record_debit(sid uuid, segs integer, job_secret text default null)
+  returns integer
   language plpgsql security definer set search_path = public as $$
-declare new_balance integer;
 begin
-  if public.app_current_role() <> 'super_admin' then raise exception 'not authorized'; end if;
-  if p_credits is null or p_credits <= 0 then raise exception 'credits must be positive'; end if;
-
-  insert into public.sms_credit_ledger (school_id, delta, reason, amount, note, created_by)
-    values (p_school, p_credits, 'topup', p_amount, p_note, auth.uid());
-  insert into public.sms_pool_ledger (delta, reason, note, created_by)
-    values (-p_credits, 'allocate', p_note, auth.uid());
-
-  select coalesce(sum(delta), 0) into new_balance from public.sms_pool_ledger;
-  return new_balance;
+  if not public.sms_authorized_for(sid, job_secret) then
+    raise exception 'not authorized for this school';
+  end if;
+  if segs > 0 then
+    insert into public.sms_credit_ledger (school_id, delta, reason) values (sid, -segs, 'send');
+    insert into public.sms_pool_ledger (delta, reason) values (-segs, 'send');
+  end if;
+  return public.sms_balance(sid);
 end;
 $$;
-revoke execute on function public.sms_allocate_to_school(uuid, integer, numeric, text) from public;
-grant execute on function public.sms_allocate_to_school(uuid, integer, numeric, text) to authenticated;

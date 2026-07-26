@@ -47,7 +47,7 @@ export function SmsPoolPanel({ pool, lang }: { pool: SmsPool; lang: Lang }) {
       <div className="grid grid-cols-3 gap-2">
         <Stat label={t('sa.pool.remaining', lang)} value={String(pool.balance)} valueClass={balanceTone} />
         <Stat label={t('sa.pool.bought', lang)} value={String(pool.bought)} />
-        <Stat label={t('sa.pool.allocated', lang)} value={String(pool.allocated)} />
+        <Stat label={t('sa.pool.sent', lang)} value={String(pool.sent)} />
       </div>
 
       {pool.level !== 'ok' && (
