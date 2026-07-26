@@ -8,13 +8,12 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { startOfUtcToday } from '@/lib/subscription'
-import { summarizeSchools, type SchoolRow, type SchoolKpis } from '@/lib/super-admin/dashboard'
+import { summarizeSchools, dormantCount, type SchoolRow, type SchoolKpis } from '@/lib/super-admin/dashboard'
 import {
   incomeSeries,
   smsIncomeSeries,
   latestIncome,
   pendingCollection,
-  dormantCount,
   payableForecast,
   type CodeRow,
   type TopupRow,

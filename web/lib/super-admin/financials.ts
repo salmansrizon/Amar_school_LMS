@@ -8,7 +8,7 @@
 // only once its `redeemed_at` lands, in that calendar month. A created-but-
 // unredeemed code is "pending collection", never income.
 
-import type { SoonExpiring, SchoolKpis } from '@/lib/super-admin/dashboard'
+import type { SoonExpiring } from '@/lib/super-admin/dashboard'
 
 /** The slice of a subscription_codes row these aggregations need. */
 export interface CodeRow {
@@ -83,13 +83,6 @@ export function latestIncome(series: IncomeBucket[]): LatestIncome {
   const total = series[series.length - 1].total
   if (series.length < 2) return { total, delta: null }
   return { total, delta: deltaPercent(total, series[series.length - 2].total) }
-}
-
-/** Dormant = every school that is not currently active: expired subscriptions
- *  plus paused ones (map #171: pause is the deactivated_at flag, counted as
- *  `blocked` in the KPI breakdown). Reads the counts dashboard.ts already made. */
-export function dormantCount(kpis: SchoolKpis): number {
-  return kpis.expired + kpis.blocked
 }
 
 /** A subscription-code redemption or an SMS-credit top-up — a dated ৳ amount.

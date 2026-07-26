@@ -65,3 +65,10 @@ export function summarizeSchools(rows: SchoolRow[], today: Date): SchoolKpis {
   kpis.soonExpiring.sort((a, b) => a.daysLeft - b.daysLeft || a.name.localeCompare(b.name))
   return kpis
 }
+
+/** Dormant = every school that is not currently active: expired subscriptions
+ *  plus paused ones (map #171: pause is the deactivated_at flag, counted as
+ *  `blocked` in the breakdown). Derived from the counts summarizeSchools makes. */
+export function dormantCount(kpis: SchoolKpis): number {
+  return kpis.expired + kpis.blocked
+}

@@ -5,7 +5,6 @@ import {
   smsIncomeSeries,
   deltaPercent,
   latestIncome,
-  dormantCount,
   pendingCollection,
   perSchoolLedger,
   lastPaidPrice,
@@ -13,7 +12,7 @@ import {
   payableForecast,
   type CodeRow,
 } from '@/lib/super-admin/financials'
-import type { SoonExpiring, SchoolKpis } from '@/lib/super-admin/dashboard'
+import type { SoonExpiring } from '@/lib/super-admin/dashboard'
 
 const ASOF = new Date('2026-07-15T10:00:00Z')
 
@@ -93,13 +92,6 @@ describe('latestIncome', () => {
   it('delta is null with fewer than two months, total 0 for empty', () => {
     expect(latestIncome([{ month: '2026-07', total: 5000 }])).toEqual({ total: 5000, delta: null })
     expect(latestIncome([])).toEqual({ total: 0, delta: null })
-  })
-})
-
-describe('dormantCount', () => {
-  it('is expired + blocked (paused) — every not-currently-active school', () => {
-    const kpis: SchoolKpis = { total: 10, trial: 2, active: 4, expired: 3, blocked: 1, soonExpiring: [] }
-    expect(dormantCount(kpis)).toBe(4)
   })
 })
 

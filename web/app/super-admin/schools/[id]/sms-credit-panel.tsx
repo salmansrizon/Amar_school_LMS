@@ -2,20 +2,13 @@
 
 import { useState, useTransition } from 'react'
 import { t, type Lang, type MessageKey } from '@/lib/i18n'
+import type { LedgerEntry } from '@/lib/super-admin/school-detail-read-model'
 import { topUpSmsCredits } from '../actions'
 
 // Admin SMS-credit panel (map #171 T7): a school's remaining balance, a top-up
 // form (credits granted + ৳ collected), and the recent ledger. Balance/history
 // are computed server-side from sms_credit_ledger and passed in; the top-up
 // writes a credit row via the server action.
-
-export interface LedgerEntry {
-  delta: number
-  reason: 'topup' | 'send' | 'adjust'
-  amount: number | null
-  note: string | null
-  created_at: string
-}
 
 const REASON_KEY: Record<LedgerEntry['reason'], MessageKey> = {
   topup: 'sa.sms.reasonTopup',

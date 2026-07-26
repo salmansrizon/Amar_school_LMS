@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { daysUntil } from '@/lib/subscription'
-import { lifecycleStatus, summarizeSchools, type SchoolRow } from '@/lib/super-admin/dashboard'
+import { lifecycleStatus, summarizeSchools, dormantCount, type SchoolRow, type SchoolKpis } from '@/lib/super-admin/dashboard'
 
 const TODAY = new Date('2026-07-25T00:00:00Z')
 
@@ -79,5 +79,12 @@ describe('summarizeSchools', () => {
       TODAY,
     )
     expect(k.soonExpiring.map((s) => s.id)).toEqual(['today'])
+  })
+})
+
+describe('dormantCount', () => {
+  it('is expired + blocked (paused) — every not-currently-active school', () => {
+    const kpis: SchoolKpis = { total: 10, trial: 2, active: 4, expired: 3, blocked: 1, soonExpiring: [] }
+    expect(dormantCount(kpis)).toBe(4)
   })
 })

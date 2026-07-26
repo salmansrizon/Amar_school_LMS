@@ -2,69 +2,25 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
 import { t } from '@/lib/i18n'
-import { rootDomain } from '@/lib/auth/tenant-host'
 import { getSuperAdminContext } from '@/lib/super-admin/context'
-import { buildActivationUrl } from '@/lib/super-admin/activation'
-import { startOfUtcToday } from '@/lib/subscription'
-import { lifecycleStatus } from '@/lib/super-admin/dashboard'
+import { loadSchoolDetail } from '@/lib/super-admin/school-detail-read-model'
 import { LIFECYCLE_STATUS_KEY, LIFECYCLE_STATUS_STYLE } from '@/lib/super-admin/status-ui'
 import { SchoolDetailControls } from './school-detail-controls'
 import { SchoolExpiryControl } from './expiry-control'
 import { FeatureFlagToggles } from './feature-flags'
-import { SmsCreditPanel, type LedgerEntry } from './sms-credit-panel'
+import { SmsCreditPanel } from './sms-credit-panel'
 
-// Super-admin school detail (map #158, ticket #161): the lifecycle surface for
-// one school — status, activation links, force-offline block, and the delete
-// danger zone. Feature-flag toggles land on this page in #168; expiry controls
-// in #162.
+// Super-admin school detail (map #158 origin): the lifecycle surface for one
+// school — status, activation links, pause/resume, delete, feature flags, and
+// the SMS-credit panel (#171 T7). The fetch→shape→classify work lives in the
+// school-detail read model (arch review round 2); this page renders the VM.
 export default async function SchoolDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const lang = await currentLang()
   const { supabase } = await getSuperAdminContext()
 
-  const [{ data: school }, { data: history }, { data: codes }, { data: flags }, { data: ledger }] =
-    await Promise.all([
-      supabase
-        .from('schools')
-        .select('id, name, subscription_expires_at, deactivated_at, subdomain')
-        .eq('id', id)
-        .maybeSingle(),
-      supabase.rpc('schools_with_code_history'),
-      supabase
-        .from('school_claim_codes')
-        .select('code, redeemed_at')
-        .eq('school_id', id)
-        .order('created_at', { ascending: false }),
-      supabase.from('school_feature_flags').select('flag_key').eq('school_id', id).eq('enabled', true),
-      supabase
-        .from('sms_credit_ledger')
-        .select('delta, reason, amount, note, created_at')
-        .eq('school_id', id)
-        .order('created_at', { ascending: false })
-        .limit(10),
-    ])
+  const school = await loadSchoolDetail(supabase, id)
   if (!school) notFound()
-
-  const ledgerEntries = (ledger ?? []) as LedgerEntry[]
-  // Authoritative balance (the ledger grows a row per send — never sum the
-  // 10-row display slice).
-  const { data: smsCreditBalance } = await supabase.rpc('sms_balance_for', { sid: id })
-
-  const hasCodeHistory = new Set((history ?? []) as string[]).has(school.id)
-  const status = lifecycleStatus(
-    {
-      id: school.id,
-      name: school.name,
-      subscription_expires_at: school.subscription_expires_at,
-      deactivated_at: school.deactivated_at,
-      hasCodeHistory,
-    },
-    startOfUtcToday(),
-  )
-  // Outstanding (unredeemed) claim codes become copyable activation links.
-  const activationLinks = (codes ?? [])
-    .filter((c) => c.redeemed_at === null)
-    .map((c) => ({ code: c.code, url: buildActivationUrl(rootDomain(), c.code) }))
 
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 p-6">
@@ -77,12 +33,12 @@ export default async function SchoolDetailPage({ params }: { params: Promise<{ i
 
       <section className="mb-4 rounded-lg border border-line bg-paper p-5 shadow-card">
         <div className="flex flex-wrap items-center gap-3">
-          <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${LIFECYCLE_STATUS_STYLE[status]}`}>
-            {t(LIFECYCLE_STATUS_KEY[status], lang)}
+          <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${LIFECYCLE_STATUS_STYLE[school.status]}`}>
+            {t(LIFECYCLE_STATUS_KEY[school.status], lang)}
           </span>
           <span className="text-sm text-muted">
-            {school.subscription_expires_at
-              ? `${t('sa.school.expiry', lang)}: ${school.subscription_expires_at}`
+            {school.subscriptionExpiresAt
+              ? `${t('sa.school.expiry', lang)}: ${school.subscriptionExpiresAt}`
               : t('sa.school.noExpiry', lang)}
           </span>
           {school.subdomain && (
@@ -94,31 +50,22 @@ export default async function SchoolDetailPage({ params }: { params: Promise<{ i
       </section>
 
       <div className="mb-4">
-        <SchoolExpiryControl schoolId={school.id} expiry={school.subscription_expires_at} lang={lang} />
+        <SchoolExpiryControl schoolId={school.id} expiry={school.subscriptionExpiresAt} lang={lang} />
       </div>
 
       <div className="mb-4">
-        <FeatureFlagToggles
-          schoolId={school.id}
-          enabled={(flags ?? []).map((f) => f.flag_key)}
-          lang={lang}
-        />
+        <FeatureFlagToggles schoolId={school.id} enabled={school.enabledFlags} lang={lang} />
       </div>
 
       <div className="mb-4">
-        <SmsCreditPanel
-          schoolId={school.id}
-          balance={smsCreditBalance ?? 0}
-          entries={ledgerEntries}
-          lang={lang}
-        />
+        <SmsCreditPanel schoolId={school.id} balance={school.smsBalance} entries={school.ledger} lang={lang} />
       </div>
 
       <SchoolDetailControls
         schoolId={school.id}
         schoolName={school.name}
-        blocked={school.deactivated_at !== null}
-        activationLinks={activationLinks}
+        blocked={school.blocked}
+        activationLinks={school.activationLinks}
         lang={lang}
       />
     </main>
