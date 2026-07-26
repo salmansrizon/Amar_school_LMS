@@ -1,120 +1,119 @@
 import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
-import { t } from '@/lib/i18n'
-import { subscriptionStatus } from '@/lib/subscription'
+import { t, type MessageKey } from '@/lib/i18n'
 import { getSuperAdminContext } from '@/lib/super-admin/context'
+import { loadSchoolsManager } from '@/lib/super-admin/schools-read-model'
+import type { LifecycleStatus } from '@/lib/super-admin/dashboard'
+import { PageHeader, SectionCard, formatTaka } from '@/components/super-admin/dashboard-ui'
 import { SchoolSubscriptionControls } from './subscription-controls'
 import { SchoolManagement } from './school-management'
 import { CreateSchoolForm } from './create-school-form'
 
-const STATUS_STYLE = {
+// Super-admin schools manager (map #171 T4): the per-school ledger + control
+// centre, restyled to the T1 design language. The fetch→shape→classify work
+// lives in the schools read model; this page renders the cards. Each shows its
+// lifecycle status (a single 4-state badge — paused = deactivated_at), payment
+// history (months + total ৳ + last-paid, T2 ledger), and the in-place controls
+// (subscription, header/subdomain/trial/claim, and — on the detail page —
+// pause/resume, delete).
+const STATUS_STYLE: Record<LifecycleStatus, string> = {
   trial: 'bg-sky-soft text-sky-deep',
   active: 'bg-mint-soft text-mint-deep',
   expired: 'bg-alert-soft text-alert-deep',
-} as const
+  blocked: 'bg-amber-50 text-amber-600',
+}
+const STATUS_KEY: Record<LifecycleStatus, MessageKey> = {
+  trial: 'schools.trial',
+  active: 'schools.active',
+  expired: 'schools.expired',
+  blocked: 'sa.school.paused',
+}
 
 export default async function SchoolsPage() {
   const lang = await currentLang()
   const { supabase } = await getSuperAdminContext()
-
-  const [{ data: schools }, { data: redeemed }, { data: owners }, { data: claimCodes }] = await Promise.all([
-    supabase
-      .from('schools')
-      .select('id, name, subscription_expires_at, subdomain, address_line, mobile, email, eiin_no, deactivated_at')
-      .order('name'),
-    supabase.rpc('schools_with_code_history'),
-    supabase.from('profiles').select('school_id').eq('role', 'school_owner'),
-    supabase
-      .from('school_claim_codes')
-      .select('code, school_id, redeemed_at')
-      .order('created_at', { ascending: false }),
-  ])
-  // `returns setof uuid` (scalar) → PostgREST returns bare strings, not
-  // {column: value} objects (verified against the live API).
-  const withHistory = new Set((redeemed ?? []) as string[])
-  const withOwner = new Set((owners ?? []).map((o) => o.school_id as string))
-  const codesBySchool = new Map<string, { code: string; redeemed_at: string | null }[]>()
-  for (const c of claimCodes ?? []) {
-    const list = codesBySchool.get(c.school_id) ?? []
-    list.push({ code: c.code, redeemed_at: c.redeemed_at })
-    codesBySchool.set(c.school_id, list)
-  }
-  const today = new Date(new Date().toISOString().slice(0, 10))
-
-  const statusKey = { trial: 'schools.trial', active: 'schools.active', expired: 'schools.expired' } as const
+  const schools = await loadSchoolsManager(supabase)
 
   return (
-    <main className="mx-auto w-full max-w-3xl flex-1 p-6">
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-extrabold">{t('schools.title', lang)}</h1>
-        <Link href="/super-admin" className="text-sm text-brand-600 hover:underline">
-          ← {t('home.superAdmin', lang)}
-        </Link>
-      </div>
+    <main className="mx-auto w-full max-w-4xl px-4 py-6 sm:px-6 lg:px-8">
+      <PageHeader
+        title={t('schools.title', lang)}
+        actions={
+          <Link href="/super-admin" className="text-sm font-semibold text-brand-600 hover:underline">
+            ← {t('home.superAdmin', lang)}
+          </Link>
+        }
+      />
 
-      <section className="mb-6 rounded-lg border border-line bg-paper p-5 shadow-card">
-        <h2 className="mb-3 font-bold">{t('schools.create', lang)}</h2>
-        <CreateSchoolForm lang={lang} />
+      <section className="mt-6">
+        <SectionCard title={t('schools.create', lang)}>
+          <CreateSchoolForm lang={lang} />
+        </SectionCard>
       </section>
 
-      <div className="flex flex-col gap-4">
-        {schools?.map((s) => {
-          const expiry = s.subscription_expires_at ? new Date(s.subscription_expires_at + 'T00:00:00Z') : null
-          const status = subscriptionStatus(withHistory.has(s.id), expiry, today)
-          return (
-            <section key={s.id} className="rounded-lg border border-line bg-paper p-5 shadow-card">
-              <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                <h2 className="font-bold">{s.name}</h2>
-                <span className="flex items-center gap-2 text-sm">
-                  {s.deactivated_at && (
-                    <span className="rounded-full bg-alert-soft px-2 py-0.5 text-xs font-semibold text-alert-deep">
-                      {t('schools.blocked', lang)}
-                    </span>
-                  )}
-                  <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${STATUS_STYLE[status]}`}>
-                    {t(statusKey[status], lang)}
-                  </span>
-                  {s.subscription_expires_at && (
-                    <span className="text-muted">
-                      {t('schools.expiry', lang)}: {s.subscription_expires_at}
-                    </span>
-                  )}
-                  <Link
-                    href={`/super-admin/schools/${s.id}`}
-                    className="rounded-full border border-line-strong px-3 py-0.5 text-xs font-semibold hover:bg-paper-muted"
-                  >
-                    {t('sa.school.viewDetail', lang)}
-                  </Link>
+      <div className="mt-4 flex flex-col gap-4">
+        {schools.map((s) => (
+          <SectionCard
+            key={s.id}
+            title={s.name}
+            action={
+              <span className="flex flex-wrap items-center justify-end gap-2 text-sm">
+                <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${STATUS_STYLE[s.status]}`}>
+                  {t(STATUS_KEY[s.status], lang)}
                 </span>
-              </div>
-              {s.subdomain && (
-                <p className="mb-2 text-sm text-muted">
-                  {t('schools.subdomain', lang)}: <span className="font-mono">{s.subdomain}</span>
-                </p>
-              )}
-              <SchoolSubscriptionControls
-                schoolId={s.id}
-                expiry={s.subscription_expires_at}
-                status={status}
-                lang={lang}
-              />
-              <SchoolManagement
-                schoolId={s.id}
-                subdomain={s.subdomain}
-                hasOwner={withOwner.has(s.id)}
-                header={{
-                  address_line: s.address_line,
-                  mobile: s.mobile,
-                  email: s.email,
-                  eiin_no: s.eiin_no,
-                }}
-                codes={codesBySchool.get(s.id) ?? []}
-                lang={lang}
-              />
-            </section>
-          )
-        })}
+                {s.subscriptionExpiresAt && (
+                  <span className="text-muted">
+                    {t('schools.expiry', lang)}: {s.subscriptionExpiresAt}
+                  </span>
+                )}
+                <Link
+                  href={`/super-admin/schools/${s.id}`}
+                  className="rounded-full border border-line-strong px-3 py-0.5 text-xs font-semibold hover:bg-paper-muted"
+                >
+                  {t('sa.school.viewDetail', lang)}
+                </Link>
+              </span>
+            }
+          >
+            {s.subdomain && (
+              <p className="mb-3 text-sm text-muted">
+                {t('schools.subdomain', lang)}: <span className="font-mono">{s.subdomain}</span>
+              </p>
+            )}
+
+            {/* Payment ledger (T2): months paid · total ৳ · last-paid */}
+            <dl className="mb-3 grid grid-cols-3 gap-2">
+              <Stat label={t('sa.school.monthsPaid', lang)} value={String(s.monthsPaid)} />
+              <Stat label={t('sa.school.totalPaid', lang)} value={formatTaka(s.totalPaid)} />
+              <Stat label={t('sa.school.lastPaid', lang)} value={s.lastPaid === null ? '—' : formatTaka(s.lastPaid)} />
+            </dl>
+
+            <SchoolSubscriptionControls
+              schoolId={s.id}
+              expiry={s.subscriptionExpiresAt}
+              status={s.status === 'blocked' ? 'expired' : s.status}
+              lang={lang}
+            />
+            <SchoolManagement
+              schoolId={s.id}
+              subdomain={s.subdomain}
+              hasOwner={s.hasOwner}
+              header={s.header}
+              codes={s.claimCodes}
+              lang={lang}
+            />
+          </SectionCard>
+        ))}
       </div>
     </main>
+  )
+}
+
+function Stat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl border border-line/70 bg-paper-muted px-3 py-2">
+      <dt className="text-[11px] font-semibold text-muted">{label}</dt>
+      <dd className="text-base font-extrabold text-ink">{value}</dd>
+    </div>
   )
 }

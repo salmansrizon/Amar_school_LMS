@@ -9,28 +9,26 @@ import { Icon } from '@/components/school-icons'
 import { SearchPalette } from '@/components/search-palette'
 import { NotificationBell } from '@/components/notification-bell'
 import { t, type Lang, type MessageKey } from '@/lib/i18n'
+import { FOCUS_RING, ICON_BUTTON } from '@/lib/ui-tokens'
+import { avatarInitials } from '@/lib/name'
 import { canOpenScreen } from '@/lib/auth/screens'
 import type { ScreenKey } from '@/lib/auth/screens'
 import type { Role } from '@/lib/auth/routing'
 import { SCHOOL_MODULES, type SchoolNavItem } from '@/lib/school-nav'
 import { sidebarCookieAssignment } from '@/lib/ui-prefs'
+import type { SchoolSmsCredit } from '@/lib/sms/credit'
+
+// SMS-balance badge styling by level (map #171 T9).
+const SMS_BADGE_STYLE = {
+  ok: 'border-line-strong text-muted hover:bg-brand-50 hover:text-brand-600',
+  low: 'border-amber-300 bg-amber-50 text-amber-600 hover:bg-amber-100',
+  empty: 'border-alert/40 bg-alert-soft text-alert-deep hover:bg-alert-soft',
+} as const
 
 // Persistent sidebar + topbar for the whole /school/* route group, restructured
 // to ui/school-owner/dashboard.html's reference image: light icon nav + bottom
 // "Add Student" CTA, topbar with global search / notifications / help / language
 // pill / avatar / logout, and a floating chat button. One shell -> every page.
-
-// Visible keyboard-focus ring (was missing — keyboard users had no focus cue).
-const FOCUS =
-  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 focus-visible:ring-offset-2 focus-visible:ring-offset-paper'
-// Icon buttons sized to the 44px minimum touch target.
-const ICON_BTN = `inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-full transition ${FOCUS}`
-
-function initials(name: string) {
-  const parts = name.trim().split(/\s+/).filter(Boolean)
-  if (parts.length === 0) return 'A'
-  return (parts[0][0] + (parts[1]?.[0] ?? '')).toUpperCase()
-}
 
 function NavLinks({
   role,
@@ -68,7 +66,7 @@ function NavLinks({
         onClick={onNavigate}
         aria-current={active ? 'page' : undefined}
         title={collapsed ? label : undefined}
-        className={`flex min-h-11 items-center gap-3 rounded-xl py-2.5 text-sm font-semibold transition ${FOCUS} ${
+        className={`flex min-h-11 items-center gap-3 rounded-xl py-2.5 text-sm font-semibold transition ${FOCUS_RING} ${
           collapsed ? 'justify-center px-0' : 'px-3'
         } ${active ? 'bg-brand-50 text-brand-700' : 'text-muted hover:bg-brand-50/60 hover:text-brand-600'}`}
       >
@@ -152,7 +150,7 @@ function SidebarBody({
             onClick={onToggleCollapse}
             aria-label={toggleLabel}
             title={toggleLabel}
-            className={`flex size-8 shrink-0 items-center justify-center rounded-full border border-line-strong text-muted transition hover:bg-brand-50 hover:text-brand-600 ${FOCUS}`}
+            className={`flex size-8 shrink-0 items-center justify-center rounded-full border border-line-strong text-muted transition hover:bg-brand-50 hover:text-brand-600 ${FOCUS_RING}`}
           >
             <Icon name={collapsed ? 'chevronRight' : 'chevronLeft'} className="size-4" />
           </button>
@@ -166,7 +164,7 @@ function SidebarBody({
           href="/school/students/new"
           onClick={onNavigate}
           title={collapsed ? t('shell.addStudent', lang) : undefined}
-          className={`mt-4 flex min-h-11 items-center justify-center gap-2 whitespace-nowrap rounded-2xl bg-brand-600 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-brand-700 ${FOCUS} ${
+          className={`mt-4 flex min-h-11 items-center justify-center gap-2 whitespace-nowrap rounded-2xl bg-brand-600 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-brand-700 ${FOCUS_RING} ${
             collapsed ? 'px-0' : 'px-4'
           }`}
         >
@@ -186,6 +184,7 @@ export function SchoolShell({
   lang,
   initialCollapsed = false,
   banner,
+  smsCredit = null,
   children,
 }: {
   role: Role
@@ -197,6 +196,8 @@ export function SchoolShell({
   initialCollapsed?: boolean
   /** Optional strip under the topbar (e.g. the subscription reminder, #169). */
   banner?: React.ReactNode
+  /** Prepaid SMS balance, when metering is on for this school (map #171 T9). */
+  smsCredit?: SchoolSmsCredit | null
   children: React.ReactNode
 }) {
   const pathname = usePathname()
@@ -257,7 +258,7 @@ export function SchoolShell({
             <button
               type="button"
               aria-label="Close menu"
-              className={`${ICON_BTN} absolute right-2 top-3 text-lg text-muted hover:bg-brand-50`}
+              className={`${ICON_BUTTON} absolute right-2 top-3 text-lg text-muted hover:bg-brand-50`}
               onClick={() => setDrawerOpen(false)}
             >
               ✕
@@ -281,7 +282,7 @@ export function SchoolShell({
             <button
               type="button"
               aria-label="Open menu"
-              className={`${ICON_BTN} border border-line-strong text-ink hover:bg-brand-50 lg:hidden`}
+              className={`${ICON_BUTTON} border border-line-strong text-ink hover:bg-brand-50 lg:hidden`}
               onClick={() => setDrawerOpen(true)}
             >
               <Icon name="menu" className="size-5" />
@@ -292,7 +293,7 @@ export function SchoolShell({
               type="button"
               aria-label={t('shell.search', lang)}
               onClick={() => setSearchOpen(true)}
-              className={`${ICON_BTN} border border-line-strong text-muted hover:bg-brand-50 hover:text-brand-600 md:hidden`}
+              className={`${ICON_BUTTON} border border-line-strong text-muted hover:bg-brand-50 hover:text-brand-600 md:hidden`}
             >
               <Icon name="search" className="size-5" />
             </button>
@@ -308,7 +309,17 @@ export function SchoolShell({
             </button>
 
             <div className="ml-auto flex shrink-0 flex-nowrap items-center gap-1 sm:gap-2">
-              <NotificationBell lang={lang} buttonClass={ICON_BTN} />
+              {smsCredit && (
+                <Link
+                  href="/school/sms"
+                  title={t('sms.balance', lang)}
+                  className={`inline-flex min-h-9 items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-bold transition ${FOCUS_RING} ${SMS_BADGE_STYLE[smsCredit.level]}`}
+                >
+                  <Icon name="sms" className="size-4 shrink-0" />
+                  <span>{smsCredit.balance}</span>
+                </Link>
+              )}
+              <NotificationBell lang={lang} buttonClass={ICON_BUTTON} />
 
               <span className="mx-1 hidden h-6 w-px bg-line sm:block" />
 
@@ -320,9 +331,9 @@ export function SchoolShell({
                 href="/school/profile"
                 title={fullName}
                 aria-label={t('shell.profile', lang)}
-                className={`flex size-9 shrink-0 items-center justify-center rounded-full bg-brand-100 text-xs font-bold text-brand-700 transition hover:bg-brand-300 hover:text-white ${FOCUS}`}
+                className={`flex size-9 shrink-0 items-center justify-center rounded-full bg-brand-100 text-xs font-bold text-brand-700 transition hover:bg-brand-300 hover:text-white ${FOCUS_RING}`}
               >
-                {initials(fullName)}
+                {avatarInitials(fullName)}
               </Link>
 
               <LogoutButton

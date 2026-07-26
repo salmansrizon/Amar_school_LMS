@@ -7,6 +7,7 @@ import { currentLang } from '@/lib/i18n-server'
 import { t } from '@/lib/i18n'
 import { smsGateway } from '@/lib/sms/gateway'
 import { countSmsSegments } from '@/lib/sms/segments'
+import { smsCanSend, smsRecordDebit } from '@/lib/sms/credit'
 import {
   resolveRecipients,
   COMPOSE_STUDENT_COLUMNS,
@@ -160,6 +161,15 @@ export async function sendCompose(formData: FormData): Promise<{ error?: string;
         : null
 
   const segments = countSmsSegments(body).segments || 1
+
+  // Prepaid metering (map #171 T6): the DB is the authority. When enforcement is
+  // on for this school and the balance can't cover the whole batch, deny before
+  // sending; the successful segments are debited afterwards. Enforcement is
+  // off by default, so unmetered schools send exactly as before.
+  if (!(await smsCanSend(supabase, schoolId, recipients.length * segments))) {
+    return { error: t('sms.creditExhausted', lang) }
+  }
+
   const gateway = smsGateway()
   const batchId = crypto.randomUUID()
   const sentOn = new Date().toISOString().slice(0, 10)
@@ -193,8 +203,11 @@ export async function sendCompose(formData: FormData): Promise<{ error?: string;
   const { error } = await supabase.from('sms_log').insert(rows)
   if (error) return { error: error.message }
 
-  revalidatePath(LOG_PAGE)
   const sent = results.filter((r) => r.ok).length
   const failed = results.length - sent
+  // Debit only the segments that actually went out.
+  await smsRecordDebit(supabase, schoolId, sent * segments)
+
+  revalidatePath(LOG_PAGE)
   return { sent, failed }
 }

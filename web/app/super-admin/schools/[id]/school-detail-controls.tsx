@@ -82,16 +82,16 @@ export function SchoolDetailControls({
         </button>
       </section>
 
-      {/* Block / unblock */}
+      {/* Pause / resume (the deactivated_at flag — map #171 T4) */}
       <section className="rounded-lg border border-line bg-paper p-5 shadow-card">
-        <h2 className="mb-1 font-bold">{blocked ? t('sa.school.blockedSince', lang) : t('sa.school.block', lang)}</h2>
-        <p className="mb-3 text-xs text-muted">{t('sa.school.blockedNote', lang)}</p>
+        <h2 className="mb-1 font-bold">{blocked ? t('sa.school.paused', lang) : t('sa.school.pause', lang)}</h2>
+        <p className="mb-3 text-xs text-muted">{t('sa.school.pauseNote', lang)}</p>
         <button
           type="button"
           disabled={pending}
           className={blocked ? btn : ghostBtn}
           onClick={() => {
-            if (!blocked && !confirm(t('sa.school.blockConfirm', lang))) return
+            if (!blocked && !confirm(t('sa.school.pauseConfirm', lang))) return
             startTransition(async () => {
               setError(null)
               const result = await setSchoolBlocked(schoolId, !blocked)
@@ -100,7 +100,7 @@ export function SchoolDetailControls({
             })
           }}
         >
-          {blocked ? t('sa.school.unblock', lang) : t('sa.school.block', lang)}
+          {blocked ? t('sa.school.resume', lang) : t('sa.school.pause', lang)}
         </button>
       </section>
 

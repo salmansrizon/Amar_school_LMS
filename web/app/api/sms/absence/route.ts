@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { smsGateway } from '@/lib/sms/gateway'
 import { countSmsSegments } from '@/lib/sms/segments'
+import { smsCanSend, smsRecordDebit } from '@/lib/sms/credit'
 import { cronClient, cronTargetDate, isCronAuthorized, reconcileSecret } from '@/lib/cron/job'
 
 // Daily absence-SMS job (issue #12). Scheduled AFTER attendance reconciliation
@@ -37,6 +38,15 @@ export async function GET(request: Request) {
   }[]) {
     const body = `${candidate.student_name} has been absent for ${candidate.streak} working day(s).`
     const segments = countSmsSegments(body).segments || 1
+
+    // Prepaid metering (map #171 T6): skip candidates whose school has enforcement
+    // on and can't cover the segments. Off by default, so this is a no-op for
+    // every unmetered school. `secret` authorises the cron (vendor_secrets gate).
+    if (!(await smsCanSend(supabase, candidate.school_id, segments, secret))) {
+      failed += 1
+      continue
+    }
+
     let batchId = batchIdByRule.get(candidate.rule_id)
     if (!batchId) {
       batchId = crypto.randomUUID()
@@ -67,6 +77,7 @@ export async function GET(request: Request) {
         const result = await gateway.send(candidate.guardian_phone, body)
         if (result.ok) {
           sent += 1
+          await smsRecordDebit(supabase, candidate.school_id, segments, secret)
         } else {
           failed += 1
           await supabase.rpc('set_sms_log_status', { job_secret: secret, p_id: logId, p_status: 'failed' })

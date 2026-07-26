@@ -194,6 +194,37 @@ export async function setFeatureFlag(
   return {}
 }
 
+/** Top up a school's SMS credits (map #171 T7): a credit row records both the
+ *  credits granted (`delta`) and the ৳ the admin collected (`amount`, the SMS
+ *  income stream). Super-admin only — RLS also gates the insert. */
+export async function topUpSmsCredits(
+  schoolId: string,
+  credits: number,
+  amount: number,
+  note: string | null,
+): Promise<{ error?: string }> {
+  const supabase = await createClient()
+  if (!(await requireSuperAdmin(supabase))) return { error: 'Unauthorized' }
+  if (!Number.isInteger(credits) || credits <= 0) return { error: 'credits must be a positive whole number' }
+  if (!Number.isFinite(amount) || amount < 0) return { error: 'invalid amount' }
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  const { error } = await supabase.from('sms_credit_ledger').insert({
+    school_id: schoolId,
+    delta: credits,
+    reason: 'topup',
+    amount,
+    note,
+    created_by: user?.id ?? null,
+  })
+  if (error) return { error: 'top-up failed' }
+  revalidatePath(`/super-admin/schools/${schoolId}`)
+  revalidatePath('/super-admin') // the landing SMS-income card
+  return {}
+}
+
 function strOrNull(value: FormDataEntryValue | null): string | null {
   const s = String(value ?? '').trim()
   return s === '' ? null : s
