@@ -11,11 +11,13 @@ import { startOfUtcToday } from '@/lib/subscription'
 import { summarizeSchools, type SchoolRow, type SchoolKpis } from '@/lib/super-admin/dashboard'
 import {
   incomeSeries,
+  smsIncomeSeries,
   latestIncome,
   pendingCollection,
   dormantCount,
   payableForecast,
   type CodeRow,
+  type TopupRow,
   type IncomeBucket,
   type LatestIncome,
   type PendingCollection,
@@ -73,12 +75,14 @@ export function buildRecentActivity(
   return events.slice(0, limit)
 }
 
-/** Raw rows the three queries return, before any shaping. */
+/** Raw rows the queries return, before any shaping. */
 export interface DashboardData {
   schools: SchoolFetchRow[]
   /** `schools_with_code_history` returns setof uuid → bare id strings. */
   history: string[]
   codes: CodeRow[]
+  /** sms_credit_ledger top-up rows (amount + created_at) for SMS income. */
+  topups: TopupRow[]
 }
 
 /** The one reference time the whole view uses (status + income share it). */
@@ -89,8 +93,11 @@ export interface DashboardClock {
 
 export interface DashboardViewModel {
   kpis: SchoolKpis
+  /** Subscription income (redeemed code prices) this month + % vs last. */
   income: LatestIncome
   incomeSeries: IncomeBucket[]
+  /** SMS income (credit top-ups) this month + % vs last — a separate stream. */
+  smsIncome: LatestIncome
   pending: PendingCollection
   dormant: number
   /** Renewals-due chase list: soon-expiring schools + their last-paid forecast. */
@@ -115,10 +122,12 @@ export function buildDashboardViewModel(
   }))
   const kpis = summarizeSchools(rows, clock.today)
   const series = incomeSeries(data.codes, { asOf: clock.asOf, months: trendMonths })
+  const smsSeries = smsIncomeSeries(data.topups, { asOf: clock.asOf, months: trendMonths })
   return {
     kpis,
     income: latestIncome(series),
     incomeSeries: series,
+    smsIncome: latestIncome(smsSeries),
     pending: pendingCollection(data.codes),
     dormant: dormantCount(kpis),
     payable: payableForecast(kpis.soonExpiring, data.codes),
@@ -132,16 +141,18 @@ export async function loadSuperAdminDashboard(
   supabase: SupabaseClient,
   trendMonths: number = DEFAULT_TREND_MONTHS,
 ): Promise<DashboardViewModel> {
-  const [{ data: schools }, { data: history }, { data: codes }] = await Promise.all([
+  const [{ data: schools }, { data: history }, { data: codes }, { data: topups }] = await Promise.all([
     supabase.from('schools').select('id, name, subscription_expires_at, deactivated_at, created_at').order('name'),
     supabase.rpc('schools_with_code_history'),
     supabase.from('subscription_codes').select('price, redeemed_at, redeemed_school_id'),
+    supabase.from('sms_credit_ledger').select('amount, created_at').eq('reason', 'topup'),
   ])
   return buildDashboardViewModel(
     {
       schools: (schools ?? []) as SchoolFetchRow[],
       history: (history ?? []) as string[],
       codes: (codes ?? []) as CodeRow[],
+      topups: (topups ?? []) as TopupRow[],
     },
     { today: startOfUtcToday(), asOf: new Date() },
     trendMonths,

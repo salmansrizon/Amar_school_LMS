@@ -27,6 +27,10 @@ const data: DashboardData = {
     { price: 4000, redeemed_at: '2026-06-10T00:00:00Z', redeemed_school_id: 'b' },
     { price: 9999, redeemed_at: null, redeemed_school_id: null }, // pending
   ],
+  topups: [
+    { amount: 2000, created_at: '2026-07-05T00:00:00Z' },
+    { amount: 1000, created_at: '2026-06-05T00:00:00Z' },
+  ],
 }
 
 describe('buildDashboardViewModel', () => {
@@ -47,6 +51,11 @@ describe('buildDashboardViewModel', () => {
       { month: '2026-07', total: 5000 },
     ])
     expect(vm.income).toEqual({ total: 5000, delta: 25 })
+  })
+
+  it('tracks SMS income (top-ups) as a separate stream from subscriptions', () => {
+    // trend window includes 2026-06 (1000) and 2026-07 (2000)
+    expect(vm.smsIncome).toEqual({ total: 2000, delta: 100 })
   })
 
   it('sums pending collection and dormant = expired + paused', () => {

@@ -33,13 +33,14 @@ const ICON = {
   ),
   pending: <path d="M4 4h16v4l-6 4 6 4v4H4v-4l6-4-6-4z" />,
   plus: <path d="M12 5v14M5 12h14" />,
+  sms: <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />,
 } as const
 
 export default async function SuperAdminDashboard() {
   const lang = await currentLang()
   const { supabase } = await getSuperAdminContext()
 
-  const { kpis: kpi, income, incomeSeries: series, pending, dormant, payable, activity } =
+  const { kpis: kpi, income, smsIncome, incomeSeries: series, pending, dormant, payable, activity } =
     await loadSuperAdminDashboard(supabase)
 
   const donut = [
@@ -67,7 +68,7 @@ export default async function SuperAdminDashboard() {
         }
       />
 
-      <section className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
+      <section className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5 lg:gap-4">
         <KpiCard
           label={t('sa.kpi.incomeMonth', lang)}
           value={formatTaka(income.total)}
@@ -75,6 +76,14 @@ export default async function SuperAdminDashboard() {
           hint={t('sa.dash.vsLastMonth', lang)}
           tone="green"
           icon={ICON.income}
+        />
+        <KpiCard
+          label={t('sa.kpi.smsIncome', lang)}
+          value={formatTaka(smsIncome.total)}
+          delta={smsIncome.delta ?? undefined}
+          hint={t('sa.dash.vsLastMonth', lang)}
+          tone="brand"
+          icon={ICON.sms}
         />
         <KpiCard
           label={t('sa.kpi.activeSchools', lang)}

@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import {
   monthKeysEndingAt,
   incomeSeries,
+  smsIncomeSeries,
   deltaPercent,
   latestIncome,
   dormantCount,
@@ -50,6 +51,22 @@ describe('incomeSeries', () => {
       { month: '2026-05', total: 0 },
       { month: '2026-06', total: 4000 },
       { month: '2026-07', total: 8000 },
+    ])
+  })
+})
+
+describe('smsIncomeSeries', () => {
+  it('buckets top-up ৳ by created_at month, ignoring null-amount rows', () => {
+    const topups = [
+      { amount: 5000, created_at: '2026-07-02T00:00:00Z' },
+      { amount: 2000, created_at: '2026-07-20T00:00:00Z' },
+      { amount: 3000, created_at: '2026-06-15T00:00:00Z' },
+      { amount: null, created_at: '2026-07-10T00:00:00Z' }, // a send/adjust row
+    ]
+    expect(smsIncomeSeries(topups, { asOf: ASOF, months: 3 })).toEqual([
+      { month: '2026-05', total: 0 },
+      { month: '2026-06', total: 3000 },
+      { month: '2026-07', total: 7000 },
     ])
   })
 })

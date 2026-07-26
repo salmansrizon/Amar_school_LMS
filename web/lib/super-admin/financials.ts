@@ -17,11 +17,6 @@ export interface CodeRow {
   redeemed_school_id: string | null
 }
 
-/** UTC year-month bucket of an ISO timestamp, e.g. '2026-07'. */
-function monthKey(iso: string): string {
-  return iso.slice(0, 7)
-}
-
 /** `count` ascending 'YYYY-MM' keys ending at (and including) asOf's month. */
 export function monthKeysEndingAt(asOf: Date, count: number): string[] {
   const keys: string[] = []
@@ -39,17 +34,33 @@ export interface IncomeBucket {
   total: number
 }
 
-/** Redeemed-code income per month for the last `months` months ending at asOf,
- *  ascending and zero-filled so the trend chart has a bar for every month. */
-export function incomeSeries(codes: CodeRow[], opts: { asOf: Date; months: number }): IncomeBucket[] {
+/** One dated ৳ amount to bucket — `at` is an ISO timestamp, a null `amount` is
+ *  skipped (an unredeemed code / a non-topup ledger row). */
+interface DatedAmount {
+  at: string
+  amount: number | null
+}
+
+/** Monthly ৳ totals for the last `months` months ending at asOf, ascending and
+ *  zero-filled so a trend chart has a bar for every month. The one bucketing rule
+ *  behind both income streams (subscriptions and SMS top-ups). */
+function bucketByMonth(entries: DatedAmount[], opts: { asOf: Date; months: number }): IncomeBucket[] {
   const keys = monthKeysEndingAt(opts.asOf, opts.months)
   const totals = new Map<string, number>(keys.map((k) => [k, 0]))
-  for (const c of codes) {
-    if (!c.redeemed_at) continue
-    const key = monthKey(c.redeemed_at)
-    if (totals.has(key)) totals.set(key, totals.get(key)! + c.price)
+  for (const e of entries) {
+    if (e.amount == null) continue
+    const key = e.at.slice(0, 7)
+    if (totals.has(key)) totals.set(key, totals.get(key)! + e.amount)
   }
   return keys.map((month) => ({ month, total: totals.get(month)! }))
+}
+
+/** Subscription income per month: redeemed-code prices bucketed by redemption. */
+export function incomeSeries(codes: CodeRow[], opts: { asOf: Date; months: number }): IncomeBucket[] {
+  return bucketByMonth(
+    codes.map((c) => ({ at: c.redeemed_at ?? '', amount: c.redeemed_at ? c.price : null })),
+    opts,
+  )
 }
 
 /** Signed, rounded percent change from `previous` to `current`; null when there
@@ -79,6 +90,22 @@ export function latestIncome(series: IncomeBucket[]): LatestIncome {
  *  `blocked` in the KPI breakdown). Reads the counts dashboard.ts already made. */
 export function dormantCount(kpis: SchoolKpis): number {
   return kpis.expired + kpis.blocked
+}
+
+/** A subscription-code redemption or an SMS-credit top-up — a dated ৳ amount.
+ *  incomeSeries buckets subscription redemptions; smsIncomeSeries buckets these. */
+export interface TopupRow {
+  amount: number | null
+  created_at: string
+}
+
+/** SMS income per month = ৳ from credit top-ups bucketed by created_at — a stream
+ *  separate from subscriptions. */
+export function smsIncomeSeries(topups: TopupRow[], opts: { asOf: Date; months: number }): IncomeBucket[] {
+  return bucketByMonth(
+    topups.map((t) => ({ at: t.created_at, amount: t.amount })),
+    opts,
+  )
 }
 
 export interface PendingCollection {

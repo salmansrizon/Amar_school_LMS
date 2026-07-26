@@ -11,6 +11,7 @@ import { LIFECYCLE_STATUS_KEY, LIFECYCLE_STATUS_STYLE } from '@/lib/super-admin/
 import { SchoolDetailControls } from './school-detail-controls'
 import { SchoolExpiryControl } from './expiry-control'
 import { FeatureFlagToggles } from './feature-flags'
+import { SmsCreditPanel, type LedgerEntry } from './sms-credit-panel'
 
 // Super-admin school detail (map #158, ticket #161): the lifecycle surface for
 // one school — status, activation links, force-offline block, and the delete
@@ -21,21 +22,33 @@ export default async function SchoolDetailPage({ params }: { params: Promise<{ i
   const lang = await currentLang()
   const { supabase } = await getSuperAdminContext()
 
-  const [{ data: school }, { data: history }, { data: codes }, { data: flags }] = await Promise.all([
-    supabase
-      .from('schools')
-      .select('id, name, subscription_expires_at, deactivated_at, subdomain')
-      .eq('id', id)
-      .maybeSingle(),
-    supabase.rpc('schools_with_code_history'),
-    supabase
-      .from('school_claim_codes')
-      .select('code, redeemed_at')
-      .eq('school_id', id)
-      .order('created_at', { ascending: false }),
-    supabase.from('school_feature_flags').select('flag_key').eq('school_id', id).eq('enabled', true),
-  ])
+  const [{ data: school }, { data: history }, { data: codes }, { data: flags }, { data: ledger }] =
+    await Promise.all([
+      supabase
+        .from('schools')
+        .select('id, name, subscription_expires_at, deactivated_at, subdomain')
+        .eq('id', id)
+        .maybeSingle(),
+      supabase.rpc('schools_with_code_history'),
+      supabase
+        .from('school_claim_codes')
+        .select('code, redeemed_at')
+        .eq('school_id', id)
+        .order('created_at', { ascending: false }),
+      supabase.from('school_feature_flags').select('flag_key').eq('school_id', id).eq('enabled', true),
+      supabase
+        .from('sms_credit_ledger')
+        .select('delta, reason, amount, note, created_at')
+        .eq('school_id', id)
+        .order('created_at', { ascending: false })
+        .limit(10),
+    ])
   if (!school) notFound()
+
+  const ledgerEntries = (ledger ?? []) as LedgerEntry[]
+  // Authoritative balance (the ledger grows a row per send — never sum the
+  // 10-row display slice).
+  const { data: smsCreditBalance } = await supabase.rpc('sms_balance_for', { sid: id })
 
   const hasCodeHistory = new Set((history ?? []) as string[]).has(school.id)
   const status = lifecycleStatus(
@@ -88,6 +101,15 @@ export default async function SchoolDetailPage({ params }: { params: Promise<{ i
         <FeatureFlagToggles
           schoolId={school.id}
           enabled={(flags ?? []).map((f) => f.flag_key)}
+          lang={lang}
+        />
+      </div>
+
+      <div className="mb-4">
+        <SmsCreditPanel
+          schoolId={school.id}
+          balance={smsCreditBalance ?? 0}
+          entries={ledgerEntries}
           lang={lang}
         />
       </div>
