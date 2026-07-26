@@ -3,6 +3,7 @@ import { buildTree, LOCATION_LABEL, type LocationRow } from '@/lib/locations'
 import { currentLang } from '@/lib/i18n-server'
 import { t } from '@/lib/i18n'
 import { getSuperAdminContext } from '@/lib/super-admin/context'
+import { PageHeader, SectionCard } from '@/components/super-admin/dashboard-ui'
 import { AddLocationForm, DeleteLocationButton, AddClusterForm, DeleteClusterButton } from './tree-controls'
 import type { LocationNode } from '@/lib/locations'
 import type { Lang } from '@/lib/i18n'
@@ -45,41 +46,42 @@ export default async function LocationsPage() {
   const tree = buildTree((locations ?? []) as LocationRow[])
 
   return (
-    <main className="mx-auto w-full max-w-3xl flex-1 p-6">
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-extrabold">{t('locations.title', lang)}</h1>
-        <Link href="/super-admin" className="text-sm text-brand-600 hover:underline">
-          ← {t('home.superAdmin', lang)}
-        </Link>
-      </div>
+    <main className="mx-auto w-full max-w-3xl px-4 py-6 sm:px-6 lg:px-8">
+      <PageHeader
+        title={t('locations.title', lang)}
+        actions={
+          <Link href="/super-admin" className="text-sm font-semibold text-brand-600 hover:underline">
+            ← {t('home.superAdmin', lang)}
+          </Link>
+        }
+      />
 
-      <section className="mb-6 rounded-lg border border-line bg-paper p-5 shadow-card">
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="font-bold">{t('locations.tree', lang)}</h2>
-          <AddLocationForm parent={null} lang={lang} />
-        </div>
-        {tree.length === 0 && <p className="text-sm text-muted">{t('locations.empty', lang)}</p>}
-        <ul>
-          {tree.map((node) => (
-            <TreeNode key={node.id} node={node} lang={lang} />
-          ))}
-        </ul>
+      <section className="mt-6">
+        <SectionCard title={t('locations.tree', lang)} action={<AddLocationForm parent={null} lang={lang} />}>
+          {tree.length === 0 && <p className="text-sm text-muted">{t('locations.empty', lang)}</p>}
+          <ul>
+            {tree.map((node) => (
+              <TreeNode key={node.id} node={node} lang={lang} />
+            ))}
+          </ul>
+        </SectionCard>
       </section>
 
-      <section className="rounded-lg border border-line bg-paper p-5 shadow-card">
-        <h2 className="mb-3 font-bold">{t('locations.clusters', lang)}</h2>
-        <AddClusterForm locations={(locations ?? []) as LocationRow[]} lang={lang} />
-        <ul className="mt-3 divide-y divide-line">
-          {clusters?.map((c) => (
-            <li key={c.id} className="flex items-center justify-between py-2 text-sm">
-              <span className="font-medium">{c.name}</span>
-              <span className="flex items-center gap-2 text-muted">
-                {(c.locations as unknown as { name: string } | null)?.name}
-                <DeleteClusterButton id={c.id} lang={lang} />
-              </span>
-            </li>
-          ))}
-        </ul>
+      <section className="mt-4">
+        <SectionCard title={t('locations.clusters', lang)}>
+          <AddClusterForm locations={(locations ?? []) as LocationRow[]} lang={lang} />
+          <ul className="mt-3 divide-y divide-line/70">
+            {clusters?.map((c) => (
+              <li key={c.id} className="flex items-center justify-between py-2 text-sm">
+                <span className="font-medium">{c.name}</span>
+                <span className="flex items-center gap-2 text-muted">
+                  {(c.locations as unknown as { name: string } | null)?.name}
+                  <DeleteClusterButton id={c.id} lang={lang} />
+                </span>
+              </li>
+            ))}
+          </ul>
+        </SectionCard>
       </section>
     </main>
   )
