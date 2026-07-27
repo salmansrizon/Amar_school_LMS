@@ -22,6 +22,7 @@ import {
   type PendingCollection,
   type PayableForecast,
 } from '@/lib/super-admin/financials'
+import { summarizeSmsPool, type PoolLedgerRow, type SmsPool } from '@/lib/sms/pool'
 
 export const DEFAULT_TREND_MONTHS = 12
 /** How many recent events the activity feed shows. */
@@ -82,6 +83,8 @@ export interface DashboardData {
   codes: CodeRow[]
   /** sms_credit_ledger top-up rows (amount + created_at) for SMS income. */
   topups: TopupRow[]
+  /** sms_pool_ledger rows (delta) for the master SMS pool (#188). */
+  pool: PoolLedgerRow[]
 }
 
 /** The one reference time the whole view uses (status + income share it). */
@@ -102,6 +105,8 @@ export interface DashboardViewModel {
   /** Renewals-due chase list: soon-expiring schools + their last-paid forecast. */
   payable: PayableForecast
   activity: ActivityEvent[]
+  /** Master SMS pool: gateway balance (bought − sent) + level (#188). */
+  smsPool: SmsPool
 }
 
 /** Pure: shape raw rows into the finished view model. Owns the uuid-string Set
@@ -131,6 +136,7 @@ export function buildDashboardViewModel(
     dormant: dormantCount(kpis),
     payable: payableForecast(kpis.soonExpiring, data.codes),
     activity: buildRecentActivity(data.schools, data.codes),
+    smsPool: summarizeSmsPool(data.pool),
   }
 }
 
@@ -140,18 +146,21 @@ export async function loadSuperAdminDashboard(
   supabase: SupabaseClient,
   trendMonths: number = DEFAULT_TREND_MONTHS,
 ): Promise<DashboardViewModel> {
-  const [{ data: schools }, { data: history }, { data: codes }, { data: topups }] = await Promise.all([
-    supabase.from('schools').select('id, name, subscription_expires_at, deactivated_at, created_at').order('name'),
-    supabase.rpc('schools_with_code_history'),
-    supabase.from('subscription_codes').select('price, redeemed_at, redeemed_school_id'),
-    supabase.from('sms_credit_ledger').select('amount, created_at').eq('reason', 'topup'),
-  ])
+  const [{ data: schools }, { data: history }, { data: codes }, { data: topups }, { data: pool }] =
+    await Promise.all([
+      supabase.from('schools').select('id, name, subscription_expires_at, deactivated_at, created_at').order('name'),
+      supabase.rpc('schools_with_code_history'),
+      supabase.from('subscription_codes').select('price, redeemed_at, redeemed_school_id'),
+      supabase.from('sms_credit_ledger').select('amount, created_at').eq('reason', 'topup'),
+      supabase.from('sms_pool_ledger').select('delta'),
+    ])
   return buildDashboardViewModel(
     {
       schools: (schools ?? []) as SchoolFetchRow[],
       history: (history ?? []) as string[],
       codes: (codes ?? []) as CodeRow[],
       topups: (topups ?? []) as TopupRow[],
+      pool: (pool ?? []) as PoolLedgerRow[],
     },
     { today: startOfUtcToday(), asOf: new Date() },
     trendMonths,
