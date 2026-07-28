@@ -118,6 +118,13 @@ body {
   size: A4;
   margin: 14mm;
 }
+/* Wide printables (attendance register, seat plan, routine) opt into a
+   landscape sheet by putting `page: landscape` on their PrintPage — the
+   engine then rotates just those documents while the rest stay portrait. */
+@page landscape {
+  size: A4 landscape;
+  margin: 12mm;
+}
 @media print {
   /* The app shell locks the document to one viewport height (html/body are
      full-height so only the main area scrolls on screen). In print that fixed
@@ -155,5 +162,21 @@ body {
   h2,
   h3 {
     break-after: avoid;
+  }
+  /* The summary strip, signature block and QR/footer are divs, not table rows,
+     so the tr rule above does not cover them — keep each one whole on a single
+     sheet and never leave two orphan/widow lines of body text at a break. */
+  .print-keep {
+    break-inside: avoid;
+  }
+  /* Wide printables tag their PrintPage with this to select the landscape
+     named page (defined above); portrait sheets omit it. */
+  .print-landscape {
+    page: landscape;
+  }
+  p,
+  dl {
+    orphans: 3;
+    widows: 3;
   }
 }

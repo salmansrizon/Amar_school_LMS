@@ -73,7 +73,7 @@ export default async function MarkSheetPreviewPage() {
         <ExamsTabs active="/school/exams/mark-sheet-preview" lang={lang} />
       </div>
 
-      <PrintPage>
+      <PrintPage fill>
         <InstituteHeader
           institute={institute ?? undefined}
           docTitle={`${t('markSheet.docWord', lang)} — ${examTitle}`}

@@ -111,7 +111,7 @@ function ClassicTemplate(props: MarkSheetTemplateProps) {
   const { lang } = props
   const showGradeColumns = props.schemeType !== 'numeric'
   return (
-    <PrintPage>
+    <PrintPage fill>
       <InstituteHeader
         institute={props.institute}
         docTitle={`${t('markSheet.docWord', lang)} — ${props.examLabel}`}
@@ -150,7 +150,7 @@ function BorderedTemplate(props: MarkSheetTemplateProps) {
     rows.push({ label: t('promotion.position', lang), value: `${props.rankPosition} / ${props.rankOutOf}` })
   }
   return (
-    <PrintPage>
+    <PrintPage fill>
       <InstituteHeader
         institute={props.institute}
         docTitle={`${t('markSheet.docWord', lang)} — ${props.examLabel}`}
@@ -187,7 +187,7 @@ function ResultCardTemplate(props: MarkSheetTemplateProps) {
   const { lang } = props
   const showGradeColumns = props.schemeType !== 'numeric'
   return (
-    <PrintPage>
+    <PrintPage fill>
       <InstituteHeader
         institute={props.institute}
         docTitle={`${t('markSheet.docWord', lang)} — ${props.examLabel}`}
