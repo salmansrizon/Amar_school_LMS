@@ -166,7 +166,7 @@ export default async function ExamAttendanceSheetPage({
           const ranges = (seatRows ?? []).filter((r) => r.room_id === roomId)
           const seated = studentsInRanges(students, ranges)
           return (
-            <PrintPage key={roomId}>
+            <PrintPage key={roomId} orientation="landscape">
               {/* A full room spills past one sheet, so the header repeats
                   (issue #92): a page 2 with no institution block is not a
                   document an invigilator can hand back. */}

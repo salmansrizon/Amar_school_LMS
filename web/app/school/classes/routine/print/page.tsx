@@ -49,7 +49,7 @@ export default async function RoutinePrintPage({
         <PrintButton label={t('print.print', lang)} />
       </div>
 
-      <PrintPage>
+      <PrintPage orientation="landscape">
         <InstituteHeader institute={institute ?? undefined} docTitle={`${t('routine.docWord', lang)} — ${classLabel}`} />
 
         <table className="w-full table-fixed border-collapse text-xs">

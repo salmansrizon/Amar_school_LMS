@@ -156,7 +156,7 @@ export default async function SeatPlanPrintPage({
         </div>
       </div>
 
-      <PrintPage>
+      <PrintPage orientation="landscape">
         <PaginatedSheet
           header={
             <InstituteHeader

@@ -43,7 +43,7 @@ export default async function AdmissionPrintPage({ params }: { params: Promise<{
         <PrintButton label={t('print.print', lang)} />
       </div>
 
-      <PrintPage>
+      <PrintPage fill>
         <InstituteHeader institute={institute ?? undefined} docTitle={t('students.printAdmission', lang)} />
 
         <InfoGrid
