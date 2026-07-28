@@ -348,7 +348,7 @@ export function SchoolShell({
         {banner && <div className="shrink-0 print:hidden">{banner}</div>}
 
         <main className="relative flex-1 overflow-hidden bg-paper-muted print:overflow-visible print:bg-transparent">
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgb(47_126_255_/_0.06),_transparent_28%),radial-gradient(circle_at_top_right,_rgb(0_210_106_/_0.06),_transparent_24%)] print:hidden" />
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,color-mix(in_srgb,var(--color-brand-500)_6%,transparent),transparent_28%),radial-gradient(circle_at_top_right,color-mix(in_srgb,var(--color-mint)_6%,transparent),transparent_24%)] print:hidden" />
           <div className="relative h-full overflow-y-auto overflow-x-hidden print:h-auto print:overflow-visible">
             <div className="mx-auto w-full max-w-7xl px-4 pt-6 pb-10 sm:px-6 lg:px-8 print:mx-0 print:max-w-none print:p-0">{children}</div>
           </div>

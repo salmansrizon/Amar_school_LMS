@@ -17,7 +17,7 @@ const hindSiliguri = Hind_Siliguri({
 })
 
 export const metadata: Metadata = {
-  title: 'Amar School Management',
+  title: 'EdumeBD',
   description: 'Multi-tenant school management platform',
 }
 

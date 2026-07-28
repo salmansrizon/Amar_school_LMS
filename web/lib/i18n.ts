@@ -8,7 +8,7 @@ export const LANG_COOKIE = 'asm-lang'
 type Entry = { bn: string; en: string }
 
 const dict = {
-  'app.name': { bn: 'আমার স্কুল', en: 'Amar School' },
+  'app.name': { bn: 'এডুমিবিডি', en: 'EdumeBD' },
   'login.title': { bn: 'লগইন', en: 'Log in' },
   'login.email': { bn: 'ইমেইল', en: 'Email' },
   'login.password': { bn: 'পাসওয়ার্ড', en: 'Password' },
@@ -891,8 +891,8 @@ const dict = {
   },
   'print.print': { bn: 'প্রিন্ট করুন', en: 'Print' },
   'print.poweredBy': {
-    bn: 'Amar School Management দ্বারা পরিচালিত',
-    en: 'Powered by Amar School Management',
+    bn: 'EdumeBD দ্বারা পরিচালিত',
+    en: 'Powered by EdumeBD',
   },
   'print.qr': { bn: 'QR কোড', en: 'QR Code' },
   'verify.valid': { bn: 'বৈধ পরিচয়পত্র', en: 'Valid ID card' },

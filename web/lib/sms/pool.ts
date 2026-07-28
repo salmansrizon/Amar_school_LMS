@@ -5,8 +5,6 @@
 // the pool mirrors real consumption so the admin sees the total drop and re-buys).
 // Pure balance helpers so the admin display is unit-testable without a database.
 
-import { cache } from 'react'
-import type { SupabaseClient } from '@supabase/supabase-js'
 import { balanceLevel, type BalanceLevel } from '@/lib/sms/credit'
 
 export interface PoolLedgerRow {
@@ -37,12 +35,10 @@ export interface SmsPool {
   sent: number
 }
 
-/** The master pool for the super-admin surface. Reads all rows (super-admin RLS)
- *  — rows are modest (one per purchase / per allocation), so summing client-side
- *  is fine. cache()-wrapped so the dashboard + any panel share one request. */
-export const loadSmsPool = cache(async (supabase: SupabaseClient): Promise<SmsPool> => {
-  const { data } = await supabase.from('sms_pool_ledger').select('delta')
-  const rows = (data ?? []) as PoolLedgerRow[]
+/** Shape the pool ledger rows into the admin view model — pure, so it is
+ *  unit-testable and the dashboard read model can own the fetch (rows are modest:
+ *  one per purchase, one per send, so summing is fine). */
+export function summarizeSmsPool(rows: PoolLedgerRow[]): SmsPool {
   const balance = poolBalance(rows)
   let bought = 0
   let sent = 0
@@ -51,4 +47,4 @@ export const loadSmsPool = cache(async (supabase: SupabaseClient): Promise<SmsPo
     else sent += -r.delta
   }
   return { balance, level: poolLevel(balance), bought, sent }
-})
+}

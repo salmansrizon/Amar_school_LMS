@@ -31,6 +31,7 @@ const data: DashboardData = {
     { amount: 2000, created_at: '2026-07-05T00:00:00Z' },
     { amount: 1000, created_at: '2026-06-05T00:00:00Z' },
   ],
+  pool: [{ delta: 10000 }, { delta: -1500 }],
 }
 
 describe('buildDashboardViewModel', () => {
@@ -56,6 +57,12 @@ describe('buildDashboardViewModel', () => {
   it('tracks SMS income (top-ups) as a separate stream from subscriptions', () => {
     // trend window includes 2026-06 (1000) and 2026-07 (2000)
     expect(vm.smsIncome).toEqual({ total: 2000, delta: 100 })
+  })
+
+  it('summarizes the master SMS pool (bought − sent)', () => {
+    expect(vm.smsPool.bought).toBe(10000)
+    expect(vm.smsPool.sent).toBe(1500)
+    expect(vm.smsPool.balance).toBe(8500)
   })
 
   it('sums pending collection and dormant = expired + paused', () => {
