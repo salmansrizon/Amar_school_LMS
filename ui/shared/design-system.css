@@ -3,7 +3,7 @@
   Themed after the Family Design System (see "Design System/" folder):
   - Type: Plus Jakarta Sans (Latin) with Hind Siliguri fallback for Bangla glyphs.
   - Neutrals: Ink (#131313) on Paper (#ffffff) over Paper Muted (#f5f4f1).
-  - Brand/action color: Action Blue (#2f7eff). Status/semantic meaning is ALWAYS
+  - Brand/action color: Action Violet (#6d4dfb). Status/semantic meaning is ALWAYS
     conveyed with --success/--warning/--danger/--info (mint/yellow/red/sky), never brand hue.
   - Radius scale: 8 / 14 / 20 / full(999) — friendly rounded, pills for buttons & badges.
   - Shadows: card 0 12px 32px .08, modal 0 24px 64px .16.
@@ -16,17 +16,17 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Hind+Siliguri:wght@300;400;500;600;700&display=swap');
 
 :root {
-  /* Brand (Action Blue) — chrome, links, primary actions, active nav ONLY */
-  --brand-50:  #eef5ff;
-  --brand-100: #dbeaff;
-  --brand-200: #b6d5ff;
-  --brand-300: #8abcff;
-  --brand-400: #5c9dff;
-  --brand-500: #2f7eff;
-  --brand-600: #1e6bf0;
-  --brand-700: #1a58c8;
-  --brand-800: #1847a0;
-  --brand-900: #163a80;
+  /* Brand (Action Violet, EdumeBD) — chrome, links, primary actions, active nav ONLY */
+  --brand-50:  #f1eefe;
+  --brand-100: #e3dcfd;
+  --brand-200: #cabbfa;
+  --brand-300: #b3a4f7;
+  --brand-400: #8e73f4;
+  --brand-500: #6d4dfb;
+  --brand-600: #5a37e8;
+  --brand-700: #4826c4;
+  --brand-800: #3a1fa0;
+  --brand-900: #2e1980;
 
   /* Semantic status — NEVER use brand hue for these meanings */
   --success-bg: #e6f9ef;   --success-fg: #0a7a48;  --success-border: #8fe6bd;
@@ -105,7 +105,7 @@
     --text-secondary: var(--gray-500);
     --border-default: #2b2b2b;
     --border-strong:  var(--gray-700);
-    --accent-soft:    rgba(47, 126, 255, 0.16);
+    --accent-soft:    rgba(109, 77, 251, 0.16);
     --accent-soft-fg: var(--brand-300);
 
     --success-bg: rgba(0,210,106,0.14);  --success-fg: #00d26a; --success-border: rgba(0,210,106,0.35);
@@ -124,7 +124,7 @@
   --text-secondary: var(--gray-500);
   --border-default: #2b2b2b;
   --border-strong:  var(--gray-700);
-  --accent-soft:    rgba(47, 126, 255, 0.16);
+  --accent-soft:    rgba(109, 77, 251, 0.16);
   --accent-soft-fg: var(--brand-300);
 
   --success-bg: rgba(0,210,106,0.14);  --success-fg: #00d26a; --success-border: rgba(0,210,106,0.35);

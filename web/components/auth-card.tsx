@@ -1,4 +1,5 @@
 import { LangSwitch } from '@/components/lang-switch'
+import { BrandMark } from '@/components/brand-logo'
 import { t, type Lang } from '@/lib/i18n'
 import { brandInitial, type SchoolBrand } from '@/lib/school-branding'
 
@@ -48,8 +49,8 @@ export function AuthCard({
       <div className="w-full max-w-sm rounded-lg border border-line bg-paper p-6 shadow-card">
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="flex size-8 items-center justify-center rounded-sm bg-brand-500 text-sm font-bold text-white">
-              A
+            <span className="flex size-8 items-center justify-center rounded-sm bg-brand-500 text-white">
+              <BrandMark className="size-5" />
             </span>
             <span className="font-extrabold">{t('app.name', lang)}</span>
           </div>

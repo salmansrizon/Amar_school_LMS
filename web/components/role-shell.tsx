@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { LangSwitch } from '@/components/lang-switch'
 import { LogoutButton } from '@/components/logout-button'
+import { BrandMark } from '@/components/brand-logo'
 import { currentLang } from '@/lib/i18n-server'
 import { canAccess, homeFor, type Role } from '@/lib/auth/routing'
 import { t, type MessageKey } from '@/lib/i18n'
@@ -46,8 +47,8 @@ export async function RoleShell({
     <div className="flex min-h-screen flex-col">
       <header className="flex items-center justify-between border-b border-line bg-ink px-4 py-3 text-white">
         <div className="flex items-center gap-2 font-extrabold">
-          <span className="flex size-7 items-center justify-center rounded-sm bg-brand-500 text-sm font-bold">
-            A
+          <span className="flex size-7 items-center justify-center rounded-sm bg-brand-500 text-white">
+            <BrandMark className="size-4" />
           </span>
           {t('app.name', lang)}
         </div>

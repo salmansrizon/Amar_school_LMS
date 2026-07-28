@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { LangSwitch } from '@/components/lang-switch'
 import { LogoutButton } from '@/components/logout-button'
+import { BrandMark } from '@/components/brand-logo'
 import { StrokeIcon } from '@/components/stroke-icon'
 import { t, type Lang, type MessageKey } from '@/lib/i18n'
 import { isNavActive } from '@/lib/super-admin/shell-nav'
@@ -152,8 +153,8 @@ function NavList({
 function Brand({ lang, collapsed = false }: { lang: Lang; collapsed?: boolean }) {
   return (
     <div className={`flex items-center gap-3 ${collapsed ? 'justify-center px-0' : 'px-1'}`}>
-      <span className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-brand-600 text-base font-bold text-white shadow-sm">
-        A
+      <span className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-brand-600 text-white shadow-sm">
+        <BrandMark className="size-6" />
       </span>
       {!collapsed && (
         <div className="min-w-0 leading-tight">
@@ -302,7 +303,7 @@ export function SuperAdminShell({
         {/* Scroll frame + subtle gradient only — the page owns its <main>, width
             and padding (see the header note), so nothing is nested or doubled. */}
         <div className="relative flex-1 overflow-hidden bg-paper-muted print:overflow-visible print:bg-transparent">
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgb(47_126_255_/_0.06),_transparent_28%),radial-gradient(circle_at_top_right,_rgb(0_210_106_/_0.06),_transparent_24%)] print:hidden" />
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,color-mix(in_srgb,var(--color-brand-500)_6%,transparent),transparent_28%),radial-gradient(circle_at_top_right,color-mix(in_srgb,var(--color-mint)_6%,transparent),transparent_24%)] print:hidden" />
           <div className="relative flex h-full flex-col overflow-y-auto overflow-x-hidden print:h-auto print:overflow-visible">
             {children}
           </div>
