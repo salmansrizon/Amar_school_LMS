@@ -52,3 +52,13 @@ export async function addWorkflowComment(
   const { error } = await client.rpc('workflow_comment', { p_instance_id: instanceId, p_body: body })
   if (error) throw new Error(`workflow_comment failed: ${error.message}`)
 }
+
+/** Attach a stored-file reference to a workflow instance (visible-tenant members). */
+export async function addWorkflowAttachment(
+  client: SupabaseClient,
+  instanceId: string,
+  path: string,
+): Promise<void> {
+  const { error } = await client.rpc('workflow_attach', { p_instance_id: instanceId, p_path: path })
+  if (error) throw new Error(`workflow_attach failed: ${error.message}`)
+}

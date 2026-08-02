@@ -1,7 +1,11 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { signedIn } from '../helpers/auth'
-import { addWorkflowComment, createWorkflowEngine } from '@/lib/engines/workflow/engine'
+import {
+  addWorkflowAttachment,
+  addWorkflowComment,
+  createWorkflowEngine,
+} from '@/lib/engines/workflow/engine'
 
 // Workflow Engine (map #258, #264) against live Supabase: single-stage approve
 // and reject, approver-authority enforcement, tenant isolation, multi-level
@@ -91,6 +95,10 @@ describe('Workflow Engine (#264)', () => {
     await addWorkflowComment(owner, instanceId, 'please review')
     const rows = (await owner.from('workflow_comments').select('body').eq('instance_id', instanceId)).data ?? []
     expect(rows.some((r) => r.body === 'please review')).toBe(true)
+
+    await addWorkflowAttachment(owner, instanceId, 'leave-docs/note.pdf')
+    const atts = (await owner.from('workflow_attachments').select('path').eq('instance_id', instanceId)).data ?? []
+    expect(atts.some((r) => r.path === 'leave-docs/note.pdf')).toBe(true)
   })
 
   it('advances multi-level sequential stages', async () => {
