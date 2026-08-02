@@ -1,13 +1,16 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Role } from '@/lib/auth/routing'
+import { authorize } from '@/lib/engines/policy/authorize'
+import { PERMISSIONS } from '@/lib/engines/policy/catalog'
 
 // Application-layer guard for server actions. RLS remains the authority; this
 // gives a clean "Unauthorized" instead of leaking raw Postgres errors.
 //
-// All four guards resolve the same fact — the caller's profile (role +
-// school_id) — so that lookup lives in one place (`callerProfile`) and each
-// guard is just the predicate it cares about. This is the seam the whole
-// /school access model is tested through.
+// The role-group guards (requireSuperAdmin, requireSchoolMember) now delegate to
+// the Policy Engine (#262) — behaviour-identical, but authorization lives in one
+// resolver over config tables instead of hardcoded role literals. The remaining
+// guards additionally need the caller's school_id, so they still read the
+// profile directly via `callerProfile`.
 
 interface CallerProfile {
   role: Role | null
@@ -31,14 +34,12 @@ async function callerProfile(supabase: SupabaseClient): Promise<CallerProfile> {
 const isSchoolMember = (role: Role | null) => role === 'school_owner' || role === 'staff_user'
 
 export async function requireSuperAdmin(supabase: SupabaseClient): Promise<boolean> {
-  const { role } = await callerProfile(supabase)
-  return role === 'super_admin'
+  return (await authorize(supabase, PERMISSIONS.superAdminAccess)).allowed
 }
 
 /** True when the caller is a School Owner or Staff User (the /school group). */
 export async function requireSchoolMember(supabase: SupabaseClient): Promise<boolean> {
-  const { role } = await callerProfile(supabase)
-  return isSchoolMember(role)
+  return (await authorize(supabase, PERMISSIONS.schoolAccess)).allowed
 }
 
 /** True only for the School Owner — the institute profile (schools row) is
