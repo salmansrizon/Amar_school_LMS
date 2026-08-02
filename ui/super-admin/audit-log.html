@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<!-- Prototype (map #258, #261): Super-Admin Audit Log viewer. Read-only, immutable
+     trail fed by the Audit engine (event-driven + explicit record_audit). HITL:
+     approve this mockup before the live page is built. bn/en, Bangla default. -->
+<html lang="bn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>অডিট লগ · Audit Log</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>body{font-family:'Hind Siliguri','Inter',system-ui,sans-serif}</style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+  <div class="max-w-7xl mx-auto p-6">
+    <header class="mb-6">
+      <h1 class="text-2xl font-bold text-violet-800">অডিট লগ <span class="text-slate-400 font-normal">/ Audit Log</span></h1>
+      <p class="text-sm text-slate-500">প্রতিটি গুরুত্বপূর্ণ ব্যবসায়িক কার্যক্রমের অপরিবর্তনীয় রেকর্ড · Immutable record of every significant business action</p>
+    </header>
+
+    <!-- Filters -->
+    <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-6 grid grid-cols-1 md:grid-cols-5 gap-3">
+      <input type="search" placeholder="সত্তা / Entity" class="border rounded-lg px-3 py-2 text-sm" />
+      <select class="border rounded-lg px-3 py-2 text-sm">
+        <option>সব কার্যক্রম / All actions</option>
+        <option>create</option><option>update</option><option>delete</option>
+        <option>approve</option><option>reject</option><option>configure</option>
+      </select>
+      <input type="text" placeholder="স্কুল / School" class="border rounded-lg px-3 py-2 text-sm" />
+      <input type="date" class="border rounded-lg px-3 py-2 text-sm" />
+      <button class="bg-violet-700 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-violet-800">ফিল্টার / Filter</button>
+    </section>
+
+    <!-- Log table -->
+    <section class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+      <table class="w-full text-sm">
+        <thead class="bg-slate-100 text-slate-600 text-left">
+          <tr>
+            <th class="px-4 py-3">সময় / Time</th>
+            <th class="px-4 py-3">ব্যবহারকারী / Actor</th>
+            <th class="px-4 py-3">স্কুল / School</th>
+            <th class="px-4 py-3">সত্তা / Entity</th>
+            <th class="px-4 py-3">কাজ / Action</th>
+            <th class="px-4 py-3">পরিবর্তন / Change</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          <tr>
+            <td class="px-4 py-3 text-slate-500">২০২৬-০৮-০২ ২০:৪৬</td>
+            <td class="px-4 py-3">system</td>
+            <td class="px-4 py-3">Greenwood High</td>
+            <td class="px-4 py-3 font-mono text-xs">domain_event · FeatureEnabled</td>
+            <td class="px-4 py-3"><span class="px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-xs">create</span></td>
+            <td class="px-4 py-3"><button class="text-violet-700 underline text-xs">before/after দেখুন</button></td>
+          </tr>
+          <tr>
+            <td class="px-4 py-3 text-slate-500">২০২৬-০৮-০২ ১৯:১২</td>
+            <td class="px-4 py-3">admin@edumebd</td>
+            <td class="px-4 py-3">—</td>
+            <td class="px-4 py-3 font-mono text-xs">sms_rate_config</td>
+            <td class="px-4 py-3"><span class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-xs">configure</span></td>
+            <td class="px-4 py-3"><button class="text-violet-700 underline text-xs">before/after দেখুন</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <p class="text-xs text-slate-400 mt-4">🔒 এই লগ পরিবর্তন বা মুছে ফেলা যায় না · This log cannot be edited or deleted (RLS-enforced immutability).</p>
+  </div>
+</body>
+</html>
