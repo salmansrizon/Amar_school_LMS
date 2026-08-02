@@ -5,7 +5,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 
 export async function accrueCommission(
   client: SupabaseClient,
-  input: { distributorId: string; stream: 'subscription' | 'sms' | 'implementation'; sourceType: string; sourceId: string; baseAmount: number },
+  input: { distributorId: string; stream: 'subscription' | 'sms' | 'implementation'; sourceType: string; sourceId: string; baseAmount: number; year?: number },
   jobSecret?: string,
 ): Promise<string> {
   const { data, error } = await client.rpc('commission_accrue', {
@@ -14,6 +14,7 @@ export async function accrueCommission(
     p_source_type: input.sourceType,
     p_source_id: input.sourceId,
     p_base_amount: input.baseAmount,
+    p_year: input.year ?? 1,
     job_secret: jobSecret ?? null,
   })
   if (error) throw new Error(`commission_accrue failed: ${error.message}`)
