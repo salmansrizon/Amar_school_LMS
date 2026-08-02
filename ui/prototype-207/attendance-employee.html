@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>Prototype #207 — Employee Attendance (Pattern B)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          ink: '#131313', 'ink-card': '#1c1c1c',
+          paper: '#ffffff', 'paper-muted': '#f4f4f6',
+          line: '#ececec', 'line-strong': '#d8d8d8', muted: '#767676',
+          brand: { 50: '#f1eefe', 100: '#e3dcfd', 300: '#b3a4f7', 500: '#6d4dfb', 600: '#5a37e8', 700: '#4826c4' },
+          mint: { DEFAULT: '#00d26a', deep: '#0a7a48', soft: '#e6f9ef' },
+          sun: { DEFAULT: '#ffc94a', deep: '#c98a00', soft: '#fff6e0' },
+          alert: { DEFAULT: '#ef4444', deep: '#dc2626', soft: '#fdeaea' },
+          sky: { DEFAULT: '#00b2ff', deep: '#0077b8', soft: '#e5f6ff' },
+        },
+        borderRadius: { sm: '8px', md: '14px', lg: '20px' },
+        boxShadow: { card: '0 12px 32px rgb(0 0 0 / 0.08)', modal: '0 24px 64px rgb(0 0 0 / 0.16)' },
+      }
+    }
+  }
+</script>
+<style>
+  body { font-family: 'Plus Jakarta Sans', 'Hind Siliguri', system-ui, sans-serif; }
+</style>
+</head>
+<body class="bg-paper-muted text-ink">
+
+<div class="sticky top-0 z-50 bg-ink text-white text-xs font-semibold px-4 py-2">🧪 THROWAWAY PROTOTYPE — map #207 · ticket <a href="https://github.com/salmansrizon/Amar_school_LMS/issues/217" class="underline">#217 Attendance</a> — Employee: search+date filter unchanged, In/Out/Status/Grace table wrapped in one Card, grace-note paragraphs kept as a second Card (matches the two real &lt;section&gt; blocks)</div>
+
+<main class="mx-auto w-full max-w-4xl flex-1 p-6">
+
+  <div class="mb-4 flex items-center justify-between">
+    <h1 class="text-2xl font-extrabold">কর্মচারী উপস্থিতি · Employee Attendance</h1>
+    <a href="attendance-hub.html" aria-label="Back" class="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-5"><path d="m15 18-6-6 6-6" /></svg>
+    </a>
+  </div>
+
+  <div class="mb-4 flex flex-nowrap gap-1 overflow-x-auto border-b border-line">
+    <a href="attendance-mark.html" class="shrink-0 whitespace-nowrap rounded-t-md px-3 py-2 text-sm font-semibold text-muted hover:text-ink">উপস্থিতি নেওয়া · Mark</a>
+    <a href="attendance-book.html" class="shrink-0 whitespace-nowrap rounded-t-md px-3 py-2 text-sm font-semibold text-muted hover:text-ink">উপস্থিতি বই · Book</a>
+    <a href="attendance-employee.html" class="shrink-0 whitespace-nowrap rounded-t-md px-3 py-2 text-sm font-semibold border-b-2 border-brand-500 text-brand-600">কর্মচারী · Employee</a>
+    <a href="attendance-leave.html" class="shrink-0 whitespace-nowrap rounded-t-md px-3 py-2 text-sm font-semibold text-muted hover:text-ink">ছুটি ব্যবস্থাপনা · Leave</a>
+    <a href="attendance-off-days.html" class="shrink-0 whitespace-nowrap rounded-t-md px-3 py-2 text-sm font-semibold text-muted hover:text-ink">ছুটির দিন · Off Days</a>
+  </div>
+
+  <form class="mb-4 flex flex-wrap items-center gap-2">
+    <input placeholder="নাম দিয়ে খুঁজুন · Search by name" class="w-56 rounded-md border border-line bg-paper px-3 py-1.5 text-sm">
+    <input type="date" value="2026-08-02" class="rounded-md border border-line bg-paper px-3 py-1.5 text-sm">
+    <button type="button" class="cursor-pointer rounded-full border border-line px-3 py-1 text-xs font-semibold hover:bg-paper-muted">ফিল্টার · Filter</button>
+  </form>
+
+  <!-- Pattern B: List/table archetype — existing table unchanged, one Card, header = title -->
+  <div class="mb-4 rounded-2xl border border-line bg-paper shadow-card overflow-hidden">
+    <div class="border-b border-line p-5">
+      <h2 class="text-sm font-bold">কর্মচারী তালিকা · Employee Roster</h2>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full border-collapse">
+        <thead>
+          <tr class="border-b border-line-strong">
+            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">নাম · Name</th>
+            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">ইন · In</th>
+            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">আউট · Out</th>
+            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">স্ট্যাটাস · Status</th>
+            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">প্রযোজ্য গ্রেস · Applied Grace</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-line">
+            <td class="px-3 py-2 text-sm font-medium">মোঃ আব্দুল করিম</td>
+            <td class="px-3 py-2 text-sm">08:58</td>
+            <td class="px-3 py-2 text-sm">16:32</td>
+            <td class="px-3 py-2 text-sm"><span class="rounded-full px-2 py-0.5 text-xs font-semibold bg-mint-soft text-mint-deep">সময়মতো · On Time</span></td>
+            <td class="px-3 py-2 text-xs text-muted">১০ মিনিট · 10 min (গ্লোবাল · global)</td>
+          </tr>
+          <tr class="border-b border-line">
+            <td class="px-3 py-2 text-sm font-medium">শিরিন সুলতানা</td>
+            <td class="px-3 py-2 text-sm">09:14</td>
+            <td class="px-3 py-2 text-sm">16:20</td>
+            <td class="px-3 py-2 text-sm"><span class="rounded-full px-2 py-0.5 text-xs font-semibold bg-sun-soft text-sun-deep">দেরিতে প্রবেশ · Late Entry</span></td>
+            <td class="px-3 py-2 text-xs text-muted">৫ মিনিট · 5 min (ক্যাটাগরি · category)</td>
+          </tr>
+          <tr class="border-b border-line">
+            <td class="px-3 py-2 text-sm font-medium">হাবিবুর রহমান</td>
+            <td class="px-3 py-2 text-sm">09:20</td>
+            <td class="px-3 py-2 text-sm">15:40</td>
+            <td class="px-3 py-2 text-sm"><span class="rounded-full px-2 py-0.5 text-xs font-semibold bg-alert-soft text-alert-deep">দেরি + আগে বের · Late + Early Exit</span></td>
+            <td class="px-3 py-2 text-xs text-muted">০ মিনিট · 0 min (অফিস সময় · officeTime)</td>
+          </tr>
+          <tr class="border-b border-line">
+            <td class="px-3 py-2 text-sm font-medium">ফারজানা ইয়াসমিন</td>
+            <td class="px-3 py-2 text-sm">08:50</td>
+            <td class="px-3 py-2 text-sm">15:35</td>
+            <td class="px-3 py-2 text-sm"><span class="rounded-full px-2 py-0.5 text-xs font-semibold bg-sun-soft text-sun-deep">আগে বের হওয়া · Exit Early</span></td>
+            <td class="px-3 py-2 text-xs text-muted">১৫ মিনিট · 15 min (ওভাররাইড · override)</td>
+          </tr>
+          <tr class="border-b border-line">
+            <td class="px-3 py-2 text-sm font-medium">মোঃ শাহজাহান</td>
+            <td class="px-3 py-2 text-sm">—</td>
+            <td class="px-3 py-2 text-sm">—</td>
+            <td class="px-3 py-2 text-sm"><span class="rounded-full px-2 py-0.5 text-xs font-semibold bg-alert-soft text-alert-deep">অনুপস্থিত · Absent</span></td>
+            <td class="px-3 py-2 text-xs text-muted">—</td>
+          </tr>
+          <tr class="border-b border-line">
+            <td class="px-3 py-2 text-sm font-medium">নাজমুল হক</td>
+            <td class="px-3 py-2 text-sm">—</td>
+            <td class="px-3 py-2 text-sm">—</td>
+            <td class="px-3 py-2 text-sm"><span class="rounded-full px-2 py-0.5 text-xs font-semibold bg-sky-soft text-sky-deep">ছুটিতে · On Leave</span></td>
+            <td class="px-3 py-2 text-xs text-muted">—</td>
+          </tr>
+          <tr class="border-b border-line">
+            <td class="px-3 py-2 text-sm font-medium">রোকসানা বেগম</td>
+            <td class="px-3 py-2 text-sm">08:55</td>
+            <td class="px-3 py-2 text-sm">16:05</td>
+            <td class="px-3 py-2 text-sm"><span class="rounded-full px-2 py-0.5 text-xs font-semibold bg-mint-soft text-mint-deep">সময়মতো · On Time</span></td>
+            <td class="px-3 py-2 text-xs text-muted">১০ মিনিট · 10 min (গ্লোবাল · global)</td>
+          </tr>
+          <tr>
+            <td class="px-3 py-2 text-sm font-medium">কামরুল ইসলাম</td>
+            <td class="px-3 py-2 text-sm">09:05</td>
+            <td class="px-3 py-2 text-sm">16:15</td>
+            <td class="px-3 py-2 text-sm"><span class="rounded-full px-2 py-0.5 text-xs font-semibold bg-mint-soft text-mint-deep">সময়মতো · On Time</span></td>
+            <td class="px-3 py-2 text-xs text-muted">১০ মিনিট · 10 min (গ্লোবাল · global)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="rounded-2xl border border-line bg-paper p-5 shadow-card">
+    <p class="text-sm text-muted">গ্রেস মিনিট নির্ধারণে অগ্রাধিকার: ওভাররাইড &gt; অফিস সময় &gt; ক্যাটাগরি &gt; গ্লোবাল — সর্বোচ্চ মান প্রযোজ্য হয়। · Grace minutes resolve with priority: override &gt; officeTime &gt; category &gt; global — the maximum across applicable levels applies.</p>
+    <p class="mt-2 text-sm text-muted">RFID কার্ড রিডার সংযুক্ত থাকলে ইন/আউট স্বয়ংক্রিয়ভাবে রেকর্ড হয়। · When an RFID reader is connected, entry/exit records automatically.</p>
+  </div>
+
+</main>
+</body>
+</html>

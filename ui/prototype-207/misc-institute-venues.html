@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ভেন্যু কনফিগারেশন — Prototype 207</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          ink: '#131313', 'ink-card': '#1c1c1c', paper: '#ffffff', 'paper-muted': '#f4f4f6',
+          line: '#ececec', 'line-strong': '#d8d8d8', muted: '#767676',
+          brand: { 50: '#f1eefe', 100: '#e3dcfd', 300: '#b3a4f7', 500: '#6d4dfb', 600: '#5a37e8', 700: '#4826c4' },
+          mint: { DEFAULT: '#00d26a', deep: '#0a7a48', soft: '#e6f9ef' },
+          sun: { DEFAULT: '#ffc94a', deep: '#c98a00', soft: '#fff6e0' },
+          alert: { DEFAULT: '#ef4444', deep: '#dc2626', soft: '#fdeaea' },
+          sky: { DEFAULT: '#00b2ff', deep: '#0077b8', soft: '#e5f6ff' },
+        },
+        borderRadius: { sm: '8px', md: '14px', lg: '20px' },
+        boxShadow: { card: '0 12px 32px rgb(0 0 0 / 0.08)' },
+        fontFamily: { sans: ["'Plus Jakarta Sans'", "'Hind Siliguri'", 'system-ui', 'sans-serif'] },
+      },
+    },
+  }
+</script>
+<style>body { background: #f4f4f6; color: #131313; font-family: 'Plus Jakarta Sans', 'Hind Siliguri', system-ui, sans-serif; }</style>
+</head>
+<body class="min-h-screen">
+
+<div class="sticky top-0 z-50 bg-ink text-white text-xs font-semibold px-4 py-2">
+  🧪 THROWAWAY PROTOTYPE — map #207 · ticket <a href="https://github.com/salmansrizon/Amar_school_LMS/issues/220" class="underline">#220 Institute/Notices/SMS/misc</a> — Institute Venues: one Card per building (list archetype), room table unchanged, add-building/add-room actions kept.
+</div>
+
+<main class="mx-auto w-full max-w-4xl flex-1 p-6">
+  <div class="mb-4 flex items-center justify-between">
+    <h1 class="text-2xl font-extrabold">প্রতিষ্ঠান</h1>
+    <a href="#" aria-label="ফিরে যান" class="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-5"><path d="m15 18-6-6 6-6" /></svg>
+    </a>
+  </div>
+
+  <nav class="mb-5 flex flex-nowrap gap-1 overflow-x-auto border-b border-line text-sm font-semibold">
+    <a href="misc-institute-hub.html" class="shrink-0 whitespace-nowrap rounded-t-md px-4 py-2 text-muted hover:bg-paper hover:text-ink">প্রোফাইল</a>
+    <a href="misc-institute-venues.html" class="shrink-0 whitespace-nowrap rounded-t-md border-b-2 border-brand-500 px-4 py-2 text-brand-600">ভেন্যু</a>
+    <a href="misc-institute-checklist.html" class="shrink-0 whitespace-nowrap rounded-t-md px-4 py-2 text-muted hover:bg-paper hover:text-ink">চেকলিস্ট</a>
+    <a href="misc-institute-logistics.html" class="shrink-0 whitespace-nowrap rounded-t-md px-4 py-2 text-muted hover:bg-paper hover:text-ink">লজিস্টিকস</a>
+    <a href="misc-institute-templates.html" class="shrink-0 whitespace-nowrap rounded-t-md px-4 py-2 text-muted hover:bg-paper hover:text-ink">টেমপ্লেট</a>
+  </nav>
+
+  <div class="mb-5 flex flex-wrap items-center justify-between gap-3">
+    <p class="text-sm text-muted">পরীক্ষা-স্বতন্ত্র আসন কনফিগারেশন — ভবন ও কক্ষ যোগ করুন।</p>
+    <button class="rounded-full bg-brand-500 px-4 py-1.5 text-xs font-semibold text-white hover:bg-brand-600">+ ভবন যোগ করুন</button>
+  </div>
+
+  <!-- Pattern B: List/table -> ONE Card per building, table unchanged -->
+  <section class="mb-6 rounded-2xl border border-line bg-paper p-5 shadow-card">
+    <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+      <div>
+        <h2 class="font-bold">প্রধান একাডেমিক ভবন</h2>
+        <p class="text-xs text-muted">৩টি কক্ষ · ১২০ আসন</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <button class="rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted">+ কক্ষ যোগ করুন</button>
+        <button class="rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted">সম্পাদনা</button>
+        <button class="rounded-full border border-alert-deep/40 px-3 py-1 text-xs font-semibold text-alert-deep hover:bg-alert-soft">মুছুন</button>
+      </div>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full border-collapse">
+        <thead>
+          <tr class="border-b border-line-strong">
+            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">কক্ষের নাম</th>
+            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">ধারণক্ষমতা</th>
+            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">অবস্থা</th>
+            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">কার্যক্রম</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-line align-top">
+            <td class="px-3 py-2 text-sm font-medium">কক্ষ ১০১</td>
+            <td class="px-3 py-2 text-sm">৪৫</td>
+            <td class="px-3 py-2 text-sm"><span class="rounded-full bg-mint-soft px-2 py-0.5 text-xs font-semibold text-mint-deep">সক্রিয়</span></td>
+            <td class="px-3 py-2 text-sm">
+              <div class="flex flex-wrap items-center gap-2">
+                <button class="rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted">সম্পাদনা</button>
+                <button class="rounded-full border border-alert-deep/40 px-3 py-1 text-xs font-semibold text-alert-deep hover:bg-alert-soft">মুছুন</button>
+              </div>
+            </td>
+          </tr>
+          <tr class="border-b border-line align-top">
+            <td class="px-3 py-2 text-sm font-medium">কক্ষ ১০২</td>
+            <td class="px-3 py-2 text-sm">৪০</td>
+            <td class="px-3 py-2 text-sm"><span class="rounded-full bg-mint-soft px-2 py-0.5 text-xs font-semibold text-mint-deep">সক্রিয়</span></td>
+            <td class="px-3 py-2 text-sm">
+              <div class="flex flex-wrap items-center gap-2">
+                <button class="rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted">সম্পাদনা</button>
+                <button class="rounded-full border border-alert-deep/40 px-3 py-1 text-xs font-semibold text-alert-deep hover:bg-alert-soft">মুছুন</button>
+              </div>
+            </td>
+          </tr>
+          <tr class="border-b border-line align-top">
+            <td class="px-3 py-2 text-sm font-medium">বিজ্ঞান ল্যাব</td>
+            <td class="px-3 py-2 text-sm">৩৫</td>
+            <td class="px-3 py-2 text-sm"><span class="rounded-full bg-paper-muted px-2 py-0.5 text-xs font-semibold text-muted">নিষ্ক্রিয়</span></td>
+            <td class="px-3 py-2 text-sm">
+              <div class="flex flex-wrap items-center gap-2">
+                <button class="rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted">সম্পাদনা</button>
+                <button class="rounded-full border border-alert-deep/40 px-3 py-1 text-xs font-semibold text-alert-deep hover:bg-alert-soft">মুছুন</button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="rounded-2xl border border-line bg-paper p-5 shadow-card">
+    <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+      <div>
+        <h2 class="font-bold">দ্বিতীয় ভবন (পরীক্ষা হল)</h2>
+        <p class="text-xs text-muted">১টি কক্ষ · ৮০ আসন</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <button class="rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted">+ কক্ষ যোগ করুন</button>
+        <button class="rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted">সম্পাদনা</button>
+        <button class="rounded-full border border-alert-deep/40 px-3 py-1 text-xs font-semibold text-alert-deep hover:bg-alert-soft">মুছুন</button>
+      </div>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full border-collapse">
+        <thead>
+          <tr class="border-b border-line-strong">
+            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">কক্ষের নাম</th>
+            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">ধারণক্ষমতা</th>
+            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">অবস্থা</th>
+            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">কার্যক্রম</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="align-top">
+            <td class="px-3 py-2 text-sm font-medium">মূল হল</td>
+            <td class="px-3 py-2 text-sm">৮০</td>
+            <td class="px-3 py-2 text-sm"><span class="rounded-full bg-mint-soft px-2 py-0.5 text-xs font-semibold text-mint-deep">সক্রিয়</span></td>
+            <td class="px-3 py-2 text-sm">
+              <div class="flex flex-wrap items-center gap-2">
+                <button class="rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted">সম্পাদনা</button>
+                <button class="rounded-full border border-alert-deep/40 px-3 py-1 text-xs font-semibold text-alert-deep hover:bg-alert-soft">মুছুন</button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+</body>
+</html>

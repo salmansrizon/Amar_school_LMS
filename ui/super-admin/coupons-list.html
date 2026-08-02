@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>কুপন ও ছাড় · Coupons & Discounts — Super Admin</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../shared/design-system.css">
+<script src="../shared/app.js" defer></script>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="mark">A</span><span>Super Admin</span></div>
+    <nav>
+      <a class="nav-item" href="schools-list.html"><span data-i18n="bn">স্কুলসমূহ</span><span data-i18n="en">Schools</span></a>
+      <a class="nav-item" href="dealers-list.html"><span data-i18n="bn">ডিলার</span><span data-i18n="en">Dealers</span></a>
+      <a class="nav-item" href="gov-officials-list.html"><span data-i18n="bn">সরকারি কর্মকর্তা</span><span data-i18n="en">Government Officials</span></a>
+      <a class="nav-item" href="codes-list.html"><span data-i18n="bn">সাবস্ক্রিপশন কোড</span><span data-i18n="en">Subscription Codes</span></a>
+      <a class="nav-item active" href="coupons-list.html"><span data-i18n="bn">কুপন ও ছাড়</span><span data-i18n="en">Coupons & Discounts</span></a>
+      <a class="nav-item" href="subscription-config.html"><span data-i18n="bn">সাবস্ক্রিপশন ফি কনফিগারেশন</span><span data-i18n="en">Subscription Fee Config</span></a>
+      <a class="nav-item" href="locations-tree.html"><span data-i18n="bn">টেরিটরি ও লোকেশন</span><span data-i18n="en">Territory & Locations</span></a>
+      <a class="nav-item" href="vendor-accounting-ledger.html"><span data-i18n="bn">ভেন্ডর হিসাব</span><span data-i18n="en">Vendor Accounting</span></a>
+      <a class="nav-item" href="vendor-sms-compose.html"><span data-i18n="bn">ভেন্ডর এসএমএস</span><span data-i18n="en">Vendor SMS</span></a>
+      <a class="nav-item" href="central-holiday-calendar.html"><span data-i18n="bn">কেন্দ্রীয় ছুটির তালিকা</span><span data-i18n="en">Central Off-Day</span></a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="title"><span data-i18n="bn">কুপন ও ছাড়</span><span data-i18n="en">Coupons & Discounts</span></div>
+      <div class="actions">
+        <a class="btn btn-secondary btn-sm" href="../index.html" title="Home">🏠</a>
+        <a class="btn btn-secondary btn-sm" href="../sitemap.html" title="Sitemap">📋</a>
+        <div class="lang-switch">
+          <button data-lang-btn="bn" onclick="setLang('bn')">বাং</button>
+          <button data-lang-btn="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="theme-switch">
+          <button data-theme-btn="light" onclick="setTheme('light')">☀</button>
+          <button data-theme-btn="dark" onclick="setTheme('dark')">☾</button>
+          <button data-theme-btn="system" onclick="setTheme('system')">Auto</button>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+
+      <div class="toolbar">
+        <input class="search-input" type="text" placeholder="কুপন কোড খুঁজুন · Search a coupon code">
+        <div class="flex gap-2">
+          <select class="search-input" style="min-width:170px;">
+            <option><span data-i18n="bn">সকল স্কোপ</span><span data-i18n="en">All scopes</span></option>
+            <option><span data-i18n="bn">মাসিক সাবস্ক্রিপশন</span><span data-i18n="en">Monthly Subscription</span></option>
+            <option><span data-i18n="bn">বাস্তবায়ন ফি</span><span data-i18n="en">Implementation Fee</span></option>
+            <option><span data-i18n="bn">লাইসেন্সিং</span><span data-i18n="en">Licensing</span></option>
+            <option><span data-i18n="bn">অন্যান্য</span><span data-i18n="en">Other</span></option>
+          </select>
+          <select class="search-input" style="min-width:150px;">
+            <option><span data-i18n="bn">সকল অবস্থা</span><span data-i18n="en">All statuses</span></option>
+            <option><span data-i18n="bn">সক্রিয়</span><span data-i18n="en">Active</span></option>
+            <option><span data-i18n="bn">মেয়াদোত্তীর্ণ</span><span data-i18n="en">Expired</span></option>
+            <option><span data-i18n="bn">শেষ হয়ে গেছে</span><span data-i18n="en">Used-up</span></option>
+          </select>
+          <a class="btn btn-primary" href="coupon-create.html"><span data-i18n="bn">+ কুপন তৈরি করুন</span><span data-i18n="en">+ Create Coupon</span></a>
+        </div>
+      </div>
+
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th><span data-i18n="bn">কুপন কোড</span><span data-i18n="en">Coupon Code</span></th>
+            <th><span data-i18n="bn">স্কোপ</span><span data-i18n="en">Scope</span></th>
+            <th><span data-i18n="bn">লক্ষ্য</span><span data-i18n="en">Target</span></th>
+            <th><span data-i18n="bn">ছাড়</span><span data-i18n="en">Discount</span></th>
+            <th><span data-i18n="bn">শেয়ারিং %</span><span data-i18n="en">Sharing %</span></th>
+            <th><span data-i18n="bn">মেয়াদোত্তীর্ণের তারিখ</span><span data-i18n="en">Expiry Date</span></th>
+            <th><span data-i18n="bn">অবস্থা</span><span data-i18n="en">Status</span></th>
+            <th><span data-i18n="bn">কার্যক্রম</span><span data-i18n="en">Actions</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>WELCOME20</td>
+            <td><span class="badge badge-info"><span data-i18n="bn">মাসিক সাবস্ক্রিপশন</span><span data-i18n="en">Subscription</span></span></td>
+            <td><span data-i18n="bn">যেকোনো</span><span data-i18n="en">Any</span></td>
+            <td>20% <span class="text-secondary">(3 <span data-i18n="bn">মাস</span><span data-i18n="en">mo</span>)</span></td>
+            <td><span data-i18n="bn">৭০% কোম্পানি / ৩০% ডিলার</span><span data-i18n="en">70% Company / 30% Distributor</span></td>
+            <td>2026-12-31</td>
+            <td><span class="badge badge-success"><span data-i18n="bn">সক্রিয়</span><span data-i18n="en">Active</span></span></td>
+            <td>
+              <a class="btn btn-secondary btn-sm" href="coupon-create.html"><span data-i18n="bn">সম্পাদনা</span><span data-i18n="en">Edit</span></a>
+              <button class="btn btn-danger btn-sm"><span data-i18n="bn">মুছুন</span><span data-i18n="en">Delete</span></button>
+            </td>
+          </tr>
+          <tr>
+            <td>RUPALI-IMPL500</td>
+            <td><span class="badge badge-neutral"><span data-i18n="bn">বাস্তবায়ন ফি</span><span data-i18n="en">Implementation Fee</span></span></td>
+            <td>Rupali Distributors</td>
+            <td>Tk 500</td>
+            <td><span data-i18n="bn">১০০% কোম্পানি / ০% ডিলার</span><span data-i18n="en">100% Company / 0% Distributor</span></td>
+            <td>2026-06-30</td>
+            <td><span class="badge badge-success"><span data-i18n="bn">সক্রিয়</span><span data-i18n="en">Active</span></span></td>
+            <td>
+              <a class="btn btn-secondary btn-sm" href="coupon-create.html"><span data-i18n="bn">সম্পাদনা</span><span data-i18n="en">Edit</span></a>
+              <button class="btn btn-danger btn-sm"><span data-i18n="bn">মুছুন</span><span data-i18n="en">Delete</span></button>
+            </td>
+          </tr>
+          <tr>
+            <td>ADARSHA-LIC10</td>
+            <td><span class="badge badge-extended"><span data-i18n="bn">লাইসেন্সিং</span><span data-i18n="en">Licensing</span></span></td>
+            <td>Adarsha High School</td>
+            <td>10%</td>
+            <td><span data-i18n="bn">৫০% কোম্পানি / ৫০% ডিলার</span><span data-i18n="en">50% Company / 50% Distributor</span></td>
+            <td>2025-12-01</td>
+            <td><span class="badge badge-danger"><span data-i18n="bn">মেয়াদোত্তীর্ণ</span><span data-i18n="en">Expired</span></span></td>
+            <td>
+              <a class="btn btn-secondary btn-sm" href="coupon-create.html"><span data-i18n="bn">সম্পাদনা</span><span data-i18n="en">Edit</span></a>
+              <button class="btn btn-danger btn-sm"><span data-i18n="bn">মুছুন</span><span data-i18n="en">Delete</span></button>
+            </td>
+          </tr>
+          <tr>
+            <td>KARIM-AGENT15</td>
+            <td><span class="badge badge-info"><span data-i18n="bn">মাসিক সাবস্ক্রিপশন</span><span data-i18n="en">Subscription</span></span></td>
+            <td>Karim Traders</td>
+            <td>15% <span class="text-secondary">(6 <span data-i18n="bn">মাস</span><span data-i18n="en">mo</span>)</span></td>
+            <td><span data-i18n="bn">৬০% কোম্পানি / ৪০% ডিলার</span><span data-i18n="en">60% Company / 40% Distributor</span></td>
+            <td>2026-03-15</td>
+            <td><span class="badge badge-warning"><span data-i18n="bn">শেষ হয়ে গেছে</span><span data-i18n="en">Used-up</span></span></td>
+            <td>
+              <a class="btn btn-secondary btn-sm" href="coupon-create.html"><span data-i18n="bn">সম্পাদনা</span><span data-i18n="en">Edit</span></a>
+              <button class="btn btn-danger btn-sm"><span data-i18n="bn">মুছুন</span><span data-i18n="en">Delete</span></button>
+            </td>
+          </tr>
+          <tr>
+            <td>EIDOFFER30</td>
+            <td><span class="badge badge-neutral"><span data-i18n="bn">অন্যান্য</span><span data-i18n="en">Other</span></span></td>
+            <td><span class="text-secondary">—</span></td>
+            <td>Tk 300</td>
+            <td><span data-i18n="bn">১০০% কোম্পানি / ০% ডিলার</span><span data-i18n="en">100% Company / 0% Distributor</span></td>
+            <td>2026-09-10</td>
+            <td><span class="badge badge-success"><span data-i18n="bn">সক্রিয়</span><span data-i18n="en">Active</span></span></td>
+            <td>
+              <a class="btn btn-secondary btn-sm" href="coupon-create.html"><span data-i18n="bn">সম্পাদনা</span><span data-i18n="en">Edit</span></a>
+              <button class="btn btn-danger btn-sm"><span data-i18n="bn">মুছুন</span><span data-i18n="en">Delete</span></button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p class="locked-note" style="margin-top:var(--space-3);">
+        <span data-i18n="bn">শেয়ারিং % নির্ধারণ করে ছাড়ের খরচ কোম্পানি ও ডিলার/এজেন্টের মধ্যে কীভাবে ভাগ হবে — এই মান উভয় পক্ষের বিলেই দেখানো হয়। "শেষ হয়ে গেছে" মানে কুপনটি তার ব্যবহারসীমা অতিক্রম করেছে।</span>
+        <span data-i18n="en">Sharing % decides how the discount cost splits between the company and the distributor/agent — this value is visible on both parties' bills. "Used-up" means the coupon has hit its usage limit.</span>
+      </p>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>নোটিশ ও প্রকাশনা — Prototype 207</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          ink: '#131313', 'ink-card': '#1c1c1c', paper: '#ffffff', 'paper-muted': '#f4f4f6',
+          line: '#ececec', 'line-strong': '#d8d8d8', muted: '#767676',
+          brand: { 50: '#f1eefe', 100: '#e3dcfd', 300: '#b3a4f7', 500: '#6d4dfb', 600: '#5a37e8', 700: '#4826c4' },
+          mint: { DEFAULT: '#00d26a', deep: '#0a7a48', soft: '#e6f9ef' },
+          sun: { DEFAULT: '#ffc94a', deep: '#c98a00', soft: '#fff6e0' },
+          alert: { DEFAULT: '#ef4444', deep: '#dc2626', soft: '#fdeaea' },
+          sky: { DEFAULT: '#00b2ff', deep: '#0077b8', soft: '#e5f6ff' },
+        },
+        borderRadius: { sm: '8px', md: '14px', lg: '20px' },
+        boxShadow: { card: '0 12px 32px rgb(0 0 0 / 0.08)' },
+        fontFamily: { sans: ["'Plus Jakarta Sans'", "'Hind Siliguri'", 'system-ui', 'sans-serif'] },
+      },
+    },
+  }
+</script>
+<style>body { background: #f4f4f6; color: #131313; font-family: 'Plus Jakarta Sans', 'Hind Siliguri', system-ui, sans-serif; }</style>
+</head>
+<body class="min-h-screen">
+
+<div class="sticky top-0 z-50 bg-ink text-white text-xs font-semibold px-4 py-2">
+  🧪 THROWAWAY PROTOTYPE — map #207 · ticket <a href="https://github.com/salmansrizon/Amar_school_LMS/issues/220" class="underline">#220 Institute/Notices/SMS/misc</a> — Notices list: shared list for notice/homework/lesson-plan/daily-lesson/exam-prep, one Card (search+kind filter+new), table unchanged.
+</div>
+
+<main class="mx-auto w-full max-w-5xl flex-1 p-6">
+  <div class="mb-4 flex items-center justify-between">
+    <h1 class="text-2xl font-extrabold">নোটিশ ও প্রকাশনা</h1>
+    <a href="#" aria-label="ফিরে যান" class="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-5"><path d="m15 18-6-6 6-6" /></svg>
+    </a>
+  </div>
+
+  <nav class="mb-5 flex gap-1 border-b border-line text-sm font-semibold">
+    <span class="rounded-t-md border-b-2 border-brand-600 px-4 py-2 text-ink">তালিকা</span>
+    <a href="misc-notice-new.html" class="rounded-t-md px-4 py-2 text-muted hover:bg-paper hover:text-ink">নতুন তৈরি</a>
+    <a href="misc-notices-gallery.html" class="rounded-t-md px-4 py-2 text-muted hover:bg-paper hover:text-ink">গ্যালারি</a>
+  </nav>
+
+  <!-- Pattern B: List/table -> ONE Card, header = filter toolbar + primary action -->
+  <section class="rounded-2xl border border-line bg-paper p-5 shadow-card">
+    <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+      <form class="flex flex-wrap items-center gap-2">
+        <input placeholder="নোটিশ খুঁজুন" class="rounded-md border border-line bg-paper px-3 py-1.5 text-sm" />
+        <select class="rounded-md border border-line bg-paper px-3 py-1.5 text-sm">
+          <option>সকল ধরন</option>
+          <option>নোটিশ</option>
+          <option>হোমওয়ার্ক</option>
+          <option>পাঠ পরিকল্পনা</option>
+          <option>দৈনিক পাঠ</option>
+          <option>পরীক্ষার প্রস্তুতি</option>
+        </select>
+        <button type="submit" class="rounded-full border border-line px-3 py-1 text-xs font-semibold hover:bg-paper-muted">ফিল্টার</button>
+      </form>
+      <a href="misc-notice-new.html" class="rounded-full bg-brand-500 px-4 py-1.5 text-xs font-semibold text-white hover:bg-brand-600">+ নতুন</a>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full border-collapse">
+        <thead>
+          <tr class="border-b border-line-strong">
+            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">শিরোনাম</th>
+            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">ধরন</th>
+            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">গুরুত্ব</th>
+            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">লক্ষ্য শ্রোতা</th>
+            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">তারিখ</th>
+            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">কার্যক্রম</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-line">
+            <td class="px-3 py-2 text-sm font-medium">অর্ধ-বার্ষিক পরীক্ষার সময়সূচী প্রকাশ</td>
+            <td class="px-3 py-2 text-sm"><span class="rounded-full bg-brand-100 px-2 py-0.5 text-xs font-semibold text-brand-700">নোটিশ</span></td>
+            <td class="px-3 py-2 text-sm"><span class="rounded-full bg-alert-soft px-2 py-0.5 text-xs font-semibold text-alert-deep">জরুরি</span></td>
+            <td class="px-3 py-2 text-sm">সকলে</td>
+            <td class="px-3 py-2 text-sm">০২ আগস্ট, ২০২৬</td>
+            <td class="px-3 py-2 text-sm"><a href="misc-notice-detail.html" class="rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted">দেখুন</a></td>
+          </tr>
+          <tr class="border-b border-line">
+            <td class="px-3 py-2 text-sm font-medium">গণিত — অধ্যায় ৫ অনুশীলনী</td>
+            <td class="px-3 py-2 text-sm"><span class="rounded-full bg-sky-soft px-2 py-0.5 text-xs font-semibold text-sky-deep">হোমওয়ার্ক</span></td>
+            <td class="px-3 py-2 text-sm"><span class="rounded-full bg-paper-muted px-2 py-0.5 text-xs font-semibold text-muted">সাধারণ</span></td>
+            <td class="px-3 py-2 text-sm">নবম শ্রেণি — ক শাখা</td>
+            <td class="px-3 py-2 text-sm">০১ আগস্ট, ২০২৬</td>
+            <td class="px-3 py-2 text-sm"><a href="misc-notice-detail.html" class="rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted">দেখুন</a></td>
+          </tr>
+          <tr class="border-b border-line">
+            <td class="px-3 py-2 text-sm font-medium">বাংলা দ্বিতীয় পত্র — পাঠ পরিকল্পনা</td>
+            <td class="px-3 py-2 text-sm"><span class="rounded-full bg-mint-soft px-2 py-0.5 text-xs font-semibold text-mint-deep">পাঠ পরিকল্পনা</span></td>
+            <td class="px-3 py-2 text-sm"><span class="rounded-full bg-paper-muted px-2 py-0.5 text-xs font-semibold text-muted">সাধারণ</span></td>
+            <td class="px-3 py-2 text-sm">অষ্টম শ্রেণি</td>
+            <td class="px-3 py-2 text-sm">৩০ জুলাই, ২০২৬</td>
+            <td class="px-3 py-2 text-sm"><a href="misc-notice-detail.html" class="rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted">দেখুন</a></td>
+          </tr>
+          <tr class="border-b border-line">
+            <td class="px-3 py-2 text-sm font-medium">বার্ষিক ক্রীড়া প্রতিযোগিতা</td>
+            <td class="px-3 py-2 text-sm"><span class="rounded-full bg-brand-100 px-2 py-0.5 text-xs font-semibold text-brand-700">নোটিশ</span></td>
+            <td class="px-3 py-2 text-sm"><span class="rounded-full bg-sun-soft px-2 py-0.5 text-xs font-semibold text-sun-deep">গুরুত্বপূর্ণ</span></td>
+            <td class="px-3 py-2 text-sm">সকলে</td>
+            <td class="px-3 py-2 text-sm">২৮ জুলাই, ২০২৬</td>
+            <td class="px-3 py-2 text-sm"><a href="misc-notice-detail.html" class="rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted">দেখুন</a></td>
+          </tr>
+          <tr>
+            <td class="px-3 py-2 text-sm font-medium">নির্বাচনী পরীক্ষা — প্রস্তুতি নির্দেশিকা</td>
+            <td class="px-3 py-2 text-sm"><span class="rounded-full bg-brand-50 px-2 py-0.5 text-xs font-semibold text-brand-600">পরীক্ষার প্রস্তুতি</span></td>
+            <td class="px-3 py-2 text-sm"><span class="rounded-full bg-paper-muted px-2 py-0.5 text-xs font-semibold text-muted">সাধারণ</span></td>
+            <td class="px-3 py-2 text-sm">দশম শ্রেণি</td>
+            <td class="px-3 py-2 text-sm">২৫ জুলাই, ২০২৬</td>
+            <td class="px-3 py-2 text-sm"><a href="misc-notice-detail.html" class="rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted">দেখুন</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+</body>
+</html>

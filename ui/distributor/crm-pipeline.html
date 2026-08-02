@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>সিআরএম পাইপলাইন · CRM Pipeline — Distributor Portal</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../shared/design-system.css">
+<script src="../shared/app.js" defer></script>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="mark">D</span><span>Distributor Portal</span></div>
+    <nav>
+      <a class="nav-item" href="dashboard.html"><span data-i18n="bn">ড্যাশবোর্ড</span><span data-i18n="en">Dashboard</span></a>
+      <a class="nav-item active" href="crm-pipeline.html"><span data-i18n="bn">সিআরএম পাইপলাইন</span><span data-i18n="en">CRM Pipeline</span></a>
+      <a class="nav-item" href="agents.html"><span data-i18n="bn">এজেন্ট</span><span data-i18n="en">Agents</span></a>
+      <a class="nav-item" href="territories.html"><span data-i18n="bn">টেরিটরি</span><span data-i18n="en">Territories</span></a>
+      <a class="nav-item" href="billing.html"><span data-i18n="bn">বিলিং</span><span data-i18n="en">Billing</span></a>
+      <a class="nav-item" href="reports.html"><span data-i18n="bn">রিপোর্ট</span><span data-i18n="en">Reports</span></a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="title"><span data-i18n="bn">সিআরএম পাইপলাইন</span><span data-i18n="en">CRM Pipeline</span></div>
+      <div class="actions">
+        <a class="btn btn-secondary btn-sm" href="../index.html" title="Home">🏠</a>
+        <a class="btn btn-secondary btn-sm" href="../sitemap.html" title="Sitemap">📋</a>
+        <div class="lang-switch">
+          <button data-lang-btn="bn" onclick="setLang('bn')">বাং</button>
+          <button data-lang-btn="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="theme-switch">
+          <button data-theme-btn="light" onclick="setTheme('light')">☀</button>
+          <button data-theme-btn="dark" onclick="setTheme('dark')">☾</button>
+          <button data-theme-btn="system" onclick="setTheme('system')">Auto</button>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+
+      <div class="toolbar">
+        <input class="search-input" type="text" placeholder="স্কুল বা লিড খুঁজুন · Search leads or schools">
+        <button class="btn btn-primary"><span data-i18n="bn">＋ নতুন লিড</span><span data-i18n="en">＋ New Lead</span></button>
+      </div>
+
+      <div class="kanban-board">
+
+        <div class="kanban-col">
+          <div class="kanban-col-head">
+            <span><span data-i18n="bn">লিড</span><span data-i18n="en">Lead</span></span>
+            <span class="kanban-col-count">2</span>
+          </div>
+          <div class="kanban-cards">
+            <a class="kanban-card" href="lead-detail.html?id=1" style="text-decoration:none;color:inherit;display:block;">
+              <div class="title"><span data-i18n="bn">আদর্শ উচ্চ বিদ্যালয়, সাভার</span><span data-i18n="en">Adarsha High School, Savar</span></div>
+              <div class="meta">
+                <span>👤 রফিক · Rafiq</span>
+                <span>📅 ৫ আগস্ট</span>
+              </div>
+            </a>
+            <a class="kanban-card" href="lead-detail.html?id=2" style="text-decoration:none;color:inherit;display:block;">
+              <div class="title"><span data-i18n="bn">নবীনগর উচ্চ বিদ্যালয়</span><span data-i18n="en">Nabinagar High School</span></div>
+              <div class="meta">
+                <span>👤 সুমাইয়া · Sumaiya</span>
+                <span>📅 ৬ আগস্ট</span>
+              </div>
+            </a>
+          </div>
+        </div>
+
+        <div class="kanban-col">
+          <div class="kanban-col-head">
+            <span><span data-i18n="bn">যোগাযোগ</span><span data-i18n="en">Contact</span></span>
+            <span class="kanban-col-count">2</span>
+          </div>
+          <div class="kanban-cards">
+            <a class="kanban-card" href="lead-detail.html?id=3" style="text-decoration:none;color:inherit;display:block;">
+              <div class="title"><span data-i18n="bn">রাজশাহী ক্যাডেট একাডেমি</span><span data-i18n="en">Rajshahi Cadet Academy</span></div>
+              <div class="meta">
+                <span>👤 করিম · Karim</span>
+                <span>📅 ৪ আগস্ট</span>
+              </div>
+            </a>
+            <a class="kanban-card" href="lead-detail.html?id=4" style="text-decoration:none;color:inherit;display:block;">
+              <div class="title"><span data-i18n="bn">টাঙ্গাইল সরকারি উচ্চ বিদ্যালয়</span><span data-i18n="en">Tangail Govt. High School</span></div>
+              <div class="meta">
+                <span>👤 রফিক · Rafiq</span>
+                <span>📅 ৭ আগস্ট</span>
+              </div>
+            </a>
+          </div>
+        </div>
+
+        <div class="kanban-col">
+          <div class="kanban-col-head">
+            <span><span data-i18n="bn">ডেমো</span><span data-i18n="en">Demo</span></span>
+            <span class="kanban-col-count">1</span>
+          </div>
+          <div class="kanban-cards">
+            <a class="kanban-card" href="lead-detail.html?id=5" style="text-decoration:none;color:inherit;display:block;">
+              <div class="title"><span data-i18n="bn">খুলনা মডেল স্কুল অ্যান্ড কলেজ</span><span data-i18n="en">Khulna Model School & College</span></div>
+              <div class="meta">
+                <span>👤 সুমাইয়া · Sumaiya</span>
+                <span>📅 ৫ আগস্ট</span>
+              </div>
+            </a>
+          </div>
+        </div>
+
+        <div class="kanban-col">
+          <div class="kanban-col-head">
+            <span><span data-i18n="bn">প্রস্তাব</span><span data-i18n="en">Proposal</span></span>
+            <span class="kanban-col-count">1</span>
+          </div>
+          <div class="kanban-cards">
+            <a class="kanban-card" href="lead-detail.html?id=6" style="text-decoration:none;color:inherit;display:block;">
+              <div class="title"><span data-i18n="bn">সিলেট গার্লস হাই স্কুল</span><span data-i18n="en">Sylhet Girls' High School</span></div>
+              <div class="meta">
+                <span>👤 করিম · Karim</span>
+                <span>📅 ৮ আগস্ট</span>
+              </div>
+            </a>
+          </div>
+        </div>
+
+        <div class="kanban-col">
+          <div class="kanban-col-head">
+            <span><span data-i18n="bn">দরকষাকষি</span><span data-i18n="en">Negotiation</span></span>
+            <span class="kanban-col-count">1</span>
+          </div>
+          <div class="kanban-cards">
+            <a class="kanban-card" href="lead-detail.html?id=7" style="text-decoration:none;color:inherit;display:block;">
+              <div class="title"><span data-i18n="bn">বরিশাল সরকারি বালক উচ্চ বিদ্যালয়</span><span data-i18n="en">Barisal Govt. Boys' High School</span></div>
+              <div class="meta">
+                <span>👤 রফিক · Rafiq</span>
+                <span>📅 ৯ আগস্ট</span>
+              </div>
+            </a>
+          </div>
+        </div>
+
+        <div class="kanban-col">
+          <div class="kanban-col-head">
+            <span><span data-i18n="bn">চুক্তি</span><span data-i18n="en">Agreement</span></span>
+            <span class="kanban-col-count">1</span>
+          </div>
+          <div class="kanban-cards">
+            <a class="kanban-card" href="lead-detail.html?id=8" style="text-decoration:none;color:inherit;display:block;">
+              <div class="title"><span data-i18n="bn">ময়মনসিংহ পাবলিক স্কুল</span><span data-i18n="en">Mymensingh Public School</span></div>
+              <div class="meta">
+                <span>👤 সুমাইয়া · Sumaiya</span>
+                <span>📅 ৩ আগস্ট</span>
+              </div>
+            </a>
+          </div>
+        </div>
+
+        <div class="kanban-col">
+          <div class="kanban-col-head">
+            <span><span data-i18n="bn">বাস্তবায়ন ফি</span><span data-i18n="en">Implementation Fee</span></span>
+            <span class="kanban-col-count">1</span>
+          </div>
+          <div class="kanban-cards">
+            <a class="kanban-card" href="lead-detail.html?id=9" style="text-decoration:none;color:inherit;display:block;">
+              <div class="title"><span data-i18n="bn">কুমিল্লা ভিক্টোরিয়া কলেজ স্কুল</span><span data-i18n="en">Cumilla Victoria College School</span></div>
+              <div class="meta">
+                <span>👤 করিম · Karim</span>
+                <span>📅 ৪ আগস্ট</span>
+              </div>
+            </a>
+          </div>
+        </div>
+
+        <div class="kanban-col">
+          <div class="kanban-col-head">
+            <span><span data-i18n="bn">এজেন্ট বরাদ্দ</span><span data-i18n="en">Assign Agent</span></span>
+            <span class="kanban-col-count">0</span>
+          </div>
+          <div class="kanban-cards"></div>
+        </div>
+
+        <div class="kanban-col">
+          <div class="kanban-col-head">
+            <span><span data-i18n="bn">অনবোর্ডিং</span><span data-i18n="en">Onboarding</span></span>
+            <span class="kanban-col-count">1</span>
+          </div>
+          <div class="kanban-cards">
+            <a class="kanban-card" href="lead-detail.html?id=10" style="text-decoration:none;color:inherit;display:block;">
+              <div class="title"><span data-i18n="bn">যশোর জিলা স্কুল</span><span data-i18n="en">Jessore Zilla School</span></div>
+              <div class="meta">
+                <span>👤 রফিক · Rafiq</span>
+                <span>📅 ২ আগস্ট</span>
+              </div>
+            </a>
+          </div>
+        </div>
+
+        <div class="kanban-col">
+          <div class="kanban-col-head">
+            <span><span data-i18n="bn">গো-লাইভ</span><span data-i18n="en">Go Live</span></span>
+            <span class="kanban-col-count">0</span>
+          </div>
+          <div class="kanban-cards"></div>
+        </div>
+
+        <div class="kanban-col">
+          <div class="kanban-col-head">
+            <span><span data-i18n="bn">সাবস্ক্রিপশন</span><span data-i18n="en">Subscription</span></span>
+            <span class="kanban-col-count">0</span>
+          </div>
+          <div class="kanban-cards"></div>
+        </div>
+
+        <div class="kanban-col">
+          <div class="kanban-col-head">
+            <span><span data-i18n="bn">নবায়ন</span><span data-i18n="en">Renewal</span></span>
+            <span class="kanban-col-count">0</span>
+          </div>
+          <div class="kanban-cards"></div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

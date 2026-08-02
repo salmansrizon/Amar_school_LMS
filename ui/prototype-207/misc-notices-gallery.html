@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>গ্যালারি অ্যালবাম — Prototype 207</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          ink: '#131313', 'ink-card': '#1c1c1c', paper: '#ffffff', 'paper-muted': '#f4f4f6',
+          line: '#ececec', 'line-strong': '#d8d8d8', muted: '#767676',
+          brand: { 50: '#f1eefe', 100: '#e3dcfd', 300: '#b3a4f7', 500: '#6d4dfb', 600: '#5a37e8', 700: '#4826c4' },
+          mint: { DEFAULT: '#00d26a', deep: '#0a7a48', soft: '#e6f9ef' },
+          sun: { DEFAULT: '#ffc94a', deep: '#c98a00', soft: '#fff6e0' },
+          alert: { DEFAULT: '#ef4444', deep: '#dc2626', soft: '#fdeaea' },
+          sky: { DEFAULT: '#00b2ff', deep: '#0077b8', soft: '#e5f6ff' },
+        },
+        borderRadius: { sm: '8px', md: '14px', lg: '20px' },
+        boxShadow: { card: '0 12px 32px rgb(0 0 0 / 0.08)' },
+        fontFamily: { sans: ["'Plus Jakarta Sans'", "'Hind Siliguri'", 'system-ui', 'sans-serif'] },
+      },
+    },
+  }
+</script>
+<style>body { background: #f4f4f6; color: #131313; font-family: 'Plus Jakarta Sans', 'Hind Siliguri', system-ui, sans-serif; }</style>
+</head>
+<body class="min-h-screen">
+
+<div class="sticky top-0 z-50 bg-ink text-white text-xs font-semibold px-4 py-2">
+  🧪 THROWAWAY PROTOTYPE — map #207 · ticket <a href="https://github.com/salmansrizon/Amar_school_LMS/issues/220" class="underline">#220 Institute/Notices/SMS/misc</a> — Gallery albums: search + album grid inside one Card (Pattern B "list"). The album-detail photo grid (notices/gallery/[albumId]) follows this identical grid-card pattern and isn't separately mocked.
+</div>
+
+<main class="mx-auto w-full max-w-5xl flex-1 p-6">
+  <div class="mb-4 flex items-center justify-between">
+    <h1 class="text-2xl font-extrabold">নোটিশ ও প্রকাশনা</h1>
+    <a href="#" aria-label="ফিরে যান" class="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-5"><path d="m15 18-6-6 6-6" /></svg>
+    </a>
+  </div>
+
+  <nav class="mb-5 flex gap-1 border-b border-line text-sm font-semibold">
+    <a href="misc-notices-list.html" class="rounded-t-md px-4 py-2 text-muted hover:bg-paper hover:text-ink">তালিকা</a>
+    <a href="misc-notice-new.html" class="rounded-t-md px-4 py-2 text-muted hover:bg-paper hover:text-ink">নতুন তৈরি</a>
+    <span class="rounded-t-md border-b-2 border-brand-600 px-4 py-2 text-ink">গ্যালারি</span>
+  </nav>
+
+  <!-- Pattern B: List/grid -> one Card, header = search + primary action, grid unchanged -->
+  <section class="rounded-2xl border border-line bg-paper p-5 shadow-card">
+    <div class="mb-5 flex flex-wrap items-center justify-between gap-3">
+      <form class="flex items-center gap-2">
+        <input placeholder="অ্যালবাম খুঁজুন" class="rounded-md border border-line bg-paper px-3 py-1.5 text-sm" />
+        <button type="submit" class="rounded-full border border-line px-3 py-1 text-xs font-semibold hover:bg-paper-muted">ফিল্টার</button>
+      </form>
+      <details class="group">
+        <summary class="inline-flex cursor-pointer list-none rounded-full bg-brand-500 px-4 py-1.5 text-xs font-semibold text-white hover:bg-brand-600">+ নতুন অ্যালবাম</summary>
+        <div class="mt-3 rounded-md border border-line bg-paper-muted p-4">
+          <label class="mb-1 block text-xs font-semibold text-muted">অ্যালবামের নাম</label>
+          <input class="h-9 w-full max-w-xs rounded-md border border-line-strong bg-paper px-3 text-sm" placeholder="যেমনঃ বার্ষিক ক্রীড়া উৎসব ২০২৬" />
+          <button class="mt-3 w-auto rounded-full bg-brand-600 px-6 py-2 text-sm font-semibold text-white hover:bg-brand-700">তৈরি করুন</button>
+        </div>
+      </details>
+    </div>
+
+    <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
+      <a href="misc-gallery-album-detail.html" class="block text-inherit no-underline">
+        <div class="flex h-28 items-center justify-center rounded-t-md border border-b-0 border-line bg-paper-muted text-2xl text-muted">🖼️</div>
+        <div class="rounded-b-md border border-line p-3">
+          <div class="mb-0.5 truncate text-sm font-semibold">বার্ষিক ক্রীড়া উৎসব ২০২৬</div>
+          <div class="text-xs text-muted">১৮/৩০ ছবি</div>
+        </div>
+      </a>
+      <a href="misc-gallery-album-detail.html" class="block text-inherit no-underline">
+        <div class="flex h-28 items-center justify-center rounded-t-md border border-b-0 border-line bg-paper-muted text-2xl text-muted">🖼️</div>
+        <div class="rounded-b-md border border-line p-3">
+          <div class="mb-0.5 truncate text-sm font-semibold">বিজ্ঞান মেলা</div>
+          <div class="text-xs text-muted">৩০/৩০ ছবি</div>
+          <span class="mt-1 inline-block rounded-full bg-sun-soft px-2 py-0.5 text-xs font-semibold text-sun-deep">পূর্ণ</span>
+        </div>
+      </a>
+      <a href="misc-gallery-album-detail.html" class="block text-inherit no-underline">
+        <div class="flex h-28 items-center justify-center rounded-t-md border border-b-0 border-line bg-paper-muted text-2xl text-muted">🖼️</div>
+        <div class="rounded-b-md border border-line p-3">
+          <div class="mb-0.5 truncate text-sm font-semibold">নবীন বরণ অনুষ্ঠান</div>
+          <div class="text-xs text-muted">৭/২৫ ছবি</div>
+        </div>
+      </a>
+      <a href="misc-gallery-album-detail.html" class="block text-inherit no-underline">
+        <div class="flex h-28 items-center justify-center rounded-t-md border border-b-0 border-line bg-paper-muted text-2xl text-muted">🖼️</div>
+        <div class="rounded-b-md border border-line p-3">
+          <div class="mb-0.5 truncate text-sm font-semibold">শিক্ষক দিবস</div>
+          <div class="text-xs text-muted">১২/২৫ ছবি</div>
+        </div>
+      </a>
+    </div>
+  </section>
+</main>
+</body>
+</html>

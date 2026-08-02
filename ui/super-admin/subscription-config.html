@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>সাবস্ক্রিপশন ফি কনফিগারেশন · Subscription Fee Config — Super Admin</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../shared/design-system.css">
+<script src="../shared/app.js" defer></script>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="mark">A</span><span>Super Admin</span></div>
+    <nav>
+      <a class="nav-item" href="schools-list.html"><span data-i18n="bn">স্কুলসমূহ</span><span data-i18n="en">Schools</span></a>
+      <a class="nav-item" href="dealers-list.html"><span data-i18n="bn">ডিলার</span><span data-i18n="en">Dealers</span></a>
+      <a class="nav-item" href="gov-officials-list.html"><span data-i18n="bn">সরকারি কর্মকর্তা</span><span data-i18n="en">Government Officials</span></a>
+      <a class="nav-item" href="codes-list.html"><span data-i18n="bn">সাবস্ক্রিপশন কোড</span><span data-i18n="en">Subscription Codes</span></a>
+      <a class="nav-item" href="coupons-list.html"><span data-i18n="bn">কুপন ও ছাড়</span><span data-i18n="en">Coupons & Discounts</span></a>
+      <a class="nav-item active" href="subscription-config.html"><span data-i18n="bn">সাবস্ক্রিপশন ফি কনফিগারেশন</span><span data-i18n="en">Subscription Fee Config</span></a>
+      <a class="nav-item" href="locations-tree.html"><span data-i18n="bn">টেরিটরি ও লোকেশন</span><span data-i18n="en">Territory & Locations</span></a>
+      <a class="nav-item" href="vendor-accounting-ledger.html"><span data-i18n="bn">ভেন্ডর হিসাব</span><span data-i18n="en">Vendor Accounting</span></a>
+      <a class="nav-item" href="vendor-sms-compose.html"><span data-i18n="bn">ভেন্ডর এসএমএস</span><span data-i18n="en">Vendor SMS</span></a>
+      <a class="nav-item" href="central-holiday-calendar.html"><span data-i18n="bn">কেন্দ্রীয় ছুটির তালিকা</span><span data-i18n="en">Central Off-Day</span></a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="title"><span data-i18n="bn">সাবস্ক্রিপশন ফি কনফিগারেশন</span><span data-i18n="en">Subscription Fee Configuration</span></div>
+      <div class="actions">
+        <a class="btn btn-secondary btn-sm" href="../index.html" title="Home">🏠</a>
+        <a class="btn btn-secondary btn-sm" href="../sitemap.html" title="Sitemap">📋</a>
+        <div class="lang-switch">
+          <button data-lang-btn="bn" onclick="setLang('bn')">বাং</button>
+          <button data-lang-btn="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="theme-switch">
+          <button data-theme-btn="light" onclick="setTheme('light')">☀</button>
+          <button data-theme-btn="dark" onclick="setTheme('dark')">☾</button>
+          <button data-theme-btn="system" onclick="setTheme('system')">Auto</button>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+
+      <div class="card" style="max-width:640px;">
+        <h3 class="mt-0"><span data-i18n="bn">ফি সূত্র</span><span data-i18n="en">Fee Formula</span></h3>
+        <p class="text-secondary" style="margin-top:0; font-size:var(--text-sm);">
+          <span data-i18n="bn">মাসিক বিল = বেস প্ল্যাটফর্ম ফি + (শিক্ষার্থী সংখ্যা × প্রতি শিক্ষার্থী হার)</span>
+          <span data-i18n="en">Monthly bill = Base Platform Fee + (Student Count × Per-Student Rate)</span>
+        </p>
+        <div class="form-grid">
+          <div class="field">
+            <label><span data-i18n="bn">বেস প্ল্যাটফর্ম ফি (টাকা)</span><span data-i18n="en">Base Platform Fee (BDT)</span></label>
+            <input type="number" min="0" value="2000">
+          </div>
+          <div class="field">
+            <label><span data-i18n="bn">প্রতি শিক্ষার্থী হার (টাকা)</span><span data-i18n="en">Per-Student Rate (BDT)</span></label>
+            <input type="number" min="0" value="7">
+          </div>
+          <div class="field">
+            <label><span data-i18n="bn">কার্যকর হওয়ার তারিখ</span><span data-i18n="en">Effective From</span></label>
+            <input type="date" value="2025-01-01">
+          </div>
+        </div>
+
+        <div class="card" style="background:var(--info-bg); border-color:var(--info-border); margin-top:var(--space-4);">
+          <p style="margin:0; font-size:var(--text-sm); color:var(--info-fg);">
+            <span data-i18n="bn">এই হার পরিবর্তন করলে তা শুধুমাত্র ভবিষ্যতের বিলিং সাইকেলে প্রযোজ্য হবে। পূর্ববর্তী বিল পুনরায় হিসাব করা হবে না। পরিবর্তনের পূর্বের মান নিচের ইতিহাস টেবিলে সংরক্ষিত থাকবে।</span>
+            <span data-i18n="en">Changing this rate only applies to future billing cycles. Past bills are not recalculated. The prior value is preserved in the rate history table below.</span>
+          </p>
+        </div>
+
+        <div class="flex gap-2" style="margin-top:var(--space-4);">
+          <button class="btn btn-primary"><span data-i18n="bn">সংরক্ষণ করুন</span><span data-i18n="en">Save</span></button>
+          <a class="btn btn-secondary" href="coupons-list.html"><span data-i18n="bn">বাতিল</span><span data-i18n="en">Cancel</span></a>
+        </div>
+      </div>
+
+      <div class="card" style="max-width:640px; margin-top:var(--space-4);">
+        <h3 class="mt-0"><span data-i18n="bn">হার পরিবর্তনের ইতিহাস</span><span data-i18n="en">Rate History</span></h3>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th><span data-i18n="bn">বেস ফি</span><span data-i18n="en">Base Fee</span></th>
+              <th><span data-i18n="bn">প্রতি শিক্ষার্থী হার</span><span data-i18n="en">Per-Student Rate</span></th>
+              <th><span data-i18n="bn">কার্যকর ছিল</span><span data-i18n="en">Effective Period</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Tk 2,000</td>
+              <td>Tk 7 <span data-i18n="bn">/ শিক্ষার্থী</span><span data-i18n="en">/ student</span></td>
+              <td><span data-i18n="bn">২০২৫-০১-০১ থেকে বর্তমান</span><span data-i18n="en">Since 2025-01-01</span> <span class="badge badge-success"><span data-i18n="bn">সক্রিয়</span><span data-i18n="en">Active</span></span></td>
+            </tr>
+            <tr>
+              <td>Tk 1,500</td>
+              <td>Tk 5 <span data-i18n="bn">/ শিক্ষার্থী</span><span data-i18n="en">/ student</span></td>
+              <td><span data-i18n="bn">২০২৪-০১-০১ থেকে ২০২৫-০১-০১ পর্যন্ত</span><span data-i18n="en">2024-01-01 until 2025-01-01</span></td>
+            </tr>
+            <tr>
+              <td>Tk 1,000</td>
+              <td>Tk 3 <span data-i18n="bn">/ শিক্ষার্থী</span><span data-i18n="en">/ student</span></td>
+              <td><span data-i18n="bn">২০২৩-০৬-০১ থেকে ২০২৪-০১-০১ পর্যন্ত</span><span data-i18n="en">2023-06-01 until 2024-01-01</span></td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="locked-note" style="margin-top:var(--space-3);">
+          <span data-i18n="bn">ইতিহাসের সারিগুলো শুধুমাত্র পঠনযোগ্য — এগুলো সম্পাদনা বা মোছা যায় না।</span>
+          <span data-i18n="en">History rows are read-only — they cannot be edited or deleted.</span>
+        </p>
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>প্রতিষ্ঠান প্রোফাইল — Prototype 207</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          ink: '#131313',
+          'ink-card': '#1c1c1c',
+          paper: '#ffffff',
+          'paper-muted': '#f4f4f6',
+          line: '#ececec',
+          'line-strong': '#d8d8d8',
+          muted: '#767676',
+          brand: { 50: '#f1eefe', 100: '#e3dcfd', 300: '#b3a4f7', 500: '#6d4dfb', 600: '#5a37e8', 700: '#4826c4' },
+          mint: { DEFAULT: '#00d26a', deep: '#0a7a48', soft: '#e6f9ef' },
+          sun: { DEFAULT: '#ffc94a', deep: '#c98a00', soft: '#fff6e0' },
+          alert: { DEFAULT: '#ef4444', deep: '#dc2626', soft: '#fdeaea' },
+          sky: { DEFAULT: '#00b2ff', deep: '#0077b8', soft: '#e5f6ff' },
+        },
+        borderRadius: { sm: '8px', md: '14px', lg: '20px' },
+        boxShadow: { card: '0 12px 32px rgb(0 0 0 / 0.08)' },
+        fontFamily: { sans: ["'Plus Jakarta Sans'", "'Hind Siliguri'", 'system-ui', 'sans-serif'] },
+      },
+    },
+  }
+</script>
+<style>
+  body { background: #f4f4f6; color: #131313; font-family: 'Plus Jakarta Sans', 'Hind Siliguri', system-ui, sans-serif; }
+</style>
+</head>
+<body class="min-h-screen">
+
+<div class="sticky top-0 z-50 bg-ink text-white text-xs font-semibold px-4 py-2">
+  🧪 THROWAWAY PROTOTYPE — map #207 · ticket <a href="https://github.com/salmansrizon/Amar_school_LMS/issues/220" class="underline">#220 Institute/Notices/SMS/misc</a> — Institute Profile: sectioned Cards (Pattern B "form"), tabs and every field unchanged from real page.
+</div>
+
+<main class="mx-auto w-full max-w-4xl flex-1 p-6">
+
+  <div class="mb-4 flex items-center justify-between">
+    <h1 class="text-2xl font-extrabold">প্রতিষ্ঠান</h1>
+    <a href="#" aria-label="ফিরে যান" class="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-5"><path d="m15 18-6-6 6-6" /></svg>
+    </a>
+  </div>
+
+  <!-- Tab bar (real routes) unchanged -->
+  <nav class="mb-5 flex flex-nowrap gap-1 overflow-x-auto border-b border-line text-sm font-semibold">
+    <a href="misc-institute-hub.html" class="shrink-0 whitespace-nowrap rounded-t-md border-b-2 border-brand-500 px-4 py-2 text-brand-600">প্রোফাইল</a>
+    <a href="misc-institute-venues.html" class="shrink-0 whitespace-nowrap rounded-t-md px-4 py-2 text-muted hover:bg-paper hover:text-ink">ভেন্যু</a>
+    <a href="misc-institute-checklist.html" class="shrink-0 whitespace-nowrap rounded-t-md px-4 py-2 text-muted hover:bg-paper hover:text-ink">চেকলিস্ট</a>
+    <a href="misc-institute-logistics.html" class="shrink-0 whitespace-nowrap rounded-t-md px-4 py-2 text-muted hover:bg-paper hover:text-ink">লজিস্টিকস</a>
+    <a href="misc-institute-templates.html" class="shrink-0 whitespace-nowrap rounded-t-md px-4 py-2 text-muted hover:bg-paper hover:text-ink">টেমপ্লেট</a>
+  </nav>
+
+  <form class="grid gap-4">
+    <!-- Pattern B: Form -> sectioned Cards, full-width field grid, action row at foot -->
+
+    <!-- Basic info Card -->
+    <section class="rounded-2xl border border-line bg-paper p-5 shadow-card">
+      <h3 class="mb-3 font-bold">মৌলিক তথ্য</h3>
+      <div class="grid gap-3 sm:grid-cols-2">
+        <div class="sm:col-span-2">
+          <label class="mb-1 block text-xs font-semibold text-muted">প্রতিষ্ঠানের নাম</label>
+          <input value="আদর্শ উচ্চ বিদ্যালয়" class="h-10 w-full rounded-md border border-line-strong bg-paper px-3 text-sm outline-none focus:border-brand-500" />
+        </div>
+        <div>
+          <label class="mb-1 block text-xs font-semibold text-muted">প্রতিষ্ঠান কোড</label>
+          <input value="ISC-40021" class="h-10 w-full rounded-md border border-line-strong bg-paper px-3 text-sm outline-none focus:border-brand-500" />
+        </div>
+        <div>
+          <label class="mb-1 block text-xs font-semibold text-muted">EIIN নম্বর</label>
+          <input value="123456" class="h-10 w-full rounded-md border border-line-strong bg-paper px-3 text-sm outline-none focus:border-brand-500" />
+        </div>
+        <div>
+          <label class="mb-1 block text-xs font-semibold text-muted">MPO ভুক্ত?</label>
+          <select class="h-10 w-full rounded-md border border-line-strong bg-paper px-3 text-sm outline-none focus:border-brand-500">
+            <option>হ্যাঁ</option>
+            <option>না</option>
+          </select>
+        </div>
+        <div>
+          <label class="mb-1 block text-xs font-semibold text-muted">MPO কোড</label>
+          <input value="MPO-778812" class="h-10 w-full rounded-md border border-line-strong bg-paper px-3 text-sm outline-none focus:border-brand-500" />
+        </div>
+        <div>
+          <label class="mb-1 block text-xs font-semibold text-muted">সেন্টার কোড</label>
+          <input value="CTR-091" class="h-10 w-full rounded-md border border-line-strong bg-paper px-3 text-sm outline-none focus:border-brand-500" />
+        </div>
+        <div>
+          <label class="mb-1 block text-xs font-semibold text-muted">ক্লাস্টার</label>
+          <select class="h-10 w-full rounded-md border border-line-strong bg-paper px-3 text-sm outline-none focus:border-brand-500">
+            <option>কোনোটি নয়</option>
+            <option selected>ঢাকা উত্তর ক্লাস্টার</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- Print header Card -->
+    <section class="rounded-2xl border border-line bg-paper p-5 shadow-card">
+      <h3 class="mb-1 font-bold">প্রিন্ট হেডার</h3>
+      <p class="mb-3 text-xs text-muted">সকল প্রিন্টযোগ্য ডকুমেন্টের উপরে এই তথ্য দেখা যাবে।</p>
+      <div class="grid gap-3 sm:grid-cols-2">
+        <div class="sm:col-span-2">
+          <label class="mb-1 block text-xs font-semibold text-muted">ঠিকানা</label>
+          <input value="১২৩, মিরপুর রোড, ঢাকা-১২০৭" class="h-10 w-full rounded-md border border-line-strong bg-paper px-3 text-sm outline-none focus:border-brand-500" />
+        </div>
+        <div>
+          <label class="mb-1 block text-xs font-semibold text-muted">মোবাইল</label>
+          <input value="০১৭xxxxxxxx" class="h-10 w-full rounded-md border border-line-strong bg-paper px-3 text-sm outline-none focus:border-brand-500" />
+        </div>
+        <div>
+          <label class="mb-1 block text-xs font-semibold text-muted">ইমেইল</label>
+          <input value="info@adarsha.edu.bd" class="h-10 w-full rounded-md border border-line-strong bg-paper px-3 text-sm outline-none focus:border-brand-500" />
+        </div>
+      </div>
+
+      <div class="mt-4">
+        <span class="mb-1 block text-xs font-semibold text-muted">লোগো</span>
+        <div class="mt-1 flex flex-wrap items-center gap-3">
+          <span class="flex h-16 w-16 items-center justify-center rounded-md border border-line bg-paper-muted text-xs text-muted">🏫</span>
+          <button type="button" class="rounded-full bg-brand-500 px-4 py-1.5 text-xs font-semibold text-white hover:bg-brand-600">আপলোড করুন</button>
+          <button type="button" class="rounded-full border border-line-strong px-4 py-1.5 text-xs font-semibold text-alert-deep hover:bg-alert-soft">মুছুন</button>
+          <span class="text-xs text-muted">JPEG/PNG/WebP, সর্বোচ্চ ৫০০KB</span>
+        </div>
+      </div>
+
+      <div class="mt-4">
+        <label class="mb-1 block text-xs font-semibold text-muted">অ্যাডমিট কার্ড থিম</label>
+        <div class="flex flex-wrap items-center gap-3">
+          <select class="h-10 max-w-56 w-full rounded-md border border-line-strong bg-paper px-3 text-sm outline-none focus:border-brand-500">
+            <option>ক্লাসিক (নীল)</option>
+            <option selected>মিন্ট গ্রিন</option>
+            <option>সূর্য হলুদ</option>
+          </select>
+          <span class="rounded-md border-2 px-3 py-1 text-xs font-semibold" style="background:#e6f9ef;color:#0a7a48;border-color:#00d26a">মিন্ট গ্রিন</span>
+        </div>
+        <p class="mt-1 text-xs text-muted">শুধুমাত্র অ্যাডমিট কার্ডে প্রযোজ্য — অন্যান্য প্রিন্টেবল একরঙা থাকবে।</p>
+      </div>
+    </section>
+
+    <!-- Address hierarchy Card -->
+    <section class="rounded-2xl border border-line bg-paper p-5 shadow-card">
+      <h3 class="mb-3 font-bold">ঠিকানা (প্রশাসনিক স্তর)</h3>
+      <div class="grid gap-3 sm:grid-cols-4">
+        <div>
+          <label class="mb-1 block text-xs font-semibold text-muted">বিভাগ</label>
+          <select class="h-10 w-full rounded-md border border-line-strong bg-paper px-3 text-sm outline-none focus:border-brand-500">
+            <option>ঢাকা</option>
+          </select>
+        </div>
+        <div>
+          <label class="mb-1 block text-xs font-semibold text-muted">জেলা</label>
+          <select class="h-10 w-full rounded-md border border-line-strong bg-paper px-3 text-sm outline-none focus:border-brand-500">
+            <option>ঢাকা</option>
+          </select>
+        </div>
+        <div>
+          <label class="mb-1 block text-xs font-semibold text-muted">উপজেলা</label>
+          <select class="h-10 w-full rounded-md border border-line-strong bg-paper px-3 text-sm outline-none focus:border-brand-500">
+            <option>মিরপুর</option>
+          </select>
+        </div>
+        <div>
+          <label class="mb-1 block text-xs font-semibold text-muted">ইউনিয়ন</label>
+          <select class="h-10 w-full rounded-md border border-line-strong bg-paper px-3 text-sm outline-none focus:border-brand-500">
+            <option>—</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- Education levels + action row Card -->
+    <section class="rounded-2xl border border-line bg-paper p-5 shadow-card">
+      <h3 class="mb-3 font-bold">শিক্ষাস্তর</h3>
+      <div class="flex flex-wrap gap-4 text-sm">
+        <label class="flex items-center gap-2"><input type="checkbox" checked /> প্রাথমিক</label>
+        <label class="flex items-center gap-2"><input type="checkbox" checked /> মাধ্যমিক</label>
+        <label class="flex items-center gap-2"><input type="checkbox" /> উচ্চ মাধ্যমিক</label>
+        <label class="flex items-center gap-2"><input type="checkbox" /> মাদ্রাসা (দাখিল)</label>
+      </div>
+      <p class="mt-3 text-sm text-mint-deep">✓ সংরক্ষিত হয়েছে</p>
+      <button type="submit" class="mt-4 w-auto rounded-full bg-brand-600 px-6 py-2 text-sm font-semibold text-white hover:bg-brand-700">সংরক্ষণ করুন</button>
+    </section>
+  </form>
+</main>
+</body>
+</html>

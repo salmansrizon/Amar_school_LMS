@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>Prototype #207 — Dealer / Gov Official Dashboard (Pattern B)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          ink: '#131313', 'ink-card': '#1c1c1c',
+          paper: '#ffffff', 'paper-muted': '#f4f4f6',
+          line: '#ececec', 'line-strong': '#d8d8d8', muted: '#767676',
+          brand: { 50: '#f1eefe', 100: '#e3dcfd', 300: '#b3a4f7', 500: '#6d4dfb', 600: '#5a37e8', 700: '#4826c4' },
+          mint: { DEFAULT: '#00d26a', deep: '#0a7a48', soft: '#e6f9ef' },
+          sun: { DEFAULT: '#ffc94a', deep: '#c98a00', soft: '#fff6e0' },
+          alert: { DEFAULT: '#ef4444', deep: '#dc2626', soft: '#fdeaea' },
+          sky: { DEFAULT: '#00b2ff', deep: '#0077b8', soft: '#e5f6ff' },
+        },
+        borderRadius: { sm: '8px', md: '14px', lg: '20px' },
+        boxShadow: { card: '0 12px 32px rgb(0 0 0 / 0.08)', modal: '0 24px 64px rgb(0 0 0 / 0.16)' },
+      }
+    }
+  }
+</script>
+<style> body { font-family: 'Plus Jakarta Sans', 'Hind Siliguri', system-ui, sans-serif; } </style>
+</head>
+<body class="bg-paper-muted text-ink">
+
+<div class="sticky top-0 z-50 bg-ink text-white text-xs font-semibold px-4 py-2">
+  🧪 THROWAWAY PROTOTYPE — map #207 · ticket <a href="https://github.com/salmansrizon/Amar_school_LMS/issues/213" class="underline">#213 Dashboards</a> — Dealer &amp; Gov Official dashboard (shared component: components/territory-schools.tsx), Pattern B — this is the one with the biggest visible change: today it's a bare heading + unwrapped list, no Card at all. Shown here as the Dealer variant; Gov Official is identical minus the "Purchase Codes" quick action.
+</div>
+
+<main class="mx-auto w-full max-w-4xl px-4 py-6 sm:px-6 lg:px-8">
+
+  <div class="mb-6">
+    <p class="text-xs font-semibold uppercase tracking-[0.24em] text-brand-600">ডিলার পোর্টাল · Dealer Portal</p>
+    <h1 class="mt-1 text-2xl font-extrabold tracking-tight">করিম ট্রেডার্স · Karim Traders</h1>
+  </div>
+
+  <!-- NEW: StatTile row (didn't exist before — territory_assignments + my_territory_schools already have this data) -->
+  <div class="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
+    <div class="rounded-2xl border border-line bg-paper p-5 shadow-card">
+      <div class="text-xs font-semibold uppercase tracking-wide text-muted">টেরিটরি অ্যাসাইনমেন্ট · Territory Assignments</div>
+      <div class="mt-2 text-2xl font-extrabold text-brand-600">৩</div>
+    </div>
+    <div class="rounded-2xl border border-line bg-paper p-5 shadow-card">
+      <div class="text-xs font-semibold uppercase tracking-wide text-muted">মোট স্কুল · Total Schools</div>
+      <div class="mt-2 text-2xl font-extrabold text-ink">২৭</div>
+    </div>
+    <div class="rounded-2xl border border-line bg-paper p-5 shadow-card">
+      <div class="text-xs font-semibold uppercase tracking-wide text-muted">এক্সটেন্ডেড অ্যাক্সেস · Extended Access</div>
+      <div class="mt-2 text-2xl font-extrabold text-sun-deep">১</div>
+    </div>
+  </div>
+
+  <!-- Existing list, now wrapped in ONE Card per Pattern B's list/table rule -->
+  <section class="mt-6 rounded-2xl border border-line bg-paper shadow-card overflow-hidden">
+    <div class="flex items-center justify-between px-5 py-3 border-b border-line">
+      <h2 class="text-sm font-bold text-ink">আমার স্কুল · My Schools</h2>
+      <a href="#" class="rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-700">কোড ক্রয় · Purchase Codes</a>
+    </div>
+    <ul class="divide-y divide-line">
+      <li class="flex items-center justify-between px-5 py-3 text-sm">
+        <span class="font-medium">কুমিল্লা মডেল স্কুল অ্যান্ড কলেজ</span>
+      </li>
+      <li class="flex items-center justify-between px-5 py-3 text-sm">
+        <span class="font-medium">দেবিদ্বার উচ্চ বিদ্যালয়</span>
+      </li>
+      <li class="flex items-center justify-between px-5 py-3 text-sm">
+        <span class="font-medium">আদর্শ উচ্চ বিদ্যালয়, সাভার</span>
+        <span class="rounded-full bg-sun-soft px-2 py-0.5 text-xs font-semibold text-sun-deep">এক্সটেন্ডেড · Extended</span>
+      </li>
+    </ul>
+  </section>
+
+</main>
+</body>
+</html>

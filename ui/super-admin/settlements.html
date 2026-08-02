@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>ডিস্ট্রিবিউটর নিষ্পত্তি · Distributor Settlements — Super Admin</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../shared/design-system.css">
+<script src="../shared/app.js" defer></script>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="mark">A</span><span>Super Admin</span></div>
+    <nav>
+      <a class="nav-item" href="schools-list.html"><span data-i18n="bn">স্কুলসমূহ</span><span data-i18n="en">Schools</span></a>
+      <a class="nav-item" href="dealers-list.html"><span data-i18n="bn">ডিলার</span><span data-i18n="en">Dealers</span></a>
+      <a class="nav-item" href="distributors-list.html"><span data-i18n="bn">ডিস্ট্রিবিউটর</span><span data-i18n="en">Distributors</span></a>
+      <a class="nav-item" href="gov-officials-list.html"><span data-i18n="bn">সরকারি কর্মকর্তা</span><span data-i18n="en">Government Officials</span></a>
+      <a class="nav-item" href="codes-list.html"><span data-i18n="bn">সাবস্ক্রিপশন কোড</span><span data-i18n="en">Subscription Codes</span></a>
+      <a class="nav-item" href="locations-tree.html"><span data-i18n="bn">টেরিটরি ও লোকেশন</span><span data-i18n="en">Territory & Locations</span></a>
+      <a class="nav-item" href="vendor-accounting-ledger.html"><span data-i18n="bn">ভেন্ডর হিসাব</span><span data-i18n="en">Vendor Accounting</span></a>
+      <a class="nav-item active" href="settlements.html"><span data-i18n="bn">ডিস্ট্রিবিউটর নিষ্পত্তি</span><span data-i18n="en">Distributor Settlements</span></a>
+      <a class="nav-item" href="vendor-sms-compose.html"><span data-i18n="bn">ভেন্ডর এসএমএস</span><span data-i18n="en">Vendor SMS</span></a>
+      <a class="nav-item" href="central-holiday-calendar.html"><span data-i18n="bn">কেন্দ্রীয় ছুটির তালিকা</span><span data-i18n="en">Central Off-Day</span></a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="title"><span data-i18n="bn">ডিস্ট্রিবিউটর নিষ্পত্তি</span><span data-i18n="en">Distributor Settlements</span></div>
+      <div class="actions">
+        <a class="btn btn-secondary btn-sm" href="../index.html" title="Home">🏠</a>
+        <a class="btn btn-secondary btn-sm" href="../sitemap.html" title="Sitemap">📋</a>
+        <a class="btn btn-secondary btn-sm" href="vendor-accounting-ledger.html"><span data-i18n="bn">ভেন্ডর হিসাব</span><span data-i18n="en">Vendor Accounting</span></a>
+        <div class="lang-switch">
+          <button data-lang-btn="bn" onclick="setLang('bn')">বাং</button>
+          <button data-lang-btn="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="theme-switch">
+          <button data-theme-btn="light" onclick="setTheme('light')">☀</button>
+          <button data-theme-btn="dark" onclick="setTheme('dark')">☾</button>
+          <button data-theme-btn="system" onclick="setTheme('system')">Auto</button>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="label"><span data-i18n="bn">সকল ডিস্ট্রিবিউটরের অপেক্ষমাণ মোট</span><span data-i18n="en">Total Pending Across All Distributors</span></div>
+          <div class="value">৳2,84,650</div>
+          <div class="delta text-secondary"><span data-i18n="bn">৫ জন ডিস্ট্রিবিউটর জুড়ে</span><span data-i18n="en">across 5 distributors</span></div>
+        </div>
+        <div class="kpi-card">
+          <div class="label"><span data-i18n="bn">এই মাসে নিষ্পত্তিকৃত</span><span data-i18n="en">Settled This Month</span></div>
+          <div class="value">৳96,200</div>
+          <div class="delta text-secondary"><span data-i18n="bn">৩টি নিষ্পত্তি সম্পন্ন</span><span data-i18n="en">3 settlements completed</span></div>
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <div class="flex gap-2 items-center">
+          <select class="search-input" style="min-width:220px;">
+            <option><span data-i18n="bn">সকল ডিস্ট্রিবিউটর</span><span data-i18n="en">All Distributors</span></option>
+            <option>Sylhet Edu Ventures</option>
+            <option>Padma Learning Partners</option>
+            <option>Meghna Regional Distribution</option>
+            <option>Barind Digital Schools</option>
+            <option>Chalan Beel Traders</option>
+          </select>
+          <span class="text-secondary" style="font-size:var(--text-xs);"><span data-i18n="bn">তারিখ পরিসর</span><span data-i18n="en">Date range</span>:</span>
+          <input type="date" class="search-input" style="min-width:150px;" value="2026-07-01">
+          <input type="date" class="search-input" style="min-width:150px;" value="2026-08-02">
+        </div>
+      </div>
+
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th><span data-i18n="bn">ডিস্ট্রিবিউটরের নাম</span><span data-i18n="en">Distributor Name</span></th>
+            <th><span data-i18n="bn">ওয়ালেট ব্যালেন্স</span><span data-i18n="en">Wallet Balance</span></th>
+            <th><span data-i18n="bn">সর্বশেষ নিষ্পত্তির তারিখ</span><span data-i18n="en">Last Settlement Date</span></th>
+            <th><span data-i18n="bn">সর্বশেষ নিষ্পত্তির পরিমাণ</span><span data-i18n="en">Last Settlement Amount</span></th>
+            <th><span data-i18n="bn">কার্যক্রম</span><span data-i18n="en">Actions</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><a href="distributor-detail.html">Sylhet Edu Ventures</a></td>
+            <td>৳62,300</td>
+            <td>2026-06-30</td>
+            <td>৳48,000</td>
+            <td><button class="btn btn-primary btn-sm" onclick="document.getElementById('settle-modal-1').style.display='flex'"><span data-i18n="bn">নিষ্পত্তি করুন</span><span data-i18n="en">Settle Now</span></button></td>
+          </tr>
+          <tr>
+            <td><a href="distributor-detail.html">Padma Learning Partners</a></td>
+            <td>৳81,900</td>
+            <td>2026-07-15</td>
+            <td>৳35,000</td>
+            <td><button class="btn btn-primary btn-sm" onclick="document.getElementById('settle-modal-1').style.display='flex'"><span data-i18n="bn">নিষ্পত্তি করুন</span><span data-i18n="en">Settle Now</span></button></td>
+          </tr>
+          <tr>
+            <td><a href="distributor-detail.html">Meghna Regional Distribution</a></td>
+            <td>৳44,050</td>
+            <td>2026-05-28</td>
+            <td>৳22,500</td>
+            <td><button class="btn btn-primary btn-sm" onclick="document.getElementById('settle-modal-1').style.display='flex'"><span data-i18n="bn">নিষ্পত্তি করুন</span><span data-i18n="en">Settle Now</span></button></td>
+          </tr>
+          <tr>
+            <td><a href="distributor-detail.html">Barind Digital Schools</a></td>
+            <td>৳71,400</td>
+            <td>2026-07-02</td>
+            <td>৳13,200</td>
+            <td><button class="btn btn-primary btn-sm" onclick="document.getElementById('settle-modal-1').style.display='flex'"><span data-i18n="bn">নিষ্পত্তি করুন</span><span data-i18n="en">Settle Now</span></button></td>
+          </tr>
+          <tr>
+            <td><a href="distributor-detail.html">Chalan Beel Traders</a></td>
+            <td>৳25,000</td>
+            <td><span class="text-secondary"><span data-i18n="bn">কখনো নয়</span><span data-i18n="en">Never</span></span></td>
+            <td><span class="text-secondary">—</span></td>
+            <td><button class="btn btn-primary btn-sm" onclick="document.getElementById('settle-modal-1').style.display='flex'"><span data-i18n="bn">নিষ্পত্তি করুন</span><span data-i18n="en">Settle Now</span></button></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p class="text-secondary" style="font-size:var(--text-xs); margin-top:var(--space-4);">
+        <span data-i18n="bn">নিষ্পত্তি (প্রকৃত পরিশোধ) একটি ম্যানুয়াল সুপার অ্যাডমিন/ফাইন্যান্স কার্যক্রম। কমিশন প্রতিটি পেমেন্টের পর স্বয়ংক্রিয়ভাবে ডিস্ট্রিবিউটরের ওয়ালেটে জমা হয়; "নিষ্পত্তি করুন" চাপলে প্রকৃত অর্থ স্থানান্তর রেকর্ড করা হয়।</span>
+        <span data-i18n="en">Settlement (actual payout) is a manual Super Admin/Finance action. Commission accrues automatically into a distributor's wallet after each payment; "Settle Now" records the actual money transfer.</span>
+      </p>
+
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="settle-modal-1" style="display:none;">
+  <div class="modal">
+    <h3><span data-i18n="bn">নিষ্পত্তি নিশ্চিত করুন</span><span data-i18n="en">Confirm Settlement</span></h3>
+    <p class="text-secondary" style="font-size: var(--text-sm); margin-top:-8px;">
+      <span data-i18n="bn">ডিস্ট্রিবিউটরঃ Sylhet Edu Ventures — বর্তমান ওয়ালেট ব্যালেন্স ৳62,300</span>
+      <span data-i18n="en">Distributor: Sylhet Edu Ventures — current wallet balance ৳62,300</span>
+    </p>
+    <div class="form-grid">
+      <div class="field field-full">
+        <label><span data-i18n="bn">নিষ্পত্তির পরিমাণ</span><span data-i18n="en">Settlement Amount</span></label>
+        <input type="text" value="৳62,300">
+      </div>
+      <div class="field">
+        <label><span data-i18n="bn">পেমেন্ট পদ্ধতি</span><span data-i18n="en">Payment Method</span></label>
+        <select>
+          <option><span data-i18n="bn">ব্যাংক ট্রান্সফার</span><span data-i18n="en">Bank Transfer</span></option>
+          <option>bKash</option>
+          <option>Nagad</option>
+          <option><span data-i18n="bn">চেক</span><span data-i18n="en">Cheque</span></option>
+        </select>
+      </div>
+      <div class="field">
+        <label><span data-i18n="bn">পেমেন্ট রেফারেন্স</span><span data-i18n="en">Payment Reference</span></label>
+        <input type="text" placeholder="TXN-2026-00871">
+      </div>
+      <div class="field field-full">
+        <label><span data-i18n="bn">মন্তব্য</span><span data-i18n="en">Note</span></label>
+        <textarea rows="2" placeholder="ঐচ্ছিক মন্তব্য · optional note"></textarea>
+      </div>
+    </div>
+    <div class="flex gap-2 justify-between mb-4" style="margin-top: var(--space-4);">
+      <button class="btn btn-secondary" onclick="document.getElementById('settle-modal-1').style.display='none'"><span data-i18n="bn">বাতিল</span><span data-i18n="en">Cancel</span></button>
+      <button class="btn btn-primary"><span data-i18n="bn">নিষ্পত্তি নিশ্চিত করুন</span><span data-i18n="en">Confirm Settlement</span></button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

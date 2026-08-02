@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>রোল পারমিশন ম্যাট্রিক্স · Role Permission Matrix — Super Admin</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../shared/design-system.css">
+<script src="../shared/app.js" defer></script>
+<style>
+  table.perm-table th, table.perm-table td { text-align: center; }
+  table.perm-table th:first-child, table.perm-table td:first-child { text-align: left; white-space: nowrap; }
+  table.perm-table td input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; accent-color: var(--accent); }
+  .role-tabs a { cursor: pointer; }
+  .legend { display: flex; gap: var(--space-4); flex-wrap: wrap; margin-bottom: var(--space-3); font-size: var(--text-xs); color: var(--text-secondary); }
+  .legend .item { display: flex; align-items: center; gap: 4px; }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="mark">A</span><span>Super Admin</span></div>
+    <nav>
+      <a class="nav-item" href="schools-list.html"><span data-i18n="bn">স্কুলসমূহ</span><span data-i18n="en">Schools</span></a>
+      <a class="nav-item" href="dealers-list.html"><span data-i18n="bn">ডিলার</span><span data-i18n="en">Dealers</span></a>
+      <a class="nav-item" href="gov-officials-list.html"><span data-i18n="bn">সরকারি কর্মকর্তা</span><span data-i18n="en">Government Officials</span></a>
+      <a class="nav-item" href="codes-list.html"><span data-i18n="bn">সাবস্ক্রিপশন কোড</span><span data-i18n="en">Subscription Codes</span></a>
+      <a class="nav-item" href="locations-tree.html"><span data-i18n="bn">টেরিটরি ও লোকেশন</span><span data-i18n="en">Territory & Locations</span></a>
+      <a class="nav-item" href="vendor-accounting-ledger.html"><span data-i18n="bn">ভেন্ডর হিসাব</span><span data-i18n="en">Vendor Accounting</span></a>
+      <a class="nav-item" href="vendor-sms-compose.html"><span data-i18n="bn">ভেন্ডর এসএমএস</span><span data-i18n="en">Vendor SMS</span></a>
+      <a class="nav-item" href="central-holiday-calendar.html"><span data-i18n="bn">কেন্দ্রীয় ছুটির তালিকা</span><span data-i18n="en">Central Off-Day</span></a>
+      <a class="nav-item" href="module-config.html"><span data-i18n="bn">মডিউল কনফিগারেশন</span><span data-i18n="en">Module Config</span></a>
+      <a class="nav-item active" href="role-permissions.html"><span data-i18n="bn">রোল পারমিশন</span><span data-i18n="en">Role Permissions</span></a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="title"><span data-i18n="bn">রোল পারমিশন ম্যাট্রিক্স</span><span data-i18n="en">Role Permission Matrix</span></div>
+      <div class="actions">
+        <a class="btn btn-secondary btn-sm" href="../index.html" title="Home">🏠</a>
+        <a class="btn btn-secondary btn-sm" href="../sitemap.html" title="Sitemap">📋</a>
+        <div class="lang-switch">
+          <button data-lang-btn="bn" onclick="setLang('bn')">বাং</button>
+          <button data-lang-btn="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="theme-switch">
+          <button data-theme-btn="light" onclick="setTheme('light')">☀</button>
+          <button data-theme-btn="dark" onclick="setTheme('dark')">☾</button>
+          <button data-theme-btn="system" onclick="setTheme('system')">Auto</button>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+
+      <div class="tabs role-tabs" id="roleTabs">
+        <a class="active" data-role="distributor"><span data-i18n="bn">ডিস্ট্রিবিউটর</span><span data-i18n="en">Distributor</span></a>
+        <a data-role="agent"><span data-i18n="bn">এজেন্ট</span><span data-i18n="en">Agent</span></a>
+        <a data-role="owner"><span data-i18n="bn">স্কুল মালিক</span><span data-i18n="en">School Owner</span></a>
+        <a data-role="staff"><span data-i18n="bn">স্টাফ ইউজার</span><span data-i18n="en">Staff User</span></a>
+      </div>
+
+      <div class="card mb-4">
+        <div class="legend">
+          <div class="item">✓ <span data-i18n="bn">অনুমতি আছে</span><span data-i18n="en">Permission granted</span></div>
+          <div class="item">☐ <span data-i18n="bn">অনুমতি নেই (ডিফল্ট)</span><span data-i18n="en">Not granted (default)</span></div>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table perm-table" id="permTable">
+            <thead>
+              <tr>
+                <th><span data-i18n="bn">মডিউল</span><span data-i18n="en">Module</span></th>
+                <th><span data-i18n="bn">দেখুন</span><span data-i18n="en">View</span></th>
+                <th><span data-i18n="bn">তৈরি</span><span data-i18n="en">Create</span></th>
+                <th><span data-i18n="bn">সম্পাদনা</span><span data-i18n="en">Update</span></th>
+                <th><span data-i18n="bn">মুছুন</span><span data-i18n="en">Delete</span></th>
+                <th><span data-i18n="bn">অনুমোদন</span><span data-i18n="en">Approve</span></th>
+                <th><span data-i18n="bn">এক্সপোর্ট</span><span data-i18n="en">Export</span></th>
+                <th><span data-i18n="bn">প্রিন্ট</span><span data-i18n="en">Print</span></th>
+                <th><span data-i18n="bn">কনফিগার</span><span data-i18n="en">Configure</span></th>
+              </tr>
+            </thead>
+            <tbody><!-- rendered by script --></tbody>
+          </table>
+        </div>
+        <div class="flex gap-2" style="margin-top: var(--space-4);">
+          <button class="btn btn-primary" id="saveBtn"><span data-i18n="bn">সংরক্ষণ করুন</span><span data-i18n="en">Save Changes</span></button>
+          <button class="btn btn-secondary"><span data-i18n="bn">ডিফল্টে ফিরিয়ে নিন</span><span data-i18n="en">Reset to Default</span></button>
+        </div>
+      </div>
+
+      <div class="card" style="background: var(--bg-surface-alt);">
+        <p class="mt-0" style="font-size: var(--text-sm); color: var(--text-secondary); margin-bottom:0;">
+          <span data-i18n="bn">এই ম্যাট্রিক্স <code>role_permissions</code> টেবিলের বেসলাইন প্রতিফলিত করে — প্রতিটি রোলের জন্য মডিউল অনুযায়ী ডিফল্ট অনুমতি। ডিস্ট্রিবিউটর, স্কুল বা পৃথক ইউজার পর্যায়ে ব্যতিক্রম <code>feature_policies</code> টেবিলের মাধ্যমে পরিচালিত হয়, যা এই স্ক্রিনের আওতার বাইরে।</span>
+          <span data-i18n="en">This matrix reflects the <code>role_permissions</code> baseline — default per-module permissions for each role. Exceptions at the Distributor, School, or individual User level are handled separately via <code>feature_policies</code>, out of scope for this screen.</span>
+        </p>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var MODULES = [
+    { bn: 'শিক্ষার্থী', en: 'Students' },
+    { bn: 'কর্মচারী', en: 'Employees' },
+    { bn: 'উপস্থিতি', en: 'Attendance' },
+    { bn: 'পরীক্ষা', en: 'Examination' },
+    { bn: 'ফি', en: 'Fees' },
+    { bn: 'হিসাব', en: 'Accounting' },
+    { bn: 'বেতন', en: 'Payroll' },
+    { bn: 'গ্রন্থাগার', en: 'Library' },
+    { bn: 'হোস্টেল', en: 'Hostel' },
+    { bn: 'পরিবহন', en: 'Transport' },
+    { bn: 'ইনভেন্টরি', en: 'Inventory' },
+    { bn: 'এসএমএস', en: 'SMS' },
+    { bn: 'নোটিশ', en: 'Notices' },
+    { bn: 'গ্যালারি', en: 'Gallery' },
+    { bn: 'অনলাইন পরীক্ষা', en: 'Online Exam' },
+    { bn: 'এপিআই', en: 'API' },
+    { bn: 'মোবাইল অ্যাপ', en: 'Mobile App' },
+    { bn: 'এআই ফিচার', en: 'AI Features' }
+  ];
+  var ACTIONS = ['view', 'create', 'update', 'delete', 'approve', 'export', 'print', 'configure'];
+
+  // Mock baseline permission grants per role, keyed by module index -> array of action booleans (order matches ACTIONS)
+  // V  C  U  D  Ap Ex Pr Cf
+  var DATA = {
+    distributor: [
+      [1,0,0,0,0,1,0,0], // Students
+      [1,0,0,0,0,1,0,0], // Employees
+      [1,0,0,0,0,1,0,0], // Attendance
+      [1,0,0,0,0,1,0,0], // Examination
+      [1,0,0,0,0,1,0,0], // Fees
+      [1,0,0,0,0,1,0,0], // Accounting
+      [0,0,0,0,0,0,0,0], // Payroll
+      [1,0,0,0,0,0,0,0], // Library
+      [1,0,0,0,0,0,0,0], // Hostel
+      [1,0,0,0,0,0,0,0], // Transport
+      [1,0,0,0,0,0,0,0], // Inventory
+      [1,1,0,0,0,1,0,0], // SMS
+      [1,1,0,0,0,0,0,0], // Notices
+      [1,0,0,0,0,0,0,0], // Gallery
+      [1,0,0,0,0,1,0,0], // Online Exam
+      [1,0,0,0,0,0,0,0], // API
+      [1,0,0,0,0,0,0,0], // Mobile App
+      [1,0,0,0,0,0,0,0]  // AI Features
+    ],
+    agent: [
+      [1,0,0,0,0,0,0,0], [1,0,0,0,0,0,0,0], [1,0,0,0,0,0,0,0], [1,0,0,0,0,0,0,0],
+      [1,0,0,0,0,0,0,0], [1,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0], [1,0,0,0,0,0,0,0],
+      [1,0,0,0,0,0,0,0], [1,0,0,0,0,0,0,0], [1,0,0,0,0,0,0,0], [1,1,0,0,0,0,0,0],
+      [1,0,0,0,0,0,0,0], [1,0,0,0,0,0,0,0], [1,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0],
+      [1,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0]
+    ],
+    owner: [
+      [1,1,1,1,1,1,1,1], // Students
+      [1,1,1,1,1,1,1,1], // Employees
+      [1,1,1,1,1,1,1,0], // Attendance
+      [1,1,1,1,1,1,1,0], // Examination
+      [1,1,1,1,1,1,1,1], // Fees
+      [1,1,1,1,1,1,1,0], // Accounting
+      [1,1,1,0,1,1,1,0], // Payroll
+      [1,1,1,1,0,1,1,0], // Library
+      [1,1,1,1,0,1,1,0], // Hostel
+      [1,1,1,1,0,1,1,0], // Transport
+      [1,1,1,1,0,1,1,0], // Inventory
+      [1,1,1,0,0,1,0,1], // SMS
+      [1,1,1,1,0,0,1,0], // Notices
+      [1,1,1,1,0,0,0,0], // Gallery
+      [1,1,1,1,1,1,1,0], // Online Exam
+      [1,0,0,0,0,0,0,1], // API
+      [1,0,0,0,0,0,0,1], // Mobile App
+      [1,0,0,0,0,0,0,1]  // AI Features
+    ],
+    staff: [
+      [1,1,1,0,0,0,1,0], [1,1,1,0,0,0,1,0], [1,1,1,0,0,0,1,0], [1,1,1,0,0,0,1,0],
+      [1,1,0,0,0,0,1,0], [1,0,0,0,0,0,1,0], [1,0,0,0,0,0,1,0], [1,1,1,0,0,0,1,0],
+      [1,1,1,0,0,0,1,0], [1,1,1,0,0,0,1,0], [1,1,1,0,0,0,1,0], [1,0,0,0,0,0,0,0],
+      [1,1,0,0,0,0,1,0], [1,1,0,0,0,0,0,0], [1,1,1,0,0,0,1,0], [0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0]
+    ]
+  };
+
+  var tbody = document.querySelector('#permTable tbody');
+
+  function render(role) {
+    var rows = DATA[role];
+    tbody.innerHTML = '';
+    MODULES.forEach(function (mod, i) {
+      var tr = document.createElement('tr');
+      var nameTd = document.createElement('td');
+      nameTd.innerHTML = '<span data-i18n="bn">' + mod.bn + '</span><span data-i18n="en">' + mod.en + '</span>';
+      tr.appendChild(nameTd);
+      ACTIONS.forEach(function (action, j) {
+        var td = document.createElement('td');
+        var cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.checked = !!rows[i][j];
+        cb.setAttribute('data-module', mod.en);
+        cb.setAttribute('data-action', action);
+        td.appendChild(cb);
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
+    if (window.applyI18n) window.applyI18n();
+  }
+
+  document.querySelectorAll('#roleTabs a').forEach(function (a) {
+    a.addEventListener('click', function () {
+      document.querySelectorAll('#roleTabs a').forEach(function (x) { x.classList.remove('active'); });
+      a.classList.add('active');
+      render(a.getAttribute('data-role'));
+    });
+  });
+
+  render('distributor');
+
+  document.getElementById('saveBtn').addEventListener('click', function () {
+    alert('Mock UI — no backend wired yet. (এটি একটি মক স্ক্রিন, কোনো ব্যাকএন্ড সংযুক্ত নেই)');
+  });
+})();
+</script>
+</body>
+</html>

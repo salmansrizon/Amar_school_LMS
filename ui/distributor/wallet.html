@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>ওয়ালেট ও কমিশন · Wallet & Commission — Distributor Portal</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../shared/design-system.css">
+<script src="../shared/app.js" defer></script>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="mark">D</span><span>Distributor Portal</span></div>
+    <nav>
+      <a class="nav-item" href="dashboard.html"><span data-i18n="bn">ড্যাশবোর্ড</span><span data-i18n="en">Dashboard</span></a>
+      <a class="nav-item" href="dashboard.html#schools"><span data-i18n="bn">আমার স্কুল</span><span data-i18n="en">My Schools</span></a>
+      <a class="nav-item" href="crm-pipeline.html"><span data-i18n="bn">বিক্রয় পাইপলাইন</span><span data-i18n="en">Sales Pipeline</span></a>
+      <a class="nav-item active" href="wallet.html"><span data-i18n="bn">ওয়ালেট ও কমিশন</span><span data-i18n="en">Wallet & Commission</span></a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="title"><span data-i18n="bn">ওয়ালেট ও কমিশন</span><span data-i18n="en">Wallet & Commission</span></div>
+      <div class="actions">
+        <a class="btn btn-secondary btn-sm" href="../index.html" title="Home">🏠</a>
+        <a class="btn btn-secondary btn-sm" href="../sitemap.html" title="Sitemap">📋</a>
+        <div class="lang-switch">
+          <button data-lang-btn="bn" onclick="setLang('bn')">বাং</button>
+          <button data-lang-btn="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="theme-switch">
+          <button data-theme-btn="light" onclick="setTheme('light')">☀</button>
+          <button data-theme-btn="dark" onclick="setTheme('dark')">☾</button>
+          <button data-theme-btn="system" onclick="setTheme('system')">Auto</button>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="label"><span data-i18n="bn">ওয়ালেট ব্যালেন্স</span><span data-i18n="en">Wallet Balance</span></div>
+          <div class="value">৳62,300</div>
+          <div class="delta text-secondary"><span data-i18n="bn">নিষ্পত্তির জন্য প্রস্তুত</span><span data-i18n="en">available for settlement</span></div>
+        </div>
+        <div class="kpi-card">
+          <div class="label"><span data-i18n="bn">মোট আয় (আজীবন)</span><span data-i18n="en">Total Earned (lifetime)</span></div>
+          <div class="value">৳4,18,900</div>
+          <div class="delta text-secondary"><span data-i18n="bn">যোগদানের পর থেকে</span><span data-i18n="en">since onboarding</span></div>
+        </div>
+        <div class="kpi-card">
+          <div class="label"><span data-i18n="bn">অপেক্ষমাণ নিষ্পত্তি</span><span data-i18n="en">Pending Settlement</span></div>
+          <div class="value">৳62,300</div>
+          <div class="delta text-secondary"><span data-i18n="bn">৩টি নিষ্পত্তির অনুরোধ বাকি</span><span data-i18n="en">3 settlement requests pending</span></div>
+        </div>
+        <div class="kpi-card">
+          <div class="label"><span data-i18n="bn">এই মাসের কমিশন</span><span data-i18n="en">This Month's Commission</span></div>
+          <div class="value">৳9,450</div>
+          <div class="delta text-secondary"><span data-i18n="bn">গত মাসের তুলনায় ১২% বৃদ্ধি</span><span data-i18n="en">up 12% vs last month</span></div>
+        </div>
+      </div>
+
+      <div class="card mb-4">
+        <p class="text-secondary" style="font-size:var(--text-sm); margin-top:0;">
+          <span data-i18n="bn">কমিশন প্রতিটি পেমেন্টের পর স্বয়ংক্রিয়ভাবে ওয়ালেটে জমা হয়। প্রকৃত পরিশোধ (নিষ্পত্তি) সুপার অ্যাডমিন/ফাইন্যান্স কর্তৃক ম্যানুয়ালি করা হয়।</span>
+          <span data-i18n="en">Commission accrues automatically into your wallet after each payment. Actual payout (settlement) is a manual Super Admin/Finance action.</span>
+        </p>
+      </div>
+
+      <div class="toolbar">
+        <div class="flex gap-2 items-center">
+          <span class="text-secondary" style="font-size:var(--text-xs);"><span data-i18n="bn">তারিখ পরিসর</span><span data-i18n="en">Date range</span>:</span>
+          <input type="date" class="search-input" style="min-width:150px;" value="2026-07-01">
+          <input type="date" class="search-input" style="min-width:150px;" value="2026-08-02">
+        </div>
+        <div class="flex gap-2">
+          <select class="search-input" style="min-width:190px;">
+            <option><span data-i18n="bn">সকল প্রকার চালান</span><span data-i18n="en">All invoice types</span></option>
+            <option><span data-i18n="bn">সাবস্ক্রিপশন</span><span data-i18n="en">Subscription</span></option>
+            <option><span data-i18n="bn">ইমপ্লিমেন্টেশন ফি</span><span data-i18n="en">Implementation Fee</span></option>
+          </select>
+        </div>
+      </div>
+
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th><span data-i18n="bn">তারিখ</span><span data-i18n="en">Date</span></th>
+            <th><span data-i18n="bn">স্কুলের নাম</span><span data-i18n="en">School Name</span></th>
+            <th><span data-i18n="bn">চালানের ধরন</span><span data-i18n="en">Invoice Type</span></th>
+            <th><span data-i18n="bn">চালান পরিমাণ</span><span data-i18n="en">Invoice Amount</span></th>
+            <th><span data-i18n="bn">সাবস্ক্রিপশন বছর</span><span data-i18n="en">Subscription Year</span></th>
+            <th><span data-i18n="bn">রেভিনিউ শেয়ার %</span><span data-i18n="en">Revenue Share %</span></th>
+            <th><span data-i18n="bn">কুপন ছাড়</span><span data-i18n="en">Coupon Discount</span></th>
+            <th><span data-i18n="bn">কমিশন পরিমাণ</span><span data-i18n="en">Commission Amount</span></th>
+            <th><span data-i18n="bn">চলমান ওয়ালেট ব্যালেন্স</span><span data-i18n="en">Running Wallet Balance</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>2026-07-31</td>
+            <td>Sylhet Government Pilot School</td>
+            <td><span class="badge badge-info"><span data-i18n="bn">সাবস্ক্রিপশন</span><span data-i18n="en">Subscription</span></span></td>
+            <td>৳18,000</td>
+            <td><span data-i18n="bn">১ম বছর</span><span data-i18n="en">Year 1</span></td>
+            <td>30%</td>
+            <td><span class="text-secondary">—</span></td>
+            <td>+ ৳5,400</td>
+            <td>৳62,300</td>
+          </tr>
+          <tr>
+            <td>2026-07-24</td>
+            <td>Moulvibazar Adarsha High School</td>
+            <td><span class="badge badge-neutral"><span data-i18n="bn">ইমপ্লিমেন্টেশন ফি</span><span data-i18n="en">Implementation Fee</span></span></td>
+            <td>৳25,000</td>
+            <td><span class="text-secondary"><span data-i18n="bn">প্রযোজ্য নয়</span><span data-i18n="en">n/a</span></span></td>
+            <td>50%</td>
+            <td><span class="text-secondary">—</span></td>
+            <td>+ ৳12,500</td>
+            <td>৳56,900</td>
+          </tr>
+          <tr>
+            <td>2026-07-18</td>
+            <td>Habiganj Girls' High School</td>
+            <td><span class="badge badge-info"><span data-i18n="bn">সাবস্ক্রিপশন</span><span data-i18n="en">Subscription</span></span></td>
+            <td>৳15,000</td>
+            <td><span data-i18n="bn">২য় বছর</span><span data-i18n="en">Year 2</span></td>
+            <td>50%</td>
+            <td><span class="badge badge-warning" title="Coupon discount"><span data-i18n="bn">-১৫% কুপন, ডিস্ট্রিবিউটর বহন করেছে</span><span data-i18n="en">-15% coupon, distributor absorbed</span></span></td>
+            <td>+ ৳6,375</td>
+            <td>৳44,400</td>
+          </tr>
+          <tr>
+            <td>2026-07-10</td>
+            <td>Sreemangal High School</td>
+            <td><span class="badge badge-info"><span data-i18n="bn">সাবস্ক্রিপশন</span><span data-i18n="en">Subscription</span></span></td>
+            <td>৳20,000</td>
+            <td><span data-i18n="bn">১ম বছর</span><span data-i18n="en">Year 1</span></td>
+            <td>30%</td>
+            <td><span class="text-secondary">—</span></td>
+            <td>+ ৳6,000</td>
+            <td>৳38,025</td>
+          </tr>
+          <tr>
+            <td>2026-06-30</td>
+            <td>St. Joseph High School, Moulvibazar</td>
+            <td><span class="badge badge-info"><span data-i18n="bn">সাবস্ক্রিপশন</span><span data-i18n="en">Subscription</span></span></td>
+            <td>৳12,000</td>
+            <td><span data-i18n="bn">৩য়+ বছর</span><span data-i18n="en">Year 3+</span></td>
+            <td>70%</td>
+            <td><span class="text-secondary">—</span></td>
+            <td>+ ৳8,400</td>
+            <td>৳32,025</td>
+          </tr>
+          <tr>
+            <td>2026-06-22</td>
+            <td>Chalan Beel Model School</td>
+            <td><span class="badge badge-neutral"><span data-i18n="bn">ইমপ্লিমেন্টেশন ফি</span><span data-i18n="en">Implementation Fee</span></span></td>
+            <td>৳25,000</td>
+            <td><span class="text-secondary"><span data-i18n="bn">প্রযোজ্য নয়</span><span data-i18n="en">n/a</span></span></td>
+            <td>50%</td>
+            <td><span class="badge badge-warning" title="Coupon discount"><span data-i18n="bn">-১০% কুপন, ডিস্ট্রিবিউটর বহন করেছে</span><span data-i18n="en">-10% coupon, distributor absorbed</span></span></td>
+            <td>+ ৳11,250</td>
+            <td>৳23,625</td>
+          </tr>
+          <tr>
+            <td>2026-06-15</td>
+            <td>Barind Digital School</td>
+            <td><span class="badge badge-info"><span data-i18n="bn">সাবস্ক্রিপশন</span><span data-i18n="en">Subscription</span></span></td>
+            <td>৳10,000</td>
+            <td><span data-i18n="bn">২য় বছর</span><span data-i18n="en">Year 2</span></td>
+            <td>50%</td>
+            <td><span class="text-secondary">—</span></td>
+            <td>+ ৳5,000</td>
+            <td>৳12,375</td>
+          </tr>
+          <tr>
+            <td>2026-06-05</td>
+            <td>Padma Girls' College</td>
+            <td><span class="badge badge-info"><span data-i18n="bn">সাবস্ক্রিপশন</span><span data-i18n="en">Subscription</span></span></td>
+            <td>৳9,800</td>
+            <td><span data-i18n="bn">১ম বছর</span><span data-i18n="en">Year 1</span></td>
+            <td>30%</td>
+            <td><span class="text-secondary">—</span></td>
+            <td>+ ৳2,940</td>
+            <td>৳7,375</td>
+          </tr>
+        </tbody>
+      </table>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

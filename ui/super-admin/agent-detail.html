@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>এজেন্ট বিস্তারিত · Agent Detail — Super Admin</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../shared/design-system.css">
+<script src="../shared/app.js" defer></script>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="mark">A</span><span>Super Admin</span></div>
+    <nav>
+      <a class="nav-item" href="schools-list.html"><span data-i18n="bn">স্কুলসমূহ</span><span data-i18n="en">Schools</span></a>
+      <a class="nav-item" href="dealers-list.html"><span data-i18n="bn">ডিলার</span><span data-i18n="en">Dealers</span></a>
+      <a class="nav-item active" href="agents-list.html"><span data-i18n="bn">এজেন্ট</span><span data-i18n="en">Agents</span></a>
+      <a class="nav-item" href="gov-officials-list.html"><span data-i18n="bn">সরকারি কর্মকর্তা</span><span data-i18n="en">Government Officials</span></a>
+      <a class="nav-item" href="codes-list.html"><span data-i18n="bn">সাবস্ক্রিপশন কোড</span><span data-i18n="en">Subscription Codes</span></a>
+      <a class="nav-item" href="locations-tree.html"><span data-i18n="bn">টেরিটরি ও লোকেশন</span><span data-i18n="en">Territory & Locations</span></a>
+      <a class="nav-item" href="vendor-accounting-ledger.html"><span data-i18n="bn">ভেন্ডর হিসাব</span><span data-i18n="en">Vendor Accounting</span></a>
+      <a class="nav-item" href="vendor-sms-compose.html"><span data-i18n="bn">ভেন্ডর এসএমএস</span><span data-i18n="en">Vendor SMS</span></a>
+      <a class="nav-item" href="central-holiday-calendar.html"><span data-i18n="bn">কেন্দ্রীয় ছুটির তালিকা</span><span data-i18n="en">Central Off-Day</span></a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="title">Jashim Uddin</div>
+      <div class="actions">
+        <a class="btn btn-secondary btn-sm" href="../index.html" title="Home">🏠</a>
+        <a class="btn btn-secondary btn-sm" href="../sitemap.html" title="Sitemap">📋</a>
+        <a class="btn btn-secondary btn-sm" href="agents-list.html">&larr; <span data-i18n="bn">এজেন্ট তালিকা</span><span data-i18n="en">Agents list</span></a>
+        <div class="lang-switch">
+          <button data-lang-btn="bn" onclick="setLang('bn')">বাং</button>
+          <button data-lang-btn="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="theme-switch">
+          <button data-theme-btn="light" onclick="setTheme('light')">☀</button>
+          <button data-theme-btn="dark" onclick="setTheme('dark')">☾</button>
+          <button data-theme-btn="system" onclick="setTheme('system')">Auto</button>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+
+      <div class="card mb-4">
+        <h3 class="mt-0"><span data-i18n="bn">প্রোফাইল</span><span data-i18n="en">Profile</span></h3>
+        <div class="form-grid">
+          <div class="field"><label><span data-i18n="bn">নাম</span><span data-i18n="en">Name</span></label><input type="text" value="Jashim Uddin"></div>
+          <div class="field"><label><span data-i18n="bn">মোবাইল</span><span data-i18n="en">Mobile</span></label><input type="text" value="01715-667788"></div>
+          <div class="field"><label><span data-i18n="bn">ইমেইল</span><span data-i18n="en">Email</span></label><input type="email" value="jashim.uddin@example.com"></div>
+          <div class="field"><label><span data-i18n="bn">লিংকড ডিস্ট্রিবিউটর</span><span data-i18n="en">Linked Distributor</span></label>
+            <div><a href="distributor-detail.html">Karim Traders</a></div>
+          </div>
+          <div class="field field-full"><label><span data-i18n="bn">অবস্থা</span><span data-i18n="en">Status</span></label>
+            <div><span class="badge badge-success"><span data-i18n="bn">সক্রিয়</span><span data-i18n="en">Active</span></span></div>
+          </div>
+        </div>
+        <div class="flex gap-2" style="margin-top:var(--space-4);">
+          <button class="btn btn-primary"><span data-i18n="bn">সংরক্ষণ করুন</span><span data-i18n="en">Save Changes</span></button>
+          <button class="btn btn-danger"><span data-i18n="bn">সাসপেন্ড করুন</span><span data-i18n="en">Suspend Agent</span></button>
+        </div>
+        <p class="locked-note" style="margin-top:var(--space-3);">
+          <span data-i18n="bn">কার্যক্রম প্রাসঙ্গিক — বর্তমান অবস্থা "সক্রিয়" হওয়ায় শুধু "সাসপেন্ড করুন" দেখানো হচ্ছে। "সার্টিফাইড" অবস্থায় থাকলে "অনুমোদন করুন" বাটন দেখা যাবে; "সাসপেন্ডেড" অবস্থায় "পুনরায় সক্রিয় করুন" বাটন দেখা যাবে।</span>
+          <span data-i18n="en">Actions are contextual to status — because this Agent is currently "Active", only "Suspend Agent" is shown. An Agent in "Certified" status would show an "Approve" button instead; a "Suspended" Agent would show "Reactivate".</span>
+        </p>
+      </div>
+
+      <div class="card mb-4">
+        <h3 class="mt-0"><span data-i18n="bn">অবস্থার সময়রেখা</span><span data-i18n="en">Status Timeline</span></h3>
+        <div class="timeline">
+          <div class="timeline-item">
+            <div class="dot"></div>
+            <div class="body">
+              <div class="head">
+                <span><span data-i18n="bn">আমন্ত্রিত</span><span data-i18n="en">Invited</span></span>
+                <span class="when">2026-01-12</span>
+              </div>
+              <div class="note"><span data-i18n="bn">Karim Traders কর্তৃক এজেন্ট হিসেবে আমন্ত্রণ পাঠানো হয়েছে</span><span data-i18n="en">Invited as an Agent by Karim Traders</span></div>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="dot"></div>
+            <div class="body">
+              <div class="head">
+                <span><span data-i18n="bn">নিবন্ধিত</span><span data-i18n="en">Registered</span></span>
+                <span class="when">2026-01-15</span>
+              </div>
+              <div class="note"><span data-i18n="bn">প্রোফাইল তথ্য দিয়ে নিবন্ধন সম্পন্ন করেছেন</span><span data-i18n="en">Completed registration with profile details</span></div>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="dot"></div>
+            <div class="body">
+              <div class="head">
+                <span><span data-i18n="bn">যাচাইকৃত</span><span data-i18n="en">Verified</span></span>
+                <span class="when">2026-01-18</span>
+              </div>
+              <div class="note"><span data-i18n="bn">পরিচয় ও যোগাযোগ তথ্য যাচাই সম্পন্ন হয়েছে</span><span data-i18n="en">Identity and contact details verified</span></div>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="dot"></div>
+            <div class="body">
+              <div class="head">
+                <span><span data-i18n="bn">সার্টিফাইড</span><span data-i18n="en">Certified</span></span>
+                <span class="when">2026-02-02</span>
+              </div>
+              <div class="note"><span data-i18n="bn">প্রশিক্ষণ ও সার্টিফিকেশন পরীক্ষা সম্পন্ন করেছেন</span><span data-i18n="en">Completed training and certification exam</span></div>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="dot"></div>
+            <div class="body">
+              <div class="head">
+                <span><span data-i18n="bn">অনুমোদিত</span><span data-i18n="en">Approved</span></span>
+                <span class="when">2026-02-05</span>
+              </div>
+              <div class="note"><span data-i18n="bn">সুপার অ্যাডমিন কর্তৃক অনুমোদিত হয়েছেন</span><span data-i18n="en">Approved by Super Admin</span></div>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="dot"></div>
+            <div class="body">
+              <div class="head">
+                <span><span data-i18n="bn">সক্রিয়</span><span data-i18n="en">Active</span></span>
+                <span class="when">2026-02-06</span>
+              </div>
+              <div class="note"><span data-i18n="bn">স্কুল বরাদ্দের জন্য উপলব্ধ, বর্তমান অবস্থা</span><span data-i18n="en">Available for school assignment, current status</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="form-grid" style="margin-top:var(--space-4);">
+          <div class="field"><label><span data-i18n="bn">আমন্ত্রণের তারিখ</span><span data-i18n="en">Invited At</span></label><input type="text" value="2026-01-12" disabled></div>
+          <div class="field"><label><span data-i18n="bn">অনুমোদনের তারিখ</span><span data-i18n="en">Approved At</span></label><input type="text" value="2026-02-05" disabled></div>
+          <div class="field field-full"><label><span data-i18n="bn">সার্টিফিকেট মেয়াদোত্তীর্ণের তারিখ</span><span data-i18n="en">Certification Expires At</span></label><input type="text" value="2026-12-01" disabled></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="mt-0"><span data-i18n="bn">বরাদ্দকৃত স্কুল</span><span data-i18n="en">Assigned Schools</span></h3>
+          <button class="btn btn-secondary btn-sm"><span data-i18n="bn">+ স্কুল বরাদ্দ করুন</span><span data-i18n="en">+ Assign School</span></button>
+        </div>
+
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th><span data-i18n="bn">স্কুলের নাম</span><span data-i18n="en">School Name</span></th>
+              <th><span data-i18n="bn">লোকেশন</span><span data-i18n="en">Location</span></th>
+              <th><span data-i18n="bn">বরাদ্দের তারিখ</span><span data-i18n="en">Assigned Date</span></th>
+              <th><span data-i18n="bn">কার্যক্রম</span><span data-i18n="en">Actions</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><a href="school-detail-admin.html"><span data-i18n="bn">কুমিল্লা মডেল স্কুল অ্যান্ড কলেজ</span><span data-i18n="en">Cumilla Model School & College</span></a></td>
+              <td><span data-i18n="bn">কুমিল্লা জেলা</span><span data-i18n="en">Cumilla District</span></td>
+              <td>2026-02-10</td>
+              <td><button class="btn btn-secondary btn-sm"><span data-i18n="bn">সরান</span><span data-i18n="en">Remove</span></button></td>
+            </tr>
+            <tr>
+              <td><a href="school-detail-admin.html"><span data-i18n="bn">দেবিদ্বার উচ্চ বিদ্যালয়</span><span data-i18n="en">Debidwar High School</span></a></td>
+              <td><span data-i18n="bn">দেবিদ্বার উপজেলা</span><span data-i18n="en">Debidwar Upazila</span></td>
+              <td>2026-02-14</td>
+              <td><button class="btn btn-secondary btn-sm"><span data-i18n="bn">সরান</span><span data-i18n="en">Remove</span></button></td>
+            </tr>
+            <tr>
+              <td><a href="school-detail-admin.html"><span data-i18n="bn">বরুড়া গার্লস হাই স্কুল</span><span data-i18n="en">Barura Girls' High School</span></a></td>
+              <td><span data-i18n="bn">কুমিল্লা জেলা</span><span data-i18n="en">Cumilla District</span></td>
+              <td>2026-03-01</td>
+              <td><button class="btn btn-secondary btn-sm"><span data-i18n="bn">সরান</span><span data-i18n="en">Remove</span></button></td>
+            </tr>
+            <tr>
+              <td><a href="school-detail-admin.html"><span data-i18n="bn">সাচার উচ্চ বিদ্যালয়</span><span data-i18n="en">Sachar High School</span></a></td>
+              <td><span data-i18n="bn">দেবিদ্বার উপজেলা</span><span data-i18n="en">Debidwar Upazila</span></td>
+              <td>2026-03-18</td>
+              <td><button class="btn btn-secondary btn-sm"><span data-i18n="bn">সরান</span><span data-i18n="en">Remove</span></button></td>
+            </tr>
+            <tr>
+              <td><a href="school-detail-admin.html"><span data-i18n="bn">আদর্শ উচ্চ বিদ্যালয়, সাভার</span><span data-i18n="en">Adarsha High School, Savar</span></a></td>
+              <td><span data-i18n="bn">সাভার, ঢাকা জেলা</span><span data-i18n="en">Savar, Dhaka District</span></td>
+              <td>2026-04-02</td>
+              <td><button class="btn btn-secondary btn-sm"><span data-i18n="bn">সরান</span><span data-i18n="en">Remove</span></button></td>
+            </tr>
+            <tr>
+              <td><a href="school-detail-admin.html"><span data-i18n="bn">শাপলা বালিকা বিদ্যালয়</span><span data-i18n="en">Shapla Girls' School</span></a></td>
+              <td><span data-i18n="bn">বগুড়া জেলা</span><span data-i18n="en">Bogura District</span></td>
+              <td>2026-04-20</td>
+              <td><button class="btn btn-secondary btn-sm"><span data-i18n="bn">সরান</span><span data-i18n="en">Remove</span></button></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <p class="locked-note" style="margin-top:var(--space-3);">
+          <span data-i18n="bn">একজন এজেন্ট একাধিক স্কুলে বাস্তবায়ন, প্রশিক্ষণ ও সহায়তা কাজের জন্য বরাদ্দ থাকতে পারেন — এই বরাদ্দ ডিলারের টেরিটরি বরাদ্দ থেকে পৃথক এবং সরাসরি স্কুল-পর্যায়ে করা হয়।</span>
+          <span data-i18n="en">An Agent can be assigned to multiple schools for implementation, training, and support work — this assignment is separate from a Dealer's territory assignments and is made directly at the school level.</span>
+        </p>
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

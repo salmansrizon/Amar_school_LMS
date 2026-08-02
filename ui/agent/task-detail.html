@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>টাস্ক বিস্তারিত · Task Detail — Agent Portal</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../shared/design-system.css">
+<script src="../shared/app.js" defer></script>
+<style>
+  .thumb-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: var(--space-3); }
+  .thumb {
+    aspect-ratio: 4 / 3; background: var(--bg-surface-alt); border: 1px solid var(--border-default);
+    border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center;
+    color: var(--text-secondary); font-size: var(--text-xl);
+  }
+  .thumb-cap { font-size: var(--text-xs); color: var(--text-secondary); margin-top: var(--space-1); text-align: center; }
+  .doc-list { display: flex; flex-direction: column; gap: var(--space-2); }
+  .doc-row {
+    display: flex; align-items: center; justify-content: space-between; gap: var(--space-2);
+    padding: var(--space-2) var(--space-3); border: 1px solid var(--border-default);
+    border-radius: var(--radius-sm); background: var(--bg-surface-alt); font-size: var(--text-sm);
+  }
+  .sig-box {
+    border: 1px dashed var(--border-strong); border-radius: var(--radius-md);
+    padding: var(--space-4); display: flex; flex-direction: column; align-items: center; gap: var(--space-2);
+    background: var(--bg-surface-alt);
+  }
+  .sig-svg { width: 180px; height: 60px; }
+  .evidence-section { margin-bottom: var(--space-5); }
+  .evidence-section h4 { margin: 0 0 var(--space-2); font-size: var(--text-sm); text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-secondary); }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="mark">A</span><span>Agent Portal</span></div>
+    <nav>
+      <a class="nav-item" href="dashboard.html"><span data-i18n="bn">ড্যাশবোর্ড</span><span data-i18n="en">Dashboard</span></a>
+      <a class="nav-item active" href="task-detail.html"><span data-i18n="bn">আমার টাস্ক</span><span data-i18n="en">My Tasks</span></a>
+      <a class="nav-item" href="dashboard.html#schools"><span data-i18n="bn">অ্যাসাইন করা স্কুল</span><span data-i18n="en">Assigned Schools</span></a>
+      <a class="nav-item" href="dashboard.html#training"><span data-i18n="bn">প্রশিক্ষণ</span><span data-i18n="en">Training</span></a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="title"><span data-i18n="bn">টাস্ক বিস্তারিত</span><span data-i18n="en">Task Detail</span></div>
+      <div class="actions">
+        <a class="btn btn-secondary btn-sm" href="../index.html" title="Home">🏠</a>
+        <a class="btn btn-secondary btn-sm" href="../sitemap.html" title="Sitemap">📋</a>
+        <div class="lang-switch">
+          <button data-lang-btn="bn" onclick="setLang('bn')">বাং</button>
+          <button data-lang-btn="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="theme-switch">
+          <button data-theme-btn="light" onclick="setTheme('light')">☀</button>
+          <button data-theme-btn="dark" onclick="setTheme('dark')">☾</button>
+          <button data-theme-btn="system" onclick="setTheme('system')">Auto</button>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+
+      <div class="card mb-4">
+        <div class="flex justify-between items-center gap-3" style="flex-wrap:wrap;">
+          <div>
+            <div class="flex gap-2 items-center mb-4" style="margin-bottom: var(--space-2);">
+              <span class="badge badge-danger"><span data-i18n="bn">সাপোর্ট</span><span data-i18n="en">Support</span></span>
+              <span class="badge badge-info"><span data-i18n="bn">চলমান</span><span data-i18n="en">In Progress</span></span>
+            </div>
+            <h3 class="mt-0" style="margin-bottom: 4px;"><span data-i18n="bn">বায়োমেট্রিক ডিভাইস সিঙ্ক ত্রুটি</span><span data-i18n="en">Biometric Device Sync Error</span></h3>
+            <div class="text-secondary" style="font-size: var(--text-sm);">
+              <span data-i18n="bn">স্কুল: </span><span data-i18n="en">School: </span>
+              <a href="../school-owner/dashboard.html"><span data-i18n="bn">বরুড়া গার্লস হাই স্কুল</span><span data-i18n="en">Barura Girls' High School</span></a>
+              &nbsp;·&nbsp;
+              <span data-i18n="bn">নির্ধারিত তারিখ: ০৩ আগস্ট ২০২৬</span><span data-i18n="en">Due: Aug 3, 2026</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="stepper" style="margin-top: var(--space-4);">
+          <div class="step done"><span class="dot"></span><span data-i18n="bn">নিয়োজিত</span><span data-i18n="en">Assigned</span></div>
+          <div class="step done"><span class="dot"></span><span data-i18n="bn">গৃহীত</span><span data-i18n="en">Accepted</span></div>
+          <div class="step active"><span class="dot"></span><span data-i18n="bn">চলমান</span><span data-i18n="en">In Progress</span></div>
+          <div class="step"><span class="dot"></span><span data-i18n="bn">সম্পন্ন</span><span data-i18n="en">Completed</span></div>
+          <div class="step"><span class="dot"></span><span data-i18n="bn">যাচাইকৃত</span><span data-i18n="en">Verified</span></div>
+        </div>
+
+        <p class="text-secondary" style="font-size: var(--text-sm);">
+          <span data-i18n="bn">বিবরণ: স্কুলের বায়োমেট্রিক অ্যাটেনডেন্স ডিভাইস সার্ভারের সাথে সিঙ্ক হচ্ছে না। প্রধান শিক্ষক জরুরি হিসেবে চিহ্নিত করেছেন। কোম্পানিতে সরাসরি এসকেলেট করা হয়েছে।</span>
+          <span data-i18n="en">Description: The school's biometric attendance device is failing to sync with the server. Flagged as critical by the headteacher. Escalated directly to the company.</span>
+        </p>
+
+        <div class="flex gap-2" style="margin-top: var(--space-3);">
+          <button class="btn btn-primary" type="button"><span data-i18n="bn">সম্পন্ন হিসেবে চিহ্নিত করুন</span><span data-i18n="en">Mark Complete</span></button>
+          <button class="btn btn-secondary" type="button"><span data-i18n="bn">নোট যোগ করুন</span><span data-i18n="en">Add Note</span></button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 class="mt-0"><span data-i18n="bn">প্রমাণ</span><span data-i18n="en">Evidence</span></h3>
+
+        <div class="evidence-section">
+          <h4><span data-i18n="bn">নোট</span><span data-i18n="en">Notes</span></h4>
+          <div class="field">
+            <textarea rows="4">ডিভাইসের ফার্মওয়্যার সংস্করণ পুরনো ছিল, আপডেট করা হয়েছে। রাউটারের ওয়াইফাই সংযোগ অস্থিতিশীল ছিল বলে সন্দেহ করা হচ্ছে।
+Firmware was outdated, updated to latest. Suspect unstable wifi connection to router as root cause; monitoring overnight.</textarea>
+          </div>
+        </div>
+
+        <div class="evidence-section">
+          <h4><span data-i18n="bn">ছবি</span><span data-i18n="en">Photos</span></h4>
+          <div class="thumb-grid">
+            <div>
+              <div class="thumb">🖼️</div>
+              <div class="thumb-cap">device_before.jpg</div>
+            </div>
+            <div>
+              <div class="thumb">🖼️</div>
+              <div class="thumb-cap">firmware_update.jpg</div>
+            </div>
+            <div>
+              <div class="thumb">🖼️</div>
+              <div class="thumb-cap">device_after.jpg</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="evidence-section">
+          <h4><span data-i18n="bn">ডকুমেন্ট</span><span data-i18n="en">Documents</span></h4>
+          <div class="doc-list">
+            <div class="doc-row">
+              <span>📄 diagnostic_report.pdf</span>
+              <a href="#"><span data-i18n="bn">দেখুন</span><span data-i18n="en">View</span></a>
+            </div>
+            <div class="doc-row">
+              <span>📄 vendor_warranty_note.pdf</span>
+              <a href="#"><span data-i18n="bn">দেখুন</span><span data-i18n="en">View</span></a>
+            </div>
+          </div>
+        </div>
+
+        <div class="evidence-section" style="margin-bottom: 0;">
+          <h4><span data-i18n="bn">গ্রাহকের স্বাক্ষর</span><span data-i18n="en">Customer Signature</span></h4>
+          <div class="sig-box">
+            <svg class="sig-svg" viewBox="0 0 180 60" xmlns="http://www.w3.org/2000/svg">
+              <path d="M8,42 C20,10 30,50 42,25 C50,8 55,45 65,30 C75,15 85,48 100,28 C112,12 118,40 130,26 C140,15 150,38 172,20"
+                    fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <div class="badge badge-success"><span data-i18n="bn">স্বাক্ষর গৃহীত হয়েছে</span><span data-i18n="en">Signature captured</span></div>
+            <div class="text-secondary" style="font-size: var(--text-xs);"><span data-i18n="bn">প্রধান শিক্ষক, বরুড়া গার্লস হাই স্কুল — ০২ আগস্ট ২০২৬</span><span data-i18n="en">Headteacher, Barura Girls' High School — Aug 2, 2026</span></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>
