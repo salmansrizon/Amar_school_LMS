@@ -1,10 +1,11 @@
-import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { beforeAll, describe, expect, it } from 'vitest'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { signedIn } from '../helpers/auth'
 import { ensureWallet, postToWallet, walletBalance } from '@/lib/engines/financial/wallet'
 
-// Wallet primitive (map #258, #265) against live Supabase: ensure idempotency,
-// dual amount/quantity ledger, entry idempotency, owner-scoped RLS, authority.
+// Wallet primitive (map #258, #265) against live Supabase. The school_sms wallet
+// is shared with the SMS suites, so every balance check is asserted as a DELTA
+// against a fresh read (isolation-proof) rather than an absolute value.
 const SECRET = process.env.RECONCILE_SECRET as string
 
 describe('Wallet primitive (#265)', () => {
@@ -21,12 +22,6 @@ describe('Wallet primitive (#265)', () => {
     const a = (await owner.auth.getUser()).data.user!
     schoolA = (await owner.from('profiles').select('school_id').eq('id', a.id).single()).data!.school_id
     schoolWallet = await ensureWallet(superClient, { walletType: 'school_sms', schoolId: schoolA })
-    // Clean prior ledger for a deterministic balance.
-    await superClient.from('wallet_ledger_entries').delete().eq('wallet_id', schoolWallet)
-  })
-
-  afterAll(async () => {
-    await superClient.from('wallet_ledger_entries').delete().eq('wallet_id', schoolWallet)
   })
 
   it('ensure is idempotent (one wallet per type+owner)', async () => {
@@ -35,46 +30,48 @@ describe('Wallet primitive (#265)', () => {
   })
 
   it('accumulates dual amount + quantity across entries', async () => {
+    const before = await walletBalance(superClient, schoolWallet)
+    const ref = crypto.randomUUID()
     await postToWallet(superClient, {
-      walletId: schoolWallet, amount: 5000, quantity: 100, route: null, ref: 'buy-1', reason: 'allocate',
+      walletId: schoolWallet, amount: 5000, quantity: 100, route: null, ref: `buy-${ref}`, reason: 'allocate',
     })
     await postToWallet(superClient, {
-      walletId: schoolWallet, amount: null, quantity: -10, route: 'mask', ref: 'send-1', reason: 'send',
+      walletId: schoolWallet, amount: null, quantity: -10, route: 'mask', ref: `send-${ref}`, reason: 'send',
     })
-    const bal = await walletBalance(superClient, schoolWallet)
-    expect(bal.quantity).toBe(90)
-    expect(bal.amount).toBe(5000)
+    const after = await walletBalance(superClient, schoolWallet)
+    expect(after.quantity - before.quantity).toBe(90)
+    expect(after.amount - before.amount).toBe(5000)
   })
 
   it('is idempotent on (wallet, ref)', async () => {
-    const first = await postToWallet(superClient, {
-      walletId: schoolWallet, amount: null, quantity: 100, route: null, ref: 'buy-1', reason: 'allocate',
-    })
+    const ref = `idem-${crypto.randomUUID()}`
+    await postToWallet(superClient, { walletId: schoolWallet, amount: null, quantity: 100, route: null, ref, reason: 'allocate' })
+    const mid = await walletBalance(superClient, schoolWallet)
     // Same ref returns the existing entry and does not double-count.
-    expect(first).toBeTruthy()
-    const bal = await walletBalance(superClient, schoolWallet)
-    expect(bal.quantity).toBe(90)
+    await postToWallet(superClient, { walletId: schoolWallet, amount: null, quantity: 100, route: null, ref, reason: 'allocate' })
+    const after = await walletBalance(superClient, schoolWallet)
+    expect(after.quantity).toBe(mid.quantity)
   })
 
   it('owner reads own school wallet balance, not another tenant’s', async () => {
-    const bal = await walletBalance(owner, schoolWallet)
-    expect(bal.quantity).toBe(90)
+    await expect(walletBalance(owner, schoolWallet)).resolves.toBeDefined()
     await expect(walletBalance(ownerB, schoolWallet)).rejects.toThrow()
   })
 
   it('blocks direct posts by non-super/non-system callers', async () => {
     await expect(
       postToWallet(owner, {
-        walletId: schoolWallet, amount: null, quantity: 999, route: null, ref: 'hack-1', reason: 'x',
+        walletId: schoolWallet, amount: null, quantity: 999, route: null, ref: `hack-${crypto.randomUUID()}`, reason: 'x',
       }),
     ).rejects.toThrow()
-    // But a system caller (reconcile secret) may post.
+    // A system caller (reconcile secret) may post.
+    const before = await walletBalance(superClient, schoolWallet)
     await postToWallet(
       owner,
-      { walletId: schoolWallet, amount: null, quantity: 5, route: null, ref: 'sys-1', reason: 'system' },
+      { walletId: schoolWallet, amount: null, quantity: 5, route: null, ref: `sys-${crypto.randomUUID()}`, reason: 'system' },
       SECRET,
     )
-    const bal = await walletBalance(superClient, schoolWallet)
-    expect(bal.quantity).toBe(95)
+    const after = await walletBalance(superClient, schoolWallet)
+    expect(after.quantity - before.quantity).toBe(5)
   })
 })
