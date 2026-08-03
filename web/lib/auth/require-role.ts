@@ -45,8 +45,7 @@ export async function requireSchoolMember(supabase: SupabaseClient): Promise<boo
 /** True only for the School Owner — the institute profile (schools row) is
  *  owner-only even though the "institute" screen can be granted to Staff. */
 export async function requireSchoolOwner(supabase: SupabaseClient): Promise<boolean> {
-  const { role } = await callerProfile(supabase)
-  return role === 'school_owner'
+  return (await authorize(supabase, PERMISSIONS.schoolOwner)).allowed
 }
 
 /** Same School Owner/Staff User check as requireSchoolMember, but also returns

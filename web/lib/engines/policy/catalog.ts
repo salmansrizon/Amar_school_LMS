@@ -6,6 +6,7 @@ export const PERMISSIONS = {
   dealerAccess: 'dealer.access',
   govAccess: 'gov.access',
   schoolAccess: 'school.access',
+  schoolOwner: 'school.owner',
   instituteManage: 'institute.manage',
 } as const
 
