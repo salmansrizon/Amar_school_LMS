@@ -43,6 +43,17 @@ export function createFeatureEngine(client: SupabaseClient): FeatureEngine {
   }
 }
 
+/** Resolve the set of enabled feature keys for a school in one round-trip —
+ * for gating a whole nav/menu at render without N per-item calls. */
+export async function loadEnabledFeatures(
+  client: SupabaseClient,
+  schoolId: string,
+): Promise<Set<string>> {
+  const { data, error } = await client.rpc('school_enabled_features', { p_school: schoolId })
+  if (error) return new Set()
+  return new Set((data ?? []) as string[])
+}
+
 /** Pure nav gate: keep an item unless its feature is explicitly disabled. The
  * "show unless disabled" default preserves today's behavior (nav was ungated),
  * so wiring this in front of school-nav changes nothing until a feature is
