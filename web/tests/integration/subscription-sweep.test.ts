@@ -9,14 +9,15 @@ describe('subscription_billing_sweep (#269 follow-up)', () => {
   let superClient: SupabaseClient
   let owner: SupabaseClient
   let schoolA: string
-  const period = '2099-01' // fixed future period so it never collides with real billing
+  // Unique period per run — the runs table is append-only (no delete RLS), so a
+  // fresh key guarantees an unbilled period without needing cleanup.
+  const period = `t-${crypto.randomUUID().slice(0, 12)}`
 
   beforeAll(async () => {
     superClient = await signedIn('super@test.local')
     owner = await signedIn('owner-a@test.local')
     const a = (await owner.auth.getUser()).data.user!
     schoolA = (await owner.from('profiles').select('school_id').eq('id', a.id).single()).data!.school_id
-    await superClient.from('subscription_billing_runs').delete().eq('period', period)
   })
 
   it('bills each school once and dedups on re-run', async () => {
