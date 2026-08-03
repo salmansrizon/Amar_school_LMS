@@ -208,18 +208,15 @@ export async function topUpSmsCredits(
   if (!Number.isInteger(credits) || credits <= 0) return { error: 'credits must be a positive whole number' }
   if (!Number.isFinite(amount) || amount < 0) return { error: 'invalid amount' }
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
   // Allocation grants per-school credits only; it does NOT touch the master pool
   // (#188 gateway-balance model — the pool drops on actual sends, not on grant).
-  const { error } = await supabase.from('sms_credit_ledger').insert({
-    school_id: schoolId,
-    delta: credits,
-    reason: 'topup',
-    amount,
+  // SMS credits now live on the school_sms wallet (#268); sms_topup records the
+  // segments granted + the ৳ collected.
+  const { error } = await supabase.rpc('sms_topup', {
+    sid: schoolId,
+    segs: credits,
+    amount_taka: amount,
     note,
-    created_by: user?.id ?? null,
   })
   if (error) return { error: 'top-up failed' }
   revalidatePath(`/super-admin/schools/${schoolId}`)
