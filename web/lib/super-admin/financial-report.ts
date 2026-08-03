@@ -4,6 +4,8 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 
 export interface FinancialSummary {
   grossRevenue: number
+  totalExpense: number
+  net: number
   collected: number
   outstanding: number
   commissionPayable: number
@@ -25,6 +27,8 @@ export async function loadFinancialSummary(client: SupabaseClient): Promise<Fina
   const d = (data ?? {}) as Record<string, number>
   return {
     grossRevenue: Number(d.gross_revenue ?? 0),
+    totalExpense: Number(d.total_expense ?? 0),
+    net: Number(d.net ?? 0),
     collected: Number(d.collected ?? 0),
     outstanding: Number(d.outstanding ?? 0),
     commissionPayable: Number(d.commission_payable ?? 0),
