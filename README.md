@@ -27,10 +27,11 @@ sends each role to its home group; `proxy.ts` + RLS enforce access.
 
 | Role | Home group | Purpose | Demo login |
 | --- | --- | --- | --- |
-| `super_admin` | `/super-admin` | Vendor panel: schools, subscriptions, dealers, gov officials, territories, SMS, off-days | `demo.super@amarschool.test` / `DemoSuper#2026` |
+| `super_admin` | `/super-admin` | Vendor panel: schools, subscriptions, distributors, agents, gov officials, territories, workflows, notifications, SMS commerce, invoices, settlements, accounting, audit, off-days | `demo.super@amarschool.test` / `DemoSuper#2026` |
 | `school_owner` | `/school` | Full school management (all modules) | `demo.owner@amarschool.test` / `DemoOwner#2026` |
 | `staff_user` | `/school` | School management, limited to granted screens | `demo.staff@amarschool.test` / `DemoStaff#2026` |
-| `dealer` | `/dealer` | Subscription-code sales, assigned territory | created by super-admin (no seeded demo) |
+| `distributor` | `/distributor` | Subscription-code sales, assigned territory, CRM pipeline, onboarding, wallet (renamed from `dealer`, #271) | created by super-admin (no seeded demo) |
+| `agent` | `/agent` | Field agent under a distributor: assigned tasks (dashboard, task list, mark-done) | created by super-admin (no seeded demo) |
 | `gov_official` | `/gov` | Read oversight scoped to designation + territory | created by super-admin (no seeded demo) |
 
 Demo logins are seeded by migrations (`0054` school owner/staff, `0066`
@@ -53,8 +54,10 @@ web/
 │   │   ├── layout.tsx        # SuperAdminShell (sidebar + topbar)
 │   │   ├── page.tsx          # KPI dashboard
 │   │   ├── schools/[id]/     # school detail: block/delete/activation/expiry/flags
-│   │   ├── codes/ partners/ gov-officials/ locations/ clusters/ sms/ off-days/
-│   ├── dealer/  gov/         # dealer + gov-official landings
+│   │   ├── codes/ partners/ agents/ gov-officials/ locations/ clusters/ sms/ off-days/
+│   │   ├── workflows/ notifications/ sms-commerce/ invoices/ settlements/ accounting/
+│   │   ├── audit-log/ role-permissions/ module-config/ subscription-config/ coupons/
+│   ├── distributor/  agent/  gov/   # distributor (CRM/wallet), agent (tasks), gov landings
 │   └── api/                  # route handlers + Vercel crons
 │       ├── sms/absence/          # daily absence SMS
 │       └── subscription/expiry-sweep/  # daily 7-day expiry reminder (#163)
@@ -81,14 +84,15 @@ graph TD
   end
   PostLogin -->|super_admin| SA
   PostLogin -->|owner/staff| SchoolApp
-  PostLogin -->|dealer| Dealer[/dealer/]
+  PostLogin -->|distributor| Distributor[/distributor/]
+  PostLogin -->|agent| Agent[/agent/]
   PostLogin -->|gov_official| Gov[/gov/]
 
   subgraph SA[Super Admin panel]
     Dash[KPI dashboard]
     Schools[Schools + detail\nblock/delete/activation/expiry/flags]
     Codes[Subscription codes]
-    Dealers[Dealers]
+    Dealers[Distributors + Agents]
     GovOff[Gov officials\ndesignation + edu-scope + territory]
     Terr[Territory + Locations]
     Clusters[Clusters]
