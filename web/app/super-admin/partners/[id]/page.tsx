@@ -16,12 +16,12 @@ export default async function PartnerAssignmentsPage({
   const lang = await currentLang()
   const { supabase } = await getSuperAdminContext()
 
-  // Dealers only — Government Officials are managed on their own surface (#164).
+  // Distributors only — Government Officials are managed on their own surface (#164).
   const { data: partner } = await supabase
     .from('profiles')
     .select('id, full_name, role')
     .eq('id', id)
-    .eq('role', 'dealer')
+    .eq('role', 'distributor')
     .single()
   if (!partner) notFound()
 
@@ -49,7 +49,7 @@ export default async function PartnerAssignmentsPage({
       <section className="mb-6 rounded-lg border border-line bg-paper p-5 shadow-card">
         <AddAssignmentForm
           assigneeId={partner.id}
-          isDealer={partner.role === 'dealer'}
+          isDistributor={partner.role === 'distributor'}
           locations={(locations ?? []) as LocationRow[]}
           schools={schools ?? []}
           lang={lang}

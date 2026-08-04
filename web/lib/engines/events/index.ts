@@ -25,6 +25,8 @@ export const DOMAIN_EVENT_TYPES = [
   'ApprovalRequested',
   'ApprovalGranted',
   'ApprovalRejected',
+  'SubscriptionExpiringSoon',
+  'StudentAbsenceStreak',
 ] as const
 
 export type DomainEventType = (typeof DOMAIN_EVENT_TYPES)[number]

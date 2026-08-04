@@ -51,7 +51,7 @@ const Icons = {
       <path d="M9 21v-6h6v6" />
     </>
   ),
-  dealer: (
+  distributor: (
     <>
       <path d="M16 21v-2a4 4 0 0 0-8 0v2" />
       <circle cx="12" cy="7" r="4" />
@@ -95,6 +95,75 @@ const Icons = {
       <path d="M16 2v4M8 2v4M3 10h18" />
     </>
   ),
+  auditLog: (
+    <>
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+      <path d="M14 2v6h6M9 13h6M9 17h6" />
+    </>
+  ),
+  roles: (
+    <>
+      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="m17 11 2 2 4-4" />
+    </>
+  ),
+  modules: (
+    <>
+      <rect x="3" y="3" width="7" height="7" rx="1" />
+      <rect x="14" y="3" width="7" height="7" rx="1" />
+      <rect x="14" y="14" width="7" height="7" rx="1" />
+      <rect x="3" y="14" width="7" height="7" rx="1" />
+    </>
+  ),
+  subscription: (
+    <>
+      <rect x="2" y="5" width="20" height="14" rx="2" />
+      <path d="M2 10h20" />
+    </>
+  ),
+  coupon: (
+    <>
+      <path d="M4 8V6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4z" />
+      <path d="M9 8v8" />
+    </>
+  ),
+  settlement: (
+    <>
+      <path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+    </>
+  ),
+  ledger: (
+    <>
+      <path d="M3 3v18h18" />
+      <path d="M7 16l4-4 3 3 5-6" />
+    </>
+  ),
+  monitor: (
+    <>
+      <rect x="2" y="3" width="20" height="14" rx="2" />
+      <path d="M8 21h8M12 17v4M6 10l3 3 3-4 3 2" />
+    </>
+  ),
+  flow: (
+    <>
+      <rect x="3" y="3" width="6" height="6" rx="1" />
+      <rect x="15" y="15" width="6" height="6" rx="1" />
+      <path d="M6 9v3a3 3 0 0 0 3 3h6" />
+    </>
+  ),
+  bell: (
+    <>
+      <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
+      <path d="M13.7 21a2 2 0 0 1-3.4 0" />
+    </>
+  ),
+  invoice: (
+    <>
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+      <path d="M14 2v6h6M9 13h6M9 17h4" />
+    </>
+  ),
   chevronLeft: <path d="m15 18-6-6 6-6" />,
   chevronRight: <path d="m9 18 6-6-6-6" />,
   menu: <path d="M4 6h16M4 12h16M4 18h16" />,
@@ -103,13 +172,26 @@ const Icons = {
 const NAV: NavItem[] = [
   { href: '/super-admin', labelKey: 'sa.nav.dashboard', icon: Icons.dashboard },
   { href: '/super-admin/schools', labelKey: 'sa.nav.schools', icon: Icons.school },
-  { href: '/super-admin/partners', labelKey: 'sa.nav.dealers', icon: Icons.dealer },
+  { href: '/super-admin/partners', labelKey: 'sa.nav.distributors', icon: Icons.distributor },
   { href: '/super-admin/codes', labelKey: 'sa.nav.codes', icon: Icons.codes },
   { href: '/super-admin/gov-officials', labelKey: 'sa.nav.gov', icon: Icons.gov },
+  { href: '/super-admin/agents', labelKey: 'sa.nav.agents', icon: Icons.roles },
   { href: '/super-admin/locations', labelKey: 'sa.nav.territory', icon: Icons.territory },
   { href: '/super-admin/clusters', labelKey: 'sa.nav.clusters', icon: Icons.clusters },
   { href: '/super-admin/sms', labelKey: 'sa.nav.sms', icon: Icons.sms },
   { href: '/super-admin/off-days', labelKey: 'sa.nav.offDays', icon: Icons.offDays },
+  { href: '/super-admin/subscription-config', labelKey: 'sa.nav.subscriptionConfig', icon: Icons.subscription },
+  { href: '/super-admin/module-config', labelKey: 'sa.nav.moduleConfig', icon: Icons.modules },
+  { href: '/super-admin/coupons', labelKey: 'sa.nav.coupons', icon: Icons.coupon },
+  { href: '/super-admin/settlements', labelKey: 'sa.nav.settlements', icon: Icons.settlement },
+  { href: '/super-admin/accounting', labelKey: 'sa.nav.accounting', icon: Icons.ledger },
+  { href: '/super-admin/role-permissions', labelKey: 'sa.nav.rolePermissions', icon: Icons.roles },
+  { href: '/super-admin/audit-log', labelKey: 'sa.nav.auditLog', icon: Icons.auditLog },
+  { href: '/super-admin/attendance-job-monitor', labelKey: 'sa.nav.jobMonitor', icon: Icons.monitor },
+  { href: '/super-admin/workflows', labelKey: 'sa.nav.workflows', icon: Icons.flow },
+  { href: '/super-admin/notifications', labelKey: 'sa.nav.notifications', icon: Icons.bell },
+  { href: '/super-admin/sms-commerce', labelKey: 'sa.nav.smsCommerce', icon: Icons.sms },
+  { href: '/super-admin/invoices', labelKey: 'sa.nav.invoices', icon: Icons.invoice },
 ]
 
 function NavList({

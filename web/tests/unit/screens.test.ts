@@ -14,7 +14,7 @@ describe('screenKeyForPath: maps /school/* URLs to screen keys', () => {
   it('returns null for the school home and non-screen paths', () => {
     expect(screenKeyForPath('/school')).toBeNull()
     expect(screenKeyForPath('/school/permission-denied')).toBeNull()
-    expect(screenKeyForPath('/dealer/anything')).toBeNull()
+    expect(screenKeyForPath('/distributor/anything')).toBeNull()
   })
 
   it('staff management is not a grantable screen (owner-only)', () => {

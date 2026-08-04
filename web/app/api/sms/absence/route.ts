@@ -3,6 +3,8 @@ import { smsGateway } from '@/lib/sms/gateway'
 import { countSmsSegments } from '@/lib/sms/segments'
 import { smsCanSend, smsRecordDebit } from '@/lib/sms/credit'
 import { cronClient, cronTargetDate, isCronAuthorized, reconcileSecret } from '@/lib/cron/job'
+import { systemEventEngine } from '@/lib/engines/events/engine'
+import { absenceStreakBody } from '@/lib/engines/notification/events'
 
 // Daily absence-SMS job (issue #12). Scheduled AFTER attendance reconciliation
 // (see vercel.json order); rule evaluation lives in SQL, dispatch goes through
@@ -23,6 +25,7 @@ export async function GET(request: Request) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
   const gateway = smsGateway()
+  const events = systemEventEngine()
   let sent = 0
   let failed = 0
   // One batch id per rule per run: all of today's candidates for the same
@@ -36,7 +39,7 @@ export async function GET(request: Request) {
     rule_id: string
     streak: number
   }[]) {
-    const body = `${candidate.student_name} has been absent for ${candidate.streak} working day(s).`
+    const body = absenceStreakBody(candidate.student_name, candidate.streak)
     const segments = countSmsSegments(body).segments || 1
 
     // Prepaid metering (map #171 T6): skip candidates whose school has enforcement
@@ -71,6 +74,30 @@ export async function GET(request: Request) {
     if (recordError) {
       failed += 1
       continue
+    }
+
+    // Newly recorded absence streak → publish the domain event carrying the
+    // per-event recipient data (guardian phone). SMS still ships from this route
+    // because the engine's SMS channel is deferred; the event lets a future
+    // SMS-channel consumer take over without changing this job's behavior, and
+    // gives the audit/notification trail a single source. Best-effort.
+    if (logId) {
+      try {
+        await events.publish({
+          type: 'StudentAbsenceStreak',
+          schoolId: candidate.school_id,
+          payload: {
+            schoolId: candidate.school_id,
+            studentId: candidate.student_id,
+            studentName: candidate.student_name,
+            guardianPhone: candidate.guardian_phone,
+            streak: candidate.streak,
+          },
+          actorId: null,
+        })
+      } catch {
+        // swallow — the sms_log row already records this absence durably
+      }
     }
     if (logId && candidate.guardian_phone) {
       try {

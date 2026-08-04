@@ -62,7 +62,7 @@ export default async function GovOfficialDetailPage({ params }: { params: Promis
         <h2 className="mb-3 font-bold">{t('sa.gov.territory', lang)}</h2>
         <AddAssignmentForm
           assigneeId={official.id}
-          isDealer={false}
+          isDistributor={false}
           locations={(locations ?? []) as LocationRow[]}
           schools={schools ?? []}
           lang={lang}

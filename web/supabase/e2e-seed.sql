@@ -44,7 +44,7 @@ begin
 
   insert into public.profiles (id, role, school_id) values
     (uid_staff, 'staff_user', school_a),
-    (uid_dealer, 'dealer', null),
+    (uid_dealer, 'distributor', null),
     (uid_gov, 'gov_official', null)
   on conflict (id) do nothing;
 end $$;
