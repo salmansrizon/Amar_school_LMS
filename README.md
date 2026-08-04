@@ -30,12 +30,13 @@ sends each role to its home group; `proxy.ts` + RLS enforce access.
 | `super_admin` | `/super-admin` | Vendor panel: schools, subscriptions, distributors, agents, gov officials, territories, workflows, notifications, SMS commerce, invoices, settlements, accounting, audit, off-days | `demo.super@amarschool.test` / `DemoSuper#2026` |
 | `school_owner` | `/school` | Full school management (all modules) | `demo.owner@amarschool.test` / `DemoOwner#2026` |
 | `staff_user` | `/school` | School management, limited to granted screens | `demo.staff@amarschool.test` / `DemoStaff#2026` |
-| `distributor` | `/distributor` | Subscription-code sales, assigned territory, CRM pipeline, onboarding, wallet (renamed from `dealer`, #271) | created by super-admin (no seeded demo) |
-| `agent` | `/agent` | Field agent under a distributor: assigned tasks (dashboard, task list, mark-done) | created by super-admin (no seeded demo) |
+| `distributor` | `/distributor` | Subscription-code sales, assigned territory, CRM pipeline, onboarding, wallet (renamed from `dealer`, #271) | `demo.distributor@amarschool.test` / `DemoDist#2026` |
+| `agent` | `/agent` | Field agent under a distributor: assigned tasks (dashboard, task list, mark-done) | `demo.agent@amarschool.test` / `DemoAgent#2026` |
 | `gov_official` | `/gov` | Read oversight scoped to designation + territory | created by super-admin (no seeded demo) |
 
 Demo logins are seeded by migrations (`0054` school owner/staff, `0066`
-super-admin) and are throwaway demo accounts — change freely. An owner with no
+super-admin, `0110` distributor/agent + partner/financial/workflow sample data)
+and are throwaway demo accounts — change freely. An owner with no
 profile yet claims a pre-created school at `/claim` with a super-admin activation
 code.
 
