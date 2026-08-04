@@ -7,6 +7,7 @@ import { SubscriptionGate } from '@/components/subscription-gate'
 import { SubscriptionBanner, SUB_REMINDER_COOKIE } from '@/components/subscription-banner'
 import { getSchoolContext } from '@/lib/school/context'
 import { loadSchoolSmsCredit } from '@/lib/sms/credit'
+import { loadEnabledFeatures } from '@/lib/engines/feature/engine'
 import { daysUntilExpiry, shouldShowReminder } from '@/lib/subscription'
 
 // Persistent chrome for every /school/* page (sidebar + topbar per the reference
@@ -24,6 +25,10 @@ export default async function SchoolLayout({ children }: { children: React.React
   const ctx = await getSchoolContext()
   const status = ctx.subscriptionStatus
   const smsCredit = await loadSchoolSmsCredit(ctx.supabase, ctx.schoolId)
+  // Feature-engine nav gating (#271): hide modules disabled for this school.
+  const enabledFeatures = ctx.schoolId
+    ? Array.from(await loadEnabledFeatures(ctx.supabase, ctx.schoolId))
+    : undefined
 
   const shellProps = {
     role: ctx.role,
@@ -33,6 +38,7 @@ export default async function SchoolLayout({ children }: { children: React.React
     lang,
     initialCollapsed: collapsed,
     smsCredit,
+    enabledFeatures,
   }
 
   if (status === 'expired') {

@@ -5,6 +5,7 @@
 //   #261 Audit  -> audit every business event
 //   #267 Notification -> route events to channels
 import { registerAuditConsumers } from '@/lib/engines/audit/consumers'
+import { registerNotificationConsumers } from '@/lib/engines/notification/consumers'
 import { subscribe } from './registry'
 
 // Proof consumer (#260): SchoolCreated has one no-op subscriber so the sync
@@ -14,5 +15,8 @@ subscribe('SchoolCreated', async () => {})
 
 // #261 Audit: record every domain event to the immutable audit log.
 registerAuditConsumers()
+
+// #267 Notification: event-driven notifications (e.g. InvoicePaid → owner inbox).
+registerNotificationConsumers()
 
 export {}

@@ -5,7 +5,7 @@ import { PERMISSIONS } from '@/lib/engines/policy/catalog'
 describe('permission catalog', () => {
   it('matches the seeded permission keys', () => {
     expect(Object.values(PERMISSIONS).sort()).toEqual(
-      ['dealer.access', 'gov.access', 'institute.manage', 'school.access', 'super_admin.access'].sort(),
+      ['dealer.access', 'gov.access', 'institute.manage', 'school.access', 'school.owner', 'super_admin.access'].sort(),
     )
   })
 })

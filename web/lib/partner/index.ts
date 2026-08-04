@@ -56,6 +56,24 @@ export async function assignAgent(client: SupabaseClient, agentId: string, distr
   if (error) throw new Error(`assignAgent failed: ${error.message}`)
 }
 
+/** Accept a distributor agreement version, recording legal metadata (IP/device)
+ * and flipping the profile's agreement status. */
+export async function acceptAgreement(
+  client: SupabaseClient,
+  input: { version: number; ip?: string; device?: string; distributorId?: string },
+  jobSecret?: string,
+): Promise<string> {
+  const { data, error } = await client.rpc('accept_agreement', {
+    p_version: input.version,
+    p_ip: input.ip ?? null,
+    p_device: input.device ?? null,
+    p_distributor: input.distributorId ?? null,
+    job_secret: jobSecret ?? null,
+  })
+  if (error) throw new Error(`accept_agreement failed: ${error.message}`)
+  return data as string
+}
+
 /** Start a distributor's onboarding workflow (Workflow engine). */
 export async function startDistributorOnboarding(
   client: SupabaseClient,

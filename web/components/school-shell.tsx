@@ -15,6 +15,7 @@ import { canOpenScreen } from '@/lib/auth/screens'
 import type { ScreenKey } from '@/lib/auth/screens'
 import type { Role } from '@/lib/auth/routing'
 import { SCHOOL_MODULES, type SchoolNavItem } from '@/lib/school-nav'
+import { FEATURE_KEYS } from '@/lib/engines/feature/catalog'
 import { sidebarCookieAssignment } from '@/lib/ui-prefs'
 import type { SchoolSmsCredit } from '@/lib/sms/credit'
 
@@ -37,6 +38,7 @@ function NavLinks({
   lang,
   collapsed = false,
   onNavigate,
+  enabledFeatures,
 }: {
   role: Role
   grants: readonly string[]
@@ -44,6 +46,8 @@ function NavLinks({
   lang: Lang
   collapsed?: boolean
   onNavigate?: () => void
+  /** Enabled feature keys (Feature engine). Undefined = no gating (default). */
+  enabledFeatures?: readonly string[]
 }) {
   const items: {
     screen: ScreenKey | 'dashboard'
@@ -57,6 +61,15 @@ function NavLinks({
   // indent. Grants are still checked per entry.
   const renderLink = (item: { screen: ScreenKey | 'dashboard'; href: string; titleKey: MessageKey }) => {
     if (item.screen !== 'dashboard' && !canOpenScreen(role, grants, item.screen)) return null
+    // Feature-engine gating: hide a module only when its feature is explicitly
+    // disabled for the school (default-active → shown, behaviour-preserving).
+    if (
+      enabledFeatures &&
+      (FEATURE_KEYS as readonly string[]).includes(item.screen) &&
+      !enabledFeatures.includes(item.screen)
+    ) {
+      return null
+    }
     const active = item.href === '/school' ? pathname === '/school' : pathname.startsWith(item.href)
     const label = t(item.titleKey, lang)
     return (
@@ -121,6 +134,7 @@ function SidebarBody({
   collapsed = false,
   onNavigate,
   onToggleCollapse,
+  enabledFeatures,
 }: {
   role: Role
   grants: readonly string[]
@@ -130,6 +144,7 @@ function SidebarBody({
   collapsed?: boolean
   onNavigate?: () => void
   onToggleCollapse?: () => void
+  enabledFeatures?: readonly string[]
 }) {
   const canAddStudent = canOpenScreen(role, grants, 'students')
   const toggleLabel = collapsed ? t('shell.expandSidebar', lang) : t('shell.collapseSidebar', lang)
@@ -157,7 +172,7 @@ function SidebarBody({
         )}
       </div>
       <div className="flex-1 overflow-y-auto">
-        <NavLinks role={role} grants={grants} pathname={pathname} lang={lang} collapsed={collapsed} onNavigate={onNavigate} />
+        <NavLinks role={role} grants={grants} pathname={pathname} lang={lang} collapsed={collapsed} onNavigate={onNavigate} enabledFeatures={enabledFeatures} />
       </div>
       {canAddStudent && (
         <Link
@@ -185,6 +200,7 @@ export function SchoolShell({
   initialCollapsed = false,
   banner,
   smsCredit = null,
+  enabledFeatures,
   children,
 }: {
   role: Role
@@ -198,6 +214,8 @@ export function SchoolShell({
   banner?: React.ReactNode
   /** Prepaid SMS balance, when metering is on for this school (map #171 T9). */
   smsCredit?: SchoolSmsCredit | null
+  /** Enabled feature keys for the school (Feature engine); undefined = ungated. */
+  enabledFeatures?: readonly string[]
   children: React.ReactNode
 }) {
   const pathname = usePathname()
@@ -247,6 +265,7 @@ export function SchoolShell({
           schoolName={schoolName}
           collapsed={collapsed}
           onToggleCollapse={toggleCollapsed}
+          enabledFeatures={enabledFeatures}
         />
       </aside>
 

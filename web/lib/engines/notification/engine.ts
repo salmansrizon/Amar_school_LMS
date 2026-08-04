@@ -45,24 +45,22 @@ export async function markRead(client: SupabaseClient, id: string): Promise<void
   if (error) throw new Error(`notification_mark_read failed: ${error.message}`)
 }
 
-async function loadTemplate(client: SupabaseClient, key: string): Promise<Template> {
-  const { data, error } = await client
-    .from('notification_templates')
-    .select('title, body')
-    .eq('key', key)
-    .single()
-  if (error || !data) throw new Error(`unknown notification template: ${key}`)
-  return data as Template
-}
-
 export function createNotificationEngine(client: SupabaseClient, jobSecret?: string): NotificationEngine {
   return {
     async send(request) {
       const channels = request.channels ?? ['in_app']
       if (!channels.includes('in_app')) return // v1: only the in-app channel dispatches here
-      const tpl = await loadTemplate(client, request.templateKey)
-      const { title, body } = renderTemplate(tpl, request.data)
-      await pushInApp(client, { recipientId: request.recipientId, schoolId: request.schoolId, title, body }, jobSecret)
+      // Render + insert in one definer RPC so template read + push work even for
+      // a system (anon + reconcile-secret) caller, whose session cannot read the
+      // authenticated-only templates table.
+      const { error } = await client.rpc('notification_from_template', {
+        p_recipient: request.recipientId,
+        p_school: request.schoolId,
+        p_template_key: request.templateKey,
+        p_data: request.data,
+        job_secret: jobSecret ?? null,
+      })
+      if (error) throw new Error(`notification_from_template failed: ${error.message}`)
     },
   }
 }
