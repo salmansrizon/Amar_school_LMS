@@ -6,6 +6,7 @@
 import { cronClient, reconcileSecret } from '@/lib/cron/job'
 import { subscribe } from '@/lib/engines/events/registry'
 import { createNotificationEngine } from './engine'
+import { expiringSoonNotification, type SubscriptionExpiringSoonPayload } from './events'
 
 let registered = false
 
@@ -32,5 +33,17 @@ export function registerNotificationConsumers(): void {
       data: { number: payload.number ?? '' },
       channels: ['in_app'],
     })
+  })
+
+  // Expiry sweep publishes SubscriptionExpiringSoon; the engine delivers the
+  // owner an in-app notice. The SMS + activity-feed reminder still ship from the
+  // sweep (durable channel); this adds the inbox notice via the engine, with the
+  // recipient resolved from the event payload (#267 per-event resolution).
+  subscribe('SubscriptionExpiringSoon', async (event) => {
+    const payload = event.payload as SubscriptionExpiringSoonPayload
+    if (!payload.ownerId || !payload.schoolId) return
+    const client = cronClient()
+    const secret = reconcileSecret()
+    await createNotificationEngine(client, secret).send(expiringSoonNotification(payload))
   })
 }

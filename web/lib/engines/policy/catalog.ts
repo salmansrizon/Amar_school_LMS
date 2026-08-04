@@ -3,7 +3,7 @@
 // literals, so a typo is a compile error and the catalog has one home.
 export const PERMISSIONS = {
   superAdminAccess: 'super_admin.access',
-  dealerAccess: 'dealer.access',
+  distributorAccess: 'distributor.access',
   govAccess: 'gov.access',
   schoolAccess: 'school.access',
   schoolOwner: 'school.owner',

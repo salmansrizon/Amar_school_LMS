@@ -11,13 +11,13 @@ const smallBtn =
 
 export function AddAssignmentForm({
   assigneeId,
-  isDealer,
+  isDistributor,
   locations,
   schools,
   lang,
 }: {
   assigneeId: string
-  isDealer: boolean
+  isDistributor: boolean
   locations: LocationRow[]
   schools: { id: string; name: string }[]
   lang: Lang
@@ -69,7 +69,7 @@ export function AddAssignmentForm({
         </select>
       )}
 
-      {isDealer && mode === 'location' && (
+      {isDistributor && mode === 'location' && (
         <select name="tier" className={selectClass()}>
           <option value="">{t('partners.tier', lang)} —</option>
           <option value="division">Division</option>

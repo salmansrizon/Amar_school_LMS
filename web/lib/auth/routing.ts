@@ -1,15 +1,22 @@
-export type Role = 'school_owner' | 'staff_user' | 'dealer' | 'super_admin' | 'gov_official'
+export type Role =
+  | 'school_owner'
+  | 'staff_user'
+  | 'distributor'
+  | 'agent'
+  | 'super_admin'
+  | 'gov_official'
 
 // Route group per role (ADR 0003: one app, role-based routing).
 const ROLE_HOME: Record<Role, string> = {
   school_owner: '/school',
   staff_user: '/school',
-  dealer: '/dealer',
+  distributor: '/distributor',
+  agent: '/agent',
   super_admin: '/super-admin',
   gov_official: '/gov',
 }
 
-const PROTECTED_GROUPS = ['/school', '/dealer', '/super-admin', '/gov']
+const PROTECTED_GROUPS = ['/school', '/distributor', '/agent', '/super-admin', '/gov']
 
 function groupOf(pathname: string): string | undefined {
   return PROTECTED_GROUPS.find((g) => pathname === g || pathname.startsWith(g + '/'))

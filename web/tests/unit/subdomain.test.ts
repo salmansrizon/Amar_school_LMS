@@ -47,7 +47,7 @@ describe('validateSlug', () => {
 
 describe('reserved set', () => {
   it('covers every documented route segment', () => {
-    for (const r of ['api', 'auth', 'dealer', 'gov', 'login', 'reset-password', 'school', 'signup', 'super-admin']) {
+    for (const r of ['agent', 'api', 'auth', 'dealer', 'distributor', 'gov', 'login', 'reset-password', 'school', 'signup', 'super-admin']) {
       expect(RESERVED_SLUGS).toContain(r)
     }
   })

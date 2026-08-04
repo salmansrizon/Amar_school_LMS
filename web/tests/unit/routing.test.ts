@@ -6,7 +6,8 @@ describe('homeFor: post-login redirect per role (issue #1)', () => {
   it.each([
     ['school_owner', '/school'],
     ['staff_user', '/school'],
-    ['dealer', '/dealer'],
+    ['distributor', '/distributor'],
+    ['agent', '/agent'],
     ['super_admin', '/super-admin'],
     ['gov_official', '/gov'],
   ] as [Role, string][])('%s lands in %s', (role, home) => {
@@ -21,19 +22,20 @@ describe('canAccess: a role is blocked from other roles’ route groups', () => 
   })
 
   it.each([
-    ['dealer', '/school/students'],
+    ['distributor', '/school/students'],
     ['gov_official', '/school'],
     ['school_owner', '/super-admin/schools'],
-    ['staff_user', '/dealer'],
-    ['dealer', '/super-admin'],
+    ['staff_user', '/distributor'],
+    ['distributor', '/super-admin'],
+    ['agent', '/distributor'],
     ['super_admin', '/school'],
-    ['gov_official', '/dealer'],
+    ['gov_official', '/distributor'],
   ] as [Role, string][])('%s is blocked from %s', (role, path) => {
     expect(canAccess(role, path)).toBe(false)
   })
 
   it('matches whole path segments, not string prefixes', () => {
-    expect(canAccess('dealer', '/dealership')).toBe(true) // not a protected group
+    expect(canAccess('distributor', '/distributorship')).toBe(true) // not a protected group
     expect(canAccess('school_owner', '/schools-public')).toBe(true) // not /school group
   })
 })

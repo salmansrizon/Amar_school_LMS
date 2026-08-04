@@ -2,6 +2,10 @@
 // derived platform summary. All amounts are poisha (integer minor units).
 import type { SupabaseClient } from '@supabase/supabase-js'
 
+// Re-exported from the shared money module so existing importers keep working
+// while distributor/school surfaces import formatTaka from '@/lib/money' directly.
+export { formatTaka } from '@/lib/money'
+
 export interface FinancialSummary {
   grossRevenue: number
   totalExpense: number
@@ -13,11 +17,6 @@ export interface FinancialSummary {
   smsIncome: number
   feeIncome: number
   paidInvoiceCount: number
-}
-
-/** Format poisha as a Bangladeshi Taka string. Pure. */
-export function formatTaka(poisha: number): string {
-  return `৳${(poisha / 100).toLocaleString('en-BD', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
 
 /** Load the super-admin financial summary from the ledger. */
