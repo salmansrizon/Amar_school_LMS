@@ -1,10 +1,11 @@
 import Link from 'next/link'
 import { getSuperAdminContext } from '@/lib/super-admin/context'
+import { PermissionToggle } from './permission-toggle'
 
 type Labelled = { key: string; label?: { en?: string; bn?: string } | null }
 
-// Roles / permissions matrix viewer (#271 / policy engine 0080). Renders the
-// role_permissions grants as a grid so the authz config is legible at a glance.
+// Roles / permissions matrix (#295 CRUD, over #271 viewer). Each cell toggles a
+// grant via the audited set_role_permission RPC.
 export default async function RolePermissionsPage() {
   const { supabase } = await getSuperAdminContext()
 
@@ -50,14 +51,14 @@ export default async function RolePermissionsPage() {
                     <div className="text-xs text-muted">{p.description}</div>
                   </td>
                   {roles?.map((r) => (
-                    <td key={r.key} className="py-2 px-3 text-center">
-                      {granted.has(`${r.key}::${p.key}`) ? (
-                        <span className="text-emerald-600" aria-label="granted">
-                          ✓
-                        </span>
-                      ) : (
-                        <span className="text-line-strong">·</span>
-                      )}
+                    <td key={r.key} className="px-3 py-1.5 text-center">
+                      <div className="flex justify-center">
+                        <PermissionToggle
+                          roleKey={r.key}
+                          permissionKey={p.key}
+                          granted={granted.has(`${r.key}::${p.key}`)}
+                        />
+                      </div>
                     </td>
                   ))}
                 </tr>
