@@ -49,6 +49,14 @@ export async function globalRecordSearch(query: string): Promise<RecordHit[]> {
     ])
     for (const s of students.data ?? []) hits.push({ label: s.full_name, sublabel: 'Student', href: `/school/students/${s.id}` })
     for (const e of emps.data ?? []) hits.push({ label: e.full_name, sublabel: 'Employee', href: `/school/employees/${e.id}` })
+  } else if (role === 'gov_official') {
+    // Territory schools (definer-scoped RPC), filtered by name in-memory; the gov
+    // landing lists them, so hits point there.
+    const { data } = await supabase.rpc('my_territory_schools')
+    const ql = q.toLowerCase()
+    for (const s of ((data ?? []) as { name?: string }[]).filter((s) => s.name?.toLowerCase().includes(ql)).slice(0, 8)) {
+      hits.push({ label: s.name ?? '', sublabel: 'School', href: '/gov' })
+    }
   }
 
   return hits.slice(0, 12)
