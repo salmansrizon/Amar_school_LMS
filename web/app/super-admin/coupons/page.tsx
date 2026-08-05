@@ -1,9 +1,10 @@
 import Link from 'next/link'
 import { getSuperAdminContext } from '@/lib/super-admin/context'
 import { formatTaka } from '@/lib/money'
+import { AddCouponForm, CouponRowActions } from './coupon-forms'
 
-// Coupons / discounts viewer (#271 / commission-settlement 0087). Lists the
-// discount codes, their type, value, scope and validity.
+// Coupons / discounts admin (#291 CRUD, over #271 viewer). Create/activate/delete
+// discount codes. RLS: "super admin manages discounts".
 export default async function CouponsPage() {
   const { supabase } = await getSuperAdminContext()
 
@@ -21,6 +22,11 @@ export default async function CouponsPage() {
         </Link>
       </div>
 
+      <section className="mb-6 rounded-lg border border-line bg-paper p-5 shadow-card">
+        <h2 className="mb-3 font-bold">Add a coupon</h2>
+        <AddCouponForm />
+      </section>
+
       <section className="rounded-lg border border-line bg-paper p-5 shadow-card">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
@@ -31,6 +37,7 @@ export default async function CouponsPage() {
                 <th className="py-2 pr-4">Value</th>
                 <th className="py-2 pr-4">Expires</th>
                 <th className="py-2 pr-4">Status</th>
+                <th className="py-2 pr-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-line">
@@ -51,11 +58,14 @@ export default async function CouponsPage() {
                       {c.active ? 'active' : 'inactive'}
                     </span>
                   </td>
+                  <td className="py-2 pr-4">
+                    <CouponRowActions code={c.code} active={c.active} />
+                  </td>
                 </tr>
               ))}
               {!coupons?.length && (
                 <tr>
-                  <td colSpan={5} className="py-6 text-center text-muted">
+                  <td colSpan={6} className="py-6 text-center text-muted">
                     No coupons defined.
                   </td>
                 </tr>
