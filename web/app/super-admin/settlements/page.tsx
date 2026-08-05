@@ -2,22 +2,25 @@ import Link from 'next/link'
 import { getSuperAdminContext } from '@/lib/super-admin/context'
 import { formatTaka } from '@/lib/money'
 import { accruedByDistributor } from '@/lib/super-admin/ledger-view'
+import { RunSettlementForm, ApproveSettlementButton } from './settlement-forms'
 
-// Settlements viewer (#271 / commission-settlement 0087). Distributor payout
-// periods plus the accrued-but-unsettled commission balance per distributor.
+// Settlements CRUD (#297, over #271 viewer). Run a settlement (bundles accrued
+// commissions) and approve/pay it (GL payout + SettlementCompleted) via RPC.
 export default async function SettlementsPage() {
   const { supabase } = await getSuperAdminContext()
 
-  const [{ data: settlements }, { data: commissions }] = await Promise.all([
+  const [{ data: settlements }, { data: commissions }, { data: distributors }] = await Promise.all([
     supabase
       .from('settlements')
       .select('id, distributor_id, period_start, period_end, total_amount, status, profiles(full_name)')
       .order('period_end', { ascending: false })
       .limit(100),
     supabase.from('commissions').select('distributor_id, commission_amount, status'),
+    supabase.from('profiles').select('id, full_name').eq('role', 'distributor').order('full_name'),
   ])
 
   const accrued = accruedByDistributor(commissions ?? [])
+  const distributorOptions = (distributors ?? []).map((d) => ({ id: d.id, name: d.full_name ?? d.id.slice(0, 8) }))
 
   const statusTone: Record<string, string> = {
     draft: 'bg-paper-muted text-ink',
@@ -36,6 +39,11 @@ export default async function SettlementsPage() {
         </Link>
       </div>
 
+      <section className="mb-6 rounded-lg border border-line bg-paper p-5 shadow-card">
+        <h2 className="mb-3 font-bold">Run a settlement</h2>
+        <RunSettlementForm distributors={distributorOptions} />
+      </section>
+
       <section className="rounded-lg border border-line bg-paper p-5 shadow-card">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
@@ -46,6 +54,7 @@ export default async function SettlementsPage() {
                 <th className="py-2 pr-4">Amount</th>
                 <th className="py-2 pr-4">Unsettled</th>
                 <th className="py-2 pr-4">Status</th>
+                <th className="py-2 pr-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-line">
@@ -69,11 +78,14 @@ export default async function SettlementsPage() {
                       {s.status}
                     </span>
                   </td>
+                  <td className="py-2 pr-4 text-right">
+                    {s.status === 'draft' && <ApproveSettlementButton id={s.id} />}
+                  </td>
                 </tr>
               ))}
               {!settlements?.length && (
                 <tr>
-                  <td colSpan={5} className="py-6 text-center text-muted">
+                  <td colSpan={6} className="py-6 text-center text-muted">
                     No settlements yet.
                   </td>
                 </tr>
