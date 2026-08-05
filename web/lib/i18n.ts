@@ -345,6 +345,12 @@ const dict = {
   // Owner-side SMS balance (map #171 T9)
   'sms.balance': { bn: 'SMS ব্যালেন্স', en: 'SMS balance' },
   'sms.creditsLeft': { bn: 'ক্রেডিট বাকি', en: 'credits left' },
+  'sms.buyTitle': { bn: 'এসএমএস প্যাকেজ কিনুন', en: 'Buy SMS package' },
+  'sms.buyMore': { bn: 'এসএমএস কিনুন', en: 'Buy SMS' },
+  'sms.buy': { bn: 'কিনুন', en: 'Buy' },
+  'sms.buyOwnerOnly': { bn: 'শুধু স্কুল মালিক এসএমএস প্যাকেজ কিনতে পারেন।', en: 'Only the school owner can buy SMS packages.' },
+  'sms.buyNone': { bn: 'কোনো প্যাকেজ নেই।', en: 'No packages available.' },
+  'sms.buyNote': { bn: 'কেনার সাথে একটি ইনভয়েস তৈরি হয় এবং সেগমেন্ট আপনার ওয়ালেটে যোগ হয়।', en: 'A purchase issues an invoice and adds the segments to your wallet.' },
   'sms.lowBalance': { bn: 'SMS ক্রেডিট কম — শীঘ্রই টপ-আপের জন্য অ্যাডমিনের সাথে যোগাযোগ করুন।', en: 'Low SMS balance — contact admin to top up soon.' },
   'sms.balanceEmpty': { bn: 'SMS ক্রেডিট শেষ — পাঠাতে অ্যাডমিনের কাছে টপ-আপ করান।', en: 'Out of SMS credit — ask admin to top up to keep sending.' },
 
