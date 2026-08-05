@@ -75,21 +75,38 @@ insert into public.partner_tasks (id, distributor_id, assignee_id, title, status
   ('dab00000-0000-4000-a000-000000000083', 'dab00000-0000-4000-a000-000000000060', 'dab00000-0000-4000-a000-000000000061', 'Onboarding walkthrough — Adarsha', 'done', now() - interval '3 days')
 on conflict (id) do nothing;
 
--- 5. Wallets + ledger (distributor commission balance + a school SMS balance)
-insert into public.wallets (id, wallet_type, owner_school_id, owner_profile_id) values
-  ('dab00000-0000-4000-a000-000000000090', 'distributor_commission', null, 'dab00000-0000-4000-a000-000000000060'),
-  ('dab00000-0000-4000-a000-000000000091', 'school_sms', 'dab00000-0000-4000-a000-000000000001', null)
-on conflict (id) do nothing;
+-- 5. Wallets + ledger (distributor commission balance + a school SMS balance).
+-- A school_sms wallet may already exist (unique wallet_type+owner_school_id), so
+-- resolve wallets by lookup and target their ledger rather than a fixed id.
+insert into public.wallets (id, wallet_type, owner_profile_id)
+values ('dab00000-0000-4000-a000-000000000090', 'distributor_commission', 'dab00000-0000-4000-a000-000000000060')
+on conflict do nothing;
 
-insert into public.wallet_ledger_entries (wallet_id, amount, quantity, ref, reason) values
-  ('dab00000-0000-4000-a000-000000000090', 350000, null, 'seed-comm-1', 'Commission accrued — Adarsha subscription'),
-  ('dab00000-0000-4000-a000-000000000090', 120000, null, 'seed-comm-2', 'Commission accrued — SMS pack sale'),
-  ('dab00000-0000-4000-a000-000000000090', -200000, null, 'seed-comm-payout-1', 'Settlement payout')
+insert into public.wallet_ledger_entries (wallet_id, amount, ref, reason)
+select w.id, v.amount, v.ref, v.reason
+from public.wallets w
+join (values
+  (350000::bigint, 'seed-comm-1', 'Commission accrued — Adarsha subscription'),
+  (120000::bigint, 'seed-comm-2', 'Commission accrued — SMS pack sale'),
+  (-200000::bigint, 'seed-comm-payout-1', 'Settlement payout')
+) as v(amount, ref, reason) on true
+where w.wallet_type = 'distributor_commission'
+  and w.owner_profile_id = 'dab00000-0000-4000-a000-000000000060'
 on conflict (wallet_id, ref) do nothing;
 
-insert into public.wallet_ledger_entries (wallet_id, amount, quantity, ref, reason) values
-  ('dab00000-0000-4000-a000-000000000091', null, 5000, 'seed-sms-topup', 'SMS package credited'),
-  ('dab00000-0000-4000-a000-000000000091', null, -320, 'seed-sms-usage-1', 'Absence SMS sent')
+insert into public.wallets (wallet_type, owner_school_id)
+values ('school_sms', 'dab00000-0000-4000-a000-000000000001')
+on conflict do nothing;
+
+insert into public.wallet_ledger_entries (wallet_id, quantity, ref, reason)
+select w.id, v.quantity, v.ref, v.reason
+from public.wallets w
+join (values
+  (5000, 'seed-sms-topup', 'SMS package credited'),
+  (-320, 'seed-sms-usage-1', 'Absence SMS sent')
+) as v(quantity, ref, reason) on true
+where w.wallet_type = 'school_sms'
+  and w.owner_school_id = 'dab00000-0000-4000-a000-000000000001'
 on conflict (wallet_id, ref) do nothing;
 
 -- 6. Coupons
