@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { getSuperAdminContext } from '@/lib/super-admin/context'
 import { formatTaka } from '@/lib/money'
+import { AddPackageForm, PackageRowActions, RateForm } from './sms-forms'
 
 type JsonText = { en?: string; bn?: string } | null
 const en = (x: JsonText, fallback: string) => x?.en ?? fallback
@@ -41,16 +42,24 @@ export default async function SmsCommercePage() {
       </div>
 
       <section className="mb-6 rounded-lg border border-line bg-paper p-5 shadow-card">
-        <h2 className="mb-3 font-bold">Segment rates</h2>
-        <div className="flex gap-3">
-          {rates?.map((r) => (
-            <div key={r.route} className="rounded-lg border border-line px-4 py-2">
-              <div className="text-xs text-muted">{r.route}</div>
-              <div className="font-bold">{formatTaka(r.amount)} / seg</div>
-            </div>
-          ))}
-          {!rates?.length && <p className="text-sm text-muted">No rates configured.</p>}
+        <h2 className="mb-3 font-bold">Segment rates (৳ per segment)</h2>
+        <div className="space-y-2">
+          {(['mask', 'non_mask'] as const).map((route) => {
+            const existing = rates?.find((r) => r.route === route)
+            return (
+              <RateForm
+                key={route}
+                route={route}
+                amountTaka={existing ? (existing.amount / 100).toString() : ''}
+              />
+            )
+          })}
         </div>
+      </section>
+
+      <section className="mb-6 rounded-lg border border-line bg-paper p-5 shadow-card">
+        <h2 className="mb-3 font-bold">Add a package</h2>
+        <AddPackageForm />
       </section>
 
       <section className="mb-6 rounded-lg border border-line bg-paper p-5 shadow-card">
@@ -63,6 +72,7 @@ export default async function SmsCommercePage() {
                 <th className="py-2 pr-4">Segments</th>
                 <th className="py-2 pr-4">Price</th>
                 <th className="py-2 pr-4">Status</th>
+                <th className="py-2 pr-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-line">
@@ -78,11 +88,14 @@ export default async function SmsCommercePage() {
                       {p.active ? 'active' : 'inactive'}
                     </span>
                   </td>
+                  <td className="py-2 pr-4">
+                    <PackageRowActions id={p.id} active={p.active} />
+                  </td>
                 </tr>
               ))}
               {!packages?.length && (
                 <tr>
-                  <td colSpan={4} className="py-6 text-center text-muted">
+                  <td colSpan={5} className="py-6 text-center text-muted">
                     No packages defined.
                   </td>
                 </tr>
