@@ -3,17 +3,24 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { t, type Lang } from '@/lib/i18n'
-import { canOpenScreen, type ScreenKey } from '@/lib/auth/screens'
-import { SCHOOL_SEARCH, type SearchEntry } from '@/lib/school-search'
 import { Icon } from '@/components/school-icons'
-import type { Role } from '@/lib/auth/routing'
 
-// Global-search command palette. Filters the feature index (SCHOOL_SEARCH) by
-// keyword match in the active language, shows recommendations when empty, and
-// navigates straight to the chosen feature. Keyboard: ↑↓ move, Enter open, Esc close.
+// Global-search command palette (#286). Source-agnostic: it filters a list of
+// PaletteEntry (label + keywords + href + icon) supplied by the caller, so every
+// role feeds its own index — school passes its rich feature index, other roles
+// pass their nav sections (AppShell derives those automatically). Shows
+// recommendations when empty and navigates to the chosen entry. Keyboard: ↑↓
+// move, Enter open, Esc close.
 
-function score(entry: SearchEntry, query: string, lang: Lang): number {
-  const label = t(entry.titleKey, lang).toLowerCase()
+export interface PaletteEntry {
+  label: string
+  keywords: string[]
+  href: string
+  icon: React.ReactNode
+}
+
+function score(entry: PaletteEntry, query: string): number {
+  const label = entry.label.toLowerCase()
   if (label.startsWith(query)) return 3
   if (label.includes(query)) return 2
   if ([label, ...entry.keywords].join(' ').toLowerCase().includes(query)) return 1
@@ -23,13 +30,11 @@ function score(entry: SearchEntry, query: string, lang: Lang): number {
 // Rendered only while open (parent mounts/unmounts it), so state starts fresh
 // each time and there is no setState-in-effect reset.
 export function SearchPalette({
-  role,
-  grants,
+  entries,
   lang,
   onClose,
 }: {
-  role: Role
-  grants: readonly string[]
+  entries: PaletteEntry[]
   lang: Lang
   onClose: () => void
 }) {
@@ -38,23 +43,17 @@ export function SearchPalette({
   const [active, setActive] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  const available = useMemo(
-    () => SCHOOL_SEARCH.filter((e) => e.screen === 'dashboard' || canOpenScreen(role, grants, e.screen as ScreenKey)),
-    [role, grants],
-  )
-
   const results = useMemo(() => {
     const query = q.trim().toLowerCase()
-    if (!query) return available.slice(0, 6) // recommendations
-    return available
-      .map((e) => ({ e, s: score(e, query, lang) }))
+    if (!query) return entries.slice(0, 6) // recommendations
+    return entries
+      .map((e) => ({ e, s: score(e, query) }))
       .filter((x) => x.s >= 0)
       .sort((a, b) => b.s - a.s)
       .slice(0, 8)
       .map((x) => x.e)
-  }, [q, available, lang])
+  }, [q, entries])
 
-  // Focus the input on mount (DOM side effect only — no setState).
   useEffect(() => {
     inputRef.current?.focus()
   }, [])
@@ -65,9 +64,6 @@ export function SearchPalette({
   }
 
   return (
-    // On phones the palette sits just below the top edge instead of 12vh down:
-    // the on-screen keyboard eats the lower half of the viewport, so a tall top
-    // offset pushed the input and results out of reach (issue #118).
     <div
       className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 p-3 pt-4 sm:p-4 sm:pt-[12vh]"
       role="dialog"
@@ -75,9 +71,6 @@ export function SearchPalette({
       aria-label={t('shell.search', lang)}
       onClick={onClose}
     >
-      {/* Height is capped to the *visible* viewport (dvh) and the panel is a
-          flex column, so the input and hint stay pinned while only the results
-          scroll — however little room the keyboard leaves. */}
       <div
         className="flex max-h-[calc(100dvh-2rem)] w-full max-w-xl flex-col overflow-hidden rounded-2xl border border-line bg-paper shadow-xl sm:max-h-[76dvh]"
         onClick={(e) => e.stopPropagation()}
@@ -129,9 +122,9 @@ export function SearchPalette({
                 }`}
               >
                 <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
-                  <Icon name={e.screen} className="size-4" />
+                  {e.icon}
                 </span>
-                <span className="truncate">{t(e.titleKey, lang)}</span>
+                <span className="truncate">{e.label}</span>
                 <Icon name="chevronRight" className="ml-auto size-4 shrink-0 text-muted" />
               </button>
             </li>
