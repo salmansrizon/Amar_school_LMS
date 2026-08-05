@@ -6,6 +6,7 @@ import { t } from '@/lib/i18n'
 import { getSuperAdminContext } from '@/lib/super-admin/context'
 import { AddAssignmentForm } from './assignment-controls'
 import { AssignmentList, type AssignmentRow } from './assignment-list'
+import { StatusControls } from './status-controls'
 
 export default async function PartnerAssignmentsPage({
   params,
@@ -25,15 +26,21 @@ export default async function PartnerAssignmentsPage({
     .single()
   if (!partner) notFound()
 
-  const [{ data: assignments }, { data: locations }, { data: schools }] = await Promise.all([
-    supabase
-      .from('territory_assignments')
-      .select('id, tier, locations(name, type), schools(name)')
-      .eq('assignee_id', id)
-      .order('created_at'),
-    supabase.from('locations').select('id, name, type, parent_id').order('name'),
-    supabase.from('schools').select('id, name').order('name'),
-  ])
+  const [{ data: assignments }, { data: locations }, { data: schools }, { data: profile }] =
+    await Promise.all([
+      supabase
+        .from('territory_assignments')
+        .select('id, tier, locations(name, type), schools(name)')
+        .eq('assignee_id', id)
+        .order('created_at'),
+      supabase.from('locations').select('id, name, type, parent_id').order('name'),
+      supabase.from('schools').select('id, name').order('name'),
+      supabase
+        .from('distributor_profiles')
+        .select('trade_license, nid, bank_details, agreement_status, agreement_signed_at, status')
+        .eq('profile_id', id)
+        .maybeSingle(),
+    ])
 
   return (
     <main className="mx-auto w-full max-w-2xl flex-1 p-6">
@@ -45,6 +52,42 @@ export default async function PartnerAssignmentsPage({
           ← {t('partners.list', lang)}
         </Link>
       </div>
+
+      <section className="mb-6 rounded-lg border border-line bg-paper p-5 shadow-card">
+        <h2 className="mb-3 font-bold">KYC &amp; lifecycle</h2>
+        <dl className="mb-4 grid grid-cols-2 gap-3 text-sm">
+          <div>
+            <dt className="text-muted">Trade license</dt>
+            <dd className="font-medium">{profile?.trade_license ?? '—'}</dd>
+          </div>
+          <div>
+            <dt className="text-muted">NID</dt>
+            <dd className="font-medium">{profile?.nid ?? '—'}</dd>
+          </div>
+          <div>
+            <dt className="text-muted">Agreement</dt>
+            <dd className="font-medium">
+              {profile?.agreement_status ?? 'pending'}
+              {profile?.agreement_signed_at
+                ? ` · ${new Date(profile.agreement_signed_at).toLocaleDateString('en-GB')}`
+                : ''}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-muted">Bank</dt>
+            <dd className="font-medium">
+              {profile?.bank_details && Object.keys(profile.bank_details).length
+                ? JSON.stringify(profile.bank_details)
+                : '—'}
+            </dd>
+          </div>
+        </dl>
+        {profile ? (
+          <StatusControls distributor={partner.id} current={profile.status} />
+        ) : (
+          <p className="text-sm text-muted">No distributor profile record.</p>
+        )}
+      </section>
 
       <section className="mb-6 rounded-lg border border-line bg-paper p-5 shadow-card">
         <AddAssignmentForm
