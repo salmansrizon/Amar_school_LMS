@@ -345,6 +345,11 @@ const dict = {
   // Owner-side SMS balance (map #171 T9)
   'sms.balance': { bn: 'SMS ব্যালেন্স', en: 'SMS balance' },
   'sms.creditsLeft': { bn: 'ক্রেডিট বাকি', en: 'credits left' },
+  'approvals.title': { bn: 'অনুমোদন', en: 'Approvals' },
+  'approvals.approve': { bn: 'অনুমোদন', en: 'Approve' },
+  'approvals.reject': { bn: 'প্রত্যাখ্যান', en: 'Reject' },
+  'approvals.comment': { bn: 'মন্তব্য (ঐচ্ছিক)', en: 'Comment (optional)' },
+  'approvals.none': { bn: 'কোনো অপেক্ষমাণ অনুমোদন নেই', en: 'No pending approvals' },
   'sms.buyTitle': { bn: 'এসএমএস প্যাকেজ কিনুন', en: 'Buy SMS package' },
   'sms.buyMore': { bn: 'এসএমএস কিনুন', en: 'Buy SMS' },
   'sms.buy': { bn: 'কিনুন', en: 'Buy' },

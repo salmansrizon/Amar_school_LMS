@@ -241,6 +241,17 @@ export default async function SchoolHome() {
                 {t(q.labelKey, lang)}
               </Link>
             ))}
+            {role === 'school_owner' && (
+              <Link
+                href="/school/approvals"
+                className="flex min-h-11 items-center gap-3 whitespace-nowrap rounded-xl border border-line-strong bg-paper px-4 py-3 text-sm font-semibold text-ink shadow-sm transition hover:border-brand-300 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 focus-visible:ring-offset-2"
+              >
+                <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
+                  <Icon name="notices" className="size-4" />
+                </span>
+                {t('approvals.title', lang)}
+              </Link>
+            )}
           </div>
         </section>
       </div>
