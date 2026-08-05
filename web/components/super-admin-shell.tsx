@@ -136,6 +136,7 @@ const NAV: { href: string; labelKey: MessageKey; icon: React.ReactNode }[] = [
   { href: '/super-admin', labelKey: 'sa.nav.dashboard', icon: Icons.dashboard },
   { href: '/super-admin/schools', labelKey: 'sa.nav.schools', icon: Icons.school },
   { href: '/super-admin/partners', labelKey: 'sa.nav.distributors', icon: Icons.distributor },
+  { href: '/super-admin/agreements', labelKey: 'sa.nav.agreements', icon: Icons.auditLog },
   { href: '/super-admin/codes', labelKey: 'sa.nav.codes', icon: Icons.codes },
   { href: '/super-admin/gov-officials', labelKey: 'sa.nav.gov', icon: Icons.gov },
   { href: '/super-admin/agents', labelKey: 'sa.nav.agents', icon: Icons.roles },
