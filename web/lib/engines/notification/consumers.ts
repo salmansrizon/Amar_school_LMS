@@ -7,6 +7,7 @@ import { cronClient, reconcileSecret } from '@/lib/cron/job'
 import { subscribe } from '@/lib/engines/events/registry'
 import { createNotificationEngine } from './engine'
 import { expiringSoonNotification, type SubscriptionExpiringSoonPayload } from './events'
+import { formatTaka } from '@/lib/money'
 
 let registered = false
 
@@ -60,6 +61,38 @@ export function registerNotificationConsumers(): void {
       recipientId: payload.distributor,
       templateKey: 'distributor_approved',
       data: {},
+      channels: ['in_app'],
+    })
+  })
+
+  // A commission accrual notifies the earning distributor (#306). Payload carries
+  // {distributor, amount} (poisha).
+  subscribe('CommissionCalculated', async (event) => {
+    const payload = event.payload as { distributor?: string; amount?: number }
+    if (!payload.distributor) return
+    const client = cronClient()
+    const secret = reconcileSecret()
+    await createNotificationEngine(client, secret).send({
+      schoolId: null,
+      recipientId: payload.distributor,
+      templateKey: 'commission_accrued',
+      data: { amount: formatTaka(payload.amount ?? 0) },
+      channels: ['in_app'],
+    })
+  })
+
+  // A completed settlement notifies the paid distributor (#306). Payload carries
+  // {distributor, amount} (poisha).
+  subscribe('SettlementCompleted', async (event) => {
+    const payload = event.payload as { distributor?: string; amount?: number }
+    if (!payload.distributor) return
+    const client = cronClient()
+    const secret = reconcileSecret()
+    await createNotificationEngine(client, secret).send({
+      schoolId: null,
+      recipientId: payload.distributor,
+      templateKey: 'settlement_paid',
+      data: { amount: formatTaka(payload.amount ?? 0) },
       channels: ['in_app'],
     })
   })
