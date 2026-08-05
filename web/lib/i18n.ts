@@ -39,6 +39,7 @@ const dict = {
   'shell.comingSoon': { bn: 'শীঘ্রই আসছে', en: 'coming soon' },
   'search.suggested': { bn: 'প্রস্তাবিত', en: 'Suggested' },
   'search.noResults': { bn: 'কোনো ফলাফল নেই', en: 'No matches' },
+  'search.records': { bn: 'রেকর্ড', en: 'Records' },
   'search.hint': { bn: 'নেভিগেট করতে ↑↓, খুলতে Enter', en: '↑↓ to navigate, Enter to open' },
   'dash.viewAll': { bn: 'সব দেখুন', en: 'View All' },
   'activity.title': { bn: 'সকল কার্যক্রম', en: 'All Activity' },

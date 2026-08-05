@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { t, type Lang } from '@/lib/i18n'
 import { Icon } from '@/components/school-icons'
+import { globalRecordSearch, type RecordHit } from '@/lib/search/actions'
 
 // Global-search command palette (#286). Source-agnostic: it filters a list of
 // PaletteEntry (label + keywords + href + icon) supplied by the caller, so every
@@ -41,7 +42,35 @@ export function SearchPalette({
   const router = useRouter()
   const [q, setQ] = useState('')
   const [active, setActive] = useState(0)
+  const [records, setRecords] = useState<RecordHit[]>([])
   const inputRef = useRef<HTMLInputElement>(null)
+
+  // Debounced dynamic record search (#304): infer role server-side, RLS-scoped.
+  // All setState happens inside the async timer (never synchronously in the effect).
+  useEffect(() => {
+    const query = q.trim()
+    let cancelled = false
+    const timer = setTimeout(
+      () => {
+        if (query.length < 2) {
+          if (!cancelled) setRecords([])
+          return
+        }
+        globalRecordSearch(query)
+          .then((hits) => {
+            if (!cancelled) setRecords(hits)
+          })
+          .catch(() => {
+            if (!cancelled) setRecords([])
+          })
+      },
+      query.length < 2 ? 0 : 250,
+    )
+    return () => {
+      cancelled = true
+      clearTimeout(timer)
+    }
+  }, [q])
 
   const results = useMemo(() => {
     const query = q.trim().toLowerCase()
@@ -110,7 +139,9 @@ export function SearchPalette({
         )}
 
         <ul className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-2">
-          {results.length === 0 && <li className="px-3 py-6 text-center text-sm text-muted">{t('search.noResults', lang)}</li>}
+          {results.length === 0 && records.length === 0 && (
+            <li className="px-3 py-6 text-center text-sm text-muted">{t('search.noResults', lang)}</li>
+          )}
           {results.map((e, i) => (
             <li key={e.href}>
               <button
@@ -126,6 +157,27 @@ export function SearchPalette({
                 </span>
                 <span className="truncate">{e.label}</span>
                 <Icon name="chevronRight" className="ml-auto size-4 shrink-0 text-muted" />
+              </button>
+            </li>
+          ))}
+
+          {records.length > 0 && (
+            <li className="px-3 pb-1 pt-3 text-xs font-semibold uppercase tracking-wide text-muted">
+              {t('search.records', lang)}
+            </li>
+          )}
+          {records.map((r) => (
+            <li key={`${r.sublabel}:${r.href}:${r.label}`}>
+              <button
+                type="button"
+                onClick={() => go(r.href)}
+                className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm transition text-ink hover:bg-brand-50/60"
+              >
+                <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-paper-muted text-[10px] font-bold text-muted">
+                  {r.sublabel.slice(0, 2)}
+                </span>
+                <span className="min-w-0 flex-1 truncate font-semibold">{r.label}</span>
+                <span className="shrink-0 text-xs text-muted">{r.sublabel}</span>
               </button>
             </li>
           ))}
