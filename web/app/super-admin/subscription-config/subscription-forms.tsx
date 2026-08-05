@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useTransition } from 'react'
 import { useCrudAction } from '@/lib/crud/use-crud-action'
+import { MatrixToggle } from '@/components/matrix-toggle'
 import { setPricing, createPlan, deletePlan, setPlanFeature } from './actions'
 
 const input = 'h-10 rounded-lg border border-line-strong px-3 text-sm focus:border-brand-500 focus:outline-none'
@@ -74,31 +74,12 @@ export function PlanFeatureToggle({
   featureKey: string
   granted: boolean
 }) {
-  const [on, setOn] = useState(granted)
-  const [pending, startTransition] = useTransition()
-  function toggle() {
-    const next = !on
-    setOn(next)
-    const d = new FormData()
-    d.set('plan_key', planKey)
-    d.set('feature_key', featureKey)
-    d.set('granted', String(next))
-    startTransition(async () => {
-      const res = await setPlanFeature(d)
-      if (res.error) setOn(!next)
-    })
-  }
   return (
-    <button
-      type="button"
-      disabled={pending}
-      onClick={toggle}
-      aria-pressed={on}
-      className={`grid size-7 place-items-center rounded-md text-sm font-bold transition disabled:opacity-50 ${
-        on ? 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'text-line-strong hover:bg-paper-muted'
-      }`}
-    >
-      {on ? '✓' : '·'}
-    </button>
+    <MatrixToggle
+      on={granted}
+      fields={{ plan_key: planKey, feature_key: featureKey }}
+      action={setPlanFeature}
+      ariaLabel={`${granted ? 'Remove' : 'Add'} ${featureKey} on ${planKey}`}
+    />
   )
 }

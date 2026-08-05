@@ -26,19 +26,28 @@ export async function globalRecordSearch(query: string): Promise<RecordHit[]> {
   const hits: RecordHit[] = []
 
   if (role === 'super_admin') {
-    const [schools, dists, agents, invs] = await Promise.all([
+    const [schools, dists, agents, govs, invs] = await Promise.all([
       supabase.from('schools').select('id, name').ilike('name', like).limit(5),
-      supabase.from('profiles').select('id, full_name').eq('role', 'distributor').ilike('full_name', like).limit(5),
+      supabase.from('profiles').select('id, full_name').eq('role', 'distributor').ilike('full_name', like).limit(4),
       supabase.from('profiles').select('id, full_name').eq('role', 'agent').ilike('full_name', like).limit(4),
+      supabase.from('profiles').select('id, full_name').eq('role', 'gov_official').ilike('full_name', like).limit(3),
       supabase.from('invoices').select('id, number').ilike('number', like).limit(4),
     ])
     for (const s of schools.data ?? []) hits.push({ label: s.name, sublabel: 'School', href: `/super-admin/schools/${s.id}` })
     for (const d of dists.data ?? []) hits.push({ label: d.full_name ?? d.id, sublabel: 'Distributor', href: `/super-admin/partners/${d.id}` })
     for (const a of agents.data ?? []) hits.push({ label: a.full_name ?? a.id, sublabel: 'Agent', href: `/super-admin/agents/${a.id}` })
+    for (const g of govs.data ?? []) hits.push({ label: g.full_name ?? g.id, sublabel: 'Gov official', href: `/super-admin/gov-officials/${g.id}` })
     for (const i of invs.data ?? []) hits.push({ label: i.number, sublabel: 'Invoice', href: '/super-admin/invoices' })
   } else if (role === 'distributor') {
-    const leads = await supabase.from('leads').select('id, school_name').ilike('school_name', like).limit(8)
+    const [leads, territory] = await Promise.all([
+      supabase.from('leads').select('id, school_name').ilike('school_name', like).limit(6),
+      supabase.rpc('my_territory_schools'),
+    ])
     for (const l of leads.data ?? []) hits.push({ label: l.school_name, sublabel: 'Lead', href: `/distributor/crm/${l.id}` })
+    const ql = q.toLowerCase()
+    for (const s of ((territory.data ?? []) as { name?: string }[]).filter((s) => s.name?.toLowerCase().includes(ql)).slice(0, 4)) {
+      hits.push({ label: s.name ?? '', sublabel: 'Territory school', href: '/distributor' })
+    }
   } else if (role === 'agent') {
     const tasks = await supabase.from('partner_tasks').select('id, title').ilike('title', like).limit(8)
     for (const t of tasks.data ?? []) hits.push({ label: t.title, sublabel: 'Task', href: `/agent/tasks/${t.id}` })

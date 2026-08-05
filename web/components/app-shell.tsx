@@ -89,7 +89,7 @@ function NavLinks({
   }
 
   return (
-    <nav className="flex flex-col gap-1" aria-label={t('shell.search', lang) && undefined}>
+    <nav className="flex flex-col gap-1" aria-label={t('shell.nav', lang)}>
       {nav.map((item) => (
         <div key={item.href} className="flex flex-col gap-1">
           {renderLink(item)}
