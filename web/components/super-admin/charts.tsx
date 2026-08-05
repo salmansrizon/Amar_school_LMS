@@ -17,6 +17,13 @@ export function BarTrend({
   formatValue: (n: number) => string
 }) {
   const max = Math.max(1, ...data.map((d) => d.total))
+  if (!data.length || data.every((d) => d.total === 0)) {
+    return (
+      <div className="flex h-40 items-center justify-center rounded-lg border border-dashed border-line text-sm text-muted">
+        No revenue in this period yet
+      </div>
+    )
+  }
   return (
     <div className="flex h-40 items-end gap-1.5 sm:gap-2">
       {data.map((d) => {
