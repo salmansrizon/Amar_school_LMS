@@ -68,6 +68,7 @@ const dict = {
   'home.agent': { bn: 'এজেন্ট ড্যাশবোর্ড', en: 'Agent Dashboard' },
   'agent.nav.dashboard': { bn: 'ড্যাশবোর্ড', en: 'Dashboard' },
   'agent.nav.tasks': { bn: 'কাজ', en: 'Tasks' },
+  'gov.nav.dashboard': { bn: 'ড্যাশবোর্ড', en: 'Dashboard' },
   'home.superAdmin': { bn: 'সুপার অ্যাডমিন', en: 'Super Admin' },
   'home.gov': { bn: 'সরকারি পর্যবেক্ষণ', en: 'Government Oversight' },
   'home.placeholder': {

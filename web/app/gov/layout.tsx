@@ -3,19 +3,20 @@ import { sidebarCollapsed } from '@/lib/ui-prefs-server'
 import { AppShell, type AppNavItem } from '@/components/app-shell'
 import { StrokeIcon } from '@/components/stroke-icon'
 import { t } from '@/lib/i18n'
-import { getAgentContext } from '@/lib/agent/context'
+import { getGovContext } from '@/lib/gov/context'
 
-// /agent/* chrome — the shared AppShell (#285). contentContainer is false because
-// each agent page renders its own <main>. Search + notifications per-role: #286/#287.
-export default async function AgentLayout({ children }: { children: React.ReactNode }) {
+// /gov/* chrome — the shared AppShell (#285). Gov had no shell before; it now
+// joins the unified webframe. contentContainer is false (the page owns its <main>).
+// Its search + notification sources land in #286 / #287; deeper gov surface in #298.
+export default async function GovLayout({ children }: { children: React.ReactNode }) {
   const lang = await currentLang()
   const collapsed = await sidebarCollapsed()
-  const { fullName } = await getAgentContext()
+  const { fullName } = await getGovContext()
 
   const nav: AppNavItem[] = [
     {
-      href: '/agent',
-      label: t('agent.nav.dashboard', lang),
+      href: '/gov',
+      label: t('gov.nav.dashboard', lang),
       matchExact: true,
       icon: (
         <StrokeIcon className="size-5">
@@ -26,21 +27,11 @@ export default async function AgentLayout({ children }: { children: React.ReactN
         </StrokeIcon>
       ),
     },
-    {
-      href: '/agent/tasks',
-      label: t('agent.nav.tasks', lang),
-      icon: (
-        <StrokeIcon className="size-5">
-          <path d="M9 11l3 3L22 4" />
-          <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
-        </StrokeIcon>
-      ),
-    },
   ]
 
   return (
     <AppShell
-      brand={{ title: t('app.name', lang), subtitle: t('home.agent', lang), initial: 'E' }}
+      brand={{ title: t('app.name', lang), subtitle: t('home.gov', lang), initial: 'E' }}
       nav={nav}
       profile={{ fullName, label: t('shell.profile', lang) }}
       lang={lang}
