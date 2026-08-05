@@ -10,6 +10,7 @@ import { t, type Lang } from '@/lib/i18n'
 import { FOCUS_RING, ICON_BUTTON } from '@/lib/ui-tokens'
 import { avatarInitials } from '@/lib/name'
 import { sidebarCookieAssignment } from '@/lib/ui-prefs'
+import { SearchPalette, type PaletteEntry } from '@/components/search-palette'
 
 // The single, config-driven application shell (#285, map #284). Every role group
 // renders THIS — one webframe: collapsible sidebar nav + topbar (search slot,
@@ -218,8 +219,17 @@ export function AppShell({
       return next
     })
 
+  // Search source: an explicit slot (school's rich feature index) wins; otherwise
+  // derive a nav-section index so every role gets ⌘K search for free (#286).
+  const navEntries: PaletteEntry[] = nav.flatMap((item) => [
+    { label: item.label, keywords: [item.label], href: item.href, icon: item.icon },
+    ...(item.children ?? []).map((c) => ({ label: c.label, keywords: [c.label], href: c.href, icon: c.icon })),
+  ])
+  const hasSearch = Boolean(search) || navEntries.length > 0
+  const searchLabel = search?.label ?? t('shell.search', lang)
+
   useEffect(() => {
-    if (!search) return
+    if (!hasSearch) return
     const onKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault()
@@ -228,7 +238,7 @@ export function AppShell({
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [search])
+  }, [hasSearch])
 
   return (
     <div className="relative flex h-dvh overflow-hidden print:block print:h-auto print:overflow-visible">
@@ -285,11 +295,11 @@ export function AppShell({
               <Icon name="menu" className="size-5" />
             </button>
 
-            {search ? (
+            {hasSearch ? (
               <>
                 <button
                   type="button"
-                  aria-label={search.label}
+                  aria-label={searchLabel}
                   onClick={() => setSearchOpen(true)}
                   className={`${ICON_BUTTON} border border-line-strong text-muted hover:bg-brand-50 hover:text-brand-600 md:hidden`}
                 >
@@ -297,12 +307,12 @@ export function AppShell({
                 </button>
                 <button
                   type="button"
-                  aria-label={search.label}
+                  aria-label={searchLabel}
                   onClick={() => setSearchOpen(true)}
                   className="relative hidden min-h-11 flex-1 cursor-text items-center rounded-full border border-line bg-paper-muted py-2.5 pl-11 pr-4 text-left text-sm text-muted transition hover:border-brand-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 md:flex lg:max-w-md"
                 >
                   <Icon name="search" className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-muted" />
-                  <span className="truncate">{search.label}</span>
+                  <span className="truncate">{searchLabel}</span>
                   <kbd className="ml-auto hidden shrink-0 rounded border border-line-strong bg-paper px-1.5 py-0.5 text-[10px] font-semibold text-muted lg:inline">⌘K</kbd>
                 </button>
               </>
@@ -362,7 +372,11 @@ export function AppShell({
         </div>
       </div>
 
-      {search && searchOpen && search.render(() => setSearchOpen(false))}
+      {hasSearch &&
+        searchOpen &&
+        (search
+          ? search.render(() => setSearchOpen(false))
+          : <SearchPalette entries={navEntries} lang={lang} onClose={() => setSearchOpen(false)} />)}
     </div>
   )
 }

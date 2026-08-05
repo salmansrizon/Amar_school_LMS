@@ -3,8 +3,9 @@
 import Link from 'next/link'
 import { AppShell, type AppNavItem } from '@/components/app-shell'
 import { Icon } from '@/components/school-icons'
-import { SearchPalette } from '@/components/search-palette'
+import { SearchPalette, type PaletteEntry } from '@/components/search-palette'
 import { NotificationBell } from '@/components/notification-bell'
+import { SCHOOL_SEARCH } from '@/lib/school-search'
 import { t, type Lang } from '@/lib/i18n'
 import { FOCUS_RING, ICON_BUTTON } from '@/lib/ui-tokens'
 import { canOpenScreen } from '@/lib/auth/screens'
@@ -90,6 +91,16 @@ export function SchoolShell({
   const nav = buildSchoolNav(role, grants, lang, enabledFeatures)
   const canAddStudent = canOpenScreen(role, grants, 'students')
 
+  // School keeps its rich feature index (keywords per screen), grant-filtered.
+  const searchEntries: PaletteEntry[] = SCHOOL_SEARCH.filter(
+    (e) => e.screen === 'dashboard' || canOpenScreen(role, grants, e.screen as ScreenKey),
+  ).map((e) => ({
+    label: t(e.titleKey, lang),
+    keywords: e.keywords,
+    href: e.href,
+    icon: <Icon name={e.screen} className="size-4" />,
+  }))
+
   const footerCta = canAddStudent ? (
     <Link
       href="/school/students/new"
@@ -121,7 +132,7 @@ export function SchoolShell({
       initialCollapsed={initialCollapsed}
       search={{
         label: t('shell.search', lang),
-        render: (onClose) => <SearchPalette role={role} grants={grants} lang={lang} onClose={onClose} />,
+        render: (onClose) => <SearchPalette entries={searchEntries} lang={lang} onClose={onClose} />,
       }}
       bell={<NotificationBell lang={lang} buttonClass={ICON_BUTTON} />}
       topbarExtras={topbarExtras}
