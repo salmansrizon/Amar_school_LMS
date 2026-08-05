@@ -31,6 +31,7 @@ const dict = {
   'shell.search': { bn: 'গ্লোবাল টাস্ক খুঁজুন...', en: 'Search global tasks...' },
   'shell.addStudent': { bn: 'শিক্ষার্থী যোগ করুন', en: 'Add Student' },
   'shell.notifications': { bn: 'বিজ্ঞপ্তি', en: 'Notifications' },
+  'shell.nav': { bn: 'প্রধান নেভিগেশন', en: 'Main navigation' },
   'shell.help': { bn: 'সহায়তা', en: 'Help' },
   'shell.chat': { bn: 'চ্যাট', en: 'Chat' },
   'shell.profile': { bn: 'প্রোফাইল', en: 'Profile' },
