@@ -71,6 +71,8 @@ const dict = {
   'agent.nav.dashboard': { bn: 'ড্যাশবোর্ড', en: 'Dashboard' },
   'agent.nav.tasks': { bn: 'কাজ', en: 'Tasks' },
   'gov.nav.dashboard': { bn: 'ড্যাশবোর্ড', en: 'Dashboard' },
+  'gov.kpi.schools': { bn: 'অঞ্চলের স্কুল', en: 'Schools in territory' },
+  'gov.kpi.extended': { bn: 'বর্ধিত অ্যাক্সেস', en: 'Extended access' },
   'notif.none': { bn: 'কোনো নোটিফিকেশন নেই', en: 'No notifications' },
   'notif.markAll': { bn: 'সব পঠিত চিহ্নিত করুন', en: 'Mark all read' },
   'home.superAdmin': { bn: 'সুপার অ্যাডমিন', en: 'Super Admin' },
