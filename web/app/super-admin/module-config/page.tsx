@@ -1,10 +1,11 @@
 import Link from 'next/link'
 import { getSuperAdminContext } from '@/lib/super-admin/context'
+import { AddModuleForm, DeleteModuleButton, AddFeatureForm, FeatureRowActions } from './module-forms'
 
 type Labelled = { key: string; label?: { en?: string; bn?: string } | null }
 
-// Module / feature config viewer (#271 / feature engine 0081). Shows the module
-// tree, each feature's default state, and its dependency edges.
+// Modules / features config CRUD (#293, over #271 viewer). Create/delete modules
+// + features, set each feature's default state, and manage dependency edges.
 export default async function ModuleConfigPage() {
   const { supabase } = await getSuperAdminContext()
 
@@ -19,16 +20,10 @@ export default async function ModuleConfigPage() {
     depsByFeature.set(d.feature_key, [...(depsByFeature.get(d.feature_key) ?? []), d.depends_on_key])
   }
   const label = (x: Labelled) => x.label?.en ?? x.key
-
-  const stateTone: Record<string, string> = {
-    active: 'bg-emerald-50 text-emerald-700',
-    disabled: 'bg-alert-soft text-alert-deep',
-    trial: 'bg-amber-50 text-amber-700',
-    premium: 'bg-brand-50 text-brand-700',
-  }
+  const depOptions = (features ?? []).map((f) => ({ key: f.key, label: label(f as Labelled) }))
 
   return (
-    <main className="mx-auto w-full max-w-3xl flex-1 p-6">
+    <main className="mx-auto w-full max-w-4xl flex-1 p-6">
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold">Modules &amp; Features</h1>
         <Link href="/super-admin" className="text-sm text-brand-600 hover:underline">
@@ -36,36 +31,45 @@ export default async function ModuleConfigPage() {
         </Link>
       </div>
 
+      <section className="mb-6 rounded-lg border border-line bg-paper p-5 shadow-card">
+        <h2 className="mb-3 font-bold">Add a module</h2>
+        <AddModuleForm />
+      </section>
+
       <div className="space-y-4">
         {modules?.map((m) => (
           <section key={m.key} className="rounded-lg border border-line bg-paper p-5 shadow-card">
-            <h2 className="mb-3 font-bold">{label(m as Labelled)}</h2>
+            <div className="mb-3 flex items-center justify-between gap-2">
+              <h2 className="font-bold">
+                {label(m as Labelled)} <span className="font-mono text-xs font-normal text-muted">{m.key}</span>
+              </h2>
+              <DeleteModuleButton moduleKey={m.key} />
+            </div>
             <ul className="divide-y divide-line">
               {features
                 ?.filter((f) => f.module_key === m.key)
                 .map((f) => (
-                  <li key={f.key} className="flex flex-wrap items-center justify-between gap-2 py-2">
+                  <li key={f.key} className="flex flex-wrap items-start justify-between gap-2 py-2">
                     <div>
                       <div className="text-sm font-medium">{label(f as Labelled)}</div>
-                      {depsByFeature.get(f.key)?.length ? (
-                        <div className="text-xs text-muted">
-                          depends on: {depsByFeature.get(f.key)!.join(', ')}
-                        </div>
-                      ) : null}
+                      <div className="font-mono text-xs text-muted">{f.key}</div>
                     </div>
-                    <span
-                      className={`rounded-full px-2 py-0.5 text-xs font-semibold ${stateTone[f.default_state] ?? 'bg-paper-muted text-ink'}`}
-                    >
-                      {f.default_state}
-                    </span>
+                    <FeatureRowActions
+                      featureKey={f.key}
+                      state={f.default_state}
+                      depOptions={depOptions}
+                      currentDeps={depsByFeature.get(f.key) ?? []}
+                    />
                   </li>
                 ))}
               {!features?.some((f) => f.module_key === m.key) && (
                 <li className="py-2 text-sm text-muted">No features.</li>
               )}
             </ul>
+            <AddFeatureForm moduleKey={m.key} />
           </section>
         ))}
+        {!modules?.length && <p className="text-sm text-muted">No modules yet.</p>}
       </div>
     </main>
   )
