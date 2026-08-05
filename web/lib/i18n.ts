@@ -221,6 +221,7 @@ const dict = {
   'sa.nav.accounting': { bn: 'হিসাব খতিয়ান', en: 'Accounting' },
   'sa.nav.jobMonitor': { bn: 'জব মনিটর', en: 'Job Monitor' },
   'sa.nav.agents': { bn: 'এজেন্ট', en: 'Agents' },
+  'sa.nav.agreements': { bn: 'চুক্তি', en: 'Agreements' },
   'sa.nav.workflows': { bn: 'ওয়ার্কফ্লো', en: 'Workflows' },
   'sa.nav.notifications': { bn: 'নোটিফিকেশন', en: 'Notifications' },
   'sa.nav.smsCommerce': { bn: 'এসএমএস কমার্স', en: 'SMS Commerce' },
