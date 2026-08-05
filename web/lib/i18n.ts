@@ -65,6 +65,7 @@ const dict = {
   'dist.nav.crm': { bn: 'সিআরএম পাইপলাইন', en: 'CRM Pipeline' },
   'dist.nav.onboarding': { bn: 'অনবোর্ডিং', en: 'Onboarding' },
   'dist.nav.wallet': { bn: 'ওয়ালেট', en: 'Wallet' },
+  'dist.nav.invoices': { bn: 'ইনভয়েস', en: 'Invoices' },
   'home.agent': { bn: 'এজেন্ট ড্যাশবোর্ড', en: 'Agent Dashboard' },
   'agent.nav.dashboard': { bn: 'ড্যাশবোর্ড', en: 'Dashboard' },
   'agent.nav.tasks': { bn: 'কাজ', en: 'Tasks' },
