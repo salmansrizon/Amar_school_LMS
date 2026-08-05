@@ -11,6 +11,7 @@ import { FOCUS_RING, ICON_BUTTON } from '@/lib/ui-tokens'
 import { avatarInitials } from '@/lib/name'
 import { sidebarCookieAssignment } from '@/lib/ui-prefs'
 import { SearchPalette, type PaletteEntry } from '@/components/search-palette'
+import { NotificationsBell } from '@/components/notifications-bell'
 
 // The single, config-driven application shell (#285, map #284). Every role group
 // renders THIS — one webframe: collapsible sidebar nav + topbar (search slot,
@@ -322,7 +323,7 @@ export function AppShell({
 
             <div className="ml-auto flex shrink-0 flex-nowrap items-center gap-1 sm:gap-2">
               {topbarExtras}
-              {bell}
+              {bell ?? <NotificationsBell lang={lang} buttonClass={ICON_BUTTON} />}
               <span className="mx-1 hidden h-6 w-px bg-line sm:block" />
               <div className="shrink-0">
                 <LangSwitch lang={lang} />

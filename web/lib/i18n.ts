@@ -69,6 +69,8 @@ const dict = {
   'agent.nav.dashboard': { bn: 'ড্যাশবোর্ড', en: 'Dashboard' },
   'agent.nav.tasks': { bn: 'কাজ', en: 'Tasks' },
   'gov.nav.dashboard': { bn: 'ড্যাশবোর্ড', en: 'Dashboard' },
+  'notif.none': { bn: 'কোনো নোটিফিকেশন নেই', en: 'No notifications' },
+  'notif.markAll': { bn: 'সব পঠিত চিহ্নিত করুন', en: 'Mark all read' },
   'home.superAdmin': { bn: 'সুপার অ্যাডমিন', en: 'Super Admin' },
   'home.gov': { bn: 'সরকারি পর্যবেক্ষণ', en: 'Government Oversight' },
   'home.placeholder': {

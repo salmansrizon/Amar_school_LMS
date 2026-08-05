@@ -46,4 +46,21 @@ export function registerNotificationConsumers(): void {
     const secret = reconcileSecret()
     await createNotificationEngine(client, secret).send(expiringSoonNotification(payload))
   })
+
+  // A distributor's approval (set_distributor_status → 'approved', published
+  // SQL-side) notifies that distributor in-app (#287 per-role events). Recipient
+  // resolved from the event payload {distributor}.
+  subscribe('DistributorApproved', async (event) => {
+    const payload = event.payload as { distributor?: string }
+    if (!payload.distributor) return
+    const client = cronClient()
+    const secret = reconcileSecret()
+    await createNotificationEngine(client, secret).send({
+      schoolId: null,
+      recipientId: payload.distributor,
+      templateKey: 'distributor_approved',
+      data: {},
+      channels: ['in_app'],
+    })
+  })
 }
