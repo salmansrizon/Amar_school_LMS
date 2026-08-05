@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import { useCrudAction } from '@/lib/crud/use-crud-action'
 import { upsertTemplate, deleteTemplate, addChannelRoute, removeChannelRoute } from './actions'
 
 const input = 'w-full rounded-lg border border-line-strong px-3 py-2 text-sm focus:border-brand-500 focus:outline-none'
@@ -108,20 +109,19 @@ export function ChannelRouteForm({ templateKeys }: { templateKeys: string[] }) {
 }
 
 export function RemoveRouteButton({ eventType, channel }: { eventType: string; channel: string }) {
-  const [pending, startTransition] = useTransition()
+  const { error, pending, run } = useCrudAction(removeChannelRoute)
   return (
     <button
       type="button"
       disabled={pending}
+      title={error ?? undefined}
       onClick={() => {
         const data = new FormData()
         data.set('event_type', eventType)
         data.set('channel', channel)
-        startTransition(async () => {
-          await removeChannelRoute(data)
-        })
+        run(data)
       }}
-      className="text-xs font-semibold text-alert-deep hover:underline disabled:opacity-50"
+      className={`text-xs font-semibold hover:underline disabled:opacity-50 ${error ? 'text-alert' : 'text-alert-deep'}`}
     >
       ✕
     </button>

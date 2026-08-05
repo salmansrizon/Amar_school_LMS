@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { getSuperAdminContext } from '@/lib/super-admin/context'
 import { nextAgreementVersion, canDeleteVersion } from '@/lib/partner/agreements'
+import { pgErrorMessage } from '@/lib/crud/pg-error'
 
 // Super-admin agreement-version CRUD (#288) — the write-pattern reference for the
 // bulk config-CRUD tickets: thin server action → pure helper → RLS-guarded write.
@@ -30,7 +31,7 @@ export async function createAgreementVersion(formData: FormData): Promise<{ erro
       revalidatePath('/super-admin/agreements')
       return {}
     }
-    if (error.code !== '23505') return { error: error.message } // not a version collision
+    if (error.code !== '23505') return { error: pgErrorMessage(error) } // not a version collision
   }
   return { error: 'Could not allocate a version — please retry.' }
 }
@@ -46,7 +47,7 @@ export async function deleteAgreementVersion(formData: FormData): Promise<{ erro
   }
 
   const { error } = await supabase.from('agreement_versions').delete().eq('version', version)
-  if (error) return { error: error.message }
+  if (error) return { error: pgErrorMessage(error) }
   revalidatePath('/super-admin/agreements')
   return {}
 }

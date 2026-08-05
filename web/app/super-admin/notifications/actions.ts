@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { getSuperAdminContext } from '@/lib/super-admin/context'
+import { pgErrorMessage } from '@/lib/crud/pg-error'
 
 // Notification template + channel-map CRUD (#292). Replicates the #288 pattern;
 // RLS ("super admin manages notification_templates / _channel_map") is authority.
@@ -13,7 +14,7 @@ export async function upsertTemplate(formData: FormData): Promise<{ error?: stri
   const body = { bn: String(formData.get('body_bn') ?? ''), en: String(formData.get('body_en') ?? '') }
 
   const { error } = await supabase.from('notification_templates').upsert({ key, title, body })
-  if (error) return { error: error.message }
+  if (error) return { error: pgErrorMessage(error) }
   revalidatePath('/super-admin/notifications')
   return {}
 }
@@ -23,7 +24,7 @@ export async function deleteTemplate(formData: FormData): Promise<{ error?: stri
   const key = String(formData.get('key') ?? '')
   const { error } = await supabase.from('notification_templates').delete().eq('key', key)
   if (error) {
-    return { error: error.code === '23503' ? 'In use by a channel route — remove that first.' : error.message }
+    return { error: pgErrorMessage(error, { '23503': 'In use by a channel route — remove that first.' }) }
   }
   revalidatePath('/super-admin/notifications')
   return {}
@@ -38,7 +39,7 @@ export async function addChannelRoute(formData: FormData): Promise<{ error?: str
   if (!['in_app', 'sms', 'email'].includes(channel)) return { error: 'Invalid channel.' }
 
   const { error } = await supabase.from('notification_channel_map').insert({ event_type, channel, template_key })
-  if (error) return { error: error.code === '23505' ? 'That event+channel is already routed.' : error.message }
+  if (error) return { error: pgErrorMessage(error, { '23505': 'That event+channel is already routed.' }) }
   revalidatePath('/super-admin/notifications')
   return {}
 }
@@ -52,7 +53,7 @@ export async function removeChannelRoute(formData: FormData): Promise<{ error?: 
     .delete()
     .eq('event_type', event_type)
     .eq('channel', channel)
-  if (error) return { error: error.message }
+  if (error) return { error: pgErrorMessage(error) }
   revalidatePath('/super-admin/notifications')
   return {}
 }

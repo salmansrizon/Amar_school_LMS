@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { getSuperAdminContext } from '@/lib/super-admin/context'
+import { pgErrorMessage } from '@/lib/crud/pg-error'
 
 // Grant/revoke a role permission (#295). The audited set_role_permission RPC is
 // the single writer (upsert/delete + record_audit); this action is the thin
@@ -18,7 +19,7 @@ export async function setRolePermission(formData: FormData): Promise<{ error?: s
     p_permission_key: permissionKey,
     p_granted: granted,
   })
-  if (error) return { error: error.message }
+  if (error) return { error: pgErrorMessage(error) }
   revalidatePath('/super-admin/role-permissions')
   return {}
 }
