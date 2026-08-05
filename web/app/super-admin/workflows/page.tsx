@@ -1,17 +1,18 @@
 import Link from 'next/link'
 import { getSuperAdminContext } from '@/lib/super-admin/context'
+import { AddDefinitionForm, DefinitionActions, AddStageForm, DeleteStageButton } from './workflow-forms'
 
 type Labelled = { label?: { en?: string; bn?: string } | null }
 const en = (x: Labelled, fallback: string) => x.label?.en ?? fallback
 
-// Workflow config + approvals inbox (#271 / workflow engine 0082). Read view of
-// each definition's approval stages, plus the currently in-progress instances.
+// Workflow config CRUD (#289, over #271 viewer) + approvals inbox. Create/edit
+// definitions + stages; the inbox stays read-only (approve/reject is a follow-up).
 export default async function WorkflowsPage() {
   const { supabase } = await getSuperAdminContext()
 
   const [{ data: defs }, { data: stages }, { data: instances }] = await Promise.all([
     supabase.from('workflow_definitions').select('key, label, active').order('key'),
-    supabase.from('workflow_stages').select('definition_key, seq, name, approver_role').order('seq'),
+    supabase.from('workflow_stages').select('id, definition_key, seq, name, approver_role').order('seq'),
     supabase
       .from('workflow_instances')
       .select('id, definition_key, entity_type, entity_id, status, current_seq, created_at')
@@ -35,30 +36,41 @@ export default async function WorkflowsPage() {
       </div>
 
       <section className="mb-6 rounded-lg border border-line bg-paper p-5 shadow-card">
+        <h2 className="mb-3 font-bold">Add a workflow</h2>
+        <AddDefinitionForm />
+      </section>
+
+      <section className="mb-6 rounded-lg border border-line bg-paper p-5 shadow-card">
         <h2 className="mb-3 font-bold">Definitions</h2>
         <div className="space-y-3">
           {defs?.map((d) => (
             <div key={d.key} className="rounded-lg border border-line p-3">
-              <div className="mb-2 flex items-center gap-2">
-                <span className="font-semibold">{en(d as Labelled, d.key)}</span>
-                <span
-                  className={`rounded-full px-2 py-0.5 text-xs font-semibold ${d.active ? 'bg-emerald-50 text-emerald-700' : 'bg-paper-muted text-ink'}`}
-                >
-                  {d.active ? 'active' : 'inactive'}
+              <div className="mb-2 flex items-center justify-between gap-2">
+                <span className="flex items-center gap-2">
+                  <span className="font-semibold">{en(d as Labelled, d.key)}</span>
+                  <span className="font-mono text-xs text-muted">{d.key}</span>
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-xs font-semibold ${d.active ? 'bg-emerald-50 text-emerald-700' : 'bg-paper-muted text-ink'}`}
+                  >
+                    {d.active ? 'active' : 'inactive'}
+                  </span>
                 </span>
+                <DefinitionActions defKey={d.key} active={d.active} />
               </div>
               <ol className="flex flex-wrap items-center gap-2 text-xs">
                 {(stagesByDef.get(d.key) ?? []).map((s) => (
-                  <li key={s.seq} className="flex items-center gap-2">
-                    <span className="rounded-full bg-brand-50 px-2 py-1 font-semibold text-brand-700">
-                      {s.seq}. {en(s as Labelled, `stage ${s.seq}`)}
-                      {s.approver_role ? ` · ${s.approver_role}` : ''}
-                    </span>
-                    <span className="text-line-strong">→</span>
+                  <li
+                    key={s.id}
+                    className="flex items-center gap-1.5 rounded-full bg-brand-50 px-2 py-1 font-semibold text-brand-700"
+                  >
+                    {s.seq}. {en(s as Labelled, `stage ${s.seq}`)}
+                    {s.approver_role ? ` · ${s.approver_role}` : ''}
+                    <DeleteStageButton id={s.id} />
                   </li>
                 ))}
                 {!stagesByDef.get(d.key)?.length && <li className="text-muted">No stages.</li>}
               </ol>
+              <AddStageForm definitionKey={d.key} />
             </div>
           ))}
           {!defs?.length && <p className="text-sm text-muted">No workflow definitions.</p>}
