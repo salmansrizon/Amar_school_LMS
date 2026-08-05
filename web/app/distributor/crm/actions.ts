@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { getDistributorContext } from '@/lib/distributor/context'
 import { isLeadStage } from '@/lib/distributor/leads'
+import { pgErrorMessage } from '@/lib/crud/pg-error'
 
 export async function createLead(formData: FormData): Promise<{ error?: string }> {
   const { supabase, userId } = await getDistributorContext()
@@ -15,7 +16,7 @@ export async function createLead(formData: FormData): Promise<{ error?: string }
     contact_name: String(formData.get('contact_name') ?? '').trim() || null,
     contact_phone: String(formData.get('contact_phone') ?? '').trim() || null,
   })
-  if (error) return { error: error.message }
+  if (error) return { error: pgErrorMessage(error) }
   revalidatePath('/distributor/crm')
   return {}
 }
@@ -31,7 +32,7 @@ export async function setLeadStage(formData: FormData): Promise<{ error?: string
     .from('leads')
     .update({ stage, updated_at: new Date().toISOString() })
     .eq('id', id)
-  if (error) return { error: error.message }
+  if (error) return { error: pgErrorMessage(error) }
   revalidatePath('/distributor/crm')
   revalidatePath(`/distributor/crm/${id}`)
   return {}
