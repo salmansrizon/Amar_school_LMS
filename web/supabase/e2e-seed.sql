@@ -60,4 +60,10 @@ begin
   insert into public.agent_assignments (agent_id, distributor_id) values
     (uid_agent, uid_dealer)
   on conflict (agent_id) do nothing;
+
+  -- Distributor KYC profile so the lifecycle surface (/partners/[id]) has a
+  -- status to transition. Starts pending; the lifecycle spec restores it.
+  insert into public.distributor_profiles (profile_id, trade_license, nid, status)
+    values (uid_dealer, 'TL-E2E-0001', 'NID-E2E-0001', 'pending')
+  on conflict (profile_id) do nothing;
 end $$;
