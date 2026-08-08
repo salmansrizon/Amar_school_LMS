@@ -1,7 +1,8 @@
 'use client'
 
 import { useCrudAction } from '@/lib/crud/use-crud-action'
-import { setDistributorStatus, DISTRIBUTOR_STATUSES } from './status-actions'
+import { setDistributorStatus } from './status-actions'
+import { DISTRIBUTOR_STATUSES } from './statuses'
 
 const tone: Record<string, string> = {
   pending: 'bg-paper-muted text-ink',

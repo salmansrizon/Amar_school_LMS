@@ -10,19 +10,18 @@ const DEALER = '55555555-5555-5555-5555-555555555555'
 const PATH = `/super-admin/partners/${DEALER}`
 
 test.describe('@crud @super-admin distributor-lifecycle', () => {
-  // FINDING (gap analysis): /super-admin/partners/[id] currently renders the Next
-  // error boundary ("This page couldn't load") for super-admin — a client/render
-  // error (postgres logs show no DB error). Blocks the KYC + status-transition
-  // path until the page-load bug is fixed. Distributor profile is seeded and
-  // ready, so this un-fixmes once the page renders.
-  test.fixme('KYC renders; status pending→under_review→approved, then restore', async ({
+  // Regression: /super-admin/partners/[id] used to crash ("DISTRIBUTOR_STATUSES
+  // .filter is not a function") because a client component imported a plain const
+  // from a 'use server' module. Fixed by moving the const to ./statuses.ts.
+  test('KYC renders; status pending→under_review→approved, then restore', async ({
     superAdminPage: page,
   }) => {
     await page.goto(PATH)
     // KYC block (seeded license/nid).
     await expect(page.getByText('TL-E2E-0001')).toBeVisible()
 
-    const current = () => page.locator('span', { hasText: 'Current:' })
+    // "Current:" label + the status badge are sibling spans → assert on the row.
+    const current = () => page.locator('div').filter({ hasText: 'Current:' }).last()
     await expect(current()).toContainText('pending')
 
     await page.getByRole('button', { name: '→ under_review' }).click()
