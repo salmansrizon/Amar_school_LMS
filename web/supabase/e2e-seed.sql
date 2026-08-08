@@ -66,4 +66,11 @@ begin
   insert into public.distributor_profiles (profile_id, trade_license, nid, status)
     values (uid_dealer, 'TL-E2E-0001', 'NID-E2E-0001', 'pending')
   on conflict (profile_id) do nothing;
+
+  -- One open task assigned to the agent (agent tasks spec: mark done / reopen).
+  insert into public.partner_tasks (distributor_id, assignee_id, title, status)
+  select uid_dealer, uid_agent, 'E2E Agent Task', 'open'
+  where not exists (
+    select 1 from public.partner_tasks where title = 'E2E Agent Task' and assignee_id = uid_agent
+  );
 end $$;
