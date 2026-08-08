@@ -17,7 +17,16 @@ export default defineConfig({
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
   },
-  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
+  projects: [
+    // Per-role auth: logs in each role once, writes e2e/.auth/<key>.json.
+    { name: 'setup', testMatch: /global\.setup\.ts/ },
+    {
+      name: 'chromium',
+      use: { ...devices['Desktop Chrome'] },
+      dependencies: ['setup'],
+      testIgnore: /global\.setup\.ts/,
+    },
+  ],
   webServer: {
     command: 'npm run dev',
     url: 'http://localhost:3000/login',

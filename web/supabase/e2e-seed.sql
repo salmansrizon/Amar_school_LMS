@@ -6,6 +6,7 @@ declare
   uid_staff uuid := '44444444-4444-4444-4444-444444444444';
   uid_dealer uuid := '55555555-5555-5555-5555-555555555555';
   uid_gov uuid := '66666666-6666-6666-6666-666666666666';
+  uid_agent uuid := '77777777-7777-7777-7777-777777777777';
   school_a uuid;
 begin
   select id into school_a from public.schools where name = 'Test School A';
@@ -25,6 +26,9 @@ begin
      '{"provider":"email","providers":["email"]}', '{}', now(), now(), '', '', '', '', '', '', '', ''),
     ('00000000-0000-0000-0000-000000000000', uid_gov, 'authenticated', 'authenticated',
      'gov-e2e@test.local', crypt('test-password-123!', gen_salt('bf')), now(),
+     '{"provider":"email","providers":["email"]}', '{}', now(), now(), '', '', '', '', '', '', '', ''),
+    ('00000000-0000-0000-0000-000000000000', uid_agent, 'authenticated', 'authenticated',
+     'agent-e2e@test.local', crypt('test-password-123!', gen_salt('bf')), now(),
      '{"provider":"email","providers":["email"]}', '{}', now(), now(), '', '', '', '', '', '', '', '')
   on conflict (id) do nothing;
 
@@ -39,12 +43,21 @@ begin
      'email', now(), now(), now()),
     (gen_random_uuid(), uid_gov, uid_gov,
      jsonb_build_object('sub', uid_gov::text, 'email', 'gov-e2e@test.local', 'email_verified', true),
+     'email', now(), now(), now()),
+    (gen_random_uuid(), uid_agent, uid_agent,
+     jsonb_build_object('sub', uid_agent::text, 'email', 'agent-e2e@test.local', 'email_verified', true),
      'email', now(), now(), now())
   on conflict (provider_id, provider) do nothing;
 
   insert into public.profiles (id, role, school_id) values
     (uid_staff, 'staff_user', school_a),
     (uid_dealer, 'distributor', null),
-    (uid_gov, 'gov_official', null)
+    (uid_gov, 'gov_official', null),
+    (uid_agent, 'agent', null)
   on conflict (id) do nothing;
+
+  -- Agent works under the seeded distributor (agent tasks + assignee-only RLS).
+  insert into public.agent_assignments (agent_id, distributor_id) values
+    (uid_agent, uid_dealer)
+  on conflict (agent_id) do nothing;
 end $$;
