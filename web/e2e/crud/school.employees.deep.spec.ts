@@ -37,9 +37,9 @@ test.describe('@crud @school employees-deep', () => {
     await page.getByRole('button', { name: SAVE }).click()
     await expect(page.getByText(updated).first()).toBeVisible()
 
-    // Delete: soft-archive (confirm) → Old Employee badge.
-    page.once('dialog', (d) => d.accept())
-    await page.getByRole('button', { name: ARCHIVE }).click()
+    // Delete: soft-archive via the in-app ConfirmDialog → Old Employee badge.
+    await page.getByRole('button', { name: ARCHIVE }).click() // opens dialog
+    await page.getByRole('dialog').getByRole('button', { name: ARCHIVE }).click() // confirm
     await expect(page.getByText(ARCHIVED_BADGE).first()).toBeVisible()
     await expectNoError(page)
 

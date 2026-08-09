@@ -5,6 +5,7 @@ import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
 import { t, type Lang } from '@/lib/i18n'
 import { addClass, addSubject, removeItem } from './actions'
 import { selectClass } from '@/components/ui/field'
+import { ConfirmDialog } from '@/components/confirm-dialog'
 
 function useSubmit(action: (data: FormData) => Promise<{ error?: string }>) {
   const [error, setError] = useState<string | null>(null)
@@ -116,28 +117,17 @@ export function DeleteButton({
   id: string
   lang: Lang
 }) {
-  const [error, setError] = useState<string | null>(null)
-  const [pending, startTransition] = useTransition()
+  // Deleting a class cascades to its subjects — say so in the in-app dialog (#365).
+  const key = entity === 'classes' ? 'classes.deleteConfirm' : 'classes.deleteConfirmSimple'
   return (
-    <span className="inline-flex items-center gap-2">
-      {error && <span className="text-xs text-alert-deep">{error}</span>}
-      <button
-        type="button"
-        disabled={pending}
-        onClick={() => {
-          // Deleting a class cascades to its subjects — say so; keep it plain otherwise.
-          const key = entity === 'classes' ? 'classes.deleteConfirm' : 'classes.deleteConfirmSimple'
-          if (!window.confirm(t(key, lang))) return
-          startTransition(async () => {
-            setError(null)
-            const result = await removeItem(entity, id)
-            if (result.error) setError(result.error)
-          })
-        }}
-        className="cursor-pointer rounded-full border border-line px-3 py-1 text-xs font-semibold text-alert-deep hover:bg-alert-soft"
-      >
-        {t('common.delete', lang)}
-      </button>
-    </span>
+    <ConfirmDialog
+      triggerLabel={t('common.delete', lang)}
+      triggerClassName="cursor-pointer rounded-full border border-alert px-3 py-1 text-xs font-semibold text-alert-deep hover:bg-alert-soft"
+      title={t('common.delete', lang)}
+      body={t(key, lang)}
+      confirmLabel={t('common.delete', lang)}
+      cancelLabel={t('routine.cancel', lang)}
+      onConfirm={async () => await removeItem(entity, id)}
+    />
   )
 }

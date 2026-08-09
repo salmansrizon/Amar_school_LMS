@@ -32,9 +32,9 @@ test.describe('@crud @school classes-deep', () => {
     await submit()
     await expect(page.getByText(/already exists/i)).toBeVisible()
 
-    // Delete (confirm-guarded) → row gone.
-    page.once('dialog', (d) => d.accept())
-    await row.getByRole('button').click()
+    // Delete via the in-app ConfirmDialog → row gone.
+    await row.getByRole('button').click() // opens dialog
+    await page.getByRole('dialog').getByRole('button', { name: 'মুছুন' }).click() // common.delete confirm
     await expect(page.locator('tr', { hasText: name })).toHaveCount(0)
     await expectNoError(page)
   })

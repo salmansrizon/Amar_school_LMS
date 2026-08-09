@@ -84,6 +84,7 @@ export function MarkAttendanceForm({ lang, date, students }: { lang: Lang; date:
                   <input
                     type="radio"
                     name={`att-${r.id}`}
+                    aria-label={`${t('attendance.presentCol', lang)} — ${r.full_name}`}
                     checked={r.present}
                     onChange={() => setRow(r.id, { present: true, cause: '' })}
                   />
@@ -92,6 +93,7 @@ export function MarkAttendanceForm({ lang, date, students }: { lang: Lang; date:
                   <input
                     type="radio"
                     name={`att-${r.id}`}
+                    aria-label={`${t('attendance.absentCol', lang)} — ${r.full_name}`}
                     checked={!r.present}
                     onChange={() => setRow(r.id, { present: false })}
                   />
