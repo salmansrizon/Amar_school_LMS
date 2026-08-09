@@ -61,6 +61,7 @@ export interface EventEngine {
   publish<T extends DomainEventType>(event: Omit<DomainEvent<T>, 'id' | 'occurredAt'>): Promise<void>
   /** Register a synchronous in-process consumer for an event type. */
   subscribe<T extends DomainEventType>(type: T, consumer: EventConsumer<T>): void
-  /** Drain undispatched outbox rows for async consumers (Vercel cron entry). */
-  drainOutbox(): Promise<{ processed: number }>
+  /** Drain undispatched outbox rows for async consumers (Vercel cron entry).
+   * `batch` bounds how many oldest rows are claimed per call (default 50). */
+  drainOutbox(batch?: number): Promise<{ processed: number }>
 }

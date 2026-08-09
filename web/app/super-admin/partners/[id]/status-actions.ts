@@ -3,8 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { getSuperAdminContext } from '@/lib/super-admin/context'
 import { pgErrorMessage } from '@/lib/crud/pg-error'
-
-export const DISTRIBUTOR_STATUSES = ['pending', 'under_review', 'approved', 'suspended', 'blocked'] as const
+import { DISTRIBUTOR_STATUSES } from './statuses'
 
 // Move a distributor through its lifecycle (#299) via the audited
 // set_distributor_status RPC (emits DistributorApproved on approval). RPC enforces

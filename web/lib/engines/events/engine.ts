@@ -71,10 +71,10 @@ export function createEventEngine(client: SupabaseClient, jobSecret: string): Ev
       registrySubscribe(type, consumer)
     },
 
-    async drainOutbox() {
+    async drainOutbox(batch = 50) {
       const { data, error } = await client.rpc('claim_domain_events', {
         job_secret: jobSecret,
-        batch: 50,
+        batch,
       })
       if (error) throw new Error(`claim_domain_events failed: ${error.message}`)
 

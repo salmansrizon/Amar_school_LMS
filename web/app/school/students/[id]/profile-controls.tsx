@@ -5,9 +5,13 @@ import { useRouter } from 'next/navigation'
 import { t, type Lang } from '@/lib/i18n'
 import { ProfileFields, uploadStudentPhoto } from '../new/admission-form'
 import { archiveStudent, restoreStudent, updateStudent } from '../actions'
+import { ConfirmDialog } from '@/components/confirm-dialog'
 
 const btnSecondary =
   'cursor-pointer rounded-full border border-line-strong px-4 py-1.5 text-xs font-semibold hover:bg-paper-muted disabled:opacity-50'
+// Destructive tone for archive/delete triggers (#365).
+const btnDanger =
+  'cursor-pointer rounded-full border border-alert px-4 py-1.5 text-xs font-semibold text-alert-deep hover:bg-alert-soft disabled:opacity-50'
 
 /** Read-mode profile with an Edit toggle; edit reuses the admission sections. */
 export function ProfileEditor({
@@ -154,22 +158,44 @@ export function ArchiveToggle({
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
 
-  function onClick() {
-    if (!archived && !window.confirm(t('students.archiveConfirm', lang))) return
-    startTransition(async () => {
-      setError(null)
-      const res = archived ? await restoreStudent(studentId) : await archiveStudent(studentId)
-      if (res.error) setError(res.error)
-      else router.refresh()
-    })
+  // Restore is non-destructive → a plain button. Archive is destructive → an
+  // in-app ConfirmDialog (#365) instead of window.confirm.
+  if (archived) {
+    return (
+      <span>
+        <button
+          type="button"
+          disabled={pending}
+          onClick={() =>
+            startTransition(async () => {
+              setError(null)
+              const res = await restoreStudent(studentId)
+              if (res.error) setError(res.error)
+              else router.refresh()
+            })
+          }
+          className={btnSecondary}
+        >
+          {t('students.restore', lang)}
+        </button>
+        {error && <span className="ml-2 text-xs text-alert-deep">{error}</span>}
+      </span>
+    )
   }
 
   return (
-    <span>
-      <button type="button" disabled={pending} onClick={onClick} className={btnSecondary}>
-        {archived ? t('students.restore', lang) : t('students.archive', lang)}
-      </button>
-      {error && <span className="ml-2 text-xs text-alert-deep">{error}</span>}
-    </span>
+    <ConfirmDialog
+      triggerLabel={t('students.archive', lang)}
+      triggerClassName={btnDanger}
+      title={t('students.archive', lang)}
+      body={t('students.archiveConfirm', lang)}
+      confirmLabel={t('students.archive', lang)}
+      cancelLabel={t('routine.cancel', lang)}
+      onConfirm={async () => {
+        const res = await archiveStudent(studentId)
+        if (!res.error) router.refresh()
+        return res
+      }}
+    />
   )
 }
