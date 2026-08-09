@@ -65,8 +65,16 @@ describe('Event Architecture outbox (#260)', () => {
     })
     expect(error).toBeNull()
 
-    const { processed } = await systemEventEngine().drainOutbox()
-    expect(processed).toBeGreaterThanOrEqual(1)
+    // Claim is oldest-first; the shared test DB can carry a backlog of stale
+    // undispatched rows that would otherwise starve a single default-batch drain
+    // (the fresh row is the newest). Drain in a bounded loop with a wide batch —
+    // each pass marks the rows it claims dispatched (consumer-less types resolve
+    // as handled), so the backlog clears and our row is reached deterministically.
+    let processedTotal = 0
+    for (let i = 0; i < 10 && !seen.includes(id as string); i++) {
+      processedTotal += (await systemEventEngine().drainOutbox(100)).processed
+    }
+    expect(processedTotal).toBeGreaterThanOrEqual(1)
     expect(seen).toContain(id)
   })
 
