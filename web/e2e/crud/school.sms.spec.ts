@@ -57,7 +57,25 @@ test.describe('@crud @school sms', () => {
     await expectNoError(page)
   })
 
-  // Gap: compose→send (segment debit + gateway dispatch) still needs a send
-  // assertion harness (masked/non-masked routing, dedupe) — left as a gap.
-  test.fixme('compose sends debits the wallet', async () => {})
+  test('owner composes to a number → send logs + debits the wallet', async ({ ownerPage: page }) => {
+    const sup = await signedIn('super@test.local')
+    const schoolId = (await sup.from('schools').select('id').eq('name', 'Test School A').single()).data!.id
+    const balBefore = await smsBalance(sup, schoolId)
+    const logsBefore =
+      (await sup.from('sms_log').select('id', { count: 'exact', head: true }).eq('school_id', schoolId)).count ?? 0
+
+    await page.goto('/school/sms')
+    await page.locator('select').filter({ has: page.locator('option[value="manual"]') }).selectOption('manual')
+    await page.getByRole('textbox').first().fill('01700000000') // manual number
+    await page.locator('textarea').first().fill('E2E hi') // 1-segment body
+    await page.getByRole('button', { name: 'এখনই পাঠান' }).click() // sms.sendNow
+
+    await expect(page.getByText('পাঠানো সম্পন্ন')).toBeVisible() // sms.sendComplete
+    // LogSmsProvider "sent" it → one sms_log row + wallet debited one segment.
+    await expect
+      .poll(async () => (await sup.from('sms_log').select('id', { count: 'exact', head: true }).eq('school_id', schoolId)).count ?? 0)
+      .toBeGreaterThanOrEqual(logsBefore + 1)
+    expect(await smsBalance(sup, schoolId)).toBe(balBefore - 1)
+    await expectNoError(page)
+  })
 })
