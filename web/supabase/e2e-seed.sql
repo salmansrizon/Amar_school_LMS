@@ -74,3 +74,9 @@ begin
     select 1 from public.partner_tasks where title = 'E2E Agent Task' and assignee_id = uid_agent
   );
 end $$;
+
+-- One active SMS package so the school buy page (/school/sms/buy) has something
+-- to purchase (SMS buy spec: owner buys → wallet segments rise).
+insert into public.sms_packages (name, segments, price, active)
+select '{"en":"E2E Starter","bn":"E2E স্টার্টার"}'::jsonb, 500, 50000, true
+where not exists (select 1 from public.sms_packages where name->>'en' = 'E2E Starter');
