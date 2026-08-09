@@ -20,8 +20,12 @@ test.describe('@crud @distributor crm', () => {
     await card.click()
     await expect(page).toHaveURL(/\/distributor\/crm\/[0-9a-f-]+$/)
     await page.locator('select').first().selectOption('contacted')
-    await page.reload()
-    await expect(page.locator('select').first()).toHaveValue('contacted')
+    // The stage write is a server action; reload until the DB reflects it
+    // (avoids racing the reload against the in-flight update).
+    await expect(async () => {
+      await page.reload()
+      await expect(page.locator('select').first()).toHaveValue('contacted')
+    }).toPass({ timeout: 15_000 })
     await expectNoError(page)
   })
 })
