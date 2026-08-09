@@ -1,4 +1,10 @@
 import { defineConfig, devices } from '@playwright/test'
+import dotenv from 'dotenv'
+
+// Load .env.local into the test-runner process too (not just the app's webServer)
+// so specs can spin up a supabase client to seed preconditions (e.g. start a
+// workflow instance for the approvals decide test).
+dotenv.config({ path: '.env.local' })
 
 // E2E config (map #258 verification). Runs Chromium against a local `next dev`
 // server that talks to the shared Supabase test project (.env.local). Serial
