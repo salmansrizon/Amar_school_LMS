@@ -1,12 +1,14 @@
 import type { Metadata } from 'next'
-import { Plus_Jakarta_Sans, Hind_Siliguri, Geist } from 'next/font/google'
+import { Plus_Jakarta_Sans, Hind_Siliguri } from 'next/font/google'
 import { cookies } from 'next/headers'
 import { DEFAULT_LANG, LANG_COOKIE, type Lang } from '@/lib/i18n'
 import { THEME_COOKIE, parseThemePreference, themeAttribute } from '@/lib/ui-prefs'
 import './globals.css'
-import { cn } from "@/lib/utils";
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+// `shadcn init` adds a Geist face here bound to `--font-sans`, which silently
+// replaces the whole stack: Bangla is the primary script (ADR 0004) and Geist has
+// no Bengali subset, so Hind Siliguri would drop out app-wide. The faces are fixed
+// by ADR 0004/0006 — only the type scale moves. Do not reintroduce it.
 
 const jakarta = Plus_Jakarta_Sans({
   variable: '--font-jakarta',
@@ -37,7 +39,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html
       lang={lang}
       data-theme={theme}
-      className={cn("h-full", "antialiased", jakarta.variable, hindSiliguri.variable, "font-sans", geist.variable)}
+      className={`${jakarta.variable} ${hindSiliguri.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col font-sans">{children}</body>
     </html>

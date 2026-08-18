@@ -40,11 +40,19 @@ const OPTIONS: { value: ThemePreference; icon: React.ReactNode; labelKey: 'theme
   },
 ]
 
+// Module scope, matching writeLangCookie in lang-switch.tsx: assigning to
+// document.cookie inside the component reads as mutating a value the compiler
+// tracks (react-hooks/immutability), and this is a side effect on the document
+// rather than component state.
+function writeThemeCookie(next: ThemePreference) {
+  document.cookie = themeCookieAssignment(next)
+}
+
 export function ThemeSwitch({ preference, lang }: { preference: ThemePreference; lang: Lang }) {
   const router = useRouter()
 
   const set = (next: ThemePreference) => {
-    document.cookie = themeCookieAssignment(next)
+    writeThemeCookie(next)
     router.refresh()
   }
 

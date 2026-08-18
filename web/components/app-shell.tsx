@@ -377,7 +377,7 @@ export function AppShell({
                 multi-column within the width, not narrower than it). Gutters are
                 applied once, here, using the shared density scale. */}
             {contentContainer ? (
-              <main className="w-full px-gutter pt-section pb-10 print:mx-0 print:max-w-none print:p-0">
+              <main className="w-full px-gutter pt-section pb-16 print:max-w-none print:p-0">
                 {children}
               </main>
             ) : (

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   SIDEBAR_COOKIE,
-  SIDEBAR_MAX_AGE,
+  PREF_MAX_AGE,
   THEME_COOKIE,
   parseSidebarCollapsed,
   parseThemePreference,
@@ -28,11 +28,11 @@ describe('parseSidebarCollapsed (issue #115)', () => {
 
 describe('sidebarCookieAssignment', () => {
   it('writes a year-long, path-wide cookie so the choice survives refresh and re-login', () => {
-    expect(sidebarCookieAssignment(true)).toBe(`${SIDEBAR_COOKIE}=1;path=/;max-age=${SIDEBAR_MAX_AGE};samesite=lax`)
-    expect(sidebarCookieAssignment(false)).toBe(`${SIDEBAR_COOKIE}=0;path=/;max-age=${SIDEBAR_MAX_AGE};samesite=lax`)
+    expect(sidebarCookieAssignment(true)).toBe(`${SIDEBAR_COOKIE}=1;path=/;max-age=${PREF_MAX_AGE};samesite=lax`)
+    expect(sidebarCookieAssignment(false)).toBe(`${SIDEBAR_COOKIE}=0;path=/;max-age=${PREF_MAX_AGE};samesite=lax`)
   })
   it('uses a max-age of one year', () => {
-    expect(SIDEBAR_MAX_AGE).toBe(31536000)
+    expect(PREF_MAX_AGE).toBe(31536000)
   })
 })
 
@@ -57,10 +57,10 @@ describe('parseThemePreference (map #370)', () => {
 describe('themeCookieAssignment', () => {
   it('writes a year-long, path-wide cookie so the choice survives refresh and re-login', () => {
     expect(themeCookieAssignment('dark')).toBe(
-      `${THEME_COOKIE}=dark;path=/;max-age=${SIDEBAR_MAX_AGE};samesite=lax`,
+      `${THEME_COOKIE}=dark;path=/;max-age=${PREF_MAX_AGE};samesite=lax`,
     )
     expect(themeCookieAssignment('system')).toBe(
-      `${THEME_COOKIE}=system;path=/;max-age=${SIDEBAR_MAX_AGE};samesite=lax`,
+      `${THEME_COOKIE}=system;path=/;max-age=${PREF_MAX_AGE};samesite=lax`,
     )
   })
 })

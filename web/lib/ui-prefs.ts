@@ -6,7 +6,8 @@
 // `lang` cookie (`lib/i18n-server.ts`).
 
 export const SIDEBAR_COOKIE = 'asm-sidebar-collapsed'
-export const SIDEBAR_MAX_AGE = 31536000 // one year, in seconds
+/** Shared by every UI preference cookie here — one year, in seconds. */
+export const PREF_MAX_AGE = 31536000
 
 /** Cookie value -> collapsed flag. Anything unrecognised means "expanded". */
 export function parseSidebarCollapsed(value: string | undefined): boolean {
@@ -18,7 +19,7 @@ export function parseSidebarCollapsed(value: string | undefined): boolean {
  * choice — name, value and attributes, not just the value.
  */
 export function sidebarCookieAssignment(collapsed: boolean): string {
-  return `${SIDEBAR_COOKIE}=${collapsed ? '1' : '0'};path=/;max-age=${SIDEBAR_MAX_AGE};samesite=lax`
+  return `${SIDEBAR_COOKIE}=${collapsed ? '1' : '0'};path=/;max-age=${PREF_MAX_AGE};samesite=lax`
 }
 
 // Theme (map #370) — the implementation ADR 0005 has been waiting for. Same
@@ -41,7 +42,7 @@ export function parseThemePreference(value: string | undefined): ThemePreference
 
 /** The full `document.cookie` assignment string that persists the theme choice. */
 export function themeCookieAssignment(preference: ThemePreference): string {
-  return `${THEME_COOKIE}=${preference};path=/;max-age=${SIDEBAR_MAX_AGE};samesite=lax`
+  return `${THEME_COOKIE}=${preference};path=/;max-age=${PREF_MAX_AGE};samesite=lax`
 }
 
 /**
