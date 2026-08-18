@@ -1,19 +1,29 @@
-import Form from 'next/form'
 import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { filterStudents, behaviourAverages } from '@/lib/students'
-import { selectClass } from '@/components/ui/field'
-import { Card, PageHeader, TableFrame, Toolbar, tdClass, thClass, trClass } from '@/components/ui/page'
+import { Badge } from '@/components/ui/badge'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { Card, PageHeader, Toolbar, railClass } from '@/components/ui/page'
+import { StudentFilters } from './student-filters'
 
 // Layout per ui/school-owner/students-list.html: search (name/roll/guardian) +
 // class/section filters, table Roll | Name | Class/Section | Guardian |
 // Behaviour Avg | Status | View, with Old Students + New Admission actions.
 //
 // List archetype (gate #372): renders bare content — the shell owns the <main>,
-// the width and the gutters — so the table now fills the viewport instead of
-// sitting in a 896px column inside a 2284px frame.
+// the width and the gutters — so the table fills the viewport instead of sitting
+// in an 896px column. Columns distribute across that width the way an ERP grid
+// does; an earlier pass clustered them left and left the right half of the card
+// empty, which read as broken rather than tidy.
 function avgBadge(avg: number | undefined) {
   if (avg === undefined) return <span className="text-muted">—</span>
   const tone =
@@ -77,36 +87,14 @@ export default async function StudentsPage({
 
       <Toolbar
         filters={
-          <Form className="flex flex-wrap items-center gap-2" action="/school/students">
-            <input
-              name="q"
-              defaultValue={q}
-              placeholder={t('students.search', lang)}
-              className="w-56 rounded-md border border-line bg-paper px-3 py-1.5 text-sm"
-            />
-            <select name="class" defaultValue={klass} className={selectClass()}>
-              <option value="">{t('students.allClasses', lang)}</option>
-              {classNames.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
-            <select name="section" defaultValue={section} className={selectClass()}>
-              <option value="">{t('students.allSections', lang)}</option>
-              {sections.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
-            </select>
-            <button
-              type="submit"
-              className="cursor-pointer rounded-full border border-line px-3 py-1 text-xs font-semibold hover:bg-paper-muted"
-            >
-              {t('classes.filter', lang)}
-            </button>
-          </Form>
+          <StudentFilters
+            q={q}
+            klass={klass}
+            section={section}
+            classNames={classNames}
+            sections={sections}
+            lang={lang}
+          />
         }
       />
 
@@ -114,44 +102,46 @@ export default async function StudentsPage({
         {!visible.length ? (
           <p className="text-sm text-muted">{t('students.none', lang)}</p>
         ) : (
-          <TableFrame>
-            <thead>
-              <tr className="border-b border-line-strong">
-                <th className={thClass}>{t('students.roll', lang)}</th>
-                <th className={thClass}>{t('students.name', lang)}</th>
-                <th className={thClass}>{t('students.classSection', lang)}</th>
-                <th className={thClass}>{t('students.guardian', lang)}</th>
-                <th className={thClass}>{t('students.behaviourAvg', lang)}</th>
-                <th className={thClass}>{t('students.status', lang)}</th>
-                <th className={thClass} />
-              </tr>
-            </thead>
-            <tbody>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className={railClass(undefined)}>{t('students.roll', lang)}</TableHead>
+                <TableHead>{t('students.name', lang)}</TableHead>
+                <TableHead>{t('students.classSection', lang)}</TableHead>
+                <TableHead>{t('students.guardian', lang)}</TableHead>
+                <TableHead>{t('students.behaviourAvg', lang)}</TableHead>
+                <TableHead>{t('students.status', lang)}</TableHead>
+                <TableHead className="text-right">{t('students.view', lang)}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {visible.map((s) => (
-                <tr key={s.id} className={trClass}>
-                  <td className={tdClass}>{s.roll_number ?? <span className="text-muted">—</span>}</td>
-                  <td className={`${tdClass} font-medium`}>{s.full_name}</td>
-                  <td className={tdClass}>
+                <TableRow key={s.id}>
+                  {/* Rail carries "active" visually; the Status cell still spells
+                      it out, so colour is never the only signal. */}
+                  <TableCell className={railClass('mint')}>
+                    {s.roll_number ?? <span className="text-muted">—</span>}
+                  </TableCell>
+                  <TableCell className="font-medium">{s.full_name}</TableCell>
+                  <TableCell>
                     {[s.class_name, s.section].filter(Boolean).join(' / ') || (
                       <span className="text-muted">—</span>
                     )}
-                  </td>
-                  <td className={tdClass}>{s.guardian_name ?? <span className="text-muted">—</span>}</td>
-                  <td className={tdClass}>{avgBadge(avgs.get(s.id))}</td>
-                  <td className={tdClass}>
-                    <span className="rounded-full bg-mint-soft px-2 py-0.5 text-xs font-semibold text-mint-deep">
-                      {t('students.active', lang)}
-                    </span>
-                  </td>
-                  <td className={tdClass}>
+                  </TableCell>
+                  <TableCell>{s.guardian_name ?? <span className="text-muted">—</span>}</TableCell>
+                  <TableCell>{avgBadge(avgs.get(s.id))}</TableCell>
+                  <TableCell>
+                    <Badge variant="secondary">{t('students.active', lang)}</Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
                     <Link href={`/school/students/${s.id}`} className="text-brand-600 hover:underline">
                       {t('students.view', lang)}
                     </Link>
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </TableFrame>
+            </TableBody>
+          </Table>
         )}
       </Card>
     </>

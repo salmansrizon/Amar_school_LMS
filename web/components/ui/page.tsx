@@ -64,23 +64,54 @@ export function PageHeader({
   )
 }
 
+/**
+ * The status rail — the one place this design spends boldness. State is carried
+ * by a 2px coloured edge rather than by scattering filled pill chips through the
+ * content, so a scan down the left edge reads status without the eye stopping on
+ * a badge in every row. The colour is decoration: every rail is paired with a
+ * text label, never left to carry meaning alone.
+ */
+export type Tone = 'brand' | 'mint' | 'sun' | 'alert' | 'sky' | 'muted'
+
+const RAIL: Record<Tone, string> = {
+  brand: 'border-l-brand-500',
+  mint: 'border-l-mint',
+  sun: 'border-l-sun',
+  alert: 'border-l-alert',
+  sky: 'border-l-sky',
+  muted: 'border-l-line-strong',
+}
+
 /** The hairline surface everything sits on: a 1px line, a flat ground, no lift.
  *  `padded={false}` for a Card whose only child is a table — the table supplies
- *  its own cell padding and should reach the card's edges. */
+ *  its own cell padding and should reach the card's edges.
+ *  `tone` adds the status rail down its left edge. */
 export function Card({
   children,
   padded = true,
+  tone,
   className = '',
 }: {
   children: React.ReactNode
   padded?: boolean
+  tone?: Tone
   className?: string
 }) {
   return (
-    <section className={`rounded-lg border border-line bg-paper ${padded ? 'p-card' : ''} ${className}`}>
+    <section
+      className={`rounded-lg border border-line bg-paper ${tone ? `border-l-2 ${RAIL[tone]}` : ''} ${
+        padded ? 'p-card' : ''
+      } ${className}`}
+    >
       {children}
     </section>
   )
+}
+
+/** The rail on a table row. Applied to the row's *first* cell, because a border
+ *  on `<tr>` is unreliable across border-collapse implementations. */
+export function railClass(tone: Tone | undefined): string {
+  return tone ? `border-l-2 ${RAIL[tone]}` : 'border-l-2 border-l-transparent'
 }
 
 /** Filters on the left, page actions on the right; wraps to its own lines when
@@ -107,11 +138,31 @@ export function TableFrame({ children }: { children: React.ReactNode }) {
   )
 }
 
+// `whitespace-nowrap` keeps every row exactly one `--spacing-row` tall. Once the
+// columns cluster left they size to their content, and a single long value would
+// otherwise wrap and make one row three times the height of its neighbours,
+// destroying the rhythm the density scale exists to hold. Anything genuinely too
+// long is capped with `cellCapClass`; the frame scrolls if the total still exceeds
+// the viewport.
 export const thClass =
-  'sticky top-0 z-10 bg-paper px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted'
-export const tdClass = 'px-3 py-2 text-sm'
+  'sticky top-0 z-10 whitespace-nowrap bg-paper px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted'
+export const tdClass = 'whitespace-nowrap px-3 py-2 text-sm'
 /** Row height comes from the density token, so the rhythm is tuned in one place. */
 export const trClass = 'h-row border-b border-line last:border-0 transition hover:bg-paper-muted'
+
+/**
+ * Last cell of a clustered table, in both the header and every row.
+ *
+ * A seven-column table stretched across 1920px puts a metre of whitespace
+ * between a name and its status. This greedy trailing cell soaks up the leftover
+ * width so the real columns pack left at their natural size, and the table stops
+ * spreading just because the viewport is wide.
+ */
+export const spacerClass = 'w-full'
+
+/** Cap for a free-text column so one long value cannot drag the layout wide;
+ *  the cell truncates rather than pushing its neighbours off the cluster. */
+export const cellCapClass = 'max-w-64 truncate'
 
 /**
  * Form fields laid across the width instead of down a narrow column. This is the
@@ -126,7 +177,9 @@ export function FormGrid({
   className?: string
 }) {
   return (
-    <div className={`grid gap-grid sm:grid-cols-2 xl:grid-cols-3 ${className}`}>{children}</div>
+    <div className={`grid gap-grid sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 ${className}`}>
+      {children}
+    </div>
   )
 }
 
