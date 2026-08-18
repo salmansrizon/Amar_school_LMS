@@ -129,6 +129,29 @@ export function filterExams<T extends ExamListEntry>(
   )
 }
 
+// Exam Basic Info (map #366, CONTEXT.md) — the minimum configuration an exam
+// needs before it can be worked with. Not a stored flag or workflow state:
+// simply whether the two columns are set. Both the exams list and the setup
+// page gate their actions on this, so the rule lives here rather than being
+// re-derived in each component.
+
+/** The two Basic Info fields every gate reads. */
+export interface ExamConfiguration {
+  class_id: string | null
+  grading_scheme_id: string | null
+}
+
+/** Marks entry and the exam documents need a class *and* a grading scheme. */
+export function examBasicInfoComplete(exam: ExamConfiguration): boolean {
+  return Boolean(exam.class_id) && Boolean(exam.grading_scheme_id)
+}
+
+/** Co-curricular entry needs only the class — the grading scheme plays no part
+ * in it, matching what its own page has always required. */
+export function examHasClass(exam: Pick<ExamConfiguration, 'class_id'>): boolean {
+  return Boolean(exam.class_id)
+}
+
 // Exams V (issue #48): roll-range + promoted-only filtering, shared by
 // Result Book and batch print-all. "Promoted" has no stored column anywhere
 // in the schema — it's operationalized the same way Promotion's own

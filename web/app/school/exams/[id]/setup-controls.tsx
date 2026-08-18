@@ -6,6 +6,7 @@ import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
 import { subjectFullMarks } from '@/lib/exam-setup'
 import { t, type Lang } from '@/lib/i18n'
 import { CloseExamModal } from '../exam-controls'
+import { ExamAction, examActionClass } from '../exam-action'
 import { ExamDocumentsModal } from '../exam-documents-modal'
 import { assignSubjectTeacher, setExamGradingScheme, updateExamBasicInfo } from './actions'
 import { dateInputClass, selectClass } from '@/components/ui/field'
@@ -56,8 +57,6 @@ export function ExamHeader({
   basicInfoComplete: boolean
   lang: Lang
 }) {
-  const actionClass =
-    'rounded-full border border-line-strong px-3 py-1.5 text-xs font-semibold hover:bg-paper-muted'
   return (
     <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
       <span
@@ -68,25 +67,25 @@ export function ExamHeader({
         {closed ? `🔒 ${t('exams.closed', lang)}` : t('exams.open', lang)}
       </span>
       <div className="flex flex-wrap items-center gap-2">
-        <a href={`/school/exams/${examId}/promotion`} className={actionClass}>
-          {t('exams.promotion', lang)}
-        </a>
+        <ExamAction
+          href={`/school/exams/${examId}/promotion`}
+          label={t('exams.promotion', lang)}
+          size="header"
+        />
         {basicInfoComplete ? (
           <ExamDocumentsModal
             examId={examId}
             examLabel={examLabel}
             lang={lang}
-            triggerClassName={`cursor-pointer ${actionClass}`}
+            triggerClassName={`cursor-pointer ${examActionClass('header')}`}
           />
         ) : (
-          <button
-            type="button"
-            disabled
-            title={t('exams.completeBasicInfoFirst', lang)}
-            className="cursor-not-allowed rounded-full border border-line px-3 py-1.5 text-xs font-semibold text-muted opacity-60"
-          >
-            {t('examDocs.title', lang)}
-          </button>
+          <ExamAction
+            href=""
+            label={t('examDocs.title', lang)}
+            reason={t('exams.completeBasicInfoFirst', lang)}
+            size="header"
+          />
         )}
         {!closed && (
           <CloseExamModal

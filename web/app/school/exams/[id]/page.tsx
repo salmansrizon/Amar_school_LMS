@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
+import { examBasicInfoComplete } from '@/lib/exam-setup'
 import { subjectsForClass } from '@/lib/students'
 import {
   BasicInfoForm,
@@ -76,7 +77,7 @@ export default async function ExamSetupPage({ params }: { params: Promise<{ id: 
         examId={exam.id}
         examLabel={examLabel}
         closed={closed}
-        basicInfoComplete={Boolean(exam.class_id && exam.grading_scheme_id)}
+        basicInfoComplete={examBasicInfoComplete(exam)}
         lang={lang}
       />
 

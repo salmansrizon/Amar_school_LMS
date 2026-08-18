@@ -1,12 +1,12 @@
 'use client'
 
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useMemo, useState, useTransition } from 'react'
 import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
-import { filterExams } from '@/lib/exam-setup'
+import { examBasicInfoComplete, examHasClass, filterExams } from '@/lib/exam-setup'
 import { t, type Lang } from '@/lib/i18n'
 import { addExam, closeExam } from './actions'
+import { ExamAction, examActionClass } from './exam-action'
 import { ExamDocumentsModal } from './exam-documents-modal'
 import { selectClass } from '@/components/ui/field'
 
@@ -217,19 +217,15 @@ function classLabelOf(cls: ClassOption | undefined): string | null {
  * Entry, Co-Curricular, Documents. Promotion and Close Exam moved inside Basic
  * Info; Seat Plan is now one of the Documents. Marks entry and the documents
  * need a class *and* a grading scheme (docs/010_exam_system.md); co-curricular
- * only needs the class, matching what its own page already requires. Closing an
- * exam no longer hides the actions: every destination renders read-only when
- * closed, and CONTEXT.md keeps "aggregate result viewing" available. */
-export const examActionClass =
-  'rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted'
-const examActionDisabledClass =
-  'cursor-not-allowed rounded-full border border-line px-3 py-1 text-xs font-semibold text-muted opacity-60'
-
+ * only needs the class, matching what its own page already requires — so the
+ * two carry different explanations when gated. Closing an exam no longer hides
+ * the actions: every destination renders read-only when closed, and CONTEXT.md
+ * keeps "aggregate result viewing" available. */
 function ExamListRow({ exam, classLabel, lang }: { exam: ExamListItem; classLabel: string | null; lang: Lang }) {
   const closed = exam.status === 'closed'
-  const hasClass = Boolean(exam.class_id)
-  const basicInfoComplete = hasClass && Boolean(exam.grading_scheme_id)
-  const incompleteHint = t('exams.completeBasicInfoFirst', lang)
+  const complete = examBasicInfoComplete(exam)
+  const needsBasicInfo = complete ? undefined : t('exams.completeBasicInfoFirst', lang)
+  const needsClass = examHasClass(exam) ? undefined : t('exams.selectClassFirst', lang)
   const examLabel = `${exam.name} (${exam.exam_year})`
 
   return (
@@ -251,44 +247,29 @@ function ExamListRow({ exam, classLabel, lang }: { exam: ExamListItem; classLabe
 
       <div className="flex flex-col items-end gap-1">
         <span className="flex flex-wrap items-center justify-end gap-2">
-          <Link href={`/school/exams/${exam.id}`} className={examActionClass}>
-            {t('examSetup.basicInfo', lang)}
-          </Link>
-
-          {basicInfoComplete ? (
-            <Link href={`/school/exams/${exam.id}/marks-entry`} className={examActionClass}>
-              {t('exams.markEntry', lang)}
-            </Link>
-          ) : (
-            <button type="button" disabled title={incompleteHint} className={examActionDisabledClass}>
-              {t('exams.markEntry', lang)}
-            </button>
-          )}
-
-          {hasClass ? (
-            <Link href={`/school/exams/${exam.id}/cocurricular`} className={examActionClass}>
-              {t('exams.cocurricular', lang)}
-            </Link>
-          ) : (
-            <button type="button" disabled title={incompleteHint} className={examActionDisabledClass}>
-              {t('exams.cocurricular', lang)}
-            </button>
-          )}
-
-          {basicInfoComplete ? (
+          <ExamAction href={`/school/exams/${exam.id}`} label={t('examSetup.basicInfo', lang)} />
+          <ExamAction
+            href={`/school/exams/${exam.id}/marks-entry`}
+            label={t('exams.markEntry', lang)}
+            reason={needsBasicInfo}
+          />
+          <ExamAction
+            href={`/school/exams/${exam.id}/cocurricular`}
+            label={t('exams.cocurricular', lang)}
+            reason={needsClass}
+          />
+          {complete ? (
             <ExamDocumentsModal
               examId={exam.id}
               examLabel={examLabel}
               lang={lang}
-              triggerClassName={`cursor-pointer ${examActionClass}`}
+              triggerClassName={`cursor-pointer ${examActionClass()}`}
             />
           ) : (
-            <button type="button" disabled title={incompleteHint} className={examActionDisabledClass}>
-              {t('examDocs.title', lang)}
-            </button>
+            <ExamAction href="" label={t('examDocs.title', lang)} reason={needsBasicInfo} />
           )}
         </span>
-        {!basicInfoComplete && <span className="text-xs text-muted">{incompleteHint}</span>}
+        {!complete && <span className="text-xs text-muted">{t('exams.completeBasicInfoFirst', lang)}</span>}
       </div>
     </div>
   )
