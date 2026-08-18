@@ -7,8 +7,9 @@ import { ExamsTabs } from './exams-tabs'
 
 // Layout per ui/school-owner/exams-list.html: search + class/status filter
 // toolbar, "+ New Exam" quick-create (name/year only — full setup happens on
-// the detail page, [id]/page.tsx), table of exams with Setup/Seat Plan
-// actions (locked once Closed, issue #8's immutability rule).
+// the detail page, [id]/page.tsx), table of exams. Map #366 gives every row the
+// same four actions (Basic Info / Mark Entry / Co-Curricular / Documents);
+// grading_scheme_id rides along because two of them are gated on it.
 
 export default async function ExamsPage() {
   const lang = await currentLang()
@@ -17,7 +18,7 @@ export default async function ExamsPage() {
   const [{ data: exams }, { data: classes }] = await Promise.all([
     supabase
       .from('exams')
-      .select('id, name, exam_year, status, class_id, start_date')
+      .select('id, name, exam_year, status, class_id, grading_scheme_id, start_date')
       .order('created_at', { ascending: false }),
     supabase.from('classes').select('id, name, section').order('created_at'),
   ])

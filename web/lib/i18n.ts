@@ -490,6 +490,12 @@ const dict = {
   'exams.routine': { bn: 'পরীক্ষার রুটিন', en: 'Exam Routine' },
   'exams.markEntry': { bn: 'নম্বর এন্ট্রি', en: 'Marks Entry' },
   'exams.promotion': { bn: 'প্রমোশন', en: 'Promotion' },
+  // Map #366: Mark Entry and Documents need a class and a grading scheme set
+  // on the exam first — both plain columns, no new workflow state.
+  'exams.completeBasicInfoFirst': {
+    bn: 'আগে মৌলিক তথ্য পূরণ করুন',
+    en: 'Complete Basic Info first',
+  },
   'exams.viewResult': { bn: 'ফলাফল দেখুন', en: 'View Result' },
   'exams.lockedEdit': {
     bn: 'পরীক্ষা বন্ধ থাকায় সম্পাদনা করা যাবে না',
@@ -573,6 +579,7 @@ const dict = {
   // exam has, over routes that already exist.
   'examDocs.title': { bn: 'পরীক্ষার কাগজপত্র', en: 'Exam Documents' },
   'examDocs.open': { bn: 'খুলুন', en: 'Open' },
+  'examDocs.close': { bn: 'বন্ধ করুন', en: 'Close' },
   'examDocs.routine': { bn: 'পরীক্ষার রুটিন', en: 'Exam Routine' },
   'examDocs.routineHint': {
     bn: 'নোটিশ বোর্ডের জন্য তারিখ, সময় ও বিষয়ের সূচি।',

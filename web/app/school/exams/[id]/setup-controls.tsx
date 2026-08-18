@@ -6,6 +6,7 @@ import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
 import { subjectFullMarks } from '@/lib/exam-setup'
 import { t, type Lang } from '@/lib/i18n'
 import { CloseExamModal } from '../exam-controls'
+import { ExamDocumentsModal } from '../exam-documents-modal'
 import { assignSubjectTeacher, setExamGradingScheme, updateExamBasicInfo } from './actions'
 import { dateInputClass, selectClass } from '@/components/ui/field'
 
@@ -34,20 +35,29 @@ export interface SubjectRow {
   teacher_id: string | null
 }
 
-/** Open/Closed badge + Close Exam button. Closing is permanent (issue #8);
+/** Open/Closed badge + the only actions Basic Info still carries: Promotion,
+ * Documents and Close Exam. Map #366 stripped the other seven shortcuts that
+ * had accumulated here — routine, seat plan, marks entry, co-curricular,
+ * printables, admit cards, result book, print-all all live in the Documents
+ * modal or on the exam row now. Documents is gated exactly like the row's:
+ * a class and a grading scheme must be set. Closing is permanent (issue #8);
  * the confirmation is CloseExamModal (exam-controls.tsx), a dedicated dialog
  * per exam-close-confirm-modal.html, not a bare window.confirm(). */
 export function ExamHeader({
   examId,
   examLabel,
   closed,
+  basicInfoComplete,
   lang,
 }: {
   examId: string
   examLabel: string
   closed: boolean
+  basicInfoComplete: boolean
   lang: Lang
 }) {
+  const actionClass =
+    'rounded-full border border-line-strong px-3 py-1.5 text-xs font-semibold hover:bg-paper-muted'
   return (
     <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
       <span
@@ -58,60 +68,26 @@ export function ExamHeader({
         {closed ? `🔒 ${t('exams.closed', lang)}` : t('exams.open', lang)}
       </span>
       <div className="flex flex-wrap items-center gap-2">
-        <a
-          href={`/school/exams/${examId}/routine`}
-          className="rounded-full border border-line-strong px-3 py-1.5 text-xs font-semibold hover:bg-paper-muted"
-        >
-          {t('exams.routine', lang)}
-        </a>
-        <a
-          href={`/school/exams/${examId}/seat-plan`}
-          className="rounded-full border border-line-strong px-3 py-1.5 text-xs font-semibold hover:bg-paper-muted"
-        >
-          {t('exams.seatPlan', lang)}
-        </a>
-        <a
-          href={`/school/exams/${examId}/marks-entry`}
-          className="rounded-full border border-line-strong px-3 py-1.5 text-xs font-semibold hover:bg-paper-muted"
-        >
-          {t('exams.markEntry', lang)}
-        </a>
-        <a
-          href={`/school/exams/${examId}/promotion`}
-          className="rounded-full border border-line-strong px-3 py-1.5 text-xs font-semibold hover:bg-paper-muted"
-        >
+        <a href={`/school/exams/${examId}/promotion`} className={actionClass}>
           {t('exams.promotion', lang)}
         </a>
-        <a
-          href={`/school/exams/${examId}/cocurricular`}
-          className="rounded-full border border-line-strong px-3 py-1.5 text-xs font-semibold hover:bg-paper-muted"
-        >
-          {t('exams.cocurricular', lang)}
-        </a>
-        <a
-          href={`/school/exams/${examId}/printables`}
-          className="rounded-full border border-line-strong px-3 py-1.5 text-xs font-semibold hover:bg-paper-muted"
-        >
-          {t('exams.printables', lang)}
-        </a>
-        <a
-          href={`/school/exams/${examId}/admit-cards`}
-          className="rounded-full border border-line-strong px-3 py-1.5 text-xs font-semibold hover:bg-paper-muted"
-        >
-          {t('admitCard.title', lang)}
-        </a>
-        <a
-          href={`/school/exams/${examId}/result-book`}
-          className="rounded-full border border-line-strong px-3 py-1.5 text-xs font-semibold hover:bg-paper-muted"
-        >
-          {t('resultBook.title', lang)}
-        </a>
-        <a
-          href={`/school/exams/${examId}/print-all`}
-          className="rounded-full border border-line-strong px-3 py-1.5 text-xs font-semibold hover:bg-paper-muted"
-        >
-          {t('printAll.title', lang)}
-        </a>
+        {basicInfoComplete ? (
+          <ExamDocumentsModal
+            examId={examId}
+            examLabel={examLabel}
+            lang={lang}
+            triggerClassName={`cursor-pointer ${actionClass}`}
+          />
+        ) : (
+          <button
+            type="button"
+            disabled
+            title={t('exams.completeBasicInfoFirst', lang)}
+            className="cursor-not-allowed rounded-full border border-line px-3 py-1.5 text-xs font-semibold text-muted opacity-60"
+          >
+            {t('examDocs.title', lang)}
+          </button>
+        )}
         {!closed && (
           <CloseExamModal
             examId={examId}
