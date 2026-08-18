@@ -53,7 +53,7 @@ export function ProfileFields({
   return (
     <>
       <Card title={t('students.identity', lang)}>
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-grid sm:grid-cols-2 xl:grid-cols-3">
           <Field label={t('students.name', lang)}>
             <input name="full_name" required defaultValue={d('full_name')} className={fieldClass} />
           </Field>
@@ -106,7 +106,7 @@ export function ProfileFields({
       </Card>
 
       <Card title={t('students.address', lang)}>
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-grid sm:grid-cols-2 xl:grid-cols-3">
           <Field label={t('students.village', lang)}>
             <input name="village" defaultValue={d('village')} className={fieldClass} />
           </Field>
@@ -123,7 +123,7 @@ export function ProfileFields({
       </Card>
 
       <Card title={t('students.guardianInfo', lang)}>
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-grid sm:grid-cols-2 xl:grid-cols-3">
           <Field label={t('students.guardianName', lang)}>
             <input name="guardian_name" defaultValue={d('guardian_name')} className={fieldClass} />
           </Field>
@@ -162,7 +162,7 @@ export function ProfileFields({
       </Card>
 
       <Card title={t('students.previousInstitute', lang)}>
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-grid sm:grid-cols-2 xl:grid-cols-3">
           <Field label={t('students.previousInstituteName', lang)}>
             <input name="previous_institute" defaultValue={d('previous_institute')} className={fieldClass} />
           </Field>
