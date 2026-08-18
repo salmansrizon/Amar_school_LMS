@@ -1,5 +1,5 @@
 import { currentLang } from '@/lib/i18n-server'
-import { sidebarCollapsed } from '@/lib/ui-prefs-server'
+import { sidebarCollapsed, themePreference } from '@/lib/ui-prefs-server'
 import { SuperAdminShell } from '@/components/super-admin-shell'
 import { getSuperAdminContext } from '@/lib/super-admin/context'
 
@@ -11,10 +11,11 @@ import { getSuperAdminContext } from '@/lib/super-admin/context'
 export default async function SuperAdminLayout({ children }: { children: React.ReactNode }) {
   const lang = await currentLang()
   const collapsed = await sidebarCollapsed()
+  const theme = await themePreference()
   const { fullName } = await getSuperAdminContext()
 
   return (
-    <SuperAdminShell fullName={fullName} lang={lang} initialCollapsed={collapsed}>
+    <SuperAdminShell fullName={fullName} lang={lang} theme={theme} initialCollapsed={collapsed}>
       {children}
     </SuperAdminShell>
   )

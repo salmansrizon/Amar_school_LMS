@@ -1,5 +1,6 @@
 'use client'
 
+import type { ThemePreference } from '@/lib/ui-prefs'
 import { AppShell, type AppNavItem } from '@/components/app-shell'
 import { StrokeIcon } from '@/components/stroke-icon'
 import { t, type Lang, type MessageKey } from '@/lib/i18n'
@@ -161,11 +162,13 @@ const NAV: { href: string; labelKey: MessageKey; icon: React.ReactNode }[] = [
 export function SuperAdminShell({
   fullName,
   lang,
+  theme = 'system',
   initialCollapsed = false,
   children,
 }: {
   fullName: string
   lang: Lang
+  theme?: ThemePreference
   initialCollapsed?: boolean
   children: React.ReactNode
 }) {
@@ -182,6 +185,7 @@ export function SuperAdminShell({
       nav={nav}
       profile={{ fullName, label: t('shell.profile', lang) }}
       lang={lang}
+      theme={theme}
       initialCollapsed={initialCollapsed}
       contentContainer={false}
     >

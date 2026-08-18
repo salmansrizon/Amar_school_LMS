@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { LangSwitch } from '@/components/lang-switch'
+import { ThemeSwitch } from '@/components/theme-switch'
+import type { ThemePreference } from '@/lib/ui-prefs'
 import { LogoutButton } from '@/components/logout-button'
 import { Icon } from '@/components/school-icons'
 import { t, type Lang } from '@/lib/i18n'
@@ -178,6 +180,7 @@ export function AppShell({
   nav,
   profile,
   lang,
+  theme = 'system',
   initialCollapsed = false,
   search,
   bell,
@@ -191,6 +194,10 @@ export function AppShell({
   nav: AppNavItem[]
   profile: AppShellProfile
   lang: Lang
+  /** Persisted theme choice, read from the cookie by the layout (map #370). Only
+   *  drives which control reads as active — the palette itself is already applied
+   *  by `data-theme` on <html>, so a wrong default here cannot mis-paint the page. */
+  theme?: ThemePreference
   initialCollapsed?: boolean
   /** Global search slot (⌘K). Omit to hide search for a role until wired (#286). */
   search?: AppShellSearch
@@ -326,6 +333,7 @@ export function AppShell({
               {bell ?? <NotificationsBell lang={lang} buttonClass={ICON_BUTTON} />}
               <span className="mx-1 hidden h-6 w-px bg-line sm:block" />
               <div className="shrink-0">
+                <ThemeSwitch preference={theme} lang={lang} />
                 <LangSwitch lang={lang} />
               </div>
               {profile.href ? (
@@ -362,8 +370,14 @@ export function AppShell({
         <div className="relative flex-1 overflow-hidden bg-paper-muted print:overflow-visible print:bg-transparent">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,color-mix(in_srgb,var(--color-brand-500)_6%,transparent),transparent_28%),radial-gradient(circle_at_top_right,color-mix(in_srgb,var(--color-mint)_6%,transparent),transparent_24%)] print:hidden" />
           <div className="relative h-full overflow-y-auto overflow-x-hidden print:h-auto print:overflow-visible">
+            {/* Fluid content (map #370). The old `max-w-7xl` capped every page at
+                1280px, so a 1920px screen wasted ~280px of dead gutter on each
+                side. ERP/CRM layouts fill the viewport instead; a page that needs
+                a readable measure gets it from its own archetype (forms go
+                multi-column within the width, not narrower than it). Gutters are
+                applied once, here, using the shared density scale. */}
             {contentContainer ? (
-              <main className="mx-auto w-full max-w-7xl px-4 pt-6 pb-10 sm:px-6 lg:px-8 print:mx-0 print:max-w-none print:p-0">
+              <main className="w-full px-gutter pt-section pb-10 print:mx-0 print:max-w-none print:p-0">
                 {children}
               </main>
             ) : (

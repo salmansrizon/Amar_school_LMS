@@ -1,4 +1,8 @@
 @import "tailwindcss";
+/* shadcn/ui components use `animate-in` / `data-[state=open]` transitions from
+   this package (map #370). Imported here rather than left to `shadcn init`, which
+   rewrites this file wholesale — the token layer below is hand-maintained. */
+@import "tw-animate-css";
 
 /* Family Design System tokens (ADR 0006) — the app-side source of truth.
    Mirrors ui/shared/design-system.css; palette changes go here (and there) only. */
@@ -31,14 +35,149 @@
   --color-sky-deep: #0077b8;
   --color-sky-soft: #e5f6ff;
 
-  --radius-sm: 8px;
-  --radius-md: 14px;
-  --radius-lg: 20px;
+  /* Hairline-first surfaces (map #370). ERP/CRM interfaces separate surfaces with
+     a 1px line and keep them flat; drop shadows are reserved for things that
+     genuinely float above the page. All 229 `shadow-card` call sites already pair
+     it with a border, so flattening it costs no definition. */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
 
-  --shadow-card: 0 12px 32px rgb(0 0 0 / 0.08);
-  --shadow-modal: 0 24px 64px rgb(0 0 0 / 0.16);
+  --shadow-card: none;
+  --shadow-modal: 0 16px 48px rgb(0 0 0 / 0.18);
+
+  /* Density scale (map #370). Layout was previously ad-hoc utilities, which is
+     why 121 width declarations drifted across four values. Naming the rhythm
+     makes `p-card` / `gap-grid` / `space-y-section` mean the same thing on every
+     page. Tuned for Bangla (ADR 0004), whose ascenders and descenders need more
+     vertical room than Latin at the same size — deliberately not the tighter
+     13px/36px setting a Latin-only ERP would use. */
+  --spacing-card: 1.25rem; /* 20px — padding inside a card */
+  --spacing-grid: 1rem; /* 16px — between cards in a grid */
+  --spacing-section: 1.5rem; /* 24px — between page sections */
+  --spacing-gutter: 1.25rem; /* 20px — page edge gutter, applied once by the shell */
+  --spacing-row: 2.5rem; /* 40px — table row height */
 
   --font-sans: var(--font-jakarta), var(--font-bangla), system-ui, sans-serif;
+}
+
+/* Dark theme (map #370) — the pairs ADR 0005 promised "from day one" and never got.
+   Only the palette is redefined; every utility keeps reading the same token name,
+   so `bg-paper` follows the theme without a single component changing.
+
+   Three states, no flash and no script: an explicit choice stamps `data-theme` on
+   <html> (server-rendered from the cookie, see lib/ui-prefs.ts) and outranks the
+   media query below; "system" stamps nothing, so `prefers-color-scheme` decides at
+   paint time and keeps following the OS if it changes mid-session. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --color-ink: #f2f2f4;
+    --color-ink-card: #e8e8ec;
+    --color-paper: #16161a;
+    --color-paper-muted: #0f0f12;
+    --color-line: #26262c;
+    --color-line-strong: #35353d;
+    --color-muted: #a0a0aa;
+
+    --color-brand-50: #1a1430;
+    --color-brand-100: #241c45;
+    --color-brand-300: #6250c4;
+    --color-brand-500: #7f63ff;
+    --color-brand-600: #6d4dfb;
+    --color-brand-700: #5a37e8;
+
+    --color-mint-deep: #4ade80;
+    --color-mint-soft: #0c2b1c;
+    --color-sun-deep: #fbbf24;
+    --color-sun-soft: #2e2410;
+    --color-alert-deep: #f87171;
+    --color-alert-soft: #341416;
+    --color-sky-deep: #38bdf8;
+    --color-sky-soft: #0b2735;
+
+    --shadow-modal: 0 16px 48px rgb(0 0 0 / 0.6);
+  }
+}
+
+:root[data-theme='dark'] {
+  --color-ink: #f2f2f4;
+  --color-ink-card: #e8e8ec;
+  --color-paper: #16161a;
+  --color-paper-muted: #0f0f12;
+  --color-line: #26262c;
+  --color-line-strong: #35353d;
+  --color-muted: #a0a0aa;
+
+  --color-brand-50: #1a1430;
+  --color-brand-100: #241c45;
+  --color-brand-300: #6250c4;
+  --color-brand-500: #7f63ff;
+  --color-brand-600: #6d4dfb;
+  --color-brand-700: #5a37e8;
+
+  --color-mint-deep: #4ade80;
+  --color-mint-soft: #0c2b1c;
+  --color-sun-deep: #fbbf24;
+  --color-sun-soft: #2e2410;
+  --color-alert-deep: #f87171;
+  --color-alert-soft: #341416;
+  --color-sky-deep: #38bdf8;
+  --color-sky-soft: #0b2735;
+
+  --shadow-modal: 0 16px 48px rgb(0 0 0 / 0.6);
+}
+
+/* shadcn/ui compatibility layer (map #370).
+   The Family tokens above stay the single source of truth; shadcn's vocabulary is
+   defined as *aliases* onto them, so a shadcn component inherits the EdumeBD violet
+   and follows the dark theme with no extra wiring and nothing to keep in sync.
+
+   One deliberate exception: shadcn's `--muted` is a SURFACE with `--muted-foreground`
+   as its text, whereas Family's `--color-muted` is itself a TEXT colour. Aliasing
+   shadcn's meaning into the `--color-*` namespace would make `text-muted` and
+   `bg-muted` read the same variable with opposite intent. So `muted` is omitted from
+   the utility mapping below: when adding a shadcn component, map its `bg-muted` to
+   `bg-paper-muted` and `text-muted-foreground` to `text-muted`. Everything else
+   pastes in unmodified. */
+:root {
+  --background: var(--color-paper-muted);
+  --foreground: var(--color-ink);
+  --card: var(--color-paper);
+  --card-foreground: var(--color-ink);
+  --popover: var(--color-paper);
+  --popover-foreground: var(--color-ink);
+  --primary: var(--color-brand-600);
+  --primary-foreground: #ffffff;
+  --secondary: var(--color-paper-muted);
+  --secondary-foreground: var(--color-ink);
+  --accent: var(--color-brand-50);
+  --accent-foreground: var(--color-brand-700);
+  --destructive: var(--color-alert);
+  --destructive-foreground: #ffffff;
+  --border: var(--color-line);
+  --input: var(--color-line-strong);
+  --ring: var(--color-brand-300);
+  --radius: var(--radius-md);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
 }
 
 body {
@@ -85,6 +224,21 @@ body {
     cursor: pointer;
   }
 
+  /* The dark counterpart of the same problem: the stroke above is baked into the
+     data-URI, so it cannot follow `--color-muted` when the theme flips. The dark
+     chevron is therefore a second baked hex (#a0a0aa = dark `--color-muted`), and
+     the pair must be changed together. Both theme selectors are repeated here for
+     the same reason as the palette: explicit choice wins, "system" follows the OS. */
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme='light']) select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%23a0a0aa' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5.5 8 4.5 4.5L14.5 8'/%3E%3C/svg%3E");
+    }
+  }
+
+  :root[data-theme='dark'] select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%23a0a0aa' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5.5 8 4.5 4.5L14.5 8'/%3E%3C/svg%3E");
+  }
+
   /* List boxes have no dropdown arrow to replace. */
   select[multiple],
   select[size]:not([size='0']):not([size='1']) {
@@ -126,6 +280,37 @@ body {
   margin: 12mm;
 }
 @media print {
+  /* Printables are ink on paper, so they stay light whatever the screen theme is
+     (ADR 0007 — the browser is the PDF renderer). Restoring the light palette here
+     rather than at each call site means every existing printable keeps working: the
+     markup still says `bg-paper` / `text-ink`, those names just resolve back to
+     white and near-black for the duration of the print. */
+  :root {
+    --color-ink: #131313;
+    --color-ink-card: #1c1c1c;
+    --color-paper: #ffffff;
+    --color-paper-muted: #f4f4f6;
+    --color-line: #ececec;
+    --color-line-strong: #d8d8d8;
+    --color-muted: #767676;
+
+    --color-brand-50: #f1eefe;
+    --color-brand-100: #e3dcfd;
+    --color-brand-300: #b3a4f7;
+    --color-brand-500: #6d4dfb;
+    --color-brand-600: #5a37e8;
+    --color-brand-700: #4826c4;
+
+    --color-mint-deep: #0a7a48;
+    --color-mint-soft: #e6f9ef;
+    --color-sun-deep: #c98a00;
+    --color-sun-soft: #fff6e0;
+    --color-alert-deep: #dc2626;
+    --color-alert-soft: #fdeaea;
+    --color-sky-deep: #0077b8;
+    --color-sky-soft: #e5f6ff;
+  }
+
   /* The app shell locks the document to one viewport height (html/body are
      full-height so only the main area scrolls on screen). In print that fixed
      100vh is taller than the printable sheet, so every printable emitted a

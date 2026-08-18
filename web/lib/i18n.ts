@@ -35,6 +35,11 @@ const dict = {
   'shell.help': { bn: 'সহায়তা', en: 'Help' },
   'shell.chat': { bn: 'চ্যাট', en: 'Chat' },
   'shell.profile': { bn: 'প্রোফাইল', en: 'Profile' },
+  // Theme control (map #370) — light / dark / follow the OS.
+  'theme.label': { bn: 'থিম', en: 'Theme' },
+  'theme.light': { bn: 'উজ্জ্বল', en: 'Light' },
+  'theme.dark': { bn: 'অন্ধকার', en: 'Dark' },
+  'theme.system': { bn: 'সিস্টেম অনুযায়ী', en: 'System' },
   'shell.collapseSidebar': { bn: 'সাইডবার সংকুচিত করুন', en: 'Collapse sidebar' },
   'shell.expandSidebar': { bn: 'সাইডবার প্রসারিত করুন', en: 'Expand sidebar' },
   'shell.comingSoon': { bn: 'শীঘ্রই আসছে', en: 'coming soon' },
