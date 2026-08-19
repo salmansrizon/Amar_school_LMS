@@ -205,26 +205,25 @@ export function registerDayStatus(args: {
 // Student Log (map #380, docs/011_student_module.md): a single student's
 // day-by-day history needs Present/Absent/Leave/Holiday told apart, where the
 // Book's register grid deliberately collapses the last three into one 'blank'
-// cell (registerDayStatus above). Same three signals, finer-grained answer —
-// not new business logic, just not thrown away this time. A future day
-// returns null rather than a status: the page clips its query range at
-// `today`, so callers should never actually see one.
+// cell. Delegates to registerDayStatus for the present/absent/blank split —
+// that function stays the one place "is this day excused at all" is decided —
+// and only disambiguates *why* a 'blank' day is blank, so the two functions
+// can't drift out of precedence sync with each other. A future day returns
+// null rather than a status: the page clips its query range at `today`, so
+// callers should never actually see one.
 // Values match the `status.*` i18n keys already used by the employee
 // attendance badges (present/absent/on_leave), plus 'holiday' for this log.
 export type StudentLogDayStatus = 'present' | 'absent' | 'on_leave' | 'holiday'
 
-export function studentLogDayStatus(args: {
-  iso: string
-  today: string
-  isOff: boolean
-  onApprovedLeave: boolean
-  hasRecord: boolean
-}): StudentLogDayStatus | null {
-  if (args.hasRecord) return 'present'
+export function studentLogDayStatus(
+  args: Parameters<typeof registerDayStatus>[0],
+): StudentLogDayStatus | null {
+  const coarse = registerDayStatus(args)
+  if (coarse !== 'blank') return coarse
   if (args.iso > args.today) return null
-  if (args.isOff) return 'holiday'
-  if (args.onApprovedLeave) return 'on_leave'
-  return 'absent'
+  // Off-day wins over approved leave when both are true: school is closed
+  // either way, so the institutional fact outranks the personal one.
+  return args.isOff ? 'holiday' : 'on_leave'
 }
 
 // Progress Report (issue #33, PRD §5.5): the "Attendance %" info-grid figure
