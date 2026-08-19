@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { t, type Lang } from '@/lib/i18n'
 import { themeCookieAssignment, type ThemePreference } from '@/lib/ui-prefs'
+import { notifyThemePreferenceChanged } from '@/lib/use-theme-preference'
 
 // Theme control (map #370), sat beside LangSwitch because both are the same kind
 // of thing: a deliberate preference persisted in a cookie so the server renders
@@ -46,6 +47,7 @@ const OPTIONS: { value: ThemePreference; icon: React.ReactNode; labelKey: 'theme
 // rather than component state.
 function writeThemeCookie(next: ThemePreference) {
   document.cookie = themeCookieAssignment(next)
+  notifyThemePreferenceChanged()
 }
 
 export function ThemeSwitch({ preference, lang }: { preference: ThemePreference; lang: Lang }) {

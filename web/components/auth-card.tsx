@@ -1,5 +1,9 @@
+'use client'
+
 import { LangSwitch } from '@/components/lang-switch'
 import { BrandMark } from '@/components/brand-logo'
+import { ThemeSwitch } from '@/components/theme-switch'
+import { useThemePreference } from '@/lib/use-theme-preference'
 import { t, type Lang } from '@/lib/i18n'
 import { brandInitial, type SchoolBrand } from '@/lib/school-branding'
 
@@ -15,10 +19,17 @@ export function AuthCard({
   brand?: SchoolBrand | null
   children: React.ReactNode
 }) {
+  // Every AuthCard caller renders inside a client boundary with no server
+  // component in the chain to read the theme cookie and pass it down (unlike
+  // the authenticated shell) — resolved here instead, same shape as `lang`
+  // via useLang() at each call site (map #370 gate #372's follow-up: the
+  // theme control was entirely missing from these pages before).
+  const themePreference = useThemePreference()
+
   if (brand) {
     return (
       <main className="flex flex-1 items-center justify-center p-4">
-        <div className="grid w-full max-w-3xl overflow-hidden rounded-lg border border-line bg-paper shadow-card sm:grid-cols-2">
+        <div className="grid w-full max-w-3xl overflow-hidden rounded-lg border border-line bg-paper sm:grid-cols-2">
           <div className="flex flex-col items-center justify-center gap-3 border-b border-line bg-brand-50 p-8 text-center sm:border-b-0 sm:border-r">
             {brand.logoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -32,9 +43,12 @@ export function AuthCard({
             <span className="text-xs text-muted">{t('brandedLogin.tagline', lang)}</span>
           </div>
           <div className="p-6">
-            <div className="mb-4 flex items-center justify-between">
+            <div className="mb-4 flex items-center justify-between gap-2">
               <span className="text-xs font-semibold text-muted">{t('app.name', lang)}</span>
-              <LangSwitch lang={lang} />
+              <div className="flex items-center gap-2">
+                <ThemeSwitch preference={themePreference} lang={lang} />
+                <LangSwitch lang={lang} />
+              </div>
             </div>
             <h1 className="mb-4 text-xl font-bold">{title}</h1>
             {children}
@@ -46,15 +60,18 @@ export function AuthCard({
 
   return (
     <main className="flex flex-1 items-center justify-center p-4">
-      <div className="w-full max-w-sm rounded-lg border border-line bg-paper p-6 shadow-card">
-        <div className="mb-6 flex items-center justify-between">
+      <div className="w-full max-w-sm rounded-lg border border-line bg-paper p-6">
+        <div className="mb-6 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <span className="flex size-8 items-center justify-center rounded-sm bg-brand-500 text-white">
               <BrandMark className="size-5" />
             </span>
             <span className="font-extrabold">{t('app.name', lang)}</span>
           </div>
-          <LangSwitch lang={lang} />
+          <div className="flex items-center gap-2">
+            <ThemeSwitch preference={themePreference} lang={lang} />
+            <LangSwitch lang={lang} />
+          </div>
         </div>
         <h1 className="mb-4 text-xl font-bold">{title}</h1>
         {children}

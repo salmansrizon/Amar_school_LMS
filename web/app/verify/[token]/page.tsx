@@ -55,7 +55,7 @@ export default async function VerifyCardPage({ params }: { params: Promise<{ tok
 
   return (
     <main className="flex min-h-dvh items-center justify-center bg-paper-muted p-6">
-      <div className="w-full max-w-sm rounded-2xl border border-line bg-paper p-6 text-center shadow-card">
+      <div className="w-full max-w-sm rounded-lg border border-line bg-paper p-6 text-center">
         {card === null ? (
           <>
             <Badge tone="invalid" label={t('verify.notFound', lang)} />
