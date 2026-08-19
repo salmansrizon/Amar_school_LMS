@@ -27,9 +27,9 @@ function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
 
 function InfoCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="mb-4 rounded-lg border border-line bg-paper p-5 shadow-card">
+    <section className="mb-4 rounded-lg border border-line bg-paper p-5">
       <h3 className="mb-3 font-bold">{title}</h3>
-      <dl className="grid gap-3 sm:grid-cols-2">{children}</dl>
+      <dl className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">{children}</dl>
     </section>
   )
 }
@@ -80,7 +80,7 @@ export default async function StudentDetailPage({
   )
 
   return (
-    <main className="mx-auto w-full max-w-4xl flex-1 p-6">
+    <div>
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold">{student.full_name}</h1>
         <Link href="/school/students" aria-label={t('students.listTitle', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
@@ -124,7 +124,7 @@ export default async function StudentDetailPage({
       </div>
 
       <div className="mb-6 grid gap-4 sm:grid-cols-[10rem_1fr]">
-        <div className="rounded-lg border border-line bg-paper p-4 shadow-card self-start">
+        <div className="rounded-lg border border-line bg-paper p-4 self-start">
           <PhotoControl lang={lang} studentId={id} hasPhoto={student.photo_path !== null} />
         </div>
 
@@ -180,7 +180,7 @@ export default async function StudentDetailPage({
             <InfoRow label={t('students.guardianNid', lang)} value={student.guardian_nid} />
           </InfoCard>
 
-          <section className="mb-4 rounded-lg border border-line bg-paper p-5 shadow-card">
+          <section className="mb-4 rounded-lg border border-line bg-paper p-5">
             <h3 className="mb-3 font-bold">{t('students.benefitFlags', lang)}</h3>
             <div className="flex flex-wrap gap-2">
               {flag(
@@ -203,7 +203,7 @@ export default async function StudentDetailPage({
         </ProfileEditor>
       </div>
 
-      <section className="mb-6 rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="mb-6 rounded-lg border border-line bg-paper p-5">
         <h2 className="mb-3 font-bold">{t('subjects.title', lang)}</h2>
         <StudentSubjects
           studentId={student.id}
@@ -213,7 +213,7 @@ export default async function StudentDetailPage({
         />
       </section>
 
-      <section className="mb-6 rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="mb-6 rounded-lg border border-line bg-paper p-5">
         <div className="mb-3 flex items-center justify-between">
           <h2 className="font-bold">{t('behaviour.title', lang)}</h2>
           {avg !== null && (
@@ -225,7 +225,7 @@ export default async function StudentDetailPage({
         <AddEntryForm studentId={student.id} lang={lang} />
       </section>
 
-      <section className="rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="rounded-lg border border-line bg-paper p-5">
         <p className="mb-3 text-xs text-muted">{t('behaviour.lockedHint', lang)}</p>
         {!entries?.length && <p className="text-sm text-muted">{t('behaviour.none', lang)}</p>}
         <ul className="divide-y divide-line">
@@ -241,6 +241,6 @@ export default async function StudentDetailPage({
           ))}
         </ul>
       </section>
-    </main>
+    </div>
   )
 }
