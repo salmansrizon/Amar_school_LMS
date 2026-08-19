@@ -67,7 +67,7 @@ export default async function MarkAttendancePage({
   }))
 
   return (
-    <main className="mx-auto w-full max-w-4xl flex-1 p-6">
+    <div>
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold">{t('attendance.markTitle', lang)}</h1>
         <Link href="/school" aria-label={t('common.back', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
@@ -75,7 +75,7 @@ export default async function MarkAttendancePage({
 
       <AttendanceTabs active="/school/attendance/mark" lang={lang} />
 
-      <Form className="mb-4 grid gap-3 rounded-lg border border-line bg-paper p-5 shadow-card sm:grid-cols-5" action="/school/attendance/mark">
+      <Form className="mb-4 grid gap-3 rounded-lg border border-line bg-paper p-5 sm:grid-cols-5" action="/school/attendance/mark">
         <div>
           <label className="mb-1 block text-xs font-semibold text-muted">{t('attendance.class', lang)}</label>
           <select
@@ -122,12 +122,12 @@ export default async function MarkAttendancePage({
       </Form>
 
       {!visible.length ? (
-        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted shadow-card">
+        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted">
           {t('attendance.none', lang)}
         </p>
       ) : (
         <MarkAttendanceForm lang={lang} date={date} students={initial} />
       )}
-    </main>
+    </div>
   )
 }

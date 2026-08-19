@@ -56,7 +56,7 @@ export default async function OffDayCalendarPage({
   const offDays: OffDay[] = offDaysRaw ?? []
 
   return (
-    <main className="mx-auto w-full max-w-5xl flex-1 p-6">
+    <div>
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold">
           {t('attendance.offDayTitle', lang)} — {year}
@@ -66,7 +66,7 @@ export default async function OffDayCalendarPage({
 
       <AttendanceTabs active="/school/attendance/off-days" lang={lang} />
 
-      <section className="mb-6 rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="mb-6 rounded-lg border border-line bg-paper p-5">
         <h3 className="mb-3 font-bold">{t('attendance.offDayAddTitle', lang)}</h3>
         <AddOffDayForm lang={lang} />
         <div className="mt-3 border-t border-line pt-3">
@@ -87,7 +87,7 @@ export default async function OffDayCalendarPage({
         {MONTH_NAMES.map((name, month) => {
           const grid = monthGrid(year, month, offDays)
           return (
-            <div key={month} className="rounded-lg border border-line bg-paper p-3 shadow-card">
+            <div key={month} className="rounded-lg border border-line bg-paper p-3">
               <h4 className="mb-2 text-center text-sm font-bold">{name[lang]}</h4>
               <div className="grid grid-cols-7 gap-0.5 text-xs">
                 {WEEKDAY_LABELS.map((w) => (
@@ -118,7 +118,7 @@ export default async function OffDayCalendarPage({
 
       <p className="mt-4 text-xs text-muted">{t('attendance.offDaySaturdayNote', lang)}</p>
 
-      <section className="mt-6 rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="mt-6 rounded-lg border border-line bg-paper p-5">
         {!offDays.length ? (
           <p className="text-sm text-muted">{t('attendance.none', lang)}</p>
         ) : (
@@ -140,6 +140,6 @@ export default async function OffDayCalendarPage({
           </ul>
         )}
       </section>
-    </main>
+    </div>
   )
 }
