@@ -1,4 +1,3 @@
-import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
@@ -10,6 +9,8 @@ import { PrintButton } from '@/components/print/print-button'
 import { TemplatePicker } from '@/components/print/template-picker'
 import { MarkSheetTemplate } from './templates'
 import { loadInstitutePrintHeader } from '@/lib/institute-print'
+import { BackLink } from '@/components/back-link'
+import { resolveBackHref } from '@/lib/back-nav'
 
 // Real per-student mark sheet (issue #33, PRD §5.5), the production
 // successor to the issue #25 POC (/school/exams/mark-sheet-preview) — grades
@@ -27,10 +28,11 @@ export default async function MarkSheetPage({
   searchParams,
 }: {
   params: Promise<{ id: string; studentId: string }>
-  searchParams: Promise<{ template?: string }>
+  searchParams: Promise<{ template?: string; from?: string | string[] }>
 }) {
   const { id: examId, studentId } = await params
-  const { template: templateParam } = await searchParams
+  const { template: templateParam, from } = await searchParams
+  const backHref = resolveBackHref(from, `/school/exams/${examId}/printables`)
   const template = parseTemplate(templateParam)
   const lang: Lang = await currentLang()
   const { supabase } = await getSchoolContext()
@@ -44,7 +46,7 @@ export default async function MarkSheetPage({
 
   const header = (
     <div className="mb-4 flex flex-wrap items-center justify-between gap-2 print:hidden">
-      <Link href={`/school/exams/${examId}/printables`} aria-label={t('exams.printables', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
+      <BackLink href={backHref} label={t('exams.printables', lang)} />
       <div className="flex items-center gap-3">
         <TemplatePicker
           selected={template}

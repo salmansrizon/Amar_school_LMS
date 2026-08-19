@@ -1,5 +1,4 @@
 import Form from 'next/form'
-import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
@@ -16,6 +15,8 @@ import { ProgressReportTemplate } from '../progress-report/[studentId]/templates
 import { loadInstitutePrintHeader, loadPrintThemeKey } from '@/lib/institute-print'
 import { PRINT_THEMES, resolveTheme } from '@/lib/print-themes'
 import { selectClass } from '@/components/ui/field'
+import { BackLink } from '@/components/back-link'
+import { resolveBackHref } from '@/lib/back-nav'
 
 // Batch "print all" (issue #48, PRD §5.5): one page renders N PrintPages (one
 // per matching roster student) and calls window.print() once — ADR 0007's
@@ -49,11 +50,12 @@ export default async function PrintAllPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>
-  searchParams: Promise<{ doc?: string; template?: string; rollFrom?: string; rollTo?: string; promotedOnly?: string; theme?: string }>
+  searchParams: Promise<{ doc?: string; template?: string; rollFrom?: string; rollTo?: string; promotedOnly?: string; theme?: string; from?: string | string[] }>
 }) {
   const { id: examId } = await params
-  const { doc: docParam, template: templateParam, rollFrom: rollFromParam, rollTo: rollToParam, promotedOnly: promotedOnlyParam, theme: themeParam } =
+  const { doc: docParam, template: templateParam, rollFrom: rollFromParam, rollTo: rollToParam, promotedOnly: promotedOnlyParam, theme: themeParam, from } =
     await searchParams
+  const backHref = resolveBackHref(from, `/school/exams/${examId}`)
   const doc = parseDoc(docParam)
   const template = parseTemplate(templateParam, doc)
   const rollFrom = parseRoll(rollFromParam)
@@ -146,7 +148,7 @@ export default async function PrintAllPage({
         {t('printAll.title', lang)} — {examLabel}
       </h1>
       <div className="flex items-center gap-3">
-        <Link href={`/school/exams/${examId}`} aria-label={t('examSetup.title', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
+        <BackLink href={backHref} label={t('examSetup.title', lang)} />
         <PrintButton label={t('print.print', lang)} />
       </div>
     </div>

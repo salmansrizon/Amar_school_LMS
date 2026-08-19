@@ -14,6 +14,8 @@ import {
 import { PrintPage, InstituteHeader, PaginatedSheet } from '@/components/print/pieces'
 import { PrintButton } from '@/components/print/print-button'
 import { embeddedBuildingName, roomVenueLabel } from '@/lib/venues'
+import { BackLink } from '@/components/back-link'
+import { resolveBackHref } from '@/lib/back-nav'
 
 // Notice-board seat plan (issue #96, docs/improvement.md §2B; ADR 0007 —
 // browser-native print). Organised by room, because that is what a student
@@ -29,10 +31,11 @@ export default async function SeatPlanPrintPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>
-  searchParams: Promise<{ date?: string }>
+  searchParams: Promise<{ date?: string; from?: string | string[] }>
 }) {
   const { id } = await params
-  const { date: sittingDate } = await searchParams
+  const { date: sittingDate, from } = await searchParams
+  const backHref = resolveBackHref(from, `/school/exams/${id}/seat-plan`)
   const lang: Lang = await currentLang()
   const { supabase } = await getSchoolContext()
 
@@ -120,13 +123,7 @@ export default async function SeatPlanPrintPage({
   return (
     <main className="mx-auto w-full max-w-4xl flex-1 p-6">
       <div className="mb-4 flex items-center justify-between print:hidden">
-        <Link
-          href={`/school/exams/${id}/seat-plan`}
-          aria-label={t('seatPlan.title', lang)}
-          className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg>
-        </Link>
+        <BackLink href={backHref} label={t('seatPlan.title', lang)} />
         <div className="flex items-center gap-3">
           {examDates.length > 1 && (
             <nav className="flex flex-wrap items-center gap-2 text-xs">

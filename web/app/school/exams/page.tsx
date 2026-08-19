@@ -1,9 +1,9 @@
-import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
 import { t } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { AddExamForm, ExamsListClient } from './exam-controls'
 import { ExamsTabs } from './exams-tabs'
+import { BackLink } from '@/components/back-link'
 
 // Layout per ui/school-owner/exams-list.html: search + class/status filter
 // toolbar, "+ New Exam" quick-create (name/year only — full setup happens on
@@ -27,7 +27,7 @@ export default async function ExamsPage() {
     <main className="mx-auto w-full max-w-3xl flex-1 p-6">
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold">{t('exams.title', lang)}</h1>
-        <Link href="/school" aria-label={t('common.back', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
+        <BackLink href="/school" label={t('common.back', lang)} />
       </div>
 
       <ExamsTabs active="/school/exams" lang={lang} />

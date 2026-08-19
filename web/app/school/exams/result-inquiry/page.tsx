@@ -8,6 +8,7 @@ import { classSectionLabel } from '@/lib/students'
 import { loadExamRosterResults } from '@/lib/exam-print-data'
 import { Badge } from '@/components/print/pieces'
 import { selectClass } from '@/components/ui/field'
+import { BackLink } from '@/components/back-link'
 
 // Result Inquiry (issue #48, PRD §5.5), per ui/school-owner/result-inquiry.html
 // — plain GET-form search (mirrors ledger/page.tsx's date-range filter, no
@@ -42,7 +43,7 @@ export default async function ResultInquiryPage({
     <>
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold">{t('resultInquiry.title', lang)}</h1>
-        <Link href="/school/exams" aria-label={t('exams.title', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
+        <BackLink href="/school/exams" label={t('exams.title', lang)} />
       </div>
       <ExamsTabs active="/school/exams/result-inquiry" lang={lang} />
     </>
