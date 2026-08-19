@@ -24,6 +24,10 @@ const EXAM_SETUP_TITLE = 'পরীক্ষা সেটআপ' // examSetup.ti
 // grading scheme, so all six row actions are live including Documents.
 const EXAM = 'ZZ Map366 Verify Exam'
 
+// A second exam with a class but *no* grading scheme — the mixed gate state,
+// and the control for "is the exam id hardcoded anywhere" (acceptance test K).
+const OTHER_EXAM = 'SP2 Exam Six'
+
 const row = (page: Page, name: string) => page.locator('div[id^="exam-"]').filter({ hasText: name }).first()
 
 /** Click a row action and *wait for the soft navigation to land*. Without the
@@ -200,6 +204,73 @@ test.describe('@crud @school exams back-navigation (map #373)', () => {
     await page.goto(`/school/exams/${examId}/seat-plan`)
     await page.getByRole('link', { name: BACK }).click()
     await expect(page).toHaveURL(new RegExp(`/school/exams/${examId}$`))
+    await page.context().close()
+  })
+
+  // A second, differently-configured exam: class set but no grading scheme, so
+  // Seat Plan and Routine are live while Marks Entry and Documents are gated.
+  // Proves the gate is read per exam and no id is baked in.
+  test('K: a second exam behaves the same, with its own gate state', async ({ browser }) => {
+    const page = await asRole(browser, 'owner')
+    await page.goto('/school/exams')
+
+    const second = row(page, OTHER_EXAM)
+    await expect(second).toBeVisible()
+    // Class-only gate: these two are live...
+    await expect(second.getByRole('link', { name: GENERATE_SEAT_PLAN })).toBeVisible()
+    await expect(second.getByRole('link', { name: MAKE_ROUTINE })).toBeVisible()
+    // ...while the grading-scheme ones are not.
+    await expect(second.getByRole('button', { name: MARKS_ENTRY, disabled: true })).toBeVisible()
+    await expect(second.getByRole('button', { name: DOCUMENTS, disabled: true })).toBeVisible()
+
+    await openFromRow(page, OTHER_EXAM, MAKE_ROUTINE, /\/routine\?from=/)
+    await clickBack(page)
+    await expectBackOnRow(page, OTHER_EXAM)
+    await page.context().close()
+  })
+
+  // L: the platform Back control, which follows history rather than ?from=.
+  // The two mechanisms are allowed to differ; neither may strand the user on an
+  // intermediate screen.
+  test('L: browser Back also returns to the list, not an intermediate screen', async ({ browser }) => {
+    const page = await asRole(browser, 'owner')
+    await page.goto('/school/exams')
+    await openFromRow(page, EXAM, GENERATE_SEAT_PLAN, /\/seat-plan\?from=/)
+
+    await page.goBack()
+    await expectBackOnRow(page, EXAM)
+
+    // And forward again, then the in-app chevron — the two must not fight.
+    await page.goForward()
+    await expect(page).toHaveURL(/\/seat-plan\?from=/)
+    await clickBack(page)
+    await expectBackOnRow(page, EXAM)
+    await page.context().close()
+  })
+
+  // Report §7 keeps the existing responsive behaviour. Six pills is where that
+  // could plausibly break, so check the row on a phone-sized viewport.
+  test('six actions stay usable on a phone viewport, with no horizontal overflow', async ({ browser }) => {
+    const page = await asRole(browser, 'owner')
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.goto('/school/exams')
+
+    const target = row(page, EXAM)
+    await target.scrollIntoViewIfNeeded()
+    for (const label of [BASIC_INFO, MARKS_ENTRY, COCURRICULAR, GENERATE_SEAT_PLAN, MAKE_ROUTINE, DOCUMENTS]) {
+      await expect(target.getByText(label, { exact: true })).toBeVisible()
+    }
+
+    // The row wraps; the page must not scroll sideways.
+    const overflow = await page.evaluate(
+      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    )
+    expect(overflow).toBeLessThanOrEqual(0)
+
+    // Still navigable at this size.
+    await openFromRow(page, EXAM, MAKE_ROUTINE, /\/routine\?from=/)
+    await clickBack(page)
+    await expectBackOnRow(page, EXAM)
     await page.context().close()
   })
 })
