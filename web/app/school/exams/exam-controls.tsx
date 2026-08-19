@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import { useMemo, useState, useTransition } from 'react'
 import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
 import { examBasicInfoComplete, examHasClass, filterExams } from '@/lib/exam-setup'
+import { withOrigin } from '@/lib/back-nav'
 import { t, type Lang } from '@/lib/i18n'
 import { addExam, closeExam } from './actions'
 import { ExamAction, examActionClass } from './exam-action'
@@ -168,6 +169,19 @@ export function ExamsListClient({
   const classById = new Map(classes.map((c) => [c.id, c]))
   const filtered = useMemo(() => filterExams(exams, query, classId, status), [exams, query, classId, status])
 
+  // The address a destination should come back to: this list, with the filters
+  // as they stand right now and the row that was clicked. Snapshotted per link
+  // rather than synced to the URL on every keystroke — in the App Router that
+  // would mean a server round-trip per character (map #373).
+  const originFor = (examId: string) => {
+    const params = new URLSearchParams()
+    if (query) params.set('q', query)
+    if (classId) params.set('class', classId)
+    if (status) params.set('status', status)
+    params.set('exam', examId)
+    return `/school/exams?${params.toString()}`
+  }
+
   return (
     <>
       <div className="mb-4 flex flex-wrap items-center gap-2">
@@ -199,7 +213,12 @@ export function ExamsListClient({
         <ul className="divide-y divide-line">
           {filtered.map((exam) => (
             <li key={exam.id} className="py-3">
-              <ExamListRow exam={exam} classLabel={classLabelOf(classById.get(exam.class_id ?? ''))} lang={lang} />
+              <ExamListRow
+                exam={exam}
+                classLabel={classLabelOf(classById.get(exam.class_id ?? ''))}
+                origin={originFor(exam.id)}
+                lang={lang}
+              />
             </li>
           ))}
         </ul>
@@ -213,23 +232,56 @@ function classLabelOf(cls: ClassOption | undefined): string | null {
   return cls.section ? `${cls.name} - ${cls.section}` : cls.name
 }
 
-/** Map #366: every exam row offers the same four actions — Basic Info, Mark
- * Entry, Co-Curricular, Documents. Promotion and Close Exam moved inside Basic
- * Info; Seat Plan is now one of the Documents. Marks entry and the documents
- * need a class *and* a grading scheme (docs/010_exam_system.md); co-curricular
- * only needs the class, matching what its own page already requires — so the
- * two carry different explanations when gated. Closing an exam no longer hides
- * the actions: every destination renders read-only when closed, and CONTEXT.md
- * keeps "aggregate result viewing" available. */
-function ExamListRow({ exam, classLabel, lang }: { exam: ExamListItem; classLabel: string | null; lang: Lang }) {
+/** DOM id of an exam row. Returning from a destination scrolls this back into
+ *  view rather than landing at the top of a long list (docs/010_exam_module.md
+ *  §5, which prefers a row anchor over a pixel offset — an anchor survives the
+ *  list re-rendering or the exam changing status; an offset does not). */
+export function examRowAnchorId(examId: string): string {
+  return `exam-${examId}`
+}
+
+/** Map #366 cut every exam row to the same four actions; map #373 restores Seat
+ * Plan and Routine as direct actions, giving six in the order
+ * docs/010_exam_module.md §1 fixes: Basic Info, Marks Entry, Co-Curricular,
+ * Generate Seat Plan, Make Exam Routine, Documents. The two restored ones link
+ * to the pages that already exist under [id]/seat-plan and [id]/routine — they
+ * are not new features and must not be rebuilt.
+ *
+ * Gating is not uniform, and deliberately so. Marks Entry and the documents
+ * need a class *and* a grading scheme; Co-Curricular, Seat Plan and Routine
+ * need only the class, because that is all their pages ever read (subjects-for-
+ * class, roll ranges). #366 gated Seat Plan and Routine on the grading scheme
+ * too and knowingly filed the contradiction as "revisit if it bites" — putting
+ * them on the row is what made it bite, since a routine has to exist *before*
+ * an exam runs, long before grading matters.
+ *
+ * Every action carries the row's own address as `?from=`, snapshotting the
+ * live filters and this exam's id, so Back returns here rather than unwinding
+ * through Basic Info (§4, §5). Closing an exam does not hide the actions:
+ * every destination renders read-only when closed, and CONTEXT.md keeps
+ * "aggregate result viewing" available. */
+function ExamListRow({
+  exam,
+  classLabel,
+  origin,
+  lang,
+}: {
+  exam: ExamListItem
+  classLabel: string | null
+  origin: string
+  lang: Lang
+}) {
   const closed = exam.status === 'closed'
   const complete = examBasicInfoComplete(exam)
   const needsBasicInfo = complete ? undefined : t('exams.completeBasicInfoFirst', lang)
   const needsClass = examHasClass(exam) ? undefined : t('exams.selectClassFirst', lang)
   const examLabel = `${exam.name} (${exam.exam_year})`
+  const action = (path: string) => withOrigin(`/school/exams/${exam.id}${path}`, origin)
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-2">
+    // Anchored so returning from a destination can scroll this row back into
+    // view instead of dumping the user at the top of a long list (§5).
+    <div id={examRowAnchorId(exam.id)} className="flex flex-wrap items-center justify-between gap-2">
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-sm font-medium">
           {exam.name} <span className="text-muted">({exam.exam_year})</span>
@@ -247,21 +299,16 @@ function ExamListRow({ exam, classLabel, lang }: { exam: ExamListItem; classLabe
 
       <div className="flex flex-col items-end gap-1">
         <span className="flex flex-wrap items-center justify-end gap-2">
-          <ExamAction href={`/school/exams/${exam.id}`} label={t('examSetup.basicInfo', lang)} />
-          <ExamAction
-            href={`/school/exams/${exam.id}/marks-entry`}
-            label={t('exams.markEntry', lang)}
-            reason={needsBasicInfo}
-          />
-          <ExamAction
-            href={`/school/exams/${exam.id}/cocurricular`}
-            label={t('exams.cocurricular', lang)}
-            reason={needsClass}
-          />
+          <ExamAction href={action('')} label={t('examSetup.basicInfo', lang)} />
+          <ExamAction href={action('/marks-entry')} label={t('exams.markEntry', lang)} reason={needsBasicInfo} />
+          <ExamAction href={action('/cocurricular')} label={t('exams.cocurricular', lang)} reason={needsClass} />
+          <ExamAction href={action('/seat-plan')} label={t('exams.generateSeatPlan', lang)} reason={needsClass} />
+          <ExamAction href={action('/routine')} label={t('exams.makeRoutine', lang)} reason={needsClass} />
           {complete ? (
             <ExamDocumentsModal
               examId={exam.id}
               examLabel={examLabel}
+              origin={origin}
               lang={lang}
               triggerClassName={`cursor-pointer ${examActionClass()}`}
             />

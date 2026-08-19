@@ -4,7 +4,7 @@ import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { BackLink } from '@/components/back-link'
-import { resolveBackHref } from '@/lib/back-nav'
+import { resolveBackHref, selfOrigin, withOrigin } from '@/lib/back-nav'
 
 // Admit card roster picker (issue #48, PRD §5.5) — same shape as printables/
 // page.tsx's mark-sheet/progress-report roster, one entry point per student
@@ -21,6 +21,10 @@ export default async function AdmitCardsPage({
   const { id } = await params
   const { from } = await searchParams
   const backHref = resolveBackHref(from, `/school/exams/${id}`)
+  // Links from here go a level deeper, so they carry *this* page's
+  // address — origin included — otherwise Back from the leaf lands here
+  // and the next Back falls through to Basic Info (map #373).
+  const deeper = selfOrigin(`/school/exams/${id}/admit-cards`, from)
   const lang: Lang = await currentLang()
   const { supabase } = await getSchoolContext()
 
@@ -99,7 +103,7 @@ export default async function AdmitCardsPage({
                 <td className="py-2 pr-2">{s.roll_number ?? '—'}</td>
                 <td className="py-2 pr-2">{s.full_name}</td>
                 <td className="py-2">
-                  <Link href={`/school/exams/${exam.id}/admit-cards/${s.id}`} className="text-brand-600 hover:underline">
+                  <Link href={withOrigin(`/school/exams/${exam.id}/admit-cards/${s.id}`, deeper)} className="text-brand-600 hover:underline">
                     {t('admitCard.docWord', lang)}
                   </Link>
                 </td>

@@ -8,6 +8,7 @@ import { t, type Lang } from '@/lib/i18n'
 import { CloseExamModal } from '../exam-controls'
 import { ExamAction, examActionClass } from '../exam-action'
 import { ExamDocumentsModal } from '../exam-documents-modal'
+import { withOrigin } from '@/lib/back-nav'
 import { assignSubjectTeacher, setExamGradingScheme, updateExamBasicInfo } from './actions'
 import { dateInputClass, selectClass } from '@/components/ui/field'
 
@@ -49,12 +50,17 @@ export function ExamHeader({
   examLabel,
   closed,
   basicInfoComplete,
+  /** Basic Info's own address, origin included — so a document opened from
+   *  here returns to Basic Info, and Basic Info's own Back still returns to
+   *  the exam row that opened it (map #373). */
+  selfHref,
   lang,
 }: {
   examId: string
   examLabel: string
   closed: boolean
   basicInfoComplete: boolean
+  selfHref: string
   lang: Lang
 }) {
   return (
@@ -68,7 +74,7 @@ export function ExamHeader({
       </span>
       <div className="flex flex-wrap items-center gap-2">
         <ExamAction
-          href={`/school/exams/${examId}/promotion`}
+          href={withOrigin(`/school/exams/${examId}/promotion`, selfHref)}
           label={t('exams.promotion', lang)}
           size="header"
         />
@@ -76,6 +82,7 @@ export function ExamHeader({
           <ExamDocumentsModal
             examId={examId}
             examLabel={examLabel}
+            origin={selfHref}
             lang={lang}
             triggerClassName={`cursor-pointer ${examActionClass('header')}`}
           />

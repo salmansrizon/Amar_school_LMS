@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { t, type Lang, type MessageKey } from '@/lib/i18n'
+import { withOrigin } from '@/lib/back-nav'
 
 // Map #366 moves the Exam Documents index (issue #99) out of the Basic Info
 // page's bottom card and into a modal, so it is reachable from the exam row
@@ -21,14 +22,26 @@ const EXAM_DOCUMENTS: { href: string; label: MessageKey; hint: MessageKey }[] = 
   { href: '/print-all', label: 'examDocs.printAll', hint: 'examDocs.printAllHint' },
 ]
 
+/** A document's address, carrying the origin the modal was opened from so the
+ *  destination's Back returns there (docs/010_exam_module.md §2, §4). */
+function docHref(examId: string, path: string, origin?: string): string {
+  const href = `/school/exams/${examId}${path}`
+  return origin ? withOrigin(href, origin) : href
+}
+
 export function ExamDocumentsModal({
   examId,
   examLabel,
+  origin,
   lang,
   triggerClassName,
 }: {
   examId: string
   examLabel: string
+  /** Where the destinations should return to — the exam row that opened this,
+   *  or Basic Info's header. Omitted, each destination falls back to its own
+   *  structural parent, which is the pre-map-#373 behaviour. */
+  origin?: string
   lang: Lang
   triggerClassName: string
 }) {
@@ -70,7 +83,8 @@ export function ExamDocumentsModal({
                     <p className="text-xs text-muted">{t(doc.hint, lang)}</p>
                   </div>
                   <Link
-                    href={`/school/exams/${examId}${doc.href}`}
+                    href={docHref(examId, doc.href, origin)}
+                    onClick={() => setOpen(false)}
                     className="shrink-0 text-sm text-brand-600 hover:underline"
                   >
                     {t('examDocs.open', lang)}

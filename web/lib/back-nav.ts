@@ -67,3 +67,18 @@ export function withOrigin(href: string, origin: string): string {
   const separator = href.includes('?') ? '&' : '?'
   return `${href}${separator}${ORIGIN_PARAM}=${encodeURIComponent(origin)}`
 }
+
+/**
+ * This page's own address, carrying whatever origin it was opened with — for
+ * use as the origin of a link that goes one level *deeper*.
+ *
+ * Without it the chain breaks a level down: opening Printables from the exam
+ * list, then a Mark Sheet, then pressing Back twice lands on Basic Info,
+ * because Printables lost the list origin on the way through. Nesting is safe
+ * because `resolveBackHref` unwraps exactly one level, so each page recovers
+ * the address of the page that opened it and no more.
+ */
+export function selfOrigin(path: string, from: string | string[] | undefined): string {
+  const origin = resolveBackHref(from, '')
+  return origin ? withOrigin(path, origin) : path
+}

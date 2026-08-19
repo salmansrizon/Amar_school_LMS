@@ -15,7 +15,7 @@ import {
   type TeacherOption,
 } from './setup-controls'
 import { BackLink } from '@/components/back-link'
-import { resolveBackHref } from '@/lib/back-nav'
+import { resolveBackHref, selfOrigin } from '@/lib/back-nav'
 
 // Layout per ui/school-owner/exam-setup.html: Basic Info + Grading Scheme
 // cards (the latter picks one of #31's reusable named schemes rather than
@@ -87,6 +87,7 @@ export default async function ExamSetupPage({
         examLabel={examLabel}
         closed={closed}
         basicInfoComplete={examBasicInfoComplete(exam)}
+        selfHref={selfOrigin(`/school/exams/${id}`, from)}
         lang={lang}
       />
 

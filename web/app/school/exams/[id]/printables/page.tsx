@@ -4,7 +4,7 @@ import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { BackLink } from '@/components/back-link'
-import { resolveBackHref } from '@/lib/back-nav'
+import { resolveBackHref, selfOrigin, withOrigin } from '@/lib/back-nav'
 
 // Roster picker for the single-student printables (issue #33, PRD §5.5) —
 // the mockups' own entry point (a "Result Book" list) is out of scope here
@@ -22,6 +22,10 @@ export default async function ExamPrintablesPage({
   const { id } = await params
   const { from } = await searchParams
   const backHref = resolveBackHref(from, `/school/exams/${id}`)
+  // Links from here go a level deeper, so they carry *this* page's
+  // address — origin included — otherwise Back from the leaf lands here
+  // and the next Back falls through to Basic Info (map #373).
+  const deeper = selfOrigin(`/school/exams/${id}/printables`, from)
   const lang: Lang = await currentLang()
   const { supabase } = await getSchoolContext()
 
@@ -93,13 +97,13 @@ export default async function ExamPrintablesPage({
                 <td className="py-2 pr-2">{s.roll_number ?? '—'}</td>
                 <td className="py-2 pr-2">{s.full_name}</td>
                 <td className="py-2 pr-2">
-                  <Link href={`/school/exams/${exam.id}/mark-sheet/${s.id}`} className="text-brand-600 hover:underline">
+                  <Link href={withOrigin(`/school/exams/${exam.id}/mark-sheet/${s.id}`, deeper)} className="text-brand-600 hover:underline">
                     {t('markSheet.docWord', lang)}
                   </Link>
                 </td>
                 <td className="py-2">
                   <Link
-                    href={`/school/exams/${exam.id}/progress-report/${s.id}`}
+                    href={withOrigin(`/school/exams/${exam.id}/progress-report/${s.id}`, deeper)}
                     className="text-brand-600 hover:underline"
                   >
                     {t('progressReport.docWord', lang)}

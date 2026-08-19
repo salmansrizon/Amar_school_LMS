@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { ORIGIN_PARAM, resolveBackHref, withOrigin } from '@/lib/back-nav'
+import { ORIGIN_PARAM, resolveBackHref, selfOrigin, withOrigin } from '@/lib/back-nav'
 
 const FALLBACK = '/school/exams/abc'
 
@@ -97,3 +97,37 @@ describe('withOrigin', () => {
     expect(resolveBackHref(from ?? undefined, FALLBACK)).toBe('/school/exams?q=mid+term&status=open&exam=abc')
   })
 })
+
+describe('selfOrigin', () => {
+  it('is just the path when the page has no origin of its own', () => {
+    expect(selfOrigin('/school/exams/abc/printables', undefined)).toBe('/school/exams/abc/printables')
+  })
+
+  // The case that breaks without nesting: list → Printables → Mark Sheet, then
+  // Back twice, used to land on Basic Info because Printables lost the origin.
+  it('carries the page own origin, so a deeper link returns through it', () => {
+    const listOrigin = '/school/exams?status=open&exam=abc'
+    const printables = selfOrigin('/school/exams/abc/printables', paramFor(listOrigin))
+
+    const leaf = withOrigin('/school/exams/abc/mark-sheet/s1', printables)
+    const backToPrintables = resolveBackHref(paramOf(leaf), '/fallback')
+    expect(backToPrintables).toBe(`/school/exams/abc/printables?${ORIGIN_PARAM}=${encodeURIComponent(listOrigin)}`)
+
+    // ...and the next Back reaches the exam row, not Basic Info.
+    expect(resolveBackHref(paramOf(backToPrintables), '/fallback')).toBe(listOrigin)
+  })
+
+  it('drops an untrusted origin rather than nesting it', () => {
+    expect(selfOrigin('/school/exams/abc/printables', 'https://evil.com')).toBe('/school/exams/abc/printables')
+  })
+})
+
+/** The decoded `from` value Next hands a page for this href. */
+function paramOf(href: string): string {
+  return new URL(href, 'https://internal.invalid').searchParams.get(ORIGIN_PARAM) ?? ''
+}
+
+/** What Next hands a page that was opened carrying `origin`. */
+function paramFor(origin: string): string {
+  return paramOf(withOrigin('/x', origin))
+}

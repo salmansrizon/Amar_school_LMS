@@ -8,7 +8,7 @@ import { loadExamRosterResults } from '@/lib/exam-print-data'
 import { Badge } from '@/components/print/pieces'
 import { ExamPicker, type ExamOption } from './result-book-controls'
 import { BackLink } from '@/components/back-link'
-import { resolveBackHref } from '@/lib/back-nav'
+import { resolveBackHref, selfOrigin, withOrigin } from '@/lib/back-nav'
 
 // Result Book (issue #48, PRD §5.5), per ui/school-owner/result-book.html —
 // the whole-roster result table result-book/result-inquiry/batch-print all
@@ -35,6 +35,10 @@ export default async function ResultBookPage({
   const { id } = await params
   const { from } = await searchParams
   const backHref = resolveBackHref(from, `/school/exams/${id}`)
+  // Links from here go a level deeper, so they carry *this* page's
+  // address — origin included — otherwise Back from the leaf lands here
+  // and the next Back falls through to Basic Info (map #373).
+  const deeper = selfOrigin(`/school/exams/${id}/result-book`, from)
   const lang: Lang = await currentLang()
   const { supabase } = await getSchoolContext()
 
@@ -160,10 +164,10 @@ export default async function ResultBookPage({
                     </td>
                     <td className="py-2">
                       <div className="flex gap-2">
-                        <Link href={`/school/exams/${id}/mark-sheet/${row.studentId}`} className="text-brand-600 hover:underline">
+                        <Link href={withOrigin(`/school/exams/${id}/mark-sheet/${row.studentId}`, deeper)} className="text-brand-600 hover:underline">
                           {t('markSheet.docWord', lang)}
                         </Link>
-                        <Link href={`/school/exams/${id}/progress-report/${row.studentId}`} className="text-brand-600 hover:underline">
+                        <Link href={withOrigin(`/school/exams/${id}/progress-report/${row.studentId}`, deeper)} className="text-brand-600 hover:underline">
                           {t('progressReport.docWord', lang)}
                         </Link>
                       </div>
