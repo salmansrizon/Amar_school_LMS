@@ -94,7 +94,7 @@ export function DashboardChecklist({
               type="button"
               onClick={() => toggle(item.id)}
               aria-pressed={checked}
-              className={`group relative flex min-h-24 flex-col justify-between gap-3 rounded-lg border border-line bg-paper p-card text-left transition hover:bg-paper-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 focus-visible:ring-offset-2 ${railClass(
+              className={`group relative flex min-h-24 min-w-0 flex-col justify-between gap-3 rounded-lg border border-line bg-paper p-card text-left transition hover:bg-paper-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 focus-visible:ring-offset-2 ${railClass(
                 checked ? 'mint' : 'sun',
               )}`}
             >
@@ -114,7 +114,12 @@ export function DashboardChecklist({
                   </span>
                 )}
               </div>
-              <span className={`text-sm font-semibold ${checked ? 'text-mint-deep' : 'text-ink'}`}>{itemLabel(item, lang)}</span>
+              {/* `<button>`'s UA default is `white-space: nowrap`, inherited unless
+                  overridden — without this a long label doesn't wrap, it just runs
+                  off the card edge. */}
+              <span className={`whitespace-normal text-sm font-semibold ${checked ? 'text-mint-deep' : 'text-ink'}`}>
+                {itemLabel(item, lang)}
+              </span>
             </button>
           )
         })}
