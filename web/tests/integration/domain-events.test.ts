@@ -76,7 +76,11 @@ describe('Event Architecture outbox (#260)', () => {
     }
     expect(processedTotal).toBeGreaterThanOrEqual(1)
     expect(seen).toContain(id)
-  })
+    // Up to ten drain round-trips against the remote DB, sized by whatever
+    // backlog the shared project happens to be carrying — the 15s global
+    // testTimeout sits right on that boundary, so this flipped pass/fail
+    // between runs. The work is bounded by the loop above, not by the clock.
+  }, 60_000)
 
   it('rejects publishing for a tenant the caller does not own', async () => {
     const { error } = await owner.rpc('publish_domain_event', {
