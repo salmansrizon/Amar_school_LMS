@@ -123,11 +123,27 @@ export interface CalendarCell {
   label: string | null
 }
 
+/** Saturday shades as the regular weekly off-day even with no off_days row
+ *  (no recurring-rule table exists yet); an explicit off_days row adds a
+ *  label and/or significance on top. Shared by monthGrid and dateRangeDays so
+ *  the rule lives in exactly one place. */
+function dayOffInfo(iso: string, offByDay: Map<string, OffDay>): Pick<CalendarCell, 'isOff' | 'isSignificant' | 'label'> {
+  const [y, m, d] = iso.split('-').map(Number)
+  const isSaturday = new Date(Date.UTC(y, m - 1, d)).getUTCDay() === 6
+  const off = offByDay.get(iso)
+  return { isOff: isSaturday || !!off, isSignificant: !!off?.is_significant, label: off?.label ?? null }
+}
+
+function addDaysIso(iso: string, delta: number): string {
+  const [y, m, d] = iso.split('-').map(Number)
+  const dt = new Date(Date.UTC(y, m - 1, d + delta))
+  return `${dt.getUTCFullYear()}-${String(dt.getUTCMonth() + 1).padStart(2, '0')}-${String(dt.getUTCDate()).padStart(2, '0')}`
+}
+
 /**
  * One month's day grid (Sun-first, matching off-day-calendar.html), leading
- * blanks for alignment. Every Saturday shades as the regular weekly off-day
- * even with no off_days row (no recurring-rule table exists yet) — School-
- * specific extra off-days and significant days come from the off_days table.
+ * blanks for alignment. School-specific extra off-days and significant days
+ * come from the off_days table (see dayOffInfo for the Saturday rule).
  */
 export function monthGrid(year: number, month: number, offDays: OffDay[]): CalendarCell[] {
   const prefix = `${year}-${String(month + 1).padStart(2, '0')}`
@@ -141,17 +157,30 @@ export function monthGrid(year: number, month: number, offDays: OffDay[]): Calen
   }
   for (let d = 1; d <= daysInMonth; d++) {
     const iso = `${prefix}-${String(d).padStart(2, '0')}`
-    const isSaturday = new Date(Date.UTC(year, month, d)).getUTCDay() === 6
-    const off = byDay.get(iso)
-    cells.push({
-      day: d,
-      iso,
-      isOff: isSaturday || !!off,
-      isSignificant: !!off?.is_significant,
-      label: off?.label ?? null,
-    })
+    cells.push({ day: d, iso, ...dayOffInfo(iso, byDay) })
   }
   return cells
+}
+
+// Student Log Today/Custom filters (map #380): an arbitrary [fromIso, toIso]
+// range doesn't fit monthGrid's one-calendar-month shape, so this is the
+// flat-list equivalent, sharing dayOffInfo rather than re-deriving the
+// Saturday/off_days rule a third time. A missing or reversed range returns no
+// days — the caller's empty state, not a crash or a runaway loop. Capped at
+// a year of days for the same reason: this renders as a flat list/print
+// sheet, not a paged table, so an unbounded range would just hang the page.
+const MAX_RANGE_DAYS = 366
+
+export function dateRangeDays(fromIso: string, toIso: string, offDays: OffDay[]): { iso: string; isOff: boolean }[] {
+  if (!fromIso || !toIso || fromIso > toIso) return []
+  const byDay = new Map(offDays.map((o) => [o.day, o]))
+  const days: { iso: string; isOff: boolean }[] = []
+  let cursor = fromIso
+  while (cursor <= toIso && days.length < MAX_RANGE_DAYS) {
+    days.push({ iso: cursor, isOff: dayOffInfo(cursor, byDay).isOff })
+    cursor = addDaysIso(cursor, 1)
+  }
+  return days
 }
 
 // Attendance Book (issue #30, PRD §5.3): one cell's P/A/blank for the monthly
@@ -170,6 +199,31 @@ export function registerDayStatus(args: {
   if (args.hasRecord) return 'present'
   if (args.iso > args.today) return 'blank'
   if (args.isOff || args.onApprovedLeave) return 'blank'
+  return 'absent'
+}
+
+// Student Log (map #380, docs/011_student_module.md): a single student's
+// day-by-day history needs Present/Absent/Leave/Holiday told apart, where the
+// Book's register grid deliberately collapses the last three into one 'blank'
+// cell (registerDayStatus above). Same three signals, finer-grained answer —
+// not new business logic, just not thrown away this time. A future day
+// returns null rather than a status: the page clips its query range at
+// `today`, so callers should never actually see one.
+// Values match the `status.*` i18n keys already used by the employee
+// attendance badges (present/absent/on_leave), plus 'holiday' for this log.
+export type StudentLogDayStatus = 'present' | 'absent' | 'on_leave' | 'holiday'
+
+export function studentLogDayStatus(args: {
+  iso: string
+  today: string
+  isOff: boolean
+  onApprovedLeave: boolean
+  hasRecord: boolean
+}): StudentLogDayStatus | null {
+  if (args.hasRecord) return 'present'
+  if (args.iso > args.today) return null
+  if (args.isOff) return 'holiday'
+  if (args.onApprovedLeave) return 'on_leave'
   return 'absent'
 }
 

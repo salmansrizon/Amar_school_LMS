@@ -1563,6 +1563,7 @@ const dict = {
   'attendance.graceSourceOverride': { bn: 'ব্যক্তিগত ওভাররাইড', en: 'individual override' },
   'status.absent': { bn: 'অনুপস্থিত', en: 'Absent' },
   'status.on_leave': { bn: 'ছুটিতে', en: 'On Leave' },
+  'status.holiday': { bn: 'ছুটির দিন', en: 'Holiday / Off Day' },
   'attendance.employeeGraceNote': {
     bn: 'প্রযোজ্য গ্রেস সবসময় গ্লোবাল, বিভাগ, অফিস সময় ও ব্যক্তিগত ওভাররাইডের মধ্যে সর্বোচ্চটি — কখনোই কড়া/ছোট মান নয়।',
     en: 'The applied grace is always the MAX of global, category, office time and individual override — never the stricter/smaller value.',
@@ -1591,6 +1592,15 @@ const dict = {
     en: 'P = Present, A = Absent.',
   },
   'attendance.bookNoRoster': { bn: 'এই শ্রেণিতে কোনো শিক্ষার্থী নেই', en: 'No students in this class' },
+
+  // Student Log (map #380, docs/011_student_module.md): per-student attendance
+  // history, reusing the class/section roster + status logic above.
+  'attendance.tabStudentLog': { bn: 'শিক্ষার্থী লগ', en: 'Student Log' },
+  'attendance.studentLogTitle': { bn: 'শিক্ষার্থী উপস্থিতি লগ', en: 'Student Attendance Log' },
+  'attendance.viewLog': { bn: 'লগ দেখুন', en: 'View Log' },
+  'attendance.filterToday': { bn: 'আজ', en: 'Today' },
+  'attendance.filterMonthly': { bn: 'মাসিক', en: 'Monthly' },
+  'attendance.filterCustom': { bn: 'নির্দিষ্ট সময়সীমা', en: 'Custom Range' },
 
   // Institute Setup & Misc (issue #39, PRD §5.11)
   'institute.title': { bn: 'প্রতিষ্ঠান সেটআপ', en: 'Institute Setup' },
