@@ -258,7 +258,7 @@ function classLabelOf(cls: ClassOption | undefined): string | null {
  *  view rather than landing at the top of a long list (docs/010_exam_module.md
  *  §5, which prefers a row anchor over a pixel offset — an anchor survives the
  *  list re-rendering or the exam changing status; an offset does not). */
-export function examRowAnchorId(examId: string): string {
+function examRowAnchorId(examId: string): string {
   return `exam-${examId}`
 }
 

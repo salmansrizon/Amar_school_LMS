@@ -16,7 +16,7 @@ import {
 } from './seat-plan-controls'
 import { embeddedBuildingName } from '@/lib/venues'
 import { BackLink } from '@/components/back-link'
-import { resolveBackHref } from '@/lib/back-nav'
+import { resolveBackHref, selfOrigin, withOrigin } from '@/lib/back-nav'
 
 // Layout per ui/school-owner/seat-plan.html: toolbar (exam label; Generate +
 // Publish) with an overlap-warning banner over the Room/Capacity/Assigned
@@ -35,6 +35,9 @@ export default async function SeatPlanPage({
   const { id } = await params
   const { from } = await searchParams
   const backHref = resolveBackHref(from, `/school/exams/${id}`)
+  // Anything opened from here returns *here* first, then onward to whatever
+  // opened this page — otherwise Back skips straight past the seat plan.
+  const deeper = selfOrigin(`/school/exams/${id}/seat-plan`, from)
   const lang: Lang = await currentLang()
   const { supabase } = await getSchoolContext()
 
@@ -114,13 +117,13 @@ export default async function SeatPlanPage({
         <span className="text-sm text-muted">{examLabel}</span>
         <div className="flex items-center gap-4">
           <Link
-            href={`/school/exams/${exam.id}/seat-plan/print`}
+            href={withOrigin(`/school/exams/${exam.id}/seat-plan/print`, deeper)}
             className="text-sm text-brand-600 hover:underline"
           >
             {t('seatPlan.print', lang)}
           </Link>
           <Link
-            href={`/school/exams/${exam.id}/attendance-sheet`}
+            href={withOrigin(`/school/exams/${exam.id}/attendance-sheet`, deeper)}
             className="text-sm text-brand-600 hover:underline"
           >
             {t('examAttendanceSheet.title', lang)}
@@ -167,6 +170,7 @@ export default async function SeatPlanPage({
               <p className="text-sm text-muted">{t('seatPlan.none', lang)}</p>
             ) : (
               <SeatPlanTable
+                origin={deeper}
                 examId={exam.id}
                 rows={seatRows}
                 rooms={roomOpts}

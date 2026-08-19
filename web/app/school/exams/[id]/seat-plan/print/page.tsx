@@ -15,7 +15,7 @@ import { PrintPage, InstituteHeader, PaginatedSheet } from '@/components/print/p
 import { PrintButton } from '@/components/print/print-button'
 import { embeddedBuildingName, roomVenueLabel } from '@/lib/venues'
 import { BackLink } from '@/components/back-link'
-import { resolveBackHref } from '@/lib/back-nav'
+import { resolveBackHref, withOrigin } from '@/lib/back-nav'
 
 // Notice-board seat plan (issue #96, docs/improvement.md §2B; ADR 0007 —
 // browser-native print). Organised by room, because that is what a student
@@ -36,6 +36,14 @@ export default async function SeatPlanPrintPage({
   const { id } = await params
   const { date: sittingDate, from } = await searchParams
   const backHref = resolveBackHref(from, `/school/exams/${id}/seat-plan`)
+  // Switching sitting is a filter on this same page, not a new destination, so
+  // each link keeps the origin verbatim — nesting would add a pointless Back hop
+  // and, dropped entirely, Back fell through to the seat-plan editor (§3).
+  const origin = resolveBackHref(from, '')
+  const sittingHref = (d?: string) => {
+    const base = `/school/exams/${id}/seat-plan/print${d ? `?date=${d}` : ''}`
+    return origin ? withOrigin(base, origin) : base
+  }
   const lang: Lang = await currentLang()
   const { supabase } = await getSchoolContext()
 
@@ -129,7 +137,7 @@ export default async function SeatPlanPrintPage({
             <nav className="flex flex-wrap items-center gap-2 text-xs">
               <span className="text-muted">{t('seatPlan.forSitting', lang)}</span>
               <Link
-                href={`/school/exams/${id}/seat-plan/print`}
+                href={sittingHref()}
                 className={`rounded-full border px-2 py-0.5 font-semibold ${
                   sittingDate ? 'border-line text-muted hover:bg-paper-muted' : 'border-brand-500 text-brand-600'
                 }`}
@@ -139,7 +147,7 @@ export default async function SeatPlanPrintPage({
               {examDates.map((d) => (
                 <Link
                   key={d}
-                  href={`/school/exams/${id}/seat-plan/print?date=${d}`}
+                  href={sittingHref(d)}
                   className={`rounded-full border px-2 py-0.5 font-semibold ${
                     sittingDate === d ? 'border-brand-500 text-brand-600' : 'border-line text-muted hover:bg-paper-muted'
                   }`}

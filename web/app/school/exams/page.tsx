@@ -7,9 +7,11 @@ import { BackLink } from '@/components/back-link'
 
 // Layout per ui/school-owner/exams-list.html: search + class/status filter
 // toolbar, "+ New Exam" quick-create (name/year only — full setup happens on
-// the detail page, [id]/page.tsx), table of exams. Map #366 gives every row the
-// same four actions (Basic Info / Mark Entry / Co-Curricular / Documents);
-// grading_scheme_id rides along because two of them are gated on it.
+// the detail page, [id]/page.tsx), table of exams. Map #366 cut every row to
+// four actions; map #373 restored Seat Plan and Routine, so there are now six
+// (docs/010_exam_module.md §1). grading_scheme_id rides along because Marks
+// Entry and Documents are gated on it, while Co-Curricular, Seat Plan and
+// Routine need only the class.
 
 export default async function ExamsPage({
   searchParams,

@@ -77,16 +77,16 @@ export default async function ResultBookPage({
 
   const toolbar = (
     <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-      <ExamPicker examId={id} exams={examOptions} lang={lang} />
+      <ExamPicker examId={id} exams={examOptions} origin={deeper} lang={lang} />
       <div className="flex flex-wrap items-center gap-2">
         <Link href="/school/exams/result-inquiry" className="rounded-full border border-line-strong px-3 py-1.5 text-xs font-semibold hover:bg-paper-muted">
           {t('resultInquiry.title', lang)}
         </Link>
-        <Link href={`/school/exams/${id}/promotion`} className="rounded-full border border-line-strong px-3 py-1.5 text-xs font-semibold hover:bg-paper-muted">
+        <Link href={withOrigin(`/school/exams/${id}/promotion`, deeper)} className="rounded-full border border-line-strong px-3 py-1.5 text-xs font-semibold hover:bg-paper-muted">
           {t('exams.promotion', lang)}
         </Link>
         <Link
-          href={`/school/exams/${id}/print-all?doc=mark-sheet`}
+          href={withOrigin(`/school/exams/${id}/print-all?doc=mark-sheet`, deeper)}
           className="rounded-full border border-line-strong px-3 py-1.5 text-xs font-semibold hover:bg-paper-muted"
         >
           {t('printAll.title', lang)}

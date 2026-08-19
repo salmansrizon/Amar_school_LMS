@@ -43,7 +43,7 @@ export default async function AdmitCardsPage({
       </h1>
       <div className="flex items-center gap-4">
         <Link
-          href={`/school/exams/${exam.id}/print-all?doc=admit-card`}
+          href={withOrigin(`/school/exams/${exam.id}/print-all?doc=admit-card`, deeper)}
           className="text-sm text-brand-600 hover:underline"
         >
           {t('printAll.title', lang)}

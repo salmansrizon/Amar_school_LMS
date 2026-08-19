@@ -5,6 +5,7 @@ import { useState, useTransition } from 'react'
 import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
 import { countRollsInRange, overlappingRowIds } from '@/lib/exam-setup'
 import { t, type Lang } from '@/lib/i18n'
+import { withOrigin } from '@/lib/back-nav'
 import { generateSeatPlanFor, publishSeatPlan, removeSeatPlanRow, saveSeatPlanRow } from './actions'
 import { selectClass } from '@/components/ui/field'
 
@@ -40,6 +41,7 @@ export function SeatPlanTable({
   rolls,
   overCapacityRooms,
   disabled,
+  origin,
   lang,
 }: {
   examId: string
@@ -49,6 +51,9 @@ export function SeatPlanTable({
   /** Rooms past capacity once every exam seated in them is summed (issue #95). */
   overCapacityRooms: Set<string>
   disabled: boolean
+  /** This page's address plus its own origin, so the per-room Attendance Sheet
+   *  returns here rather than to Basic Info (map #373). */
+  origin?: string
   lang: Lang
 }) {
   const roomById = new Map(rooms.map((r) => [r.id, r]))
@@ -80,6 +85,7 @@ export function SeatPlanTable({
                 isOverlap={overlapping.has(row.id)}
                 isOverCapacity={overCapacityRooms.has(row.room_id)}
                 disabled={disabled}
+                origin={origin}
                 lang={lang}
               />
             )
@@ -98,6 +104,7 @@ function SeatPlanRowView({
   isOverlap,
   isOverCapacity,
   disabled,
+  origin,
   lang,
 }: {
   examId: string
@@ -107,6 +114,7 @@ function SeatPlanRowView({
   isOverlap: boolean
   isOverCapacity: boolean
   disabled: boolean
+  origin?: string
   lang: Lang
 }) {
   const bad = isOverlap || isOverCapacity
@@ -121,7 +129,7 @@ function SeatPlanRowView({
         {room?.buildingName ? <div className="text-xs font-normal text-muted">{room.buildingName}</div> : null}
         {/* Per-room entry into the invigilator's sheet (issue #97). */}
         <a
-          href={`/school/exams/${examId}/attendance-sheet?room=${row.room_id}`}
+          href={origin ? withOrigin(`/school/exams/${examId}/attendance-sheet?room=${row.room_id}`, origin) : `/school/exams/${examId}/attendance-sheet?room=${row.room_id}`}
           className="text-xs font-normal text-brand-600 hover:underline"
         >
           {t('examAttendanceSheet.title', lang)}

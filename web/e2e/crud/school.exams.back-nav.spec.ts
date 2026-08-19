@@ -19,6 +19,7 @@ const DOCUMENTS = 'পরীক্ষার কাগজপত্র' // examDoc
 const OPEN = 'খুলুন' // examDocs.open
 const BACK = 'ফিরে যান' // common.back
 const EXAM_SETUP_TITLE = 'পরীক্ষা সেটআপ' // examSetup.title
+const ATTENDANCE_SHEET = 'পরীক্ষার হাজিরা শিট' // examAttendanceSheet.title
 
 // The one exam in the shared test school configured with both a class and a
 // grading scheme, so all six row actions are live including Documents.
@@ -269,6 +270,28 @@ test.describe('@crud @school exams back-navigation (map #373)', () => {
 
     // Still navigable at this size.
     await openFromRow(page, EXAM, MAKE_ROUTINE, /\/routine\?from=/)
+    await clickBack(page)
+    await expectBackOnRow(page, EXAM)
+    await page.context().close()
+  })
+
+  // Secondary hops *inside* a destination used to drop the origin, so Back from
+  // one fell through to Basic Info — §3's complaint, one level in. The origin now
+  // nests: the sheet returns to the seat plan, and the seat plan to the row.
+  test('origin survives a hop inside a destination (seat plan → attendance sheet)', async ({ browser }) => {
+    const page = await asRole(browser, 'owner')
+    await page.goto('/school/exams')
+    await openFromRow(page, EXAM, GENERATE_SEAT_PLAN, /\/seat-plan\?from=/)
+
+    await page.getByRole('link', { name: ATTENDANCE_SHEET }).first().click()
+    await expect(page).toHaveURL(/\/attendance-sheet\?from=/)
+
+    // First Back returns to the seat plan, not Basic Info.
+    await page.getByRole('link', { name: BACK }).click()
+    await expect(page).toHaveURL(/\/seat-plan(\?|$)/)
+    await expect(page).not.toHaveURL(/\/seat-plan\/print/)
+
+    // Second Back reaches the originating row.
     await clickBack(page)
     await expectBackOnRow(page, EXAM)
     await page.context().close()
