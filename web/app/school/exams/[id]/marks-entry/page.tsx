@@ -1,4 +1,3 @@
-import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
@@ -6,6 +5,8 @@ import { getSchoolContext } from '@/lib/school/context'
 import { subjectsForClass } from '@/lib/students'
 import { loadGradingScheme } from '@/lib/grading-scheme-loader'
 import { MarksEntryTable, SubjectPicker, type MarkStudentRow, type SubjectOption } from './marks-entry-controls'
+import { BackLink } from '@/components/back-link'
+import { resolveBackHref } from '@/lib/back-nav'
 
 // Layout per ui/school-owner/marks-entry.html: subject-picker toolbar over
 // the Roll/Name/Theory/MCQ/Practical/Total/Grade table, one Save per subject.
@@ -21,10 +22,11 @@ export default async function MarksEntryPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>
-  searchParams: Promise<{ subject?: string }>
+  searchParams: Promise<{ subject?: string; from?: string | string[] }>
 }) {
   const { id } = await params
-  const { subject: subjectParam } = await searchParams
+  const { subject: subjectParam, from } = await searchParams
+  const backHref = resolveBackHref(from, `/school/exams/${id}`)
   const lang: Lang = await currentLang()
   const { supabase } = await getSchoolContext()
 
@@ -42,7 +44,7 @@ export default async function MarksEntryPage({
       <h1 className="text-2xl font-extrabold">
         {t('markEntry.title', lang)} — {examLabel}
       </h1>
-      <Link href={`/school/exams/${exam.id}`} aria-label={t('examSetup.title', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
+      <BackLink href={backHref} label={t('common.back', lang)} />
     </div>
   )
 

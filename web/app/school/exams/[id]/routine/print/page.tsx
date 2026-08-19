@@ -1,4 +1,3 @@
-import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
@@ -9,6 +8,8 @@ import { PrintPage, InstituteHeader, PaginatedSheet, QrFooterRow } from '@/compo
 import { loadInstitutePrintHeader } from '@/lib/institute-print'
 import { PrintButton } from '@/components/print/print-button'
 import { embeddedBuildingName, roomVenueLabel } from '@/lib/venues'
+import { BackLink } from '@/components/back-link'
+import { resolveBackHref } from '@/lib/back-nav'
 
 // Printable exam routine (ADR 0007: browser-native print), mirrors the class
 // routine print page's shape.
@@ -19,8 +20,16 @@ import { embeddedBuildingName, roomVenueLabel } from '@/lib/venues'
 // typography — larger type, banded rows, the date column emphasised because
 // that is what a student scans for — and pagination that never splits a row.
 
-export default async function ExamRoutinePrintPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function ExamRoutinePrintPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>
+  searchParams: Promise<{ from?: string | string[] }>
+}) {
   const { id } = await params
+  const { from } = await searchParams
+  const backHref = resolveBackHref(from, `/school/exams/${id}/routine`)
   const lang: Lang = await currentLang()
   const { supabase } = await getSchoolContext()
 
@@ -55,7 +64,7 @@ export default async function ExamRoutinePrintPage({ params }: { params: Promise
   return (
     <main className="mx-auto w-full max-w-4xl flex-1 p-6">
       <div className="mb-4 flex items-center justify-between print:hidden">
-        <Link href={`/school/exams/${id}/routine`} aria-label={t('examRoutine.title', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
+        <BackLink href={backHref} label={t('common.back', lang)} />
         <PrintButton label={t('print.print', lang)} />
       </div>
 

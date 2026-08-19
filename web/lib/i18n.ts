@@ -527,6 +527,14 @@ const dict = {
   'exams.allStatus': { bn: 'সকল অবস্থা', en: 'All Status' },
   'exams.markEntry': { bn: 'নম্বর এন্ট্রি', en: 'Marks Entry' },
   'exams.promotion': { bn: 'প্রমোশন', en: 'Promotion' },
+  // Map #373 puts Seat Plan and Routine back on the exam row as direct actions
+  // (docs/010_exam_module.md §1). Separate keys from `seatPlan.generate` and
+  // `examRoutine.title` on purpose: those label a full-width page button and a
+  // page heading, whose Bangla is deliberately explicit
+  // ("স্বয়ংক্রিয় সিট প্ল্যান তৈরি করুন"), which is far too long for a row pill
+  // sitting next to five others.
+  'exams.generateSeatPlan': { bn: 'সিট প্ল্যান তৈরি', en: 'Generate Seat Plan' },
+  'exams.makeRoutine': { bn: 'রুটিন তৈরি', en: 'Make Exam Routine' },
   // Map #366: Mark Entry and Documents need a class and a grading scheme set
   // on the exam first — both plain columns, no new workflow state. Co-curricular
   // needs only the class, so it says so rather than blaming Basic Info at large.

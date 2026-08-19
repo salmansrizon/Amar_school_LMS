@@ -15,6 +15,8 @@ import {
   type SeatPlanRow,
 } from './seat-plan-controls'
 import { embeddedBuildingName } from '@/lib/venues'
+import { BackLink } from '@/components/back-link'
+import { resolveBackHref, selfOrigin, withOrigin } from '@/lib/back-nav'
 
 // Layout per ui/school-owner/seat-plan.html: toolbar (exam label; Generate +
 // Publish) with an overlap-warning banner over the Room/Capacity/Assigned
@@ -23,8 +25,19 @@ import { embeddedBuildingName } from '@/lib/venues'
 // re-checked server-side by publish_seat_plan even though the client already
 // disables the button (migration 0039).
 
-export default async function SeatPlanPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function SeatPlanPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>
+  searchParams: Promise<{ from?: string | string[] }>
+}) {
   const { id } = await params
+  const { from } = await searchParams
+  const backHref = resolveBackHref(from, `/school/exams/${id}`)
+  // Anything opened from here returns *here* first, then onward to whatever
+  // opened this page — otherwise Back skips straight past the seat plan.
+  const deeper = selfOrigin(`/school/exams/${id}/seat-plan`, from)
   const lang: Lang = await currentLang()
   const { supabase } = await getSchoolContext()
 
@@ -97,20 +110,20 @@ export default async function SeatPlanPage({ params }: { params: Promise<{ id: s
     <main className="mx-auto w-full max-w-4xl flex-1 p-6">
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold">{t('seatPlan.title', lang)}</h1>
-        <Link href={`/school/exams/${exam.id}`} aria-label={t('examSetup.title', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
+        <BackLink href={backHref} label={t('common.back', lang)} />
       </div>
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <span className="text-sm text-muted">{examLabel}</span>
         <div className="flex items-center gap-4">
           <Link
-            href={`/school/exams/${exam.id}/seat-plan/print`}
+            href={withOrigin(`/school/exams/${exam.id}/seat-plan/print`, deeper)}
             className="text-sm text-brand-600 hover:underline"
           >
             {t('seatPlan.print', lang)}
           </Link>
           <Link
-            href={`/school/exams/${exam.id}/attendance-sheet`}
+            href={withOrigin(`/school/exams/${exam.id}/attendance-sheet`, deeper)}
             className="text-sm text-brand-600 hover:underline"
           >
             {t('examAttendanceSheet.title', lang)}
@@ -157,6 +170,7 @@ export default async function SeatPlanPage({ params }: { params: Promise<{ id: s
               <p className="text-sm text-muted">{t('seatPlan.none', lang)}</p>
             ) : (
               <SeatPlanTable
+                origin={deeper}
                 examId={exam.id}
                 rows={seatRows}
                 rooms={roomOpts}

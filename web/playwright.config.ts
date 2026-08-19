@@ -9,6 +9,13 @@ dotenv.config({ path: '.env.local' })
 // E2E config (map #258 verification). Runs Chromium against a local `next dev`
 // server that talks to the shared Supabase test project (.env.local). Serial
 // (workers=1) so the shared test data + auth rate limits stay predictable.
+//
+// E2E_PORT lets a run take its own port. Default 3000 keeps the previous
+// behaviour; set it when a dev server is already sitting on 3000, so the suite
+// starts its own rather than silently testing whatever is already there —
+// possibly a different branch's code (map #373).
+const PORT = process.env.E2E_PORT ?? '3000'
+const BASE_URL = `http://localhost:${PORT}`
 export default defineConfig({
   testDir: './e2e',
   testMatch: '**/*.spec.ts',
@@ -19,7 +26,7 @@ export default defineConfig({
   retries: 1,
   reporter: [['list']],
   use: {
-    baseURL: 'http://localhost:3000',
+    baseURL: BASE_URL,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
   },
@@ -34,8 +41,8 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:3000/login',
+    command: `npm run dev -- --port ${PORT}`,
+    url: `${BASE_URL}/login`,
     reuseExistingServer: !process.env.CI,
     timeout: 180_000,
   },

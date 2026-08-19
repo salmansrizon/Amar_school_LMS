@@ -1,4 +1,3 @@
-import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
@@ -12,6 +11,8 @@ import { ThemePicker } from '@/components/print/theme-picker'
 import { AdmitCardTemplate } from './templates'
 import { loadInstitutePrintHeader, loadPrintThemeKey } from '@/lib/institute-print'
 import { resolveTheme } from '@/lib/print-themes'
+import { BackLink } from '@/components/back-link'
+import { resolveBackHref } from '@/lib/back-nav'
 
 // Admit card (issue #48, PRD §5.5), per ui/school-owner/admit-card-preview.html
 // — identity + seat only, no grades. "Exam Center" is derived from the exam's
@@ -27,10 +28,11 @@ export default async function AdmitCardPage({
   searchParams,
 }: {
   params: Promise<{ id: string; studentId: string }>
-  searchParams: Promise<{ template?: string; theme?: string }>
+  searchParams: Promise<{ template?: string; theme?: string; from?: string | string[] }>
 }) {
   const { id: examId, studentId } = await params
-  const { template: templateParam, theme: themeParam } = await searchParams
+  const { template: templateParam, theme: themeParam, from } = await searchParams
+  const backHref = resolveBackHref(from, `/school/exams/${examId}/admit-cards`)
   const template = parseTemplate(templateParam)
   const lang: Lang = await currentLang()
   const { supabase } = await getSchoolContext()
@@ -56,7 +58,7 @@ export default async function AdmitCardPage({
 
   const header = (
     <div className="mb-4 flex flex-wrap items-center justify-between gap-2 print:hidden">
-      <Link href={`/school/exams/${examId}/admit-cards`} aria-label={t('admitCard.title', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
+      <BackLink href={backHref} label={t('common.back', lang)} />
       <div className="flex items-center gap-3">
         <TemplatePicker2
           selected={template}
