@@ -79,7 +79,7 @@ export default async function ExamSetupPage({
         <h1 className="text-2xl font-extrabold">
           {t('examSetup.title', lang)} — {examLabel}
         </h1>
-        <BackLink href={backHref} label={t('exams.title', lang)} />
+        <BackLink href={backHref} label={t('common.back', lang)} />
       </div>
 
       <ExamHeader

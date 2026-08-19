@@ -123,7 +123,7 @@ export default async function SeatPlanPrintPage({
   return (
     <main className="mx-auto w-full max-w-4xl flex-1 p-6">
       <div className="mb-4 flex items-center justify-between print:hidden">
-        <BackLink href={backHref} label={t('seatPlan.title', lang)} />
+        <BackLink href={backHref} label={t('common.back', lang)} />
         <div className="flex items-center gap-3">
           {examDates.length > 1 && (
             <nav className="flex flex-wrap items-center gap-2 text-xs">

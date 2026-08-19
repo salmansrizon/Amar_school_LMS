@@ -52,7 +52,7 @@ export default async function ExamAttendanceSheetPage({
   const subjectName = new Map((subjects ?? []).map((s) => [s.id, s.name]))
 
   const backLink = (
-    <BackLink href={backHref} label={t('examSetup.title', lang)} />
+    <BackLink href={backHref} label={t('common.back', lang)} />
   )
 
   // No sitting chosen yet: pick one. A sitting, not a room — the room list

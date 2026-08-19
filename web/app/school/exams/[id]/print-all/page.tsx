@@ -148,7 +148,7 @@ export default async function PrintAllPage({
         {t('printAll.title', lang)} — {examLabel}
       </h1>
       <div className="flex items-center gap-3">
-        <BackLink href={backHref} label={t('examSetup.title', lang)} />
+        <BackLink href={backHref} label={t('common.back', lang)} />
         <PrintButton label={t('print.print', lang)} />
       </div>
     </div>

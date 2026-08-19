@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { ORIGIN_PARAM, resolveBackHref, selfOrigin, withOrigin } from '@/lib/back-nav'
+import { ORIGIN_PARAM, resolveBackHref, restoresOwnScroll, selfOrigin, withOrigin } from '@/lib/back-nav'
 
 const FALLBACK = '/school/exams/abc'
 
@@ -95,6 +95,19 @@ describe('withOrigin', () => {
     const from = new URL(href, 'https://internal.invalid').searchParams.get(ORIGIN_PARAM)
     // `+` and `%20` both decode to a space; the query is re-serialized on the way out.
     expect(resolveBackHref(from ?? undefined, FALLBACK)).toBe('/school/exams?q=mid+term&status=open&exam=abc')
+  })
+})
+
+describe('restoresOwnScroll', () => {
+  it('is true only when the target carries a row anchor', () => {
+    expect(restoresOwnScroll('/school/exams?q=x&exam=abc')).toBe(true)
+    expect(restoresOwnScroll('/school/exams?exam=abc')).toBe(true)
+  })
+
+  it('is false for an ordinary target, so Next keeps scrolling to top', () => {
+    expect(restoresOwnScroll('/school/exams')).toBe(false)
+    expect(restoresOwnScroll('/school/exams?q=x')).toBe(false)
+    expect(restoresOwnScroll('/school/exams/abc')).toBe(false)
   })
 })
 

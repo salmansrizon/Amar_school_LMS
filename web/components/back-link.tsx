@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { restoresOwnScroll } from '@/lib/back-nav'
 
 // The header Back chevron. This markup was pasted into 75 page files; map #373
 // converted the 22 under app/school/exams and deliberately left the rest, so
@@ -13,6 +14,9 @@ export function BackLink({ href, label }: { href: string; label: string }) {
   return (
     <Link
       href={href}
+      // Yield scroll to a destination that restores its own row anchor;
+      // otherwise keep Next's default scroll-to-top.
+      scroll={!restoresOwnScroll(href)}
       aria-label={label}
       className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"
     >

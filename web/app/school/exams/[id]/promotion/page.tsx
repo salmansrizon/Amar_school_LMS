@@ -70,7 +70,7 @@ export default async function PromotionPage({
       <h1 className="text-2xl font-extrabold">
         {t('promotion.title', lang)} — {examLabel}
       </h1>
-      <BackLink href={backHref} label={t('examSetup.title', lang)} />
+      <BackLink href={backHref} label={t('common.back', lang)} />
     </div>
   )
 

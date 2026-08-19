@@ -64,7 +64,7 @@ export default async function ExamRoutinePrintPage({
   return (
     <main className="mx-auto w-full max-w-4xl flex-1 p-6">
       <div className="mb-4 flex items-center justify-between print:hidden">
-        <BackLink href={backHref} label={t('examRoutine.title', lang)} />
+        <BackLink href={backHref} label={t('common.back', lang)} />
         <PrintButton label={t('print.print', lang)} />
       </div>
 

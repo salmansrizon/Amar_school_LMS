@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useMemo, useState, useTransition } from 'react'
+import { useEffect, useMemo, useState, useTransition } from 'react'
 import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
 import { examBasicInfoComplete, examHasClass, filterExams } from '@/lib/exam-setup'
 import { withOrigin } from '@/lib/back-nav'
@@ -157,17 +157,39 @@ export interface ClassOption {
 export function ExamsListClient({
   exams,
   classes,
+  initialQuery = '',
+  initialClassId = '',
+  initialStatus = '',
+  anchorExamId,
   lang,
 }: {
   exams: ExamListItem[]
   classes: ClassOption[]
+  /** Filter state to restore, from the `from` URL a destination came back to. */
+  initialQuery?: string
+  initialClassId?: string
+  initialStatus?: string
+  /** The row that launched the destination being returned from. */
+  anchorExamId?: string
   lang: Lang
 }) {
-  const [query, setQuery] = useState('')
-  const [classId, setClassId] = useState('')
-  const [status, setStatus] = useState('')
+  const [query, setQuery] = useState(initialQuery)
+  const [classId, setClassId] = useState(initialClassId)
+  const [status, setStatus] = useState(initialStatus)
   const classById = new Map(classes.map((c) => [c.id, c]))
   const filtered = useMemo(() => filterExams(exams, query, classId, status), [exams, query, classId, status])
+
+  // Bring the row that launched the destination back into view. A row anchor,
+  // not a pixel offset (§5): it survives the list re-rendering or an exam
+  // changing status, which an offset does not. Runs once per arrival — the
+  // dependency is the anchor, so typing in the search box does not re-fire it
+  // and yank the page around. If the anchored exam is not in the filtered set
+  // the lookup simply misses and the list stays put, rather than fighting the
+  // user's own filter. `scrollIntoView` deliberately does not move focus.
+  useEffect(() => {
+    if (!anchorExamId) return
+    document.getElementById(examRowAnchorId(anchorExamId))?.scrollIntoView({ block: 'center' })
+  }, [anchorExamId])
 
   // The address a destination should come back to: this list, with the filters
   // as they stand right now and the row that was clicked. Snapshotted per link

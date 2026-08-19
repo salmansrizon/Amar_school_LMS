@@ -50,7 +50,7 @@ export default async function ProgressReportPage({
 
   const header = (
     <div className="mb-4 flex flex-wrap items-center justify-between gap-2 print:hidden">
-      <BackLink href={backHref} label={t('exams.printables', lang)} />
+      <BackLink href={backHref} label={t('common.back', lang)} />
       <div className="flex items-center gap-3">
         <TemplatePicker
           selected={template}

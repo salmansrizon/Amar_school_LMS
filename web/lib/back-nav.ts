@@ -69,6 +69,27 @@ export function withOrigin(href: string, origin: string): string {
 }
 
 /**
+ * Whether a Back target will position its own scroll, so Next should keep its
+ * hands off.
+ *
+ * `<Link scroll>` defaults to true, and Next then "scrolls to the top of the
+ * first Page element" whenever the destination is not already in the viewport
+ * (node_modules/next/dist/docs/.../link.md). Returning to the exam list is
+ * exactly that case, so Next's scroll pass and the row-anchor restore both run
+ * and whichever lands last wins.
+ *
+ * Measured: the restore currently wins anyway — the e2e passes with this
+ * removed. It is kept because "wins a race" is not a property worth depending
+ * on across framework versions, and losing it silently reinstates the exact bug
+ * §5 exists to fix (Back dumping the user at the top of a long list). Cheap
+ * determinism, not a fix for an observed failure.
+ */
+export function restoresOwnScroll(href: string): boolean {
+  const query = href.split('?')[1]
+  return query ? new URLSearchParams(query).has('exam') : false
+}
+
+/**
  * This page's own address, carrying whatever origin it was opened with — for
  * use as the origin of a link that goes one level *deeper*.
  *

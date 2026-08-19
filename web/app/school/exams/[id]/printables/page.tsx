@@ -42,7 +42,7 @@ export default async function ExamPrintablesPage({
       <h1 className="text-2xl font-extrabold">
         {t('printables.title', lang)} — {examLabel}
       </h1>
-      <BackLink href={backHref} label={t('examSetup.title', lang)} />
+      <BackLink href={backHref} label={t('common.back', lang)} />
     </div>
   )
 

@@ -48,7 +48,7 @@ export default async function AdmitCardsPage({
         >
           {t('printAll.title', lang)}
         </Link>
-        <BackLink href={backHref} label={t('examSetup.title', lang)} />
+        <BackLink href={backHref} label={t('common.back', lang)} />
       </div>
     </div>
   )

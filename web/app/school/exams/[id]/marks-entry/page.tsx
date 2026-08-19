@@ -44,7 +44,7 @@ export default async function MarksEntryPage({
       <h1 className="text-2xl font-extrabold">
         {t('markEntry.title', lang)} — {examLabel}
       </h1>
-      <BackLink href={backHref} label={t('examSetup.title', lang)} />
+      <BackLink href={backHref} label={t('common.back', lang)} />
     </div>
   )
 
