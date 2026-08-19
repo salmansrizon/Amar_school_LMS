@@ -20,20 +20,20 @@ export default async function GovHome() {
   ]
 
   return (
-    <main className="mx-auto w-full max-w-4xl flex-1 p-6">
+    <main className="w-full p-6">
       <h1 className="mb-1 text-2xl font-extrabold">{fullName}</h1>
       <p className="mb-4 text-sm text-muted">{t('home.gov', lang)}</p>
 
-      <section className="mb-6 grid grid-cols-2 gap-3 sm:max-w-md">
+      <section className="mb-6 grid max-w-md grid-cols-2 gap-3">
         {stats.map((s) => (
-          <div key={s.label} className="rounded-lg border border-line bg-paper p-4 shadow-card">
+          <div key={s.label} className="rounded-lg border border-line bg-paper p-4">
             <div className="text-2xl font-extrabold text-brand-700">{s.value}</div>
             <div className="text-xs text-muted">{s.label}</div>
           </div>
         ))}
       </section>
 
-      <section className="rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="rounded-lg border border-line bg-paper p-5">
         <TerritorySchools lang={lang} />
       </section>
     </main>

@@ -52,7 +52,7 @@ export default async function SuperAdminDashboard() {
   ]
 
   return (
-    <main className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
+    <main className="w-full px-4 py-6 sm:px-6 lg:px-8">
       <PageHeader
         title={t('sa.dash.title', lang)}
         subtitle={t('sa.dash.subtitle', lang)}
