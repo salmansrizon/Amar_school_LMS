@@ -144,11 +144,15 @@ export function TableFrame({ children }: { children: React.ReactNode }) {
 // destroying the rhythm the density scale exists to hold. Anything genuinely too
 // long is capped with `cellCapClass`; the frame scrolls if the total still exceeds
 // the viewport.
+// One rule under the header, none between body rows — the reference table
+// (ui.shadcn.com/docs/components/table) reads as a soft card, not a
+// spreadsheet grid. Rows are told apart by padding and the hover wash alone
+// (map #370 gate #372), matching components/ui/table.tsx's shadcn primitive.
 export const thClass =
-  'sticky top-0 z-10 whitespace-nowrap bg-paper px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted'
+  'sticky top-0 z-10 whitespace-nowrap border-b border-line bg-paper px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted'
 export const tdClass = 'whitespace-nowrap px-3 py-2 text-sm'
 /** Row height comes from the density token, so the rhythm is tuned in one place. */
-export const trClass = 'h-row border-b border-line last:border-0 transition hover:bg-paper-muted'
+export const trClass = 'h-row transition hover:bg-paper-muted'
 
 /**
  * Last cell of a clustered table, in both the header and every row.

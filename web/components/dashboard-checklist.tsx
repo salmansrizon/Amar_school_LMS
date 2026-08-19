@@ -12,6 +12,7 @@ import {
 } from '@/lib/institute'
 import { Icon } from '@/components/school-icons'
 import { toggleDailyChecklist } from '@/app/school/dashboard-checklist-actions'
+import { railClass } from '@/components/ui/page'
 
 // Dashboard Activity Checklist (issue #117, editable template #150): a checkable
 // card grid above the Upcoming feed, built from the school's checklist item
@@ -62,8 +63,8 @@ export function DashboardChecklist({
   if (!items.length) return null
 
   return (
-    <section className="mt-8">
-      <div className="mb-3 flex items-center justify-between gap-2">
+    <section className="mt-section">
+      <div className="mb-grid flex items-center justify-between gap-2">
         <h2 className="text-sm font-bold uppercase tracking-wide text-muted">{t('dash.checklist', lang)}</h2>
         <div className="flex items-center gap-2">
           <span
@@ -84,7 +85,7 @@ export function DashboardChecklist({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-grid sm:grid-cols-3 lg:grid-cols-5">
         {items.map((item) => {
           const checked = !dueSet.has(item.id)
           return (
@@ -93,15 +94,13 @@ export function DashboardChecklist({
               type="button"
               onClick={() => toggle(item.id)}
               aria-pressed={checked}
-              className={`group relative flex min-h-24 flex-col justify-between gap-3 rounded-2xl border p-4 text-left shadow-card backdrop-blur transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 focus-visible:ring-offset-2 ${
-                checked
-                  ? 'border-mint-deep/30 bg-mint-soft/60'
-                  : 'border-sun-deep/40 bg-sun-soft/50'
-              }`}
+              className={`group relative flex min-h-24 flex-col justify-between gap-3 rounded-lg border border-line bg-paper p-card text-left transition hover:bg-paper-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 focus-visible:ring-offset-2 ${railClass(
+                checked ? 'mint' : 'sun',
+              )}`}
             >
               <div className="flex items-center justify-between gap-2">
                 <span
-                  className={`flex size-6 shrink-0 items-center justify-center rounded-lg border-2 transition ${
+                  className={`flex size-6 shrink-0 items-center justify-center rounded-md border-2 transition ${
                     checked ? 'border-mint-deep bg-mint-deep text-white' : 'border-line-strong bg-paper text-transparent'
                   }`}
                 >
@@ -110,7 +109,7 @@ export function DashboardChecklist({
                   </svg>
                 </span>
                 {!checked && (
-                  <span className="rounded-full bg-sun-deep/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-sun-deep motion-safe:animate-pulse">
+                  <span className="rounded-full bg-sun-soft px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-sun-deep motion-safe:animate-pulse">
                     {t('dash.checklistDue', lang)}
                   </span>
                 )}

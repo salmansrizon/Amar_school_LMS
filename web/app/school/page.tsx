@@ -9,49 +9,45 @@ import { UpcomingList } from '@/components/upcoming-list'
 import { DashboardChecklist } from '@/components/dashboard-checklist'
 import { attendanceRate, isSubscriptionActive, buildUpcoming } from '@/lib/dashboard'
 import type { ActivityChecklistItem, ChecklistTicks } from '@/lib/institute'
+import { Card, type Tone } from '@/components/ui/page'
 
 // School Owner / Staff dashboard home, per ui/school-owner/dashboard.html:
 // KPI tiles + (Recent Activity | Quick Actions) split. The module nav lives
 // in the persistent sidebar (app/school/layout.tsx + components/school-shell.tsx)
 // rather than duplicated here. Replaces the issue #1 placeholder shell.
+//
+// Dashboard archetype (map #370, gate #372): the shell already hands this page
+// bare full width, so the re-lay here is hairline surfaces + the density scale
+// + the status rail — the tiles are exactly the "stat cards" the rail spec
+// names. Each tile keeps a textual state cue (the value itself, or the hint)
+// so the rail is reinforcement, never the only signal.
 
 function StatTile({
   label,
   value,
   hint,
-  badge,
+  tone,
   icon,
   valueClass = 'text-ink',
 }: {
   label: string
   value: string
   hint?: string
-  badge?: 'ok' | 'warn'
+  tone?: Tone
   icon: React.ComponentProps<typeof Icon>['name']
   valueClass?: string
 }) {
   return (
-    <div className="rounded-2xl border border-line/70 bg-paper/92 p-5 shadow-card backdrop-blur">
+    <Card tone={tone}>
       <div className="flex items-start justify-between gap-2">
         <div className="text-xs font-semibold uppercase tracking-wide text-muted">{label}</div>
-        <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
+        <span className="flex size-9 shrink-0 items-center justify-center rounded-md bg-brand-50 text-brand-600">
           <Icon name={icon} className="size-5" />
         </span>
       </div>
-      <div className="mt-3 flex items-baseline gap-2">
-        <span className={`text-3xl font-extrabold tracking-tight tabular-nums ${valueClass}`}>{value}</span>
-        {badge && (
-          <span
-            className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
-              badge === 'ok' ? 'bg-mint-soft text-mint-deep' : 'bg-alert-soft text-alert-deep'
-            }`}
-          >
-            {badge === 'ok' ? '●' : '!'}
-          </span>
-        )}
-      </div>
+      <div className={`mt-3 text-3xl font-extrabold tracking-tight tabular-nums ${valueClass}`}>{value}</div>
       {hint && <div className="mt-1 text-xs font-medium text-muted">{hint}</div>}
-    </div>
+    </Card>
   )
 }
 
@@ -149,26 +145,28 @@ export default async function SchoolHome() {
 
   return (
     <div>
-      <div className="mb-6">
+      <div className="mb-section">
         <p className="text-xs font-semibold uppercase tracking-[0.24em] text-brand-600">{t('shell.welcome', lang)}</p>
         <h1 className="mt-1 text-2xl font-extrabold tracking-tight sm:text-3xl">{t('home.school', lang)}</h1>
         <p className="mt-1 text-sm text-muted">{fullName || email}</p>
       </div>
 
-      {/* KPI tiles */}
-      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+      {/* KPI tiles — stat cards, so each carries the rail. */}
+      <div className="grid grid-cols-2 gap-grid lg:grid-cols-4">
         <StatTile
           icon="students"
           label={t('dash.totalStudents', lang)}
           value={totalStudents.toLocaleString(numLocale)}
           hint={t('dash.activeStudents', lang)}
           valueClass="text-brand-600"
+          tone="brand"
         />
         <StatTile
           icon="employees"
           label={t('dash.totalEmployees', lang)}
           value={totalEmployees.toLocaleString(numLocale)}
           hint={t('dash.teachersStaff', lang)}
+          tone="muted"
         />
         <StatTile
           icon="attendance"
@@ -179,7 +177,7 @@ export default async function SchoolHome() {
               ? `${presentToday.toLocaleString(numLocale)} · ${shortDateFmt.format(new Date(attDate + 'T00:00:00Z'))}`
               : t('dash.noAttendanceToday', lang)
           }
-          badge={attDate ? (attRate >= 85 ? 'ok' : 'warn') : undefined}
+          tone={attDate ? (attRate >= 85 ? 'mint' : 'alert') : 'muted'}
           valueClass={attDate && attRate < 85 ? 'text-alert-deep' : 'text-ink'}
         />
         <StatTile
@@ -191,7 +189,7 @@ export default async function SchoolHome() {
               ? `${t('dash.subExpires', lang)} ${shortDateFmt.format(new Date(subscriptionExpiresAt + 'T00:00:00Z'))}`
               : t('dash.subNoExpiry', lang)
           }
-          badge={subActive ? 'ok' : 'warn'}
+          tone={subActive ? 'mint' : 'alert'}
           valueClass={subActive ? 'text-brand-700' : 'text-alert-deep'}
         />
       </div>
@@ -201,9 +199,9 @@ export default async function SchoolHome() {
       <DashboardChecklist lang={lang} date={today} items={checklistItems} ticks={todayTicks} />
 
       {/* Upcoming Activity + Quick Actions, per the mockup's dash-split (2fr/1fr) */}
-      <div className="mt-8 grid gap-6 lg:grid-cols-3">
+      <div className="mt-section grid gap-grid lg:grid-cols-3">
         <section className="lg:col-span-2">
-          <div className="mb-3 flex items-center justify-between gap-2">
+          <div className="mb-grid flex items-center justify-between gap-2">
             <h2 className="text-sm font-bold uppercase tracking-wide text-muted">{t('dash.upcoming', lang)}</h2>
             <Link
               href="/school/activity"
@@ -213,26 +211,26 @@ export default async function SchoolHome() {
               <Icon name="chevronRight" className="size-3.5" />
             </Link>
           </div>
-          <div className="rounded-2xl border border-line/70 bg-paper/92 shadow-card backdrop-blur">
+          <Card padded={false}>
             <UpcomingList items={upcoming} lang={lang} today={today} />
-          </div>
+          </Card>
         </section>
 
         <section>
-          <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-muted">{t('dash.quickActions', lang)}</h2>
+          <h2 className="mb-grid text-sm font-bold uppercase tracking-wide text-muted">{t('dash.quickActions', lang)}</h2>
           <div className="flex flex-col gap-2">
             {quickActions.map((q) => (
               <Link
                 key={q.href}
                 href={q.href}
-                className={`flex min-h-11 items-center gap-3 whitespace-nowrap rounded-xl px-4 py-3 text-sm font-semibold shadow-sm transition hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 focus-visible:ring-offset-2 motion-safe:hover:-translate-y-0.5 ${
+                className={`flex min-h-11 items-center gap-3 whitespace-nowrap rounded-md px-4 py-3 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 focus-visible:ring-offset-2 ${
                   q.primary
                     ? 'bg-brand-600 text-white hover:bg-brand-700'
-                    : 'border border-line-strong bg-paper text-ink hover:border-brand-300'
+                    : 'border border-line-strong bg-paper text-ink hover:border-brand-300 hover:bg-paper-muted'
                 }`}
               >
                 <span
-                  className={`flex size-8 shrink-0 items-center justify-center rounded-lg ${
+                  className={`flex size-8 shrink-0 items-center justify-center rounded-md ${
                     q.primary ? 'bg-white/20 text-white' : 'bg-brand-50 text-brand-600'
                   }`}
                 >
@@ -244,9 +242,9 @@ export default async function SchoolHome() {
             {role === 'school_owner' && (
               <Link
                 href="/school/approvals"
-                className="flex min-h-11 items-center gap-3 whitespace-nowrap rounded-xl border border-line-strong bg-paper px-4 py-3 text-sm font-semibold text-ink shadow-sm transition hover:border-brand-300 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 focus-visible:ring-offset-2"
+                className="flex min-h-11 items-center gap-3 whitespace-nowrap rounded-md border border-line-strong bg-paper px-4 py-3 text-sm font-semibold text-ink transition hover:border-brand-300 hover:bg-paper-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 focus-visible:ring-offset-2"
               >
-                <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
+                <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-brand-50 text-brand-600">
                   <Icon name="notices" className="size-4" />
                 </span>
                 {t('approvals.title', lang)}

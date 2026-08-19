@@ -53,11 +53,15 @@ function TableFooter({ className, ...props }: React.ComponentProps<"tfoot">) {
 }
 
 function TableRow({ className, ...props }: React.ComponentProps<"tr">) {
+  // No border of its own — the reference table (ui.shadcn.com/docs/components/table)
+  // reads as a soft card with a single rule under the header, not a spreadsheet
+  // grid. TableHeader supplies that one line via `[&_tr]:border-b`; body rows are
+  // told apart by padding and the hover wash alone (map #370 gate #372).
   return (
     <tr
       data-slot="table-row"
       className={cn(
-        "border-b transition-colors hover:bg-paper-muted/50 has-aria-expanded:bg-paper-muted/50 data-[state=selected]:bg-paper-muted",
+        "transition-colors hover:bg-paper-muted/50 has-aria-expanded:bg-paper-muted/50 data-[state=selected]:bg-paper-muted",
         className
       )}
       {...props}
