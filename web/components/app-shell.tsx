@@ -332,7 +332,7 @@ export function AppShell({
               {topbarExtras}
               {bell ?? <NotificationsBell lang={lang} buttonClass={ICON_BUTTON} />}
               <span className="mx-1 hidden h-6 w-px bg-line sm:block" />
-              <div className="shrink-0">
+              <div className="flex shrink-0 items-center gap-2">
                 <ThemeSwitch preference={theme} lang={lang} />
                 <LangSwitch lang={lang} />
               </div>
