@@ -7,7 +7,8 @@ import { filterRoster } from '@/lib/attendance-manual'
 import { classSectionOptions, parseClassSectionKey } from '@/lib/class-section-options'
 import { AttendanceTabs } from '../attendance-tabs'
 import { MarkAttendanceForm } from './mark-form'
-import { dateInputClass, selectClass } from '@/components/ui/field'
+import { dateInputClass } from '@/components/ui/field'
+import { ClassSectionSelect } from '@/components/ui/class-section-select'
 
 // Layout per ui/school-owner/attendance-student-mark.html: class/section/
 // class/section/date filters, bulk all-present/all-absent, per-row
@@ -79,18 +80,13 @@ export default async function MarkAttendancePage({
       <Form className="mb-4 grid gap-3 rounded-lg border border-line bg-paper p-5 sm:grid-cols-4" action="/school/attendance/mark">
         <div>
           <label className="mb-1 block text-xs font-semibold text-muted">{t('attendance.classSection', lang)}</label>
-          <select
-            name="classSection"
-            defaultValue={classSection}
-            className={selectClass({ fullWidth: true })}
-          >
-            <option value="">{t('attendance.allClasses', lang)}</option>
-            {combos.map((c) => (
-              <option key={c.value} value={c.value}>
-                {c.label}
-              </option>
-            ))}
-          </select>
+          <ClassSectionSelect
+            combos={combos}
+            value={classSection}
+            ariaLabel={t('attendance.classSection', lang)}
+            allLabel={t('attendance.allClasses', lang)}
+            fullWidth
+          />
         </div>
 
         <div>
@@ -112,7 +108,7 @@ export default async function MarkAttendancePage({
           {t('attendance.none', lang)}
         </p>
       ) : (
-        <MarkAttendanceForm lang={lang} date={date} students={initial} />
+        <MarkAttendanceForm key={`${classSection}-${date}`} lang={lang} date={date} students={initial} />
       )}
     </div>
   )

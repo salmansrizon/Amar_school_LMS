@@ -10,21 +10,6 @@ export interface RosterStudent {
   roll_number?: number | null
 }
 
-export function studentClassOptions(students: RosterStudent[]): string[] {
-  return [...new Set(students.map((s) => s.class_name).filter((c): c is string => !!c))].sort()
-}
-
-export function studentSectionOptions(students: RosterStudent[], className: string): string[] {
-  return [
-    ...new Set(
-      students
-        .filter((s) => s.class_name === className)
-        .map((s) => s.section)
-        .filter((s): s is string => !!s),
-    ),
-  ].sort()
-}
-
 /**
  * Roster rows for the mark-attendance screen, filtered by class/section and
  * ordered by Roll number (matching attendance-student-mark.html) with

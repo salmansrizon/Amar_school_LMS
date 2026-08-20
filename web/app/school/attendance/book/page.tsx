@@ -14,7 +14,7 @@ import { PrintPage, InstituteHeader, PaginatedSheet } from '@/components/print/p
 import { PrintButton } from '@/components/print/print-button'
 import { AttendanceTabs } from '../attendance-tabs'
 import { loadInstitutePrintHeader } from '@/lib/institute-print'
-import { selectClass } from '@/components/ui/field'
+import { ClassSectionSelect } from '@/components/ui/class-section-select'
 
 // Layout per ui/school-owner/attendance-book.html: class/section + month
 // filter, Filled/Blank toggle, print button, monthly P/A register grid
@@ -122,19 +122,12 @@ export default async function AttendanceBookPage({
 
       <Form className="mb-4 flex flex-wrap items-center justify-between gap-2 print:hidden" action="/school/attendance/book">
         <div className="flex flex-wrap items-center gap-2">
-          <select
-            name="classSection"
-            defaultValue={classSection}
-            aria-label={t('attendance.classSection', lang)}
-            className={selectClass()}
-          >
-            <option value="">{t('attendance.allClasses', lang)}</option>
-            {combos.map((c) => (
-              <option key={c.value} value={c.value}>
-                {c.label}
-              </option>
-            ))}
-          </select>
+          <ClassSectionSelect
+            combos={combos}
+            value={classSection}
+            ariaLabel={t('attendance.classSection', lang)}
+            allLabel={t('attendance.allClasses', lang)}
+          />
           <input
             type="month"
             name="month"

@@ -6,7 +6,7 @@ import { getSchoolContext } from '@/lib/school/context'
 import { filterRoster } from '@/lib/attendance-manual'
 import { classSectionOptions, parseClassSectionKey } from '@/lib/class-section-options'
 import { AttendanceTabs } from '../attendance-tabs'
-import { selectClass } from '@/components/ui/field'
+import { ClassSectionSelect } from '@/components/ui/class-section-select'
 
 // Student Log finder (map #380, docs/011_student_module.md): Class -> Section
 // picker + roll-sorted roster, each row opening that student's attendance
@@ -72,14 +72,13 @@ export default async function StudentLogPage({
       <Form className="mb-4 grid gap-3 rounded-lg border border-line bg-paper p-5 sm:grid-cols-2" action="/school/attendance/student-log">
         <div>
           <label className="mb-1 block text-xs font-semibold text-muted">{t('attendance.classSection', lang)}</label>
-          <select name="classSection" defaultValue={classSection} className={selectClass({ fullWidth: true })}>
-            <option value="">{t('attendance.allClasses', lang)}</option>
-            {combos.map((c) => (
-              <option key={c.value} value={c.value}>
-                {c.label}
-              </option>
-            ))}
-          </select>
+          <ClassSectionSelect
+            combos={combos}
+            value={classSection}
+            ariaLabel={t('attendance.classSection', lang)}
+            allLabel={t('attendance.allClasses', lang)}
+            fullWidth
+          />
         </div>
         <div className="flex items-end">
           <button

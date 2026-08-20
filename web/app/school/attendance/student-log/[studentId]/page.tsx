@@ -5,6 +5,7 @@ import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { dateRangeDays, studentLogDayStatus, type OffDay, type StudentLogDayStatus } from '@/lib/attendance-manual'
+import { classSectionKey } from '@/lib/class-section-options'
 import { dateInputClass } from '@/components/ui/field'
 import { PrintPage, InstituteHeader, PaginatedSheet, Badge } from '@/components/print/pieces'
 import { PrintButton } from '@/components/print/print-button'
@@ -142,11 +143,11 @@ export default async function StudentLogDetailPage({
     .reverse() // newest first
 
   const backHref = (() => {
-    const p = new URLSearchParams()
-    if (className) p.set('class', className)
-    if (section) p.set('section', section)
-    const q = p.toString()
-    return `/school/attendance/student-log${q ? `?${q}` : ''}`
+    // The finder reads one composite `classSection` param (map #398); this
+    // page keeps its own `class`/`section` params for its month/custom-range
+    // forms below, so the two are translated only at this one boundary.
+    const key = className || section ? classSectionKey(className, section) : ''
+    return `/school/attendance/student-log${key ? `?classSection=${encodeURIComponent(key)}` : ''}`
   })()
 
   const modeHref = (mode: ViewMode) => {
