@@ -1503,6 +1503,7 @@ const dict = {
   'attendance.markTitle': { bn: 'শিক্ষার্থী উপস্থিতি — হাজিরা নিন', en: 'Student Attendance — Mark' },
   'attendance.class': { bn: 'শ্রেণি', en: 'Class' },
   'attendance.section': { bn: 'শাখা', en: 'Section' },
+  'attendance.classSection': { bn: 'শ্রেণি/শাখা', en: 'Class/Section' },
   'attendance.allClasses': { bn: 'সকল শ্রেণি', en: 'All Classes' },
   'attendance.allSections': { bn: 'সকল শাখা', en: 'All Sections' },
   'attendance.studentsTotal': { bn: 'জন শিক্ষার্থী মোট', en: 'students total' },
