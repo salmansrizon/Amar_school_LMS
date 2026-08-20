@@ -7,6 +7,7 @@ import { mergeLeaves, filterLeaves } from '@/lib/attendance-manual'
 import { AttendanceTabs } from '../attendance-tabs'
 import { LeaveActions, RequestLeaveForm } from './leave-controls'
 import { selectClass } from '@/components/ui/field'
+import { railClass, type Tone } from '@/components/ui/page'
 
 // Layout per ui/school-owner/leave-management.html: search + type filter,
 // unified Student/Employee leave table with Approve/Reject on pending rows.
@@ -14,6 +15,11 @@ const statusPill: Record<string, string> = {
   pending: 'bg-sun-soft text-sun-deep',
   approved: 'bg-mint-soft text-mint-deep',
   rejected: 'bg-alert-soft text-alert-deep',
+}
+const statusRail: Record<string, Tone> = {
+  pending: 'sun',
+  approved: 'mint',
+  rejected: 'alert',
 }
 
 export default async function LeaveManagementPage({
@@ -112,7 +118,7 @@ export default async function LeaveManagementPage({
               <tbody>
                 {visible.map((l) => (
                   <tr key={`${l.kind}-${l.id}`} className="border-b border-line">
-                    <td className="px-3 py-2 text-sm font-medium">{l.name}</td>
+                    <td className={`px-3 py-2 text-sm font-medium ${railClass(statusRail[l.status])}`}>{l.name}</td>
                     <td className="px-3 py-2 text-sm">
                       {t(l.kind === 'student' ? 'attendance.leaveStudentType' : 'attendance.leaveEmployeeType', lang)}
                     </td>

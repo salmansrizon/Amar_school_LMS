@@ -8,6 +8,7 @@ import { PageHeader, SectionCard, formatTaka } from '@/components/super-admin/da
 import { SchoolSubscriptionControls } from './subscription-controls'
 import { SchoolManagement } from './school-management'
 import { CreateSchoolForm } from './create-school-form'
+import type { Tone } from '@/components/ui/page'
 
 // Super-admin schools manager (map #171 T4): the per-school ledger + control
 // centre, restyled to the T1 design language. The fetch→shape→classify work
@@ -28,7 +29,7 @@ const STATUS_KEY: Record<LifecycleStatus, MessageKey> = {
   expired: 'schools.expired',
   blocked: 'sa.school.paused',
 }
-const STATUS_RAIL: Record<LifecycleStatus, 'sky' | 'mint' | 'alert' | 'sun'> = {
+const STATUS_RAIL: Record<LifecycleStatus, Tone> = {
   trial: 'sky',
   active: 'mint',
   expired: 'alert',
