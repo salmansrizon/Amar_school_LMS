@@ -1,7 +1,5 @@
 import { describe, it, expect } from 'vitest'
 import {
-  studentClassOptions,
-  studentSectionOptions,
   filterRoster,
   mergeLeaves,
   filterLeaves,
@@ -18,17 +16,6 @@ const students = [
   { id: '3', full_name: 'Sadia Islam', class_name: 'Class 9', section: 'A', roll_number: null, office_time_id: null },
   { id: '4', full_name: 'Nusrat Jahan', class_name: null, section: null, roll_number: null, office_time_id: null },
 ]
-
-describe('studentClassOptions / studentSectionOptions', () => {
-  it('returns distinct sorted classes, skipping nulls', () => {
-    expect(studentClassOptions(students)).toEqual(['Class 8', 'Class 9'])
-  })
-
-  it('returns sections scoped to a class', () => {
-    expect(studentSectionOptions(students, 'Class 8')).toEqual(['A', 'B'])
-    expect(studentSectionOptions(students, 'Class 9')).toEqual(['A'])
-  })
-})
 
 describe('filterRoster', () => {
   it('filters by class and section, sorted by roll number', () => {

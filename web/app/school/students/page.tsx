@@ -5,7 +5,7 @@ import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { filterStudents, behaviourAverages } from '@/lib/students'
 import { classSectionOptions, parseClassSectionKey } from '@/lib/class-section-options'
-import { selectClass } from '@/components/ui/field'
+import { ClassSectionSelect } from '@/components/ui/class-section-select'
 
 // Layout per ui/school-owner/students-list.html: search (name/roll/guardian) +
 // class/section filters, table Roll | Name | Class/Section | Guardian |
@@ -60,14 +60,12 @@ export default async function StudentsPage({
             placeholder={t('students.search', lang)}
             className="w-56 rounded-md border border-line bg-paper px-3 py-1.5 text-sm"
           />
-          <select name="classSection" defaultValue={classSection} aria-label={t('students.classSection', lang)} className={selectClass()}>
-            <option value="">{t('students.allClasses', lang)}</option>
-            {combos.map((c) => (
-              <option key={c.value} value={c.value}>
-                {c.label}
-              </option>
-            ))}
-          </select>
+          <ClassSectionSelect
+            combos={combos}
+            value={classSection}
+            ariaLabel={t('students.classSection', lang)}
+            allLabel={t('students.allClasses', lang)}
+          />
           <button
             type="submit"
             className="cursor-pointer rounded-full border border-line px-3 py-1 text-xs font-semibold hover:bg-paper-muted"
