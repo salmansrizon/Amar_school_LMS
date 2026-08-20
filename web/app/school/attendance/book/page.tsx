@@ -7,10 +7,9 @@ import {
   filterRoster,
   monthGrid,
   registerDayStatus,
-  studentClassOptions,
-  studentSectionOptions,
   type OffDay,
 } from '@/lib/attendance-manual'
+import { classSectionOptions, parseClassSectionKey } from '@/lib/class-section-options'
 import { PrintPage, InstituteHeader, PaginatedSheet } from '@/components/print/pieces'
 import { PrintButton } from '@/components/print/print-button'
 import { AttendanceTabs } from '../attendance-tabs'
@@ -40,14 +39,14 @@ function monthLabel(year: number, month: number, lang: Lang): string {
 export default async function AttendanceBookPage({
   searchParams,
 }: {
-  searchParams: Promise<{ class?: string; section?: string; month?: string; mode?: string }>
+  searchParams: Promise<{ classSection?: string; month?: string; mode?: string }>
 }) {
   const {
-    class: className = '',
-    section = '',
+    classSection = '',
     month: monthParam = currentMonthParam(),
     mode: modeParam = 'filled',
   } = await searchParams
+  const { className, section } = parseClassSectionKey(classSection)
   const mode = modeParam === 'blank' ? 'blank' : 'filled'
   const lang: Lang = await currentLang()
   const { supabase } = await getSchoolContext()
@@ -65,8 +64,7 @@ export default async function AttendanceBookPage({
     supabase.from('students').select('id, full_name, class_name, section, roll_number').order('full_name'),
   ])
   const roster = students ?? []
-  const classes = studentClassOptions(roster)
-  const sections = className ? studentSectionOptions(roster, className) : []
+  const combos = classSectionOptions(roster)
   const visible = filterRoster(roster, className, section)
   const visibleIds = visible.map((s) => s.id)
 
@@ -107,7 +105,7 @@ export default async function AttendanceBookPage({
     (leavesByStudent.get(studentId) ?? []).some((l) => iso >= l.from && iso <= l.to)
 
   const buildLink = (overrides: Record<string, string>) => {
-    const params = new URLSearchParams({ class: className, section, month: monthParam, mode, ...overrides })
+    const params = new URLSearchParams({ classSection, month: monthParam, mode, ...overrides })
     return `/school/attendance/book?${params.toString()}`
   }
 
@@ -125,26 +123,15 @@ export default async function AttendanceBookPage({
       <Form className="mb-4 flex flex-wrap items-center justify-between gap-2 print:hidden" action="/school/attendance/book">
         <div className="flex flex-wrap items-center gap-2">
           <select
-            name="class"
-            defaultValue={className}
+            name="classSection"
+            defaultValue={classSection}
+            aria-label={t('attendance.classSection', lang)}
             className={selectClass()}
           >
             <option value="">{t('attendance.allClasses', lang)}</option>
-            {classes.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
-          <select
-            name="section"
-            defaultValue={section}
-            className={selectClass()}
-          >
-            <option value="">{t('attendance.allSections', lang)}</option>
-            {sections.map((s) => (
-              <option key={s} value={s}>
-                {s}
+            {combos.map((c) => (
+              <option key={c.value} value={c.value}>
+                {c.label}
               </option>
             ))}
           </select>
