@@ -3,7 +3,8 @@ import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
-import { filterRoster, studentClassOptions, studentSectionOptions } from '@/lib/attendance-manual'
+import { filterRoster } from '@/lib/attendance-manual'
+import { classSectionOptions, parseClassSectionKey } from '@/lib/class-section-options'
 import { AttendanceTabs } from '../attendance-tabs'
 import { MarkAttendanceForm } from './mark-form'
 import { dateInputClass, selectClass } from '@/components/ui/field'
@@ -19,9 +20,10 @@ function todayIso(): string {
 export default async function MarkAttendancePage({
   searchParams,
 }: {
-  searchParams: Promise<{ class?: string; section?: string; date?: string }>
+  searchParams: Promise<{ classSection?: string; date?: string }>
 }) {
-  const { class: className = '', section = '', date = todayIso() } = await searchParams
+  const { classSection = '', date = todayIso() } = await searchParams
+  const { className, section } = parseClassSectionKey(classSection)
   const lang: Lang = await currentLang()
   const { supabase } = await getSchoolContext()
 
@@ -32,8 +34,7 @@ export default async function MarkAttendancePage({
       .order('full_name'),
   ])
   const roster = students ?? []
-  const classes = studentClassOptions(roster)
-  const sections = className ? studentSectionOptions(roster, className) : []
+  const combos = classSectionOptions(roster)
   const visible = filterRoster(roster, className, section)
   const visibleIds = visible.map((s) => s.id)
 
@@ -75,33 +76,18 @@ export default async function MarkAttendancePage({
 
       <AttendanceTabs active="/school/attendance/mark" lang={lang} />
 
-      <Form className="mb-4 grid gap-3 rounded-lg border border-line bg-paper p-5 sm:grid-cols-5" action="/school/attendance/mark">
+      <Form className="mb-4 grid gap-3 rounded-lg border border-line bg-paper p-5 sm:grid-cols-4" action="/school/attendance/mark">
         <div>
-          <label className="mb-1 block text-xs font-semibold text-muted">{t('attendance.class', lang)}</label>
+          <label className="mb-1 block text-xs font-semibold text-muted">{t('attendance.classSection', lang)}</label>
           <select
-            name="class"
-            defaultValue={className}
+            name="classSection"
+            defaultValue={classSection}
             className={selectClass({ fullWidth: true })}
           >
             <option value="">{t('attendance.allClasses', lang)}</option>
-            {classes.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className="mb-1 block text-xs font-semibold text-muted">{t('attendance.section', lang)}</label>
-          <select
-            name="section"
-            defaultValue={section}
-            className={selectClass({ fullWidth: true })}
-          >
-            <option value="">{t('attendance.allSections', lang)}</option>
-            {sections.map((s) => (
-              <option key={s} value={s}>
-                {s}
+            {combos.map((c) => (
+              <option key={c.value} value={c.value}>
+                {c.label}
               </option>
             ))}
           </select>
