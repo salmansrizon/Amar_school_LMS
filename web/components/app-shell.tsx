@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { Toaster } from 'sonner'
 import { LangSwitch } from '@/components/lang-switch'
 import { ThemeSwitch } from '@/components/theme-switch'
 import type { ThemePreference } from '@/lib/ui-prefs'
@@ -392,6 +393,8 @@ export function AppShell({
         (search
           ? search.render(() => setSearchOpen(false))
           : <SearchPalette entries={navEntries} lang={lang} onClose={() => setSearchOpen(false)} />)}
+
+      <Toaster theme={theme} position="top-right" richColors closeButton />
     </div>
   )
 }

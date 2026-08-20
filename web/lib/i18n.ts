@@ -379,6 +379,12 @@ const dict = {
   'sa.clusters.none': { bn: 'কোনো ক্লাস্টার নেই', en: 'No clusters yet' },
   'sa.clusters.noSchools': { bn: 'কোনো স্কুল যুক্ত নেই', en: 'No schools assigned' },
   'sa.clusters.noUnassigned': { bn: 'যুক্ত করার মতো স্কুল নেই', en: 'No unassigned schools' },
+  'sa.clusters.distributor': { bn: 'ডিস্ট্রিবিউটর', en: 'Distributor' },
+  'sa.clusters.assignDistributor': { bn: 'বরাদ্দ করুন', en: 'Assign' },
+  'sa.clusters.unassignDistributor': { bn: 'বরাদ্দ বাতিল', en: 'Unassign' },
+  'sa.clusters.noDistributors': { bn: 'কোনো ডিস্ট্রিবিউটর নেই', en: 'No distributors yet' },
+  'sa.clusters.distributorAssigned': { bn: 'ডিস্ট্রিবিউটর বরাদ্দ হয়েছে', en: 'Distributor assigned' },
+  'sa.clusters.distributorUnassigned': { bn: 'বরাদ্দ বাতিল হয়েছে', en: 'Distributor unassigned' },
 
   // Central off-day calendar (#166)
   'sa.offday.title': { bn: 'কেন্দ্রীয় ছুটির তালিকা', en: 'Central off-day calendar' },

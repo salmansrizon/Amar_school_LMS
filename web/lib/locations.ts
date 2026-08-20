@@ -25,6 +25,19 @@ export interface LocationNode extends LocationRow {
   children: LocationNode[]
 }
 
+/** The nodes of `type` directly under `parentId` (or the roots, for divisions
+ *  when `parentId` is null), alphabetical — one cascading picker level's worth
+ *  of candidates, without materializing the whole tree. */
+export function childrenAt(
+  locations: LocationRow[],
+  type: LocationType,
+  parentId: string | null,
+): LocationRow[] {
+  return locations
+    .filter((l) => l.type === type && l.parent_id === parentId)
+    .sort((a, b) => a.name.localeCompare(b.name))
+}
+
 export function buildTree(rows: LocationRow[]): LocationNode[] {
   const byId = new Map<string, LocationNode>(rows.map((r) => [r.id, { ...r, children: [] }]))
   const roots: LocationNode[] = []

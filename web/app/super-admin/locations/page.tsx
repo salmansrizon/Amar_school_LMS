@@ -1,5 +1,6 @@
 import Link from 'next/link'
-import { buildTree, LOCATION_LABEL, type LocationRow } from '@/lib/locations'
+import { buildTree, LOCATION_LABEL } from '@/lib/locations'
+import { fetchAllLocations } from '@/lib/locations-server'
 import { currentLang } from '@/lib/i18n-server'
 import { t } from '@/lib/i18n'
 import { getSuperAdminContext } from '@/lib/super-admin/context'
@@ -7,27 +8,6 @@ import { PageHeader, SectionCard } from '@/components/super-admin/dashboard-ui'
 import { AddLocationForm, DeleteLocationButton, AddClusterForm, DeleteClusterButton } from './tree-controls'
 import type { LocationNode } from '@/lib/locations'
 import type { Lang } from '@/lib/i18n'
-import type { SupabaseClient } from '@supabase/supabase-js'
-
-// The Bangladesh location seed (#116-#118) put this table past Supabase's
-// default 1000-row REST cap, so a single unbounded `.select()` silently
-// truncates the tree. Page through it in batches instead.
-const FETCH_PAGE_SIZE = 1000
-
-async function fetchAllLocations(supabase: SupabaseClient): Promise<LocationRow[]> {
-  const rows: LocationRow[] = []
-  for (let from = 0; ; from += FETCH_PAGE_SIZE) {
-    const { data } = await supabase
-      .from('locations')
-      .select('id, name, type, parent_id')
-      .order('name')
-      .range(from, from + FETCH_PAGE_SIZE - 1)
-    if (!data || data.length === 0) break
-    rows.push(...(data as LocationRow[]))
-    if (data.length < FETCH_PAGE_SIZE) break
-  }
-  return rows
-}
 
 function TreeNode({ node, lang }: { node: LocationNode; lang: Lang }) {
   return (
