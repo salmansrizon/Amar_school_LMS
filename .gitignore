@@ -1,2 +1,4 @@
 .DS_Store
 node_modules/
+# Pulled env dumps — contain live tokens (VERCEL_OIDC_TOKEN, RECONCILE_SECRET).
+env.download

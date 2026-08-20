@@ -1,19 +1,21 @@
 'use client'
 
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useMemo, useState, useTransition } from 'react'
+import { useEffect, useMemo, useState, useTransition } from 'react'
 import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
-import { filterExams } from '@/lib/exam-setup'
+import { examBasicInfoComplete, examHasClass, filterExams } from '@/lib/exam-setup'
+import { withOrigin } from '@/lib/back-nav'
 import { t, type Lang } from '@/lib/i18n'
 import { addExam, closeExam } from './actions'
+import { ExamAction, examActionClass } from './exam-action'
+import { ExamDocumentsModal } from './exam-documents-modal'
 import { selectClass } from '@/components/ui/field'
 
 // Exams II (issue #47) repurposes this file for the exams-list.html toolbar +
-// row (search/class/status filter, Setup/Seat Plan/Close actions) — per-exam
-// rename now lives on the Exam Setup detail page ([id]/setup-controls.tsx),
-// so the old inline ExamRow is replaced. CloseExamModal is shared by both the
-// list row here and the setup page's header.
+// row (search/class/status filter) — per-exam rename now lives on the Exam
+// Setup detail page ([id]/setup-controls.tsx), so the old inline ExamRow is
+// replaced. Map #366 cut the row down to four actions; CloseExamModal is no
+// longer one of them and is now used only by the setup page's header.
 
 /** Close Exam confirmation, per exam-close-confirm-modal.html: a dedicated
  * danger-styled dialog (not a bare window.confirm()) spelling out that
@@ -140,6 +142,7 @@ export interface ExamListItem {
   exam_year: number
   status: string
   class_id: string | null
+  grading_scheme_id: string | null
   start_date: string | null
 }
 
@@ -154,17 +157,52 @@ export interface ClassOption {
 export function ExamsListClient({
   exams,
   classes,
+  initialQuery = '',
+  initialClassId = '',
+  initialStatus = '',
+  anchorExamId,
   lang,
 }: {
   exams: ExamListItem[]
   classes: ClassOption[]
+  /** Filter state to restore, from the `from` URL a destination came back to. */
+  initialQuery?: string
+  initialClassId?: string
+  initialStatus?: string
+  /** The row that launched the destination being returned from. */
+  anchorExamId?: string
   lang: Lang
 }) {
-  const [query, setQuery] = useState('')
-  const [classId, setClassId] = useState('')
-  const [status, setStatus] = useState('')
+  const [query, setQuery] = useState(initialQuery)
+  const [classId, setClassId] = useState(initialClassId)
+  const [status, setStatus] = useState(initialStatus)
   const classById = new Map(classes.map((c) => [c.id, c]))
   const filtered = useMemo(() => filterExams(exams, query, classId, status), [exams, query, classId, status])
+
+  // Bring the row that launched the destination back into view. A row anchor,
+  // not a pixel offset (§5): it survives the list re-rendering or an exam
+  // changing status, which an offset does not. Runs once per arrival — the
+  // dependency is the anchor, so typing in the search box does not re-fire it
+  // and yank the page around. If the anchored exam is not in the filtered set
+  // the lookup simply misses and the list stays put, rather than fighting the
+  // user's own filter. `scrollIntoView` deliberately does not move focus.
+  useEffect(() => {
+    if (!anchorExamId) return
+    document.getElementById(examRowAnchorId(anchorExamId))?.scrollIntoView({ block: 'center' })
+  }, [anchorExamId])
+
+  // The address a destination should come back to: this list, with the filters
+  // as they stand right now and the row that was clicked. Snapshotted per link
+  // rather than synced to the URL on every keystroke — in the App Router that
+  // would mean a server round-trip per character (map #373).
+  const originFor = (examId: string) => {
+    const params = new URLSearchParams()
+    if (query) params.set('q', query)
+    if (classId) params.set('class', classId)
+    if (status) params.set('status', status)
+    params.set('exam', examId)
+    return `/school/exams?${params.toString()}`
+  }
 
   return (
     <>
@@ -197,7 +235,12 @@ export function ExamsListClient({
         <ul className="divide-y divide-line">
           {filtered.map((exam) => (
             <li key={exam.id} className="py-3">
-              <ExamListRow exam={exam} classLabel={classLabelOf(classById.get(exam.class_id ?? ''))} lang={lang} />
+              <ExamListRow
+                exam={exam}
+                classLabel={classLabelOf(classById.get(exam.class_id ?? ''))}
+                origin={originFor(exam.id)}
+                lang={lang}
+              />
             </li>
           ))}
         </ul>
@@ -211,10 +254,56 @@ function classLabelOf(cls: ClassOption | undefined): string | null {
   return cls.section ? `${cls.name} - ${cls.section}` : cls.name
 }
 
-function ExamListRow({ exam, classLabel, lang }: { exam: ExamListItem; classLabel: string | null; lang: Lang }) {
+/** DOM id of an exam row. Returning from a destination scrolls this back into
+ *  view rather than landing at the top of a long list (docs/010_exam_module.md
+ *  §5, which prefers a row anchor over a pixel offset — an anchor survives the
+ *  list re-rendering or the exam changing status; an offset does not). */
+function examRowAnchorId(examId: string): string {
+  return `exam-${examId}`
+}
+
+/** Map #366 cut every exam row to the same four actions; map #373 restores Seat
+ * Plan and Routine as direct actions, giving six in the order
+ * docs/010_exam_module.md §1 fixes: Basic Info, Marks Entry, Co-Curricular,
+ * Generate Seat Plan, Make Exam Routine, Documents. The two restored ones link
+ * to the pages that already exist under [id]/seat-plan and [id]/routine — they
+ * are not new features and must not be rebuilt.
+ *
+ * Gating is not uniform, and deliberately so. Marks Entry and the documents
+ * need a class *and* a grading scheme; Co-Curricular, Seat Plan and Routine
+ * need only the class, because that is all their pages ever read (subjects-for-
+ * class, roll ranges). #366 gated Seat Plan and Routine on the grading scheme
+ * too and knowingly filed the contradiction as "revisit if it bites" — putting
+ * them on the row is what made it bite, since a routine has to exist *before*
+ * an exam runs, long before grading matters.
+ *
+ * Every action carries the row's own address as `?from=`, snapshotting the
+ * live filters and this exam's id, so Back returns here rather than unwinding
+ * through Basic Info (§4, §5). Closing an exam does not hide the actions:
+ * every destination renders read-only when closed, and CONTEXT.md keeps
+ * "aggregate result viewing" available. */
+function ExamListRow({
+  exam,
+  classLabel,
+  origin,
+  lang,
+}: {
+  exam: ExamListItem
+  classLabel: string | null
+  origin: string
+  lang: Lang
+}) {
   const closed = exam.status === 'closed'
+  const complete = examBasicInfoComplete(exam)
+  const needsBasicInfo = complete ? undefined : t('exams.completeBasicInfoFirst', lang)
+  const needsClass = examHasClass(exam) ? undefined : t('exams.selectClassFirst', lang)
+  const examLabel = `${exam.name} (${exam.exam_year})`
+  const action = (path: string) => withOrigin(`/school/exams/${exam.id}${path}`, origin)
+
   return (
-    <div className="flex flex-wrap items-center justify-between gap-2">
+    // Anchored so returning from a destination can scroll this row back into
+    // view instead of dumping the user at the top of a long list (§5).
+    <div id={examRowAnchorId(exam.id)} className="flex flex-wrap items-center justify-between gap-2">
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-sm font-medium">
           {exam.name} <span className="text-muted">({exam.exam_year})</span>
@@ -229,34 +318,28 @@ function ExamListRow({ exam, classLabel, lang }: { exam: ExamListItem; classLabe
           {closed ? `🔒 ${t('exams.closed', lang)}` : t('exams.open', lang)}
         </span>
       </div>
-      <span className="flex items-center gap-2">
-        {closed ? (
-          <span className="text-xs text-muted" title={t('exams.lockedEdit', lang)}>
-            {t('exams.setup', lang)} · {t('exams.seatPlan', lang)}
-          </span>
-        ) : (
-          <>
-            <Link
-              href={`/school/exams/${exam.id}`}
-              className="rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted"
-            >
-              {t('exams.setup', lang)}
-            </Link>
-            <Link
-              href={`/school/exams/${exam.id}/seat-plan`}
-              className="rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted"
-            >
-              {t('exams.seatPlan', lang)}
-            </Link>
-            <CloseExamModal
+
+      <div className="flex flex-col items-end gap-1">
+        <span className="flex flex-wrap items-center justify-end gap-2">
+          <ExamAction href={action('')} label={t('examSetup.basicInfo', lang)} />
+          <ExamAction href={action('/marks-entry')} label={t('exams.markEntry', lang)} reason={needsBasicInfo} />
+          <ExamAction href={action('/cocurricular')} label={t('exams.cocurricular', lang)} reason={needsClass} />
+          <ExamAction href={action('/seat-plan')} label={t('exams.generateSeatPlan', lang)} reason={needsClass} />
+          <ExamAction href={action('/routine')} label={t('exams.makeRoutine', lang)} reason={needsClass} />
+          {complete ? (
+            <ExamDocumentsModal
               examId={exam.id}
-              examLabel={`${exam.name} (${exam.exam_year})`}
+              examLabel={examLabel}
+              origin={origin}
               lang={lang}
-              triggerClassName="cursor-pointer rounded-full bg-alert-soft px-3 py-1 text-xs font-semibold text-alert-deep hover:bg-alert/20"
+              triggerClassName={`cursor-pointer ${examActionClass()}`}
             />
-          </>
-        )}
-      </span>
+          ) : (
+            <ExamAction href="" label={t('examDocs.title', lang)} reason={needsBasicInfo} />
+          )}
+        </span>
+        {!complete && <span className="text-xs text-muted">{t('exams.completeBasicInfoFirst', lang)}</span>}
+      </div>
     </div>
   )
 }

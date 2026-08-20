@@ -1,17 +1,26 @@
-import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { subjectsForClass } from '@/lib/students'
 import { AddRoutineEntryForm, RoutineTable, type Option, type RoutineEntryRow } from './routine-controls'
+import { BackLink } from '@/components/back-link'
+import { resolveBackHref } from '@/lib/back-nav'
 
 // Layout per ui/school-owner/exam-routine.html: toolbar (exam label + Exam
 // Setup / Print / Save) over a Date/Day/Time/Subject/Room table. Day is
 // derived from exam_date (dateToDayOfWeek), not stored.
 
-export default async function ExamRoutinePage({ params }: { params: Promise<{ id: string }> }) {
+export default async function ExamRoutinePage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>
+  searchParams: Promise<{ from?: string | string[] }>
+}) {
   const { id } = await params
+  const { from } = await searchParams
+  const backHref = resolveBackHref(from, `/school/exams/${id}`)
   const lang: Lang = await currentLang()
   const { supabase } = await getSchoolContext()
 
@@ -42,7 +51,7 @@ export default async function ExamRoutinePage({ params }: { params: Promise<{ id
     <div>
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold">{t('examRoutine.title', lang)}</h1>
-        <Link href={`/school/exams/${exam.id}`} aria-label={t('examSetup.title', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
+        <BackLink href={backHref} label={t('common.back', lang)} />
       </div>
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">

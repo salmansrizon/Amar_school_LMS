@@ -1,8 +1,8 @@
-import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
-import { t, type Lang, type MessageKey } from '@/lib/i18n'
+import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
+import { examBasicInfoComplete } from '@/lib/exam-setup'
 import { subjectsForClass } from '@/lib/students'
 import {
   BasicInfoForm,
@@ -14,6 +14,8 @@ import {
   type SubjectRow,
   type TeacherOption,
 } from './setup-controls'
+import { BackLink } from '@/components/back-link'
+import { resolveBackHref, selfOrigin } from '@/lib/back-nav'
 
 // Layout per ui/school-owner/exam-setup.html: Basic Info + Grading Scheme
 // cards (the latter picks one of #31's reusable named schemes rather than
@@ -21,20 +23,22 @@ import {
 // (issue #8) locks every field here — enforced server-side by the exam_close
 // trigger + the new child-table guards (migration 0039), mirrored client-side
 // by disabling the inputs.
+//
+// Map #366 made this the focused exam-configuration page: the Exam Documents
+// index card and the "next: seat plan" hand-off both moved out, leaving only
+// the three config cards. The documents are reachable from the header's
+// Documents button (exam-documents-modal.tsx) and from the exam row.
 
-/** Every printable an exam has, in the order a school produces them. */
-const EXAM_DOCUMENTS: { href: string; label: MessageKey; hint: MessageKey }[] = [
-  { href: '/routine/print', label: 'examDocs.routine', hint: 'examDocs.routineHint' },
-  { href: '/seat-plan/print', label: 'examDocs.seatPlan', hint: 'examDocs.seatPlanHint' },
-  { href: '/admit-cards', label: 'examDocs.admitCards', hint: 'examDocs.admitCardsHint' },
-  { href: '/attendance-sheet', label: 'examDocs.attendanceSheet', hint: 'examDocs.attendanceSheetHint' },
-  { href: '/printables', label: 'examDocs.printables', hint: 'examDocs.printablesHint' },
-  { href: '/result-book', label: 'examDocs.resultBook', hint: 'examDocs.resultBookHint' },
-  { href: '/print-all', label: 'examDocs.printAll', hint: 'examDocs.printAllHint' },
-]
-
-export default async function ExamSetupPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function ExamSetupPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>
+  searchParams: Promise<{ from?: string | string[] }>
+}) {
   const { id } = await params
+  const { from } = await searchParams
+  const backHref = resolveBackHref(from, '/school/exams')
   const lang: Lang = await currentLang()
   const { supabase } = await getSchoolContext()
 
@@ -75,10 +79,17 @@ export default async function ExamSetupPage({ params }: { params: Promise<{ id: 
         <h1 className="text-2xl font-extrabold">
           {t('examSetup.title', lang)} — {examLabel}
         </h1>
-        <Link href="/school/exams" aria-label={t('exams.title', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
+        <BackLink href={backHref} label={t('common.back', lang)} />
       </div>
 
-      <ExamHeader examId={exam.id} examLabel={examLabel} closed={closed} lang={lang} />
+      <ExamHeader
+        examId={exam.id}
+        examLabel={examLabel}
+        closed={closed}
+        basicInfoComplete={examBasicInfoComplete(exam)}
+        selfHref={selfOrigin(`/school/exams/${id}`, from)}
+        lang={lang}
+      />
 
       <section className="mb-4 rounded-lg border border-line bg-paper p-5">
         <h3 className="mb-3 font-bold">{t('examSetup.basicInfo', lang)}</h3>
@@ -120,38 +131,6 @@ export default async function ExamSetupPage({ params }: { params: Promise<{ id: 
             lang={lang}
           />
         )}
-        <div className="mt-4 flex gap-2">
-          <Link
-            href={`/school/exams/${exam.id}/seat-plan`}
-            className="rounded-full border border-line-strong px-4 py-1.5 text-sm font-semibold hover:bg-paper-muted"
-          >
-            {t('examSetup.nextSeatPlan', lang)}
-          </Link>
-        </div>
-      </section>
-
-      {/* Exam Documents index (issue #99). By the end of map #91 a single exam
-          is reachable from eight scattered print entry points; this is one
-          place that names them. Deliberately an index over routes that already
-          exist — not a hub route, not new architecture. */}
-      <section className="mt-4 rounded-lg border border-line bg-paper p-5">
-        <h3 className="mb-3 font-bold">{t('examDocs.title', lang)}</h3>
-        <ul className="divide-y divide-line">
-          {EXAM_DOCUMENTS.map((doc) => (
-            <li key={doc.href} className="flex items-start justify-between gap-4 py-2">
-              <div>
-                <p className="text-sm font-semibold">{t(doc.label, lang)}</p>
-                <p className="text-xs text-muted">{t(doc.hint, lang)}</p>
-              </div>
-              <Link
-                href={`/school/exams/${exam.id}${doc.href}`}
-                className="shrink-0 text-sm text-brand-600 hover:underline"
-              >
-                {t('examDocs.open', lang)}
-              </Link>
-            </li>
-          ))}
-        </ul>
       </section>
     </div>
   )

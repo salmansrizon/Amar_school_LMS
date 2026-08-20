@@ -3,6 +3,8 @@ import { notFound } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
+import { BackLink } from '@/components/back-link'
+import { resolveBackHref, selfOrigin, withOrigin } from '@/lib/back-nav'
 
 // Roster picker for the single-student printables (issue #33, PRD §5.5) —
 // the mockups' own entry point (a "Result Book" list) is out of scope here
@@ -10,8 +12,20 @@ import { getSchoolContext } from '@/lib/school/context'
 // roster this ticket needs so Mark Sheet / Progress Report are actually
 // reachable without it.
 
-export default async function ExamPrintablesPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function ExamPrintablesPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>
+  searchParams: Promise<{ from?: string | string[] }>
+}) {
   const { id } = await params
+  const { from } = await searchParams
+  const backHref = resolveBackHref(from, `/school/exams/${id}`)
+  // Links from here go a level deeper, so they carry *this* page's
+  // address — origin included — otherwise Back from the leaf lands here
+  // and the next Back falls through to Basic Info (map #373).
+  const deeper = selfOrigin(`/school/exams/${id}/printables`, from)
   const lang: Lang = await currentLang()
   const { supabase } = await getSchoolContext()
 
@@ -28,7 +42,7 @@ export default async function ExamPrintablesPage({ params }: { params: Promise<{
       <h1 className="text-2xl font-extrabold">
         {t('printables.title', lang)} — {examLabel}
       </h1>
-      <Link href={`/school/exams/${exam.id}`} aria-label={t('examSetup.title', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
+      <BackLink href={backHref} label={t('common.back', lang)} />
     </div>
   )
 
@@ -83,13 +97,13 @@ export default async function ExamPrintablesPage({ params }: { params: Promise<{
                 <td className="py-2 pr-2">{s.roll_number ?? '—'}</td>
                 <td className="py-2 pr-2">{s.full_name}</td>
                 <td className="py-2 pr-2">
-                  <Link href={`/school/exams/${exam.id}/mark-sheet/${s.id}`} className="text-brand-600 hover:underline">
+                  <Link href={withOrigin(`/school/exams/${exam.id}/mark-sheet/${s.id}`, deeper)} className="text-brand-600 hover:underline">
                     {t('markSheet.docWord', lang)}
                   </Link>
                 </td>
                 <td className="py-2">
                   <Link
-                    href={`/school/exams/${exam.id}/progress-report/${s.id}`}
+                    href={withOrigin(`/school/exams/${exam.id}/progress-report/${s.id}`, deeper)}
                     className="text-brand-600 hover:underline"
                   >
                     {t('progressReport.docWord', lang)}

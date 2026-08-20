@@ -530,16 +530,28 @@ const dict = {
   'exams.searchPlaceholder': { bn: 'পরীক্ষার নাম খুঁজুন', en: 'Search exam name' },
   'exams.allClasses': { bn: 'সকল শ্রেণি', en: 'All Classes' },
   'exams.allStatus': { bn: 'সকল অবস্থা', en: 'All Status' },
-  'exams.setup': { bn: 'সম্পাদনা', en: 'Edit' },
-  'exams.seatPlan': { bn: 'সিট প্ল্যান', en: 'Seat Plan' },
-  'exams.routine': { bn: 'পরীক্ষার রুটিন', en: 'Exam Routine' },
   'exams.markEntry': { bn: 'নম্বর এন্ট্রি', en: 'Marks Entry' },
   'exams.promotion': { bn: 'প্রমোশন', en: 'Promotion' },
-  'exams.viewResult': { bn: 'ফলাফল দেখুন', en: 'View Result' },
-  'exams.lockedEdit': {
-    bn: 'পরীক্ষা বন্ধ থাকায় সম্পাদনা করা যাবে না',
-    en: 'Locked — closed exams cannot be edited',
+  // Map #373 puts Seat Plan and Routine back on the exam row as direct actions
+  // (docs/010_exam_module.md §1). Separate keys from `seatPlan.generate` and
+  // `examRoutine.title` on purpose: those label a full-width page button and a
+  // page heading, whose Bangla is deliberately explicit
+  // ("স্বয়ংক্রিয় সিট প্ল্যান তৈরি করুন"), which is far too long for a row pill
+  // sitting next to five others.
+  'exams.generateSeatPlan': { bn: 'সিট প্ল্যান তৈরি', en: 'Generate Seat Plan' },
+  'exams.makeRoutine': { bn: 'রুটিন তৈরি', en: 'Make Exam Routine' },
+  // Map #366: Mark Entry and Documents need a class and a grading scheme set
+  // on the exam first — both plain columns, no new workflow state. Co-curricular
+  // needs only the class, so it says so rather than blaming Basic Info at large.
+  'exams.completeBasicInfoFirst': {
+    bn: 'আগে মৌলিক তথ্য পূরণ করুন',
+    en: 'Complete Basic Info first',
   },
+  'exams.selectClassFirst': {
+    bn: 'আগে একটি শ্রেণি নির্বাচন করুন',
+    en: 'Select a class first',
+  },
+  'exams.viewResult': { bn: 'ফলাফল দেখুন', en: 'View Result' },
   'exams.lockedSeatPlan': {
     bn: 'পরীক্ষা বন্ধ থাকায় সিট প্ল্যান পরিবর্তন করা যাবে না',
     en: 'Locked — seat plan is final',
@@ -585,7 +597,6 @@ const dict = {
     en: 'Select a class before assigning subject teachers.',
   },
   'examSetup.nextRoutine': { bn: 'পরবর্তী: পরীক্ষার রুটিন', en: 'Next: Exam Routine' },
-  'examSetup.nextSeatPlan': { bn: 'পরবর্তী: সিট প্ল্যান', en: 'Next: Seat Plan' },
   // Exam Routine (issue #47).
   'examRoutine.title': { bn: 'পরীক্ষার রুটিন', en: 'Exam Routine' },
   'examRoutine.docWord': { bn: 'পরীক্ষার রুটিন', en: 'Exam Routine' },
@@ -618,6 +629,7 @@ const dict = {
   // exam has, over routes that already exist.
   'examDocs.title': { bn: 'পরীক্ষার কাগজপত্র', en: 'Exam Documents' },
   'examDocs.open': { bn: 'খুলুন', en: 'Open' },
+  'examDocs.close': { bn: 'বন্ধ করুন', en: 'Close' },
   'examDocs.routine': { bn: 'পরীক্ষার রুটিন', en: 'Exam Routine' },
   'examDocs.routineHint': {
     bn: 'নোটিশ বোর্ডের জন্য তারিখ, সময় ও বিষয়ের সূচি।',
@@ -1564,6 +1576,7 @@ const dict = {
   'attendance.graceSourceOverride': { bn: 'ব্যক্তিগত ওভাররাইড', en: 'individual override' },
   'status.absent': { bn: 'অনুপস্থিত', en: 'Absent' },
   'status.on_leave': { bn: 'ছুটিতে', en: 'On Leave' },
+  'status.holiday': { bn: 'ছুটির দিন', en: 'Holiday / Off Day' },
   'attendance.employeeGraceNote': {
     bn: 'প্রযোজ্য গ্রেস সবসময় গ্লোবাল, বিভাগ, অফিস সময় ও ব্যক্তিগত ওভাররাইডের মধ্যে সর্বোচ্চটি — কখনোই কড়া/ছোট মান নয়।',
     en: 'The applied grace is always the MAX of global, category, office time and individual override — never the stricter/smaller value.',
@@ -1592,6 +1605,15 @@ const dict = {
     en: 'P = Present, A = Absent.',
   },
   'attendance.bookNoRoster': { bn: 'এই শ্রেণিতে কোনো শিক্ষার্থী নেই', en: 'No students in this class' },
+
+  // Student Log (map #380, docs/011_student_module.md): per-student attendance
+  // history, reusing the class/section roster + status logic above.
+  'attendance.tabStudentLog': { bn: 'শিক্ষার্থী লগ', en: 'Student Log' },
+  'attendance.studentLogTitle': { bn: 'শিক্ষার্থী উপস্থিতি লগ', en: 'Student Attendance Log' },
+  'attendance.viewLog': { bn: 'লগ দেখুন', en: 'View Log' },
+  'attendance.filterToday': { bn: 'আজ', en: 'Today' },
+  'attendance.filterMonthly': { bn: 'মাসিক', en: 'Monthly' },
+  'attendance.filterCustom': { bn: 'নির্দিষ্ট সময়সীমা', en: 'Custom Range' },
 
   // Institute Setup & Misc (issue #39, PRD §5.11)
   'institute.title': { bn: 'প্রতিষ্ঠান সেটআপ', en: 'Institute Setup' },
