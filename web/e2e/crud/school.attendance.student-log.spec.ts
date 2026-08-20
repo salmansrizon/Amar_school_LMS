@@ -15,6 +15,7 @@ import { classSectionKey } from '@/lib/class-section-options'
 const VIEW_LOG = 'লগ দেখুন' // attendance.viewLog
 const TITLE = 'শিক্ষার্থী উপস্থিতি লগ' // attendance.studentLogTitle
 const PRESENT = 'উপস্থিত' // status.present
+const BACK = 'ফিরে যান' // common.back
 const TODAY_FILTER = 'আজ' // attendance.filterToday
 const CUSTOM_FILTER = 'নির্দিষ্ট সময়সীমা' // attendance.filterCustom
 const PRINT = 'প্রিন্ট করুন' // print.print
@@ -58,6 +59,15 @@ test.describe('@crud @school attendance-student-log', () => {
     await expect(todayRow).toBeVisible()
     await expect(todayRow.getByText(PRESENT)).toBeVisible()
     await expectNoError(page)
+
+    // Back to the finder: the Class + Section filter must survive the round
+    // trip, not silently reset to "All classes" (regression caught in
+    // code review — the detail page's back link and the finder's dropdown
+    // must agree on the classSection param).
+    await page.getByRole('link', { name: BACK }).click()
+    await expect(page).toHaveURL(/classSection=/)
+    await expect(page.locator('tr', { hasText: student.name })).toBeVisible()
+    await page.goBack()
 
     // Today filter: single-day result, still present.
     await page.getByRole('link', { name: TODAY_FILTER }).click()
