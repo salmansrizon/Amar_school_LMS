@@ -49,7 +49,7 @@ export default async function AgreementsPage() {
                 </span>
                 <DeleteVersionButton version={v.version} deletable={canDeleteVersion(v.version, acceptedVersions)} />
               </div>
-              <p className="whitespace-pre-wrap text-sm text-muted">{v.body}</p>
+              <p className="max-w-prose whitespace-pre-wrap text-sm text-muted">{v.body}</p>
             </li>
           ))}
           {!versions?.length && <li className="text-sm text-muted">No versions yet.</li>}

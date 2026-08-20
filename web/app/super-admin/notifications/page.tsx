@@ -53,7 +53,7 @@ export default async function NotificationsPage() {
                   <DeleteTemplateButton templateKey={t.key} />
                 </span>
               </div>
-              <p className="whitespace-pre-wrap text-sm text-muted">{en(t.body as JsonText, '')}</p>
+              <p className="max-w-prose whitespace-pre-wrap text-sm text-muted">{en(t.body as JsonText, '')}</p>
               {placeholders.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-1.5">
                   {placeholders.map((p) => (

@@ -58,7 +58,7 @@ export default async function NoticeDetailPage({ params }: { params: Promise<{ i
           )}{' '}
           · {new Date(row.created_at).toLocaleDateString(locale)}
         </p>
-        {row.content && <p className="mb-4 whitespace-pre-wrap text-sm">{row.content}</p>}
+        {row.content && <p className="mb-4 max-w-prose whitespace-pre-wrap text-sm">{row.content}</p>}
         {row.image_path && (
           // eslint-disable-next-line @next/next/no-img-element
           <img
