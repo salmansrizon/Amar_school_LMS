@@ -4,7 +4,8 @@ import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { filterStudents, behaviourAverages } from '@/lib/students'
-import { selectClass } from '@/components/ui/field'
+import { classSectionOptions, parseClassSectionKey } from '@/lib/class-section-options'
+import { ClassSectionSelect } from '@/components/ui/class-section-select'
 
 // Layout per ui/school-owner/students-list.html: search (name/roll/guardian) +
 // class/section filters, table Roll | Name | Class/Section | Guardian |
@@ -22,9 +23,10 @@ function avgBadge(avg: number | undefined) {
 export default async function StudentsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; class?: string; section?: string }>
+  searchParams: Promise<{ q?: string; classSection?: string }>
 }) {
-  const { q = '', class: klass = '', section = '' } = await searchParams
+  const { q = '', classSection = '' } = await searchParams
+  const { className: klass, section } = parseClassSectionKey(classSection)
   const lang: Lang = await currentLang()
   const { supabase } = await getSchoolContext()
 
@@ -41,15 +43,7 @@ export default async function StudentsPage({
 
   const visible = filterStudents(students ?? [], q, klass, section)
   const avgs = behaviourAverages(ratings ?? [])
-  const classNames = [...new Set((students ?? []).map((s) => s.class_name).filter(Boolean))] as string[]
-  const sections = [
-    ...new Set(
-      (students ?? [])
-        .filter((s) => !klass || s.class_name === klass)
-        .map((s) => s.section)
-        .filter(Boolean),
-    ),
-  ] as string[]
+  const combos = classSectionOptions(students ?? [])
 
   return (
     <main className="mx-auto w-full max-w-4xl flex-1 p-6">
@@ -66,22 +60,12 @@ export default async function StudentsPage({
             placeholder={t('students.search', lang)}
             className="w-56 rounded-md border border-line bg-paper px-3 py-1.5 text-sm"
           />
-          <select name="class" defaultValue={klass} className={selectClass()}>
-            <option value="">{t('students.allClasses', lang)}</option>
-            {classNames.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
-          <select name="section" defaultValue={section} className={selectClass()}>
-            <option value="">{t('students.allSections', lang)}</option>
-            {sections.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </select>
+          <ClassSectionSelect
+            combos={combos}
+            value={classSection}
+            ariaLabel={t('students.classSection', lang)}
+            allLabel={t('students.allClasses', lang)}
+          />
           <button
             type="submit"
             className="cursor-pointer rounded-full border border-line px-3 py-1 text-xs font-semibold hover:bg-paper-muted"

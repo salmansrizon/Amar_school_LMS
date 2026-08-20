@@ -1,6 +1,7 @@
 import { test, expect } from '../fixtures/roles'
 import { expectNoError } from '../helpers'
 import { ownerClient, createStudent } from './factories'
+import { classSectionKey } from '@/lib/class-section-options'
 
 // Student Attendance Log (map #380, docs/011_student_module.md): finder ->
 // roster -> individual log -> filters -> print. A factory student with a
@@ -14,6 +15,7 @@ import { ownerClient, createStudent } from './factories'
 const VIEW_LOG = 'লগ দেখুন' // attendance.viewLog
 const TITLE = 'শিক্ষার্থী উপস্থিতি লগ' // attendance.studentLogTitle
 const PRESENT = 'উপস্থিত' // status.present
+const BACK = 'ফিরে যান' // common.back
 const TODAY_FILTER = 'আজ' // attendance.filterToday
 const CUSTOM_FILTER = 'নির্দিষ্ট সময়সীমা' // attendance.filterCustom
 const PRINT = 'প্রিন্ট করুন' // print.print
@@ -31,17 +33,16 @@ test.describe('@crud @school attendance-student-log', () => {
     const section = 'A'
     const student = await createStudent(owner, { className, section })
     const today = todayIso()
+    const classSection = encodeURIComponent(classSectionKey(className, section))
 
     // Mark present through the real UI (present is the radio's default state).
-    await page.goto(
-      `/school/attendance/mark?class=${encodeURIComponent(className)}&section=${section}&date=${today}`,
-    )
+    await page.goto(`/school/attendance/mark?classSection=${classSection}&date=${today}`)
     await expect(page.locator('tr', { hasText: student.name })).toBeVisible()
     await page.getByRole('button', { name: SAVE }).click()
     await expect(page.getByText(SAVED)).toBeVisible()
 
     // Finder: class/section filter narrows to the one student, roster shows a View Log link.
-    await page.goto(`/school/attendance/student-log?class=${encodeURIComponent(className)}&section=${section}`)
+    await page.goto(`/school/attendance/student-log?classSection=${classSection}`)
     const row = page.locator('tr', { hasText: student.name })
     await expect(row).toBeVisible()
     await row.getByRole('link', { name: VIEW_LOG }).click()
@@ -58,6 +59,15 @@ test.describe('@crud @school attendance-student-log', () => {
     await expect(todayRow).toBeVisible()
     await expect(todayRow.getByText(PRESENT)).toBeVisible()
     await expectNoError(page)
+
+    // Back to the finder: the Class + Section filter must survive the round
+    // trip, not silently reset to "All classes" (regression caught in
+    // code review — the detail page's back link and the finder's dropdown
+    // must agree on the classSection param).
+    await page.getByRole('link', { name: BACK }).click()
+    await expect(page).toHaveURL(/classSection=/)
+    await expect(page.locator('tr', { hasText: student.name })).toBeVisible()
+    await page.goBack()
 
     // Today filter: single-day result, still present.
     await page.getByRole('link', { name: TODAY_FILTER }).click()

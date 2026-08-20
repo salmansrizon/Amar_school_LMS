@@ -1,11 +1,12 @@
 import { test, expect } from '../fixtures/roles'
 import { expectNoError } from '../helpers'
 import { ownerClient, createStudent } from './factories'
+import { classSectionKey } from '@/lib/class-section-options'
 
 // Deep CRUD for the Attendance module (map #329, ticket #362). Attendance is
 // mark (create) + correct (update) + persisted read — no separate delete. A
 // factory student with a unique class/section isolates the roster; the mark
-// page filters by ?class&section&date query params.
+// page filters by ?classSection&date query params.
 
 const SAVE = 'হাজিরা সংরক্ষণ করুন' // attendance.saveAttendance
 const SAVED = 'হাজিরা সংরক্ষিত হয়েছে' // attendance.saved
@@ -17,7 +18,7 @@ test.describe('@crud @school attendance-deep', () => {
     const section = 'A'
     const student = await createStudent(owner, { className, section })
     const today = new Date().toISOString().slice(0, 10)
-    const url = `/school/attendance/mark?class=${encodeURIComponent(className)}&section=${section}&date=${today}`
+    const url = `/school/attendance/mark?classSection=${encodeURIComponent(classSectionKey(className, section))}&date=${today}`
 
     const row = () => page.locator('tr', { hasText: student.name })
     const radios = () => row().locator('input[type="radio"]') // [present, absent]
