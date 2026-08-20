@@ -7,6 +7,7 @@ import { classSectionLabel } from '@/lib/students'
 import { loadExamRosterResults } from '@/lib/exam-print-data'
 import { Badge } from '@/components/print/pieces'
 import { ExamPicker, type ExamOption } from './result-book-controls'
+import { railClass } from '@/components/ui/page'
 
 // Result Book (issue #48, PRD §5.5), per ui/school-owner/result-book.html —
 // the whole-roster result table result-book/result-inquiry/batch-print all
@@ -83,39 +84,39 @@ export default async function ResultBookPage({ params }: { params: Promise<{ id:
 
   if (!roster.exam.class_id) {
     return (
-      <main className="mx-auto w-full max-w-4xl flex-1 p-6">
+      <div>
         {header}
         {toolbar}
-        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted shadow-card">
+        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted">
           {t('markEntry.noClassSet', lang)}
         </p>
-      </main>
+      </div>
     )
   }
   if (!roster.scheme) {
     return (
-      <main className="mx-auto w-full max-w-4xl flex-1 p-6">
+      <div>
         {header}
         {toolbar}
-        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted shadow-card">{t('promotion.noScheme', lang)}</p>
-      </main>
+        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted">{t('promotion.noScheme', lang)}</p>
+      </div>
     )
   }
   if (!roster.rows.length) {
     return (
-      <main className="mx-auto w-full max-w-4xl flex-1 p-6">
+      <div>
         {header}
         {toolbar}
-        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted shadow-card">{t('markEntry.noStudents', lang)}</p>
-      </main>
+        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted">{t('markEntry.noStudents', lang)}</p>
+      </div>
     )
   }
 
   return (
-    <main className="mx-auto w-full max-w-4xl flex-1 p-6">
+    <div>
       {header}
       {toolbar}
-      <section className="rounded-lg border border-line bg-paper p-4 shadow-card">
+      <section className="rounded-lg border border-line bg-paper p-4">
         <div className="overflow-x-auto">
           <table className="w-full min-w-180 text-sm">
             <thead>
@@ -135,7 +136,7 @@ export default async function ResultBookPage({ params }: { params: Promise<{ id:
                 const passed = row.overall?.passed ?? false
                 return (
                   <tr key={row.studentId} className="border-b border-line">
-                    <td className="py-2 pr-2">{row.rankPosition ?? '—'}</td>
+                    <td className={`py-2 pr-2 ${railClass(passed ? 'mint' : 'alert')}`}>{row.rankPosition ?? '—'}</td>
                     <td className="py-2 pr-2">{row.rollNumber ?? '—'}</td>
                     <td className="py-2 pr-2 font-medium">{row.fullName}</td>
                     <td className="py-2 pr-2">
@@ -165,6 +166,6 @@ export default async function ResultBookPage({ params }: { params: Promise<{ id:
           </table>
         </div>
       </section>
-    </main>
+    </div>
   )
 }

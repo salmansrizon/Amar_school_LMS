@@ -14,9 +14,13 @@ import path from 'node:path'
 const SCHOOL_APP_DIR = path.resolve(__dirname, '../../app/school')
 
 // Print routes keep their own A4 layout and are exempt (ADR 0007) — detected by
-// the same print-template import every printable page in this codebase uses,
-// not by guessing from the file path.
-const PRINT_MARKERS = ['PrintPage', 'PrintButton', "from '@/components/print/"]
+// the PrintPage/PrintButton markers every printable page in this codebase
+// wraps its content in, not by guessing from the file path. Deliberately NOT
+// "imports anything from components/print/" — several ordinary screen pages
+// (e.g. exams/result-inquiry, exams/[id]/result-book) import the shared
+// Badge atom from components/print/pieces without being print pages at all;
+// a bare directory-prefix match would wrongly exempt them.
+const PRINT_MARKERS = ['PrintPage', 'PrintButton']
 
 function isPrintExempt(source: string): boolean {
   return PRINT_MARKERS.some((marker) => source.includes(marker))
