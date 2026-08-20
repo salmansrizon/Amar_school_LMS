@@ -145,4 +145,25 @@ test.describe('@crud @school class-section-select', () => {
     await studentA.cleanup()
     await studentB.cleanup()
   })
+
+  test('renders in English when the language cookie is set to en', async ({ ownerPage: page }) => {
+    // asm-lang (lib/i18n.ts LANG_COOKIE) is what components/lang-switch.tsx
+    // writes; setting it directly is equivalent to clicking "EN" and lets
+    // this run headless without a UI round trip. Mark Attendance and
+    // Students List cover both the attendance.* and students.* label keys.
+    await page.goto('/school/attendance/mark')
+    // path must be explicit — components/lang-switch.tsx sets path=/ so the
+    // cookie applies site-wide; addCookies({ url }) alone defaults the path
+    // to that URL's directory (/school/attendance/), which would silently
+    // stay unnoticed by the second page.goto below. Playwright rejects
+    // combining url with domain/path, so derive domain from the URL instead.
+    await page.context().addCookies([{ name: 'asm-lang', value: 'en', domain: new URL(page.url()).hostname, path: '/' }])
+    await page.reload()
+    await expect(page.getByText('Class/Section', { exact: true })).toBeVisible()
+    await expect(page.locator('select[name="classSection"] option', { hasText: 'All Classes' })).toHaveCount(1)
+
+    await page.goto('/school/students')
+    await expect(page.locator('select[name="classSection"] option', { hasText: 'All Classes' })).toHaveCount(1)
+    await expectNoError(page)
+  })
 })
