@@ -31,7 +31,7 @@ export default async function GradingSchemesPage() {
   }
 
   return (
-    <main className="mx-auto w-full max-w-3xl flex-1 p-6">
+    <div>
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold">{t('grading.title', lang)}</h1>
         <Link href="/school/exams" aria-label={t('exams.title', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
@@ -39,7 +39,7 @@ export default async function GradingSchemesPage() {
 
       <ExamsTabs active="/school/exams/grading-schemes" lang={lang} />
 
-      <section className="mb-6 rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="mb-6 rounded-lg border border-line bg-paper p-5">
         <h2 className="mb-3 font-bold">{t('grading.addScheme', lang)}</h2>
         <AddGradingSchemeForm lang={lang} />
       </section>
@@ -55,6 +55,6 @@ export default async function GradingSchemesPage() {
           />
         ))}
       </section>
-    </main>
+    </div>
   )
 }

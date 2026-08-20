@@ -35,12 +35,12 @@ export default async function CocurricularEntryPage({ params }: { params: Promis
 
   if (!exam.class_id) {
     return (
-      <main className="mx-auto w-full max-w-4xl flex-1 p-6">
+      <div>
         {header}
-        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted shadow-card">
+        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted">
           {t('markEntry.noClassSet', lang)}
         </p>
-      </main>
+      </div>
     )
   }
 
@@ -50,15 +50,15 @@ export default async function CocurricularEntryPage({ params }: { params: Promis
 
   if (!sortedItems.length) {
     return (
-      <main className="mx-auto w-full max-w-4xl flex-1 p-6">
+      <div>
         {header}
-        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted shadow-card">
+        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted">
           {t('cocurricular.noItemsHint', lang)}{' '}
           <Link href="/school/exams/cocurricular-items" className="text-brand-600 hover:underline">
             {t('cocurricular.itemsTitle', lang)}
           </Link>
         </p>
-      </main>
+      </div>
     )
   }
 
@@ -77,12 +77,12 @@ export default async function CocurricularEntryPage({ params }: { params: Promis
 
   if (!students?.length) {
     return (
-      <main className="mx-auto w-full max-w-4xl flex-1 p-6">
+      <div>
         {header}
-        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted shadow-card">
+        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted">
           {t('markEntry.noStudents', lang)}
         </p>
-      </main>
+      </div>
     )
   }
 
@@ -102,12 +102,12 @@ export default async function CocurricularEntryPage({ params }: { params: Promis
   }))
 
   return (
-    <main className="mx-auto w-full max-w-5xl flex-1 p-6">
+    <div>
       {header}
       {closed && <p className="mb-3 text-xs text-alert-deep">{t('markEntry.closedNote', lang)}</p>}
-      <section className="rounded-lg border border-line bg-paper p-4 shadow-card">
+      <section className="rounded-lg border border-line bg-paper p-4">
         <CocurricularEntryTable examId={exam.id} items={sortedItems} rows={rows} disabled={closed} lang={lang} />
       </section>
-    </main>
+    </div>
   )
 }

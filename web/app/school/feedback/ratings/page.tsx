@@ -63,7 +63,7 @@ export default async function FeedbackRatingsPage() {
   const rate = responseRate(totalMessages ?? 0, answeredMessages ?? 0)
 
   return (
-    <main className="mx-auto w-full max-w-4xl flex-1 p-6">
+    <div>
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold">{t('feedback.tabRatings', lang)}</h1>
         <Link href="/school" aria-label={t('common.back', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
@@ -77,15 +77,15 @@ export default async function FeedbackRatingsPage() {
       </nav>
 
       <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <div className="rounded-lg border border-line bg-paper p-4 shadow-card">
+        <div className="rounded-lg border border-line bg-paper p-4">
           <div className="text-xs font-semibold uppercase tracking-wide text-muted">{t('feedback.avgRating', lang)}</div>
           <div className="mt-1 text-2xl font-extrabold">{avg === null ? '—' : `${avg} / 5`}</div>
         </div>
-        <div className="rounded-lg border border-line bg-paper p-4 shadow-card">
+        <div className="rounded-lg border border-line bg-paper p-4">
           <div className="text-xs font-semibold uppercase tracking-wide text-muted">{t('feedback.totalResponses', lang)}</div>
           <div className="mt-1 text-2xl font-extrabold">{rows.length}</div>
         </div>
-        <div className="rounded-lg border border-line bg-paper p-4 shadow-card">
+        <div className="rounded-lg border border-line bg-paper p-4">
           <div className="text-xs font-semibold uppercase tracking-wide text-muted">{t('feedback.responseRate', lang)}</div>
           <div className="mt-1 text-2xl font-extrabold">{rate}%</div>
           {/* Distinct source from the two KPIs to its left (satisfaction_ratings):
@@ -94,7 +94,7 @@ export default async function FeedbackRatingsPage() {
         </div>
       </div>
 
-      <section className="mb-4 rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="mb-4 rounded-lg border border-line bg-paper p-5">
         <h3 className="mb-3 mt-0 font-bold">{t('feedback.distribution', lang)}</h3>
         {rows.length === 0 ? (
           <p className="text-sm text-muted">{t('feedback.noRatings', lang)}</p>
@@ -105,7 +105,7 @@ export default async function FeedbackRatingsPage() {
         )}
       </section>
 
-      <section className="mb-4 rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="mb-4 rounded-lg border border-line bg-paper p-5">
         <h3 className="mb-3 mt-0 font-bold">{t('feedback.byCategory', lang)}</h3>
         {CATEGORY_KEYS.map((key) => {
           const value = byCategory[key]
@@ -120,11 +120,11 @@ export default async function FeedbackRatingsPage() {
         })}
       </section>
 
-      <section className="rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="rounded-lg border border-line bg-paper p-5">
         <AddDetails label={t('feedback.logRating', lang)}>
           <LogRatingForm lang={lang} />
         </AddDetails>
       </section>
-    </main>
+    </div>
   )
 }

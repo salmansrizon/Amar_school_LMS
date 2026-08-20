@@ -74,12 +74,12 @@ export default async function PromotionPage({
 
   if (!exam.class_id) {
     return (
-      <main className="mx-auto w-full max-w-4xl flex-1 p-6">
+      <div>
         {header}
-        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted shadow-card">
+        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted">
           {t('promotion.noClassSet', lang)}
         </p>
-      </main>
+      </div>
     )
   }
 
@@ -129,7 +129,7 @@ export default async function PromotionPage({
   const roster = students ?? []
 
   const bodyWrap = (content: ReactNode) => (
-    <main className="mx-auto w-full max-w-4xl flex-1 p-6">
+    <div>
       {header}
       <ResultControlsBar
         combinations={eligibleCombos.map((c) => ({ id: c.id, name: c.name }) satisfies CombinationOption)}
@@ -138,7 +138,7 @@ export default async function PromotionPage({
         lang={lang}
       />
       {content}
-    </main>
+    </div>
   )
 
   if (!subjects.length) return bodyWrap(<p className="text-sm text-muted">{t('markEntry.noSubjects', lang)}</p>)
@@ -267,7 +267,7 @@ export default async function PromotionPage({
         isFinalClass={cls?.is_final_class ?? false}
         lang={lang}
       />
-      <section className="mb-4 rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="mb-4 rounded-lg border border-line bg-paper p-5">
         <PromotionTable
           examId={exam.id}
           rows={rows}

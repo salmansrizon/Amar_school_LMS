@@ -70,7 +70,7 @@ export default async function ExamSetupPage({ params }: { params: Promise<{ id: 
   const examLabel = `${exam.name} (${exam.exam_year})`
 
   return (
-    <main className="mx-auto w-full max-w-3xl flex-1 p-6">
+    <div>
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold">
           {t('examSetup.title', lang)} — {examLabel}
@@ -80,7 +80,7 @@ export default async function ExamSetupPage({ params }: { params: Promise<{ id: 
 
       <ExamHeader examId={exam.id} examLabel={examLabel} closed={closed} lang={lang} />
 
-      <section className="mb-4 rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="mb-4 rounded-lg border border-line bg-paper p-5">
         <h3 className="mb-3 font-bold">{t('examSetup.basicInfo', lang)}</h3>
         <BasicInfoForm
           examId={exam.id}
@@ -94,7 +94,7 @@ export default async function ExamSetupPage({ params }: { params: Promise<{ id: 
         />
       </section>
 
-      <section className="mb-4 rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="mb-4 rounded-lg border border-line bg-paper p-5">
         <h3 className="mb-3 font-bold">{t('examSetup.gradingScheme', lang)}</h3>
         <GradingSchemeSelect
           examId={exam.id}
@@ -105,7 +105,7 @@ export default async function ExamSetupPage({ params }: { params: Promise<{ id: 
         />
       </section>
 
-      <section className="rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="rounded-lg border border-line bg-paper p-5">
         <h3 className="mb-3 font-bold">{t('examSetup.subjectTeacher', lang)}</h3>
         {!exam.class_id ? (
           <p className="text-sm text-muted">{t('examSetup.noClassSet', lang)}</p>
@@ -134,7 +134,7 @@ export default async function ExamSetupPage({ params }: { params: Promise<{ id: 
           is reachable from eight scattered print entry points; this is one
           place that names them. Deliberately an index over routes that already
           exist — not a hub route, not new architecture. */}
-      <section className="mt-4 rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="mt-4 rounded-lg border border-line bg-paper p-5">
         <h3 className="mb-3 font-bold">{t('examDocs.title', lang)}</h3>
         <ul className="divide-y divide-line">
           {EXAM_DOCUMENTS.map((doc) => (
@@ -153,6 +153,6 @@ export default async function ExamSetupPage({ params }: { params: Promise<{ id: 
           ))}
         </ul>
       </section>
-    </main>
+    </div>
   )
 }

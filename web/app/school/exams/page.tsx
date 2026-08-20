@@ -23,7 +23,7 @@ export default async function ExamsPage() {
   ])
 
   return (
-    <main className="mx-auto w-full max-w-3xl flex-1 p-6">
+    <div>
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold">{t('exams.title', lang)}</h1>
         <Link href="/school" aria-label={t('common.back', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
@@ -31,16 +31,16 @@ export default async function ExamsPage() {
 
       <ExamsTabs active="/school/exams" lang={lang} />
 
-      <section className="mb-6 rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="mb-6 rounded-lg border border-line bg-paper p-5">
         <h2 className="mb-3 font-bold">{t('exams.add', lang)}</h2>
         <AddExamForm lang={lang} />
       </section>
 
-      <section className="rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="rounded-lg border border-line bg-paper p-5">
         <ExamsListClient exams={exams ?? []} classes={classes ?? []} lang={lang} />
       </section>
 
       <p className="mt-3 text-xs text-muted">{t('exams.closedNote', lang)}</p>
-    </main>
+    </div>
   )
 }
