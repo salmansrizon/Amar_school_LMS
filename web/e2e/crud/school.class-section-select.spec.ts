@@ -122,6 +122,12 @@ test.describe('@crud @school class-section-select', () => {
   })
 
   test('Students List: dropdown loads and filters the list', async ({ ownerPage: page }) => {
+    // Students List renders the combined combo through a Base UI Select
+    // (components/ui/select.tsx) rather than a native <select> — a client
+    // component with instant filter-on-change, not a Filter-button GET form
+    // like the other three pages. Interaction is trigger-click then
+    // option-click; the underlying option list still comes from the same
+    // classSectionOptions module, so the combos/labels themselves match.
     const owner = await ownerClient()
     const className = `E2E CSStudents ${Date.now()}`
     const sectionA = 'A'
@@ -131,12 +137,12 @@ test.describe('@crud @school class-section-select', () => {
     const studentB = await createStudent(owner, { className, section: sectionB })
 
     await page.goto('/school/students')
-    const select = page.locator('select[name="classSection"]')
-    await expect(select).toBeVisible()
-    await expect(select.locator('option', { hasText: labelA })).toHaveCount(1)
+    const trigger = page.getByRole('combobox', { name: 'শ্রেণি/শাখা' }) // students.classSection
+    await expect(trigger).toBeVisible()
+    await trigger.click()
+    await expect(page.getByRole('option', { name: labelA })).toHaveCount(1)
 
-    await select.selectOption({ label: labelA })
-    await page.getByRole('button', { name: FILTER }).click()
+    await page.getByRole('option', { name: labelA }).click()
     await expect(page).toHaveURL(/classSection=/)
     await expect(page.locator('tr', { hasText: studentA.name })).toBeVisible()
     await expect(page.locator('tr', { hasText: studentB.name })).toHaveCount(0)
@@ -163,7 +169,8 @@ test.describe('@crud @school class-section-select', () => {
     await expect(page.locator('select[name="classSection"] option', { hasText: 'All Classes' })).toHaveCount(1)
 
     await page.goto('/school/students')
-    await expect(page.locator('select[name="classSection"] option', { hasText: 'All Classes' })).toHaveCount(1)
+    await page.getByRole('combobox', { name: 'Class/Section' }).click()
+    await expect(page.getByRole('option', { name: 'All Classes' })).toBeVisible()
     await expectNoError(page)
   })
 })
