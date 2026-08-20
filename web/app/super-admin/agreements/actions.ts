@@ -62,6 +62,30 @@ export async function updateAgreementVersion(formData: FormData): Promise<{ erro
   return {}
 }
 
+// Records a distributor's acceptance on their behalf (offline/paper-signed
+// agreements) — the accept_agreement RPC (migration 0101) already authorizes
+// this for a super_admin caller (is_super_or_system), same RPC the
+// distributor's own self-service onboarding flow calls for themselves
+// (app/distributor/onboarding/actions.ts). No ip/user-agent to capture here
+// since it's the admin's session, not the distributor's — the device field
+// says so plainly rather than leaving it blank and looking like a gap.
+export async function recordDistributorAcceptance(formData: FormData): Promise<{ error?: string }> {
+  const { supabase, fullName } = await getSuperAdminContext()
+  const distributorId = String(formData.get('distributor_id') ?? '').trim()
+  const version = Number(formData.get('version'))
+  if (!distributorId) return { error: 'Pick a distributor.' }
+  if (!Number.isInteger(version)) return { error: 'Invalid version.' }
+
+  const { error } = await supabase.rpc('accept_agreement', {
+    p_version: version,
+    p_distributor: distributorId,
+    p_device: `recorded by super admin (${fullName})`,
+  })
+  if (error) return { error: pgErrorMessage(error) }
+  revalidatePath('/super-admin/agreements')
+  return {}
+}
+
 export async function deleteAgreementVersion(formData: FormData): Promise<{ error?: string }> {
   const { supabase } = await getSuperAdminContext()
   const version = Number(formData.get('version'))

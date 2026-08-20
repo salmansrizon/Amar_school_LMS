@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { createAgreementVersion, deleteAgreementVersion, updateAgreementVersion } from './actions'
+import { createAgreementVersion, deleteAgreementVersion, updateAgreementVersion, recordDistributorAcceptance } from './actions'
 import { AgreementMarkdown } from './agreement-markdown'
 
 const input =
@@ -170,5 +170,79 @@ export function AgreementVersionRow({
         <AgreementMarkdown>{body}</AgreementMarkdown>
       )}
     </li>
+  )
+}
+
+const select =
+  'w-full rounded-lg border border-line-strong px-3 py-2 text-sm focus:border-brand-500 focus:outline-none'
+
+/** Records that a distributor accepted a version — for offline/paper-signed
+ *  agreements, so their acceptance still ends up in the same legal record as
+ *  a real self-service acceptance (accept_agreement RPC, migration 0101,
+ *  already authorizes a super_admin caller to do this; see
+ *  recordDistributorAcceptance's own comment for why). Not a substitute for
+ *  self-service — it's the fallback for when self-service isn't how it
+ *  actually happened. */
+export function RecordAcceptanceForm({
+  distributors,
+  versions,
+}: {
+  distributors: { id: string; name: string }[]
+  versions: number[]
+}) {
+  const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState(false)
+  const [pending, startTransition] = useTransition()
+
+  if (!distributors.length || !versions.length) {
+    return <p className="text-sm text-muted">Need at least one distributor and one published version.</p>
+  }
+
+  return (
+    <form
+      className="flex flex-wrap items-end gap-2"
+      onSubmit={(e) => {
+        e.preventDefault()
+        const form = e.currentTarget
+        const data = new FormData(form)
+        startTransition(async () => {
+          setError(null)
+          setSuccess(false)
+          const res = await recordDistributorAcceptance(data)
+          if (res.error) setError(res.error)
+          else setSuccess(true)
+        })
+      }}
+    >
+      <div className="min-w-48">
+        <label className="mb-1 block text-xs font-semibold text-muted">Distributor</label>
+        <select name="distributor_id" required className={select}>
+          {distributors.map((d) => (
+            <option key={d.id} value={d.id}>
+              {d.name}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div>
+        <label className="mb-1 block text-xs font-semibold text-muted">Version</label>
+        <select name="version" required defaultValue={versions[0]} className={select}>
+          {versions.map((v) => (
+            <option key={v} value={v}>
+              v{v}
+            </option>
+          ))}
+        </select>
+      </div>
+      <button
+        type="submit"
+        disabled={pending}
+        className="cursor-pointer rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600 disabled:opacity-50"
+      >
+        Record acceptance
+      </button>
+      {success && !error && <span className="text-sm text-mint-deep">Recorded.</span>}
+      {error && <span className="text-sm text-alert-deep">{error}</span>}
+    </form>
   )
 }
