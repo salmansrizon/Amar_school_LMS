@@ -29,7 +29,7 @@ export default async function SmsComposePage() {
   const categories = [...new Set((employees ?? []).map((e) => e.category).filter(Boolean))] as string[]
 
   return (
-    <main className="mx-auto w-full max-w-3xl flex-1 p-6">
+    <div>
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold">{t('sms.composeTitle', lang)}</h1>
         <div className="flex items-center gap-3">
@@ -45,12 +45,12 @@ export default async function SmsComposePage() {
 
       {smsCredit && (
         <div
-          className={`mb-4 rounded-2xl border p-4 ${
+          className={`mb-4 rounded-lg border p-4 ${
             smsCredit.level === 'empty'
               ? 'border-alert/40 bg-alert-soft/40'
               : smsCredit.level === 'low'
-                ? 'border-amber-300 bg-amber-50'
-                : 'border-line/70 bg-paper'
+                ? 'border-sun-deep/30 bg-sun-soft'
+                : 'border-line bg-paper'
           }`}
         >
           <div className="flex items-center justify-between">
@@ -60,7 +60,7 @@ export default async function SmsComposePage() {
             </span>
           </div>
           {smsCredit.level !== 'ok' && (
-            <p className={`mt-1 text-xs font-semibold ${smsCredit.level === 'empty' ? 'text-alert-deep' : 'text-amber-600'}`}>
+            <p className={`mt-1 text-xs font-semibold ${smsCredit.level === 'empty' ? 'text-alert-deep' : 'text-sun-deep'}`}>
               {t(smsCredit.level === 'empty' ? 'sms.balanceEmpty' : 'sms.lowBalance', lang)}
             </p>
           )}
@@ -97,6 +97,6 @@ export default async function SmsComposePage() {
         sections={sections}
         categories={categories}
       />
-    </main>
+    </div>
   )
 }
