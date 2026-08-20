@@ -43,7 +43,7 @@ export default async function PartnerAssignmentsPage({
     ])
 
   return (
-    <main className="mx-auto w-full max-w-2xl flex-1 p-6">
+    <main className="w-full p-6">
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold">
           {t('partners.assignments', lang)} — {partner.full_name}
@@ -53,7 +53,7 @@ export default async function PartnerAssignmentsPage({
         </Link>
       </div>
 
-      <section className="mb-6 rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="mb-6 rounded-lg border border-line bg-paper p-5">
         <h2 className="mb-3 font-bold">KYC &amp; lifecycle</h2>
         <dl className="mb-4 grid grid-cols-2 gap-3 text-sm">
           <div>
@@ -89,7 +89,7 @@ export default async function PartnerAssignmentsPage({
         )}
       </section>
 
-      <section className="mb-6 rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="mb-6 rounded-lg border border-line bg-paper p-5">
         <AddAssignmentForm
           assigneeId={partner.id}
           isDistributor={partner.role === 'distributor'}
@@ -99,7 +99,7 @@ export default async function PartnerAssignmentsPage({
         />
       </section>
 
-      <section className="rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="rounded-lg border border-line bg-paper p-5">
         <AssignmentList assignments={(assignments ?? []) as AssignmentRow[]} assigneeId={partner.id} lang={lang} />
       </section>
     </main>

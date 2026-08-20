@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { getSuperAdminContext } from '@/lib/super-admin/context'
 import { formatTaka } from '@/lib/money'
 import { BillDistributorForm } from './bill-distributor-form'
+import { railClass, type Tone } from '@/components/ui/page'
 
 // Invoices + payments (#271 viewer + #319 distributor billing). School and
 // distributor invoices; issue a single-line distributor invoice inline.
@@ -31,13 +32,19 @@ export default async function InvoicesPage() {
 
   const statusTone: Record<string, string> = {
     draft: 'bg-paper-muted text-ink',
-    issued: 'bg-amber-50 text-amber-700',
-    paid: 'bg-emerald-50 text-emerald-700',
+    issued: 'bg-sun-soft text-sun-deep',
+    paid: 'bg-mint-soft text-mint-deep',
     void: 'bg-alert-soft text-alert-deep',
+  }
+  const statusRail: Record<string, Tone> = {
+    draft: 'muted',
+    issued: 'sun',
+    paid: 'mint',
+    void: 'alert',
   }
 
   return (
-    <main className="mx-auto w-full max-w-4xl flex-1 p-6">
+    <main className="w-full p-6">
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold">Invoices</h1>
         <Link href="/super-admin" className="text-sm text-brand-600 hover:underline">
@@ -45,12 +52,12 @@ export default async function InvoicesPage() {
         </Link>
       </div>
 
-      <section className="mb-6 rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="mb-6 rounded-lg border border-line bg-paper p-5">
         <h2 className="mb-3 font-bold">Bill a distributor</h2>
         <BillDistributorForm distributors={distributorOptions} />
       </section>
 
-      <section className="rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="rounded-lg border border-line bg-paper p-5">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead>
@@ -73,7 +80,7 @@ export default async function InvoicesPage() {
               }[] | null)?.map(
                 (inv) => (
                   <tr key={inv.id}>
-                    <td className="py-2 pr-4 font-mono text-xs font-semibold">{inv.number}</td>
+                    <td className={`py-2 pr-4 font-mono text-xs font-semibold ${railClass(statusRail[inv.status] ?? 'muted')}`}>{inv.number}</td>
                     <td className="py-2 pr-4 font-medium">
                       {inv.schools?.name ?? inv.distributor?.full_name ?? '—'}
                     </td>

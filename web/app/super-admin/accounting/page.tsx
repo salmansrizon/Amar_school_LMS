@@ -21,7 +21,7 @@ export default async function AccountingPage() {
   const name = (a: Labelled) => a.name?.en ?? a.code
 
   return (
-    <main className="mx-auto w-full max-w-4xl flex-1 p-6">
+    <main className="w-full p-6">
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold">Accounting Ledger</h1>
         <Link href="/super-admin" className="text-sm text-brand-600 hover:underline">
@@ -29,7 +29,7 @@ export default async function AccountingPage() {
         </Link>
       </div>
 
-      <section className="rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="rounded-lg border border-line bg-paper p-5">
         <h2 className="mb-3 font-bold">Trial Balance</h2>
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">

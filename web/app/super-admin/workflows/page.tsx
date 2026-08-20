@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { getSuperAdminContext } from '@/lib/super-admin/context'
 import { AddDefinitionForm, DefinitionActions, AddStageForm, DeleteStageButton } from './workflow-forms'
+import { railClass } from '@/components/ui/page'
 
 type Labelled = { label?: { en?: string; bn?: string } | null }
 const en = (x: Labelled, fallback: string) => x.label?.en ?? fallback
@@ -27,7 +28,7 @@ export default async function WorkflowsPage() {
   }
 
   return (
-    <main className="mx-auto w-full max-w-4xl flex-1 p-6">
+    <main className="w-full p-6">
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold">Workflows</h1>
         <Link href="/super-admin" className="text-sm text-brand-600 hover:underline">
@@ -35,22 +36,22 @@ export default async function WorkflowsPage() {
         </Link>
       </div>
 
-      <section className="mb-6 rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="mb-6 rounded-lg border border-line bg-paper p-5">
         <h2 className="mb-3 font-bold">Add a workflow</h2>
         <AddDefinitionForm />
       </section>
 
-      <section className="mb-6 rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="mb-6 rounded-lg border border-line bg-paper p-5">
         <h2 className="mb-3 font-bold">Definitions</h2>
         <div className="space-y-3">
           {defs?.map((d) => (
-            <div key={d.key} className="rounded-lg border border-line p-3">
+            <div key={d.key} className={`rounded-lg border border-line p-3 ${railClass(d.active ? 'mint' : 'muted')}`}>
               <div className="mb-2 flex items-center justify-between gap-2">
                 <span className="flex items-center gap-2">
                   <span className="font-semibold">{en(d as Labelled, d.key)}</span>
                   <span className="font-mono text-xs text-muted">{d.key}</span>
                   <span
-                    className={`rounded-full px-2 py-0.5 text-xs font-semibold ${d.active ? 'bg-emerald-50 text-emerald-700' : 'bg-paper-muted text-ink'}`}
+                    className={`rounded-full px-2 py-0.5 text-xs font-semibold ${d.active ? 'bg-mint-soft text-mint-deep' : 'bg-paper-muted text-ink'}`}
                   >
                     {d.active ? 'active' : 'inactive'}
                   </span>
@@ -77,7 +78,7 @@ export default async function WorkflowsPage() {
         </div>
       </section>
 
-      <section className="rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="rounded-lg border border-line bg-paper p-5">
         <h2 className="mb-3 font-bold">Approvals inbox ({instances?.length ?? 0})</h2>
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">

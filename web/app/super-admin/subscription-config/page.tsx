@@ -26,7 +26,7 @@ export default async function SubscriptionConfigPage() {
   const label = (x: Labelled) => x.label?.en ?? x.key
 
   return (
-    <main className="mx-auto w-full max-w-4xl flex-1 p-6">
+    <main className="w-full p-6">
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold">Subscription Config</h1>
         <Link href="/super-admin" className="text-sm text-brand-600 hover:underline">
@@ -34,7 +34,7 @@ export default async function SubscriptionConfigPage() {
         </Link>
       </div>
 
-      <section className="mb-6 rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="mb-6 rounded-lg border border-line bg-paper p-5">
         <h2 className="mb-3 font-bold">Platform Pricing</h2>
         <PricingForm
           baseTaka={pricing ? (pricing.base_fee / 100).toString() : ''}
@@ -42,12 +42,12 @@ export default async function SubscriptionConfigPage() {
         />
       </section>
 
-      <section className="mb-6 rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="mb-6 rounded-lg border border-line bg-paper p-5">
         <h2 className="mb-3 font-bold">Add a plan</h2>
         <AddPlanForm />
       </section>
 
-      <section className="mb-6 rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="mb-6 rounded-lg border border-line bg-paper p-5">
         <h2 className="mb-3 font-bold">Plans</h2>
         <ul className="space-y-2">
           {plans?.map((p) => (
@@ -66,7 +66,7 @@ export default async function SubscriptionConfigPage() {
         </ul>
       </section>
 
-      <section className="rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="rounded-lg border border-line bg-paper p-5">
         <h2 className="mb-3 font-bold">Plan features</h2>
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">

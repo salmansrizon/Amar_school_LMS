@@ -21,7 +21,7 @@ export default async function AgreementsPage() {
   for (const v of acceptedVersions) countByVersion.set(v, (countByVersion.get(v) ?? 0) + 1)
 
   return (
-    <main className="mx-auto w-full max-w-3xl flex-1 p-6">
+    <main className="w-full p-6">
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold">Distributor Agreements</h1>
         <Link href="/super-admin" className="text-sm text-brand-600 hover:underline">
@@ -29,12 +29,12 @@ export default async function AgreementsPage() {
         </Link>
       </div>
 
-      <section className="mb-6 rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="mb-6 rounded-lg border border-line bg-paper p-5">
         <h2 className="mb-3 font-bold">Publish a new version</h2>
         <AddVersionForm />
       </section>
 
-      <section className="mb-6 rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="mb-6 rounded-lg border border-line bg-paper p-5">
         <h2 className="mb-3 font-bold">Versions</h2>
         <ul className="space-y-3">
           {versions?.map((v) => (
@@ -56,7 +56,7 @@ export default async function AgreementsPage() {
         </ul>
       </section>
 
-      <section className="rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="rounded-lg border border-line bg-paper p-5">
         <h2 className="mb-3 font-bold">Recent acceptances</h2>
         <ul className="divide-y divide-line">
           {(acceptances as { agreement_version: number; accepted_at: string; profiles: { full_name?: string | null } | null }[] | null)?.map(

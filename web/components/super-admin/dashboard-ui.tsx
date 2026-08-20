@@ -107,20 +107,24 @@ export function KpiCard({
 }
 
 /** A titled content panel with an optional right-aligned action. Everything on
- *  the landing / schools pages that isn't a KPI card lives inside one of these. */
+ *  the landing / schools pages that isn't a KPI card lives inside one of these.
+ *  `tone` adds the status rail down its left edge (e.g. a school's lifecycle
+ *  state on the schools manager). */
 export function SectionCard({
   title,
   action,
   bodyClassName = 'p-4 sm:p-5',
+  tone,
   children,
 }: {
   title?: string
   action?: React.ReactNode
   bodyClassName?: string
+  tone?: Tone
   children: React.ReactNode
 }) {
   return (
-    <section className="rounded-lg border border-line bg-paper">
+    <section className={`rounded-lg border border-line bg-paper ${tone ? railClass(tone) : ''}`}>
       {(title || action) && (
         <div className="flex items-center justify-between gap-3 border-b border-line px-4 py-3 sm:px-5">
           {title && <h2 className="truncate text-sm font-extrabold text-ink">{title}</h2>}

@@ -4,6 +4,7 @@ import { t } from '@/lib/i18n'
 import { getSuperAdminContext } from '@/lib/super-admin/context'
 import { PageHeader, SectionCard } from '@/components/super-admin/dashboard-ui'
 import { GenerateBatchForm, DeleteCodeButton } from './code-controls'
+import { railClass } from '@/components/ui/page'
 
 // Subscription-code registry (restyled to the T1 design language, map #171 T10 —
 // cosmetic only, controls unchanged).
@@ -18,7 +19,7 @@ export default async function CodesPage() {
     .limit(100)
 
   return (
-    <main className="mx-auto w-full max-w-4xl px-4 py-6 sm:px-6 lg:px-8">
+    <main className="w-full px-4 py-6 sm:px-6 lg:px-8">
       <PageHeader
         title={t('codes.title', lang)}
         actions={
@@ -49,7 +50,7 @@ export default async function CodesPage() {
             <tbody className="divide-y divide-line/70">
               {codes?.map((c) => (
                 <tr key={c.id}>
-                  <td className="py-2 font-mono font-semibold">{c.code}</td>
+                  <td className={`py-2 font-mono font-semibold ${railClass(c.redeemed_at ? 'muted' : 'mint')}`}>{c.code}</td>
                   <td className="py-2">{c.validity_months}m</td>
                   <td className="py-2">৳{Number(c.price)}</td>
                   <td className="py-2">

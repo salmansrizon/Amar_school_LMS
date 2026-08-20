@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { getSuperAdminContext } from '@/lib/super-admin/context'
 import { formatTaka } from '@/lib/money'
 import { AddPackageForm, PackageRowActions, RateForm } from './sms-forms'
+import { railClass } from '@/components/ui/page'
 
 type JsonText = { en?: string; bn?: string } | null
 const en = (x: JsonText, fallback: string) => x?.en ?? fallback
@@ -33,7 +34,7 @@ export default async function SmsCommercePage() {
   }
 
   return (
-    <main className="mx-auto w-full max-w-4xl flex-1 p-6">
+    <main className="w-full p-6">
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold">SMS Commerce</h1>
         <Link href="/super-admin" className="text-sm text-brand-600 hover:underline">
@@ -41,7 +42,7 @@ export default async function SmsCommercePage() {
         </Link>
       </div>
 
-      <section className="mb-6 rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="mb-6 rounded-lg border border-line bg-paper p-5">
         <h2 className="mb-3 font-bold">Segment rates (৳ per segment)</h2>
         <div className="space-y-2">
           {(['mask', 'non_mask'] as const).map((route) => {
@@ -57,12 +58,12 @@ export default async function SmsCommercePage() {
         </div>
       </section>
 
-      <section className="mb-6 rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="mb-6 rounded-lg border border-line bg-paper p-5">
         <h2 className="mb-3 font-bold">Add a package</h2>
         <AddPackageForm />
       </section>
 
-      <section className="mb-6 rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="mb-6 rounded-lg border border-line bg-paper p-5">
         <h2 className="mb-3 font-bold">Packages</h2>
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
@@ -78,12 +79,12 @@ export default async function SmsCommercePage() {
             <tbody className="divide-y divide-line">
               {packages?.map((p) => (
                 <tr key={p.id}>
-                  <td className="py-2 pr-4 font-medium">{en(p.name as JsonText, 'Package')}</td>
+                  <td className={`py-2 pr-4 font-medium ${railClass(p.active ? 'mint' : 'muted')}`}>{en(p.name as JsonText, 'Package')}</td>
                   <td className="py-2 pr-4">{p.segments.toLocaleString('en-US')}</td>
                   <td className="py-2 pr-4">{formatTaka(p.price)}</td>
                   <td className="py-2 pr-4">
                     <span
-                      className={`rounded-full px-2 py-0.5 text-xs font-semibold ${p.active ? 'bg-emerald-50 text-emerald-700' : 'bg-paper-muted text-ink'}`}
+                      className={`rounded-full px-2 py-0.5 text-xs font-semibold ${p.active ? 'bg-mint-soft text-mint-deep' : 'bg-paper-muted text-ink'}`}
                     >
                       {p.active ? 'active' : 'inactive'}
                     </span>
@@ -105,7 +106,7 @@ export default async function SmsCommercePage() {
         </div>
       </section>
 
-      <section className="rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="rounded-lg border border-line bg-paper p-5">
         <h2 className="mb-3 font-bold">School SMS wallets</h2>
         <ul className="divide-y divide-line">
           {(wallets as { id: string; schools?: { name?: string | null } | null }[] | null)?.map((w) => (

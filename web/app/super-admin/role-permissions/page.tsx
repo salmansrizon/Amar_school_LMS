@@ -19,7 +19,7 @@ export default async function RolePermissionsPage() {
   const roleLabel = (r: Labelled) => r.label?.en ?? r.key
 
   return (
-    <main className="mx-auto w-full max-w-4xl flex-1 p-6">
+    <main className="w-full p-6">
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold">Roles &amp; Permissions</h1>
         <Link href="/super-admin" className="text-sm text-brand-600 hover:underline">
@@ -27,7 +27,7 @@ export default async function RolePermissionsPage() {
         </Link>
       </div>
 
-      <section className="rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="rounded-lg border border-line bg-paper p-5">
         <p className="mb-3 text-sm text-muted">
           Role-based access grants (config source of truth for <code>app_has_permission</code>).
         </p>

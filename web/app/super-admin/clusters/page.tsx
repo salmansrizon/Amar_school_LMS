@@ -36,7 +36,7 @@ export default async function ClustersPage() {
   }
 
   return (
-    <main className="mx-auto w-full max-w-2xl flex-1 p-6">
+    <main className="w-full p-6">
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold">{t('sa.clusters.title', lang)}</h1>
         <Link href="/super-admin/locations" className="text-sm text-brand-600 hover:underline">
@@ -44,7 +44,7 @@ export default async function ClustersPage() {
         </Link>
       </div>
 
-      <section className="mb-6 rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="mb-6 rounded-lg border border-line bg-paper p-5">
         <h2 className="mb-3 font-bold">{t('sa.clusters.create', lang)}</h2>
         <CreateClusterForm locations={(locations ?? []) as LocationRow[]} lang={lang} />
       </section>
@@ -57,7 +57,7 @@ export default async function ClustersPage() {
             const loc = c.locations as unknown as { name: string; type: keyof typeof LOCATION_LABEL } | null
             const members = membersByCluster.get(c.id) ?? []
             return (
-              <section key={c.id} className="rounded-lg border border-line bg-paper p-5 shadow-card">
+              <section key={c.id} className="rounded-lg border border-line bg-paper p-5">
                 <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                   <RenameClusterForm clusterId={c.id} name={c.name} lang={lang} />
                   {loc && (
