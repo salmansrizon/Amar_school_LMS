@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { getSuperAdminContext } from '@/lib/super-admin/context'
 import { canDeleteVersion } from '@/lib/partner/agreements'
-import { AddVersionForm, DeleteVersionButton } from './agreement-forms'
+import { AddVersionForm, AgreementVersionRow } from './agreement-forms'
 
 // Distributor agreements admin (#288). Version the legal agreement (create/delete)
 // and see who accepted what. Delete is blocked once a version is accepted.
@@ -38,19 +38,14 @@ export default async function AgreementsPage() {
         <h2 className="mb-3 font-bold">Versions</h2>
         <ul className="space-y-3">
           {versions?.map((v) => (
-            <li key={v.version} className="rounded-lg border border-line p-3">
-              <div className="mb-1 flex items-center justify-between gap-2">
-                <span className="font-semibold">
-                  v{v.version}
-                  <span className="ml-2 text-xs font-normal text-muted">
-                    from {new Date(v.effective_from).toLocaleDateString('en-GB')} ·{' '}
-                    {countByVersion.get(v.version) ?? 0} accepted
-                  </span>
-                </span>
-                <DeleteVersionButton version={v.version} deletable={canDeleteVersion(v.version, acceptedVersions)} />
-              </div>
-              <p className="max-w-prose whitespace-pre-wrap text-sm text-muted">{v.body}</p>
-            </li>
+            <AgreementVersionRow
+              key={v.version}
+              version={v.version}
+              body={v.body}
+              effectiveFrom={v.effective_from}
+              acceptedCount={countByVersion.get(v.version) ?? 0}
+              deletable={canDeleteVersion(v.version, acceptedVersions)}
+            />
           ))}
           {!versions?.length && <li className="text-sm text-muted">No versions yet.</li>}
         </ul>

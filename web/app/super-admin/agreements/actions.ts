@@ -36,6 +36,32 @@ export async function createAgreementVersion(formData: FormData): Promise<{ erro
   return { error: 'Could not allocate a version — please retry.' }
 }
 
+export async function updateAgreementVersion(formData: FormData): Promise<{ error?: string }> {
+  const { supabase } = await getSuperAdminContext()
+  const version = Number(formData.get('version'))
+  const body = String(formData.get('body') ?? '').trim()
+  const effectiveFrom = String(formData.get('effective_from') ?? '').trim()
+  if (!Number.isInteger(version)) return { error: 'Invalid version.' }
+  if (!body) return { error: 'Agreement text is required.' }
+  if (!effectiveFrom) return { error: 'Effective-from date is required.' }
+
+  // Same rule as delete: a version any distributor has accepted is a legal
+  // record of what they agreed to — editing it after the fact would silently
+  // rewrite that record, so it's locked exactly like deletion is.
+  const { data: accepted } = await supabase.from('distributor_agreement_acceptances').select('agreement_version')
+  if (!canDeleteVersion(version, (accepted ?? []).map((a) => a.agreement_version))) {
+    return { error: 'Cannot edit — this version has been accepted (legal record).' }
+  }
+
+  const { error } = await supabase
+    .from('agreement_versions')
+    .update({ body, effective_from: effectiveFrom })
+    .eq('version', version)
+  if (error) return { error: pgErrorMessage(error) }
+  revalidatePath('/super-admin/agreements')
+  return {}
+}
+
 export async function deleteAgreementVersion(formData: FormData): Promise<{ error?: string }> {
   const { supabase } = await getSuperAdminContext()
   const version = Number(formData.get('version'))
