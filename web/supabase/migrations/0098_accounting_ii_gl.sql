@@ -31,6 +31,7 @@ begin
   return new;
 end;
 $$;
+drop trigger if exists voucher_gl_post on public.vouchers;
 create trigger voucher_gl_post after insert on public.vouchers
   for each row execute function public.voucher_post_gl();
 
@@ -48,6 +49,7 @@ begin
   return new;
 end;
 $$;
+drop trigger if exists bank_cash_gl_post on public.bank_cash_transactions;
 create trigger bank_cash_gl_post after insert on public.bank_cash_transactions
   for each row execute function public.bank_cash_post_gl();
 
@@ -63,5 +65,6 @@ begin
   return new;
 end;
 $$;
+drop trigger if exists director_capital_gl_post on public.director_capital_transactions;
 create trigger director_capital_gl_post after insert on public.director_capital_transactions
   for each row execute function public.director_capital_post_gl();

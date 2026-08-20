@@ -20,6 +20,7 @@ end $$;
 -- enforce_exam_seat_plan_school (capacity/tenancy/closed-exam checks) —
 -- generate_seat_plan's delete-then-insert cycle fires it too, which is
 -- correct: regenerating should also require a fresh publish.
+drop trigger if exists exam_seat_plan_clear_publish on public.exam_seat_plans;
 create trigger exam_seat_plan_clear_publish
   after insert or update or delete on public.exam_seat_plans
   for each row execute function public.clear_seat_plan_publish_on_change();

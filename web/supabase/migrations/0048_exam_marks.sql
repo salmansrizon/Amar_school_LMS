@@ -61,12 +61,14 @@ begin
   return new;
 end $$;
 
+drop trigger if exists exam_mark_same_school on public.exam_marks;
 create trigger exam_mark_same_school
   before insert or update on public.exam_marks
   for each row execute function public.enforce_exam_mark_school();
 
 -- Reuses the existing generic delete-guard function (migration 0037) — it
 -- only reads old.exam_id, so no per-table duplicate is needed.
+drop trigger if exists exam_mark_delete_guard on public.exam_marks;
 create trigger exam_mark_delete_guard
   before delete on public.exam_marks
   for each row execute function public.enforce_exam_child_open_on_delete();

@@ -57,6 +57,7 @@ begin
   return coalesce(new, old);
 end $$;
 
+drop trigger if exists behaviour_lock on public.behaviour_log_entries;
 create trigger behaviour_lock
   before update or delete on public.behaviour_log_entries
   for each row execute function public.enforce_behaviour_lock();

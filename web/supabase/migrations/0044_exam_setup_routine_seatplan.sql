@@ -39,6 +39,7 @@ begin
   return new;
 end $$;
 
+drop trigger if exists exam_refs_same_school on public.exams;
 create trigger exam_refs_same_school
   before insert or update on public.exams
   for each row execute function public.enforce_exam_refs_school();
@@ -132,6 +133,7 @@ begin
   return new;
 end $$;
 
+drop trigger if exists exam_subject_teacher_same_school on public.exam_subject_teachers;
 create trigger exam_subject_teacher_same_school
   before insert or update on public.exam_subject_teachers
   for each row execute function public.enforce_exam_subject_teacher_school();
@@ -156,6 +158,7 @@ begin
   return new;
 end $$;
 
+drop trigger if exists exam_routine_entry_same_school on public.exam_routine_entries;
 create trigger exam_routine_entry_same_school
   before insert or update on public.exam_routine_entries
   for each row execute function public.enforce_exam_routine_entry_school();
@@ -181,6 +184,7 @@ begin
   return new;
 end $$;
 
+drop trigger if exists exam_seat_plan_same_school on public.exam_seat_plans;
 create trigger exam_seat_plan_same_school
   before insert or update on public.exam_seat_plans
   for each row execute function public.enforce_exam_seat_plan_school();
@@ -195,12 +199,15 @@ begin
   return old;
 end $$;
 
+drop trigger if exists exam_subject_teacher_delete_guard on public.exam_subject_teachers;
 create trigger exam_subject_teacher_delete_guard
   before delete on public.exam_subject_teachers
   for each row execute function public.enforce_exam_child_open_on_delete();
+drop trigger if exists exam_routine_entry_delete_guard on public.exam_routine_entries;
 create trigger exam_routine_entry_delete_guard
   before delete on public.exam_routine_entries
   for each row execute function public.enforce_exam_child_open_on_delete();
+drop trigger if exists exam_seat_plan_delete_guard on public.exam_seat_plans;
 create trigger exam_seat_plan_delete_guard
   before delete on public.exam_seat_plans
   for each row execute function public.enforce_exam_child_open_on_delete();

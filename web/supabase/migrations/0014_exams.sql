@@ -41,6 +41,7 @@ begin
   return new;
 end $$;
 
+drop trigger if exists exam_close_immutable on public.exams;
 create trigger exam_close_immutable
   before update or delete on public.exams
   for each row execute function public.enforce_exam_close();

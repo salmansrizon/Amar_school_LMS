@@ -46,6 +46,7 @@ begin
   return new;
 end $$;
 
+drop trigger if exists partner_tasks_assignee_scope on public.partner_tasks;
 create trigger partner_tasks_assignee_scope
   before update on public.partner_tasks
   for each row execute function public.enforce_assignee_task_scope();
