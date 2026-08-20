@@ -3,6 +3,7 @@ import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { filterStudents, behaviourAverages } from '@/lib/students'
+import { classSectionOptions, parseClassSectionKey } from '@/lib/class-section-options'
 import { Badge } from '@/components/ui/badge'
 import {
   Table,
@@ -34,9 +35,10 @@ function avgBadge(avg: number | undefined) {
 export default async function StudentsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; class?: string; section?: string }>
+  searchParams: Promise<{ q?: string; classSection?: string }>
 }) {
-  const { q = '', class: klass = '', section = '' } = await searchParams
+  const { q = '', classSection = '' } = await searchParams
+  const { className: klass, section } = parseClassSectionKey(classSection)
   const lang: Lang = await currentLang()
   const { supabase } = await getSchoolContext()
 
@@ -53,15 +55,7 @@ export default async function StudentsPage({
 
   const visible = filterStudents(students ?? [], q, klass, section)
   const avgs = behaviourAverages(ratings ?? [])
-  const classNames = [...new Set((students ?? []).map((s) => s.class_name).filter(Boolean))] as string[]
-  const sections = [
-    ...new Set(
-      (students ?? [])
-        .filter((s) => !klass || s.class_name === klass)
-        .map((s) => s.section)
-        .filter(Boolean),
-    ),
-  ] as string[]
+  const combos = classSectionOptions(students ?? [])
 
   return (
     <>
@@ -87,14 +81,7 @@ export default async function StudentsPage({
 
       <Toolbar
         filters={
-          <StudentFilters
-            q={q}
-            klass={klass}
-            section={section}
-            classNames={classNames}
-            sections={sections}
-            lang={lang}
-          />
+          <StudentFilters q={q} classSection={classSection} combos={combos} lang={lang} />
         }
       />
 

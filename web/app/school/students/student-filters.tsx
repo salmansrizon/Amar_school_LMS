@@ -11,6 +11,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { t, type Lang } from '@/lib/i18n'
+import type { ClassSectionOption } from '@/lib/class-section-options'
 
 // Filters apply on change rather than behind a Filter button — the pattern every
 // data-heavy SaaS console uses, and the reason the button is gone. The query
@@ -25,17 +26,13 @@ const ALL = '__all__'
 
 export function StudentFilters({
   q,
-  klass,
-  section,
-  classNames,
-  sections,
+  classSection,
+  combos,
   lang,
 }: {
   q: string
-  klass: string
-  section: string
-  classNames: string[]
-  sections: string[]
+  classSection: string
+  combos: ClassSectionOption[]
   lang: Lang
 }) {
   const router = useRouter()
@@ -48,8 +45,6 @@ export function StudentFilters({
     const next = new URLSearchParams(params.toString())
     if (!value || value === ALL) next.delete(key)
     else next.set(key, value)
-    // Changing the class can orphan the section filter, so drop it together.
-    if (key === 'class') next.delete('section')
     startTransition(() => router.push(`/school/students?${next.toString()}`))
   }
 
@@ -68,30 +63,19 @@ export function StudentFilters({
           if (e.target.value !== q) apply('q', e.target.value)
         }}
       />
-      <Select value={klass || ALL} onValueChange={(v) => apply('class', v)}>
-        <SelectTrigger className="w-48" aria-label={t('students.allClasses', lang)}>
+      <Select value={classSection || ALL} onValueChange={(v) => apply('classSection', v)}>
+        <SelectTrigger className="w-56" aria-label={t('students.classSection', lang)}>
           {/* Base UI renders the raw value unless the label is resolved here, so
               the sentinel would otherwise show as "__all__" in the trigger. */}
-          <SelectValue>{(v) => (v === ALL ? t('students.allClasses', lang) : String(v))}</SelectValue>
+          <SelectValue>
+            {(v) => (v === ALL ? t('students.allClasses', lang) : combos.find((c) => c.value === v)?.label ?? String(v))}
+          </SelectValue>
         </SelectTrigger>
         <SelectContent>
           <SelectItem value={ALL}>{t('students.allClasses', lang)}</SelectItem>
-          {classNames.map((c) => (
-            <SelectItem key={c} value={c}>
-              {c}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      <Select value={section || ALL} onValueChange={(v) => apply('section', v)}>
-        <SelectTrigger className="w-48" aria-label={t('students.allSections', lang)}>
-          <SelectValue>{(v) => (v === ALL ? t('students.allSections', lang) : String(v))}</SelectValue>
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value={ALL}>{t('students.allSections', lang)}</SelectItem>
-          {sections.map((s) => (
-            <SelectItem key={s} value={s}>
-              {s}
+          {combos.map((c) => (
+            <SelectItem key={c.value} value={c.value}>
+              {c.label}
             </SelectItem>
           ))}
         </SelectContent>
