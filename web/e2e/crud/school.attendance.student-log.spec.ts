@@ -1,6 +1,7 @@
 import { test, expect } from '../fixtures/roles'
 import { expectNoError } from '../helpers'
 import { ownerClient, createStudent } from './factories'
+import { classSectionKey } from '@/lib/class-section-options'
 
 // Student Attendance Log (map #380, docs/011_student_module.md): finder ->
 // roster -> individual log -> filters -> print. A factory student with a
@@ -31,17 +32,16 @@ test.describe('@crud @school attendance-student-log', () => {
     const section = 'A'
     const student = await createStudent(owner, { className, section })
     const today = todayIso()
+    const classSection = encodeURIComponent(classSectionKey(className, section))
 
     // Mark present through the real UI (present is the radio's default state).
-    await page.goto(
-      `/school/attendance/mark?class=${encodeURIComponent(className)}&section=${section}&date=${today}`,
-    )
+    await page.goto(`/school/attendance/mark?classSection=${classSection}&date=${today}`)
     await expect(page.locator('tr', { hasText: student.name })).toBeVisible()
     await page.getByRole('button', { name: SAVE }).click()
     await expect(page.getByText(SAVED)).toBeVisible()
 
     // Finder: class/section filter narrows to the one student, roster shows a View Log link.
-    await page.goto(`/school/attendance/student-log?class=${encodeURIComponent(className)}&section=${section}`)
+    await page.goto(`/school/attendance/student-log?classSection=${classSection}`)
     const row = page.locator('tr', { hasText: student.name })
     await expect(row).toBeVisible()
     await row.getByRole('link', { name: VIEW_LOG }).click()
