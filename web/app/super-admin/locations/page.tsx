@@ -7,6 +7,27 @@ import { PageHeader, SectionCard } from '@/components/super-admin/dashboard-ui'
 import { AddLocationForm, DeleteLocationButton, AddClusterForm, DeleteClusterButton } from './tree-controls'
 import type { LocationNode } from '@/lib/locations'
 import type { Lang } from '@/lib/i18n'
+import type { SupabaseClient } from '@supabase/supabase-js'
+
+// The Bangladesh location seed (#116-#118) put this table past Supabase's
+// default 1000-row REST cap, so a single unbounded `.select()` silently
+// truncates the tree. Page through it in batches instead.
+const FETCH_PAGE_SIZE = 1000
+
+async function fetchAllLocations(supabase: SupabaseClient): Promise<LocationRow[]> {
+  const rows: LocationRow[] = []
+  for (let from = 0; ; from += FETCH_PAGE_SIZE) {
+    const { data } = await supabase
+      .from('locations')
+      .select('id, name, type, parent_id')
+      .order('name')
+      .range(from, from + FETCH_PAGE_SIZE - 1)
+    if (!data || data.length === 0) break
+    rows.push(...(data as LocationRow[]))
+    if (data.length < FETCH_PAGE_SIZE) break
+  }
+  return rows
+}
 
 function TreeNode({ node, lang }: { node: LocationNode; lang: Lang }) {
   return (
@@ -34,16 +55,13 @@ export default async function LocationsPage() {
   const lang = await currentLang()
   const { supabase } = await getSuperAdminContext()
 
-  const { data: locations } = await supabase
-    .from('locations')
-    .select('id, name, type, parent_id')
-    .order('name')
+  const locations = await fetchAllLocations(supabase)
   const { data: clusters } = await supabase
     .from('clusters')
     .select('id, name, locations(name)')
     .order('name')
 
-  const tree = buildTree((locations ?? []) as LocationRow[])
+  const tree = buildTree(locations)
 
   return (
     <main className="w-full px-4 py-6 sm:px-6 lg:px-8">
@@ -69,7 +87,7 @@ export default async function LocationsPage() {
 
       <section className="mt-4">
         <SectionCard title={t('locations.clusters', lang)}>
-          <AddClusterForm locations={(locations ?? []) as LocationRow[]} lang={lang} />
+          <AddClusterForm locations={locations} lang={lang} />
           <ul className="mt-3 divide-y divide-line/70">
             {clusters?.map((c) => (
               <li key={c.id} className="flex items-center justify-between py-2 text-sm">
