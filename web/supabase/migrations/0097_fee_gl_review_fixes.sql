@@ -69,6 +69,7 @@ $$;
 drop trigger if exists fee_gl_post on public.fee_collection_records;
 create trigger fee_gl_post after insert or update of pay_amount, fine_amount on public.fee_collection_records
   for each row execute function public.fee_post_gl();
+drop trigger if exists fee_gl_delete on public.fee_collection_records;
 create trigger fee_gl_delete after delete on public.fee_collection_records
   for each row execute function public.fee_post_gl_delete();
 

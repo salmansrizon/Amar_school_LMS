@@ -51,6 +51,33 @@ test.describe('@crud @super-admin agreements', () => {
     const locked = versionsSection(page).locator('li', { hasText: 'accepted — locked' }).first()
     await expect(locked).toBeVisible()
     await expect(locked.getByRole('button', { name: 'Delete' })).toHaveCount(0)
+    await expect(locked.getByRole('button', { name: 'Edit' })).toHaveCount(0)
+    await expectNoError(page)
+  })
+
+  test('accepted version renders Markdown, and an unaccepted one can be edited in place', async ({ superAdminPage: page }) => {
+    await page.goto(PATH)
+
+    // v1's seeded body isn't Markdown source, but the render path is the same
+    // component for every version — a fresh unaccepted publish exercises it
+    // with real Markdown, which the edit below then re-exercises after a save.
+    const body = `AGREEMENT E2E ${Date.now()} **bold term** and a list:\n\n- one\n- two`
+    await publish(page, body)
+    const row = versionsSection(page).locator('li').filter({ hasText: `AGREEMENT E2E` }).first()
+    await expect(row.locator('strong', { hasText: 'bold term' })).toBeVisible()
+    await expect(row.locator('li', { hasText: 'one' })).toBeVisible()
+
+    // Edit swaps the row into its form in place; Save re-renders the new body.
+    await row.getByRole('button', { name: 'Edit' }).click()
+    const editedBody = `${body} — edited`
+    await row.locator('textarea[name="body"]').fill(editedBody)
+    await row.getByRole('button', { name: 'Save' }).click()
+    await expect(row.getByRole('button', { name: 'Save' })).toHaveCount(0)
+    await expect(row).toContainText('edited')
+
+    // Clean up — this test's own publish, not the seeded fixture.
+    await row.getByRole('button', { name: 'Delete' }).click()
+    await expect(versionsSection(page).locator('li').filter({ hasText: `AGREEMENT E2E` })).toHaveCount(0)
     await expectNoError(page)
   })
 

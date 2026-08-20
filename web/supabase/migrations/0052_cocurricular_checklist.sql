@@ -68,12 +68,14 @@ begin
   return new;
 end $$;
 
+drop trigger if exists cocurricular_mark_same_school on public.cocurricular_checklist_marks;
 create trigger cocurricular_mark_same_school
   before insert or update on public.cocurricular_checklist_marks
   for each row execute function public.enforce_cocurricular_mark_school();
 
 -- Reuses the existing generic delete-guard function (migration 0044) — it
 -- only reads old.exam_id, so no per-table duplicate is needed.
+drop trigger if exists cocurricular_mark_delete_guard on public.cocurricular_checklist_marks;
 create trigger cocurricular_mark_delete_guard
   before delete on public.cocurricular_checklist_marks
   for each row execute function public.enforce_exam_child_open_on_delete();

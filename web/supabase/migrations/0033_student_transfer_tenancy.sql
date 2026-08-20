@@ -14,6 +14,7 @@ begin
   return new;
 end $$;
 
+drop trigger if exists student_transfer_same_school on public.student_transfers;
 create trigger student_transfer_same_school
   before insert or update on public.student_transfers
   for each row execute function public.enforce_student_ref_school();

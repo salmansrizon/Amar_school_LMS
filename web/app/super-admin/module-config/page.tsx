@@ -23,7 +23,7 @@ export default async function ModuleConfigPage() {
   const depOptions = (features ?? []).map((f) => ({ key: f.key, label: label(f as Labelled) }))
 
   return (
-    <main className="mx-auto w-full max-w-4xl flex-1 p-6">
+    <main className="w-full p-6">
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold">Modules &amp; Features</h1>
         <Link href="/super-admin" className="text-sm text-brand-600 hover:underline">
@@ -31,14 +31,14 @@ export default async function ModuleConfigPage() {
         </Link>
       </div>
 
-      <section className="mb-6 rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="mb-6 rounded-lg border border-line bg-paper p-5">
         <h2 className="mb-3 font-bold">Add a module</h2>
         <AddModuleForm />
       </section>
 
       <div className="space-y-4">
         {modules?.map((m) => (
-          <section key={m.key} className="rounded-lg border border-line bg-paper p-5 shadow-card">
+          <section key={m.key} className="rounded-lg border border-line bg-paper p-5">
             <div className="mb-3 flex items-center justify-between gap-2">
               <h2 className="font-bold">
                 {label(m as Labelled)} <span className="font-mono text-xs font-normal text-muted">{m.key}</span>

@@ -3,6 +3,7 @@ import { getSuperAdminContext } from '@/lib/super-admin/context'
 import { formatTaka } from '@/lib/money'
 import { accruedByDistributor } from '@/lib/super-admin/ledger-view'
 import { RunSettlementForm, ApproveSettlementButton } from './settlement-forms'
+import { railClass, type Tone } from '@/components/ui/page'
 
 // Settlements CRUD (#297, over #271 viewer). Run a settlement (bundles accrued
 // commissions) and approve/pay it (GL payout + SettlementCompleted) via RPC.
@@ -24,14 +25,19 @@ export default async function SettlementsPage() {
 
   const statusTone: Record<string, string> = {
     draft: 'bg-paper-muted text-ink',
-    approved: 'bg-amber-50 text-amber-700',
-    paid: 'bg-emerald-50 text-emerald-700',
+    approved: 'bg-sun-soft text-sun-deep',
+    paid: 'bg-mint-soft text-mint-deep',
+  }
+  const statusRail: Record<string, Tone> = {
+    draft: 'muted',
+    approved: 'sun',
+    paid: 'mint',
   }
   const name = (s: { profiles?: { full_name?: string | null } | null; distributor_id: string }) =>
     s.profiles?.full_name ?? s.distributor_id.slice(0, 8)
 
   return (
-    <main className="mx-auto w-full max-w-4xl flex-1 p-6">
+    <main className="w-full p-6">
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold">Settlements</h1>
         <Link href="/super-admin" className="text-sm text-brand-600 hover:underline">
@@ -39,12 +45,12 @@ export default async function SettlementsPage() {
         </Link>
       </div>
 
-      <section className="mb-6 rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="mb-6 rounded-lg border border-line bg-paper p-5">
         <h2 className="mb-3 font-bold">Run a settlement</h2>
         <RunSettlementForm distributors={distributorOptions} />
       </section>
 
-      <section className="rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="rounded-lg border border-line bg-paper p-5">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead>
@@ -60,7 +66,7 @@ export default async function SettlementsPage() {
             <tbody className="divide-y divide-line">
               {settlements?.map((s) => (
                 <tr key={s.id}>
-                  <td className="py-2 pr-4 font-medium">
+                  <td className={`py-2 pr-4 font-medium ${railClass(statusRail[s.status] ?? 'muted')}`}>
                     {name(s as Parameters<typeof name>[0])}
                   </td>
                   <td className="py-2 pr-4 text-muted whitespace-nowrap">

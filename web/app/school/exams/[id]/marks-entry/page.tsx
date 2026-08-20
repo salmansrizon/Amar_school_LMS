@@ -50,12 +50,12 @@ export default async function MarksEntryPage({
 
   if (!exam.class_id) {
     return (
-      <main className="mx-auto w-full max-w-4xl flex-1 p-6">
+      <div>
         {header}
-        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted shadow-card">
+        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted">
           {t('markEntry.noClassSet', lang)}
         </p>
-      </main>
+      </div>
     )
   }
 
@@ -68,12 +68,12 @@ export default async function MarksEntryPage({
 
   if (!subjects.length) {
     return (
-      <main className="mx-auto w-full max-w-4xl flex-1 p-6">
+      <div>
         {header}
-        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted shadow-card">
+        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted">
           {t('markEntry.noSubjects', lang)}
         </p>
-      </main>
+      </div>
     )
   }
 
@@ -100,12 +100,12 @@ export default async function MarksEntryPage({
 
   if (!students?.length) {
     return (
-      <main className="mx-auto w-full max-w-4xl flex-1 p-6">
+      <div>
         {header}
-        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted shadow-card">
+        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted">
           {t('markEntry.noStudents', lang)}
         </p>
-      </main>
+      </div>
     )
   }
 
@@ -125,7 +125,7 @@ export default async function MarksEntryPage({
   })
 
   return (
-    <main className="mx-auto w-full max-w-4xl flex-1 p-6">
+    <div>
       {header}
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
@@ -135,7 +135,7 @@ export default async function MarksEntryPage({
 
       {!exam.grading_scheme_id && <p className="mb-3 text-xs text-muted">{t('markEntry.noScheme', lang)}</p>}
 
-      <section className="rounded-lg border border-line bg-paper p-4 shadow-card">
+      <section className="rounded-lg border border-line bg-paper p-4">
         <MarksEntryTable
           examId={exam.id}
           subject={selectedSubject}
@@ -145,6 +145,6 @@ export default async function MarksEntryPage({
           lang={lang}
         />
       </section>
-    </main>
+    </div>
   )
 }

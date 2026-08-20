@@ -44,6 +44,7 @@ begin
   return new;
 end $$;
 
+drop trigger if exists student_assign_roll on public.students;
 create trigger student_assign_roll
   before insert on public.students
   for each row execute function public.assign_student_roll();

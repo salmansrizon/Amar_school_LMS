@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { getSuperAdminContext } from '@/lib/super-admin/context'
+import { railClass } from '@/components/ui/page'
 
 // Async job monitor (#271). Surfaces the health of the event-driven back-office:
 // the domain-events dispatch queue and the attendance-tap processing backlog.
@@ -18,13 +19,13 @@ export default async function AttendanceJobMonitorPage() {
   ])
 
   const stats = [
-    { label: 'Unprocessed taps', value: pendingTaps.count ?? 0, tone: 'text-sky-deep' },
-    { label: 'Queued events', value: pendingEvents.count ?? 0, tone: 'text-amber-700' },
-    { label: 'Stuck (≥3 tries)', value: stuckEvents.count ?? 0, tone: 'text-alert-deep' },
+    { label: 'Unprocessed taps', value: pendingTaps.count ?? 0, tone: 'text-sky-deep', rail: railClass('sky') },
+    { label: 'Queued events', value: pendingEvents.count ?? 0, tone: 'text-sun-deep', rail: railClass('sun') },
+    { label: 'Stuck (≥3 tries)', value: stuckEvents.count ?? 0, tone: 'text-alert-deep', rail: railClass('alert') },
   ]
 
   return (
-    <main className="mx-auto w-full max-w-4xl flex-1 p-6">
+    <main className="w-full p-6">
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold">Job Monitor</h1>
         <Link href="/super-admin" className="text-sm text-brand-600 hover:underline">
@@ -34,14 +35,14 @@ export default async function AttendanceJobMonitorPage() {
 
       <section className="mb-6 grid grid-cols-3 gap-3">
         {stats.map((s) => (
-          <div key={s.label} className="rounded-lg border border-line bg-paper p-5 shadow-card">
+          <div key={s.label} className={`rounded-lg border border-line bg-paper p-5 ${s.rail}`}>
             <div className={`text-3xl font-extrabold ${s.tone}`}>{s.value}</div>
             <div className="text-sm text-muted">{s.label}</div>
           </div>
         ))}
       </section>
 
-      <section className="rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="rounded-lg border border-line bg-paper p-5">
         <h2 className="mb-3 font-bold">Recent Domain Events</h2>
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
@@ -56,14 +57,14 @@ export default async function AttendanceJobMonitorPage() {
             <tbody className="divide-y divide-line">
               {recent.data?.map((e) => (
                 <tr key={e.id}>
-                  <td className="py-2 pr-4 whitespace-nowrap text-muted">
+                  <td className={`py-2 pr-4 whitespace-nowrap text-muted ${railClass(e.dispatched_at ? 'mint' : 'sun')}`}>
                     {new Date(e.occurred_at).toLocaleString('en-GB')}
                   </td>
                   <td className="py-2 pr-4 font-mono text-xs font-semibold">{e.type}</td>
                   <td className="py-2 pr-4">{e.attempts}</td>
                   <td className="py-2 pr-4">
                     <span
-                      className={`rounded-full px-2 py-0.5 text-xs font-semibold ${e.dispatched_at ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}`}
+                      className={`rounded-full px-2 py-0.5 text-xs font-semibold ${e.dispatched_at ? 'bg-mint-soft text-mint-deep' : 'bg-sun-soft text-sun-deep'}`}
                     >
                       {e.dispatched_at ? 'dispatched' : 'queued'}
                     </span>

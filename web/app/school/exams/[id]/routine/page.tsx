@@ -48,7 +48,7 @@ export default async function ExamRoutinePage({
   const examLabel = `${exam.name} (${exam.exam_year})`
 
   return (
-    <main className="mx-auto w-full max-w-4xl flex-1 p-6">
+    <div>
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold">{t('examRoutine.title', lang)}</h1>
         <BackLink href={backHref} label={t('common.back', lang)} />
@@ -66,7 +66,7 @@ export default async function ExamRoutinePage({
         </a>
       </div>
 
-      <section className="rounded-lg border border-line bg-paper p-4 shadow-card">
+      <section className="rounded-lg border border-line bg-paper p-4">
         {!entries?.length ? (
           <p className="mb-4 text-sm text-muted">{t('examRoutine.none', lang)}</p>
         ) : (
@@ -88,6 +88,6 @@ export default async function ExamRoutinePage({
             <p className="text-sm text-muted">{t('examSetup.noClassSet', lang)}</p>
           ))}
       </section>
-    </main>
+    </div>
   )
 }

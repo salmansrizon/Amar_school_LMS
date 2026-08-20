@@ -1,8 +1,10 @@
 import { redirect } from 'next/navigation'
 import { LangSwitch } from '@/components/lang-switch'
+import { ThemeSwitch } from '@/components/theme-switch'
 import { LogoutButton } from '@/components/logout-button'
 import { BrandMark } from '@/components/brand-logo'
 import { currentLang } from '@/lib/i18n-server'
+import { themePreference } from '@/lib/ui-prefs-server'
 import { canAccess, homeFor, type Role } from '@/lib/auth/routing'
 import { t, type MessageKey } from '@/lib/i18n'
 import { createClient } from '@/lib/supabase/server'
@@ -26,6 +28,7 @@ export async function RoleShell({
   children?: React.ReactNode
 }) {
   const lang = await currentLang()
+  const theme = await themePreference()
   const supabase = await createClient()
   const {
     data: { user },
@@ -53,6 +56,7 @@ export async function RoleShell({
           {t('app.name', lang)}
         </div>
         <div className="flex items-center gap-3">
+          <ThemeSwitch preference={theme} lang={lang} />
           <LangSwitch lang={lang} />
           <LogoutButton label={t('shell.logout', lang)} />
         </div>

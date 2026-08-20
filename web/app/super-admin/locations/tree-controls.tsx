@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react'
 import { childType, LOCATION_LABEL, type LocationNode, type LocationRow } from '@/lib/locations'
 import { t, type Lang } from '@/lib/i18n'
 import { addCluster, addLocation, deleteCluster, deleteLocation } from './actions'
-import { selectClass } from '@/components/ui/field'
+import { LocationPicker } from '@/components/location-picker'
 
 const smallInput =
   'h-8 rounded-sm border border-line-strong bg-paper px-2 text-sm outline-none focus:border-brand-500'
@@ -108,6 +108,9 @@ export function DeleteClusterButton({ id, lang }: { id: string; lang: Lang }) {
 export function AddClusterForm({ locations, lang }: { locations: LocationRow[]; lang: Lang }) {
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
+  // LocationPicker is controlled, so form.reset() (native, uncontrolled-only)
+  // can't clear it — remount it via a fresh key instead.
+  const [pickerKey, setPickerKey] = useState(0)
   return (
     <form
       className="flex flex-wrap items-center gap-2"
@@ -118,18 +121,15 @@ export function AddClusterForm({ locations, lang }: { locations: LocationRow[]; 
         startTransition(async () => {
           const result = await addCluster(data)
           if (result.error) setError(result.error)
-          else form.reset()
+          else {
+            form.reset()
+            setPickerKey((k) => k + 1)
+          }
         })
       }}
     >
       <input name="name" required placeholder={t('locations.clusterName', lang)} className={smallInput} />
-      <select name="location_id" required className={selectClass({ size: 'xs' })}>
-        {locations.map((l) => (
-          <option key={l.id} value={l.id}>
-            {LOCATION_LABEL[l.type][lang]} — {l.name}
-          </option>
-        ))}
-      </select>
+      <LocationPicker key={pickerKey} locations={locations} name="location_id" lang={lang} required />
       <button type="submit" disabled={pending} className={smallBtn}>
         {t('common.add', lang)}
       </button>

@@ -1,5 +1,6 @@
 import Link from 'next/link'
-import { buildTree, LOCATION_LABEL, type LocationRow } from '@/lib/locations'
+import { buildTree, LOCATION_LABEL } from '@/lib/locations'
+import { fetchAllLocations } from '@/lib/locations-server'
 import { currentLang } from '@/lib/i18n-server'
 import { t } from '@/lib/i18n'
 import { getSuperAdminContext } from '@/lib/super-admin/context'
@@ -34,19 +35,16 @@ export default async function LocationsPage() {
   const lang = await currentLang()
   const { supabase } = await getSuperAdminContext()
 
-  const { data: locations } = await supabase
-    .from('locations')
-    .select('id, name, type, parent_id')
-    .order('name')
+  const locations = await fetchAllLocations(supabase)
   const { data: clusters } = await supabase
     .from('clusters')
     .select('id, name, locations(name)')
     .order('name')
 
-  const tree = buildTree((locations ?? []) as LocationRow[])
+  const tree = buildTree(locations)
 
   return (
-    <main className="mx-auto w-full max-w-3xl px-4 py-6 sm:px-6 lg:px-8">
+    <main className="w-full px-4 py-6 sm:px-6 lg:px-8">
       <PageHeader
         title={t('locations.title', lang)}
         actions={
@@ -69,7 +67,7 @@ export default async function LocationsPage() {
 
       <section className="mt-4">
         <SectionCard title={t('locations.clusters', lang)}>
-          <AddClusterForm locations={(locations ?? []) as LocationRow[]} lang={lang} />
+          <AddClusterForm locations={locations} lang={lang} />
           <ul className="mt-3 divide-y divide-line/70">
             {clusters?.map((c) => (
               <li key={c.id} className="flex items-center justify-between py-2 text-sm">

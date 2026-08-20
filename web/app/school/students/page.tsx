@@ -1,18 +1,30 @@
-import Form from 'next/form'
 import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { filterStudents, behaviourAverages } from '@/lib/students'
 import { classSectionOptions, parseClassSectionKey } from '@/lib/class-section-options'
-import { ClassSectionSelect } from '@/components/ui/class-section-select'
+import { Badge } from '@/components/ui/badge'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { Card, PageHeader, Toolbar, railClass } from '@/components/ui/page'
+import { StudentFilters } from './student-filters'
 
 // Layout per ui/school-owner/students-list.html: search (name/roll/guardian) +
 // class/section filters, table Roll | Name | Class/Section | Guardian |
 // Behaviour Avg | Status | View, with Old Students + New Admission actions.
-
-const thClass = 'px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted'
-const tdClass = 'px-3 py-2 text-sm'
+//
+// List archetype (gate #372): renders bare content — the shell owns the <main>,
+// the width and the gutters — so the table fills the viewport instead of sitting
+// in an 896px column. Columns distribute across that width the way an ERP grid
+// does; an earlier pass clustered them left and left the right half of the card
+// empty, which read as broken rather than tidy.
 function avgBadge(avg: number | undefined) {
   if (avg === undefined) return <span className="text-muted">—</span>
   const tone =
@@ -46,95 +58,79 @@ export default async function StudentsPage({
   const combos = classSectionOptions(students ?? [])
 
   return (
-    <main className="mx-auto w-full max-w-4xl flex-1 p-6">
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-extrabold">{t('students.listTitle', lang)}</h1>
-        <Link href="/school" aria-label={t('common.back', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
-      </div>
+    <>
+      <PageHeader
+        title={t('students.listTitle', lang)}
+        actions={
+          <>
+            <Link
+              href="/school/students/archive"
+              className="rounded-full border border-line-strong px-4 py-1.5 text-xs font-semibold hover:bg-paper-muted"
+            >
+              {t('students.oldStudents', lang)}
+            </Link>
+            <Link
+              href="/school/students/new"
+              className="rounded-full bg-brand-500 px-4 py-1.5 text-xs font-semibold text-white hover:bg-brand-600"
+            >
+              + {t('students.newAdmission', lang)}
+            </Link>
+          </>
+        }
+      />
 
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <Form className="flex flex-wrap items-center gap-2" action="/school/students">
-          <input
-            name="q"
-            defaultValue={q}
-            placeholder={t('students.search', lang)}
-            className="w-56 rounded-md border border-line bg-paper px-3 py-1.5 text-sm"
-          />
-          <ClassSectionSelect
-            combos={combos}
-            value={classSection}
-            ariaLabel={t('students.classSection', lang)}
-            allLabel={t('students.allClasses', lang)}
-          />
-          <button
-            type="submit"
-            className="cursor-pointer rounded-full border border-line px-3 py-1 text-xs font-semibold hover:bg-paper-muted"
-          >
-            {t('classes.filter', lang)}
-          </button>
-        </Form>
-        <div className="flex gap-2">
-          <Link
-            href="/school/students/archive"
-            className="rounded-full border border-line-strong px-4 py-1.5 text-xs font-semibold hover:bg-paper-muted"
-          >
-            {t('students.oldStudents', lang)}
-          </Link>
-          <Link
-            href="/school/students/new"
-            className="rounded-full bg-brand-500 px-4 py-1.5 text-xs font-semibold text-white hover:bg-brand-600"
-          >
-            + {t('students.newAdmission', lang)}
-          </Link>
-        </div>
-      </div>
+      <Toolbar
+        filters={
+          <StudentFilters q={q} classSection={classSection} combos={combos} lang={lang} />
+        }
+      />
 
-      <section className="rounded-lg border border-line bg-paper p-5 shadow-card">
+      <Card padded={!visible.length}>
         {!visible.length ? (
           <p className="text-sm text-muted">{t('students.none', lang)}</p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="border-b border-line-strong">
-                  <th className={thClass}>{t('students.roll', lang)}</th>
-                  <th className={thClass}>{t('students.name', lang)}</th>
-                  <th className={thClass}>{t('students.classSection', lang)}</th>
-                  <th className={thClass}>{t('students.guardian', lang)}</th>
-                  <th className={thClass}>{t('students.behaviourAvg', lang)}</th>
-                  <th className={thClass}>{t('students.status', lang)}</th>
-                  <th className={thClass} />
-                </tr>
-              </thead>
-              <tbody>
-                {visible.map((s) => (
-                  <tr key={s.id} className="border-b border-line">
-                    <td className={tdClass}>{s.roll_number ?? <span className="text-muted">—</span>}</td>
-                    <td className={`${tdClass} font-medium`}>{s.full_name}</td>
-                    <td className={tdClass}>
-                      {[s.class_name, s.section].filter(Boolean).join(' / ') || (
-                        <span className="text-muted">—</span>
-                      )}
-                    </td>
-                    <td className={tdClass}>{s.guardian_name ?? <span className="text-muted">—</span>}</td>
-                    <td className={tdClass}>{avgBadge(avgs.get(s.id))}</td>
-                    <td className={tdClass}>
-                      <span className="rounded-full bg-mint-soft px-2 py-0.5 text-xs font-semibold text-mint-deep">
-                        {t('students.active', lang)}
-                      </span>
-                    </td>
-                    <td className={tdClass}>
-                      <Link href={`/school/students/${s.id}`} className="text-brand-600 hover:underline">
-                        {t('students.view', lang)}
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className={railClass(undefined)}>{t('students.roll', lang)}</TableHead>
+                <TableHead>{t('students.name', lang)}</TableHead>
+                <TableHead>{t('students.classSection', lang)}</TableHead>
+                <TableHead>{t('students.guardian', lang)}</TableHead>
+                <TableHead>{t('students.behaviourAvg', lang)}</TableHead>
+                <TableHead>{t('students.status', lang)}</TableHead>
+                <TableHead className="text-right">{t('students.view', lang)}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {visible.map((s) => (
+                <TableRow key={s.id}>
+                  {/* Rail carries "active" visually; the Status cell still spells
+                      it out, so colour is never the only signal. */}
+                  <TableCell className={railClass('mint')}>
+                    {s.roll_number ?? <span className="text-muted">—</span>}
+                  </TableCell>
+                  <TableCell className="font-medium">{s.full_name}</TableCell>
+                  <TableCell>
+                    {[s.class_name, s.section].filter(Boolean).join(' / ') || (
+                      <span className="text-muted">—</span>
+                    )}
+                  </TableCell>
+                  <TableCell>{s.guardian_name ?? <span className="text-muted">—</span>}</TableCell>
+                  <TableCell>{avgBadge(avgs.get(s.id))}</TableCell>
+                  <TableCell>
+                    <Badge variant="secondary">{t('students.active', lang)}</Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Link href={`/school/students/${s.id}`} className="text-brand-600 hover:underline">
+                      {t('students.view', lang)}
+                    </Link>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         )}
-      </section>
-    </main>
+      </Card>
+    </>
   )
 }

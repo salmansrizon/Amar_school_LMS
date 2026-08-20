@@ -74,7 +74,7 @@ export default async function ExamSetupPage({
   const examLabel = `${exam.name} (${exam.exam_year})`
 
   return (
-    <main className="mx-auto w-full max-w-3xl flex-1 p-6">
+    <div>
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold">
           {t('examSetup.title', lang)} — {examLabel}
@@ -91,7 +91,7 @@ export default async function ExamSetupPage({
         lang={lang}
       />
 
-      <section className="mb-4 rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="mb-4 rounded-lg border border-line bg-paper p-5">
         <h3 className="mb-3 font-bold">{t('examSetup.basicInfo', lang)}</h3>
         <BasicInfoForm
           examId={exam.id}
@@ -105,7 +105,7 @@ export default async function ExamSetupPage({
         />
       </section>
 
-      <section className="mb-4 rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="mb-4 rounded-lg border border-line bg-paper p-5">
         <h3 className="mb-3 font-bold">{t('examSetup.gradingScheme', lang)}</h3>
         <GradingSchemeSelect
           examId={exam.id}
@@ -116,7 +116,7 @@ export default async function ExamSetupPage({
         />
       </section>
 
-      <section className="rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="rounded-lg border border-line bg-paper p-5">
         <h3 className="mb-3 font-bold">{t('examSetup.subjectTeacher', lang)}</h3>
         {!exam.class_id ? (
           <p className="text-sm text-muted">{t('examSetup.noClassSet', lang)}</p>
@@ -132,6 +132,6 @@ export default async function ExamSetupPage({
           />
         )}
       </section>
-    </main>
+    </div>
   )
 }

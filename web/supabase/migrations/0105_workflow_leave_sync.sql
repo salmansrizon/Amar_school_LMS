@@ -17,5 +17,6 @@ begin
   return new;
 end;
 $$;
+drop trigger if exists workflow_leave_sync_trg on public.workflow_instances;
 create trigger workflow_leave_sync_trg after update of status on public.workflow_instances
   for each row execute function public.workflow_leave_sync();

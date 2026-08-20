@@ -66,6 +66,7 @@ begin
   return new;
 end $$;
 
+drop trigger if exists grade_band_same_school on public.grade_bands;
 create trigger grade_band_same_school
   before insert or update on public.grade_bands
   for each row execute function public.enforce_grade_band_school();

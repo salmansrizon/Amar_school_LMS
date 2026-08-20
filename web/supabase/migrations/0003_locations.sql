@@ -37,6 +37,7 @@ begin
   return new;
 end $$;
 
+drop trigger if exists location_parent_level on public.locations;
 create trigger location_parent_level
   before insert or update of parent_id, type on public.locations
   for each row execute function public.check_location_parent();

@@ -6,6 +6,7 @@ import { AddDetails } from '@/components/add-details'
 import { buildingCapacity, buildingRoomTree, type BuildingRow, type RoomRow } from '@/lib/venues'
 import { InstituteTabs } from '../tabs'
 import { BuildingForm, DeleteVenueButton, EditToggle, RoomForm } from './venue-controls'
+import { railClass } from '@/components/ui/page'
 
 // Institute Seat Configuration (issue #93, docs/improvement.md §2A): buildings
 // and their rooms as institute master data, exam-independent. Lives under
@@ -29,7 +30,7 @@ export default async function VenuesPage() {
   const tree = buildingRoomTree(buildingRows, (rooms ?? []) as RoomRow[])
 
   return (
-    <main className="mx-auto w-full max-w-4xl flex-1 p-6">
+    <div>
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold">{t('institute.title', lang)}</h1>
         <Link href="/school" aria-label={t('common.back', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
@@ -48,7 +49,7 @@ export default async function VenuesPage() {
         <p className="text-sm text-muted">{t('venues.noBuildings', lang)}</p>
       ) : (
         tree.map((building) => (
-          <section key={building.id} className="mb-6 rounded-lg border border-line bg-paper p-5 shadow-card">
+          <section key={building.id} className="mb-6 rounded-lg border border-line bg-paper p-5">
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
               <div>
                 <h2 className="font-bold">{building.name}</h2>
@@ -92,7 +93,7 @@ export default async function VenuesPage() {
                   <tbody>
                     {building.rooms.map((room) => (
                       <tr key={room.id} className="border-b border-line align-top">
-                        <td className={`${tdClass} font-medium`}>{room.name}</td>
+                        <td className={`${tdClass} font-medium ${railClass(room.is_active ? 'mint' : 'muted')}`}>{room.name}</td>
                         <td className={tdClass}>{room.capacity}</td>
                         <td className={tdClass}>
                           <span
@@ -120,6 +121,6 @@ export default async function VenuesPage() {
           </section>
         ))
       )}
-    </main>
+    </div>
   )
 }

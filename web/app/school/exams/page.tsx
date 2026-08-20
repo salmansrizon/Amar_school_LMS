@@ -34,7 +34,7 @@ export default async function ExamsPage({
   ])
 
   return (
-    <main className="mx-auto w-full max-w-3xl flex-1 p-6">
+    <div>
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold">{t('exams.title', lang)}</h1>
         <BackLink href="/school" label={t('common.back', lang)} />
@@ -42,12 +42,12 @@ export default async function ExamsPage({
 
       <ExamsTabs active="/school/exams" lang={lang} />
 
-      <section className="mb-6 rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="mb-6 rounded-lg border border-line bg-paper p-5">
         <h2 className="mb-3 font-bold">{t('exams.add', lang)}</h2>
         <AddExamForm lang={lang} />
       </section>
 
-      <section className="rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="rounded-lg border border-line bg-paper p-5">
         {/* Keyed on the restored context so a soft navigation back here
             remounts the list with those filters, rather than reusing the
             instance and its now-stale useState seeds. */}
@@ -64,6 +64,6 @@ export default async function ExamsPage({
       </section>
 
       <p className="mt-3 text-xs text-muted">{t('exams.closedNote', lang)}</p>
-    </main>
+    </div>
   )
 }

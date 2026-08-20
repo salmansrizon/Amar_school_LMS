@@ -55,12 +55,12 @@ export default async function AdmitCardsPage({
 
   if (!exam.class_id) {
     return (
-      <main className="mx-auto w-full max-w-3xl flex-1 p-6">
+      <div>
         {header}
-        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted shadow-card">
+        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted">
           {t('markEntry.noClassSet', lang)}
         </p>
-      </main>
+      </div>
     )
   }
 
@@ -76,19 +76,19 @@ export default async function AdmitCardsPage({
 
   if (!students?.length) {
     return (
-      <main className="mx-auto w-full max-w-3xl flex-1 p-6">
+      <div>
         {header}
-        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted shadow-card">
+        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted">
           {t('markEntry.noStudents', lang)}
         </p>
-      </main>
+      </div>
     )
   }
 
   return (
-    <main className="mx-auto w-full max-w-3xl flex-1 p-6">
+    <div>
       {header}
-      <section className="rounded-lg border border-line bg-paper p-4 shadow-card">
+      <section className="rounded-lg border border-line bg-paper p-4">
         <table className="w-full border-collapse text-sm">
           <thead>
             <tr className="border-b border-line-strong text-left text-xs uppercase tracking-wide text-muted">
@@ -112,6 +112,6 @@ export default async function AdmitCardsPage({
           </tbody>
         </table>
       </section>
-    </main>
+    </div>
   )
 }

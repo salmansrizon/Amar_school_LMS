@@ -46,6 +46,7 @@ begin
   return new;
 end $$;
 
+drop trigger if exists feedback_message_replied_by_same_school on public.feedback_messages;
 create trigger feedback_message_replied_by_same_school
   before insert or update on public.feedback_messages
   for each row execute function public.enforce_feedback_reply_school();

@@ -19,7 +19,7 @@ export default async function AgentsPage() {
   }
 
   return (
-    <main className="mx-auto w-full max-w-3xl flex-1 p-6">
+    <main className="w-full p-6">
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold">Agents</h1>
         <Link href="/super-admin" className="text-sm text-brand-600 hover:underline">
@@ -27,7 +27,7 @@ export default async function AgentsPage() {
         </Link>
       </div>
 
-      <section className="rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="rounded-lg border border-line bg-paper p-5">
         <ul className="divide-y divide-line">
           {(agents as Row[] | null)?.map((a) => (
             <li key={a.agent_id} className="flex items-center justify-between py-2">

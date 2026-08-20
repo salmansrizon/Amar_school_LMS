@@ -8,6 +8,7 @@ import { PageHeader, SectionCard, formatTaka } from '@/components/super-admin/da
 import { SchoolSubscriptionControls } from './subscription-controls'
 import { SchoolManagement } from './school-management'
 import { CreateSchoolForm } from './create-school-form'
+import type { Tone } from '@/components/ui/page'
 
 // Super-admin schools manager (map #171 T4): the per-school ledger + control
 // centre, restyled to the T1 design language. The fetch→shape→classify work
@@ -20,13 +21,19 @@ const STATUS_STYLE: Record<LifecycleStatus, string> = {
   trial: 'bg-sky-soft text-sky-deep',
   active: 'bg-mint-soft text-mint-deep',
   expired: 'bg-alert-soft text-alert-deep',
-  blocked: 'bg-amber-50 text-amber-600',
+  blocked: 'bg-sun-soft text-sun-deep',
 }
 const STATUS_KEY: Record<LifecycleStatus, MessageKey> = {
   trial: 'schools.trial',
   active: 'schools.active',
   expired: 'schools.expired',
   blocked: 'sa.school.paused',
+}
+const STATUS_RAIL: Record<LifecycleStatus, Tone> = {
+  trial: 'sky',
+  active: 'mint',
+  expired: 'alert',
+  blocked: 'sun',
 }
 
 export default async function SchoolsPage() {
@@ -35,7 +42,7 @@ export default async function SchoolsPage() {
   const schools = await loadSchoolsManager(supabase)
 
   return (
-    <main className="mx-auto w-full max-w-4xl px-4 py-6 sm:px-6 lg:px-8">
+    <main className="w-full px-4 py-6 sm:px-6 lg:px-8">
       <PageHeader
         title={t('schools.title', lang)}
         actions={
@@ -56,6 +63,7 @@ export default async function SchoolsPage() {
           <SectionCard
             key={s.id}
             title={s.name}
+            tone={STATUS_RAIL[s.status]}
             action={
               <span className="flex flex-wrap items-center justify-end gap-2 text-sm">
                 <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${STATUS_STYLE[s.status]}`}>
@@ -111,7 +119,7 @@ export default async function SchoolsPage() {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-line/70 bg-paper-muted px-3 py-2">
+    <div className="rounded-md border border-line bg-paper-muted px-3 py-2">
       <dt className="text-[11px] font-semibold text-muted">{label}</dt>
       <dd className="text-base font-extrabold text-ink">{value}</dd>
     </div>

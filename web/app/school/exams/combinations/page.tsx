@@ -54,7 +54,7 @@ export default async function ExamCombinationsPage() {
   const schemeById = new Map((schemes ?? []).map((s) => [s.id, s]))
 
   return (
-    <main className="mx-auto w-full max-w-3xl flex-1 p-6">
+    <div>
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold">{t('combinations.title', lang)}</h1>
         <BackLink href="/school/exams" label={t('exams.title', lang)} />
@@ -62,7 +62,7 @@ export default async function ExamCombinationsPage() {
 
       <ExamsTabs active="/school/exams/combinations" lang={lang} />
 
-      <section className="mb-6 rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="mb-6 rounded-lg border border-line bg-paper p-5">
         <h2 className="mb-3 font-bold">{t('combinations.add', lang)}</h2>
         <AddCombinationForm classes={(classes ?? []) as ClassOption[]} schemes={(schemes ?? []) as SchemeOption[]} lang={lang} />
       </section>
@@ -85,6 +85,6 @@ export default async function ExamCombinationsPage() {
           )
         })}
       </section>
-    </main>
+    </div>
   )
 }

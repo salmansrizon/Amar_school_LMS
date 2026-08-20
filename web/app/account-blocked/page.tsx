@@ -11,7 +11,7 @@ export default async function AccountBlockedPage() {
   const lang = await currentLang()
   return (
     <main className="flex min-h-dvh items-center justify-center bg-paper-muted p-6">
-      <div className="w-full max-w-md rounded-lg border border-line bg-paper p-8 text-center shadow-card">
+      <div className="w-full max-w-md rounded-lg border border-line bg-paper p-8 text-center">
         <h1 className="text-xl font-extrabold text-alert-deep">{t('blocked.title', lang)}</h1>
         <p className="mt-3 text-sm text-muted">{t('blocked.message', lang)}</p>
         <div className="mt-6 flex justify-center gap-3">

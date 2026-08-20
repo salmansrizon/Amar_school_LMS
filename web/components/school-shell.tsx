@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import type { ThemePreference } from '@/lib/ui-prefs'
 import { AppShell, type AppNavItem } from '@/components/app-shell'
 import { Icon } from '@/components/school-icons'
 import { SearchPalette, type PaletteEntry } from '@/components/search-palette'
@@ -71,6 +72,7 @@ export function SchoolShell({
   schoolName,
   fullName,
   lang,
+  theme = 'system',
   initialCollapsed = false,
   banner,
   smsCredit = null,
@@ -82,6 +84,7 @@ export function SchoolShell({
   schoolName: string
   fullName: string
   lang: Lang
+  theme?: ThemePreference
   initialCollapsed?: boolean
   banner?: React.ReactNode
   smsCredit?: SchoolSmsCredit | null
@@ -129,6 +132,7 @@ export function SchoolShell({
       nav={nav}
       profile={{ fullName, label: t('shell.profile', lang), href: '/school/profile' }}
       lang={lang}
+      theme={theme}
       initialCollapsed={initialCollapsed}
       search={{
         label: t('shell.search', lang),

@@ -14,7 +14,7 @@ export default async function BuySmsPage() {
   const packages = await listSmsPackages(supabase)
 
   return (
-    <div className="mx-auto w-full max-w-2xl">
+    <div>
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold">{t('sms.buyTitle', lang)}</h1>
         <Link href="/school/sms" className="text-sm text-brand-600 hover:underline">
@@ -23,14 +23,14 @@ export default async function BuySmsPage() {
       </div>
 
       {role !== 'school_owner' && (
-        <p className="mb-4 rounded-lg border border-line bg-amber-50 p-3 text-sm text-amber-700">
+        <p className="mb-4 rounded-lg border border-line bg-sun-soft p-3 text-sm text-sun-deep">
           {t('sms.buyOwnerOnly', lang)}
         </p>
       )}
 
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {packages.map((p) => (
-          <section key={p.id} className="flex flex-col gap-2 rounded-lg border border-line bg-paper p-5 shadow-card">
+          <section key={p.id} className="flex flex-col gap-2 rounded-lg border border-line bg-paper p-5">
             <div className="text-lg font-bold">{p.name.en ?? p.name.bn ?? 'SMS'}</div>
             <div className="text-2xl font-extrabold text-brand-700">
               {p.segments.toLocaleString('en-US')}{' '}

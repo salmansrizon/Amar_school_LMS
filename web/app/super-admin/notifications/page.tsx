@@ -28,7 +28,7 @@ export default async function NotificationsPage() {
   const templateKeys = (templates ?? []).map((t) => t.key)
 
   return (
-    <main className="mx-auto w-full max-w-3xl flex-1 p-6">
+    <main className="w-full p-6">
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold">Notification Templates</h1>
         <Link href="/super-admin" className="text-sm text-brand-600 hover:underline">
@@ -36,7 +36,7 @@ export default async function NotificationsPage() {
         </Link>
       </div>
 
-      <section className="mb-6 rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="mb-6 rounded-lg border border-line bg-paper p-5">
         <h2 className="mb-3 font-bold">Add / update a template</h2>
         <TemplateForm />
       </section>
@@ -45,7 +45,7 @@ export default async function NotificationsPage() {
         {templates?.map((t) => {
           const placeholders = extractPlaceholders(en(t.title as JsonText, ''), en(t.body as JsonText, ''))
           return (
-            <section key={t.key} className="rounded-lg border border-line bg-paper p-5 shadow-card">
+            <section key={t.key} className="rounded-lg border border-line bg-paper p-5">
               <div className="mb-1 flex items-center justify-between gap-2">
                 <h2 className="font-bold">{en(t.title as JsonText, t.key)}</h2>
                 <span className="flex items-center gap-3">
@@ -53,7 +53,7 @@ export default async function NotificationsPage() {
                   <DeleteTemplateButton templateKey={t.key} />
                 </span>
               </div>
-              <p className="whitespace-pre-wrap text-sm text-muted">{en(t.body as JsonText, '')}</p>
+              <p className="max-w-prose whitespace-pre-wrap text-sm text-muted">{en(t.body as JsonText, '')}</p>
               {placeholders.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-1.5">
                   {placeholders.map((p) => (
@@ -84,7 +84,7 @@ export default async function NotificationsPage() {
         {!templates?.length && <p className="text-sm text-muted">No templates defined.</p>}
       </div>
 
-      <section className="rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="rounded-lg border border-line bg-paper p-5">
         <h2 className="mb-3 font-bold">Route an event to a template</h2>
         <ChannelRouteForm templateKeys={templateKeys} />
       </section>

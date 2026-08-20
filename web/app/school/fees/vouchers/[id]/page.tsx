@@ -25,12 +25,12 @@ export default async function VoucherDetailPage({ params }: { params: Promise<{ 
   const locale = lang === 'bn' ? 'bn-BD' : 'en-GB'
 
   return (
-    <main className="mx-auto w-full max-w-md flex-1 p-6">
+    <div>
       <div className="mb-4 flex items-center justify-between">
         <Link href="/school/fees/vouchers" aria-label={t('vouchers.title', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
       </div>
 
-      <section className="rounded-lg border border-line bg-paper p-6 shadow-card">
+      <section className="rounded-lg border border-line bg-paper p-6">
         <header className="mb-4 border-b border-line pb-3">
           <h1 className="text-lg font-extrabold">{voucher.voucher_no}</h1>
         </header>
@@ -73,6 +73,6 @@ export default async function VoucherDetailPage({ params }: { params: Promise<{ 
           )}
         </div>
       </section>
-    </main>
+    </div>
   )
 }

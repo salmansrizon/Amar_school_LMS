@@ -50,6 +50,7 @@ begin
   return new;
 end $$;
 
+drop trigger if exists publication_shift_same_school on public.publications;
 create trigger publication_shift_same_school
   before insert or update on public.publications
   for each row execute function public.enforce_publication_shift_school();
@@ -121,6 +122,7 @@ begin
   return new;
 end $$;
 
+drop trigger if exists gallery_photo_cap on public.gallery_photos;
 create trigger gallery_photo_cap
   before insert on public.gallery_photos
   for each row execute function public.enforce_gallery_photo_cap();

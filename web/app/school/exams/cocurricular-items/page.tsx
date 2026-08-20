@@ -19,7 +19,7 @@ export default async function CocurricularItemsPage() {
   const { data: items } = await supabase.from('cocurricular_items').select('id, label, sort_order')
 
   return (
-    <main className="mx-auto w-full max-w-2xl flex-1 p-6">
+    <div>
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold">{t('cocurricular.itemsTitle', lang)}</h1>
         <BackLink href="/school/exams" label={t('exams.title', lang)} />
@@ -27,13 +27,13 @@ export default async function CocurricularItemsPage() {
 
       <ExamsTabs active="/school/exams/cocurricular-items" lang={lang} />
 
-      <section className="mb-6 rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="mb-6 rounded-lg border border-line bg-paper p-5">
         <AddCocurricularItemForm lang={lang} />
       </section>
 
-      <section className="rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="rounded-lg border border-line bg-paper p-5">
         <CocurricularItemsList items={sortCocurricularItems(items ?? [])} lang={lang} />
       </section>
-    </main>
+    </div>
   )
 }

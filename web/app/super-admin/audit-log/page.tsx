@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { getSuperAdminContext } from '@/lib/super-admin/context'
+import { railClass, type Tone } from '@/components/ui/page'
 
 // Audit log viewer (#271 / audit engine 0078). Read-only platform trail: the
 // last 200 actions across explicit audit() calls and event-driven inserts.
@@ -13,16 +14,24 @@ export default async function AuditLogPage() {
     .limit(200)
 
   const actionTone: Record<string, string> = {
-    create: 'bg-emerald-50 text-emerald-700',
+    create: 'bg-mint-soft text-mint-deep',
     update: 'bg-sky-soft text-sky-deep',
     delete: 'bg-alert-soft text-alert-deep',
-    approve: 'bg-emerald-50 text-emerald-700',
+    approve: 'bg-mint-soft text-mint-deep',
     reject: 'bg-alert-soft text-alert-deep',
-    configure: 'bg-amber-50 text-amber-700',
+    configure: 'bg-sun-soft text-sun-deep',
+  }
+  const actionRail: Record<string, Tone> = {
+    create: 'mint',
+    update: 'sky',
+    delete: 'alert',
+    approve: 'mint',
+    reject: 'alert',
+    configure: 'sun',
   }
 
   return (
-    <main className="mx-auto w-full max-w-4xl flex-1 p-6">
+    <main className="w-full p-6">
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold">Audit Log</h1>
         <Link href="/super-admin" className="text-sm text-brand-600 hover:underline">
@@ -30,7 +39,7 @@ export default async function AuditLogPage() {
         </Link>
       </div>
 
-      <section className="rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="rounded-lg border border-line bg-paper p-5">
         <p className="mb-3 text-sm text-muted">Latest 200 recorded actions. Newest first.</p>
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
@@ -46,7 +55,7 @@ export default async function AuditLogPage() {
             <tbody className="divide-y divide-line">
               {rows?.map((r) => (
                 <tr key={r.id}>
-                  <td className="py-2 pr-4 whitespace-nowrap text-muted">
+                  <td className={`py-2 pr-4 whitespace-nowrap text-muted ${railClass(actionRail[r.action] ?? 'muted')}`}>
                     {new Date(r.created_at).toLocaleString('en-GB')}
                   </td>
                   <td className="py-2 pr-4">

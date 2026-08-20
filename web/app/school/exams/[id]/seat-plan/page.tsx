@@ -107,7 +107,7 @@ export default async function SeatPlanPage({
   const examLabel = `${exam.name} (${exam.exam_year})`
 
   return (
-    <main className="mx-auto w-full max-w-4xl flex-1 p-6">
+    <div>
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold">{t('seatPlan.title', lang)}</h1>
         <BackLink href={backHref} label={t('common.back', lang)} />
@@ -154,7 +154,7 @@ export default async function SeatPlanPage({
       )}
 
       {!exam.class_id ? (
-        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted shadow-card">
+        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted">
           {t('seatPlan.noClassSet', lang)}
         </p>
       ) : (
@@ -165,7 +165,7 @@ export default async function SeatPlanPage({
             </div>
           )}
 
-          <section className="rounded-lg border border-line bg-paper p-4 shadow-card">
+          <section className="rounded-lg border border-line bg-paper p-4">
             {!seatRows.length ? (
               <p className="text-sm text-muted">{t('seatPlan.none', lang)}</p>
             ) : (
@@ -184,6 +184,6 @@ export default async function SeatPlanPage({
           </section>
         </>
       )}
-    </main>
+    </div>
   )
 }

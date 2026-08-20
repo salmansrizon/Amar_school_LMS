@@ -8,6 +8,7 @@ import { classSectionLabel } from '@/lib/students'
 import { loadExamRosterResults } from '@/lib/exam-print-data'
 import { Badge } from '@/components/print/pieces'
 import { selectClass } from '@/components/ui/field'
+import { railClass } from '@/components/ui/page'
 import { BackLink } from '@/components/back-link'
 
 // Result Inquiry (issue #48, PRD §5.5), per ui/school-owner/result-inquiry.html
@@ -51,17 +52,17 @@ export default async function ResultInquiryPage({
 
   if (!exams?.length) {
     return (
-      <main className="mx-auto w-full max-w-4xl flex-1 p-6">
+      <div>
         {header}
-        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted shadow-card">{t('exams.none', lang)}</p>
-      </main>
+        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted">{t('exams.none', lang)}</p>
+      </div>
     )
   }
 
   const roster = await loadExamRosterResults(supabase, examId)
 
   const form = (
-    <Form className="card mb-4 grid gap-3 rounded-lg border border-line bg-paper p-5 shadow-card sm:grid-cols-4" action="/school/exams/result-inquiry">
+    <Form className="card mb-4 grid gap-3 rounded-lg border border-line bg-paper p-5 sm:grid-cols-4" action="/school/exams/result-inquiry">
       <div>
         <label className="mb-1 block text-xs font-semibold text-muted">{t('resultInquiry.exam', lang)}</label>
         <select name="exam" defaultValue={examId} className={selectClass({ fullWidth: true })}>
@@ -104,10 +105,10 @@ export default async function ResultInquiryPage({
 
   if (!roster) {
     return (
-      <main className="mx-auto w-full max-w-4xl flex-1 p-6">
+      <div>
         {header}
         {form}
-      </main>
+      </div>
     )
   }
   if (!roster.exam.class_id || !roster.scheme || !roster.rows.length) {
@@ -117,11 +118,11 @@ export default async function ResultInquiryPage({
         ? t('promotion.noScheme', lang)
         : t('markEntry.noStudents', lang)
     return (
-      <main className="mx-auto w-full max-w-4xl flex-1 p-6">
+      <div>
         {header}
         {form}
-        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted shadow-card">{message}</p>
-      </main>
+        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted">{message}</p>
+      </div>
     )
   }
 
@@ -145,10 +146,10 @@ export default async function ResultInquiryPage({
   const clsLabel = classSectionLabel(roster.cls?.name, roster.cls?.section) ?? '—'
 
   return (
-    <main className="mx-auto w-full max-w-4xl flex-1 p-6">
+    <div>
       {header}
       {form}
-      <section className="rounded-lg border border-line bg-paper p-4 shadow-card">
+      <section className="rounded-lg border border-line bg-paper p-4">
         {rows.length ? (
           <div className="overflow-x-auto">
             <table className="w-full min-w-160 text-sm">
@@ -168,7 +169,7 @@ export default async function ResultInquiryPage({
                   const passed = row.overall?.passed ?? false
                   return (
                     <tr key={row.studentId} className="border-b border-line">
-                      <td className="py-2 pr-2">{row.rollNumber ?? '—'}</td>
+                      <td className={`py-2 pr-2 ${railClass(passed ? 'mint' : 'alert')}`}>{row.rollNumber ?? '—'}</td>
                       <td className="py-2 pr-2 font-medium">{row.fullName}</td>
                       <td className="py-2 pr-2">{clsLabel}</td>
                       <td className="py-2 pr-2">
@@ -193,6 +194,6 @@ export default async function ResultInquiryPage({
           <p className="text-sm text-muted">{t('resultInquiry.noMatches', lang)}</p>
         )}
       </section>
-    </main>
+    </div>
   )
 }

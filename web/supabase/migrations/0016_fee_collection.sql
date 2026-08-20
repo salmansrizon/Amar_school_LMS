@@ -41,6 +41,7 @@ begin
   return new;
 end $$;
 
+drop trigger if exists fee_record_touch on public.fee_collection_records;
 create trigger fee_record_touch
   before update on public.fee_collection_records
   for each row execute function public.touch_fee_record();

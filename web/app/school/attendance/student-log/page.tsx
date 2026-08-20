@@ -53,7 +53,7 @@ export default async function StudentLogPage({
   }
 
   return (
-    <main className="mx-auto w-full max-w-4xl flex-1 p-6">
+    <div>
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold">{t('attendance.studentLogTitle', lang)}</h1>
         <Link
@@ -69,7 +69,7 @@ export default async function StudentLogPage({
 
       <AttendanceTabs active="/school/attendance/student-log" lang={lang} />
 
-      <Form className="mb-4 grid gap-3 rounded-lg border border-line bg-paper p-5 shadow-card sm:grid-cols-2" action="/school/attendance/student-log">
+      <Form className="mb-4 grid gap-3 rounded-lg border border-line bg-paper p-5 sm:grid-cols-2" action="/school/attendance/student-log">
         <div>
           <label className="mb-1 block text-xs font-semibold text-muted">{t('attendance.classSection', lang)}</label>
           <ClassSectionSelect
@@ -91,11 +91,11 @@ export default async function StudentLogPage({
       </Form>
 
       {!visible.length ? (
-        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted shadow-card">
+        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted">
           {t('attendance.none', lang)}
         </p>
       ) : (
-        <div className="overflow-x-auto rounded-lg border border-line bg-paper shadow-card">
+        <div className="overflow-x-auto rounded-lg border border-line bg-paper">
           <table className="w-full border-collapse">
             <thead>
               <tr className="border-b border-line-strong">
@@ -127,6 +127,6 @@ export default async function StudentLogPage({
           </table>
         </div>
       )}
-    </main>
+    </div>
   )
 }

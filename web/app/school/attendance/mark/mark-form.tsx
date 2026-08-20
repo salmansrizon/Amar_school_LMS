@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import { t, type Lang } from '@/lib/i18n'
 import { saveStudentAttendance } from '../manual-actions'
+import { railClass } from '@/components/ui/page'
 
 interface Row {
   id: string
@@ -64,7 +65,7 @@ export function MarkAttendanceForm({ lang, date, students }: { lang: Lang; date:
         </div>
       </div>
 
-      <div className="overflow-x-auto rounded-lg border border-line bg-paper shadow-card">
+      <div className="overflow-x-auto rounded-lg border border-line bg-paper">
         <table className="w-full border-collapse">
           <thead>
             <tr className="border-b border-line-strong">
@@ -78,7 +79,9 @@ export function MarkAttendanceForm({ lang, date, students }: { lang: Lang; date:
           <tbody>
             {rows.map((r) => (
               <tr key={r.id} className="border-b border-line">
-                <td className={tdClass}>{r.roll_number ?? <span className="text-muted">—</span>}</td>
+                <td className={`${tdClass} ${railClass(r.present ? 'mint' : 'alert')}`}>
+                  {r.roll_number ?? <span className="text-muted">—</span>}
+                </td>
                 <td className={`${tdClass} font-medium`}>{r.full_name}</td>
                 <td className={tdClass}>
                   <input
@@ -114,7 +117,7 @@ export function MarkAttendanceForm({ lang, date, students }: { lang: Lang; date:
         </table>
       </div>
 
-      <div className="mt-4 rounded-lg border border-line bg-paper p-4 shadow-card">
+      <div className="mt-4 rounded-lg border border-line bg-paper p-4">
         <p className="text-xs text-muted">{t('attendance.rfidNote', lang)}</p>
       </div>
 

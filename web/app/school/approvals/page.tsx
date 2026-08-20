@@ -23,7 +23,7 @@ export default async function ApprovalsPage() {
   const label = new Map((defs ?? []).map((d) => [d.key, (d as Labelled).label?.en ?? d.key]))
 
   return (
-    <main className="mx-auto w-full max-w-3xl flex-1 p-6">
+    <div>
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold">{t('approvals.title', lang)}</h1>
         <Link href="/school" className="text-sm text-brand-600 hover:underline">
@@ -31,7 +31,7 @@ export default async function ApprovalsPage() {
         </Link>
       </div>
 
-      <section className="rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="rounded-lg border border-line bg-paper p-5">
         <ul className="divide-y divide-line">
           {instances?.map((i) => (
             <li key={i.id} className="flex flex-wrap items-start justify-between gap-3 py-3">
@@ -48,6 +48,6 @@ export default async function ApprovalsPage() {
           {!instances?.length && <li className="py-6 text-center text-muted">{t('approvals.none', lang)}</li>}
         </ul>
       </section>
-    </main>
+    </div>
   )
 }
