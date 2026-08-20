@@ -1,0 +1,148 @@
+import { test, expect } from '../fixtures/roles'
+import { expectNoError } from '../helpers'
+import { ownerClient, createStudent } from './factories'
+
+// Class + Section dropdown consolidation (map #398, docs/011_student_module.md).
+// The doc's own acceptance checklist (§"Finally, verify all four locations")
+// is UI-shaped — dropdown loads, combinations are correct and deduped,
+// selection filters correctly, switching between combinations works — and
+// the pre-existing specs for these pages exercised the four target pages by
+// navigating straight to a `?classSection=` URL, never actually driving the
+// `<select name="classSection">` itself. This file closes that gap: one
+// thorough pass (label format, dedup, select, switch) on Mark Attendance,
+// since all four pages share the same `classSectionOptions` primitive, then
+// one focused select-and-filter check per remaining page.
+
+const FILTER = 'ফিল্টার' // classes.filter
+
+test.describe('@crud @school class-section-select', () => {
+  test('Mark Attendance: dropdown lists deduped "Class - Section" combos, selecting/switching filters the roster', async ({
+    ownerPage: page,
+  }) => {
+    const owner = await ownerClient()
+    const className = `E2E CS ${Date.now()}`
+    const sectionA = 'Morning - A' // deliberately contains " - " (map #398 decision: composite value must not split on it)
+    const sectionB = 'Day - B'
+    const labelA = `${className} - ${sectionA}`
+    const labelB = `${className} - ${sectionB}`
+
+    const studentA1 = await createStudent(owner, { className, section: sectionA })
+    const studentA2 = await createStudent(owner, { className, section: sectionA }) // same combo — must not duplicate the option
+    const studentB = await createStudent(owner, { className, section: sectionB })
+
+    await page.goto('/school/attendance/mark')
+    const select = page.locator('select[name="classSection"]')
+    await expect(select).toBeVisible()
+
+    // Combinations are correct and not duplicated: exactly one option per
+    // distinct class+section pair, regardless of how many students share it.
+    await expect(select.locator('option', { hasText: labelA })).toHaveCount(1)
+    await expect(select.locator('option', { hasText: labelB })).toHaveCount(1)
+
+    // Selection filters to just that combination's students. Asserting the
+    // exact encoded value (not just that the param name is present) catches
+    // a submit that silently lands on "All classes" instead of the intended
+    // combo.
+    const optionValueA = await select.locator('option', { hasText: labelA }).getAttribute('value')
+    await select.selectOption({ label: labelA })
+    await page.getByRole('button', { name: FILTER }).click()
+    await expect(page).toHaveURL(/classSection=/)
+    expect(new URL(page.url()).searchParams.get('classSection')).toBe(optionValueA)
+    await expect(page.locator('tr', { hasText: studentA1.name })).toBeVisible()
+    await expect(page.locator('tr', { hasText: studentA2.name })).toBeVisible()
+    await expect(page.locator('tr', { hasText: studentB.name })).toHaveCount(0)
+
+    // Switching to a different combination re-filters correctly — the exact
+    // regression MarkAttendanceForm's key fix (below) addresses: without a
+    // key tied to the filter, the roster's client-side state would keep
+    // showing the previous selection after a soft navigation.
+    await page.locator('select[name="classSection"]').selectOption({ label: labelB })
+    await page.getByRole('button', { name: FILTER }).click()
+    await expect(page.locator('tr', { hasText: studentB.name })).toBeVisible()
+    await expect(page.locator('tr', { hasText: studentA1.name })).toHaveCount(0)
+    await expect(page.locator('tr', { hasText: studentA2.name })).toHaveCount(0)
+    await expectNoError(page)
+
+    await studentA1.cleanup()
+    await studentA2.cleanup()
+    await studentB.cleanup()
+  })
+
+  test('Attendance Book: dropdown loads and filters the register grid', async ({ ownerPage: page }) => {
+    const owner = await ownerClient()
+    const className = `E2E CSBook ${Date.now()}`
+    const sectionA = 'A'
+    const sectionB = 'B'
+    const labelA = `${className} - ${sectionA}`
+    const studentA = await createStudent(owner, { className, section: sectionA })
+    const studentB = await createStudent(owner, { className, section: sectionB })
+
+    await page.goto('/school/attendance/book')
+    const select = page.locator('select[name="classSection"]')
+    await expect(select).toBeVisible()
+    await expect(select.locator('option', { hasText: labelA })).toHaveCount(1)
+
+    await select.selectOption({ label: labelA })
+    await page.getByRole('button', { name: FILTER }).click()
+    await expect(page).toHaveURL(/classSection=/)
+    // PaginatedSheet renders the same row twice (a hidden measurement copy for
+    // print pagination alongside the visible one, ADR 0007) — .first() targets
+    // the one actually on screen.
+    await expect(page.locator('tr', { hasText: studentA.name }).first()).toBeVisible()
+    await expect(page.locator('tr', { hasText: studentB.name })).toHaveCount(0)
+    await expectNoError(page)
+
+    await studentA.cleanup()
+    await studentB.cleanup()
+  })
+
+  test('Student Log finder: dropdown loads and filters the roster', async ({ ownerPage: page }) => {
+    const owner = await ownerClient()
+    const className = `E2E CSLog ${Date.now()}`
+    const sectionA = 'A'
+    const sectionB = 'B'
+    const labelA = `${className} - ${sectionA}`
+    const studentA = await createStudent(owner, { className, section: sectionA })
+    const studentB = await createStudent(owner, { className, section: sectionB })
+
+    await page.goto('/school/attendance/student-log')
+    const select = page.locator('select[name="classSection"]')
+    await expect(select).toBeVisible()
+    await expect(select.locator('option', { hasText: labelA })).toHaveCount(1)
+
+    await select.selectOption({ label: labelA })
+    await page.getByRole('button', { name: FILTER }).click()
+    await expect(page).toHaveURL(/classSection=/)
+    await expect(page.locator('tr', { hasText: studentA.name })).toBeVisible()
+    await expect(page.locator('tr', { hasText: studentB.name })).toHaveCount(0)
+    await expectNoError(page)
+
+    await studentA.cleanup()
+    await studentB.cleanup()
+  })
+
+  test('Students List: dropdown loads and filters the list', async ({ ownerPage: page }) => {
+    const owner = await ownerClient()
+    const className = `E2E CSStudents ${Date.now()}`
+    const sectionA = 'A'
+    const sectionB = 'B'
+    const labelA = `${className} - ${sectionA}`
+    const studentA = await createStudent(owner, { className, section: sectionA })
+    const studentB = await createStudent(owner, { className, section: sectionB })
+
+    await page.goto('/school/students')
+    const select = page.locator('select[name="classSection"]')
+    await expect(select).toBeVisible()
+    await expect(select.locator('option', { hasText: labelA })).toHaveCount(1)
+
+    await select.selectOption({ label: labelA })
+    await page.getByRole('button', { name: FILTER }).click()
+    await expect(page).toHaveURL(/classSection=/)
+    await expect(page.locator('tr', { hasText: studentA.name })).toBeVisible()
+    await expect(page.locator('tr', { hasText: studentB.name })).toHaveCount(0)
+    await expectNoError(page)
+
+    await studentA.cleanup()
+    await studentB.cleanup()
+  })
+})

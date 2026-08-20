@@ -108,7 +108,7 @@ export default async function MarkAttendancePage({
           {t('attendance.none', lang)}
         </p>
       ) : (
-        <MarkAttendanceForm lang={lang} date={date} students={initial} />
+        <MarkAttendanceForm key={`${classSection}-${date}`} lang={lang} date={date} students={initial} />
       )}
     </main>
   )
