@@ -9,6 +9,7 @@ import { SchoolSubscriptionControls } from './subscription-controls'
 import { SchoolManagement } from './school-management'
 import { CreateSchoolForm } from './create-school-form'
 import { EntityAvatar } from '@/components/entity-avatar'
+import { Pager, paginate } from '@/components/pager'
 import type { Tone } from '@/components/ui/page'
 
 // Super-admin schools manager (map #171 T4): the per-school ledger + control
@@ -37,10 +38,12 @@ const STATUS_RAIL: Record<LifecycleStatus, Tone> = {
   blocked: 'sun',
 }
 
-export default async function SchoolsPage() {
+export default async function SchoolsPage({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
   const lang = await currentLang()
+  const { page: pageParam } = await searchParams
   const { supabase } = await getSuperAdminContext()
   const schools = await loadSchoolsManager(supabase)
+  const { page, totalPages, total, items } = paginate(schools, pageParam, 10)
 
   return (
     <main className="w-full px-4 py-6 sm:px-6 lg:px-8">
@@ -60,7 +63,7 @@ export default async function SchoolsPage() {
       </section>
 
       <div className="mt-4 flex flex-col gap-4">
-        {schools.map((s) => (
+        {items.map((s) => (
           <SectionCard key={s.id} tone={STATUS_RAIL[s.status]}>
             <div className="mb-3 flex flex-wrap items-center gap-3">
               <EntityAvatar name={s.name} id={s.id} />
@@ -121,6 +124,8 @@ export default async function SchoolsPage() {
           </SectionCard>
         ))}
       </div>
+
+      <Pager page={page} totalPages={totalPages} total={total} lang={lang} />
     </main>
   )
 }

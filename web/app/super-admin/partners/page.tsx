@@ -4,10 +4,12 @@ import { t } from '@/lib/i18n'
 import { getSuperAdminContext } from '@/lib/super-admin/context'
 import { PageHeader, SectionCard } from '@/components/super-admin/dashboard-ui'
 import { EntityAvatar } from '@/components/entity-avatar'
+import { Pager, paginate } from '@/components/pager'
 import { CreateVendorForm } from './create-vendor-form'
 
-export default async function PartnersPage() {
+export default async function PartnersPage({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
   const lang = await currentLang()
+  const { page: pageParam } = await searchParams
   const { supabase } = await getSuperAdminContext()
 
   // Distributors only — Government Officials have their own surface (#164).
@@ -16,6 +18,7 @@ export default async function PartnersPage() {
     .select('id, full_name, role')
     .eq('role', 'distributor')
     .order('created_at')
+  const { page, totalPages, total, items } = paginate(partners ?? [], pageParam, 10)
 
   return (
     <main className="w-full px-4 py-6 sm:px-6 lg:px-8">
@@ -36,9 +39,9 @@ export default async function PartnersPage() {
 
       <section className="mt-4">
         <SectionCard title={t('partners.list', lang)} bodyClassName="p-2 sm:p-3">
-          {partners && partners.length > 0 ? (
+          {items.length > 0 ? (
             <ul className="flex flex-col gap-1">
-              {partners.map((p) => (
+              {items.map((p) => (
                 <li key={p.id}>
                   <Link
                     href={`/super-admin/partners/${p.id}`}
@@ -61,6 +64,7 @@ export default async function PartnersPage() {
           ) : (
             <p className="px-2 py-8 text-center text-sm text-muted">—</p>
           )}
+          <Pager page={page} totalPages={totalPages} total={total} lang={lang} />
         </SectionCard>
       </section>
     </main>
