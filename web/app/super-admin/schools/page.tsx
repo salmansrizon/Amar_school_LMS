@@ -8,6 +8,7 @@ import { PageHeader, SectionCard, formatTaka } from '@/components/super-admin/da
 import { SchoolSubscriptionControls } from './subscription-controls'
 import { SchoolManagement } from './school-management'
 import { CreateSchoolForm } from './create-school-form'
+import { EntityAvatar } from '@/components/entity-avatar'
 import type { Tone } from '@/components/ui/page'
 
 // Super-admin schools manager (map #171 T4): the per-school ledger + control
@@ -60,24 +61,21 @@ export default async function SchoolsPage() {
 
       <div className="mt-4 flex flex-col gap-4">
         {schools.map((s) => (
-          <SectionCard
-            key={s.id}
-            title={s.name}
-            tone={STATUS_RAIL[s.status]}
-            action={
-              <span className="flex flex-wrap items-center justify-end gap-2 text-sm">
-                <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${STATUS_STYLE[s.status]}`}>
-                  {t(STATUS_KEY[s.status], lang)}
-                </span>
-                <Link
-                  href={`/super-admin/schools/${s.id}`}
-                  className="rounded-full border border-line-strong px-3 py-0.5 text-xs font-semibold hover:bg-paper-muted"
-                >
-                  {t('sa.school.viewDetail', lang)}
-                </Link>
+          <SectionCard key={s.id} tone={STATUS_RAIL[s.status]}>
+            <div className="mb-3 flex flex-wrap items-center gap-3">
+              <EntityAvatar name={s.name} id={s.id} />
+              <h2 className="min-w-0 flex-1 truncate text-sm font-extrabold text-ink">{s.name}</h2>
+              <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${STATUS_STYLE[s.status]}`}>
+                {t(STATUS_KEY[s.status], lang)}
               </span>
-            }
-          >
+              <Link
+                href={`/super-admin/schools/${s.id}`}
+                className="rounded-full border border-line-strong px-3 py-0.5 text-xs font-semibold hover:bg-paper-muted"
+              >
+                {t('sa.school.viewDetail', lang)}
+              </Link>
+            </div>
+
             {/* Compact summary — the only thing shown at rest (docs/ui.md) */}
             <dl className="grid grid-cols-2 gap-2 sm:grid-cols-4">
               <Stat label={t('schools.subdomain', lang)} value={s.subdomain ?? '—'} mono />
