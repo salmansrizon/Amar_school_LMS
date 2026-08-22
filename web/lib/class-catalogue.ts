@@ -53,3 +53,20 @@ export function resolveClassCatalogueSelection(
   const match = options.find((o) => o.value === id)
   return match ? { className: match.className, section: match.section } : { className: '', section: '' }
 }
+
+/**
+ * The inverse of resolveClassCatalogueSelection: finds the Class Catalogue
+ * id for a given {className, section} pair, for a page that already holds
+ * the decoded filter and needs to rebuild a picker's value from it (e.g. a
+ * back-link to a page whose dropdown reads this id). Returns '' (the "All"
+ * value) when className is empty or no matching row exists.
+ */
+export function findClassCatalogueId(
+  options: ClassCatalogueOption[],
+  className: string,
+  section: string,
+): string {
+  if (!className) return ''
+  const match = options.find((o) => o.className === className && o.section === section)
+  return match?.value ?? ''
+}

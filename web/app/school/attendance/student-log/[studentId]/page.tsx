@@ -5,7 +5,7 @@ import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { dateRangeDays, studentLogDayStatus, type OffDay, type StudentLogDayStatus } from '@/lib/attendance-manual'
-import { classSectionKey } from '@/lib/class-section-options'
+import { classCatalogueOptions, findClassCatalogueId } from '@/lib/class-catalogue'
 import { dateInputClass } from '@/components/ui/field'
 import { PrintPage, InstituteHeader, PaginatedSheet, Badge } from '@/components/print/pieces'
 import { PrintButton } from '@/components/print/print-button'
@@ -71,11 +71,13 @@ export default async function StudentLogDetailPage({
   const lang: Lang = await currentLang()
   const { supabase } = await getSchoolContext()
 
-  const [{ data: student }, institute] = await Promise.all([
+  const [{ data: student }, institute, { data: classes }] = await Promise.all([
     supabase.from('students').select('id, full_name, class_name, section, roll_number').eq('id', studentId).maybeSingle(),
     loadInstitutePrintHeader(supabase, lang),
+    supabase.from('classes').select('id, name, section').order('created_at'),
   ])
   if (!student) notFound()
+  const classCombos = classCatalogueOptions(classes ?? [])
 
   const today = todayIso()
   const [yearStr, monthStr] = monthParam.split('-')
@@ -143,11 +145,12 @@ export default async function StudentLogDetailPage({
     .reverse() // newest first
 
   const backHref = (() => {
-    // The finder reads one composite `classSection` param (map #398); this
-    // page keeps its own `class`/`section` params for its month/custom-range
-    // forms below, so the two are translated only at this one boundary.
-    const key = className || section ? classSectionKey(className, section) : ''
-    return `/school/attendance/student-log${key ? `?classSection=${encodeURIComponent(key)}` : ''}`
+    // The finder reads one Class Catalogue id via its `classSection` param
+    // (map #421); this page keeps its own `class`/`section` text params for
+    // its month/custom-range forms below, so the two are translated only at
+    // this one boundary.
+    const id = findClassCatalogueId(classCombos, className, section)
+    return `/school/attendance/student-log${id ? `?classSection=${encodeURIComponent(id)}` : ''}`
   })()
 
   const modeHref = (mode: ViewMode) => {

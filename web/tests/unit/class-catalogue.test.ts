@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { classCatalogueOptions, resolveClassCatalogueSelection } from '@/lib/class-catalogue'
+import { classCatalogueOptions, resolveClassCatalogueSelection, findClassCatalogueId } from '@/lib/class-catalogue'
 
 const rows = [
   { id: 'id-nine-a', name: 'Nine', section: 'Morning - A' },
@@ -47,5 +47,25 @@ describe('resolveClassCatalogueSelection', () => {
 
   it('resolves an unmatched id to the "All" pair', () => {
     expect(resolveClassCatalogueSelection(options, 'does-not-exist')).toEqual({ className: '', section: '' })
+  })
+})
+
+describe('findClassCatalogueId', () => {
+  const options = classCatalogueOptions(rows)
+
+  it('finds the id for a matching class name and section', () => {
+    expect(findClassCatalogueId(options, 'Nine', 'Morning - A')).toBe('id-nine-a')
+  })
+
+  it('finds the id for a class with no section', () => {
+    expect(findClassCatalogueId(options, 'Ten', '')).toBe('id-ten')
+  })
+
+  it('returns the "All" value for an empty class name', () => {
+    expect(findClassCatalogueId(options, '', '')).toBe('')
+  })
+
+  it('returns the "All" value when no row matches', () => {
+    expect(findClassCatalogueId(options, 'Eleven', '')).toBe('')
   })
 })

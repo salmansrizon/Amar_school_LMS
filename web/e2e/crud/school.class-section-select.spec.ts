@@ -1,17 +1,21 @@
 import { test, expect } from '../fixtures/roles'
 import { expectNoError } from '../helpers'
-import { ownerClient, createStudent } from './factories'
+import { ownerClient, createClass, createStudent } from './factories'
 
-// Class + Section dropdown consolidation (map #398, docs/011_student_module.md).
-// The doc's own acceptance checklist (§"Finally, verify all four locations")
-// is UI-shaped — dropdown loads, combinations are correct and deduped,
-// selection filters correctly, switching between combinations works — and
-// the pre-existing specs for these pages exercised the four target pages by
+// Class + Section dropdown consolidation (map #398, docs/011_student_module.md;
+// Mark/Book/Student-log migrated to the Class Catalogue by map #421). The
+// doc's own acceptance checklist (§"Finally, verify all four locations") is
+// UI-shaped — dropdown loads, combinations are correct and deduped, selection
+// filters correctly, switching between combinations works — and the
+// pre-existing specs for these pages exercised the four target pages by
 // navigating straight to a `?classSection=` URL, never actually driving the
 // `<select name="classSection">` itself. This file closes that gap: one
-// thorough pass (label format, dedup, select, switch) on Mark Attendance,
-// since all four pages share the same `classSectionOptions` primitive, then
-// one focused select-and-filter check per remaining page.
+// thorough pass (label format, dedup, select, switch) on Mark Attendance, then
+// one focused select-and-filter check per remaining page. Mark/Book/
+// Student-log now read the Class Catalogue (`classes` table), not the roster,
+// so their sub-tests createClass() explicitly rather than relying on
+// createStudent() to imply one — Students List hasn't migrated yet (map #421)
+// and still only needs the roster.
 
 const FILTER = 'ফিল্টার' // classes.filter
 
@@ -26,6 +30,8 @@ test.describe('@crud @school class-section-select', () => {
     const labelA = `${className} - ${sectionA}`
     const labelB = `${className} - ${sectionB}`
 
+    const classA = await createClass(owner, { name: className, section: sectionA })
+    const classB = await createClass(owner, { name: className, section: sectionB })
     const studentA1 = await createStudent(owner, { className, section: sectionA })
     const studentA2 = await createStudent(owner, { className, section: sectionA }) // same combo — must not duplicate the option
     const studentB = await createStudent(owner, { className, section: sectionB })
@@ -66,6 +72,8 @@ test.describe('@crud @school class-section-select', () => {
     await studentA1.cleanup()
     await studentA2.cleanup()
     await studentB.cleanup()
+    await classA.cleanup()
+    await classB.cleanup()
   })
 
   test('Attendance Book: dropdown loads and filters the register grid', async ({ ownerPage: page }) => {
@@ -74,6 +82,8 @@ test.describe('@crud @school class-section-select', () => {
     const sectionA = 'A'
     const sectionB = 'B'
     const labelA = `${className} - ${sectionA}`
+    const classA = await createClass(owner, { name: className, section: sectionA })
+    const classB = await createClass(owner, { name: className, section: sectionB })
     const studentA = await createStudent(owner, { className, section: sectionA })
     const studentB = await createStudent(owner, { className, section: sectionB })
 
@@ -94,6 +104,8 @@ test.describe('@crud @school class-section-select', () => {
 
     await studentA.cleanup()
     await studentB.cleanup()
+    await classA.cleanup()
+    await classB.cleanup()
   })
 
   test('Student Log finder: dropdown loads and filters the roster', async ({ ownerPage: page }) => {
@@ -102,6 +114,8 @@ test.describe('@crud @school class-section-select', () => {
     const sectionA = 'A'
     const sectionB = 'B'
     const labelA = `${className} - ${sectionA}`
+    const classA = await createClass(owner, { name: className, section: sectionA })
+    const classB = await createClass(owner, { name: className, section: sectionB })
     const studentA = await createStudent(owner, { className, section: sectionA })
     const studentB = await createStudent(owner, { className, section: sectionB })
 
@@ -119,6 +133,8 @@ test.describe('@crud @school class-section-select', () => {
 
     await studentA.cleanup()
     await studentB.cleanup()
+    await classA.cleanup()
+    await classB.cleanup()
   })
 
   test('Students List: dropdown loads and filters the list', async ({ ownerPage: page }) => {
