@@ -3,9 +3,8 @@ import { t, type Lang } from '@/lib/i18n'
 import { formatTaka } from '@/lib/money'
 import { getSuperAdminContext } from '@/lib/super-admin/context'
 import { distributorKpis } from '@/lib/super-admin/distributor-view'
-import { SectionCard, KpiCard } from '@/components/super-admin/dashboard-ui'
+import { SectionCard } from '@/components/super-admin/dashboard-ui'
 import { EntityAvatar } from '@/components/entity-avatar'
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { AddAssignmentForm } from './[id]/assignment-controls'
 import { AssignmentList, type AssignmentRow } from './[id]/assignment-list'
 import { StatusControls } from './[id]/status-controls'
@@ -22,9 +21,9 @@ const STATUS_PILL: Record<string, string> = {
 type ActivityRow = { entity_type: string; entity_id: string; action: string; created_at: string }
 
 // The full distributor profile, self-fetching from its id — rendered inside the
-// master-detail right pane on /super-admin/partners (#418). Every distributor
-// section lives here (KPIs + KYC/status/territory/activity, with the edit
-// controls inline); there is no dedicated profile route any more.
+// master-detail right pane on /super-admin/partners (#418, simplified #419).
+// No tabs: identity → metrics → KYC & lifecycle → territory → activity, each
+// visible directly. There is no dedicated profile route.
 export async function DistributorDetail({ id, lang }: { id: string; lang: Lang }) {
   const { supabase } = await getSuperAdminContext()
 
@@ -86,7 +85,7 @@ export async function DistributorDetail({ id, lang }: { id: string; lang: Lang }
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Header */}
+      {/* 1 · Identity */}
       <SectionCard>
         <div className="flex flex-wrap items-center gap-3">
           <EntityAvatar name={partner.full_name ?? '?'} id={partner.id} size="lg" />
@@ -102,85 +101,71 @@ export async function DistributorDetail({ id, lang }: { id: string; lang: Lang }
         </div>
       </SectionCard>
 
-      {/* KPI tiles — all real data (revenue/notes have no source, omitted) */}
+      {/* 2 · Key metrics — neutral tiles (numbers prominent, no status colour) */}
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <KpiCard label="Total Schools" value={schoolsCount} tone="brand" />
-        <KpiCard label="Agents" value={agentsCount ?? 0} tone="green" />
-        <KpiCard label="Commission" value={formatTaka(kpis.commissionTotal)} tone="amber" />
-        <KpiCard label="Pending Settlement" value={formatTaka(kpis.pendingSettlement)} tone="rose" />
+        <Metric label="Total Schools" value={schoolsCount} />
+        <Metric label="Agents" value={agentsCount ?? 0} />
+        <Metric label="Commission" value={formatTaka(kpis.commissionTotal)} />
+        <Metric label="Pending Settlement" value={formatTaka(kpis.pendingSettlement)} />
       </div>
 
-      {/* flex-col: the shared Tabs primitive's data-horizontal:flex-col variant
-          is undefined in this repo's globals, so force the stack here. */}
-      <Tabs defaultValue="overview" className="flex-col">
-        <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="kyc">KYC &amp; Agreement</TabsTrigger>
-          <TabsTrigger value="territory">Territory</TabsTrigger>
-          <TabsTrigger value="activity">Activity</TabsTrigger>
-        </TabsList>
+      {/* 3 · KYC & Agreement + 4 · Lifecycle status — visible directly, no tabs */}
+      <SectionCard title="KYC & Agreement">
+        <dl className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
+          <Fact label="Trade License" value={profile?.trade_license ?? '—'} />
+          <Fact label="NID" value={profile?.nid ?? '—'} />
+          <Fact label="Agreement" value={agreement} />
+          <Fact label="Bank" value={hasBank ? 'Set' : '—'} />
+        </dl>
+        <div className="mt-4 border-t border-line/70 pt-4">
+          {profile ? (
+            <StatusControls distributor={partner.id} current={profile.status} />
+          ) : (
+            <p className="text-sm text-muted">No distributor profile record.</p>
+          )}
+        </div>
+      </SectionCard>
 
-        <TabsContent value="overview" className="mt-3">
-          <SectionCard title="At a glance">
-            <dl className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-              <Fact label="Status" value={status} />
-              <Fact label="Agreement" value={agreement} />
-              <Fact label={t('partners.assignments', lang)} value={String(assignmentRows.length)} />
-              <Fact label="Schools" value={String(schoolsCount)} />
-            </dl>
-          </SectionCard>
-        </TabsContent>
+      {/* Secondary · Territory */}
+      <SectionCard title={t('partners.assignments', lang)}>
+        <div className="mb-4">
+          <AddAssignmentForm
+            assigneeId={partner.id}
+            isDistributor={partner.role === 'distributor'}
+            locations={(locations ?? []) as LocationRow[]}
+            schools={schools ?? []}
+            lang={lang}
+          />
+        </div>
+        <AssignmentList assignments={assignmentRows} assigneeId={partner.id} lang={lang} />
+      </SectionCard>
 
-        <TabsContent value="kyc" className="mt-3">
-          <SectionCard title="KYC & lifecycle">
-            <dl className="mb-4 grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
-              <Fact label="Trade license" value={profile?.trade_license ?? '—'} />
-              <Fact label="NID" value={profile?.nid ?? '—'} />
-              <Fact label="Agreement" value={agreement} />
-              <Fact label="Bank" value={hasBank ? 'Set' : '—'} />
-            </dl>
-            {profile ? (
-              <StatusControls distributor={partner.id} current={profile.status} />
-            ) : (
-              <p className="text-sm text-muted">No distributor profile record.</p>
-            )}
-          </SectionCard>
-        </TabsContent>
+      {/* Secondary · Activity */}
+      <SectionCard title="Recent activity">
+        {activityRows.length > 0 ? (
+          <ul className="flex flex-col gap-2">
+            {activityRows.map((a, i) => (
+              <li key={i} className="flex items-center justify-between gap-3 border-b border-line/70 pb-2 text-sm last:border-0 last:pb-0">
+                <span className="font-medium text-ink">
+                  {a.action} · {a.entity_type}
+                </span>
+                <span className="shrink-0 text-xs text-muted">{new Date(a.created_at).toLocaleString('en-GB')}</span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="py-6 text-center text-sm text-muted">No activity yet.</p>
+        )}
+      </SectionCard>
+    </div>
+  )
+}
 
-        <TabsContent value="territory" className="mt-3">
-          <SectionCard title={t('partners.assignments', lang)}>
-            <div className="mb-4">
-              <AddAssignmentForm
-                assigneeId={partner.id}
-                isDistributor={partner.role === 'distributor'}
-                locations={(locations ?? []) as LocationRow[]}
-                schools={schools ?? []}
-                lang={lang}
-              />
-            </div>
-            <AssignmentList assignments={assignmentRows} assigneeId={partner.id} lang={lang} />
-          </SectionCard>
-        </TabsContent>
-
-        <TabsContent value="activity" className="mt-3">
-          <SectionCard title="Recent activity">
-            {activityRows.length > 0 ? (
-              <ul className="flex flex-col gap-2">
-                {activityRows.map((a, i) => (
-                  <li key={i} className="flex items-center justify-between gap-3 border-b border-line/70 pb-2 text-sm last:border-0 last:pb-0">
-                    <span className="font-medium text-ink">
-                      {a.action} · {a.entity_type}
-                    </span>
-                    <span className="shrink-0 text-xs text-muted">{new Date(a.created_at).toLocaleString('en-GB')}</span>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="py-6 text-center text-sm text-muted">No activity yet.</p>
-            )}
-          </SectionCard>
-        </TabsContent>
-      </Tabs>
+function Metric({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div className="rounded-lg border border-line bg-paper p-4 sm:p-5">
+      <div className="text-sm font-semibold text-muted">{label}</div>
+      <div className="mt-2 text-2xl font-extrabold tracking-tight text-ink sm:text-3xl">{value}</div>
     </div>
   )
 }
