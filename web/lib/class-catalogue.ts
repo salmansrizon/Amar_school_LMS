@@ -1,10 +1,10 @@
 // Shared Class Catalogue primitive (map #421): every screen that lets an
 // admin pick a Class reads the same `classes` table shape ({id, name,
-// section}) and needs the same value/label convention. This is the
-// catalogue-sourced counterpart to class-section-options.ts's roster-derived
-// combos — a Class appears here the moment it's created, whether or not any
-// Student is enrolled in it yet. Unlike that module, the option value is the
-// row's own id, so there's no need for a composite-key encoding: Class
+// section}) and needs the same value/label convention. A Class appears here
+// the moment it's created, whether or not any Student is enrolled in it yet —
+// this replaced an earlier roster-derived module (map #398) that only
+// surfaced combinations with an actual enrolled Student. The option value is
+// the row's own id, so there's no need for a composite-key encoding: Class
 // Resolution just looks the id back up in the same options list.
 
 export interface ClassCatalogueRow {
@@ -42,8 +42,8 @@ export function classCatalogueOptions(rows: ClassCatalogueRow[]): ClassCatalogue
 /**
  * Resolves a picked Class Catalogue id back into the exact `{className,
  * section}` text pair that filterRoster/filterStudents and their downstream
- * links already expect. An empty or unmatched id resolves to the "All"
- * pair (empty strings), the same fallback shape parseClassSectionKey('') used.
+ * links already expect. An empty or unmatched id resolves to the "All" pair
+ * (empty strings) — the same behavior as an absent filter.
  */
 export function resolveClassCatalogueSelection(
   options: ClassCatalogueOption[],

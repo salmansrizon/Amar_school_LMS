@@ -1,5 +1,5 @@
 import { selectClass, type FieldOptions } from './field'
-import type { ClassSectionOption } from '@/lib/class-section-options'
+import type { ClassCatalogueOption } from '@/lib/class-catalogue'
 
 // The one `<select name="classSection">` rendering shared by Mark Attendance,
 // Attendance Book, Student Log finder, and Students List (map #398) — each
@@ -13,7 +13,7 @@ export function ClassSectionSelect({
   size,
   fullWidth,
 }: {
-  combos: ClassSectionOption[]
+  combos: ClassCatalogueOption[]
   value: string
   ariaLabel: string
   allLabel: string

@@ -11,11 +11,10 @@ import { ownerClient, createClass, createStudent } from './factories'
 // navigating straight to a `?classSection=` URL, never actually driving the
 // `<select name="classSection">` itself. This file closes that gap: one
 // thorough pass (label format, dedup, select, switch) on Mark Attendance, then
-// one focused select-and-filter check per remaining page. Mark/Book/
-// Student-log now read the Class Catalogue (`classes` table), not the roster,
-// so their sub-tests createClass() explicitly rather than relying on
-// createStudent() to imply one — Students List hasn't migrated yet (map #421)
-// and still only needs the roster.
+// one focused select-and-filter check per remaining page. All four now read
+// the Class Catalogue (`classes` table), not the roster, so every sub-test
+// createClass()es explicitly rather than relying on createStudent() to imply
+// one.
 
 const FILTER = 'ফিল্টার' // classes.filter
 
@@ -142,13 +141,16 @@ test.describe('@crud @school class-section-select', () => {
     // (components/ui/select.tsx) rather than a native <select> — a client
     // component with instant filter-on-change, not a Filter-button GET form
     // like the other three pages. Interaction is trigger-click then
-    // option-click; the underlying option list still comes from the same
-    // classSectionOptions module, so the combos/labels themselves match.
+    // option-click; the underlying option list now comes from the Class
+    // Catalogue (map #421), same as the other three, so this needs a real
+    // classes row too, not just a student with a matching class/section text.
     const owner = await ownerClient()
     const className = `E2E CSStudents ${Date.now()}`
     const sectionA = 'A'
     const sectionB = 'B'
     const labelA = `${className} - ${sectionA}`
+    const classA = await createClass(owner, { name: className, section: sectionA })
+    const classB = await createClass(owner, { name: className, section: sectionB })
     const studentA = await createStudent(owner, { className, section: sectionA })
     const studentB = await createStudent(owner, { className, section: sectionB })
 
@@ -166,6 +168,8 @@ test.describe('@crud @school class-section-select', () => {
 
     await studentA.cleanup()
     await studentB.cleanup()
+    await classA.cleanup()
+    await classB.cleanup()
   })
 
   test('renders in English when the language cookie is set to en', async ({ ownerPage: page }) => {
