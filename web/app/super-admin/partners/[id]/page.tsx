@@ -4,9 +4,20 @@ import { type LocationRow } from '@/lib/locations'
 import { currentLang } from '@/lib/i18n-server'
 import { t } from '@/lib/i18n'
 import { getSuperAdminContext } from '@/lib/super-admin/context'
+import { SectionCard } from '@/components/super-admin/dashboard-ui'
+import { EntityAvatar } from '@/components/entity-avatar'
 import { AddAssignmentForm } from './assignment-controls'
 import { AssignmentList, type AssignmentRow } from './assignment-list'
 import { StatusControls } from './status-controls'
+
+// Distributor status → the super-admin status-pill palette (same tokens the
+// schools cards use), so status reads consistently across the panel.
+const STATUS_PILL: Record<string, string> = {
+  active: 'bg-mint-soft text-mint-deep',
+  approved: 'bg-mint-soft text-mint-deep',
+  pending: 'bg-sun-soft text-sun-deep',
+  suspended: 'bg-alert-soft text-alert-deep',
+}
 
 export default async function PartnerAssignmentsPage({
   params,
@@ -42,66 +53,78 @@ export default async function PartnerAssignmentsPage({
         .maybeSingle(),
     ])
 
+  const status = profile?.status ?? 'pending'
+  const assignmentRows = (assignments ?? []) as AssignmentRow[]
+  const agreement = `${profile?.agreement_status ?? 'pending'}${
+    profile?.agreement_signed_at ? ` · ${new Date(profile.agreement_signed_at).toLocaleDateString('en-GB')}` : ''
+  }`
+  const hasBank = !!(profile?.bank_details && Object.keys(profile.bank_details).length)
+
   return (
-    <main className="w-full p-6">
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-extrabold">
-          {t('partners.assignments', lang)} — {partner.full_name}
-        </h1>
-        <Link href="/super-admin/partners" className="text-sm text-brand-600 hover:underline">
-          ← {t('partners.list', lang)}
-        </Link>
-      </div>
-
-      <section className="mb-6 rounded-lg border border-line bg-paper p-5">
-        <h2 className="mb-3 font-bold">KYC &amp; lifecycle</h2>
-        <dl className="mb-4 grid grid-cols-2 gap-3 text-sm">
-          <div>
-            <dt className="text-muted">Trade license</dt>
-            <dd className="font-medium">{profile?.trade_license ?? '—'}</dd>
+    <main className="w-full px-4 py-6 sm:px-6 lg:px-8">
+      {/* Profile header — avatar + name + status, and a summary strip of the
+          existing KYC/assignment facts (no new data). */}
+      <SectionCard>
+        <div className="flex flex-wrap items-center gap-3">
+          <EntityAvatar name={partner.full_name ?? '?'} id={partner.id} size="lg" />
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="truncate text-xl font-extrabold text-ink">{partner.full_name ?? partner.id}</h1>
+              <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${STATUS_PILL[status] ?? 'bg-paper-muted text-muted'}`}>
+                {status}
+              </span>
+            </div>
+            <p className="truncate text-sm text-muted">{t('partners.distributor', lang)}</p>
           </div>
-          <div>
-            <dt className="text-muted">NID</dt>
-            <dd className="font-medium">{profile?.nid ?? '—'}</dd>
-          </div>
-          <div>
-            <dt className="text-muted">Agreement</dt>
-            <dd className="font-medium">
-              {profile?.agreement_status ?? 'pending'}
-              {profile?.agreement_signed_at
-                ? ` · ${new Date(profile.agreement_signed_at).toLocaleDateString('en-GB')}`
-                : ''}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-muted">Bank</dt>
-            <dd className="font-medium">
-              {profile?.bank_details && Object.keys(profile.bank_details).length
-                ? JSON.stringify(profile.bank_details)
-                : '—'}
-            </dd>
-          </div>
+          <Link href="/super-admin/partners" className="shrink-0 text-sm font-semibold text-brand-600 hover:underline">
+            ← {t('partners.list', lang)}
+          </Link>
+        </div>
+        <dl className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <Fact label="Agreement" value={agreement} />
+          <Fact label="Trade license" value={profile?.trade_license ?? '—'} />
+          <Fact label="NID" value={profile?.nid ?? '—'} />
+          <Fact label={t('partners.assignments', lang)} value={String(assignmentRows.length)} />
         </dl>
-        {profile ? (
-          <StatusControls distributor={partner.id} current={profile.status} />
-        ) : (
-          <p className="text-sm text-muted">No distributor profile record.</p>
-        )}
-      </section>
+      </SectionCard>
 
-      <section className="mb-6 rounded-lg border border-line bg-paper p-5">
-        <AddAssignmentForm
-          assigneeId={partner.id}
-          isDistributor={partner.role === 'distributor'}
-          locations={(locations ?? []) as LocationRow[]}
-          schools={schools ?? []}
-          lang={lang}
-        />
-      </section>
+      <div className="mt-4 flex flex-col gap-4">
+        <SectionCard title="KYC & lifecycle">
+          <dl className="mb-4 grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
+            <Fact label="Trade license" value={profile?.trade_license ?? '—'} />
+            <Fact label="NID" value={profile?.nid ?? '—'} />
+            <Fact label="Agreement" value={agreement} />
+            <Fact label="Bank" value={hasBank ? 'Set' : '—'} />
+          </dl>
+          {profile ? (
+            <StatusControls distributor={partner.id} current={profile.status} />
+          ) : (
+            <p className="text-sm text-muted">No distributor profile record.</p>
+          )}
+        </SectionCard>
 
-      <section className="rounded-lg border border-line bg-paper p-5">
-        <AssignmentList assignments={(assignments ?? []) as AssignmentRow[]} assigneeId={partner.id} lang={lang} />
-      </section>
+        <SectionCard title={t('partners.assignments', lang)}>
+          <div className="mb-4">
+            <AddAssignmentForm
+              assigneeId={partner.id}
+              isDistributor={partner.role === 'distributor'}
+              locations={(locations ?? []) as LocationRow[]}
+              schools={schools ?? []}
+              lang={lang}
+            />
+          </div>
+          <AssignmentList assignments={assignmentRows} assigneeId={partner.id} lang={lang} />
+        </SectionCard>
+      </div>
     </main>
+  )
+}
+
+function Fact({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-md border border-line bg-paper-muted px-3 py-2">
+      <dt className="text-[11px] font-semibold text-muted">{label}</dt>
+      <dd className="truncate text-sm font-bold text-ink">{value}</dd>
+    </div>
   )
 }
