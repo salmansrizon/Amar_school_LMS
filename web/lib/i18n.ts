@@ -333,6 +333,8 @@ const dict = {
   'pager.total': { bn: 'মোট', en: 'Total' },
   'pager.prev': { bn: 'আগের পাতা', en: 'Previous page' },
   'pager.next': { bn: 'পরের পাতা', en: 'Next page' },
+  'partners.search': { bn: 'নাম দিয়ে খুঁজুন…', en: 'Search by name…' },
+  'partners.viewProfile': { bn: 'সম্পূর্ণ প্রোফাইল', en: 'Full profile' },
   'sa.school.monthsPaid': { bn: 'পরিশোধিত মাস', en: 'Months paid' },
   'sa.school.totalPaid': { bn: 'মোট পরিশোধ', en: 'Total paid' },
   'sa.school.lastPaid': { bn: 'সর্বশেষ মূল্য', en: 'Last paid' },
