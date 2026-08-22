@@ -4,6 +4,7 @@ import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { formatBytes } from '@/lib/routine'
 import { SyllabusRow } from './syllabus-controls'
+import { classCatalogueLabel } from '@/lib/class-catalogue'
 
 // Layout per ui/school-owner/syllabus-upload.html: the "Existing Syllabus
 // Files" table (Class | Current File | Uploaded On | Size | Actions), one row
@@ -56,7 +57,7 @@ export default async function SyllabusPage() {
                     <SyllabusRow
                       key={c.id}
                       classId={c.id}
-                      classLabel={`${c.name}${c.section ? ` - ${c.section}` : ''}`}
+                      classLabel={classCatalogueLabel(c)}
                       fileName={s?.file_name ?? null}
                       uploadedOn={
                         s?.uploaded_at ? new Date(s.uploaded_at).toLocaleDateString(locale) : null

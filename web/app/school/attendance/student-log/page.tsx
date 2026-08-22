@@ -4,7 +4,7 @@ import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { filterRoster } from '@/lib/attendance-manual'
-import { classCatalogueOptions, resolveClassCatalogueSelection } from '@/lib/class-catalogue'
+import { resolveClassSection } from '@/lib/class-catalogue'
 import { AttendanceTabs } from '../attendance-tabs'
 import { ClassSectionSelect } from '@/components/ui/class-section-select'
 
@@ -34,8 +34,7 @@ export default async function StudentLogPage({
     supabase.from('classes').select('id, name, section').order('created_at'),
   ])
   const roster = students ?? []
-  const combos = classCatalogueOptions(classes ?? [])
-  const { className, section } = resolveClassCatalogueSelection(combos, classSection)
+  const { combos, className, section } = resolveClassSection(classes ?? [], classSection)
 
   // filterRoster owns the sort (roll number, then name for unrolled students);
   // it drops class_name/section from its return shape, so those are recovered

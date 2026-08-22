@@ -61,6 +61,21 @@ export function resolveClassCatalogueSelection(
 }
 
 /**
+ * Convenience wrapper for the four screens that need both a Class Catalogue
+ * picker's options (to render) and the currently selected {className,
+ * section} pair (to filter) from the same raw fetch — one call instead of
+ * two, and one less place a caller could resolve against a different combos
+ * array than the one it renders.
+ */
+export function resolveClassSection(
+  rows: ClassCatalogueRow[],
+  id: string,
+): { combos: ClassCatalogueOption[]; className: string; section: string } {
+  const combos = classCatalogueOptions(rows)
+  return { combos, ...resolveClassCatalogueSelection(combos, id) }
+}
+
+/**
  * The inverse of resolveClassCatalogueSelection: finds the Class Catalogue
  * id for a given {className, section} pair, for a page that already holds
  * the decoded filter and needs to rebuild a picker's value from it (e.g. a

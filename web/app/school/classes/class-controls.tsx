@@ -6,7 +6,7 @@ import { t, type Lang } from '@/lib/i18n'
 import { addClass, addSubject, removeItem } from './actions'
 import { selectClass } from '@/components/ui/field'
 import { ConfirmDialog } from '@/components/confirm-dialog'
-import type { ClassCatalogueRow } from '@/lib/class-catalogue'
+import { classCatalogueLabel, type ClassCatalogueRow } from '@/lib/class-catalogue'
 
 function useSubmit(action: (data: FormData) => Promise<{ error?: string }>) {
   const [error, setError] = useState<string | null>(null)
@@ -71,8 +71,7 @@ export function AddSubjectForm({
           </option>
           {classes.map((c) => (
             <option key={c.id} value={c.id}>
-              {c.name}
-              {c.section ? ` — ${c.section}` : ''}
+              {classCatalogueLabel(c)}
             </option>
           ))}
         </select>

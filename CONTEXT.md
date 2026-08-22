@@ -56,10 +56,6 @@ _Avoid_: Buffer, tolerance (use "grace" consistently, matching legacy "considera
 The complete set of Classes defined for a School (the `classes` table) — one entry per class+section combination that exists, whether or not any Student is currently enrolled in it. The source of truth for "what Classes exist"; a Class appears here the moment it's created, before any Student is admitted into it.
 _Avoid_: Class list, classes (ambiguous with the DB table name in prose)
 
-**Enrolled Combination**:
-A class+section pairing that currently has at least one enrolled Student — derived from the Student roster, not from the Class Catalogue directly. A freshly created Class with no Students yet is in the Class Catalogue but is not yet an Enrolled Combination.
-_Avoid_: Roster (reserved for the enrolled-Student list itself, not this derived class+section pairing)
-
 **Exam Basic Info**:
 The minimum configuration an Exam needs before it can be worked with: a Class and a Grading Scheme. An Exam missing either is not yet workable — marks cannot be entered against it and none of its documents can be produced. Not a workflow state or a stored flag: it is simply whether both values are set on the Exam. Co-curricular entry is the one exception, needing only the Class.
 _Avoid_: Draft, incomplete, unconfigured (imply a stored status; there is none)

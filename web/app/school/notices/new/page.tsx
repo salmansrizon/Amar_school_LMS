@@ -4,6 +4,7 @@ import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { NoticeTabs } from '../notice-tabs'
 import { CreateNoticeForm } from './create-form'
+import { classNamesFor, sectionsForClass } from '@/lib/students'
 
 // Layout per ui/school-owner/notice-create.html: Type/Importance/Title, a
 // Target Audience selector that reveals Class/Section pickers when
@@ -15,8 +16,8 @@ export default async function CreateNoticePage() {
   const [{ data: classes }] = await Promise.all([
     supabase.from('classes').select('name, section').order('name'),
   ])
-  const classNames = [...new Set((classes ?? []).map((c) => c.name))]
-  const sections = [...new Set((classes ?? []).map((c) => c.section).filter(Boolean))] as string[]
+  const classNames = classNamesFor(classes ?? [])
+  const sections = sectionsForClass(classes ?? [], '')
 
   return (
     <div>

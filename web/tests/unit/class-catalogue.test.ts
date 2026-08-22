@@ -4,6 +4,7 @@ import {
   resolveClassCatalogueSelection,
   findClassCatalogueId,
   classCatalogueLabel,
+  resolveClassSection,
 } from '@/lib/class-catalogue'
 
 const rows = [
@@ -72,6 +73,24 @@ describe('findClassCatalogueId', () => {
 
   it('returns the "All" value when no row matches', () => {
     expect(findClassCatalogueId(options, 'Eleven', '')).toBe('')
+  })
+})
+
+describe('resolveClassSection', () => {
+  it('returns the same combos classCatalogueOptions would, plus the resolved selection', () => {
+    expect(resolveClassSection(rows, 'id-nine-a')).toEqual({
+      combos: classCatalogueOptions(rows),
+      className: 'Nine',
+      section: 'Morning - A',
+    })
+  })
+
+  it('resolves an empty id to the "All" pair alongside the combos', () => {
+    expect(resolveClassSection(rows, '')).toEqual({
+      combos: classCatalogueOptions(rows),
+      className: '',
+      section: '',
+    })
   })
 })
 

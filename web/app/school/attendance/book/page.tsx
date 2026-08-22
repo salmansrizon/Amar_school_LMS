@@ -9,7 +9,7 @@ import {
   registerDayStatus,
   type OffDay,
 } from '@/lib/attendance-manual'
-import { classCatalogueOptions, resolveClassCatalogueSelection } from '@/lib/class-catalogue'
+import { resolveClassSection } from '@/lib/class-catalogue'
 import { PrintPage, InstituteHeader, PaginatedSheet } from '@/components/print/pieces'
 import { PrintButton } from '@/components/print/print-button'
 import { AttendanceTabs } from '../attendance-tabs'
@@ -64,8 +64,7 @@ export default async function AttendanceBookPage({
     supabase.from('classes').select('id, name, section').order('created_at'),
   ])
   const roster = students ?? []
-  const combos = classCatalogueOptions(classes ?? [])
-  const { className, section } = resolveClassCatalogueSelection(combos, classSection)
+  const { combos, className, section } = resolveClassSection(classes ?? [], classSection)
   const visible = filterRoster(roster, className, section)
   const visibleIds = visible.map((s) => s.id)
 

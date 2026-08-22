@@ -3,7 +3,7 @@ import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { filterStudents, behaviourAverages } from '@/lib/students'
-import { classCatalogueOptions, resolveClassCatalogueSelection } from '@/lib/class-catalogue'
+import { resolveClassSection } from '@/lib/class-catalogue'
 import { Badge } from '@/components/ui/badge'
 import {
   Table,
@@ -53,8 +53,7 @@ export default async function StudentsPage({
     supabase.from('classes').select('id, name, section').order('created_at'),
   ])
 
-  const combos = classCatalogueOptions(classes ?? [])
-  const { className: klass, section } = resolveClassCatalogueSelection(combos, classSection)
+  const { combos, className: klass, section } = resolveClassSection(classes ?? [], classSection)
   const visible = filterStudents(students ?? [], q, klass, section)
   const avgs = behaviourAverages(ratings ?? [])
 

@@ -4,7 +4,7 @@ import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { filterRoster } from '@/lib/attendance-manual'
-import { classCatalogueOptions, resolveClassCatalogueSelection } from '@/lib/class-catalogue'
+import { resolveClassSection } from '@/lib/class-catalogue'
 import { AttendanceTabs } from '../attendance-tabs'
 import { MarkAttendanceForm } from './mark-form'
 import { dateInputClass } from '@/components/ui/field'
@@ -35,8 +35,7 @@ export default async function MarkAttendancePage({
     supabase.from('classes').select('id, name, section').order('created_at'),
   ])
   const roster = students ?? []
-  const combos = classCatalogueOptions(classes ?? [])
-  const { className, section } = resolveClassCatalogueSelection(combos, classSection)
+  const { combos, className, section } = resolveClassSection(classes ?? [], classSection)
   const visible = filterRoster(roster, className, section)
   const visibleIds = visible.map((s) => s.id)
 
