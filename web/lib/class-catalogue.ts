@@ -21,21 +21,27 @@ export interface ClassCatalogueOption {
 }
 
 /**
+ * The `{class} - {section}` label convention used everywhere a Class
+ * Catalogue row is displayed — the one place this formatting lives.
+ */
+export function classCatalogueLabel(row: { name: string; section: string | null }): string {
+  return row.name + (row.section ? ` - ${row.section}` : '')
+}
+
+/**
  * One option per Class Catalogue row (including classes with zero enrolled
- * students), value = classes.id, label matching the `{class} - {section}`
- * convention already used across the app. Sorted by class name then section.
+ * students), value = classes.id. Sorted by class name then section — screens
+ * that must preserve their existing row order (e.g. Exams' creation-order
+ * list) should use classCatalogueLabel directly instead of this.
  */
 export function classCatalogueOptions(rows: ClassCatalogueRow[]): ClassCatalogueOption[] {
   return rows
-    .map((row) => {
-      const section = row.section ?? ''
-      return {
-        value: row.id,
-        className: row.name,
-        section,
-        label: row.name + (section ? ` - ${section}` : ''),
-      }
-    })
+    .map((row) => ({
+      value: row.id,
+      className: row.name,
+      section: row.section ?? '',
+      label: classCatalogueLabel(row),
+    }))
     .sort((a, b) => a.className.localeCompare(b.className) || a.section.localeCompare(b.section))
 }
 

@@ -5,13 +5,13 @@ import { getSchoolContext } from '@/lib/school/context'
 import {
   AddCombinationForm,
   CombinationCard,
-  type ClassOption,
   type CombinationRow,
   type ExamOption,
   type MemberRow,
   type SchemeOption,
 } from './combination-controls'
 import { BackLink } from '@/components/back-link'
+import { classCatalogueLabel, type ClassCatalogueRow } from '@/lib/class-catalogue'
 
 // Multi-exam combination (issue #32, PRD §5.5): a named recipe for combining
 // several exams — 'sum' (raw marks add together) or 'weighted_percentage'
@@ -64,14 +64,14 @@ export default async function ExamCombinationsPage() {
 
       <section className="mb-6 rounded-lg border border-line bg-paper p-5">
         <h2 className="mb-3 font-bold">{t('combinations.add', lang)}</h2>
-        <AddCombinationForm classes={(classes ?? []) as ClassOption[]} schemes={(schemes ?? []) as SchemeOption[]} lang={lang} />
+        <AddCombinationForm classes={(classes ?? []) as ClassCatalogueRow[]} schemes={(schemes ?? []) as SchemeOption[]} lang={lang} />
       </section>
 
       <section className="space-y-4">
         {!combinations?.length && <p className="text-sm text-muted">{t('combinations.none', lang)}</p>}
         {combinations?.map((c) => {
           const cls = classById.get(c.class_id ?? '')
-          const classLabel = cls ? `${cls.name}${cls.section ? ` - ${cls.section}` : ''}` : null
+          const classLabel = cls ? classCatalogueLabel(cls) : null
           return (
             <CombinationCard
               key={c.id}

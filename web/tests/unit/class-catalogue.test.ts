@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest'
-import { classCatalogueOptions, resolveClassCatalogueSelection, findClassCatalogueId } from '@/lib/class-catalogue'
+import {
+  classCatalogueOptions,
+  resolveClassCatalogueSelection,
+  findClassCatalogueId,
+  classCatalogueLabel,
+} from '@/lib/class-catalogue'
 
 const rows = [
   { id: 'id-nine-a', name: 'Nine', section: 'Morning - A' },
@@ -67,5 +72,19 @@ describe('findClassCatalogueId', () => {
 
   it('returns the "All" value when no row matches', () => {
     expect(findClassCatalogueId(options, 'Eleven', '')).toBe('')
+  })
+})
+
+describe('classCatalogueLabel', () => {
+  it('joins class name and section with " - "', () => {
+    expect(classCatalogueLabel({ name: 'Nine', section: 'Morning - A' })).toBe('Nine - Morning - A')
+  })
+
+  it('returns just the class name when section is null', () => {
+    expect(classCatalogueLabel({ name: 'Ten', section: null })).toBe('Ten')
+  })
+
+  it('returns just the class name when section is an empty string', () => {
+    expect(classCatalogueLabel({ name: 'Ten', section: '' })).toBe('Ten')
   })
 })

@@ -11,12 +11,7 @@ import { ExamDocumentsModal } from '../exam-documents-modal'
 import { withOrigin } from '@/lib/back-nav'
 import { assignSubjectTeacher, setExamGradingScheme, updateExamBasicInfo } from './actions'
 import { dateInputClass, selectClass } from '@/components/ui/field'
-
-export interface ClassOption {
-  id: string
-  name: string
-  section: string | null
-}
+import { classCatalogueLabel, type ClassCatalogueRow } from '@/lib/class-catalogue'
 
 export interface SchemeOption {
   id: string
@@ -122,7 +117,7 @@ export function BasicInfoForm({
   examYear: number
   classId: string | null
   startDate: string | null
-  classes: ClassOption[]
+  classes: ClassCatalogueRow[]
   disabled: boolean
   lang: Lang
 }) {
@@ -154,8 +149,7 @@ export function BasicInfoForm({
           <option value="">{t('exams.allClasses', lang)}</option>
           {classes.map((c) => (
             <option key={c.id} value={c.id}>
-              {c.name}
-              {c.section ? ` - ${c.section}` : ''}
+              {classCatalogueLabel(c)}
             </option>
           ))}
         </select>

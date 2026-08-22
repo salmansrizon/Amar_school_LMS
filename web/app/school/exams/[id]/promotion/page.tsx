@@ -23,12 +23,12 @@ import {
   GraduatingSection,
   PromotionTable,
   ResultControlsBar,
-  type ClassOption,
   type CombinationOption,
   type PromotionStudentRow,
 } from './promotion-controls'
 import { BackLink } from '@/components/back-link'
 import { resolveBackHref } from '@/lib/back-nav'
+import type { ClassCatalogueRow } from '@/lib/class-catalogue'
 
 // Layout per ui/school-owner/promotion-transfer.html: result-source + rank-
 // basis toolbar over the Promote-selected table, with the Graduating Batch /
@@ -273,7 +273,7 @@ export default async function PromotionPage({
         <PromotionTable
           examId={exam.id}
           rows={rows}
-          classes={(allClasses ?? []) as ClassOption[]}
+          classes={(allClasses ?? []) as ClassCatalogueRow[]}
           currentClassName={cls?.name ?? null}
           lang={lang}
         />

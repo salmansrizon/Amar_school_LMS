@@ -9,13 +9,13 @@ import {
   ExamHeader,
   GradingSchemeSelect,
   SubjectTeacherTable,
-  type ClassOption,
   type SchemeOption,
   type SubjectRow,
   type TeacherOption,
 } from './setup-controls'
 import { BackLink } from '@/components/back-link'
 import { resolveBackHref, selfOrigin } from '@/lib/back-nav'
+import type { ClassCatalogueRow } from '@/lib/class-catalogue'
 
 // Layout per ui/school-owner/exam-setup.html: Basic Info + Grading Scheme
 // cards (the latter picks one of #31's reusable named schemes rather than
@@ -99,7 +99,7 @@ export default async function ExamSetupPage({
           examYear={exam.exam_year}
           classId={exam.class_id}
           startDate={exam.start_date}
-          classes={(classes ?? []) as ClassOption[]}
+          classes={(classes ?? []) as ClassCatalogueRow[]}
           disabled={closed}
           lang={lang}
         />

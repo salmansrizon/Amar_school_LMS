@@ -6,12 +6,7 @@ import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
 import { t, type Lang } from '@/lib/i18n'
 import { addCombination, addCombinationMember, removeCombination, removeCombinationMember } from './actions'
 import { selectClass } from '@/components/ui/field'
-
-export interface ClassOption {
-  id: string
-  name: string
-  section: string | null
-}
+import { classCatalogueLabel, type ClassCatalogueRow } from '@/lib/class-catalogue'
 
 export interface SchemeOption {
   id: string
@@ -44,7 +39,7 @@ export function AddCombinationForm({
   schemes,
   lang,
 }: {
-  classes: ClassOption[]
+  classes: ClassCatalogueRow[]
   schemes: SchemeOption[]
   lang: Lang
 }) {
@@ -84,8 +79,7 @@ export function AddCombinationForm({
           <option value="">{t('combinations.anyClass', lang)}</option>
           {classes.map((c) => (
             <option key={c.id} value={c.id}>
-              {c.name}
-              {c.section ? ` - ${c.section}` : ''}
+              {classCatalogueLabel(c)}
             </option>
           ))}
         </select>
