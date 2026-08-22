@@ -7,6 +7,7 @@ import { AccountingTabs } from './accounting-tabs'
 import { FeeForm, type CollectStudent, type ExistingFeeRecord } from './fee-form'
 import { selectClass } from '@/components/ui/field'
 import { railClass } from '@/components/ui/page'
+import { classCatalogueLabel } from '@/lib/class-catalogue'
 
 // Layout per ui/school-owner/fee-collection.html: toolbar (search + Class +
 // Month filters) over a roster table (Roll | Name | Class/Section | Month |
@@ -116,8 +117,7 @@ export default async function FeesPage({
           <option value="">{t('fees.allClasses', lang)}</option>
           {classes?.map((c) => (
             <option key={c.id} value={c.id}>
-              {c.name}
-              {c.section ? ` - ${c.section}` : ''}
+              {classCatalogueLabel(c)}
             </option>
           ))}
         </select>

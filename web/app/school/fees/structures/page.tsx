@@ -4,7 +4,8 @@ import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { AccountingTabs } from '../accounting-tabs'
-import { FeeStructureForm, CopyFeeStructureForm, type ClassOption } from './structure-controls'
+import { FeeStructureForm, CopyFeeStructureForm } from './structure-controls'
+import { classCatalogueLabel, type ClassCatalogueRow } from '@/lib/class-catalogue'
 
 // Layout per ui/school-owner/fee-structures.html: toolbar (+ New Fee Structure)
 // over a Class | Year | Fee Type | Amount | Action table; the mockup's
@@ -43,9 +44,8 @@ export default async function FeeStructuresPage({
       .order('academic_year', { ascending: false }),
   ])
 
-  const classOptions: ClassOption[] = classes ?? []
-  const classLabel = (c: { name: string; section: string | null } | null) =>
-    c ? `${c.name}${c.section ? ` - ${c.section}` : ''}` : '—'
+  const classOptions: ClassCatalogueRow[] = classes ?? []
+  const classLabel = (c: { name: string; section: string | null } | null) => (c ? classCatalogueLabel(c) : '—')
 
   // Search box per ui/school-owner/fee-structures.html ("শ্রেণি খুঁজুন · Search
   // class") — filters the (typically small) structures list by Class label.
