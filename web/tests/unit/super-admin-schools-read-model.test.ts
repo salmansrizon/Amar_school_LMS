@@ -26,6 +26,10 @@ const data: SchoolsManagerData = {
     { price: 5000, redeemed_at: '2026-05-01T00:00:00Z', redeemed_school_id: 'a' },
     { price: 6000, redeemed_at: '2026-07-01T00:00:00Z', redeemed_school_id: 'a' },
   ],
+  studentCounts: [
+    { school_id: 'a', count: 3 },
+    { school_id: 'c', count: 1 },
+  ],
 }
 
 describe('buildSchoolsManagerViewModel', () => {
@@ -44,6 +48,12 @@ describe('buildSchoolsManagerViewModel', () => {
     expect(byId.a.lastPaid).toBe(6000) // most recent redemption
     expect(byId.c.monthsPaid).toBe(0)
     expect(byId.c.lastPaid).toBeNull()
+  })
+
+  it('counts active students per school', () => {
+    expect(byId.a.studentCount).toBe(3)
+    expect(byId.b.studentCount).toBe(0)
+    expect(byId.c.studentCount).toBe(1)
   })
 
   it('flags owner presence and groups claim codes', () => {

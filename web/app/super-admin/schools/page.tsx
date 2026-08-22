@@ -69,11 +69,6 @@ export default async function SchoolsPage() {
                 <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${STATUS_STYLE[s.status]}`}>
                   {t(STATUS_KEY[s.status], lang)}
                 </span>
-                {s.subscriptionExpiresAt && (
-                  <span className="text-muted">
-                    {t('schools.expiry', lang)}: {s.subscriptionExpiresAt}
-                  </span>
-                )}
                 <Link
                   href={`/super-admin/schools/${s.id}`}
                   className="rounded-full border border-line-strong px-3 py-0.5 text-xs font-semibold hover:bg-paper-muted"
@@ -83,33 +78,48 @@ export default async function SchoolsPage() {
               </span>
             }
           >
-            {s.subdomain && (
-              <p className="mb-3 text-sm text-muted">
-                {t('schools.subdomain', lang)}: <span className="font-mono">{s.subdomain}</span>
-              </p>
-            )}
-
-            {/* Payment ledger (T2): months paid · total ৳ · last-paid */}
-            <dl className="mb-3 grid grid-cols-3 gap-2">
-              <Stat label={t('sa.school.monthsPaid', lang)} value={String(s.monthsPaid)} />
-              <Stat label={t('sa.school.totalPaid', lang)} value={formatTaka(s.totalPaid)} />
-              <Stat label={t('sa.school.lastPaid', lang)} value={s.lastPaid === null ? '—' : formatTaka(s.lastPaid)} />
+            {/* Compact summary — the only thing shown at rest (docs/ui.md) */}
+            <dl className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <Stat label={t('schools.subdomain', lang)} value={s.subdomain ?? '—'} mono />
+              <Stat label={t('sa.school.students', lang)} value={String(s.studentCount)} />
+              <Stat label={t('schools.expiry', lang)} value={s.subscriptionExpiresAt ?? '—'} />
+              <Stat
+                label={t('sa.school.subscription', lang)}
+                value={s.monthsPaid > 0 ? `${s.monthsPaid} ${t('sa.school.months', lang)}` : '—'}
+              />
             </dl>
 
-            <SchoolSubscriptionControls
-              schoolId={s.id}
-              expiry={s.subscriptionExpiresAt}
-              status={s.status === 'blocked' ? 'expired' : s.status}
-              lang={lang}
-            />
-            <SchoolManagement
-              schoolId={s.id}
-              subdomain={s.subdomain}
-              hasOwner={s.hasOwner}
-              header={s.header}
-              codes={s.claimCodes}
-              lang={lang}
-            />
+            {/* Config, credits, subscription & codes — folded behind one বিস্তারিত expand */}
+            <details className="group mt-3 rounded-xl border border-line/70">
+              <summary className="flex cursor-pointer list-none items-center justify-between px-3 py-2 text-sm font-semibold text-ink">
+                {t('sa.school.more', lang)}
+                <span className="text-muted transition group-open:rotate-180" aria-hidden="true">
+                  ▾
+                </span>
+              </summary>
+              <div className="flex flex-col gap-3 border-t border-line/70 px-3 py-3">
+                {/* Payment ledger (T2): total ৳ · last-paid (months paid shown at rest) */}
+                <dl className="grid grid-cols-2 gap-2">
+                  <Stat label={t('sa.school.totalPaid', lang)} value={formatTaka(s.totalPaid)} />
+                  <Stat label={t('sa.school.lastPaid', lang)} value={s.lastPaid === null ? '—' : formatTaka(s.lastPaid)} />
+                </dl>
+
+                <SchoolSubscriptionControls
+                  schoolId={s.id}
+                  expiry={s.subscriptionExpiresAt}
+                  status={s.status === 'blocked' ? 'expired' : s.status}
+                  lang={lang}
+                />
+                <SchoolManagement
+                  schoolId={s.id}
+                  subdomain={s.subdomain}
+                  hasOwner={s.hasOwner}
+                  header={s.header}
+                  codes={s.claimCodes}
+                  lang={lang}
+                />
+              </div>
+            </details>
           </SectionCard>
         ))}
       </div>
@@ -117,11 +127,11 @@ export default async function SchoolsPage() {
   )
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function Stat({ label, value, mono = false }: { label: string; value: string; mono?: boolean }) {
   return (
     <div className="rounded-md border border-line bg-paper-muted px-3 py-2">
       <dt className="text-[11px] font-semibold text-muted">{label}</dt>
-      <dd className="text-base font-extrabold text-ink">{value}</dd>
+      <dd className={`truncate text-base font-extrabold text-ink${mono ? ' font-mono' : ''}`}>{value}</dd>
     </div>
   )
 }

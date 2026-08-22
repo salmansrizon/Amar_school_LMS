@@ -1,6 +1,7 @@
 // The super-admin schools-manager read model (map #171 T4; the extraction the
 // arch review deferred to "when T4/T10 touch this page"). One deep module owns
-// the five queries, the schools_with_code_history uuid-string quirk, the single
+// the queries (five batch + a per-school student head-count), the
+// schools_with_code_history uuid-string quirk, the single
 // canonical clock, the per-school payment ledger, and the claim-code grouping —
 // so schools/page.tsx just calls loadSchoolsManager and renders. The pure
 // buildSchoolsManagerViewModel is the test surface.
@@ -35,6 +36,9 @@ export interface SchoolsManagerData {
   owners: { school_id: string }[]
   claimCodes: { code: string; school_id: string; redeemed_at: string | null }[]
   codes: CodeRow[]
+  /** active (non-archived) student totals per school — head-counted in the IO
+   *  wrapper (never the rows themselves, so no PostgREST row-cap truncation). */
+  studentCounts: { school_id: string; count: number }[]
 }
 
 /** One school, fully shaped for its card: status (incl. paused), payment ledger,
@@ -48,6 +52,7 @@ export interface SchoolCard {
   /** trial | active | expired | blocked — 'blocked' surfaces as "paused". */
   status: LifecycleStatus
   hasOwner: boolean
+  studentCount: number
   monthsPaid: number
   totalPaid: number
   lastPaid: number | null
@@ -62,6 +67,8 @@ export function buildSchoolsManagerViewModel(data: SchoolsManagerData, today: Da
   const withOwner = new Set(data.owners.map((o) => o.school_id))
   const ledger = new Map(perSchoolLedger(data.codes).map((e) => [e.schoolId, e]))
   const lastPaid = lastPaidBySchool(data.codes)
+
+  const studentCounts = new Map(data.studentCounts.map((r) => [r.school_id, r.count]))
 
   const codesBySchool = new Map<string, ClaimCode[]>()
   for (const c of data.claimCodes) {
@@ -87,6 +94,7 @@ export function buildSchoolsManagerViewModel(data: SchoolsManagerData, today: Da
       header: { address_line: s.address_line, mobile: s.mobile, email: s.email, eiin_no: s.eiin_no },
       status: lifecycleStatus(row, today),
       hasOwner: withOwner.has(s.id),
+      studentCount: studentCounts.get(s.id) ?? 0,
       monthsPaid: paid?.monthsPaid ?? 0,
       totalPaid: paid?.totalPaid ?? 0,
       lastPaid: lastPaid.get(s.id) ?? null,
@@ -95,8 +103,9 @@ export function buildSchoolsManagerViewModel(data: SchoolsManagerData, today: Da
   })
 }
 
-/** Thin IO wrapper: run the five queries, hand off to the pure builder with the
- *  canonical clock (UTC-midnight, shared with the rest of the super-admin area). */
+/** Thin IO wrapper: run the five batch queries plus a per-school active-student
+ *  head-count, then hand off to the pure builder with the canonical clock
+ *  (UTC-midnight, shared with the rest of the super-admin area). */
 export async function loadSchoolsManager(supabase: SupabaseClient): Promise<SchoolCard[]> {
   const [{ data: schools }, { data: history }, { data: owners }, { data: claimCodes }, { data: codes }] =
     await Promise.all([
@@ -112,13 +121,31 @@ export async function loadSchoolsManager(supabase: SupabaseClient): Promise<Scho
         .order('created_at', { ascending: false }),
       supabase.from('subscription_codes').select('price, redeemed_at, redeemed_school_id'),
     ])
+  const schoolRows = (schools ?? []) as SchoolFetchRow[]
+
+  // ponytail: one head-count per school (N+1); N = number of schools, which is
+  // small at super-admin scope. head:true returns the count only (no rows), so
+  // there is no PostgREST row-cap truncation. Swap to a grouped-count RPC if the
+  // school count ever grows large.
+  const studentCounts = await Promise.all(
+    schoolRows.map(async (s) => {
+      const { count } = await supabase
+        .from('students')
+        .select('*', { count: 'exact', head: true })
+        .eq('school_id', s.id)
+        .is('archived_at', null)
+      return { school_id: s.id, count: count ?? 0 }
+    }),
+  )
+
   return buildSchoolsManagerViewModel(
     {
-      schools: (schools ?? []) as SchoolFetchRow[],
+      schools: schoolRows,
       history: (history ?? []) as string[],
       owners: (owners ?? []) as { school_id: string }[],
       claimCodes: (claimCodes ?? []) as { code: string; school_id: string; redeemed_at: string | null }[],
       codes: (codes ?? []) as CodeRow[],
+      studentCounts,
     },
     startOfUtcToday(),
   )
