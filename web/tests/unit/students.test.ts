@@ -6,6 +6,7 @@ import {
   behaviourAverages,
   photoExtension,
   sectionsForClass,
+  classNamesFor,
   subjectsForClass,
   behaviourSmsBody,
   type StudentListRow,
@@ -109,6 +110,21 @@ describe('sectionsForClass', () => {
 
   it('lists all sections when no class is chosen', () => {
     expect(sectionsForClass(classes, '')).toEqual(['A', 'B'])
+  })
+})
+
+describe('classNamesFor', () => {
+  it('lists distinct class names, first-occurrence order preserved', () => {
+    const classes = [
+      { name: 'Class 8', section: 'A' },
+      { name: 'Class 8', section: 'B' },
+      { name: 'Class 9', section: 'A' },
+    ]
+    expect(classNamesFor(classes)).toEqual(['Class 8', 'Class 9'])
+  })
+
+  it('returns nothing for an empty catalogue', () => {
+    expect(classNamesFor([])).toEqual([])
   })
 })
 

@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { t, type Lang } from '@/lib/i18n'
 import { compressImage, IMAGE_PRESETS } from '@/lib/image/compress'
-import { photoExtension, sectionsForClass } from '@/lib/students'
+import { photoExtension, sectionsForClass, classNamesFor, type ClassNameSectionRow } from '@/lib/students'
 import { admitStudent, studentPhotoPath, recordStudentPhoto } from '../actions'
 import { dateInputClass, selectClass } from '@/components/ui/field'
 
@@ -42,11 +42,11 @@ export function ProfileFields({
   defaults = {},
 }: {
   lang: Lang
-  classes: { name: string; section: string | null }[]
+  classes: ClassNameSectionRow[]
   defaults?: Record<string, string | boolean | number | null>
 }) {
   const d = (key: string) => String(defaults[key] ?? '')
-  const classNames = [...new Set(classes.map((c) => c.name))]
+  const classNames = classNamesFor(classes)
   const [className, setClassName] = useState(d('class_name'))
   const sections = useMemo(() => sectionsForClass(classes, className), [classes, className])
 
@@ -208,7 +208,7 @@ export function AdmissionForm({
   classes,
 }: {
   lang: Lang
-  classes: { name: string; section: string | null }[]
+  classes: ClassNameSectionRow[]
 }) {
   const router = useRouter()
   const photoRef = useRef<HTMLInputElement>(null)
