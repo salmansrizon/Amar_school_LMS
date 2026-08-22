@@ -110,7 +110,9 @@ export async function DistributorDetail({ id, lang }: { id: string; lang: Lang }
         <KpiCard label="Pending Settlement" value={formatTaka(kpis.pendingSettlement)} tone="rose" />
       </div>
 
-      <Tabs defaultValue="overview">
+      {/* flex-col: the shared Tabs primitive's data-horizontal:flex-col variant
+          is undefined in this repo's globals, so force the stack here. */}
+      <Tabs defaultValue="overview" className="flex-col">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="kyc">KYC &amp; Agreement</TabsTrigger>

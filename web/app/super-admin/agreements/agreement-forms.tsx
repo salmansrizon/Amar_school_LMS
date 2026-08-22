@@ -32,7 +32,7 @@ export function AddVersionForm() {
         <textarea name="body" required rows={4} placeholder="Agreement text" className={input} />
         <p className="mt-1 text-xs text-muted">{MARKDOWN_HINT}</p>
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <label className="text-xs font-semibold text-muted">Effective from</label>
         <input type="date" name="effective_from" className={`${input} w-auto`} />
         <button
