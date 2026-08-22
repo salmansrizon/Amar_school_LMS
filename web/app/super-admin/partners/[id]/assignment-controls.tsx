@@ -1,10 +1,11 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { LOCATION_LABEL, type LocationRow } from '@/lib/locations'
+import { type LocationRow } from '@/lib/locations'
 import { t, type Lang } from '@/lib/i18n'
 import { addAssignment, removeAssignment } from '../actions'
 import { selectClass } from '@/components/ui/field'
+import { LocationPicker } from '@/components/location-picker'
 
 const smallBtn =
   'h-9 cursor-pointer rounded-full bg-brand-500 px-4 text-xs font-semibold text-white hover:bg-brand-600 disabled:opacity-50'
@@ -52,13 +53,9 @@ export function AddAssignmentForm({
       </select>
 
       {mode === 'location' ? (
-        <select name="location_id" required className={selectClass()}>
-          {locations.map((l) => (
-            <option key={l.id} value={l.id}>
-              {LOCATION_LABEL[l.type][lang]} — {l.name}
-            </option>
-          ))}
-        </select>
+        // Hierarchical division → district → upazila → union picker (same as
+        // clusters) instead of a flat select of every location.
+        <LocationPicker locations={locations} name="location_id" lang={lang} required />
       ) : (
         <select name="school_id" required className={selectClass()}>
           {schools.map((s) => (
