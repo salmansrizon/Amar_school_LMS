@@ -6,6 +6,7 @@ import { t, type Lang } from '@/lib/i18n'
 import { addClass, addSubject, removeItem } from './actions'
 import { selectClass } from '@/components/ui/field'
 import { ConfirmDialog } from '@/components/confirm-dialog'
+import type { ClassCatalogueRow } from '@/lib/class-catalogue'
 
 function useSubmit(action: (data: FormData) => Promise<{ error?: string }>) {
   const [error, setError] = useState<string | null>(null)
@@ -57,7 +58,7 @@ export function AddSubjectForm({
   classes,
 }: {
   lang: Lang
-  classes: { id: string; name: string; section: string | null }[]
+  classes: ClassCatalogueRow[]
 }) {
   const { error, pending, onSubmit } = useSubmit(addSubject)
   return (
