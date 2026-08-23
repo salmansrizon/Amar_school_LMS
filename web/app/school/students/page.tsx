@@ -3,7 +3,7 @@ import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { filterStudents, behaviourAverages } from '@/lib/students'
-import { classSectionOptions, parseClassSectionKey } from '@/lib/class-section-options'
+import { resolveClassSection } from '@/lib/class-catalogue'
 import { Badge } from '@/components/ui/badge'
 import {
   Table,
@@ -38,11 +38,10 @@ export default async function StudentsPage({
   searchParams: Promise<{ q?: string; classSection?: string }>
 }) {
   const { q = '', classSection = '' } = await searchParams
-  const { className: klass, section } = parseClassSectionKey(classSection)
   const lang: Lang = await currentLang()
   const { supabase } = await getSchoolContext()
 
-  const [{ data: students }, { data: ratings }] = await Promise.all([
+  const [{ data: students }, { data: ratings }, { data: classes }] = await Promise.all([
     supabase
       .from('students')
       .select('id, full_name, roll_number, class_name, section, guardian_name, archived_at')
@@ -51,11 +50,12 @@ export default async function StudentsPage({
       .order('roll_number'),
     // ponytail: whole-table scan capped at 10k rows, mirrors the classes page.
     supabase.from('behaviour_log_entries').select('student_id, rating').limit(10000),
+    supabase.from('classes').select('id, name, section').order('created_at'),
   ])
 
+  const { combos, className: klass, section } = resolveClassSection(classes ?? [], classSection)
   const visible = filterStudents(students ?? [], q, klass, section)
   const avgs = behaviourAverages(ratings ?? [])
-  const combos = classSectionOptions(students ?? [])
 
   return (
     <>

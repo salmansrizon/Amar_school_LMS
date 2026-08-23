@@ -64,12 +64,21 @@ export function behaviourAverages(
 }
 
 /** Sections that exist for the selected class (all sections when unset). */
-export function sectionsForClass(
-  classes: { name: string; section: string | null }[],
-  className: string,
-): string[] {
+export interface ClassNameSectionRow {
+  name: string
+  section: string | null
+}
+
+export function sectionsForClass(classes: ClassNameSectionRow[], className: string): string[] {
   const pool = className ? classes.filter((c) => c.name === className) : classes
   return [...new Set(pool.map((c) => c.section).filter(Boolean))] as string[]
+}
+
+/** Distinct class names from a Class Catalogue fetch, first-occurrence order
+ *  preserved — the class-name half of Admission/Transfer's class-then-section
+ *  cascade; sectionsForClass is the section half. */
+export function classNamesFor(classes: { name: string }[]): string[] {
+  return [...new Set(classes.map((c) => c.name))]
 }
 
 const PHOTO_EXT: Record<string, string> = {

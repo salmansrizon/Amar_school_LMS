@@ -10,6 +10,7 @@ import { addExam, closeExam } from './actions'
 import { ExamAction, examActionClass } from './exam-action'
 import { ExamDocumentsModal } from './exam-documents-modal'
 import { selectClass } from '@/components/ui/field'
+import { classCatalogueLabel, type ClassCatalogueRow } from '@/lib/class-catalogue'
 
 // Exams II (issue #47) repurposes this file for the exams-list.html toolbar +
 // row (search/class/status filter) — per-exam rename now lives on the Exam
@@ -146,12 +147,6 @@ export interface ExamListItem {
   start_date: string | null
 }
 
-export interface ClassOption {
-  id: string
-  name: string
-  section: string | null
-}
-
 /** Search + class/status filter toolbar over an already-fetched page of
  * exams, per exams-list.html — filtering happens client-side (filterExams). */
 export function ExamsListClient({
@@ -164,7 +159,7 @@ export function ExamsListClient({
   lang,
 }: {
   exams: ExamListItem[]
-  classes: ClassOption[]
+  classes: ClassCatalogueRow[]
   /** Filter state to restore, from the `from` URL a destination came back to. */
   initialQuery?: string
   initialClassId?: string
@@ -217,8 +212,7 @@ export function ExamsListClient({
           <option value="">{t('exams.allClasses', lang)}</option>
           {classes.map((c) => (
             <option key={c.id} value={c.id}>
-              {c.name}
-              {c.section ? ` - ${c.section}` : ''}
+              {classCatalogueLabel(c)}
             </option>
           ))}
         </select>
@@ -249,9 +243,8 @@ export function ExamsListClient({
   )
 }
 
-function classLabelOf(cls: ClassOption | undefined): string | null {
-  if (!cls) return null
-  return cls.section ? `${cls.name} - ${cls.section}` : cls.name
+function classLabelOf(cls: ClassCatalogueRow | undefined): string | null {
+  return cls ? classCatalogueLabel(cls) : null
 }
 
 /** DOM id of an exam row. Returning from a destination scrolls this back into

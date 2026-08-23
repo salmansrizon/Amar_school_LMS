@@ -6,6 +6,7 @@ import { t, type Lang } from '@/lib/i18n'
 import { ProfileFields, uploadStudentPhoto } from '../new/admission-form'
 import { archiveStudent, restoreStudent, updateStudent } from '../actions'
 import { ConfirmDialog } from '@/components/confirm-dialog'
+import type { ClassNameSectionRow } from '@/lib/students'
 
 const btnSecondary =
   'cursor-pointer rounded-full border border-line-strong px-4 py-1.5 text-xs font-semibold hover:bg-paper-muted disabled:opacity-50'
@@ -22,7 +23,7 @@ export function ProfileEditor({
 }: {
   lang: Lang
   student: Record<string, string | boolean | number | null> & { id: string; full_name: string }
-  classes: { name: string; section: string | null }[]
+  classes: ClassNameSectionRow[]
   children: React.ReactNode // read-mode profile sections (server-rendered)
 }) {
   const router = useRouter()

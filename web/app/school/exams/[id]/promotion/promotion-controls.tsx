@@ -5,12 +5,7 @@ import { useState, useTransition } from 'react'
 import { t, type Lang } from '@/lib/i18n'
 import { makeOldStudents, promoteStudents, setClassFinal } from './actions'
 import { selectClass } from '@/components/ui/field'
-
-export interface ClassOption {
-  id: string
-  name: string
-  section: string | null
-}
+import { classCatalogueLabel, type ClassCatalogueRow } from '@/lib/class-catalogue'
 
 export interface CombinationOption {
   id: string
@@ -80,7 +75,7 @@ export function PromotionTable({
 }: {
   examId: string
   rows: PromotionStudentRow[]
-  classes: ClassOption[]
+  classes: ClassCatalogueRow[]
   currentClassName: string | null
   lang: Lang
 }) {
@@ -104,8 +99,7 @@ export function PromotionTable({
           <option value="">—</option>
           {classes.map((c) => (
             <option key={c.id} value={c.id}>
-              {c.name}
-              {c.section ? ` - ${c.section}` : ''}
+              {classCatalogueLabel(c)}
             </option>
           ))}
         </select>
@@ -159,7 +153,7 @@ export function PromotionTable({
                   <td className="py-2 pr-2">
                     {row.passed ? (
                       targetClass ? (
-                        `${targetClass.name}${targetClass.section ? ` - ${targetClass.section}` : ''}`
+                        classCatalogueLabel(targetClass)
                       ) : (
                         <span className="text-muted">—</span>
                       )

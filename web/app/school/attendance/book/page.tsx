@@ -9,7 +9,7 @@ import {
   registerDayStatus,
   type OffDay,
 } from '@/lib/attendance-manual'
-import { classSectionOptions, parseClassSectionKey } from '@/lib/class-section-options'
+import { resolveClassSection } from '@/lib/class-catalogue'
 import { PrintPage, InstituteHeader, PaginatedSheet } from '@/components/print/pieces'
 import { PrintButton } from '@/components/print/print-button'
 import { AttendanceTabs } from '../attendance-tabs'
@@ -46,7 +46,6 @@ export default async function AttendanceBookPage({
     month: monthParam = currentMonthParam(),
     mode: modeParam = 'filled',
   } = await searchParams
-  const { className, section } = parseClassSectionKey(classSection)
   const mode = modeParam === 'blank' ? 'blank' : 'filled'
   const lang: Lang = await currentLang()
   const { supabase } = await getSchoolContext()
@@ -59,12 +58,13 @@ export default async function AttendanceBookPage({
   const daysInMonth = new Date(Date.UTC(year, month + 1, 0)).getUTCDate()
   const monthEnd = `${monthPrefix}-${String(daysInMonth).padStart(2, '0')}`
 
-  const [institute, { data: students }] = await Promise.all([
+  const [institute, { data: students }, { data: classes }] = await Promise.all([
     loadInstitutePrintHeader(supabase, lang),
     supabase.from('students').select('id, full_name, class_name, section, roll_number').order('full_name'),
+    supabase.from('classes').select('id, name, section').order('created_at'),
   ])
   const roster = students ?? []
-  const combos = classSectionOptions(roster)
+  const { combos, className, section } = resolveClassSection(classes ?? [], classSection)
   const visible = filterRoster(roster, className, section)
   const visibleIds = visible.map((s) => s.id)
 

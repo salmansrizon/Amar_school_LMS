@@ -1,7 +1,6 @@
 import { test, expect } from '../fixtures/roles'
 import { expectNoError } from '../helpers'
-import { ownerClient, createStudent } from './factories'
-import { classSectionKey } from '@/lib/class-section-options'
+import { ownerClient, createClass, createStudent } from './factories'
 
 // Student Attendance Log (map #380, docs/011_student_module.md): finder ->
 // roster -> individual log -> filters -> print. A factory student with a
@@ -10,7 +9,10 @@ import { classSectionKey } from '@/lib/class-section-options'
 // direct insert — RLS only allows writes through the mark-attendance server
 // action (school.attendance.deep.spec.ts hits the same constraint) — so this
 // test marks the student present through the real Mark Attendance UI first,
-// the same way a school admin actually produces the row the log reads.
+// the same way a school admin actually produces the row the log reads. Both
+// Mark and the finder now read the Class Catalogue (map #421), so the
+// `classSection` param is the class row's own id, not a name/section
+// encoding — createClass() supplies that id directly.
 
 const VIEW_LOG = 'লগ দেখুন' // attendance.viewLog
 const TITLE = 'শিক্ষার্থী উপস্থিতি লগ' // attendance.studentLogTitle
@@ -31,9 +33,10 @@ test.describe('@crud @school attendance-student-log', () => {
     const owner = await ownerClient()
     const className = `E2E StudentLog ${Date.now()}`
     const section = 'A'
+    const klass = await createClass(owner, { name: className, section })
     const student = await createStudent(owner, { className, section })
     const today = todayIso()
-    const classSection = encodeURIComponent(classSectionKey(className, section))
+    const classSection = encodeURIComponent(klass.id)
 
     // Mark present through the real UI (present is the radio's default state).
     await page.goto(`/school/attendance/mark?classSection=${classSection}&date=${today}`)
@@ -85,5 +88,6 @@ test.describe('@crud @school attendance-student-log', () => {
     await expect(page.getByRole('button', { name: PRINT })).toHaveCount(0)
 
     await student.cleanup()
+    await klass.cleanup()
   })
 })

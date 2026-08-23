@@ -5,12 +5,7 @@ import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
 import { t, type Lang } from '@/lib/i18n'
 import { saveFeeStructure, copyFeeStructure } from './actions'
 import { selectClass } from '@/components/ui/field'
-
-export interface ClassOption {
-  id: string
-  name: string
-  section: string | null
-}
+import { classCatalogueLabel, type ClassCatalogueRow } from '@/lib/class-catalogue'
 
 export interface FeeStructureEditing {
   id: string
@@ -30,7 +25,7 @@ function ClassSelect({
 }: {
   id: string
   name: string
-  classes: ClassOption[]
+  classes: ClassCatalogueRow[]
   defaultValue: string
   lang: Lang
 }) {
@@ -41,8 +36,7 @@ function ClassSelect({
       </option>
       {classes.map((c) => (
         <option key={c.id} value={c.id}>
-          {c.name}
-          {c.section ? ` - ${c.section}` : ''}
+          {classCatalogueLabel(c)}
         </option>
       ))}
     </select>
@@ -56,7 +50,7 @@ export function FeeStructureForm({
   lang,
   editing,
 }: {
-  classes: ClassOption[]
+  classes: ClassCatalogueRow[]
   lang: Lang
   editing?: FeeStructureEditing
 }) {
@@ -169,7 +163,7 @@ export function CopyFeeStructureForm({
   lang,
 }: {
   sourceId: string
-  classes: ClassOption[]
+  classes: ClassCatalogueRow[]
   lang: Lang
 }) {
   const [error, setError] = useState<string | null>(null)

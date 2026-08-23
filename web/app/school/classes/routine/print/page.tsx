@@ -7,6 +7,7 @@ import { ROUTINE_DAYS, ROUTINE_PERIODS, dayLabel, indexSlots, type RoutineSlot }
 import { PrintPage, InstituteHeader, QrFooterRow } from '@/components/print/pieces'
 import { PrintButton } from '@/components/print/print-button'
 import { loadInstitutePrintHeader } from '@/lib/institute-print'
+import { classCatalogueLabel } from '@/lib/class-catalogue'
 
 // Printable weekly routine (ADR 0007: browser-native print, composed from the
 // shared pieces). Landscape-ish grid fits portrait A4 at this density.
@@ -40,7 +41,7 @@ export default async function RoutinePrintPage({
   const subjectName = new Map((subjects ?? []).map((s) => [s.id, s.name]))
   const teacherName = new Map((teachers ?? []).map((e) => [e.id, e.full_name]))
   const roomName = new Map((rooms ?? []).map((r) => [r.id, r.name]))
-  const classLabel = `${cls.name}${cls.section ? ` - ${cls.section}` : ''}`
+  const classLabel = classCatalogueLabel(cls)
 
   return (
     <main className="mx-auto w-full max-w-4xl flex-1 p-6">

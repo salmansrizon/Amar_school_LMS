@@ -4,7 +4,7 @@ import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { filterRoster } from '@/lib/attendance-manual'
-import { classSectionOptions, parseClassSectionKey } from '@/lib/class-section-options'
+import { resolveClassSection } from '@/lib/class-catalogue'
 import { AttendanceTabs } from '../attendance-tabs'
 import { MarkAttendanceForm } from './mark-form'
 import { dateInputClass } from '@/components/ui/field'
@@ -24,18 +24,18 @@ export default async function MarkAttendancePage({
   searchParams: Promise<{ classSection?: string; date?: string }>
 }) {
   const { classSection = '', date = todayIso() } = await searchParams
-  const { className, section } = parseClassSectionKey(classSection)
   const lang: Lang = await currentLang()
   const { supabase } = await getSchoolContext()
 
-  const [{ data: students }] = await Promise.all([
+  const [{ data: students }, { data: classes }] = await Promise.all([
     supabase
       .from('students')
       .select('id, full_name, class_name, section, roll_number')
       .order('full_name'),
+    supabase.from('classes').select('id, name, section').order('created_at'),
   ])
   const roster = students ?? []
-  const combos = classSectionOptions(roster)
+  const { combos, className, section } = resolveClassSection(classes ?? [], classSection)
   const visible = filterRoster(roster, className, section)
   const visibleIds = visible.map((s) => s.id)
 

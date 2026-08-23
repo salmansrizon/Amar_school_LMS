@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { t, type Lang } from '@/lib/i18n'
-import type { ClassSectionOption } from '@/lib/class-section-options'
+import type { ClassCatalogueOption } from '@/lib/class-catalogue'
 
 // Filters apply on change rather than behind a Filter button — the pattern every
 // data-heavy SaaS console uses, and the reason the button is gone. The query
@@ -32,7 +32,7 @@ export function StudentFilters({
 }: {
   q: string
   classSection: string
-  combos: ClassSectionOption[]
+  combos: ClassCatalogueOption[]
   lang: Lang
 }) {
   const router = useRouter()

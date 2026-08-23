@@ -52,6 +52,10 @@ _Avoid_: Incident report (implies something more formal/investigative than this 
 The number of grace minutes an Employee's attendance check-in/out is allowed to fall outside their configured office-time before being marked late/early. Configurable at multiple levels (global default, category, shift, per-individual override); when more than one applicable value exists for a given check (e.g. an Employee assigned to multiple shifts), the **effective grace is the max across all applicable configured values** for that check — never the stricter/smaller one.
 _Avoid_: Buffer, tolerance (use "grace" consistently, matching legacy "considerable" terminology)
 
+**Class Catalogue**:
+The complete set of Classes defined for a School (the `classes` table) — one entry per class+section combination that exists, whether or not any Student is currently enrolled in it. The source of truth for "what Classes exist"; a Class appears here the moment it's created, before any Student is admitted into it.
+_Avoid_: Class list, classes (ambiguous with the DB table name in prose)
+
 **Exam Basic Info**:
 The minimum configuration an Exam needs before it can be worked with: a Class and a Grading Scheme. An Exam missing either is not yet workable — marks cannot be entered against it and none of its documents can be produced. Not a workflow state or a stored flag: it is simply whether both values are set on the Exam. Co-curricular entry is the one exception, needing only the Class.
 _Avoid_: Draft, incomplete, unconfigured (imply a stored status; there is none)

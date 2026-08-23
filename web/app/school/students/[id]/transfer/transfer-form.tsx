@@ -3,7 +3,7 @@
 import { useMemo, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { t, type Lang } from '@/lib/i18n'
-import { sectionsForClass } from '@/lib/students'
+import { sectionsForClass, classNamesFor, type ClassNameSectionRow } from '@/lib/students'
 import { fieldClass, fieldLabelClass } from '../../new/admission-form'
 import { transferStudent } from '../../actions'
 import { selectClass } from '@/components/ui/field'
@@ -17,7 +17,7 @@ export function TransferForm({
 }: {
   lang: Lang
   studentId: string
-  classes: { name: string; section: string | null }[]
+  classes: ClassNameSectionRow[]
   currentClass: string | null
   currentSection: string | null
 }) {
@@ -30,7 +30,7 @@ export function TransferForm({
   // pre-filling avoids relying on that and keeps the form honest about what
   // will actually be submitted.
   const [toClass, setToClass] = useState(currentClass ?? '')
-  const classNames = [...new Set(classes.map((c) => c.name))]
+  const classNames = classNamesFor(classes)
   const sections = useMemo(() => sectionsForClass(classes, toClass), [classes, toClass])
 
   return (
