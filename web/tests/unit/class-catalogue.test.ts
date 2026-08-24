@@ -106,4 +106,32 @@ describe('classCatalogueLabel', () => {
   it('returns just the class name when section is an empty string', () => {
     expect(classCatalogueLabel({ name: 'Ten', section: '' })).toBe('Ten')
   })
+
+  it('appends the group in parens when set, disambiguating rows that share a name and section', () => {
+    expect(
+      classCatalogueLabel({ name: 'Nine', section: 'Morning - A', group_department: 'Science' }),
+    ).toBe('Nine - Morning - A (Science)')
+    expect(
+      classCatalogueLabel({ name: 'Nine', section: 'Morning - A', group_department: 'Humanities' }),
+    ).toBe('Nine - Morning - A (Humanities)')
+  })
+
+  it('omits the group suffix when group_department is null, empty, or absent', () => {
+    expect(classCatalogueLabel({ name: 'Ten', section: null, group_department: null })).toBe('Ten')
+    expect(classCatalogueLabel({ name: 'Ten', section: null, group_department: '' })).toBe('Ten')
+    expect(classCatalogueLabel({ name: 'Ten', section: null })).toBe('Ten')
+  })
+})
+
+describe('classCatalogueOptions with duplicate name/section across groups', () => {
+  it('labels each row distinctly by its group', () => {
+    const dupRows = [
+      { id: 'id-nine-science', name: 'Nine', section: 'Morning - A', group_department: 'Science' },
+      { id: 'id-nine-humanities', name: 'Nine', section: 'Morning - A', group_department: 'Humanities' },
+    ]
+    expect(classCatalogueOptions(dupRows).map((o) => o.label)).toEqual([
+      'Nine - Morning - A (Science)',
+      'Nine - Morning - A (Humanities)',
+    ])
+  })
 })

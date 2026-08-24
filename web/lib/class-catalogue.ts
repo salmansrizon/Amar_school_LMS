@@ -11,6 +11,7 @@ export interface ClassCatalogueRow {
   id: string
   name: string
   section: string | null
+  group_department?: string | null
 }
 
 export interface ClassCatalogueOption {
@@ -21,11 +22,22 @@ export interface ClassCatalogueOption {
 }
 
 /**
- * The `{class} - {section}` label convention used everywhere a Class
- * Catalogue row is displayed — the one place this formatting lives.
+ * The `{class} - {section} ({group})` label convention used everywhere a
+ * Class Catalogue row is displayed — the one place this formatting lives.
+ * The group suffix disambiguates rows that otherwise share the same class
+ * name and section but differ by group/department (e.g. Science vs.
+ * Humanities); it's omitted when the row has no group set.
  */
-export function classCatalogueLabel(row: { name: string; section: string | null }): string {
-  return row.name + (row.section ? ` - ${row.section}` : '')
+export function classCatalogueLabel(row: {
+  name: string
+  section: string | null
+  group_department?: string | null
+}): string {
+  return (
+    row.name +
+    (row.section ? ` - ${row.section}` : '') +
+    (row.group_department ? ` (${row.group_department})` : '')
+  )
 }
 
 /**

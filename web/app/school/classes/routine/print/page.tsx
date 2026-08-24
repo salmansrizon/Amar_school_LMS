@@ -26,7 +26,7 @@ export default async function RoutinePrintPage({
   const [institute, { data: cls }, { data: slots }, { data: subjects }, { data: teachers }, { data: rooms }] =
     await Promise.all([
       loadInstitutePrintHeader(supabase, lang),
-      supabase.from('classes').select('name, section').eq('id', classId).maybeSingle(),
+      supabase.from('classes').select('name, section, group_department').eq('id', classId).maybeSingle(),
       supabase
         .from('routine_slots')
         .select('day_of_week, period, subject_id, teacher_id, room_id')

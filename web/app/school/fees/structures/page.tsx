@@ -37,7 +37,7 @@ export default async function FeeStructuresPage({
   const { supabase } = await getSchoolContext()
 
   const [{ data: classes }, { data: allStructures }] = await Promise.all([
-    supabase.from('classes').select('id, name, section').order('created_at'),
+    supabase.from('classes').select('id, name, section, group_department').order('created_at'),
     supabase
       .from('fee_structures')
       .select('id, academic_year, fee_type, amount, fine_per_absent_day, class_id, classes(name, section)')

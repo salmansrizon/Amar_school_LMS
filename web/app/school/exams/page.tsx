@@ -30,7 +30,7 @@ export default async function ExamsPage({
       .from('exams')
       .select('id, name, exam_year, status, class_id, grading_scheme_id, start_date')
       .order('created_at', { ascending: false }),
-    supabase.from('classes').select('id, name, section').order('created_at'),
+    supabase.from('classes').select('id, name, section, group_department').order('created_at'),
   ])
 
   return (

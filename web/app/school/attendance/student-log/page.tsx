@@ -31,7 +31,7 @@ export default async function StudentLogPage({
       .from('students')
       .select('id, full_name, class_name, section, roll_number')
       .order('full_name'),
-    supabase.from('classes').select('id, name, section').order('created_at'),
+    supabase.from('classes').select('id, name, section, group_department').order('created_at'),
   ])
   const roster = students ?? []
   const { combos, className, section } = resolveClassSection(classes ?? [], classSection)

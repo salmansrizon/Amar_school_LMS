@@ -21,7 +21,7 @@ export default async function RoutinePage({
   const { class: selectedClass = '' } = await searchParams
   const { data: classes } = await supabase
     .from('classes')
-    .select('id, name, section')
+    .select('id, name, section, group_department')
     .order('created_at')
 
   return (

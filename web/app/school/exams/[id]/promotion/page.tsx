@@ -91,7 +91,7 @@ export default async function PromotionPage({
     .eq('id', exam.class_id)
     .maybeSingle()
   const [{ data: allClasses }, { data: allSubjects }, { data: combos }] = await Promise.all([
-    supabase.from('classes').select('id, name, section').order('created_at'),
+    supabase.from('classes').select('id, name, section, group_department').order('created_at'),
     supabase.from('subjects').select('id, name, class_id, theory_marks, mcq_marks, practical_marks').order('name'),
     supabase
       .from('exam_combinations')

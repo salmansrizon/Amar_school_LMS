@@ -50,7 +50,7 @@ export default async function StudentsPage({
       .order('roll_number'),
     // ponytail: whole-table scan capped at 10k rows, mirrors the classes page.
     supabase.from('behaviour_log_entries').select('student_id, rating').limit(10000),
-    supabase.from('classes').select('id, name, section').order('created_at'),
+    supabase.from('classes').select('id, name, section, group_department').order('created_at'),
   ])
 
   const { combos, className: klass, section } = resolveClassSection(classes ?? [], classSection)
