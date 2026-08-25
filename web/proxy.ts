@@ -1,6 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
-import { canAccess, homeFor, isProtectedPath, isSchoolMemberRole, type Role } from '@/lib/auth/routing'
+import { canAccess, homeFor, isProtectedPath, isSchoolScopedRole, type Role } from '@/lib/auth/routing'
 import { canOpenScreen, screenKeyForPath } from '@/lib/auth/screens'
 import { resolveHost, rootDomain } from '@/lib/auth/tenant-host'
 import { isTenantPath, tenantRoute, type TenantSession } from '@/lib/auth/tenant-routing'
@@ -105,7 +105,7 @@ export async function proxy(request: NextRequest) {
   // Separate from subscription expiry (#169)
   // — this is a manual super-admin switch, so the message is a suspension, not a
   // renewal prompt. Pages re-verify; this is the optimistic gate.
-  if (isSchoolMemberRole(role) && schoolDeactivated) {
+  if (isSchoolScopedRole(role) && schoolDeactivated) {
     return NextResponse.rewrite(new URL('/account-blocked', request.url))
   }
 

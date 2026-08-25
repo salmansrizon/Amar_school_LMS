@@ -5,7 +5,7 @@
 // and materializes the redirect URL.
 
 import type { HostKind } from './tenant-host'
-import type { Role } from './routing'
+import { pathInGroup, type Role } from './routing'
 
 export interface TenantSession {
   role: Role
@@ -33,7 +33,7 @@ export type TenantAction =
 const TENANT_GROUPS = ['/school', '/student']
 
 export function isTenantPath(path: string): boolean {
-  return TENANT_GROUPS.some((g) => path === g || path.startsWith(g + '/'))
+  return TENANT_GROUPS.some((g) => pathInGroup(path, g))
 }
 
 export function tenantRoute(facts: TenantFacts): TenantAction {

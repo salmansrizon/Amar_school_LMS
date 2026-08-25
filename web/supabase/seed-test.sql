@@ -60,9 +60,11 @@ begin
 
   -- Student Portal fixture (map #434, #441). One Student of School A with a
   -- login, in class "Seed Class - A". The address follows the derived shape
-  -- (<student_no>@<school>.students.invalid) so the suite exercises the real
-  -- one; student_no is explicit (S9001) to stay clear of the per-school
-  -- sequence the trigger hands out to admissions.
+  -- (<student_no>@<school>.students.invalid) so the suite exercises the real one.
+  -- student_no is explicit rather than trigger-assigned so the address is
+  -- deterministic. Note the trigger is max()+1 over the whole school (the same
+  -- rule assign_student_roll uses), so this S9001 does move Test School A's next
+  -- auto number to S9002 — deliberate, and no test depends on that sequence.
   -- `on conflict (id) do nothing` would silently accept a UUID some other seed
   -- already claimed, and then link the Student to a stranger's login. Fail loudly.
   if exists (select 1 from auth.users

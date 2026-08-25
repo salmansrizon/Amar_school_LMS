@@ -26,7 +26,17 @@ const FORBIDDEN = [
   'wallets',
   'partner_tasks',
   'settlements',
+  'commissions',
   'gl_entries',
+  // The vendor's money configuration. These carried
+  // `for select using (auth.uid() is not null)`, which a Student satisfies —
+  // closed in 0133, and listed here so it stays closed.
+  'commission_rules',
+  'discounts',
+  'subscription_pricing',
+  'sms_rate_config',
+  'tax_config',
+  'gl_accounts',
 ] as const
 
 describe('Student portal RLS (#441)', () => {
@@ -90,8 +100,17 @@ describe('Student portal RLS (#441)', () => {
 
   it.each(FORBIDDEN)('reaches nothing in %s', async (table) => {
     const { data, error } = await student.from(table).select('*')
-    // Either shape counts as denied: a policy miss returns [], a missing grant errors.
-    expect(error ? true : data).toEqual(error ? true : [])
+    // A misspelt table name would "pass" a bare error check while proving
+    // nothing, so rule that out first: whatever comes back, it must not be
+    // "no such table". Then a policy miss ([]) or a denied grant both count.
+    expect(error?.code).not.toBe('42P01')
+    expect(error?.message ?? '').not.toMatch(/does not exist|find the table/i)
+    expect(data ?? []).toEqual([])
+  })
+
+  it('sees only their own profiles row', async () => {
+    const { data } = await student.from('profiles').select('id, role')
+    expect(data?.map((p) => p.role)).toEqual(['student'])
   })
 
   it('narrowing app_current_school_id left the School Owner untouched', async () => {

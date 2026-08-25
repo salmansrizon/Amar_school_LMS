@@ -30,9 +30,9 @@ export const getStudentContext = cache(async (): Promise<StudentContext> => {
   const { data } = await ctx.supabase.from('student_self').select(SELF_COLUMNS).maybeSingle()
 
   // No live Student row — archived (student_self filters those out), or
-  // unlinked by an owner. There is nothing in the portal for them; the
-  // account-blocked page is the existing "access switched off" surface (#161).
-  if (!data) redirect('/account-blocked')
+  // unlinked by an owner. Their school is healthy, so this is not the #161
+  // suspension: same page, its "account inactive" wording.
+  if (!data) redirect('/account-blocked?reason=student-inactive')
 
   return { ...ctx, student: data as StudentSelf }
 })

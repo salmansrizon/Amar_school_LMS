@@ -453,6 +453,10 @@ const dict = {
   // Blocked-account gate (owner/staff of a deactivated school) (#161)
   'blocked.title': { bn: 'অ্যাকাউন্ট স্থগিত', en: 'Account suspended' },
   'blocked.message': { bn: 'আপনার স্কুলের অ্যাক্সেস সাময়িকভাবে বন্ধ করা হয়েছে। অনুগ্রহ করে অ্যাডমিনের সাথে যোগাযোগ করুন।', en: 'Access to your school has been suspended. Please contact the administrator.' },
+  // A Student whose record is archived or unlinked (#441) — their school is fine,
+  // so this must not read as a suspension.
+  'blocked.studentInactiveTitle': { bn: 'অ্যাকাউন্ট নিষ্ক্রিয়', en: 'Account inactive' },
+  'blocked.studentInactiveMessage': { bn: 'তোমার শিক্ষার্থী অ্যাকাউন্ট এখন সক্রিয় নয়। স্কুল অফিসে যোগাযোগ করো।', en: 'Your student account is not active. Please contact the school office.' },
 
   // School-side subscription gate + reminder banner (#169)
   'sub.expired.title': { bn: 'আপনার সাবস্ক্রিপশনের মেয়াদ শেষ', en: 'Your subscription has expired' },
