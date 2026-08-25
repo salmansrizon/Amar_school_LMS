@@ -33,6 +33,7 @@ type SchoolRow = {
   mobile: string | null
   email: string | null
   logo_path: string | null
+  roll_number_increment: number
 } | null
 
 /** Walk parent_id up from `id` to the root, returning [division, district, upazila, union]
@@ -92,6 +93,7 @@ export function ProfileForm({
     educationLevelInvalid: 'institute.errEducationLevelInvalid',
     emailInvalid: 'institute.errEmailInvalid',
     logoBadType: 'institute.errLogoBadType',
+    rollIncrementInvalid: 'institute.errRollIncrementInvalid',
   } as const
   const errorMessage = (code: string) =>
     code in ERROR_KEYS ? t(ERROR_KEYS[code as keyof typeof ERROR_KEYS], lang) : code
@@ -317,6 +319,27 @@ export function ProfileForm({
                 ))}
               </select>
             </div>
+          </div>
+        </div>
+
+        {/* Roll numbering (issue #503): step used by assign_student_roll when
+            the admission form's Roll Number field is left blank. */}
+        <div className="mb-4 rounded-lg border border-line bg-paper p-5 shadow-card">
+          <h3 className="mb-1 font-bold">{t('institute.rollNumbering', lang)}</h3>
+          <p className="mb-3 text-xs text-muted">{t('institute.rollIncrementHint', lang)}</p>
+          <div className="max-w-40">
+            <label className={labelClass} htmlFor="roll_number_increment">
+              {t('institute.rollIncrement', lang)}
+            </label>
+            <input
+              id="roll_number_increment"
+              name="roll_number_increment"
+              type="number"
+              min={1}
+              step={1}
+              defaultValue={school.roll_number_increment}
+              className={inputClass}
+            />
           </div>
         </div>
 

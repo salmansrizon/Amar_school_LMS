@@ -19,7 +19,7 @@ export default async function InstituteProfilePage() {
     supabase
       .from('schools')
       .select(
-        'id, name, institute_code, eiin_no, mpo_enlisted, mpo_code, center_code, education_levels, location_id, cluster_id, address_line, mobile, email, logo_path',
+        'id, name, institute_code, eiin_no, mpo_enlisted, mpo_code, center_code, education_levels, location_id, cluster_id, address_line, mobile, email, logo_path, roll_number_increment',
       )
       .maybeSingle(),
     supabase.from('locations').select('id, name, type, parent_id').order('name'),

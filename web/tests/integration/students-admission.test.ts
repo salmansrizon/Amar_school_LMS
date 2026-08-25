@@ -3,8 +3,10 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { signedIn } from '../helpers/auth'
 
 // Seam: Students I schema (issue #27, PRD §5.1 first half) — full admission
-// profile columns, assign_student_roll trigger (auto-roll per School+class),
-// soft-archive via archived_at, student_transfers history, all RLS-scoped.
+// profile columns, assign_student_roll trigger (auto-roll per
+// School+class+section, stepped by schools.roll_number_increment — issue
+// #503), soft-archive via archived_at, student_transfers history, all
+// RLS-scoped.
 
 describe('Students I (issue #27)', () => {
   let ownerA: SupabaseClient
@@ -72,6 +74,50 @@ describe('Students I (issue #27)', () => {
       .select('roll_number')
       .single()
     expect(data?.roll_number).toBe(1)
+  })
+
+  // Section-scoped rolls (issue #503, docs/012): Section A being up to roll 5
+  // must not push Section B's first admission past roll 1.
+  it('a different section within the same class starts its own roll sequence', async () => {
+    await ownerA
+      .from('students')
+      .insert({ full_name: 'ST1 Section A2', class_name: 'ST1 Section Class', section: 'A' })
+    const { data } = await ownerA
+      .from('students')
+      .insert({ full_name: 'ST1 Section B1', class_name: 'ST1 Section Class', section: 'B' })
+      .select('roll_number')
+      .single()
+    expect(data?.roll_number).toBe(1)
+  })
+
+  it('the school roll increment steps auto-assigned rolls', async () => {
+    const { data: userA } = await ownerA.auth.getUser()
+    const { data: profile } = await ownerA
+      .from('profiles')
+      .select('school_id')
+      .eq('id', userA.user!.id)
+      .single()
+    const schoolId = profile!.school_id
+    // finally, so a failed assertion below still restores the shared school's
+    // increment — otherwise every later test in this file that assumes the
+    // default of 1 would fail too, masking whatever this test actually caught.
+    await ownerA.from('schools').update({ roll_number_increment: 2 }).eq('id', schoolId)
+    try {
+      const first = await ownerA
+        .from('students')
+        .insert({ full_name: 'ST1 Increment 1', class_name: 'ST1 Increment Class' })
+        .select('roll_number')
+        .single()
+      const second = await ownerA
+        .from('students')
+        .insert({ full_name: 'ST1 Increment 2', class_name: 'ST1 Increment Class' })
+        .select('roll_number')
+        .single()
+      expect(first.data?.roll_number).toBe(2)
+      expect(second.data?.roll_number).toBe(4)
+    } finally {
+      await ownerA.from('schools').update({ roll_number_increment: 1 }).eq('id', schoolId)
+    }
   })
 
   it('an explicit roll is kept as-is', async () => {
@@ -152,6 +198,30 @@ describe('Students I (issue #27)', () => {
     expect(student?.class_name).toBe('ST1 Other Class')
     expect(student?.section).toBe('B')
     expect(student?.roll_number).toBeNull() // reset on class change
+  })
+
+  it('transfer_student resets the roll on a section-only move (roll is section-scoped)', async () => {
+    const { data: created } = await ownerA
+      .from('students')
+      .insert({ full_name: 'ST1 SectionMove', class_name: 'ST1 Other Class', section: 'B' })
+      .select('id, roll_number')
+      .single()
+    expect(created?.roll_number).not.toBeNull()
+
+    const { error } = await ownerA.rpc('transfer_student', {
+      p_student_id: created!.id,
+      p_to_class: 'ST1 Other Class', // same class
+      p_to_section: 'C', // section-only change
+      p_note: 'section move',
+    })
+    expect(error).toBeNull()
+    const { data: moved } = await ownerA
+      .from('students')
+      .select('section, roll_number')
+      .eq('id', created!.id)
+      .single()
+    expect(moved?.section).toBe('C')
+    expect(moved?.roll_number).toBeNull()
   })
 
   it('transfer_student rejects a student from another school', async () => {

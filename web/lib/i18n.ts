@@ -904,6 +904,12 @@ const dict = {
   'classes.papers': { bn: 'পত্র সংখ্যা', en: 'Papers' },
   'classes.code': { bn: 'কোড (ঐচ্ছিক)', en: 'Code (optional)' },
   'classes.selectClass': { bn: 'শ্রেণি নির্বাচন করুন', en: 'Select class' },
+  // Subject Name combobox (issue #504) — the ⌄ trigger and its empty state.
+  'classes.subjectSuggestions': { bn: 'প্রস্তাবিত বিষয়সমূহ', en: 'Suggested subjects' },
+  'classes.subjectNoSuggestions': {
+    bn: 'কোনো মিল নেই — একটি কাস্টম বিষয়ের নাম লিখুন',
+    en: 'No matches — type a custom subject name',
+  },
   'classes.deleteConfirm': {
     bn: 'মুছে ফেলা হবে — শ্রেণি মুছলে এর বিষয়গুলোও মুছে যাবে। নিশ্চিত?',
     en: 'This will be deleted — deleting a class also deletes its subjects. Are you sure?',
@@ -1313,8 +1319,8 @@ const dict = {
   'students.religion': { bn: 'ধর্ম', en: 'Religion' },
   'students.studentMobile': { bn: 'শিক্ষার্থীর মোবাইল', en: 'Student Mobile' },
   'students.rollAutoNote': {
-    bn: 'রোল নম্বর স্বয়ংক্রিয়ভাবে নির্ধারিত হবে (শ্রেণি অনুযায়ী পরবর্তী নম্বর)।',
-    en: 'Roll number is assigned automatically (next number within the class).',
+    bn: 'ফাঁকা রাখলে শ্রেণি ও শাখা অনুযায়ী পরবর্তী রোল স্বয়ংক্রিয়ভাবে নির্ধারিত হবে — প্রয়োজনে নিজে লিখুন।',
+    en: 'Leave blank to auto-assign the next roll for this class & section — or type your own.',
   },
   'students.address': { bn: 'ঠিকানা', en: 'Address' },
   'students.village': { bn: 'গ্রাম', en: 'Village' },
@@ -1740,6 +1746,17 @@ const dict = {
     en: 'Only JPEG, PNG or WebP images are allowed',
   },
   'institute.errLogoTooBig': { bn: 'লোগো ২ MB এর বেশি হতে পারবে না', en: 'Logo must be under 2 MB' },
+  // Roll numbering (issue #503) — the increment assign_student_roll steps by.
+  'institute.rollNumbering': { bn: 'রোল নম্বরিং', en: 'Roll Numbering' },
+  'institute.rollIncrement': { bn: 'রোল বৃদ্ধির হার', en: 'Roll number increment' },
+  'institute.rollIncrementHint': {
+    bn: 'প্রতিটি শ্রেণি ও শাখায় স্বয়ংক্রিয় পরবর্তী রোল কত বাড়বে। যেমন ২ দিলে রোল হবে ১, ৩, ৫...',
+    en: 'How much each auto-assigned roll steps by, within a class & section. E.g. 2 gives rolls 1, 3, 5…',
+  },
+  'institute.errRollIncrementInvalid': {
+    bn: 'রোল বৃদ্ধির হার অবশ্যই ১ বা তার বেশি পূর্ণসংখ্যা হতে হবে',
+    en: 'Roll increment must be a whole number of 1 or more',
+  },
   'institute.checklistToday': { bn: 'আজকের চেকলিস্ট', en: "Today's Checklist" },
   'institute.cancel': { bn: 'বাতিল', en: 'Cancel' },
   'institute.checklistManageItems': { bn: 'চেকলিস্ট আইটেম পরিচালনা', en: 'Manage checklist items' },

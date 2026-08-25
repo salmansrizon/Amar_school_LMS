@@ -8,9 +8,13 @@ import {
   sectionsForClass,
   classNamesFor,
   subjectsForClass,
+  nextRollNumber,
+  parseRollNumber,
+  rollScopeChanged,
   behaviourSmsBody,
   type StudentListRow,
   type SubjectOption,
+  type RollRow,
 } from '@/lib/students'
 
 const row = (over: Partial<StudentListRow> = {}): StudentListRow => ({
@@ -125,6 +129,82 @@ describe('classNamesFor', () => {
 
   it('returns nothing for an empty catalogue', () => {
     expect(classNamesFor([])).toEqual([])
+  })
+})
+
+describe('nextRollNumber', () => {
+  const rolls: RollRow[] = [
+    { class_name: 'Class 8', section: 'A', roll_number: 5 },
+    { class_name: 'Class 8', section: 'A', roll_number: 3 },
+    { class_name: 'Class 8', section: 'B', roll_number: 1 },
+    { class_name: 'Class 9', section: 'A', roll_number: 9 },
+  ]
+
+  it('is the highest roll in the class+section plus the increment', () => {
+    expect(nextRollNumber(rolls, 'Class 8', 'A', 1)).toBe(6)
+  })
+
+  it('does not let a different section leak into the count', () => {
+    // Section A is up to roll 5; Section B has only roll 1 and should not
+    // see Section A's rolls (docs/012's core section-scoping requirement).
+    expect(nextRollNumber(rolls, 'Class 8', 'B', 1)).toBe(2)
+  })
+
+  it('starts a fresh combination at the increment', () => {
+    expect(nextRollNumber(rolls, 'Class 10', 'A', 1)).toBe(1)
+    expect(nextRollNumber(rolls, 'Class 10', 'A', 2)).toBe(2)
+  })
+
+  it('applies a configurable increment on top of the last roll', () => {
+    expect(nextRollNumber(rolls, 'Class 9', 'A', 2)).toBe(11)
+  })
+
+  it('treats a null section the same as an empty-string section', () => {
+    const withNullSection: RollRow[] = [{ class_name: 'Class 7', section: null, roll_number: 4 }]
+    expect(nextRollNumber(withNullSection, 'Class 7', '', 1)).toBe(5)
+  })
+
+  it('floors the increment at 1', () => {
+    expect(nextRollNumber(rolls, 'Class 10', 'A', 0)).toBe(1)
+  })
+})
+
+describe('parseRollNumber', () => {
+  it('treats a blank field as "no override"', () => {
+    expect(parseRollNumber('')).toEqual({ value: null })
+    expect(parseRollNumber('   ')).toEqual({ value: null })
+  })
+
+  it('accepts a positive whole number', () => {
+    expect(parseRollNumber('7')).toEqual({ value: 7 })
+  })
+
+  it('rejects zero, negatives and decimals with a user-facing error', () => {
+    expect(parseRollNumber('0').error).toBeTruthy()
+    expect(parseRollNumber('-1').error).toBeTruthy()
+    expect(parseRollNumber('5.5').error).toBeTruthy()
+    expect(parseRollNumber('abc').error).toBeTruthy()
+  })
+})
+
+describe('rollScopeChanged', () => {
+  it('is false when class and section are unchanged', () => {
+    expect(rollScopeChanged({ class_name: 'Class 8', section: 'A' }, { class_name: 'Class 8', section: 'A' })).toBe(
+      false,
+    )
+  })
+
+  it('is true when class or section changed', () => {
+    expect(rollScopeChanged({ class_name: 'Class 8', section: 'A' }, { class_name: 'Class 9', section: 'A' })).toBe(
+      true,
+    )
+    expect(rollScopeChanged({ class_name: 'Class 8', section: 'A' }, { class_name: 'Class 8', section: 'B' })).toBe(
+      true,
+    )
+  })
+
+  it('defaults to false when the current row could not be read', () => {
+    expect(rollScopeChanged(null, { class_name: 'Class 8', section: 'A' })).toBe(false)
   })
 })
 

@@ -104,6 +104,42 @@ describe('Institute Setup & Misc (issue #39)', () => {
         .select()
       expect(data).toEqual([])
     })
+
+    // Roll numbering (issue #503): the step assign_student_roll uses.
+    it('defaults roll_number_increment to 1 and lets the Owner change it', async () => {
+      const { data: before } = await ownerA
+        .from('schools')
+        .select('roll_number_increment')
+        .eq('id', schoolAId)
+        .single()
+      expect(before?.roll_number_increment).toBe(1)
+
+      try {
+        const { error } = await ownerA
+          .from('schools')
+          .update({ roll_number_increment: 2 })
+          .eq('id', schoolAId)
+        expect(error).toBeNull()
+        const { data: after } = await ownerA
+          .from('schools')
+          .select('roll_number_increment')
+          .eq('id', schoolAId)
+          .single()
+        expect(after?.roll_number_increment).toBe(2)
+      } finally {
+        // Restore even on a failed assertion — other tests in this suite
+        // assume the default of 1.
+        await ownerA.from('schools').update({ roll_number_increment: 1 }).eq('id', schoolAId)
+      }
+    })
+
+    it('rejects a non-positive roll increment (check constraint)', async () => {
+      const { error } = await ownerA
+        .from('schools')
+        .update({ roll_number_increment: 0 })
+        .eq('id', schoolAId)
+      expect(error).not.toBeNull()
+    })
   })
 
   describe('daily checklist', () => {

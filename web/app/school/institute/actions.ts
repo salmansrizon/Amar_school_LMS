@@ -28,6 +28,7 @@ export async function updateInstituteProfile(formData: FormData): Promise<{ erro
     address_line: optStr(formData, 'address_line'),
     mobile: optStr(formData, 'mobile'),
     email: optStr(formData, 'email'),
+    roll_number_increment: Number(formData.get('roll_number_increment') ?? 1),
   }
   const err = validateInstituteProfile(input)
   if (err) return { error: err }
@@ -54,6 +55,7 @@ export async function updateInstituteProfile(formData: FormData): Promise<{ erro
       address_line: input.address_line ?? null,
       mobile: input.mobile ?? null,
       email: input.email ?? null,
+      roll_number_increment: input.roll_number_increment,
     })
     .eq('id', schoolId)
   if (error) return { error: error.message }

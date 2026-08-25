@@ -35,6 +35,7 @@ const profile = (over: Partial<InstituteProfileInput> = {}): InstituteProfileInp
   mpo_code: null,
   center_code: null,
   education_levels: ['primary', 'secondary'],
+  roll_number_increment: 1,
   ...over,
 })
 
@@ -81,6 +82,17 @@ describe('validateInstituteProfile', () => {
   it('rejects a malformed email', () => {
     expect(validateInstituteProfile(profile({ email: 'info@' }))).toBe('emailInvalid')
     expect(validateInstituteProfile(profile({ email: 'not-an-email' }))).toBe('emailInvalid')
+  })
+
+  // Roll numbering (issue #503): mirrors the DB's roll_number_increment > 0 check.
+  it('accepts a positive whole-number roll increment', () => {
+    expect(validateInstituteProfile(profile({ roll_number_increment: 2 }))).toBeNull()
+  })
+
+  it('rejects a non-positive or fractional roll increment', () => {
+    expect(validateInstituteProfile(profile({ roll_number_increment: 0 }))).toBe('rollIncrementInvalid')
+    expect(validateInstituteProfile(profile({ roll_number_increment: -1 }))).toBe('rollIncrementInvalid')
+    expect(validateInstituteProfile(profile({ roll_number_increment: 1.5 }))).toBe('rollIncrementInvalid')
   })
 
   it('allows blank print-header fields (all optional)', () => {

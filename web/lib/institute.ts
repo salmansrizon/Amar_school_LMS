@@ -25,6 +25,9 @@ export interface InstituteProfileInput {
   address_line?: string | null
   mobile?: string | null
   email?: string | null
+  // Roll numbering (issue #503): how much each auto-assigned roll steps by,
+  // within assign_student_roll's class+section scope.
+  roll_number_increment: number
 }
 
 export type InstituteProfileError =
@@ -33,6 +36,7 @@ export type InstituteProfileError =
   | 'eiinInvalid'
   | 'educationLevelInvalid'
   | 'emailInvalid'
+  | 'rollIncrementInvalid'
 
 /** Business rules: a name is always required; an MPO-enlisted institute must
  *  record its MPO code (else the flag is meaningless data-entry noise); a
@@ -40,13 +44,16 @@ export type InstituteProfileError =
  *  levels are limited to the fixed PRD set (checkbox UI, not free text).
  *  Address and mobile stay free text — they print exactly as typed (map #91
  *  grilling decision 5) — but a malformed email would print on every
- *  document, so that one is shape-checked. */
+ *  document, so that one is shape-checked. Roll increment mirrors the DB's
+ *  `roll_number_increment > 0` check — a positive whole number. */
 export function validateInstituteProfile(input: InstituteProfileInput): InstituteProfileError | null {
   if (!input.name.trim()) return 'nameRequired'
   if (input.mpo_enlisted && !input.mpo_code?.trim()) return 'mpoCodeRequired'
   if (input.eiin_no && !/^\d{6}$/.test(input.eiin_no.trim())) return 'eiinInvalid'
   if (input.education_levels.some((l) => !EDUCATION_LEVEL_KEYS.has(l))) return 'educationLevelInvalid'
   if (input.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.email.trim())) return 'emailInvalid'
+  if (!Number.isInteger(input.roll_number_increment) || input.roll_number_increment < 1)
+    return 'rollIncrementInvalid'
   return null
 }
 

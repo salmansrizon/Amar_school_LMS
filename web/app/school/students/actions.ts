@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { currentActor } from '@/lib/school/actor'
 import { smsGateway } from '@/lib/sms/gateway'
-import { photoExtension, behaviourSmsBody } from '@/lib/students'
+import { photoExtension, behaviourSmsBody, parseRollNumber, rollScopeChanged } from '@/lib/students'
 
 // RLS scopes everything to the caller's School; the 3-day lock trigger is the
 // authority for edit rejection, the assign_student_roll trigger for auto-roll.
@@ -22,7 +22,9 @@ function text(formData: FormData, key: string): string | null {
   return String(formData.get(key) ?? '').trim() || null
 }
 
-/** The full admission-profile columns shared by admit and edit. */
+/** The full admission-profile columns shared by admit and edit — everything
+ *  except roll_number, whose null-handling differs between the two (see
+ *  admitStudent/updateStudent). */
 function profileFields(formData: FormData) {
   return {
     class_name: text(formData, 'class_name'),
@@ -50,17 +52,21 @@ function profileFields(formData: FormData) {
   }
 }
 
-/** Admission (issue #27): roll_number left null so the trigger assigns the
- *  next roll within the School+class. Returns the new id for photo upload. */
+/** Admission (issue #27): the form prefills Roll Number with the next roll for
+ *  the chosen class+section (issue #503), but a blank field still falls
+ *  through to assign_student_roll so a school without JS-computed rolls keeps
+ *  working. Returns the new id for photo upload. */
 export async function admitStudent(
   formData: FormData,
 ): Promise<{ id?: string; error?: string }> {
   const name = String(formData.get('full_name') ?? '').trim()
   if (!name) return { error: 'Name is required' }
+  const roll = parseRollNumber(String(formData.get('roll_number') ?? ''))
+  if (roll.error) return { error: roll.error }
   const supabase = await createClient()
   const { data, error } = await supabase
     .from('students')
-    .insert({ full_name: name, ...profileFields(formData) })
+    .insert({ full_name: name, roll_number: roll.value, ...profileFields(formData) })
     .select('id')
     .single()
   if (error) return { error: error.message }
@@ -73,10 +79,29 @@ export async function updateStudent(formData: FormData): Promise<{ error?: strin
   if (!id) return { error: 'Student is required' }
   const name = String(formData.get('full_name') ?? '').trim()
   if (!name) return { error: 'Name is required' }
+  const roll = parseRollNumber(String(formData.get('roll_number') ?? ''))
+  if (roll.error) return { error: roll.error }
+  const fields = profileFields(formData)
   const supabase = await createClient()
+
+  // An explicit roll always wins; a blank one only keeps the existing roll
+  // when class+section haven't actually changed (rollScopeChanged) —
+  // otherwise the old roll would silently ride along into a class+section it
+  // was never computed for.
+  const { data: current } = await supabase
+    .from('students')
+    .select('class_name, section')
+    .eq('id', id)
+    .maybeSingle()
+  const scopeChanged = rollScopeChanged(current, fields)
+
   const { data, error } = await supabase
     .from('students')
-    .update({ full_name: name, ...profileFields(formData) })
+    .update({
+      full_name: name,
+      ...(roll.value !== null ? { roll_number: roll.value } : scopeChanged ? { roll_number: null } : {}),
+      ...fields,
+    })
     .eq('id', id)
     .select('id')
   if (error) return { error: error.message }

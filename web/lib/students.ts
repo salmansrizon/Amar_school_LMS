@@ -81,6 +81,67 @@ export function classNamesFor(classes: { name: string }[]): string[] {
   return [...new Set(classes.map((c) => c.name))]
 }
 
+/** Roll numbering (issue #503): rolls are scoped per class+section, so the
+ *  suggestion only looks at rows sharing both. */
+export interface RollRow {
+  class_name: string | null
+  section: string | null
+  roll_number: number | null
+}
+
+/** The roll to prefill on the admission form: the highest existing roll in
+ *  this class+section plus the school's increment, or just the increment when
+ *  the combination has no students yet — mirrors assign_student_roll's
+ *  max()+increment (web/supabase/migrations/0120_student_roll_section_scope_increment.sql)
+ *  so the shown suggestion matches what the trigger would assign if the field
+ *  is left untouched. It's only a UI hint though (the field submits blank
+ *  unless the operator types over it), so the two formulas have to be kept in
+ *  sync by hand — a change to one without the other would just make the
+ *  placeholder wrong, not the actual assigned roll. */
+export function nextRollNumber(
+  rolls: RollRow[],
+  className: string,
+  section: string,
+  increment: number,
+): number {
+  const maxRoll = rolls
+    .filter((r) => r.class_name === className && (r.section ?? '') === section)
+    .reduce((max, r) => (r.roll_number !== null && r.roll_number > max ? r.roll_number : max), 0)
+  return maxRoll + Math.max(1, increment)
+}
+
+/** Validates a Roll Number field's raw text: blank is a valid "don't
+ *  override" signal (→ null, same as never having typed anything), anything
+ *  else must be a positive whole number. The `min={1}` on the field's native
+ *  `<input>` is cosmetic only — admission-form.tsx builds FormData from a
+ *  preventDefault'd submit, so the browser never runs its own constraint
+ *  validation — so an out-of-range value is reported here rather than
+ *  silently discarded the way a blank field is. */
+export function parseRollNumber(raw: string): { value: number | null; error?: string } {
+  const trimmed = raw.trim()
+  if (!trimmed) return { value: null }
+  const n = Number(trimmed)
+  if (!Number.isInteger(n) || n < 1) return { value: null, error: 'Roll number must be a positive whole number' }
+  return { value: n }
+}
+
+/** Whether a profile edit's class+section differs from the student's current
+ *  row — a "scope change" (issue #503/#504). Rolls are section-scoped, and
+ *  assign_student_roll only fires `before insert`, so the plain profile-edit
+ *  path (unlike the dedicated transfer_student RPC, which already resets the
+ *  roll on any scope change — 0120 migration) has to apply this same rule
+ *  itself before deciding whether a blank Roll Number field may keep the
+ *  student's existing roll. `current: null` (the row couldn't be read) reads
+ *  as "no change" — the safer default, since a genuinely missing student is
+ *  already caught by updateStudent's not-found check on the write itself. */
+export function rollScopeChanged(
+  current: { class_name: string | null; section: string | null } | null,
+  next: { class_name: string | null; section: string | null },
+): boolean {
+  if (!current) return false
+  return current.class_name !== next.class_name || current.section !== next.section
+}
+
 const PHOTO_EXT: Record<string, string> = {
   'image/jpeg': 'jpg',
   'image/png': 'png',
