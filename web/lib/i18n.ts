@@ -76,6 +76,17 @@ const dict = {
   'home.agent': { bn: 'এজেন্ট ড্যাশবোর্ড', en: 'Agent Dashboard' },
   'agent.nav.dashboard': { bn: 'ড্যাশবোর্ড', en: 'Dashboard' },
   'agent.nav.tasks': { bn: 'কাজ', en: 'Tasks' },
+  // Student Portal (map #434, #441). Bangla is the default the students read.
+  'home.student': { bn: 'শিক্ষার্থী পোর্টাল', en: 'Student Portal' },
+  'student.nav.home': { bn: 'হোম', en: 'Home' },
+  'student.home.greeting': { bn: 'স্বাগতম', en: 'Welcome' },
+  'student.home.studentNo': { bn: 'শিক্ষার্থী নম্বর', en: 'Student Number' },
+  'student.home.class': { bn: 'শ্রেণি', en: 'Class' },
+  'student.home.roll': { bn: 'রোল', en: 'Roll' },
+  'student.home.soon': {
+    bn: 'তোমার ক্লাস, নোটিশ, ফলাফল ও ফি শীঘ্রই এখানে দেখা যাবে।',
+    en: 'Your classes, notices, results and fees arrive here shortly.',
+  },
   'gov.nav.dashboard': { bn: 'ড্যাশবোর্ড', en: 'Dashboard' },
   'gov.kpi.schools': { bn: 'অঞ্চলের স্কুল', en: 'Schools in territory' },
   'gov.kpi.extended': { bn: 'বর্ধিত অ্যাক্সেস', en: 'Extended access' },

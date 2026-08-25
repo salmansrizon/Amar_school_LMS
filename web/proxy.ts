@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { canAccess, homeFor, isProtectedPath, isSchoolMemberRole, type Role } from '@/lib/auth/routing'
 import { canOpenScreen, screenKeyForPath } from '@/lib/auth/screens'
 import { resolveHost, rootDomain } from '@/lib/auth/tenant-host'
-import { isSchoolPath, tenantRoute, type TenantSession } from '@/lib/auth/tenant-routing'
+import { isTenantPath, tenantRoute, type TenantSession } from '@/lib/auth/tenant-routing'
 import { firstRelation } from '@/lib/supabase/relation'
 
 // Optimistic auth gate for the role route groups (ADR 0003) + subdomain→tenant
@@ -53,7 +53,7 @@ export async function proxy(request: NextRequest) {
   let profileRole: Role | null = null
   let schoolDeactivated = false
   const needsProfile =
-    !!user && (host.kind === 'tenant' || isSchoolPath(path) || isProtectedPath(path))
+    !!user && (host.kind === 'tenant' || isTenantPath(path) || isProtectedPath(path))
   if (needsProfile) {
     const { data: profile } = await supabase
       .from('profiles')
@@ -101,7 +101,8 @@ export async function proxy(request: NextRequest) {
   }
 
   // Hard block: a deactivated school (schools.deactivated_at, issue #161) denies
-  // its owner/staff any /school access. Separate from subscription expiry (#169)
+  // its owner/staff /school access and its Students /student access (#441).
+  // Separate from subscription expiry (#169)
   // — this is a manual super-admin switch, so the message is a suspension, not a
   // renewal prompt. Pages re-verify; this is the optimistic gate.
   if (isSchoolMemberRole(role) && schoolDeactivated) {

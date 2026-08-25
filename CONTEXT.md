@@ -76,6 +76,18 @@ _Avoid_: Alert (implies real-time urgency this rule doesn't have)
 A Staff User's access is boolean per screen/module (can open it or not) — not per-action (no separate read/write/delete). Matches the legacy `sub_user.paths` behavior (a list of navigation-tree paths the user may open).
 _Avoid_: Role, permission level (implies granularity beyond screen-level access)
 
-**Student / Parent** (data subject, not an actor):
-Students and their parents have no login in v1 of the rebuild — they are records managed by School Owners/Staff Users, reached only via SMS and public notice/gallery pages. A self-service portal is an explicit fast-follow, not part of this rebuild's scope.
-_Avoid_: Student user, parent account (implies a login that doesn't exist in v1)
+**Student**:
+A person enrolled at a School, and — since map #434 — an **actor** with their own login, not merely a record. A Student signs in at `/student/*` to read their own school life: classes, notices, tasks, study materials, results, attendance, fees, exam schedule and leave calendar. A Student **never edits a school record**: `students` and every other school-owned row is read-only to them. The complete set of things a Student may create is requests and their own work — a correction request, a leave request, a question to their Class Teacher, a task marked done, and a homework upload. This reverses the earlier v1 position that a Student is "a data subject, not an actor"; that decision, and the "parent portal is out of scope" line in map #24, are superseded for the Student only.
+_Avoid_: Student user (say Student), pupil
+
+**Parent / Guardian** (data subject, not an actor):
+A Student's guardian has no login. They are reached through their child's record — SMS, and the public notice/gallery pages. A separate guardian identity holding several children across classes is a different product and has not been started.
+_Avoid_: Parent account (implies a login that does not exist)
+
+**Student Number**:
+The immutable, per-School identifier a Student's login is derived from (`students.student_no`, unique per School). Auto-assigned at admission as `S0001`, `S0002`, … but overridable on the admission form, so a school can keep the admission numbers it already uses on paper. Distinct from **Roll Number**, which is unique only within a class and is rewritten at promotion — a Roll Number cannot identify a login, a Student Number can. The derived address is `<student_no>@<school subdomain>.students.invalid`, deliberately non-routable: it is a username, not a mailbox, and no mail can ever reach or be silently discarded at it.
+_Avoid_: Admission number, registration number, roll (each is a different identifier)
+
+**Class Teacher**:
+The one Employee responsible for a Class (`classes.class_teacher_id` → `employees.id`) — the Student's named point of contact and the recipient of their questions. Signs in with an ordinary Staff User login, not a role of their own; the link between the HR record and the login is `employees.profile_id`. Required on every Class as a matter of product rule (enforced by the Class form), not by a database constraint — staging and main share one database, so the column stays nullable. A Class Teacher without a login is still assignable: their students' questions are answered by the School Owner, who can read every question in the School.
+_Avoid_: Form teacher, homeroom teacher, class in-charge

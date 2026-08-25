@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { tenantRoute, type TenantFacts } from '@/lib/auth/tenant-routing'
+import { isTenantPath, tenantRoute, type TenantFacts } from '@/lib/auth/tenant-routing'
 
 const owner = (schoolId: string, ownSubdomain: string | null) =>
   ({ role: 'school_owner' as const, schoolId, ownSubdomain })
@@ -75,5 +75,31 @@ describe('tenantRoute — apex', () => {
       schoolForHostId: null,
     }
     expect(tenantRoute(f)).toEqual({ type: 'next' })
+  })
+})
+
+// #441: the Student portal is a tenant surface too, so /student bounces to the
+// student's own subdomain exactly as /school does for staff.
+describe('isTenantPath: /student joins /school as a tenant surface (#441)', () => {
+  it.each(['/school', '/school/students', '/student', '/student/results'])('%s is a tenant path', (p) => {
+    expect(isTenantPath(p)).toBe(true)
+  })
+
+  it.each(['/', '/login', '/distributor', '/schools-public', '/students-public'])(
+    '%s is not',
+    (p) => {
+      expect(isTenantPath(p)).toBe(false)
+    },
+  )
+
+  it('apex /student with a signed-in Student → own subdomain', () => {
+    expect(
+      tenantRoute({
+        host: { kind: 'apex' },
+        path: '/student',
+        session: { role: 'student', schoolId: 'school-1', ownSubdomain: 'greenwood' },
+        schoolForHostId: null,
+      }),
+    ).toEqual({ type: 'redirect-subdomain', slug: 'greenwood', path: '/student' })
   })
 })
