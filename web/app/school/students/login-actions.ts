@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
-import { smsGateway } from '@/lib/sms/gateway'
+import { sendStudentSms } from '@/lib/sms/student-sms'
 import { PASSWORD_MASK, studentLoginSmsBody } from '@/lib/students'
 
 // Student login provisioning, owner side (#442). Every check that matters lives
@@ -34,10 +34,13 @@ export interface BulkResult {
   error?: string
 }
 
-/** One Student, one new login. Returns the credentials once. */
+/** One Student, one new login. Returns the credentials once.
+ *  `chosen` lets the owner set the password themselves (#442's "set a
+ *  password"); blank means generate one. */
 export async function createStudentLogin(
   studentId: string,
   sendSms = false,
+  chosen?: string,
 ): Promise<{ login?: IssuedLogin; error?: string }> {
   const supabase = await createClient()
   const { data: student } = await supabase
@@ -47,7 +50,7 @@ export async function createStudentLogin(
     .maybeSingle()
   if (!student) return { error: 'Student not found' }
 
-  const password = newPassword()
+  const password = chosen?.trim() || newPassword()
   const { data: email, error } = await supabase.rpc('create_student_login', {
     p_student_id: studentId,
     p_password: password,
@@ -72,6 +75,7 @@ export async function createStudentLogin(
 export async function resetStudentPassword(
   studentId: string,
   sendSms = false,
+  chosen?: string,
 ): Promise<{ login?: IssuedLogin; error?: string }> {
   const supabase = await createClient()
   const { data: info } = await supabase
@@ -81,7 +85,7 @@ export async function resetStudentPassword(
     .maybeSingle()
   if (!info) return { error: 'This student has no login' }
 
-  const password = newPassword()
+  const password = chosen?.trim() || newPassword()
   const { error } = await supabase.rpc('set_student_password', {
     p_student_id: studentId,
     p_password: password,
@@ -146,34 +150,17 @@ export async function createClassLogins(
   return { issued, failed }
 }
 
-/** Hand the credentials to the guardian by SMS. A send failure is reported but
- *  never fails the provisioning — the login exists either way, and the owner
- *  still has the printable slip. */
+/** Hand the credentials to the guardian by SMS. A send failure is swallowed:
+ *  the login exists either way, and the owner still has the printable slip. */
 async function sendLoginSms(login: IssuedLogin): Promise<void> {
   const supabase = await createClient()
-  const { data: student } = await supabase
-    .from('students')
-    .select('id, school_id, guardian_phone')
-    .eq('id', login.studentId)
-    .maybeSingle()
-  if (!student?.guardian_phone) return
-
-  const body = studentLoginSmsBody(login.fullName, login.email, login.password)
-  const gateway = smsGateway()
-  const result = await gateway.send(student.guardian_phone, body)
-  if (!result.ok) return
-
-  const { error } = await supabase.from('sms_log').insert({
-    school_id: student.school_id,
-    student_id: student.id,
-    sent_on: new Date().toISOString().slice(0, 10),
-    phone: student.guardian_phone,
+  await sendStudentSms(
+    supabase,
+    login.studentId,
+    studentLoginSmsBody(login.fullName, login.email, login.password),
     // The Send Log is readable by every staff member with the SMS screen, so
-    // the stored copy carries the mask, not the password. The password is
-    // plaintext in exactly one place: the message already on its way out.
-    body: studentLoginSmsBody(login.fullName, login.email, PASSWORD_MASK),
-    provider: gateway.name,
-    recipient_label: login.fullName,
-  })
-  if (error) console.error('sms_log insert failed after successful send', error)
+    // the stored copy carries the mask. The password is plaintext in exactly
+    // one place: the message already on its way out.
+    studentLoginSmsBody(login.fullName, login.email, PASSWORD_MASK),
+  )
 }

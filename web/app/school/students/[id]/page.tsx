@@ -160,6 +160,7 @@ export default async function StudentDetailPage({
               }
             />
             <InfoRow label={t('students.bloodGroup', lang)} value={student.blood_group} />
+            <InfoRow label={t('students.studentNo', lang)} value={student.student_no} />
             <InfoRow
               label={t('students.classSection', lang)}
               value={classSectionLabel(student.class_name, student.section)}

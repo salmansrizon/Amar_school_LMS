@@ -38,6 +38,9 @@ export function StudentLoginPanel({
   const [error, setError] = useState<string | null>(null)
   const [issued, setIssued] = useState<IssuedLogin | null>(null)
   const [sendSms, setSendSms] = useState(false)
+  // Blank means "generate one" — the normal path. #442 also asks for "set a
+  // password", so an owner who wants to choose one can.
+  const [chosen, setChosen] = useState('')
   const locale = lang === 'bn' ? 'bn-BD' : 'en-GB'
 
   const run = (action: () => Promise<{ login?: IssuedLogin; error?: string }>) =>
@@ -75,6 +78,21 @@ export function StudentLoginPanel({
         <p className="mb-3 text-sm text-muted">{t('students.loginNone', lang)}</p>
       )}
 
+      <div className="mb-3 max-w-xs">
+        <label className="mb-1 block text-xs font-semibold text-muted" htmlFor="chosen_password">
+          {t('students.loginChoosePassword', lang)}
+        </label>
+        <input
+          id="chosen_password"
+          type="text"
+          value={chosen}
+          minLength={8}
+          onChange={(e) => setChosen(e.target.value)}
+          placeholder={t('students.loginGenerate', lang)}
+          className="h-9 w-full rounded-sm border border-line-strong bg-paper px-2 text-sm outline-none focus:border-brand-500"
+        />
+      </div>
+
       {hasGuardianPhone && (
         <label className="mb-3 flex items-center gap-2 text-xs text-muted">
           <input
@@ -97,7 +115,7 @@ export function StudentLoginPanel({
             confirmLabel={t('students.loginReset', lang)}
             cancelLabel={t('routine.cancel', lang)}
             onConfirm={async () => {
-              const result = await resetStudentPassword(studentId, sendSms)
+              const result = await resetStudentPassword(studentId, sendSms, chosen)
               if (result.login) setIssued(result.login)
               if (!result.error) router.refresh()
               return result
@@ -107,7 +125,7 @@ export function StudentLoginPanel({
           <button
             type="button"
             disabled={pending}
-            onClick={() => run(() => createStudentLogin(studentId, sendSms))}
+            onClick={() => run(() => createStudentLogin(studentId, sendSms, chosen))}
             className={btnPrimary}
           >
             {t('students.loginCreate', lang)}
@@ -125,7 +143,7 @@ export function StudentLoginPanel({
  *  0007) because handing a class its logins is a paper job. */
 export function CredentialSlip({ lang, logins }: { lang: Lang; logins: IssuedLogin[] }) {
   return (
-    <div className="mt-4 rounded-lg border border-brand-300 bg-brand-50 p-4">
+    <div className="print-slip mt-4 rounded-lg border border-brand-300 bg-brand-50 p-4">
       <p className="mb-3 text-xs font-semibold text-brand-700">
         {t('students.loginShownOnce', lang)}
       </p>
@@ -147,7 +165,14 @@ export function CredentialSlip({ lang, logins }: { lang: Lang; logins: IssuedLog
       </ul>
       <button
         type="button"
-        onClick={() => window.print()}
+        onClick={() => {
+          // Print the slip, not the page it happens to be sitting in. The
+          // password is only ever in memory, so there is no /print/* route to
+          // hand off to — the body class scopes the print instead (globals.css).
+          document.body.classList.add('printing-slip')
+          window.print()
+          document.body.classList.remove('printing-slip')
+        }}
         className={`mt-3 print:hidden ${btnSecondary}`}
       >
         {t('students.loginPrint', lang)}

@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { currentActor } from '@/lib/school/actor'
-import { smsGateway } from '@/lib/sms/gateway'
+import { sendStudentSms } from '@/lib/sms/student-sms'
 import { photoExtension, behaviourSmsBody } from '@/lib/students'
 
 // RLS scopes everything to the caller's School; the 3-day lock trigger is the
@@ -228,36 +228,20 @@ export async function sendBehaviourSms(entryId: string): Promise<{ error?: strin
     .eq('id', entryId)
     .maybeSingle()
   if (!entry) return { error: 'Entry not found' }
-
-  const { data: student } = await supabase
-    .from('students')
-    .select('id, full_name, guardian_phone, school_id')
-    .eq('id', entry.student_id)
-    .maybeSingle()
-  if (!student) return { error: 'Student not found' }
-  if (!student.guardian_phone) return { error: 'No guardian phone on file for this student' }
   if (entry.rating === null) return { error: 'Entry has no rating — cannot compose SMS' }
   if (!entry.note) return { error: 'Entry has no note — cannot compose SMS' }
 
-  const body = behaviourSmsBody(student.full_name, entry.note, entry.rating)
-  const gateway = smsGateway()
-  const result = await gateway.send(student.guardian_phone, body)
-  if (!result.ok) return { error: 'SMS gateway failed to send' }
+  const { data: student } = await supabase
+    .from('students')
+    .select('full_name')
+    .eq('id', entry.student_id)
+    .maybeSingle()
+  if (!student) return { error: 'Student not found' }
 
-  const { error } = await supabase.from('sms_log').insert({
-    school_id: student.school_id,
-    student_id: student.id,
-    sent_on: new Date().toISOString().slice(0, 10),
-    phone: student.guardian_phone,
-    body,
-    provider: gateway.name,
-    // Send Log (issue #36) groups sms_log rows by kind/recipient_label; give
-    // this single-recipient send a real label instead of falling through to
-    // the compose screen's "Manual Numbers" default.
-    recipient_label: student.full_name,
-  })
-  // The SMS is already sent — a log-insert failure must not surface as a
-  // retryable error, or the guardian gets a duplicate message on retry.
-  if (error) console.error('sms_log insert failed after successful send', error)
-  return {}
+  const result = await sendStudentSms(
+    supabase,
+    entry.student_id,
+    behaviourSmsBody(student.full_name, entry.note, entry.rating),
+  )
+  return result.ok ? {} : { error: result.error }
 }

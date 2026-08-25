@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
-import { signedIn, PASSWORD } from '../helpers/auth'
+import { anonClient, signedIn, PASSWORD } from '../helpers/auth'
 
 // Seam: owner-side Student login provisioning (#442) — create_student_login,
 // set_student_password and the student_login_info view, all self-gating
@@ -143,7 +143,7 @@ describe('Student login provisioning (#442)', () => {
     expect(freshAttempt.error).toBeNull()
   })
 
-  it('a Staff User cannot issue logins', async () => {
+  it('a Staff User cannot issue logins, nor read the login list', async () => {
     // staff-e2e@test.local is School A's Staff User (supabase/e2e-seed.sql).
     const staff = await signedIn('staff-e2e@test.local', PASSWORD)
     const { error } = await staff.rpc('create_student_login', {
@@ -151,5 +151,28 @@ describe('Student login provisioning (#442)', () => {
       p_password: 'staff-should-not',
     })
     expect(error).not.toBeNull()
+
+    // The view is owner-only too (0135). Before that fix it was scoped to the
+    // school alone, so any Staff User could read every Student's login address
+    // and last_sign_in_at straight off PostgREST.
+    const { data } = await staff.from('student_login_info').select('email')
+    expect(data).toEqual([])
+  })
+
+  it('student_login_domain is not callable by an anonymous visitor', async () => {
+    // It is SECURITY DEFINER and it WRITES (it pins the school's login domain).
+    // 0132 shipped it without the revoke/grant pair, so PUBLIC could call it for
+    // any school id at all.
+    const anon = anonClient()
+    const { error } = await anon.rpc('student_login_domain', {
+      p_school: '00000000-0000-0000-0000-000000000000',
+    })
+    expect(error).not.toBeNull()
+  })
+
+  it("an owner cannot pin another school's login domain", async () => {
+    const { data: schoolB } = await ownerB.from('schools').select('id').single()
+    const { error } = await ownerA.rpc('student_login_domain', { p_school: schoolB!.id })
+    expect(error?.message).toContain('not authorized')
   })
 })
