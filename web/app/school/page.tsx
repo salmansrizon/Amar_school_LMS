@@ -55,7 +55,7 @@ export default async function SchoolHome() {
   const lang: Lang = await currentLang()
   // Shared per-request context (auth/profile/grants/school) — resolved once and
   // reused by the layout, so the dashboard adds no duplicate auth/profile queries.
-  const { supabase, email, role, fullName, subscriptionExpiresAt, grants } = await getSchoolContext()
+  const { supabase, userId, email, role, fullName, subscriptionExpiresAt, grants } = await getSchoolContext()
 
   const now = new Date()
   const today = now.toISOString().slice(0, 10)
@@ -143,12 +143,38 @@ export default async function SchoolHome() {
 
   const quickActions = SCHOOL_QUICK_ACTIONS.filter((q) => canOpenScreen(role, grants, q.screen))
 
+  // My Classes (#443) is not in the nav, because it is not grant-gated: being
+  // the class teacher is the authorization. So the dashboard is where a Class
+  // Teacher finds it, and only when they actually are one. Most logins are not
+  // linked to an Employee at all, and those pay one query, not two.
+  const { data: myEmployee } = await supabase
+    .from('employees')
+    .select('id')
+    .eq('profile_id', userId)
+    .maybeSingle()
+  const myClassCount = myEmployee
+    ? (
+        await supabase
+          .from('classes')
+          .select('id', { count: 'exact', head: true })
+          .eq('class_teacher_id', myEmployee.id)
+      ).count
+    : 0
+
   return (
     <div>
       <div className="mb-section">
         <p className="text-xs font-semibold uppercase tracking-[0.24em] text-brand-600">{t('shell.welcome', lang)}</p>
         <h1 className="mt-1 text-2xl font-extrabold tracking-tight sm:text-3xl">{t('home.school', lang)}</h1>
         <p className="mt-1 text-sm text-muted">{fullName || email}</p>
+        {!!myClassCount && (
+          <Link
+            href="/school/my-classes"
+            className="mt-3 inline-flex rounded-full border border-line-strong px-4 py-1.5 text-xs font-semibold hover:bg-paper-muted"
+          >
+            {t('myClasses.title', lang)} · {myClassCount}
+          </Link>
+        )}
       </div>
 
       {/* KPI tiles — stat cards, so each carries the rail. */}
