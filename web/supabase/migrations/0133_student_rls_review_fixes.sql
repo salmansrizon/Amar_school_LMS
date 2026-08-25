@@ -27,8 +27,11 @@ begin
      where schemaname = 'public' and cmd = 'SELECT' and qual = '(auth.uid() IS NOT NULL)'
   loop
     execute format('drop policy %I on public.%I', r.policyname, r.tablename);
+    -- The (select ...) wrapper matters: bare `not public.app_is_student()` is
+    -- re-evaluated per row, and these are the tables bulk jobs scan (pricing,
+    -- plans, templates). Wrapped, Postgres hoists it to a one-shot InitPlan.
     execute format(
-      'create policy %I on public.%I for select using (auth.uid() is not null and not public.app_is_student())',
+      'create policy %I on public.%I for select using (auth.uid() is not null and not (select public.app_is_student()))',
       r.policyname, r.tablename);
   end loop;
 end $$;
