@@ -35,6 +35,8 @@ export const SCHOOL_MODULES: SchoolNavItem[] = [
   // outside the staff that somebody has to answer", and inventing a new
   // grantable screen for one inbox would mean every school re-granting it.
   { screen: 'feedback', href: '/school/questions', titleKey: 'questions.title' },
+  // Owner-only in practice: the page redirects a Staff User (#455).
+  { screen: 'feedback', href: '/school/questions/response', titleKey: 'response.title' },
   { screen: 'institute', href: '/school/institute', titleKey: 'institute.title' },
   { screen: 'staff', href: '/school/staff', titleKey: 'staff.title' },
 ]
