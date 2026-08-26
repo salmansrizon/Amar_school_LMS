@@ -141,4 +141,10 @@ begin
     from generate_series(0, 4) as d(day),
          generate_series(1, 4) as p(period)
   on conflict (class_id, day_of_week, period) do nothing;
+
+  -- Publish it. student_routine joins class_routines on published_at is not
+  -- null, so unpublished slots leave every student routine screen empty.
+  insert into public.class_routines (class_id, school_id, published_at)
+  values (v_class, v_school, now())
+  on conflict (class_id) do update set published_at = coalesce(class_routines.published_at, now());
 end $$;

@@ -30,6 +30,8 @@ export interface RolePages {
   distributorPage: Page
   agentPage: Page
   govPage: Page
+  studentPage: Page
+  classTeacherPage: Page
 }
 
 export const test = base.extend<RolePages>({
@@ -38,6 +40,8 @@ export const test = base.extend<RolePages>({
   superAdminPage: async ({ browser }, use) => usePageAs(browser, 'super', use),
   distributorPage: async ({ browser }, use) => usePageAs(browser, 'distributor', use),
   agentPage: async ({ browser }, use) => usePageAs(browser, 'agent', use),
+  studentPage: async ({ browser }, use) => usePageAs(browser, 'student', use),
+  classTeacherPage: async ({ browser }, use) => usePageAs(browser, 'classteacher', use),
   govPage: async ({ browser }, use) => usePageAs(browser, 'gov', use),
 })
 

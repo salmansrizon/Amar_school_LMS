@@ -5,7 +5,6 @@ import { StrokeIcon } from '@/components/stroke-icon'
 import { t } from '@/lib/i18n'
 import { getStudentContext } from '@/lib/student/context'
 import { STUDENT_SEARCH } from '@/lib/school-search'
-import { StudentSearchPalette } from './student-search'
 
 // /student/* chrome (#441) — the shared AppShell (#285), same as every other
 // role group. Nav starts with Home only; each later ticket on map #434 adds the
@@ -148,17 +147,19 @@ export default async function StudentLayout({ children }: { children: React.Reac
       initialCollapsed={collapsed}
       search={{
         label: t('shell.search', lang),
-        render: (onClose) => (
-          <StudentSearchPalette
-            entries={STUDENT_SEARCH.map((e) => ({
-              label: t(e.titleKey, lang),
-              keywords: e.keywords,
-              href: e.href,
-            }))}
-            lang={lang}
-            onClose={onClose}
-          />
-        ),
+        // Entries, not a renderer — see AppShellSearch. The dynamic record hits
+        // still come from globalRecordSearch's `student` branch inside the palette.
+        entries: STUDENT_SEARCH.map((e) => ({
+          label: t(e.titleKey, lang),
+          keywords: e.keywords,
+          href: e.href,
+          icon: (
+            <StrokeIcon className="size-4">
+              <circle cx="11" cy="11" r="7" />
+              <path d="m20 20-3.5-3.5" />
+            </StrokeIcon>
+          ),
+        })),
       }}
       contentContainer={false}
     >

@@ -49,8 +49,13 @@ export interface AppShellProfile {
 
 export interface AppShellSearch {
   label: string
-  /** Render the palette when open; return null to render nothing. */
-  render: (onClose: () => void) => React.ReactNode
+  /** The palette's entries. NOT a render function: this shell is a Client
+   *  Component and every role layout that supplies search is a Server one, so a
+   *  function here cannot cross the boundary ("Functions cannot be passed
+   *  directly to Client Components"). Elements can — `icon` is a ReactNode and
+   *  travels in the RSC payload — so the shell owns the palette and its own
+   *  onClose, and the layout only describes what to search. */
+  entries: PaletteEntry[]
 }
 
 function isActive(pathname: string, item: AppNavItem): boolean {
@@ -390,9 +395,11 @@ export function AppShell({
 
       {hasSearch &&
         searchOpen &&
-        (search
-          ? search.render(() => setSearchOpen(false))
-          : <SearchPalette entries={navEntries} lang={lang} onClose={() => setSearchOpen(false)} />)}
+        <SearchPalette
+          entries={search ? search.entries : navEntries}
+          lang={lang}
+          onClose={() => setSearchOpen(false)}
+        />}
 
       <Toaster theme={theme} position="top-right" richColors closeButton />
     </div>
