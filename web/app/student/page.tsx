@@ -6,6 +6,7 @@ import { todayAndTomorrow } from '@/lib/student/routine'
 import { addDays, schoolToday } from '@/lib/school-time'
 import { loadNoticeFeed } from '@/lib/student/notices-source'
 import { loadStudentTasks } from '@/lib/student/tasks-read'
+import { nextPaper, type ExamRoutineRow } from '@/lib/student/exam-schedule'
 import { splitTasks, pendingCount } from '@/lib/student/tasks'
 import Link from 'next/link'
 import { DayPlanCard } from './day-plan'
@@ -27,6 +28,16 @@ export default async function StudentHome() {
     loadNoticeFeed(ctx.supabase, 30),
     loadStudentTasks(ctx.supabase),
   ])
+
+  // An exam is the most important thing on a student's calendar, so it sits
+  // beside Today/Tomorrow rather than behind its own tab (#450).
+  const { data: examRows } = await ctx.supabase
+    .from('student_exam_routine')
+    .select('*')
+    .gte('exam_date', today)
+    .order('exam_date')
+    .limit(20)
+  const upcoming = nextPaper((examRows ?? []) as ExamRoutineRow[], today)
   const pending = pendingCount(splitTasks(tasks, new Date()))
   const [todayPlan, tomorrowPlan] = todayAndTomorrow(today, rows, offDays)
 
@@ -80,6 +91,28 @@ export default async function StudentHome() {
           </div>
         ))}
       </section>
+
+      {upcoming && (
+        <Link
+          href="/student/exams"
+          className="mb-4 block max-w-4xl rounded-lg border border-brand-300 bg-brand-50 p-4 hover:bg-brand-100"
+        >
+          <span className="text-xs font-semibold uppercase tracking-wide text-brand-700">
+            {t('student.upcomingExam', lang)}
+          </span>
+          <span className="block text-sm font-medium">
+            {upcoming.exam_name} · {upcoming.subject_name ?? '—'}
+          </span>
+          <span className="block text-xs text-muted">
+            {new Date(`${upcoming.exam_date}T00:00:00Z`).toLocaleDateString(
+              lang === 'bn' ? 'bn-BD' : 'en-GB',
+              { weekday: 'long', day: 'numeric', month: 'short', timeZone: 'UTC' },
+            )}
+            {upcoming.start_time ? ` · ${upcoming.start_time}` : ''}
+            {upcoming.room_name ? ` · ${upcoming.room_name}` : ''}
+          </span>
+        </Link>
+      )}
 
       <div className="grid max-w-4xl gap-4 sm:grid-cols-2">
         <DayPlanCard plan={todayPlan} title={t('student.today', lang)} lang={lang} />
