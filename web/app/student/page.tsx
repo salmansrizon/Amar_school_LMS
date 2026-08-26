@@ -4,6 +4,8 @@ import { getStudentContext, isReadOnly } from '@/lib/student/context'
 import { loadStudentRoutine } from '@/lib/student/routine-source'
 import { todayAndTomorrow } from '@/lib/student/routine'
 import { addDays, schoolToday } from '@/lib/school-time'
+import { loadNoticeFeed } from '@/lib/student/notices-source'
+import Link from 'next/link'
 import { DayPlanCard } from './day-plan'
 
 // Student home (#444). Identity, then Today and Tomorrow.
@@ -18,7 +20,10 @@ export default async function StudentHome() {
   const { student } = ctx
 
   const today = schoolToday()
-  const { rows, offDays } = await loadStudentRoutine(ctx.supabase, lang, [today, addDays(today, 1)])
+  const [{ rows, offDays }, feed] = await Promise.all([
+    loadStudentRoutine(ctx.supabase, lang, [today, addDays(today, 1)]),
+    loadNoticeFeed(ctx.supabase, 30),
+  ])
   const [todayPlan, tomorrowPlan] = todayAndTomorrow(today, rows, offDays)
 
   const facts = [
@@ -41,6 +46,16 @@ export default async function StudentHome() {
         <p className="mb-4 rounded-lg border border-sun bg-sun-soft px-4 py-3 text-sm text-sun-deep">
           {t('student.readOnly', lang)}
         </p>
+      )}
+
+      {feed.unread.size > 0 && (
+        <Link
+          href="/student/notices"
+          className="mb-4 inline-flex items-center gap-2 rounded-full border border-brand-300 bg-brand-50 px-4 py-1.5 text-sm font-semibold text-brand-700 hover:bg-brand-100"
+        >
+          <span className="rounded-full bg-brand-500 px-2 text-xs text-white">{feed.unread.size}</span>
+          {t('student.newCount', lang)}
+        </Link>
       )}
 
       <section className="mb-6 grid max-w-2xl grid-cols-1 gap-3 sm:grid-cols-3">
