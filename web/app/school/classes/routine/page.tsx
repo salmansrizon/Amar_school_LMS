@@ -90,7 +90,7 @@ async function RoutineGrid({ classId, lang }: { classId: string; lang: Lang }) {
         .select('day_of_week, period, subject_id, teacher_id, room_id')
         .eq('class_id', classId),
       supabase.from('subjects').select('id, name').order('name'),
-      supabase.from('employees').select('id, full_name').order('full_name'),
+      supabase.from('employee_card').select('id, full_name').order('full_name'),
       supabase.from('rooms').select('id, name').eq('is_active', true).order('name'),
     ])
 

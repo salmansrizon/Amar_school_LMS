@@ -52,7 +52,7 @@ export default async function EmployeeAttendancePage({
   const [{ data: school }, { data: employees }, { data: officeTimes }, { data: categories }] = await Promise.all([
     supabase.from('schools').select('default_grace_minutes').eq('id', schoolId).single(),
     supabase
-      .from('employees')
+      .from('employee_card')
       .select('id, full_name, category, grace_override_minutes')
       .is('archived_at', null)
       .order('full_name'),
