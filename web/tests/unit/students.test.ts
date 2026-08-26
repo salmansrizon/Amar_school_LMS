@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
+  PASSWORD_MASK,
+  studentLoginSmsBody,
   classSectionLabel,
   matchesStudentQuery,
   filterStudents,
@@ -260,5 +262,22 @@ describe('behaviourSmsBody', () => {
     const longNote = 'x'.repeat(300)
     const body = behaviourSmsBody('Student', longNote, 5)
     expect(body.length).toBeLessThan(300)
+  })
+})
+
+describe('studentLoginSmsBody (#442)', () => {
+  it('carries the name, the username and the password', () => {
+    const body = studentLoginSmsBody('Rahim Uddin', 's0007@greenwood.students.invalid', 'a1b2c3d4e5f6')
+    expect(body).toContain('Rahim Uddin')
+    expect(body).toContain('s0007@greenwood.students.invalid')
+    expect(body).toContain('a1b2c3d4e5f6')
+  })
+
+  it('builds a stored copy with no password in it', () => {
+    // The Send Log is readable by any staff member with the SMS screen, so the
+    // logged copy must never be the one that went out.
+    const stored = studentLoginSmsBody('Rahim Uddin', 's0007@greenwood.students.invalid', PASSWORD_MASK)
+    expect(stored).not.toContain('a1b2c3d4e5f6')
+    expect(stored).toContain(PASSWORD_MASK)
   })
 })

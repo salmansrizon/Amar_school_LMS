@@ -16,6 +16,7 @@ import {
 import { BackLink } from '@/components/back-link'
 import { resolveBackHref, selfOrigin } from '@/lib/back-nav'
 import type { ClassCatalogueRow } from '@/lib/class-catalogue'
+import { PublishResults } from './publish-results'
 
 // Layout per ui/school-owner/exam-setup.html: Basic Info + Grading Scheme
 // cards (the latter picks one of #31's reusable named schemes rather than
@@ -44,7 +45,7 @@ export default async function ExamSetupPage({
 
   const { data: exam } = await supabase
     .from('exams')
-    .select('id, name, exam_year, status, class_id, start_date, grading_scheme_id')
+    .select('id, name, exam_year, status, class_id, start_date, grading_scheme_id, results_published_at')
     .eq('id', id)
     .maybeSingle()
   if (!exam) notFound()
@@ -56,7 +57,7 @@ export default async function ExamSetupPage({
       supabase.from('grading_schemes').select('id, name').order('name'),
       supabase.from('subjects').select('id, name, class_id, theory_marks, mcq_marks, practical_marks').order('name'),
       supabase.from('exam_subject_teachers').select('subject_id, teacher_id').eq('exam_id', id),
-      supabase.from('employees').select('id, full_name').is('archived_at', null).order('full_name'),
+      supabase.from('employee_card').select('id, full_name').is('archived_at', null).order('full_name'),
     ])
 
   const teacherBySubject = new Map((assignments ?? []).map((a) => [a.subject_id, a.teacher_id]))
@@ -75,6 +76,7 @@ export default async function ExamSetupPage({
 
   return (
     <div>
+      <PublishResults lang={lang} examId={exam.id} publishedAt={exam.results_published_at} />
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold">
           {t('examSetup.title', lang)} — {examLabel}

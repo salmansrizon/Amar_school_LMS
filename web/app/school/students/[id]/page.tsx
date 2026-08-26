@@ -8,6 +8,7 @@ import { classSectionLabel } from '@/lib/students'
 import { AddEntryForm, EditableEntry } from './behaviour-controls'
 import { ArchiveToggle, PhotoControl, ProfileEditor } from './profile-controls'
 import { StudentSubjects, type AssignedSubject } from './subject-controls'
+import { StudentLoginPanel, type StudentLoginStatus } from './login-controls'
 import { PrintTrigger } from '@/components/print/print-trigger'
 
 // Layout per ui/school-owner/student-detail.html: status + roll header with
@@ -41,12 +42,16 @@ export default async function StudentDetailPage({
 }) {
   const { id } = await params
   const lang: Lang = await currentLang()
-  const { supabase } = await getSchoolContext()
+  const { supabase, role } = await getSchoolContext()
 
   const { data: student } = await supabase.from('students').select('*').eq('id', id).single()
   if (!student) notFound()
 
-  const [{ data: entries }, { data: classes }, { data: subjects }, { data: assignments }] =
+  // Login status is owner-only (#442) — issuing and resetting a child's password
+  // is not a Staff-User act, and the RPCs reject them regardless.
+  const isOwner = role === 'school_owner'
+
+  const [{ data: entries }, { data: classes }, { data: subjects }, { data: assignments }, loginRes] =
     await Promise.all([
       supabase
         .from('behaviour_log_entries')
@@ -56,6 +61,13 @@ export default async function StudentDetailPage({
       supabase.from('classes').select('name, section').order('created_at'),
       supabase.from('subjects').select('id, name').order('name'),
       supabase.from('student_subjects').select('subject_id, is_optional').eq('student_id', id),
+      isOwner
+        ? supabase
+            .from('student_login_info')
+            .select('email, last_sign_in_at')
+            .eq('student_id', id)
+            .maybeSingle()
+        : Promise.resolve({ data: null }),
     ])
 
   const subjectName = new Map((subjects ?? []).map((s) => [s.id, s.name]))
@@ -148,6 +160,7 @@ export default async function StudentDetailPage({
               }
             />
             <InfoRow label={t('students.bloodGroup', lang)} value={student.blood_group} />
+            <InfoRow label={t('students.studentNo', lang)} value={student.student_no} />
             <InfoRow
               label={t('students.classSection', lang)}
               value={classSectionLabel(student.class_name, student.section)}
@@ -202,6 +215,15 @@ export default async function StudentDetailPage({
           </InfoCard>
         </ProfileEditor>
       </div>
+
+      {isOwner && (
+        <StudentLoginPanel
+          lang={lang}
+          studentId={id}
+          status={(loginRes.data as StudentLoginStatus | null) ?? null}
+          hasGuardianPhone={Boolean(student.guardian_phone)}
+        />
+      )}
 
       <section className="mb-6 rounded-lg border border-line bg-paper p-5">
         <h2 className="mb-3 font-bold">{t('subjects.title', lang)}</h2>

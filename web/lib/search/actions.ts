@@ -54,10 +54,52 @@ export async function globalRecordSearch(query: string): Promise<RecordHit[]> {
   } else if (role === 'school_owner' || role === 'staff_user') {
     const [students, emps] = await Promise.all([
       supabase.from('students').select('id, full_name').ilike('full_name', like).is('archived_at', null).limit(6),
-      supabase.from('employees').select('id, full_name').ilike('full_name', like).is('archived_at', null).limit(4),
+      supabase.from('employee_card').select('id, full_name').ilike('full_name', like).is('archived_at', null).limit(4),
     ])
     for (const s of students.data ?? []) hits.push({ label: s.full_name, sublabel: 'Student', href: `/school/students/${s.id}` })
     for (const e of emps.data ?? []) hits.push({ label: e.full_name, sublabel: 'Employee', href: `/school/employees/${e.id}` })
+  } else if (role === 'student') {
+    // The Student portal (#457). Every source here is a definer view that has
+    // ALREADY decided what this Student may see — their own class's notices,
+    // tasks, material, published results and subjects — so there is nothing to
+    // scope again, and a hit belonging to another class simply has no row.
+    //
+    // The sublabel is not decoration: four kinds share a title space here, and
+    // "Chapter 4" alone tells a student nothing about whether they are opening
+    // the task or the lesson plan.
+    const [pubs, material, exams, subjects] = await Promise.all([
+      supabase
+        .from('publications')
+        .select('id, title, kind')
+        .ilike('title', like)
+        .in('kind', ['notice', 'homework'])
+        .limit(6),
+      supabase.from('student_material').select('id, source, title, kind').ilike('title', like).limit(4),
+      supabase.from('student_exam_result').select('exam_id, exam_name').ilike('exam_name', like).limit(4),
+      supabase.from('student_subject_option').select('id, name').ilike('name', like).limit(4),
+    ])
+
+    for (const p of pubs.data ?? []) {
+      const isTask = p.kind === 'homework'
+      hits.push({
+        label: p.title,
+        sublabel: isTask ? 'Task' : 'Notice',
+        href: isTask ? `/student/tasks/${p.id}` : `/student/notices/${p.id}`,
+      })
+    }
+    for (const m of material.data ?? []) {
+      hits.push({ label: m.title, sublabel: 'Material', href: '/student/materials' })
+    }
+    // student_exam_result is one row per subject, so an exam repeats — collapse.
+    const seenExams = new Set<string>()
+    for (const e of exams.data ?? []) {
+      if (seenExams.has(e.exam_id)) continue
+      seenExams.add(e.exam_id)
+      hits.push({ label: e.exam_name, sublabel: 'Result', href: `/student/results/${e.exam_id}` })
+    }
+    for (const s of subjects.data ?? []) {
+      hits.push({ label: s.name, sublabel: 'Subject', href: '/student/routine' })
+    }
   } else if (role === 'gov_official') {
     // Territory schools (definer-scoped RPC), filtered by name in-memory; the gov
     // landing lists them, so hits point there.

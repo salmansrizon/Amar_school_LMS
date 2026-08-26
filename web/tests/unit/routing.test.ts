@@ -10,6 +10,7 @@ describe('homeFor: post-login redirect per role (issue #1)', () => {
     ['agent', '/agent'],
     ['super_admin', '/super-admin'],
     ['gov_official', '/gov'],
+    ['student', '/student'],
   ] as [Role, string][])('%s lands in %s', (role, home) => {
     expect(homeFor(role)).toBe(home)
   })
@@ -30,6 +31,9 @@ describe('canAccess: a role is blocked from other roles’ route groups', () => 
     ['agent', '/distributor'],
     ['super_admin', '/school'],
     ['gov_official', '/distributor'],
+    ['student', '/school/students'],
+    ['school_owner', '/student'],
+    ['staff_user', '/student/results'],
   ] as [Role, string][])('%s is blocked from %s', (role, path) => {
     expect(canAccess(role, path)).toBe(false)
   })

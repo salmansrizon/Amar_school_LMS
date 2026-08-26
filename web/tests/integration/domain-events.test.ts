@@ -131,8 +131,14 @@ describe('Event Architecture outbox (#260)', () => {
       actorId: null,
     })
 
-    const aRows = (await owner.from('domain_events').select('payload').eq('school_id', schoolA)).data ?? []
-    expect(aRows.some((r) => (r.payload as { token?: string }).token === token)).toBe(true)
+    // Filter to this run's own token rather than scanning the school's events:
+    // the fixture school accumulates rows forever, and PostgREST caps an
+    // unordered read at db-max-rows, so a plain scan silently stops finding the
+    // row it just wrote once the table crosses that page.
+    const aRows =
+      (await owner.from('domain_events').select('payload').eq('school_id', schoolA).eq('payload->>token', token))
+        .data ?? []
+    expect(aRows).toHaveLength(1)
 
     const bReadsA = (await ownerB.from('domain_events').select('id').eq('school_id', schoolA)).data ?? []
     expect(bReadsA).toHaveLength(0)

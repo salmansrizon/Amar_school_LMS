@@ -74,7 +74,7 @@ export default async function SchoolHome() {
     { data: checklistItemRows },
   ] = await Promise.all([
     supabase.from('students').select('*', { count: 'exact', head: true }).is('archived_at', null),
-    supabase.from('employees').select('*', { count: 'exact', head: true }).is('archived_at', null),
+    supabase.from('employee_card').select('*', { count: 'exact', head: true }).is('archived_at', null),
     supabase
       .from('attendance_records')
       .select('att_date')
@@ -143,12 +143,34 @@ export default async function SchoolHome() {
 
   const quickActions = SCHOOL_QUICK_ACTIONS.filter((q) => canOpenScreen(role, grants, q.screen))
 
+  // My Classes (#443) is not in the nav, because it is not grant-gated: being
+  // the class teacher is the authorization. So the dashboard is where a Class
+  // Teacher finds it, and only when they actually are one. Most logins are not
+  // linked to an Employee at all, and those pay one query, not two.
+  const { data: myEmployeeId } = await supabase.rpc('app_current_employee_id')
+  const myClassCount = myEmployeeId
+    ? (
+        await supabase
+          .from('classes')
+          .select('id', { count: 'exact', head: true })
+          .eq('class_teacher_id', myEmployeeId)
+      ).count
+    : 0
+
   return (
     <div>
       <div className="mb-section">
         <p className="text-xs font-semibold uppercase tracking-[0.24em] text-brand-600">{t('shell.welcome', lang)}</p>
         <h1 className="mt-1 text-2xl font-extrabold tracking-tight sm:text-3xl">{t('home.school', lang)}</h1>
         <p className="mt-1 text-sm text-muted">{fullName || email}</p>
+        {!!myClassCount && (
+          <Link
+            href="/school/my-classes"
+            className="mt-3 inline-flex rounded-full border border-line-strong px-4 py-1.5 text-xs font-semibold hover:bg-paper-muted"
+          >
+            {t('myClasses.title', lang)} · {myClassCount}
+          </Link>
+        )}
       </div>
 
       {/* KPI tiles — stat cards, so each carries the rail. */}
