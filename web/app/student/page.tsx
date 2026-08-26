@@ -5,6 +5,8 @@ import { loadStudentRoutine } from '@/lib/student/routine-source'
 import { todayAndTomorrow } from '@/lib/student/routine'
 import { addDays, schoolToday } from '@/lib/school-time'
 import { loadNoticeFeed } from '@/lib/student/notices-source'
+import { loadStudentTasks } from '@/lib/student/tasks-read'
+import { splitTasks, pendingCount } from '@/lib/student/tasks'
 import Link from 'next/link'
 import { DayPlanCard } from './day-plan'
 
@@ -20,10 +22,12 @@ export default async function StudentHome() {
   const { student } = ctx
 
   const today = schoolToday()
-  const [{ rows, offDays }, feed] = await Promise.all([
+  const [{ rows, offDays }, feed, tasks] = await Promise.all([
     loadStudentRoutine(ctx.supabase, lang, [today, addDays(today, 1)]),
     loadNoticeFeed(ctx.supabase, 30),
+    loadStudentTasks(ctx.supabase),
   ])
+  const pending = pendingCount(splitTasks(tasks, new Date()))
   const [todayPlan, tomorrowPlan] = todayAndTomorrow(today, rows, offDays)
 
   const facts = [
@@ -46,6 +50,16 @@ export default async function StudentHome() {
         <p className="mb-4 rounded-lg border border-sun bg-sun-soft px-4 py-3 text-sm text-sun-deep">
           {t('student.readOnly', lang)}
         </p>
+      )}
+
+      {pending > 0 && (
+        <Link
+          href="/student/tasks"
+          className="mb-4 mr-2 inline-flex items-center gap-2 rounded-full border border-sun bg-sun-soft px-4 py-1.5 text-sm font-semibold text-sun-deep hover:brightness-95"
+        >
+          <span className="rounded-full bg-sun-deep px-2 text-xs text-white">{pending}</span>
+          {t('student.pendingCount', lang)}
+        </Link>
       )}
 
       {feed.unread.size > 0 && (

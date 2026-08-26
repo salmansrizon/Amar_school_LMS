@@ -34,7 +34,7 @@ export default async function MyClassesPage() {
     )
   }
 
-  const [{ data: classes }, { data: students }] = await Promise.all([
+  const [{ data: classes }, { data: students }, { data: tasks }] = await Promise.all([
     supabase
       .from('classes')
       .select('id, name, section, group_department')
@@ -42,6 +42,12 @@ export default async function MyClassesPage() {
       .order('name'),
     // ponytail: whole-table scan capped at 10k rows, same as the classes page.
     supabase.from('students').select('class_name, section').limit(10000),
+    supabase
+      .from('publications')
+      .select('id, title, due_at, target_class_name, target_section')
+      .eq('kind', 'homework')
+      .order('created_at', { ascending: false })
+      .limit(200),
   ])
 
   const counts = studentCounts(students ?? [])
@@ -55,19 +61,46 @@ export default async function MyClassesPage() {
         ) : (
           <ul className="divide-y divide-line">
             {classes.map((c) => (
-              <li key={c.id} className="flex items-center justify-between py-3">
-                <span className="font-medium">{classCatalogueLabel(c)}</span>
-                <span className="flex items-center gap-4 text-sm text-muted">
-                  <span>
-                    {t('classes.students', lang)}: {countFor(counts, c.name, c.section)}
+              <li key={c.id} className="py-3">
+                <div className="flex items-center justify-between">
+                  <span className="font-medium">{classCatalogueLabel(c)}</span>
+                  <span className="flex items-center gap-4 text-sm text-muted">
+                    <span>
+                      {t('classes.students', lang)}: {countFor(counts, c.name, c.section)}
+                    </span>
+                    <Link
+                      href={`/school/classes/routine?class=${c.id}`}
+                      className="rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted"
+                    >
+                      {t('classes.routine', lang)}
+                    </Link>
                   </span>
-                  <Link
-                    href={`/school/classes/routine?class=${c.id}`}
-                    className="rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted"
-                  >
-                    {t('classes.routine', lang)}
-                  </Link>
-                </span>
+                </div>
+                {(() => {
+                  // Homework aimed at this class — a class-only target (no
+                  // section) counts for every section, matching how the student
+                  // side resolves the same targeting.
+                  const mine = (tasks ?? []).filter(
+                    (task) =>
+                      task.target_class_name === c.name &&
+                      (!task.target_section || task.target_section === (c.section ?? '')),
+                  )
+                  if (!mine.length) return null
+                  return (
+                    <ul className="mt-2 flex flex-wrap gap-2">
+                      {mine.map((task) => (
+                        <li key={task.id}>
+                          <Link
+                            href={`/school/my-classes/tasks/${task.id}`}
+                            className="rounded-full bg-paper-muted px-3 py-1 text-xs hover:bg-brand-50"
+                          >
+                            {t('myClasses.homework', lang)}: {task.title}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  )
+                })()}
               </li>
             ))}
           </ul>
