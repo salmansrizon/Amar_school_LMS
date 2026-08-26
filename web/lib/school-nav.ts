@@ -31,6 +31,10 @@ export const SCHOOL_MODULES: SchoolNavItem[] = [
   { screen: 'sms', href: '/school/sms', titleKey: 'sms.title' },
   { screen: 'notices', href: '/school/notices', titleKey: 'notices.title' },
   { screen: 'feedback', href: '/school/feedback', titleKey: 'feedback.title' },
+  // Student questions (#454) ride the feedback grant: both are "messages from
+  // outside the staff that somebody has to answer", and inventing a new
+  // grantable screen for one inbox would mean every school re-granting it.
+  { screen: 'feedback', href: '/school/questions', titleKey: 'questions.title' },
   { screen: 'institute', href: '/school/institute', titleKey: 'institute.title' },
   { screen: 'staff', href: '/school/staff', titleKey: 'staff.title' },
 ]

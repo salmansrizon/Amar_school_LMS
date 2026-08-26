@@ -5,6 +5,7 @@ import { t } from '@/lib/i18n'
 import { getStudentContext, isReadOnly } from '@/lib/student/context'
 import { MAX_SUBMISSION_FILES } from '@/lib/student/submissions'
 import { SubmitWork, WithdrawButton } from './submit-work'
+import { AskForm } from '../../questions/ask-form'
 
 // One task, with the Student's own submitted work (#448).
 //
@@ -95,6 +96,13 @@ export default async function StudentTaskPage({
           />
         )}
       </section>
+
+      {!isReadOnly(ctx) && (
+        <section className="mt-4 rounded-lg border border-line bg-paper p-5">
+          <h2 className="mb-3 font-bold">{t('student.askAbout', lang)}</h2>
+          <AskForm lang={lang} publicationId={task.id} />
+        </section>
+      )}
     </main>
   )
 }

@@ -6,6 +6,8 @@ import { getStudentContext } from '@/lib/student/context'
 import { markPublicationRead } from '@/lib/student/notices-source'
 import { isForMyClass } from '@/lib/student/notices'
 import { importanceBadgeClass } from '@/lib/publishing'
+import { isReadOnly } from '@/lib/student/context'
+import { AskForm } from '../../questions/ask-form'
 
 // One notice (#445). Opening it is what marks it read — there is no "mark as
 // read" button, because the receipt exists to answer "what is new since I last
@@ -17,7 +19,8 @@ export default async function StudentNoticePage({
 }) {
   const { id } = await params
   const lang = await currentLang()
-  const { supabase, student } = await getStudentContext()
+  const ctx = await getStudentContext()
+  const { supabase, student } = ctx
 
   // RLS decides visibility: a notice aimed at another class is simply not here.
   const { data: notice } = await supabase
@@ -69,6 +72,15 @@ export default async function StudentNoticePage({
 
       {notice.content && (
         <div className="whitespace-pre-wrap text-sm leading-relaxed">{notice.content}</div>
+      )}
+
+      {/* "Ask about this" (#454): a question anchored to the post it came from
+          is what makes the teacher's inbox groupable. */}
+      {!isReadOnly(ctx) && (
+        <section className="mt-6 rounded-lg border border-line bg-paper p-5">
+          <h2 className="mb-3 font-bold">{t('student.askAbout', lang)}</h2>
+          <AskForm lang={lang} publicationId={notice.id} />
+        </section>
       )}
 
       {notice.link_url && (
