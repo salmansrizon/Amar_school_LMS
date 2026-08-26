@@ -136,7 +136,7 @@ export function SchoolShell({
       initialCollapsed={initialCollapsed}
       search={{
         label: t('shell.search', lang),
-        render: (onClose) => <SearchPalette entries={searchEntries} lang={lang} onClose={onClose} />,
+        entries: searchEntries,
       }}
       bell={<NotificationBell lang={lang} buttonClass={ICON_BUTTON} />}
       topbarExtras={topbarExtras}

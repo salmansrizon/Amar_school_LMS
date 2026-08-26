@@ -5,7 +5,9 @@ import { expect, type Page } from '@playwright/test'
 export const PASSWORD = 'test-password-123!'
 
 /** Stable per-role key — matches the storageState files written by global.setup. */
-export type RoleKey = 'owner' | 'staff' | 'super' | 'distributor' | 'agent' | 'gov'
+export type RoleKey =
+  | 'owner' | 'staff' | 'super' | 'distributor' | 'agent' | 'gov'
+  | 'student' | 'classteacher'
 
 export interface RoleCase {
   key: RoleKey
@@ -23,6 +25,11 @@ export const ROLES: RoleCase[] = [
   { key: 'distributor', role: 'Distributor', email: 'dealer-e2e@test.local', home: /\/distributor(\/|$)/ },
   { key: 'agent', role: 'Agent', email: 'agent-e2e@test.local', home: /\/agent(\/|$)/ },
   { key: 'gov', role: 'Gov Official', email: 'gov-e2e@test.local', home: /\/gov(\/|$)/ },
+  // map #434. The Student lands on /student; the Class Teacher is an ordinary
+  // Staff User whose extra reach comes from classes.class_teacher_id (ADR 0017),
+  // so their home is /school like any other staff login.
+  { key: 'student', role: 'Student', email: 's9001@test-a.students.invalid', home: /\/student(\/|$)/ },
+  { key: 'classteacher', role: 'Class Teacher', email: 'teacher-e2e@test.local', home: /\/school(\/|$)/ },
 ]
 
 /** Look up a role case by key (used by fixtures + global.setup). */
