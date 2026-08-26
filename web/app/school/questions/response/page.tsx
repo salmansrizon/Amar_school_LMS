@@ -30,7 +30,9 @@ export default async function ResponsePerformancePage({
       .select('id, subject, created_at, replied_at, class_name, section')
       .limit(2000),
     supabase.from('classes').select('name, section, class_teacher_id'),
-    supabase.from('employees').select('id, full_name'),
+    // employee_card, not employees: this page is Owner-only today, but the
+    // base table now needs the Employees grant (0136) and a name is all we want.
+    supabase.from('employee_card').select('id, full_name'),
   ])
 
   // A question is accounted to the Class Teacher of the asking student's class.
