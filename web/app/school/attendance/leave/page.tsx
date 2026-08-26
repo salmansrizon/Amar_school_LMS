@@ -34,7 +34,7 @@ export default async function LeaveManagementPage({
   const [{ data: students }, { data: employees }, { data: studentLeaves }, { data: employeeLeaves }] =
     await Promise.all([
       supabase.from('students').select('id, full_name').order('full_name'),
-      supabase.from('employees').select('id, full_name').order('full_name'),
+      supabase.from('employee_card').select('id, full_name').order('full_name'),
       supabase
         .from('student_leaves')
         .select('id, student_id, from_day, to_day, reason, status, created_at')

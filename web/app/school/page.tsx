@@ -74,7 +74,7 @@ export default async function SchoolHome() {
     { data: checklistItemRows },
   ] = await Promise.all([
     supabase.from('students').select('*', { count: 'exact', head: true }).is('archived_at', null),
-    supabase.from('employees').select('*', { count: 'exact', head: true }).is('archived_at', null),
+    supabase.from('employee_card').select('*', { count: 'exact', head: true }).is('archived_at', null),
     supabase
       .from('attendance_records')
       .select('att_date')

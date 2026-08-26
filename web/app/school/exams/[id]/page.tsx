@@ -57,7 +57,7 @@ export default async function ExamSetupPage({
       supabase.from('grading_schemes').select('id, name').order('name'),
       supabase.from('subjects').select('id, name, class_id, theory_marks, mcq_marks, practical_marks').order('name'),
       supabase.from('exam_subject_teachers').select('subject_id, teacher_id').eq('exam_id', id),
-      supabase.from('employees').select('id, full_name').is('archived_at', null).order('full_name'),
+      supabase.from('employee_card').select('id, full_name').is('archived_at', null).order('full_name'),
     ])
 
   const teacherBySubject = new Map((assignments ?? []).map((a) => [a.subject_id, a.teacher_id]))

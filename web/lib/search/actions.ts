@@ -54,7 +54,7 @@ export async function globalRecordSearch(query: string): Promise<RecordHit[]> {
   } else if (role === 'school_owner' || role === 'staff_user') {
     const [students, emps] = await Promise.all([
       supabase.from('students').select('id, full_name').ilike('full_name', like).is('archived_at', null).limit(6),
-      supabase.from('employees').select('id, full_name').ilike('full_name', like).is('archived_at', null).limit(4),
+      supabase.from('employee_card').select('id, full_name').ilike('full_name', like).is('archived_at', null).limit(4),
     ])
     for (const s of students.data ?? []) hits.push({ label: s.full_name, sublabel: 'Student', href: `/school/students/${s.id}` })
     for (const e of emps.data ?? []) hits.push({ label: e.full_name, sublabel: 'Employee', href: `/school/employees/${e.id}` })

@@ -32,7 +32,7 @@ export default async function RoutinePrintPage({
         .select('day_of_week, period, subject_id, teacher_id, room_id')
         .eq('class_id', classId),
       supabase.from('subjects').select('id, name'),
-      supabase.from('employees').select('id, full_name'),
+      supabase.from('employee_card').select('id, full_name'),
       supabase.from('rooms').select('id, name'),
     ])
   if (!institute || !cls) notFound()

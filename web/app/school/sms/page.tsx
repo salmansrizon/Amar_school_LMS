@@ -21,7 +21,7 @@ export default async function SmsComposePage() {
   // app/school/students/page.tsx, app/school/employees/page.tsx).
   const [{ data: students }, { data: employees }] = await Promise.all([
     supabase.from('students').select(COMPOSE_STUDENT_COLUMNS).is('archived_at', null),
-    supabase.from('employees').select(COMPOSE_EMPLOYEE_COLUMNS).is('archived_at', null),
+    supabase.from('employee_card').select(COMPOSE_EMPLOYEE_COLUMNS).is('archived_at', null),
   ])
 
   const classNames = [...new Set((students ?? []).map((s) => s.class_name).filter(Boolean))] as string[]

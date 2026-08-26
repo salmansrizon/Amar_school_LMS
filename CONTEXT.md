@@ -77,7 +77,7 @@ A School-configured trigger ("exactly N working-days absent" or "absent within a
 _Avoid_: Alert (implies real-time urgency this rule doesn't have)
 
 **Permission Grant**:
-A Staff User's access is boolean per screen/module (can open it or not) — not per-action (no separate read/write/delete). Matches the legacy `sub_user.paths` behavior (a list of navigation-tree paths the user may open).
+A Staff User's access is boolean per screen/module (can open it or not) — not per-action (no separate read/write/delete). Matches the legacy `sub_user.paths` behavior (a list of navigation-tree paths the user may open). A Grant governs **the data behind the screen, not merely the screen**: it is enforced in Row Level Security, so it holds against the API as well as the navigation. Tables that several screens legitimately read — Students, Classes, Subjects — are not gated by any single Grant, because there is no per-action split available to separate "may look at a Student while marking a register" from "may edit a Student"; where a table is read by a few screens it names all of them.
 _Avoid_: Role, permission level (implies granularity beyond screen-level access)
 
 **Student**:

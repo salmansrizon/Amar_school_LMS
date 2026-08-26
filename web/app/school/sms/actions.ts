@@ -141,7 +141,7 @@ export async function sendCompose(formData: FormData): Promise<{ error?: string;
   // active-only default every other list screen in this app uses.
   const [{ data: students }, { data: employees }] = await Promise.all([
     supabase.from('students').select(COMPOSE_STUDENT_COLUMNS).is('archived_at', null),
-    supabase.from('employees').select(COMPOSE_EMPLOYEE_COLUMNS).is('archived_at', null),
+    supabase.from('employee_card').select(COMPOSE_EMPLOYEE_COLUMNS).is('archived_at', null),
   ])
 
   const recipients = resolveRecipients(mode, {
