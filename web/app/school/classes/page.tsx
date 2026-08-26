@@ -41,8 +41,10 @@ export default async function ClassesPage({
       // if a school ever outgrows it.
       supabase.from('students').select('class_name, section').limit(10000),
       // Class teachers are Employees (#435). Archived staff are not offerable.
+      // employee_card, not employees: 0136 gates the base table on the Employees
+      // grant, and this picker belongs to Classes. A name is all it wants.
       supabase
-        .from('employees')
+        .from('employee_card')
         .select('id, full_name')
         .is('archived_at', null)
         .order('full_name'),
