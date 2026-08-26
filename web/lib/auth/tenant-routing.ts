@@ -5,7 +5,7 @@
 // and materializes the redirect URL.
 
 import type { HostKind } from './tenant-host'
-import type { Role } from './routing'
+import { pathInGroup, type Role } from './routing'
 
 export interface TenantSession {
   role: Role
@@ -28,8 +28,12 @@ export type TenantAction =
   /** Bounce to the same path on the user's own subdomain. */
   | { type: 'redirect-subdomain'; slug: string; path: string }
 
-export function isSchoolPath(path: string): boolean {
-  return path === '/school' || path.startsWith('/school/')
+/** The route groups that belong to a tenant and therefore live on that
+ *  tenant's subdomain: staff at /school, Students at /student (#441). */
+const TENANT_GROUPS = ['/school', '/student']
+
+export function isTenantPath(path: string): boolean {
+  return TENANT_GROUPS.some((g) => pathInGroup(path, g))
 }
 
 export function tenantRoute(facts: TenantFacts): TenantAction {
@@ -52,8 +56,9 @@ export function tenantRoute(facts: TenantFacts): TenantAction {
     return { type: 'next' }
   }
 
-  // Apex: a signed-in tenant member hitting /school belongs on their subdomain.
-  if (isSchoolPath(path) && session?.ownSubdomain) {
+  // Apex: a signed-in tenant member hitting /school or /student belongs on
+  // their own subdomain.
+  if (isTenantPath(path) && session?.ownSubdomain) {
     return { type: 'redirect-subdomain', slug: session.ownSubdomain, path }
   }
   return { type: 'next' }

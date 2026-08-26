@@ -121,6 +121,13 @@ begin
          and tablename = m.tbl
          -- Super Admin keeps its own way in.
          and coalesce(qual, with_check) not like '%super_admin%'
+         -- So does a Student. app_module_granted() is false for every role that
+         -- is not staff, so wrapping a student policy would silently blank the
+         -- screen it serves rather than deny it loudly. Only attendance_records
+         -- is actually shared today (0146's "student reads own attendance"),
+         -- and only filename order keeps this migration ahead of it — which is
+         -- not a guarantee worth relying on if 0136 is ever replayed alone.
+         and coalesce(qual, '') || coalesce(with_check, '') not like '%app_current_student%'
          -- Idempotent: never double-wrap on replay.
          and coalesce(qual, '') || coalesce(with_check, '') not like '%app_module_granted%'
     loop

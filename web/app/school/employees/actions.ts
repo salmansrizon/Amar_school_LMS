@@ -160,3 +160,26 @@ export async function setDefaultGrace(formData: FormData): Promise<{ error?: str
   revalidatePath(PAGE)
   return {}
 }
+
+/** Link (or unlink) an Employee to a Staff User login (#443). The bridge between
+ *  the HR record every teacher reference already points at and an actual login,
+ *  so a Class Teacher can sign in and see their classes. The same-school check
+ *  is a DB trigger (employee_profile_same_school) — this is the app-layer half. */
+export async function setEmployeeLogin(
+  employeeId: string,
+  profileId: string | null,
+): Promise<{ error?: string }> {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('employees')
+    .update({ profile_id: profileId })
+    .eq('id', employeeId)
+    .select('id')
+  if (error) {
+    if (error.code === '23505') return { error: 'That login is already linked to another employee' }
+    return { error: error.message }
+  }
+  if (!data?.length) return { error: 'Employee not found' }
+  revalidatePath(`${PAGE}/${employeeId}`)
+  return {}
+}

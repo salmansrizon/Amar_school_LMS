@@ -26,11 +26,31 @@ export async function addClass(formData: FormData): Promise<{ error?: string }> 
     section: optStr(formData, 'section'),
     education_level: optStr(formData, 'education_level'),
     group_department: optStr(formData, 'group_department'),
+    class_teacher_id: optStr(formData, 'class_teacher_id'),
   })
   if (error) {
     if (error.code === '23505') return { error: 'This class + section already exists' }
     return { error: error.message }
   }
+  revalidatePath(PAGE)
+  return {}
+}
+
+/** Assign or clear a Class's Class Teacher (#443). Separate from addClass
+ *  because there is no class edit form — this is how existing classes, and the
+ *  ones a school created before this shipped, get one. */
+export async function setClassTeacher(
+  classId: string,
+  employeeId: string | null,
+): Promise<{ error?: string }> {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('classes')
+    .update({ class_teacher_id: employeeId })
+    .eq('id', classId)
+    .select('id')
+  if (error) return { error: error.message }
+  if (!data?.length) return { error: 'Class not found' }
   revalidatePath(PAGE)
   return {}
 }

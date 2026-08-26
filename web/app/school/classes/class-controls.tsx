@@ -25,7 +25,12 @@ function useSubmit(action: (data: FormData) => Promise<{ error?: string }>) {
   return { error, pending, onSubmit }
 }
 
-export function AddClassForm({ lang }: { lang: Lang }) {
+export interface TeacherOption {
+  id: string
+  full_name: string
+}
+
+export function AddClassForm({ lang, teachers }: { lang: Lang; teachers: TeacherOption[] }) {
   const { error, pending, onSubmit } = useSubmit(addClass)
   return (
     <form className="grid gap-3 sm:grid-cols-4" onSubmit={onSubmit}>
@@ -44,6 +49,26 @@ export function AddClassForm({ lang }: { lang: Lang }) {
       <div>
         <label className={labelClass} htmlFor="class_group">{t('classes.groupDept', lang)}</label>
         <input id="class_group" name="group_department" className={inputClass} />
+      </div>
+      <div className="sm:col-span-4">
+        <label className={labelClass} htmlFor="class_teacher">{t('classes.classTeacher', lang)}</label>
+        {/* Required once the school has any Employee to pick — mandatory as a
+            product rule (#435), but never a wall in front of a brand-new school
+            that has not entered its staff yet. */}
+        <select
+          id="class_teacher"
+          name="class_teacher_id"
+          required={teachers.length > 0}
+          defaultValue=""
+          className={selectClass()}
+        >
+          <option value="">{t('classes.classTeacherNone', lang)}</option>
+          {teachers.map((teacher) => (
+            <option key={teacher.id} value={teacher.id}>
+              {teacher.full_name}
+            </option>
+          ))}
+        </select>
       </div>
       {error && <p className="text-sm text-alert-deep sm:col-span-4">{error}</p>}
       <button type="submit" disabled={pending} className={`${primaryBtnClass} sm:col-span-4`}>

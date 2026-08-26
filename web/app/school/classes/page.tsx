@@ -5,6 +5,7 @@ import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { countFor, studentCounts } from '@/lib/classes'
 import { AddClassForm, AddSubjectForm, DeleteButton } from './class-controls'
+import { ClassTeacherPicker } from './class-teacher-picker'
 import { AddDetails } from '@/components/add-details'
 import { selectClass } from '@/components/ui/field'
 
@@ -24,11 +25,11 @@ export default async function ClassesPage({
   const lang: Lang = await currentLang()
   const { supabase } = await getSchoolContext()
 
-  const [{ data: classes }, { data: subjects }, { data: students }] =
+  const [{ data: classes }, { data: subjects }, { data: students }, { data: teachers }] =
     await Promise.all([
       supabase
         .from('classes')
-        .select('id, name, section, education_level, group_department')
+        .select('id, name, section, education_level, group_department, class_teacher_id')
         .order('created_at'),
       supabase
         .from('subjects')
@@ -39,6 +40,14 @@ export default async function ClassesPage({
       // ponytail: whole-table scan capped at 10k rows; switch to a count RPC
       // if a school ever outgrows it.
       supabase.from('students').select('class_name, section').limit(10000),
+      // Class teachers are Employees (#435). Archived staff are not offerable.
+      // employee_card, not employees: 0136 gates the base table on the Employees
+      // grant, and this picker belongs to Classes. A name is all it wants.
+      supabase
+        .from('employee_card')
+        .select('id, full_name')
+        .is('archived_at', null)
+        .order('full_name'),
     ])
 
   const levels = [...new Set((classes ?? []).map((c) => c.education_level).filter(Boolean))] as string[]
@@ -103,7 +112,7 @@ export default async function ClassesPage({
             </button>
           </Form>
           <AddDetails label={t('classes.addClass', lang)}>
-            <AddClassForm lang={lang} />
+            <AddClassForm lang={lang} teachers={teachers ?? []} />
           </AddDetails>
         </div>
         {!visibleClasses.length ? (
@@ -117,6 +126,7 @@ export default async function ClassesPage({
                   <th className={thClass}>{t('classes.section', lang)}</th>
                   <th className={thClass}>{t('classes.educationLevel', lang)}</th>
                   <th className={thClass}>{t('classes.groupDept', lang)}</th>
+                  <th className={thClass}>{t('classes.classTeacher', lang)}</th>
                   <th className={thClass}>{t('classes.students', lang)}</th>
                   <th className={thClass}>{t('classes.actions', lang)}</th>
                 </tr>
@@ -128,6 +138,14 @@ export default async function ClassesPage({
                     <td className={tdClass}>{c.section ?? dash}</td>
                     <td className={tdClass}>{c.education_level ?? dash}</td>
                     <td className={tdClass}>{c.group_department ?? dash}</td>
+                    <td className={tdClass}>
+                      <ClassTeacherPicker
+                        lang={lang}
+                        classId={c.id}
+                        teachers={teachers ?? []}
+                        current={c.class_teacher_id}
+                      />
+                    </td>
                     <td className={tdClass}>{countFor(counts, c.name, c.section)}</td>
                     <td className={tdClass}>
                       <div className="flex flex-wrap items-center gap-2">

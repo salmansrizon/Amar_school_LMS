@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { AuthCard, inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
 import { postLoginDestination } from '@/lib/auth/post-login'
-import { isSchoolMemberRole } from '@/lib/auth/routing'
+import { isSchoolScopedRole } from '@/lib/auth/routing'
 import { firstRelation } from '@/lib/supabase/relation'
 import { t } from '@/lib/i18n'
 import { useLang } from '@/lib/use-lang'
@@ -45,7 +45,7 @@ export function LoginForm({ brand }: { brand: SchoolBrand | null }) {
       .eq('id', data.user.id)
       .single()
     const school = firstRelation(profile?.schools)
-    if (isSchoolMemberRole(profile?.role) && (school?.deactivated_at ?? null) !== null) {
+    if (isSchoolScopedRole(profile?.role) && (school?.deactivated_at ?? null) !== null) {
       await supabase.auth.signOut()
       setBlocked(true)
       setBusy(false)

@@ -115,3 +115,18 @@ export function behaviourSmsBody(studentName: string, note: string, rating: numb
   const trimmed = note.length > MAX_NOTE_CHARS ? `${note.slice(0, MAX_NOTE_CHARS)}…` : note
   return `Behaviour note for ${studentName} (rating ${rating}/10): ${trimmed}`
 }
+
+/** Stands in for the password in the stored copy of a login SMS — the Send Log
+ *  is readable by any staff member with the SMS screen. */
+export const PASSWORD_MASK = '********'
+
+/** SMS body handing a Student's login to their guardian (#442). Single-segment
+ *  budget, same as behaviourSmsBody. Pass PASSWORD_MASK to build the copy that
+ *  goes into sms_log. */
+export function studentLoginSmsBody(
+  studentName: string,
+  email: string,
+  password: string,
+): string {
+  return `${studentName} student login — user: ${email} pass: ${password}`
+}

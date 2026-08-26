@@ -2,6 +2,8 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { requireSchoolMemberProfile } from '@/lib/auth/require-role'
+import { recordAudit } from '@/lib/engines/audit/engine'
 
 // RLS scopes every write to the caller's School; exam_refs_same_school and the
 // per-child same-school + closed-exam guard triggers (0039 migration) are the
@@ -59,5 +61,49 @@ export async function assignSubjectTeacher(
     )
   if (error) return { error: error.message }
   revalidatePath(pagePath(examId))
+  return {}
+}
+
+/** Publish or unpublish an exam's results (#440, #449).
+ *
+ *  Unlike Closing — which is one-way and freezes the record — publishing
+ *  controls an audience and is reversible on purpose: a school that spots a
+ *  marking error after publishing must be able to pull results back. Gated on
+ *  ordinary Exams-screen access, the same as Closing, and audited both ways. */
+export async function setResultsPublished(
+  examId: string,
+  published: boolean,
+): Promise<{ error?: string }> {
+  const supabase = await createClient()
+  const { ok, schoolId } = await requireSchoolMemberProfile(supabase)
+  if (!ok) return { error: 'Unauthorized' }
+
+  const { data, error } = await supabase
+    .from('exams')
+    .update({ results_published_at: published ? new Date().toISOString() : null })
+    .eq('id', examId)
+    .select('id')
+  if (error) return { error: error.message }
+  if (!data?.length) return { error: 'Exam not found' }
+
+  await recordAudit(
+    supabase,
+    {
+      entityType: 'exam_results',
+      entityId: examId,
+      action: 'update',
+      schoolId,
+      actorId: null,
+      before: null,
+      after: { published },
+      ip: null,
+      requestId: null,
+    },
+  ).catch(() => {
+    // The publish already happened; an audit failure must not undo it or look
+    // to the owner like the publish failed.
+  })
+
+  revalidatePath(`/school/exams/${examId}`)
   return {}
 }

@@ -39,7 +39,7 @@ export default async function StudentsPage({
 }) {
   const { q = '', classSection = '' } = await searchParams
   const lang: Lang = await currentLang()
-  const { supabase } = await getSchoolContext()
+  const { supabase, role } = await getSchoolContext()
 
   const [{ data: students }, { data: ratings }, { data: classes }] = await Promise.all([
     supabase
@@ -69,6 +69,15 @@ export default async function StudentsPage({
             >
               {t('students.oldStudents', lang)}
             </Link>
+            {/* Issuing logins is owner-only (#442) — the screen redirects Staff. */}
+            {role === 'school_owner' && (
+              <Link
+                href="/school/students/logins"
+                className="rounded-full border border-line-strong px-4 py-1.5 text-xs font-semibold hover:bg-paper-muted"
+              >
+                {t('students.loginBulk', lang)}
+              </Link>
+            )}
             <Link
               href="/school/students/new"
               className="rounded-full bg-brand-500 px-4 py-1.5 text-xs font-semibold text-white hover:bg-brand-600"

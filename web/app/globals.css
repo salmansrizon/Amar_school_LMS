@@ -414,6 +414,24 @@ body {
   .print-keep {
     break-inside: avoid;
   }
+  /* Credential slips (#442) print alone. The password is shown once, in place,
+     inside a page full of profile sections — printing the lot would emit the
+     behaviour log and the subject editor around it. visibility (not display)
+     keeps the slip's own layout intact while hiding everything else. */
+  body.printing-slip *,
+  body.printing-slip ::before,
+  body.printing-slip ::after {
+    visibility: hidden;
+  }
+  body.printing-slip .print-slip,
+  body.printing-slip .print-slip * {
+    visibility: visible;
+  }
+  body.printing-slip .print-slip {
+    position: absolute;
+    inset: 0 auto auto 0;
+    width: 100%;
+  }
   /* Wide printables tag their PrintPage with this to select the landscape
      named page (defined above); portrait sheets omit it. */
   .print-landscape {
