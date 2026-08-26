@@ -10,6 +10,10 @@ import { getRoleContext, type RoleContext } from '@/lib/auth/role-context'
 // and the sensitive admission columns are absent rather than merely unselected.
 export interface StudentContext extends RoleContext {
   student: StudentSelf
+  /** trial | active | expired, computed on read by school_subscription_status.
+   *  Expired makes the portal read-only rather than dark (CONTEXT.md, Student):
+   *  expiry is a renewal prompt aimed at whoever can pay, and a child cannot. */
+  subscriptionStatus: string | null
 }
 
 export interface StudentSelf {
@@ -34,5 +38,16 @@ export const getStudentContext = cache(async (): Promise<StudentContext> => {
   // suspension: same page, its "account inactive" wording.
   if (!data) redirect('/account-blocked?reason=student-inactive')
 
-  return { ...ctx, student: data as StudentSelf }
+  const student = data as StudentSelf
+  const { data: status } = await ctx.supabase.rpc('school_subscription_status', {
+    sid: student.school_id,
+  })
+
+  return { ...ctx, student, subscriptionStatus: (status as string | null) ?? null }
 })
+
+/** True when the School's subscription has lapsed. Every Student write must
+ *  check this; reads are deliberately unaffected. */
+export function isReadOnly(ctx: StudentContext): boolean {
+  return ctx.subscriptionStatus === 'expired'
+}

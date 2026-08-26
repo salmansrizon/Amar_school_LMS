@@ -16,15 +16,14 @@ import { Card, PageHeader } from '@/components/ui/page'
 
 export default async function MyClassesPage() {
   const lang: Lang = await currentLang()
-  const { supabase, userId } = await getSchoolContext()
+  const { supabase } = await getSchoolContext()
 
-  const { data: me } = await supabase
-    .from('employees')
-    .select('id, full_name')
-    .eq('profile_id', userId)
-    .maybeSingle()
+  // Asked as a scalar, not by reading `employees`: that table is gated on the
+  // Employees screen grant (0136), which a Class Teacher rarely holds, and a
+  // teacher must always be able to find out which Employee they themselves are.
+  const { data: myEmployeeId } = await supabase.rpc('app_current_employee_id')
 
-  if (!me) {
+  if (!myEmployeeId) {
     return (
       <>
         <PageHeader title={t('myClasses.title', lang)} />
@@ -39,7 +38,7 @@ export default async function MyClassesPage() {
     supabase
       .from('classes')
       .select('id, name, section, group_department')
-      .eq('class_teacher_id', me.id)
+      .eq('class_teacher_id', myEmployeeId)
       .order('name'),
     // ponytail: whole-table scan capped at 10k rows, same as the classes page.
     supabase.from('students').select('class_name, section').limit(10000),

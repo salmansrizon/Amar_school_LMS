@@ -1,12 +1,25 @@
 import { currentLang } from '@/lib/i18n-server'
 import { t } from '@/lib/i18n'
-import { getStudentContext } from '@/lib/student/context'
+import { getStudentContext, isReadOnly } from '@/lib/student/context'
+import { loadStudentRoutine } from '@/lib/student/routine-source'
+import { todayAndTomorrow } from '@/lib/student/routine'
+import { addDays, schoolToday } from '@/lib/school-time'
+import { DayPlanCard } from './day-plan'
 
-// Student home (#441). The identity card only — upcoming classes, notices,
-// results and fees each arrive with their own ticket on map #434.
+// Student home (#444). Identity, then Today and Tomorrow.
+//
+// Not "upcoming classes": routine_slots has day_of_week and an ordinal period
+// and no clock time anywhere, so there is nothing to count down to. Today and
+// Tomorrow is what the routine on the classroom wall tells them, and it is
+// honest about what the data actually knows.
 export default async function StudentHome() {
   const lang = await currentLang()
-  const { student } = await getStudentContext()
+  const ctx = await getStudentContext()
+  const { student } = ctx
+
+  const today = schoolToday()
+  const { rows, offDays } = await loadStudentRoutine(ctx.supabase, lang, [today, addDays(today, 1)])
+  const [todayPlan, tomorrowPlan] = todayAndTomorrow(today, rows, offDays)
 
   const facts = [
     { label: t('student.home.studentNo', lang), value: student.student_no ?? '—' },
@@ -24,6 +37,12 @@ export default async function StudentHome() {
       </h1>
       <p className="mb-4 text-sm text-muted">{t('home.student', lang)}</p>
 
+      {isReadOnly(ctx) && (
+        <p className="mb-4 rounded-lg border border-sun bg-sun-soft px-4 py-3 text-sm text-sun-deep">
+          {t('student.readOnly', lang)}
+        </p>
+      )}
+
       <section className="mb-6 grid max-w-2xl grid-cols-1 gap-3 sm:grid-cols-3">
         {facts.map((f) => (
           <div key={f.label} className="rounded-lg border border-line bg-paper p-4">
@@ -33,7 +52,10 @@ export default async function StudentHome() {
         ))}
       </section>
 
-      <p className="max-w-2xl text-sm text-muted">{t('student.home.soon', lang)}</p>
+      <div className="grid max-w-4xl gap-4 sm:grid-cols-2">
+        <DayPlanCard plan={todayPlan} title={t('student.today', lang)} lang={lang} />
+        <DayPlanCard plan={tomorrowPlan} title={t('student.tomorrow', lang)} lang={lang} />
+      </div>
     </main>
   )
 }

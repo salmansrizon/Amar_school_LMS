@@ -79,6 +79,22 @@ const dict = {
   // Student Portal (map #434, #441). Bangla is the default the students read.
   'home.student': { bn: 'শিক্ষার্থী পোর্টাল', en: 'Student Portal' },
   'student.nav.home': { bn: 'হোম', en: 'Home' },
+  'student.nav.routine': { bn: 'রুটিন', en: 'Routine' },
+  'student.today': { bn: 'আজ', en: 'Today' },
+  'student.tomorrow': { bn: 'আগামীকাল', en: 'Tomorrow' },
+  'student.routineTitle': { bn: 'সাপ্তাহিক ক্লাস রুটিন', en: 'Weekly Class Routine' },
+  'student.period': { bn: 'পিরিয়ড', en: 'Period' },
+  'student.noRoutine': {
+    bn: 'তোমার ক্লাসের রুটিন এখনো প্রকাশ করা হয়নি।',
+    en: 'Your class routine has not been published yet.',
+  },
+  'student.weekend': { bn: 'সাপ্তাহিক ছুটি', en: 'Weekend' },
+  'student.offDay': { bn: 'ছুটির দিন', en: 'Holiday' },
+  'student.noClassesToday': { bn: 'আজ কোনো ক্লাস নেই', en: 'No classes today' },
+  'student.readOnly': {
+    bn: 'তোমার স্কুলের সাবস্ক্রিপশনের মেয়াদ শেষ — এখন শুধু দেখা যাবে, কিছু পাঠানো যাবে না।',
+    en: 'Your school’s subscription has lapsed — you can read everything, but not submit anything.',
+  },
   'student.home.greeting': { bn: 'স্বাগতম', en: 'Welcome' },
   'student.home.studentNo': { bn: 'শিক্ষার্থী নম্বর', en: 'Student Number' },
   'student.home.class': { bn: 'শ্রেণি', en: 'Class' },

@@ -92,17 +92,15 @@ describe('Class Teacher (#443)', () => {
   })
 
   it('the linked teacher finds their own classes and no one else’s', async () => {
-    const { data: me } = await staff
-      .from('employees')
-      .select('id')
-      .eq('profile_id', staffProfileId)
-      .maybeSingle()
-    expect(me?.id).toBe(employeeId)
+    // Via the definer scalar, not a read of `employees` — that table is gated
+    // on the Employees grant (0136) and a Class Teacher rarely holds it.
+    const { data: myEmployeeId } = await staff.rpc('app_current_employee_id')
+    expect(myEmployeeId).toBe(employeeId)
 
     const { data: mine } = await staff
       .from('classes')
       .select('name, section')
-      .eq('class_teacher_id', me!.id)
+      .eq('class_teacher_id', myEmployeeId)
     expect(mine).toEqual([{ name: 'CT1 Class', section: 'A' }])
   })
 

@@ -55,7 +55,7 @@ export default async function SchoolHome() {
   const lang: Lang = await currentLang()
   // Shared per-request context (auth/profile/grants/school) — resolved once and
   // reused by the layout, so the dashboard adds no duplicate auth/profile queries.
-  const { supabase, userId, email, role, fullName, subscriptionExpiresAt, grants } = await getSchoolContext()
+  const { supabase, email, role, fullName, subscriptionExpiresAt, grants } = await getSchoolContext()
 
   const now = new Date()
   const today = now.toISOString().slice(0, 10)
@@ -147,17 +147,13 @@ export default async function SchoolHome() {
   // the class teacher is the authorization. So the dashboard is where a Class
   // Teacher finds it, and only when they actually are one. Most logins are not
   // linked to an Employee at all, and those pay one query, not two.
-  const { data: myEmployee } = await supabase
-    .from('employees')
-    .select('id')
-    .eq('profile_id', userId)
-    .maybeSingle()
-  const myClassCount = myEmployee
+  const { data: myEmployeeId } = await supabase.rpc('app_current_employee_id')
+  const myClassCount = myEmployeeId
     ? (
         await supabase
           .from('classes')
           .select('id', { count: 'exact', head: true })
-          .eq('class_teacher_id', myEmployee.id)
+          .eq('class_teacher_id', myEmployeeId)
       ).count
     : 0
 
