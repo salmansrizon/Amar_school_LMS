@@ -15,6 +15,8 @@ export interface SchoolNavItem {
 
 export const SCHOOL_MODULES: SchoolNavItem[] = [
   { screen: 'students', href: '/school/students', titleKey: 'students.title' },
+  // The correction queue rides the students grant — it writes student records.
+  { screen: 'students', href: '/school/corrections', titleKey: 'corrections.title' },
   { screen: 'employees', href: '/school/employees', titleKey: 'employees.title' },
   {
     screen: 'classes',
