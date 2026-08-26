@@ -105,6 +105,16 @@ export default async function StudentLayout({ children }: { children: React.Reac
         </StrokeIcon>
       ),
     },
+    {
+      href: '/student/fees',
+      label: t('student.nav.fees', lang),
+      icon: (
+        <StrokeIcon className="size-5">
+          <rect x="2" y="6" width="20" height="12" rx="2" />
+          <circle cx="12" cy="12" r="2.5" />
+        </StrokeIcon>
+      ),
+    },
   ]
 
   return (
