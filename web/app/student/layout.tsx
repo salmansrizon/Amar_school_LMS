@@ -65,6 +65,16 @@ export default async function StudentLayout({ children }: { children: React.Reac
         </StrokeIcon>
       ),
     },
+    {
+      href: '/student/results',
+      label: t('student.nav.results', lang),
+      icon: (
+        <StrokeIcon className="size-5">
+          <path d="M12 3 3 8l9 5 9-5-9-5Z" />
+          <path d="M7 11v5c0 1.1 2.2 2 5 2s5-.9 5-2v-5" />
+        </StrokeIcon>
+      ),
+    },
   ]
 
   return (
