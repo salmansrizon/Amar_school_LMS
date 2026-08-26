@@ -85,6 +85,26 @@ export default async function StudentLayout({ children }: { children: React.Reac
         </StrokeIcon>
       ),
     },
+    {
+      href: '/student/attendance',
+      label: t('student.nav.attendance', lang),
+      icon: (
+        <StrokeIcon className="size-5">
+          <rect x="3" y="4" width="18" height="17" rx="2" />
+          <path d="M3 10h18M8 2v4M16 2v4M9 15l2 2 4-4" />
+        </StrokeIcon>
+      ),
+    },
+    {
+      href: '/student/leave',
+      label: t('student.nav.leave', lang),
+      icon: (
+        <StrokeIcon className="size-5">
+          <path d="M12 3v9l5 3" />
+          <circle cx="12" cy="12" r="9" />
+        </StrokeIcon>
+      ),
+    },
   ]
 
   return (
