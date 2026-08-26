@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang, type MessageKey } from '@/lib/i18n'
 import { getStudentContext, isReadOnly } from '@/lib/student/context'
@@ -21,7 +22,12 @@ function TaskRow({ task, lang, readOnly }: { task: StudentTask; lang: Lang; read
   return (
     <li className="flex items-start justify-between gap-3 py-3">
       <span className="min-w-0">
-        <span className="block text-sm font-medium">{task.title}</span>
+        <Link
+          href={`/student/tasks/${task.id}`}
+          className="block text-sm font-medium hover:text-brand-600"
+        >
+          {task.title}
+        </Link>
         {task.due_at && (
           <span className="block text-xs text-muted">
             {t('student.taskDue', lang)}:{' '}
