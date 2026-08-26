@@ -1,3 +1,15 @@
+---
+status: superseded by ADR-0017
+---
+
+> **Superseded by [ADR 0017](0017-two-axes-govern-a-staff-users-reach.md), and never implemented.**
+> `workflow_instances.approver_user_override` was decided here and appears in no
+> migration and no line of code. Both consumers named below went elsewhere: student
+> leave (#452) shipped a plain `status` column, and profile corrections (#456)
+> shipped owner-only. The gap it identified is real; the shape was wrong, because
+> posting a class notice is not an approval and the Workflow engine cannot express
+> who may *create* a thing. Kept for the reasoning, not the decision.
+
 # A workflow instance may name its own approver
 
 The Workflow engine authorises a decision against `workflow_stages`, which is per-*definition*: a stage names either an `approver_role` or one fixed `approver_user`. The Student Portal (map #434) needs approvals routed to **the class teacher of this student's class** — a relationship, not a role and not a fixed user. Class Teacher is deliberately not a role of its own (#435: an ordinary Staff User login), so neither existing column can express it.
