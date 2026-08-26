@@ -4,6 +4,8 @@ import { AppShell, type AppNavItem } from '@/components/app-shell'
 import { StrokeIcon } from '@/components/stroke-icon'
 import { t } from '@/lib/i18n'
 import { getStudentContext } from '@/lib/student/context'
+import { STUDENT_SEARCH } from '@/lib/school-search'
+import { StudentSearchPalette } from './student-search'
 
 // /student/* chrome (#441) — the shared AppShell (#285), same as every other
 // role group. Nav starts with Home only; each later ticket on map #434 adds the
@@ -144,6 +146,20 @@ export default async function StudentLayout({ children }: { children: React.Reac
       profile={{ fullName: student.full_name, label: t('shell.profile', lang) }}
       lang={lang}
       initialCollapsed={collapsed}
+      search={{
+        label: t('shell.search', lang),
+        render: (onClose) => (
+          <StudentSearchPalette
+            entries={STUDENT_SEARCH.map((e) => ({
+              label: t(e.titleKey, lang),
+              keywords: e.keywords,
+              href: e.href,
+            }))}
+            lang={lang}
+            onClose={onClose}
+          />
+        ),
+      }}
       contentContainer={false}
     >
       {children}
