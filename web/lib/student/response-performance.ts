@@ -115,3 +115,49 @@ export function withinRange(
       (!from || m.created_at.slice(0, 10) >= from) && (!to || m.created_at.slice(0, 10) <= to),
   )
 }
+
+/**
+ * The school-wide Σ, from `school_question_timings` (migration 0152).
+ *
+ * A teacher's own SELECT on `student_messages` stops at her classes (ADR 0018),
+ * so rolling her rows up would print her own total under the school's label — a
+ * wrong number is worse than no number. The RPC hands back two timestamps per
+ * question and nothing else, and this turns them into the same shape the Owner's
+ * figures come from, so both halves of the table are one definition of "median".
+ *
+ * The synthetic id and empty subject are honest: neither is disclosed by the RPC,
+ * and neither is read for the Σ row — only `oldestWaiting.hours` is.
+ */
+export function schoolWideOverall(
+  timings: { created_at: string; replied_at: string | null }[],
+  now: Date = new Date(),
+): ResponseStats {
+  return responseReport(
+    timings.map((m, i) => ({
+      id: String(i),
+      subject: '',
+      created_at: m.created_at,
+      replied_at: m.replied_at,
+      teacherId: null,
+      teacherName: null,
+    })),
+    now,
+  ).overall
+}
+
+/**
+ * Which per-teacher rows the caller may see (#509).
+ *
+ * The Owner keeps the full table. A teacher sees her own row and no other —
+ * "enough to know I'm at 14h and the school is at 9h without publishing a league
+ * table to the people on it". The unassigned bucket (a class with no Class
+ * Teacher) belongs to nobody, so it stays with the Owner rather than surfacing
+ * on some arbitrary teacher's page.
+ */
+export function visibleTeacherRows(
+  report: PerformanceReport,
+  { isOwner, employeeId }: { isOwner: boolean; employeeId: string | null },
+): ResponseStats[] {
+  if (isOwner) return report.perTeacher
+  return report.perTeacher.filter((stats) => stats.teacherId !== null && stats.teacherId === employeeId)
+}

@@ -2,7 +2,14 @@ import Form from 'next/form'
 import { currentLang } from '@/lib/i18n-server'
 import { t } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
-import { responseReport, withinRange, type MessageForStats, type ResponseStats } from '@/lib/student/response-performance'
+import {
+  responseReport,
+  withinRange,
+  schoolWideOverall,
+  visibleTeacherRows,
+  type MessageForStats,
+  type ResponseStats,
+} from '@/lib/student/response-performance'
 import { hubSummary } from '@/lib/student/hub-source'
 import { Card, PageHeader } from '@/components/ui/page'
 import { HubTabs } from '../../messages-hub-tabs'
@@ -76,27 +83,16 @@ export default async function ResponsePerformancePage({
     }
   })
 
-  const inRange = withinRange(rows, from || null, to || null)
-  const report = responseReport(inRange)
-
-  // Same arithmetic, same module — only the source of the rows differs.
-  const schoolTimings = (schoolWide.data ?? null) as { created_at: string; replied_at: string | null }[] | null
-  const overall = schoolTimings
-    ? responseReport(
-        schoolTimings.map((m, i) => ({
-          id: String(i),
-          subject: '',
-          created_at: m.created_at,
-          replied_at: m.replied_at,
-          teacherId: null,
-          teacherName: null,
-        })),
-      ).overall
-    : report.overall
+  const report = responseReport(withinRange(rows, from || null, to || null))
   const me = (myEmployeeId as string | null) ?? null
-  // A teacher sees only her own row. Where the class has no teacher assigned the
-  // row is "unassigned" and belongs to nobody, so it stays with the Owner.
-  const perTeacher = isOwner ? report.perTeacher : report.perTeacher.filter((s) => s.teacherId === me)
+
+  // Both halves of the table come from lib/student/response-performance.ts, so
+  // "median" has one definition and the Owner's figures and a teacher's are
+  // computed the same way. The Owner needs no RPC — her own rows already are
+  // the school.
+  const schoolTimings = (schoolWide.data ?? null) as { created_at: string; replied_at: string | null }[] | null
+  const overall = schoolTimings ? schoolWideOverall(schoolTimings) : report.overall
+  const perTeacher = visibleTeacherRows(report, { isOwner, employeeId: me })
 
   const hours = (n: number | null) => (n === null ? '—' : `${n}${t('response.hours', lang)}`)
 
