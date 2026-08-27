@@ -61,7 +61,8 @@ describe('the three readers agree', () => {
     const rows: MessageForStats[] = [
       {
         id: '1', subject: 'Q', created_at: '2026-08-01T00:00:00Z',
-        teacherId: 't', teacherName: 'Karim', ...answeredNoTimestamp,
+        teacherId: 't', teacherName: 'Karim', repliedById: null, repliedByName: null,
+        ...answeredNoTimestamp,
       },
     ]
     const { overall } = responseReport(rows, new Date('2026-09-01T00:00:00Z'))
@@ -74,8 +75,8 @@ describe('the three readers agree', () => {
     // Counting it as answered is honest; timing it is not. A fabricated
     // replied_at would either flatter the median (created_at) or wreck it (now).
     const rows: MessageForStats[] = [
-      { id: '1', subject: 'Q', created_at: '2026-08-01T00:00:00Z', teacherId: 't', teacherName: 'K', ...answeredNoTimestamp },
-      { id: '2', subject: 'Q2', created_at: '2026-08-01T00:00:00Z', replied_at: '2026-08-01T06:00:00Z', status: 'answered', teacherId: 't', teacherName: 'K' },
+      { id: '1', subject: 'Q', created_at: '2026-08-01T00:00:00Z', teacherId: 't', teacherName: 'K', repliedById: null, repliedByName: null, ...answeredNoTimestamp },
+      { id: '2', subject: 'Q2', created_at: '2026-08-01T00:00:00Z', replied_at: '2026-08-01T06:00:00Z', status: 'answered', teacherId: 't', teacherName: 'K', repliedById: null, repliedByName: null },
     ]
     const { overall } = responseReport(rows, new Date('2026-09-01T00:00:00Z'))
     expect(overall.answered).toBe(2)
