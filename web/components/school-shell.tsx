@@ -101,8 +101,8 @@ export function SchoolShell({
   const canAddStudent = canOpenScreen(role, grants, 'students')
 
   // School keeps its rich feature index (keywords per screen), grant-filtered.
-  const searchEntries: PaletteEntry[] = SCHOOL_SEARCH.filter(
-    (e) => e.screen === 'dashboard' || canOpenScreen(role, grants, e.screen as ScreenKey),
+  const searchEntries: PaletteEntry[] = SCHOOL_SEARCH.filter((e) =>
+    canOpenScreen(role, grants, e.screen),
   ).map((e) => ({
     label: t(e.titleKey, lang),
     keywords: e.keywords,
