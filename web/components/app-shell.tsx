@@ -293,6 +293,12 @@ export function AppShell({
               onNavigate={() => setDrawerOpen(false)}
               footerCta={footerCta}
             />
+            {/* The header has no room for these on a phone (see above), and a
+                Bangla-default product cannot hide its language switch. */}
+            <div className="mt-4 flex shrink-0 items-center justify-between gap-2 border-t border-line/70 pt-4 sm:hidden">
+              <ThemeSwitch preference={theme} lang={lang} />
+              <LangSwitch lang={lang} />
+            </div>
           </aside>
         </div>
       )}
@@ -338,7 +344,10 @@ export function AppShell({
               {topbarExtras}
               {bell ?? <NotificationsBell lang={lang} buttonClass={ICON_BUTTON} />}
               <span className="mx-1 hidden h-6 w-px bg-line sm:block" />
-              <div className="flex shrink-0 items-center gap-2">
+              {/* Theme + language are ~150px of a 390px header. Keeping them here
+                  on a phone pushed the avatar and Log out off-screen entirely,
+                  with nothing to scroll — so below sm they live in the drawer. */}
+              <div className="hidden shrink-0 items-center gap-2 sm:flex">
                 <ThemeSwitch preference={theme} lang={lang} />
                 <LangSwitch lang={lang} />
               </div>

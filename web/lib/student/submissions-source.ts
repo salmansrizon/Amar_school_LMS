@@ -57,8 +57,14 @@ export async function recordSubmission(input: {
   return {}
 }
 
-/** Replacing work is delete-then-upload. Deleting the row deletes the object
- *  (0142's cleanup trigger), so there is no orphan to sweep later. */
+/** Replacing work is delete-then-upload. The row goes first — RLS is what
+ *  decides whether this Student may withdraw it at all — and the object follows
+ *  through the Storage API. 0142 deleted the object from an `after delete`
+ *  trigger instead, which the platform rejects ("Direct deletion from storage
+ *  tables is not allowed"), taking the row delete down with it; 0155 drops that
+ *  trigger. A failed object removal leaves an orphan the Student still owns and
+ *  can overwrite, which is strictly better than a withdrawal that cannot
+ *  happen. */
 export async function withdrawSubmission(
   id: string,
   publicationId: string,
@@ -71,10 +77,13 @@ export async function withdrawSubmission(
     .from('homework_submissions')
     .delete()
     .eq('id', id)
-    .select('id')
+    .select('id, storage_path')
   if (error) return { error: error.message }
   // RLS refuses a reviewed submission, which surfaces here as zero rows.
   if (!data?.length) return { error: 'alreadyReviewed' }
+
+  const path = data[0].storage_path as string | null
+  if (path) await supabase.storage.from('submissions').remove([path])
 
   revalidatePath(`/student/tasks/${publicationId}`)
   return {}
