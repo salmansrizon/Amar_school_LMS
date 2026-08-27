@@ -332,6 +332,28 @@ describe('Question and correction scope (#508, ADR 0018)', () => {
       expect(data!.replied_at).not.toBeNull()
     })
 
+    it('stamps an INSERT that arrives already answered (0154)', async () => {
+      // 0153's trigger was BEFORE UPDATE only, so this path was unguarded.
+      // Only a super admin can take it — staff have no insert policy and a
+      // Student's is pinned to status='unread' — but the gap was between the
+      // trigger and its own stated purpose.
+      const inserted = await superAdmin
+        .from('student_messages')
+        .insert({
+          school_id: schoolId,
+          student_id: studentId,
+          subject_id: taughtSubjectId,
+          subject: `${P}Born answered`,
+          body: 'inserted already answered',
+          status: 'answered',
+        })
+        .select('id, status, replied_at')
+        .single()
+      expect(inserted.error).toBeNull()
+      expect(inserted.data!.status).toBe('answered')
+      expect(inserted.data!.replied_at).not.toBeNull()
+    })
+
     it('refuses a reply time without the matching status', async () => {
       // The half a trigger cannot fix, because there is nothing to infer: a
       // timestamp with a contradicting status is a lie about the row.

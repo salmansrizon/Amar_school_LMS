@@ -84,3 +84,22 @@ describe('the three readers agree', () => {
     expect(overall.medianHours).toBe(6)
   })
 })
+
+// A Correction Request is not a Question, and settles on its own states.
+describe('waitingTone on a Correction Request', () => {
+  it('settles an applied or rejected request, not just a replied one', () => {
+    // 'rejected' is belt-and-braces rather than a fix: the corrections page
+    // passes resolved_at as replied_at, and rejecting sets resolved_at
+    // (corrections-source.ts), so a rejected request was already settled by the
+    // timestamp. The status branch means a caller that passes only the status
+    // gets the same answer.
+    const at = new Date('2026-09-01T00:00:00Z')
+    for (const status of ['applied', 'rejected'] as const) {
+      expect(waitingTone({ created_at: '2026-08-01T00:00:00Z', status }, at)).toBe('mint')
+    }
+  })
+
+  it('still ages a pending request', () => {
+    expect(waitingTone({ created_at: '2026-08-01T00:00:00Z', status: 'pending' }, new Date('2026-09-01T00:00:00Z'))).toBe('alert')
+  })
+})
