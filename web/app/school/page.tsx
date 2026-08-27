@@ -8,6 +8,7 @@ import { Icon } from '@/components/school-icons'
 import { UpcomingList } from '@/components/upcoming-list'
 import { DashboardChecklist } from '@/components/dashboard-checklist'
 import { attendanceRate, isSubscriptionActive, buildUpcoming } from '@/lib/dashboard'
+import { hubSummary } from '@/lib/student/hub-source'
 import type { ActivityChecklistItem, ChecklistTicks } from '@/lib/institute'
 import { Card, type Tone } from '@/components/ui/page'
 
@@ -157,6 +158,19 @@ export default async function SchoolHome() {
       ).count
     : 0
 
+  // Messages & Requests (#510). The section has no sidebar badge by design —
+  // the shell renders on every /school/* page and that badge would be a count
+  // query on every one of them — and #454's notifications fire on ARRIVAL only,
+  // so a question seen on Sunday and left produces no further signal. This is
+  // that signal, and it is the backlog the response-performance table measures.
+  //
+  // Rendered only when something is actually waiting, the same "only when it
+  // applies" rule as the My Classes chip above. A card that is always there
+  // saying nothing becomes furniture, and furniture is not a signal. Counts are
+  // scoped to the caller by RLS (0152), so a teacher's card is her own backlog.
+  const hub = await hubSummary(supabase)
+  const hubWaiting = (hub.questions ?? 0) + (hub.corrections ?? 0)
+
   return (
     <div>
       <div className="mb-section">
@@ -172,6 +186,38 @@ export default async function SchoolHome() {
           </Link>
         )}
       </div>
+
+      {hubWaiting > 0 && (
+        <Card tone="sun" className="mb-grid">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <span className="flex size-9 shrink-0 items-center justify-center rounded-md bg-sun-soft text-sun-deep">
+                <Icon name="feedback" className="size-5" />
+              </span>
+              <div>
+                <div className="text-sm font-bold">{t('hub.dashCard', lang)}</div>
+                {/* Each count links into its own tab: someone acting on
+                    "3 corrections pending" wants the corrections queue, not a
+                    landing page with a tab to click. */}
+                <div className="mt-0.5 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted">
+                  {!!hub.questions && (
+                    <Link href="/school/questions" className="hover:text-ink">
+                      <strong className="tabular-nums text-ink">{hub.questions}</strong>{' '}
+                      {t('hub.dashQuestions', lang)}
+                    </Link>
+                  )}
+                  {!!hub.corrections && (
+                    <Link href="/school/corrections" className="hover:text-ink">
+                      <strong className="tabular-nums text-ink">{hub.corrections}</strong>{' '}
+                      {t('hub.dashCorrections', lang)}
+                    </Link>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </Card>
+      )}
 
       {/* KPI tiles — stat cards, so each carries the rail. */}
       <div className="grid grid-cols-2 gap-grid lg:grid-cols-4">

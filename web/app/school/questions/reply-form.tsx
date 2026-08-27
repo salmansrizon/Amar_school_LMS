@@ -19,7 +19,10 @@ export function ReplyForm({ lang, messageId }: { lang: Lang; messageId: string }
         startTransition(async () => {
           setError(null)
           const result = await answerQuestion(messageId, data)
-          if (result.error) setError(result.error)
+          // 'notYours' is the one refusal with a sentence of its own; anything
+          // else is a database message and is shown as-is rather than swallowed.
+          if (result.error)
+            setError(result.error === 'notYours' ? t('questions.notYours', lang) : result.error)
           else router.refresh()
         })
       }}

@@ -7,6 +7,37 @@
 
 export type MessageStatus = 'unread' | 'read' | 'answered'
 
+/** The two columns that between them say whether a Question has been answered. */
+export interface AnswerableRecord {
+  status: MessageStatus
+  replied_at: string | null
+}
+
+/**
+ * Has this Question been answered? The single definition.
+ *
+ * "Answered" is one domain fact stored in two columns, and it used to be spelled
+ * two different ways: `status !== 'answered'` in the inbox and the status rails,
+ * `!replied_at` in the response report. Nothing made them agree, and every row
+ * in the live database disagreed — so উত্তরের অবস্থা reported "0 answered,
+ * 4 waiting" about four questions the inbox was showing as answered.
+ *
+ * Either column is sufficient evidence. `status` is what a reply sets and what a
+ * Student's own screens read; `replied_at` is what the timing half needs and is
+ * the one a direct PATCH can omit. Migration 0153 stops NEW rows drifting — a
+ * trigger stamps the timestamp, and a CHECK refuses a timestamp without the
+ * status — but rows written before it exist, and this is what reads them
+ * correctly.
+ *
+ * Note what this deliberately does NOT do: infer a reply *time* from `status`.
+ * Counting an undated reply as answered is honest; timing it is not, so
+ * `responseReport` keeps those rows out of the median rather than fabricating a
+ * duration from `created_at` (flattering) or `now()` (damning).
+ */
+export function isAnswered(record: AnswerableRecord): boolean {
+  return record.status === 'answered' || record.replied_at !== null
+}
+
 export interface StudentMessage {
   id: string
   student_id: string
@@ -64,7 +95,7 @@ export function groupByTopic(messages: InboxMessage[]): TopicGroup[] {
 
   for (const group of groups.values()) {
     group.messages.sort((a, b) => b.created_at.localeCompare(a.created_at))
-    group.unanswered = group.messages.filter((m) => m.status !== 'answered').length
+    group.unanswered = group.messages.filter((m) => !isAnswered(m)).length
   }
 
   return [...groups.values()].sort(
@@ -91,5 +122,5 @@ export function validateQuestion(input: {
 
 /** How many of a student's own questions have an unread reply, for the bell. */
 export function answeredCount(messages: StudentMessage[]): number {
-  return messages.filter((m) => m.status === 'answered').length
+  return messages.filter(isAnswered).length
 }

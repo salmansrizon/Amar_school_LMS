@@ -7,10 +7,16 @@
 // in a stable alphabetical order, and the thing highlighted is the oldest
 // unanswered question, which is an action, not a verdict.
 
+import { isAnswered, type MessageStatus } from '@/lib/student/messages'
+
 export interface MessageForStats {
   id: string
   created_at: string
   replied_at: string | null
+  /** Needed because `replied_at` alone is not the answer to "was this
+   *  answered?" — see isAnswered. A row can be answered with no recorded
+   *  time. */
+  status: MessageStatus
   /** The Class Teacher accountable for the asking student's class. Null when
    *  the class has no teacher assigned, or the teacher has no login — both
    *  normal states (#435), collected under "unassigned". */
@@ -54,10 +60,16 @@ function statsFor(
   messages: MessageForStats[],
   now: number,
 ): ResponseStats {
-  const answered = messages.filter((m) => m.replied_at)
-  const waiting = messages.filter((m) => !m.replied_at)
+  // Counting and timing are two different questions, and `replied_at` only
+  // answers the second. A reply with no recorded time is still a reply.
+  const answered = messages.filter(isAnswered)
+  const waiting = messages.filter((m) => !isAnswered(m))
 
-  const replyHours = answered.map((m) => hoursBetween(m.created_at, m.replied_at!))
+  // Timed over replies whose duration is actually known. Fabricating one from
+  // created_at would flatter the median; from now() would wreck it.
+  const replyHours = answered
+    .filter((m) => m.replied_at)
+    .map((m) => hoursBetween(m.created_at, m.replied_at!))
   const oldest = waiting
     .map((m) => ({ id: m.id, subject: m.subject, hours: hoursBetween(m.created_at, now) }))
     .sort((a, b) => b.hours - a.hours)[0]
@@ -114,4 +126,53 @@ export function withinRange(
     (m) =>
       (!from || m.created_at.slice(0, 10) >= from) && (!to || m.created_at.slice(0, 10) <= to),
   )
+}
+
+/**
+ * The school-wide Σ, from `school_question_timings` (migration 0152).
+ *
+ * A teacher's own SELECT on `student_messages` stops at her classes (ADR 0018),
+ * so rolling her rows up would print her own total under the school's label — a
+ * wrong number is worse than no number. The RPC hands back two timestamps per
+ * question and nothing else, and this turns them into the same shape the Owner's
+ * figures come from, so both halves of the table are one definition of "median".
+ *
+ * The synthetic id and empty subject are honest: neither is disclosed by the RPC,
+ * and neither is read for the Σ row — only `oldestWaiting.hours` is.
+ */
+export function schoolWideOverall(
+  timings: { created_at: string; replied_at: string | null }[],
+  now: Date = new Date(),
+): ResponseStats {
+  return responseReport(
+    timings.map((m, i) => ({
+      id: String(i),
+      subject: '',
+      created_at: m.created_at,
+      replied_at: m.replied_at,
+      // school_question_timings returns timestamps only, so the timestamp IS
+      // the evidence here — there is no status column to disagree with.
+      status: (m.replied_at ? 'answered' : 'unread') as MessageStatus,
+      teacherId: null,
+      teacherName: null,
+    })),
+    now,
+  ).overall
+}
+
+/**
+ * Which per-teacher rows the caller may see (#509).
+ *
+ * The Owner keeps the full table. A teacher sees her own row and no other —
+ * "enough to know I'm at 14h and the school is at 9h without publishing a league
+ * table to the people on it". The unassigned bucket (a class with no Class
+ * Teacher) belongs to nobody, so it stays with the Owner rather than surfacing
+ * on some arbitrary teacher's page.
+ */
+export function visibleTeacherRows(
+  report: PerformanceReport,
+  { isOwner, employeeId }: { isOwner: boolean; employeeId: string | null },
+): ResponseStats[] {
+  if (isOwner) return report.perTeacher
+  return report.perTeacher.filter((stats) => stats.teacherId !== null && stats.teacherId === employeeId)
 }

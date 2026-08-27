@@ -112,12 +112,38 @@ const dict = {
   },
   'student.subjectRequired': { bn: 'বিষয় লেখো।', en: 'A subject is required.' },
   'student.bodyRequired': { bn: 'প্রশ্ন লেখো।', en: 'A question is required.' },
+  // বার্তা ও অনুরোধ — the merged section (#509). Three sidebar entries became
+  // one, so the section needs a name of its own that neither queue owns.
+  'hub.title': { bn: 'বার্তা ও অনুরোধ', en: 'Messages & Requests' },
+  'hub.tabQuestions': { bn: 'শিক্ষার্থীদের প্রশ্ন', en: 'Questions' },
+  'hub.tabCorrections': { bn: 'সংশোধনের অনুরোধ', en: 'Corrections' },
+  'hub.tabResponse': { bn: 'উত্তরের অবস্থা', en: 'Response' },
+  'hub.waiting': { bn: 'অপেক্ষায়', en: 'waiting' },
+  'hub.waitingHours': { bn: 'ঘণ্টা ধরে অপেক্ষায়', en: 'h waiting' },
+  'hub.answeredIn': { bn: 'ঘণ্টায় উত্তর', en: 'h to reply' },
+  'hub.freshlyAsked': { bn: 'এইমাত্র', en: 'just now' },
+  // The empty-scope line. Not a silent blank page: a Subject Teacher whose
+  // routine has not been entered would otherwise think the section is broken.
+  'hub.noClasses': {
+    bn: 'তোমার নামে কোনো শ্রেণি নেই — তাই এখানে দেখানোর মতো কিছু নেই। প্রধান শিক্ষক শ্রেণি শিক্ষক হিসেবে নিযুক্ত করলে বা রুটিনে নাম উঠলে শিক্ষার্থীদের প্রশ্ন ও অনুরোধ এখানে আসবে।',
+    en: 'No classes are attached to you, so there is nothing to show here. Questions and requests appear once the School Owner makes you a Class Teacher, or your name is entered in a class routine.',
+  },
+  'hub.dashCard': { bn: 'শিক্ষার্থীরা অপেক্ষা করছে', en: 'Students are waiting' },
+  'hub.dashQuestions': { bn: 'প্রশ্নের উত্তর বাকি', en: 'questions unanswered' },
+  'hub.dashCorrections': { bn: 'সংশোধনের অনুরোধ বাকি', en: 'corrections pending' },
   'questions.title': { bn: 'শিক্ষার্থীদের প্রশ্ন', en: 'Student Questions' },
   'questions.none': { bn: 'কোনো প্রশ্ন নেই।', en: 'No questions.' },
   'questions.unanswered': { bn: 'উত্তর বাকি', en: 'unanswered' },
   'questions.reply': { bn: 'উত্তর দাও', en: 'Reply' },
   'questions.replied': { bn: 'উত্তর দেওয়া হয়েছে', en: 'Replied' },
   'questions.generalBucket': { bn: 'সাধারণ', en: 'General' },
+  // The anchor rule, said in a sentence (ADR 0018). A Subject Teacher sees this
+  // on a question about a colleague's subject — the row is visibly theirs to
+  // read and not theirs to answer, and silence would read as a broken form.
+  'questions.notYours': {
+    bn: 'এই প্রশ্নটি তোমার বিষয় বা পোস্ট নিয়ে নয় — যাঁর বিষয় বা পোস্ট, সেই শিক্ষক, শ্রেণি শিক্ষক অথবা প্রধান শিক্ষক উত্তর দেবেন।',
+    en: 'This question is not about your subject or your post — it is answered by the teacher whose subject or post it is, by the Class Teacher, or by the School Owner.',
+  },
   'response.title': { bn: 'প্রশ্নের উত্তরের অবস্থা', en: 'Response to Student Questions' },
   'response.intro': {
     bn: 'কোন প্রশ্নগুলো এখনো উত্তরের অপেক্ষায় এবং কতদিন ধরে — আলোচনার জন্য, র‍্যাঙ্কিংয়ের জন্য নয়।',
@@ -136,6 +162,12 @@ const dict = {
   'response.to': { bn: 'শেষ', en: 'To' },
   'response.apply': { bn: 'দেখাও', en: 'Show' },
   'response.none': { bn: 'এই সময়ে কোনো প্রশ্ন নেই।', en: 'No questions in this period.' },
+  'response.mine': { bn: 'আমার', en: 'Me' },
+  'response.schoolWide': { bn: 'পুরো বিদ্যালয়', en: 'School-wide' },
+  'response.introTeacher': {
+    bn: 'তোমার নিজের হিসাব, পাশে পুরো বিদ্যালয়ের গড় — তুলনার জন্য, তালিকার জন্য নয়।',
+    en: 'Your own figures, next to the school-wide total. For comparison, not for a league table.',
+  },
   'student.nav.profile': { bn: 'আমার তথ্য', en: 'My Profile' },
   'student.profileTitle': { bn: 'আমার তথ্য', en: 'My Profile' },
   'student.profileReadOnly': {

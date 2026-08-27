@@ -1,5 +1,12 @@
 import { describe, it, expect } from 'vitest'
-import { responseReport, median, withinRange, type MessageForStats } from '@/lib/student/response-performance'
+import {
+  responseReport,
+  median,
+  withinRange,
+  schoolWideOverall,
+  visibleTeacherRows,
+  type MessageForStats,
+} from '@/lib/student/response-performance'
 
 const NOW = new Date('2026-08-26T12:00:00Z')
 const hoursAgo = (n: number) => new Date(NOW.getTime() - n * 3_600_000).toISOString()
@@ -7,6 +14,10 @@ const hoursAgo = (n: number) => new Date(NOW.getTime() - n * 3_600_000).toISOStr
 const msg = (over: Partial<MessageForStats> & { id: string }): MessageForStats => ({
   created_at: hoursAgo(10),
   replied_at: null,
+  // Follows replied_at unless a case deliberately sets them apart — the two
+  // are one fact (isAnswered), and a fixture that lets them drift silently is
+  // how the production defect got in.
+  status: over.replied_at ? 'answered' : 'unread',
   teacherId: 't1',
   teacherName: 'Karim Sir',
   subject: over.id,
@@ -120,5 +131,85 @@ describe('withinRange', () => {
   it('treats a missing bound as open', () => {
     expect(withinRange(rows, null, null)).toHaveLength(2)
     expect(withinRange(rows, '2026-02-01', null).map((r) => r.id)).toEqual(['jun'])
+  })
+})
+
+// The two seams #509 pulled out of the page (ADR 0018): the school-wide Σ a
+// teacher is allowed to see, and which per-teacher rows she is allowed to see.
+
+describe('schoolWideOverall', () => {
+  it('computes the Σ from timestamps alone', () => {
+    // school_question_timings discloses nothing else — no student, no class, no
+    // subject — which is what lets a teacher see it at all.
+    const stats = schoolWideOverall(
+      [
+        { created_at: '2026-08-01T00:00:00Z', replied_at: '2026-08-01T04:00:00Z' },
+        { created_at: '2026-08-01T00:00:00Z', replied_at: '2026-08-01T10:00:00Z' },
+        { created_at: '2026-08-01T00:00:00Z', replied_at: null },
+      ],
+      new Date('2026-08-02T00:00:00Z'),
+    )
+    expect(stats.received).toBe(3)
+    expect(stats.answered).toBe(2)
+    expect(stats.unanswered).toBe(1)
+    expect(stats.medianHours).toBe(7)
+    expect(stats.slowestHours).toBe(10)
+    expect(stats.oldestWaiting?.hours).toBe(24)
+  })
+
+  it('agrees with the Owner path on the same questions', () => {
+    // One definition of "median". If these two ever diverge, a teacher and her
+    // Owner are reading different numbers for the same school.
+    const rows = [
+      { created_at: '2026-08-01T00:00:00Z', replied_at: '2026-08-01T03:00:00Z' },
+      { created_at: '2026-08-01T00:00:00Z', replied_at: '2026-08-01T09:00:00Z' },
+    ]
+    const viaOwner = responseReport(
+      rows.map((r, i) => ({
+        id: String(i),
+        subject: '',
+        ...r,
+        status: r.replied_at ? ('answered' as const) : ('unread' as const),
+        teacherId: null,
+        teacherName: null,
+      })),
+      new Date('2026-08-02T00:00:00Z'),
+    ).overall
+    expect(schoolWideOverall(rows, new Date('2026-08-02T00:00:00Z'))).toEqual(viaOwner)
+  })
+
+  it('reports an empty school without inventing a number', () => {
+    const stats = schoolWideOverall([])
+    expect(stats.received).toBe(0)
+    expect(stats.medianHours).toBeNull()
+    expect(stats.oldestWaiting).toBeNull()
+  })
+})
+
+describe('visibleTeacherRows', () => {
+  const report = responseReport(
+    [
+      { id: '1', subject: 'a', created_at: '2026-08-01T00:00:00Z', replied_at: null, status: 'unread' as const, teacherId: 'karim', teacherName: 'Karim' },
+      { id: '2', subject: 'b', created_at: '2026-08-01T00:00:00Z', replied_at: null, status: 'unread' as const, teacherId: 'nusrat', teacherName: 'Nusrat' },
+      { id: '3', subject: 'c', created_at: '2026-08-01T00:00:00Z', replied_at: null, status: 'unread' as const, teacherId: null, teacherName: null },
+    ],
+    new Date('2026-08-02T00:00:00Z'),
+  )
+
+  it('gives the Owner the full per-teacher table', () => {
+    expect(visibleTeacherRows(report, { isOwner: true, employeeId: null })).toHaveLength(3)
+  })
+
+  it('gives a teacher her own row and no colleague’s', () => {
+    // The league table is exactly what #455 asked this not to become.
+    const rows = visibleTeacherRows(report, { isOwner: false, employeeId: 'karim' })
+    expect(rows.map((r) => r.teacherId)).toEqual(['karim'])
+  })
+
+  it('keeps the unassigned bucket with the Owner', () => {
+    // A class with no Class Teacher belongs to nobody; surfacing it on some
+    // arbitrary teacher's page would make her look accountable for it.
+    const rows = visibleTeacherRows(report, { isOwner: false, employeeId: null })
+    expect(rows).toEqual([])
   })
 })

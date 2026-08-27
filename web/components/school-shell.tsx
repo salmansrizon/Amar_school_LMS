@@ -45,10 +45,17 @@ function buildSchoolNav(
     }
     return true
   }
-  const toItem = (it: { screen: ScreenKey | 'dashboard'; href: string; titleKey: Parameters<typeof t>[0] }): AppNavItem => ({
+  const toItem = (it: {
+    screen: ScreenKey | 'dashboard'
+    href: string
+    titleKey: Parameters<typeof t>[0]
+    icon?: string
+  }): AppNavItem => ({
     href: it.href,
     label: t(it.titleKey, lang),
-    icon: <Icon name={it.screen} className="size-5" />,
+    // An entry riding the always-available sentinel names its own glyph, or it
+    // would wear the dashboard's (lib/school-nav.ts).
+    icon: <Icon name={(it.icon ?? it.screen) as Parameters<typeof Icon>[0]['name']} className="size-5" />,
     matchExact: it.href === '/school',
   })
 
