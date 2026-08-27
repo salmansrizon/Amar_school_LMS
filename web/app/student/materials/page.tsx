@@ -37,6 +37,7 @@ export default async function StudentMaterialsPage() {
       {!groups.length ? (
         <p className="rounded-lg border border-line bg-paper p-6 text-sm text-muted">
           {t('student.noMaterials', lang)}
+          <span className="mt-1 block text-xs">{t('student.noMaterialsHint', lang)}</span>
         </p>
       ) : (
         <div className="space-y-4">

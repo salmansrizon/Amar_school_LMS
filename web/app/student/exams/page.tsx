@@ -35,6 +35,7 @@ export default async function StudentExamsPage() {
       {!exams.length ? (
         <p className="rounded-lg border border-line bg-paper p-6 text-sm text-muted">
           {t('student.noExams', lang)}
+          <span className="mt-1 block text-xs">{t('student.noExamsHint', lang)}</span>
         </p>
       ) : (
         <div className="space-y-4">

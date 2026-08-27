@@ -289,6 +289,7 @@ const dict = {
   'student.passed': { bn: 'উত্তীর্ণ', en: 'Passed' },
   'student.failed': { bn: 'অনুত্তীর্ণ', en: 'Not passed' },
   'student.printMarkSheet': { bn: 'মার্কশিট প্রিন্ট', en: 'Print mark sheet' },
+  'student.printRoutine': { bn: 'রুটিন প্রিন্ট', en: 'Print routine' },
   'exams.publishResults': { bn: 'ফলাফল প্রকাশ করুন', en: 'Publish results' },
   'exams.unpublishResults': { bn: 'প্রকাশ বাতিল করুন', en: 'Unpublish results' },
   'exams.resultsPublished': { bn: 'ফলাফল প্রকাশিত', en: 'Results published' },
@@ -297,6 +298,18 @@ const dict = {
     en: 'Publishing lets students see their own results. It can be undone.',
   },
   'student.materialsTitle': { bn: 'পড়ার উপকরণ', en: 'Study Material' },
+  'student.noMaterialsHint': {
+    bn: 'শিক্ষক সিলেবাস বা পাঠ পরিকল্পনা দিলে সেটি এখানে আসবে।',
+    en: 'A syllabus or lesson plan your teacher posts will appear here.',
+  },
+  'student.noResultsHint': {
+    bn: 'পরীক্ষা শেষে স্কুল ফলাফল প্রকাশ করলে এখানে দেখতে পাবে।',
+    en: 'You will see your marks here once the school publishes them.',
+  },
+  'student.noExamsHint': {
+    bn: 'সময়সূচি প্রকাশ হলে তারিখ, কক্ষ ও আসন এখানে দেখাবে।',
+    en: 'Dates, rooms and seats appear here once the schedule is published.',
+  },
   'student.noMaterials': { bn: 'এখনো কোনো উপকরণ নেই।', en: 'No study material yet.' },
   'student.download': { bn: 'ডাউনলোড', en: 'Download' },
   'student.postedBy': { bn: 'দিয়েছেন', en: 'Posted by' },

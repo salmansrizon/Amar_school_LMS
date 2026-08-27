@@ -29,12 +29,19 @@ function TaskRow({ task, lang, readOnly }: { task: StudentTask; lang: Lang; read
         >
           {task.title}
         </Link>
-        {task.due_at && (
-          <span className="block text-xs text-muted">
-            {t('student.taskDue', lang)}:{' '}
-            {new Date(task.due_at).toLocaleDateString(locale, { day: 'numeric', month: 'short' })}
-          </span>
-        )}
+        <span className="mt-0.5 flex flex-wrap items-center gap-2">
+          {task.due_at && (
+            <span className="text-xs text-muted">
+              {t('student.taskDue', lang)}:{' '}
+              {new Date(task.due_at).toLocaleDateString(locale, { day: 'numeric', month: 'short' })}
+            </span>
+          )}
+          {task.submitted && (
+            <span className="rounded-full bg-mint-soft px-2 py-0.5 text-[11px] font-semibold text-mint-deep">
+              {t('student.mySubmissions', lang)}
+            </span>
+          )}
+        </span>
       </span>
       <TaskToggle lang={lang} taskId={task.id} done={Boolean(task.completed_at)} disabled={readOnly} />
     </li>
@@ -64,7 +71,10 @@ export default async function StudentTasksPage() {
           {SECTIONS.filter((s) => buckets[s.bucket].length > 0).map((s) => (
             <section key={s.bucket} className="rounded-lg border border-line bg-paper p-5">
               <h2 className={`mb-2 text-sm font-bold ${s.tone}`}>
-                {t(s.titleKey, lang)} · {buckets[s.bucket].length}
+                {t(s.titleKey, lang)} ·{' '}
+                {new Intl.NumberFormat(lang === 'bn' ? 'bn-BD' : 'en-GB').format(
+                  buckets[s.bucket].length,
+                )}
               </h2>
               <ul className="divide-y divide-line">
                 {buckets[s.bucket].map((task) => (

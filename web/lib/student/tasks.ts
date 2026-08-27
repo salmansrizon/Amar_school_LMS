@@ -12,6 +12,9 @@ export interface StudentTask {
   due_at: string | null
   created_at: string
   completed_at: string | null
+  /** Whether this Student has uploaded work for it (#448). The tick and the
+   *  upload are different claims, and the list showed neither. */
+  submitted?: boolean
 }
 
 export type TaskBucket = 'overdue' | 'dueSoon' | 'later' | 'done'
