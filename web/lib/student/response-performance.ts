@@ -6,6 +6,22 @@
 // no score, no ordering by performance, and no "worst" teacher: rows come back
 // in a stable alphabetical order, and the thing highlighted is the oldest
 // unanswered question, which is an action, not a verdict.
+//
+// Who a question is accounted to (#511, ADR 0019):
+//
+//   answered   -> whoever replied
+//   unanswered -> the Class Teacher of the asking Student's Class
+//
+// The split is the whole point. Accounting everything to the Class Teacher —
+// what this did until #511 — credited her with a colleague's work and blamed
+// her for his silence, which is the blame ADR 0018 claims to have removed while
+// leaving this file untouched. Accounting everything to the replier would have
+// left an unanswered question accounted to nobody, and "who should have answered
+// this" is the question the Owner is actually asking.
+//
+// A question therefore MOVES between rows the moment somebody answers it, and a
+// Class Teacher's total can fall between two readings of the same window. That
+// is deliberate: a row means "what is on me as things now stand".
 
 import { isAnswered, type MessageStatus } from '@/lib/student/messages'
 
@@ -22,6 +38,15 @@ export interface MessageForStats {
    *  normal states (#435), collected under "unassigned". */
   teacherId: string | null
   teacherName: string | null
+  /** Who actually replied, as an `employees.id` — or OWNER_BUCKET where the
+   *  School Owner replied, since she has no Employee record to point at.
+   *
+   *  Null on an unanswered question, and null on a question answered before
+   *  #511 shipped: `replied_by` has only been written since #454, and rows
+   *  answered through a bare PATCH carry no replier at all. Those fall back to
+   *  the Class Teacher, which is exactly the old behaviour for old rows. */
+  repliedById: string | null
+  repliedByName: string | null
   subject: string
 }
 
@@ -52,6 +77,25 @@ export function median(values: number[]): number | null {
   const mid = Math.floor(sorted.length / 2)
   const value = sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2
   return Math.round(value * 10) / 10
+}
+
+/**
+ * The School Owner's row.
+ *
+ * She replies, and she has no `employees` row to key on — every other actor in
+ * this table does. A literal rather than null because null already means
+ * "unassigned": a Class with no Class Teacher, nobody accountable. Collapsing
+ * "nobody was accountable" into "the Owner answered it herself" would make the
+ * one number she is looking at wrong in her own favour.
+ *
+ * Safe as a sentinel because every real key here is a uuid.
+ */
+export const OWNER_BUCKET = 'owner'
+
+/** Whose row this question lands in. The rule, in one place. */
+function accountedTo(m: MessageForStats): { id: string | null; name: string | null } {
+  if (isAnswered(m) && m.repliedById) return { id: m.repliedById, name: m.repliedByName }
+  return { id: m.teacherId, name: m.teacherName }
 }
 
 function statsFor(
@@ -102,15 +146,22 @@ export interface PerformanceReport {
  */
 export function responseReport(messages: MessageForStats[], now: Date = new Date()): PerformanceReport {
   const at = now.getTime()
-  const byTeacher = new Map<string, MessageForStats[]>()
+  const byPerson = new Map<string, { name: string | null; rows: MessageForStats[] }>()
 
   for (const message of messages) {
-    const key = message.teacherId ?? ''
-    byTeacher.set(key, [...(byTeacher.get(key) ?? []), message])
+    const { id, name } = accountedTo(message)
+    const key = id ?? ''
+    const bucket = byPerson.get(key)
+    // First non-null name wins: the same person can arrive as a replier on one
+    // row and as a Class Teacher on the next, and only one of those carries a
+    // name if an employee lookup missed.
+    if (bucket) bucket.rows.push(message)
+    else byPerson.set(key, { name, rows: [message] })
+    if (bucket && bucket.name === null) bucket.name = name
   }
 
-  const perTeacher = [...byTeacher.entries()]
-    .map(([key, rows]) => statsFor(key || null, rows[0].teacherName, rows, at))
+  const perTeacher = [...byPerson.entries()]
+    .map(([key, { name, rows }]) => statsFor(key || null, name, rows, at))
     .sort((a, b) => (a.teacherName ?? '￿').localeCompare(b.teacherName ?? '￿'))
 
   return { overall: statsFor(null, null, messages, at), perTeacher }
@@ -155,6 +206,10 @@ export function schoolWideOverall(
       status: (m.replied_at ? 'answered' : 'unread') as MessageStatus,
       teacherId: null,
       teacherName: null,
+      // No per-person split in the Σ: the RPC discloses timestamps and nothing
+      // else, which is the reason a teacher may read it at all.
+      repliedById: null,
+      repliedByName: null,
     })),
     now,
   ).overall
@@ -167,7 +222,12 @@ export function schoolWideOverall(
  * "enough to know I'm at 14h and the school is at 9h without publishing a league
  * table to the people on it". The unassigned bucket (a class with no Class
  * Teacher) belongs to nobody, so it stays with the Owner rather than surfacing
- * on some arbitrary teacher's page.
+ * on some arbitrary teacher's page, and so does OWNER_BUCKET.
+ *
+ * A Subject Teacher matches only through his replies (#511): the unanswered half
+ * still keys on Class Teacher, so his row can never hold a waiting question and
+ * his "still waiting" column is structurally always empty. Correct per ADR 0018
+ * — he answers about the work he set, he is not accountable for the class.
  */
 export function visibleTeacherRows(
   report: PerformanceReport,

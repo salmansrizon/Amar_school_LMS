@@ -5,6 +5,7 @@ import {
   withinRange,
   schoolWideOverall,
   visibleTeacherRows,
+  OWNER_BUCKET,
   type MessageForStats,
 } from '@/lib/student/response-performance'
 
@@ -20,8 +21,79 @@ const msg = (over: Partial<MessageForStats> & { id: string }): MessageForStats =
   status: over.replied_at ? 'answered' : 'unread',
   teacherId: 't1',
   teacherName: 'Karim Sir',
+  // Default: nobody recorded as replier, which is both an unanswered question
+  // and every row answered before #511 shipped. Either way it falls back to the
+  // Class Teacher, so the pre-#511 cases below still describe the old rule.
+  repliedById: null,
+  repliedByName: null,
   subject: over.id,
   ...over,
+})
+
+describe('who a question is accounted to (#511, ADR 0019)', () => {
+  const answeredBySubjectTeacher = msg({
+    id: 'physics',
+    created_at: hoursAgo(10),
+    replied_at: hoursAgo(8),
+    teacherId: 't1',
+    teacherName: 'Karim Sir',
+    repliedById: 't2',
+    repliedByName: 'Rahim Sir',
+  })
+
+  it('credits the answer to whoever replied, not to the class teacher', () => {
+    const report = responseReport([answeredBySubjectTeacher], NOW)
+    expect(report.perTeacher).toHaveLength(1)
+    expect(report.perTeacher[0]).toMatchObject({
+      teacherId: 't2',
+      teacherName: 'Rahim Sir',
+      answered: 1,
+    })
+  })
+
+  it('leaves an unanswered question with the class teacher', () => {
+    const report = responseReport([msg({ id: 'waiting' })], NOW)
+    expect(report.perTeacher[0]).toMatchObject({ teacherId: 't1', unanswered: 1 })
+  })
+
+  it('moves a question out of the class teacher row once a colleague answers', () => {
+    const before = responseReport([msg({ id: 'q', teacherId: 't1' })], NOW)
+    const after = responseReport([answeredBySubjectTeacher], NOW)
+    expect(before.perTeacher.map((r) => r.teacherId)).toEqual(['t1'])
+    expect(after.perTeacher.map((r) => r.teacherId)).toEqual(['t2'])
+  })
+
+  it('gives the owner her own row rather than the unassigned bucket', () => {
+    const report = responseReport(
+      [
+        msg({ id: 'a', replied_at: hoursAgo(1), repliedById: OWNER_BUCKET, repliedByName: null }),
+        // A class with no teacher at all — the bucket the owner's row must not
+        // be confused with.
+        msg({ id: 'b', teacherId: null, teacherName: null }),
+      ],
+      NOW,
+    )
+    const ids = report.perTeacher.map((r) => r.teacherId)
+    expect(ids).toContain(OWNER_BUCKET)
+    expect(ids).toContain(null)
+  })
+
+  it('falls back to the class teacher for a row answered with no recorded replier', () => {
+    const report = responseReport(
+      [msg({ id: 'legacy', replied_at: hoursAgo(2), repliedById: null })],
+      NOW,
+    )
+    expect(report.perTeacher[0]).toMatchObject({ teacherId: 't1', answered: 1 })
+  })
+
+  it('keeps each question in exactly one row', () => {
+    const report = responseReport(
+      [answeredBySubjectTeacher, msg({ id: 'waiting' }), msg({ id: 'other', teacherId: 't3', teacherName: 'Sultana Miss' })],
+      NOW,
+    )
+    const summed = report.perTeacher.reduce((n, r) => n + r.received, 0)
+    expect(summed).toBe(report.overall.received)
+  })
 })
 
 describe('median', () => {
@@ -172,6 +244,8 @@ describe('schoolWideOverall', () => {
         status: r.replied_at ? ('answered' as const) : ('unread' as const),
         teacherId: null,
         teacherName: null,
+        repliedById: null,
+        repliedByName: null,
       })),
       new Date('2026-08-02T00:00:00Z'),
     ).overall
@@ -189,9 +263,9 @@ describe('schoolWideOverall', () => {
 describe('visibleTeacherRows', () => {
   const report = responseReport(
     [
-      { id: '1', subject: 'a', created_at: '2026-08-01T00:00:00Z', replied_at: null, status: 'unread' as const, teacherId: 'karim', teacherName: 'Karim' },
-      { id: '2', subject: 'b', created_at: '2026-08-01T00:00:00Z', replied_at: null, status: 'unread' as const, teacherId: 'nusrat', teacherName: 'Nusrat' },
-      { id: '3', subject: 'c', created_at: '2026-08-01T00:00:00Z', replied_at: null, status: 'unread' as const, teacherId: null, teacherName: null },
+      { id: '1', subject: 'a', created_at: '2026-08-01T00:00:00Z', replied_at: null, status: 'unread' as const, teacherId: 'karim', teacherName: 'Karim', repliedById: null, repliedByName: null },
+      { id: '2', subject: 'b', created_at: '2026-08-01T00:00:00Z', replied_at: null, status: 'unread' as const, teacherId: 'nusrat', teacherName: 'Nusrat', repliedById: null, repliedByName: null },
+      { id: '3', subject: 'c', created_at: '2026-08-01T00:00:00Z', replied_at: null, status: 'unread' as const, teacherId: null, teacherName: null, repliedById: null, repliedByName: null },
     ],
     new Date('2026-08-02T00:00:00Z'),
   )

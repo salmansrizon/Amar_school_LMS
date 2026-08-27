@@ -80,6 +80,8 @@ The relay above is justified by the response-performance table (#455) — it mea
 
 It is not done here because none of #508/#509/#510 asks for it, and it rewrites the meaning of a screen the School Owner already uses. It has its own ticket on map #434. Recorded here so the gap is not mistaken for an oversight by whoever reads this ADR next.
 
+**Closed by ADR 0019** (#511), which accounts an answered question to whoever replied and an unanswered one to the Class Teacher.
+
 ## Consequences
 
 - **Office staff see an empty section by design.** #509 ships a fallback line explaining why rather than a blank page — a Subject Teacher whose routine has not been entered resolves to no classes and would otherwise be told nothing.
