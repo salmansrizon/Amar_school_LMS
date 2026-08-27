@@ -37,6 +37,10 @@ export async function hubSummary(
       : supabase
           .from('student_messages')
           .select('id', { count: 'exact', head: true })
+          // The SQL half of isAnswered. Status alone is enough ONLY because
+          // 0153's CHECK forbids a replied_at without the matching status —
+          // without that constraint this would miss a row answered by a direct
+          // PATCH, exactly the drift 0153 exists to stop.
           .neq('status', 'answered'),
     skip === 'corrections'
       ? Promise.resolve({ count: known ?? null })

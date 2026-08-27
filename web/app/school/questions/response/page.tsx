@@ -45,7 +45,7 @@ export default async function ResponsePerformancePage({
       // the school's.
       supabase
         .from('student_message_inbox')
-        .select('id, subject, created_at, replied_at, class_name, section')
+        .select('id, subject, created_at, replied_at, status, class_name, section')
         .limit(2000),
       supabase.from('classes').select('name, section, class_teacher_id'),
       // employee_card, not employees: the base table needs the Employees grant
@@ -78,6 +78,7 @@ export default async function ResponsePerformancePage({
       subject: m.subject,
       created_at: m.created_at,
       replied_at: m.replied_at,
+      status: m.status,
       teacherId,
       teacherName: teacherId ? (teacherById.get(teacherId) ?? null) : null,
     }

@@ -14,6 +14,10 @@ const hoursAgo = (n: number) => new Date(NOW.getTime() - n * 3_600_000).toISOStr
 const msg = (over: Partial<MessageForStats> & { id: string }): MessageForStats => ({
   created_at: hoursAgo(10),
   replied_at: null,
+  // Follows replied_at unless a case deliberately sets them apart — the two
+  // are one fact (isAnswered), and a fixture that lets them drift silently is
+  // how the production defect got in.
+  status: over.replied_at ? 'answered' : 'unread',
   teacherId: 't1',
   teacherName: 'Karim Sir',
   subject: over.id,
@@ -161,7 +165,14 @@ describe('schoolWideOverall', () => {
       { created_at: '2026-08-01T00:00:00Z', replied_at: '2026-08-01T09:00:00Z' },
     ]
     const viaOwner = responseReport(
-      rows.map((r, i) => ({ id: String(i), subject: '', ...r, teacherId: null, teacherName: null })),
+      rows.map((r, i) => ({
+        id: String(i),
+        subject: '',
+        ...r,
+        status: r.replied_at ? ('answered' as const) : ('unread' as const),
+        teacherId: null,
+        teacherName: null,
+      })),
       new Date('2026-08-02T00:00:00Z'),
     ).overall
     expect(schoolWideOverall(rows, new Date('2026-08-02T00:00:00Z'))).toEqual(viaOwner)
@@ -178,9 +189,9 @@ describe('schoolWideOverall', () => {
 describe('visibleTeacherRows', () => {
   const report = responseReport(
     [
-      { id: '1', subject: 'a', created_at: '2026-08-01T00:00:00Z', replied_at: null, teacherId: 'karim', teacherName: 'Karim' },
-      { id: '2', subject: 'b', created_at: '2026-08-01T00:00:00Z', replied_at: null, teacherId: 'nusrat', teacherName: 'Nusrat' },
-      { id: '3', subject: 'c', created_at: '2026-08-01T00:00:00Z', replied_at: null, teacherId: null, teacherName: null },
+      { id: '1', subject: 'a', created_at: '2026-08-01T00:00:00Z', replied_at: null, status: 'unread' as const, teacherId: 'karim', teacherName: 'Karim' },
+      { id: '2', subject: 'b', created_at: '2026-08-01T00:00:00Z', replied_at: null, status: 'unread' as const, teacherId: 'nusrat', teacherName: 'Nusrat' },
+      { id: '3', subject: 'c', created_at: '2026-08-01T00:00:00Z', replied_at: null, status: 'unread' as const, teacherId: null, teacherName: null },
     ],
     new Date('2026-08-02T00:00:00Z'),
   )

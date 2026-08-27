@@ -309,6 +309,48 @@ describe('Question and correction scope (#508, ADR 0018)', () => {
     expect(data).toEqual([])
   })
 
+  // --------------------------------------------------- answered invariant
+
+  describe('the answered invariant (0153)', () => {
+    it('stamps a reply time when a client marks a question answered without one', async () => {
+      // The drift this closes: 0148 grants UPDATE on the table, so any client
+      // holding the reply right can PATCH {status:'answered'} and omit the
+      // timestamp — as several tests in this repo did, which is how every row in
+      // the project came to disagree with itself.
+      const { error } = await classTeacher
+        .from('student_messages')
+        .update({ status: 'answered' })
+        .eq('id', askedOnForeignSubject)
+      expect(error).toBeNull()
+
+      const { data } = await owner
+        .from('student_messages')
+        .select('status, replied_at')
+        .eq('id', askedOnForeignSubject)
+        .single()
+      expect(data!.status).toBe('answered')
+      expect(data!.replied_at).not.toBeNull()
+    })
+
+    it('refuses a reply time without the matching status', async () => {
+      // The half a trigger cannot fix, because there is nothing to infer: a
+      // timestamp with a contradicting status is a lie about the row.
+      const { error } = await owner
+        .from('student_messages')
+        .update({ replied_at: new Date().toISOString(), status: 'read' })
+        .eq('id', askedOnTaughtSubject)
+      expect(error).not.toBeNull()
+      expect(error!.message).toMatch(/student_message_reply_is_answered/)
+    })
+
+    it('leaves no row in the school disagreeing with itself', async () => {
+      // The assertion that was false for 100% of rows before 0153.
+      const { data } = await owner.from('student_messages').select('status, replied_at').limit(500)
+      const contradictory = (data ?? []).filter((m) => m.replied_at !== null && m.status !== 'answered')
+      expect(contradictory).toEqual([])
+    })
+  })
+
   // ------------------------------------------------------ correction queue
 
   describe('correction requests', () => {

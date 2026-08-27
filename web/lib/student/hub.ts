@@ -1,4 +1,5 @@
 import type { Tone } from '@/components/ui/page'
+import { isAnswered, type MessageStatus } from '@/lib/student/messages'
 
 // বার্তা ও অনুরোধ / Messages & Requests (#509), kept pure.
 //
@@ -46,7 +47,13 @@ export function waitingTone(
   item: { created_at: string; replied_at?: string | null; status?: string },
   now: Date = new Date(),
 ): Tone | undefined {
-  const settled = Boolean(item.replied_at) || item.status === 'answered' || item.status === 'applied'
+  // Questions go through isAnswered — the one definition (see messages.ts).
+  // 'applied'/'rejected' are the Correction Request's own settled states, which
+  // have no equivalent there because a correction is not a Question.
+  const settled =
+    isAnswered({ status: (item.status ?? 'unread') as MessageStatus, replied_at: item.replied_at ?? null }) ||
+    item.status === 'applied' ||
+    item.status === 'rejected'
   if (settled) return 'mint'
   const hours = waitingHours(item, now)
   if (hours >= WAITING_LATE_HOURS) return 'alert'

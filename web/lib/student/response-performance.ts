@@ -7,10 +7,16 @@
 // in a stable alphabetical order, and the thing highlighted is the oldest
 // unanswered question, which is an action, not a verdict.
 
+import { isAnswered, type MessageStatus } from '@/lib/student/messages'
+
 export interface MessageForStats {
   id: string
   created_at: string
   replied_at: string | null
+  /** Needed because `replied_at` alone is not the answer to "was this
+   *  answered?" — see isAnswered. A row can be answered with no recorded
+   *  time. */
+  status: MessageStatus
   /** The Class Teacher accountable for the asking student's class. Null when
    *  the class has no teacher assigned, or the teacher has no login — both
    *  normal states (#435), collected under "unassigned". */
@@ -54,10 +60,16 @@ function statsFor(
   messages: MessageForStats[],
   now: number,
 ): ResponseStats {
-  const answered = messages.filter((m) => m.replied_at)
-  const waiting = messages.filter((m) => !m.replied_at)
+  // Counting and timing are two different questions, and `replied_at` only
+  // answers the second. A reply with no recorded time is still a reply.
+  const answered = messages.filter(isAnswered)
+  const waiting = messages.filter((m) => !isAnswered(m))
 
-  const replyHours = answered.map((m) => hoursBetween(m.created_at, m.replied_at!))
+  // Timed over replies whose duration is actually known. Fabricating one from
+  // created_at would flatter the median; from now() would wreck it.
+  const replyHours = answered
+    .filter((m) => m.replied_at)
+    .map((m) => hoursBetween(m.created_at, m.replied_at!))
   const oldest = waiting
     .map((m) => ({ id: m.id, subject: m.subject, hours: hoursBetween(m.created_at, now) }))
     .sort((a, b) => b.hours - a.hours)[0]
@@ -138,6 +150,9 @@ export function schoolWideOverall(
       subject: '',
       created_at: m.created_at,
       replied_at: m.replied_at,
+      // school_question_timings returns timestamps only, so the timestamp IS
+      // the evidence here — there is no status column to disagree with.
+      status: (m.replied_at ? 'answered' : 'unread') as MessageStatus,
       teacherId: null,
       teacherName: null,
     })),

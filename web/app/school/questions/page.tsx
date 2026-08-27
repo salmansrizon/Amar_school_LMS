@@ -1,7 +1,7 @@
 import { currentLang } from '@/lib/i18n-server'
 import { t } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
-import { groupByTopic, type InboxMessage } from '@/lib/student/messages'
+import { groupByTopic, isAnswered, type InboxMessage } from '@/lib/student/messages'
 import { hubSummary, answerableMessageIds } from '@/lib/student/hub-source'
 import { waitingHours, waitingTone } from '@/lib/student/hub'
 import { Card, PageHeader } from '@/components/ui/page'
@@ -44,7 +44,7 @@ export default async function SchoolQuestionsPage() {
   const [summary, answerable] = await Promise.all([
     hubSummary(supabase, {
       skip: 'questions',
-      known: messages.filter((m) => m.status !== 'answered').length,
+      known: messages.filter((m) => !isAnswered(m)).length,
     }),
     answerableMessageIds(supabase),
   ])
