@@ -1,8 +1,9 @@
 import { currentLang } from '@/lib/i18n-server'
 import { t } from '@/lib/i18n'
 import { getStudentContext } from '@/lib/student/context'
-import { sortFees, totalFees, monthLabel, type FeeRecord } from '@/lib/student/fees'
+import { sortFees, totalFees, monthLabel, payableOf, type FeeRecord } from '@/lib/student/fees'
 import { PrintTrigger } from '@/components/print/print-trigger'
+import { pageTitle } from '@/lib/student/metadata'
 
 // The Student's own fees (#453), bound by ADR 0015.
 //
@@ -12,6 +13,8 @@ import { PrintTrigger } from '@/components/print/print-trigger'
 //
 // This is a statement, not a receipt: fee_collection_records keeps one
 // cumulative row per Student per month with no per-payment history by design.
+export const generateMetadata = pageTitle('student.feesTitle')
+
 export default async function StudentFeesPage() {
   const lang = await currentLang()
   const { supabase } = await getStudentContext()
@@ -40,7 +43,14 @@ export default async function StudentFeesPage() {
         </p>
       ) : (
         <>
-          <div className="mb-4 grid grid-cols-3 gap-3">
+          {/* Four figures, not three: "paid" alone told a family nothing to
+              compare against. Payable is derived from the record itself
+              (lib/student/fees.ts), so fee_structures stays shut — ADR 0015. */}
+          <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div className="rounded-lg border border-line bg-paper p-4">
+              <div className="text-xl font-extrabold text-ink">৳{money(totals.payable)}</div>
+              <div className="text-xs text-muted">{t('student.totalPayable', lang)}</div>
+            </div>
             <div className="rounded-lg border border-line bg-paper p-4">
               <div className="text-xl font-extrabold text-mint-deep">৳{money(totals.paid)}</div>
               <div className="text-xs text-muted">{t('student.feePaid', lang)}</div>
@@ -63,7 +73,7 @@ export default async function StudentFeesPage() {
             <table className="w-full border-collapse">
               <thead>
                 <tr className="border-b border-line-strong">
-                  {['student.month', 'student.feePaid', 'student.feeFine', 'student.feeDue'].map((key) => (
+                  {['student.month', 'student.feePayable', 'student.feePaid', 'student.feeFine', 'student.feeDue'].map((key) => (
                     <th
                       key={key}
                       className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted"
@@ -79,6 +89,7 @@ export default async function StudentFeesPage() {
                     <td className="px-3 py-2 text-sm font-medium">
                       {monthLabel(r.month, r.year, lang)}
                     </td>
+                    <td className="px-3 py-2 text-sm font-medium">৳{money(payableOf(r))}</td>
                     <td className="px-3 py-2 text-sm">৳{money(Number(r.pay_amount))}</td>
                     <td className="px-3 py-2 text-sm">
                       {Number(r.fine_amount) > 0 ? `৳${money(Number(r.fine_amount))}` : '—'}

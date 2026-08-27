@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { t, type Lang, type MessageKey } from '@/lib/i18n'
@@ -94,7 +95,19 @@ export function AskForm({
       </label>
 
       {error && <p className="text-sm text-alert-deep">{error}</p>}
-      {sent && <p className="text-sm text-mint-deep">✓</p>}
+      {/* A bare ✓ was the only thing telling a student their question had gone
+          anywhere — and from a notice or a task there was no way to reach the
+          answer later either. */}
+      {sent && (
+        <p className="text-sm text-mint-deep">
+          {t('student.questionSent', lang)}{' '}
+          {publicationId && (
+            <Link href="/student/questions" className="font-semibold underline">
+              {t('student.seeQuestions', lang)}
+            </Link>
+          )}
+        </p>
+      )}
 
       <button
         type="submit"

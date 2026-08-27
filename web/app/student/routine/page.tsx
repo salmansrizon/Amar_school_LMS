@@ -4,12 +4,15 @@ import { dayLabel } from '@/lib/routine'
 import { getStudentContext } from '@/lib/student/context'
 import { loadStudentRoutine } from '@/lib/student/routine-source'
 import { usedPeriods, weekPlan } from '@/lib/student/routine'
+import { pageTitle } from '@/lib/student/metadata'
 
 // The full weekly routine (#444). Sun–Thu across, periods down.
 //
 // The grid is exactly as tall as the periods the class actually uses, not a
 // fixed twelve — a timetable padded with eight empty rows reads as broken. Gaps
 // within the used range stay, because "no class third period" is information.
+export const generateMetadata = pageTitle('student.routineTitle')
+
 export default async function StudentRoutinePage() {
   const lang = await currentLang()
   const { supabase } = await getStudentContext()

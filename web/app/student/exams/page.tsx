@@ -3,6 +3,7 @@ import { t } from '@/lib/i18n'
 import { getStudentContext } from '@/lib/student/context'
 import { groupSchedule, type ExamRoutineRow, type SeatAssignment } from '@/lib/student/exam-schedule'
 import { PrintTrigger } from '@/components/print/print-trigger'
+import { pageTitle } from '@/lib/student/metadata'
 
 // The Student's exam calendar (#450): dates, times, rooms, and their own seat.
 //
@@ -10,6 +11,8 @@ import { PrintTrigger } from '@/components/print/print-trigger'
 // showing a Student "rolls 1-40 in Room 204" would make them work out where
 // they sit. The view (0145) matches their roll into the one row that concerns
 // them, and only once the plan is published.
+export const generateMetadata = pageTitle('student.examsTitle')
+
 export default async function StudentExamsPage() {
   const lang = await currentLang()
   const { supabase } = await getStudentContext()

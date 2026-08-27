@@ -61,6 +61,18 @@ export function monthGrid(input: MonthInputs): AttendanceDay[] {
 }
 
 /**
+ * How many empty cells the grid needs before day 1, for a Sunday-start week.
+ *
+ * Without this the calendar rendered day 1 in the first column whatever weekday
+ * it was, so no column meant anything and the whole thing was unreadable as a
+ * calendar. Sunday-start matches the routine (রবি … বৃহঃ, with Friday and
+ * Saturday the weekend), so the school week reads as one block.
+ */
+export function monthLeadIn(year: number, month: number): number {
+  return new Date(Date.UTC(year, month - 1, 1)).getUTCDay()
+}
+
+/**
  * Present over working days, as a whole percent.
  *
  * `absentWorkingDays` must come from the shared RPC. Working days = present +

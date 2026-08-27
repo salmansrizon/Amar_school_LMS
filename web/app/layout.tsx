@@ -23,7 +23,10 @@ const hindSiliguri = Hind_Siliguri({
 })
 
 export const metadata: Metadata = {
-  title: 'EdumeBD',
+  // A template, so a page that names itself gets "Routine · EdumeBD" instead of
+  // twelve browser tabs all reading "EdumeBD" — which made history and
+  // bookmarks useless.
+  title: { template: '%s · EdumeBD', default: 'EdumeBD' },
   description: 'Multi-tenant school management platform',
 }
 

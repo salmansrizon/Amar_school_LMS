@@ -145,8 +145,9 @@ export default async function StudentLayout({ children }: { children: React.Reac
       profile={{ fullName: student.full_name, label: t('shell.profile', lang) }}
       lang={lang}
       initialCollapsed={collapsed}
+      notificationsHref="/student/notifications"
       search={{
-        label: t('shell.search', lang),
+        label: t('student.search', lang),
         // Entries, not a renderer — see AppShellSearch. The dynamic record hits
         // still come from globalRecordSearch's `student` branch inside the palette.
         entries: STUDENT_SEARCH.map((e) => ({

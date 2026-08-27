@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { sortFees, totalFees, monthLabel, type FeeRecord } from '@/lib/student/fees'
+import { sortFees, totalFees, monthLabel, payableOf, type FeeRecord } from '@/lib/student/fees'
 
 const rec = (over: Partial<FeeRecord> & { id: string }): FeeRecord => ({
   month: 1,
@@ -30,23 +30,29 @@ describe('totalFees', () => {
         rec({ id: 'a', pay_amount: 1000, fine_amount: 50, due_amount: 200 }),
         rec({ id: 'b', pay_amount: 500, fine_amount: 0, due_amount: 700 }),
       ]),
-    ).toEqual({ paid: 1500, fine: 50, due: 900 })
+    ).toEqual({ payable: 2450, paid: 1500, fine: 50, due: 900 })
   })
 
   it('is zeroed for an empty record set, not NaN', () => {
-    expect(totalFees([])).toEqual({ paid: 0, fine: 0, due: 0 })
+    expect(totalFees([])).toEqual({ payable: 0, paid: 0, fine: 0, due: 0 })
   })
 
   it('never reports an adjustment — the view does not carry one (ADR 0015)', () => {
     const totals = totalFees([rec({ id: 'a', pay_amount: 100 })])
-    expect(Object.keys(totals).sort()).toEqual(['due', 'fine', 'paid'])
+    expect(Object.keys(totals).sort()).toEqual(['due', 'fine', 'paid', 'payable'])
+  })
+
+  it('derives payable from the record, never from the list price (ADR 0015)', () => {
+    // paid + fine + still-owed is already net of any waiver, so it cannot be
+    // subtracted from a fee_structures figure to reveal one.
+    expect(payableOf(rec({ id: 'a', pay_amount: 600, fine_amount: 50, due_amount: 400 }))).toBe(1050)
   })
 })
 
 describe('monthLabel', () => {
   it('names the month in each language', () => {
     expect(monthLabel(9, 2026, 'en')).toBe('Sep 2026')
-    expect(monthLabel(9, 2026, 'bn')).toBe('সেপ 2026')
+    expect(monthLabel(9, 2026, 'bn')).toBe('সেপ ২০২৬')
   })
 
   it('degrades to the number rather than throwing on a bad month', () => {

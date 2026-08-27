@@ -3,9 +3,12 @@ import { currentLang } from '@/lib/i18n-server'
 import { t } from '@/lib/i18n'
 import { getStudentContext } from '@/lib/student/context'
 import { groupByExam, type ResultRow } from '@/lib/student/results'
+import { pageTitle } from '@/lib/student/metadata'
 
 // Published exams only (#449). The gate is not in this query — it is in
 // student_exam_result (0143), so no screen can forget it.
+export const generateMetadata = pageTitle('student.resultsTitle')
+
 export default async function StudentResultsPage() {
   const lang = await currentLang()
   const { supabase } = await getStudentContext()

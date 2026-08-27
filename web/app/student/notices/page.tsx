@@ -4,11 +4,14 @@ import { t } from '@/lib/i18n'
 import { getStudentContext } from '@/lib/student/context'
 import { loadNoticeFeed } from '@/lib/student/notices-source'
 import { isForMyClass } from '@/lib/student/notices'
-import { importanceBadgeClass } from '@/lib/publishing'
+import { importanceBadgeClass, importanceLabel } from '@/lib/publishing'
+import { pageTitle } from '@/lib/student/metadata'
 
 // The Student's notice feed (#445). Urgent first, then newest — an urgent
 // notice from Monday still outranks a normal one from Friday, which is the
 // whole point of marking it urgent.
+export const generateMetadata = pageTitle('student.noticesTitle')
+
 export default async function StudentNoticesPage() {
   const lang = await currentLang()
   const { supabase } = await getStudentContext()
@@ -36,7 +39,7 @@ export default async function StudentNoticesPage() {
                   <span
                     className={`rounded-full px-2 py-0.5 text-xs font-semibold ${importanceBadgeClass(notice.importance)}`}
                   >
-                    {notice.importance}
+                    {importanceLabel(notice.importance, lang)}
                   </span>
                   {unread.has(notice.id) && (
                     <span className="rounded-full bg-brand-500 px-2 py-0.5 text-xs font-semibold text-white">

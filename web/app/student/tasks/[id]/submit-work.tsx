@@ -4,7 +4,7 @@ import { useRef, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { t, type Lang, type MessageKey } from '@/lib/i18n'
 import { createClient } from '@/lib/supabase/client'
-import { ACCEPT_ATTRIBUTE, rejectSubmission } from '@/lib/student/submissions'
+import { ACCEPT_ATTRIBUTE, MAX_SUBMISSION_BYTES, rejectSubmission } from '@/lib/student/submissions'
 import { recordSubmission, submissionUploadPath, withdrawSubmission } from '@/lib/student/submissions-source'
 
 const REJECTION: Record<string, MessageKey> = {
@@ -92,6 +92,13 @@ export function SubmitWork({
       >
         {busy ? t('student.uploading', lang) : t('student.submitWork', lang)}
       </button>
+      {/* What will be accepted, said before the upload is rejected for it. */}
+      <p className="mt-1.5 text-[11px] text-muted">
+        {t('student.fileHint', lang).replace(
+          '{size}',
+          `${Math.round(MAX_SUBMISSION_BYTES / (1024 * 1024))}MB`,
+        )}
+      </p>
       {error && <p className="mt-2 text-xs text-alert-deep">{error}</p>}
     </div>
   )

@@ -5,6 +5,7 @@ import { getStudentContext, isReadOnly } from '@/lib/student/context'
 import { loadStudentTasks } from '@/lib/student/tasks-read'
 import { splitTasks, type StudentTask, type TaskBucket } from '@/lib/student/tasks'
 import { TaskToggle } from './task-toggle'
+import { pageTitle } from '@/lib/student/metadata'
 
 // The Student's homework (#446), split into the piles that make a list useful:
 // overdue, due soon, later, done. Done beats overdue — finished late is still
@@ -39,6 +40,8 @@ function TaskRow({ task, lang, readOnly }: { task: StudentTask; lang: Lang; read
     </li>
   )
 }
+
+export const generateMetadata = pageTitle('student.tasksTitle')
 
 export default async function StudentTasksPage() {
   const lang = await currentLang()

@@ -10,6 +10,7 @@ import { nextPaper, type ExamRoutineRow } from '@/lib/student/exam-schedule'
 import { splitTasks, pendingCount } from '@/lib/student/tasks'
 import Link from 'next/link'
 import { DayPlanCard } from './day-plan'
+import { pageTitle } from '@/lib/student/metadata'
 
 // Student home (#444). Identity, then Today and Tomorrow.
 //
@@ -17,6 +18,8 @@ import { DayPlanCard } from './day-plan'
 // and no clock time anywhere, so there is nothing to count down to. Today and
 // Tomorrow is what the routine on the classroom wall tells them, and it is
 // honest about what the data actually knows.
+export const generateMetadata = pageTitle('home.student')
+
 export default async function StudentHome() {
   const lang = await currentLang()
   const ctx = await getStudentContext()
