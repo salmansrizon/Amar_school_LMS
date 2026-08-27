@@ -196,12 +196,42 @@ $$;
 comment on function public.school_question_timings(date, date) is
   'ADR 0018 / #509: question timings school-wide, timestamps only. Lets a teacher see the school-wide response aggregate without seeing a single question outside her own classes.';
 
+-- ---------------------------------------------------------------------------
+-- 5. "Which of these may I actually answer?" — so the UI can stop offering.
+--
+-- The reply policy in section 6 refuses a Subject Teacher on a colleague's
+-- anchor, and refuses correctly. But a refusal the person only meets after
+-- typing an answer and pressing send is a bad way to teach a rule: the inbox
+-- shows a Subject Teacher every question from the classes he teaches, and on
+-- roughly half of them the reply box was never going to work.
+--
+-- One scan returning the ids he may answer, rather than the obvious shape — a
+-- boolean column on student_message_inbox — which would be one SECURITY DEFINER
+-- call per row on a view already capped at 500. The predicate below is the reply
+-- policy's, restated once; if the two ever drift the page over-offers or
+-- under-offers, and the policy is still the thing that decides.
+create or replace function public.answerable_message_ids()
+returns setof uuid
+language sql stable security definer set search_path = public as $$
+  select m.id
+    from student_messages m
+   where m.school_id = public.app_current_school_id()
+     and (
+       public.staff_class_capacity_for_student(m.student_id) in ('owner', 'class_teacher')
+       or public.staff_owns_message_anchor(m.id)
+     )
+$$;
+
+comment on function public.answerable_message_ids() is
+  'ADR 0018 / #509: the questions the caller may reply to. Lets the inbox hide a reply box the reply policy would refuse. The policy remains the decider.';
+
 -- 0150 §1: CREATE FUNCTION grants EXECUTE to PUBLIC, so `revoke … from anon`
 -- alone revokes a grant that was never there. Revoke from PUBLIC.
 revoke execute on function public.staff_class_capacity_for_student(uuid) from public;
 revoke execute on function public.staff_owns_message_anchor(uuid) from public;
 revoke execute on function public.staff_reaches_any_class() from public;
 revoke execute on function public.school_question_timings(date, date) from public;
+revoke execute on function public.answerable_message_ids() from public;
 grant execute on function public.staff_class_capacity_for_student(uuid) to authenticated;
 grant execute on function public.staff_class_capacity_for_student(uuid) to service_role;
 grant execute on function public.staff_owns_message_anchor(uuid) to authenticated;
@@ -210,9 +240,11 @@ grant execute on function public.staff_reaches_any_class() to authenticated;
 grant execute on function public.staff_reaches_any_class() to service_role;
 grant execute on function public.school_question_timings(date, date) to authenticated;
 grant execute on function public.school_question_timings(date, date) to service_role;
+grant execute on function public.answerable_message_ids() to authenticated;
+grant execute on function public.answerable_message_ids() to service_role;
 
 -- ---------------------------------------------------------------------------
--- 5. Questions: read by class attachment, reply by capacity OR anchor.
+-- 6. Questions: read by class attachment, reply by capacity OR anchor.
 --
 -- 0148's comment said "staff read and answer every question in their school",
 -- and that is what the policy did. Replaced here rather than left contradicting
@@ -244,7 +276,7 @@ create policy "attached staff answer messages" on public.student_messages
   ) with check (school_id = (select public.app_current_school_id()));
 
 -- ---------------------------------------------------------------------------
--- 6. Corrections: read by class attachment. Applying is unchanged.
+-- 7. Corrections: read by class attachment. Applying is unchanged.
 --
 -- `owner resolves change requests` and apply_profile_change_request both stay
 -- exactly as 0149 wrote them — the Owner remains the sole applier, because
@@ -259,7 +291,7 @@ create policy "attached staff read change requests" on public.student_profile_ch
   );
 
 -- ---------------------------------------------------------------------------
--- 7. The storage mismatch, recorded where a reader will hit it.
+-- 8. The storage mismatch, recorded where a reader will hit it.
 --
 -- CONTEXT.md calls this a Student Question; the table is `student_messages`.
 -- That is deliberate: renaming a live table with a view, four policies, a

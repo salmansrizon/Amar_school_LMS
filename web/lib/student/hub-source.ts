@@ -56,3 +56,22 @@ export async function hubSummary(
     reachesAnyClass: (reach as { data?: boolean | null }).data !== false,
   }
 }
+
+/**
+ * The questions the caller may actually reply to (#509, migration 0152).
+ *
+ * The reply policy is still what decides — this only lets the inbox stop
+ * offering a box that would be refused. A null result (the RPC missing, or an
+ * error) means "offer everything", because a teacher who is shown no reply box
+ * anywhere has a broken page, while one shown a box that refuses has a sentence
+ * explaining why.
+ */
+export async function answerableMessageIds(
+  supabase: SupabaseClient,
+): Promise<Set<string> | null> {
+  const { data, error } = await supabase.rpc('answerable_message_ids')
+  if (error || !data) return null
+  return new Set((data as { answerable_message_ids: string }[] | string[]).map((row) =>
+    typeof row === 'string' ? row : row.answerable_message_ids,
+  ))
+}

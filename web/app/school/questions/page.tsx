@@ -2,7 +2,7 @@ import { currentLang } from '@/lib/i18n-server'
 import { t } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { groupByTopic, type InboxMessage } from '@/lib/student/messages'
-import { hubSummary } from '@/lib/student/hub-source'
+import { hubSummary, answerableMessageIds } from '@/lib/student/hub-source'
 import { waitingHours, waitingTone } from '@/lib/student/hub'
 import { Card, PageHeader } from '@/components/ui/page'
 import { HubTabs } from '../messages-hub-tabs'
@@ -36,10 +36,18 @@ export default async function SchoolQuestionsPage() {
 
   // This page is already holding every row the questions badge would count, so
   // it counts them here and buys only the corrections query.
-  const summary = await hubSummary(supabase, {
-    skip: 'questions',
-    known: messages.filter((m) => m.status !== 'answered').length,
-  })
+  //
+  // `answerable` is one extra scan, not one call per row: a Subject Teacher sees
+  // every question from the classes he teaches, and may answer only the ones
+  // anchored to work he set (ADR 0018). Offering a reply box on the rest and
+  // refusing after he has typed an answer is a bad way to teach that rule.
+  const [summary, answerable] = await Promise.all([
+    hubSummary(supabase, {
+      skip: 'questions',
+      known: messages.filter((m) => m.status !== 'answered').length,
+    }),
+    answerableMessageIds(supabase),
+  ])
 
   return (
     <>
@@ -121,8 +129,14 @@ export default async function SchoolQuestionsPage() {
                             </span>
                             <p className="mt-1 whitespace-pre-wrap text-sm">{m.reply_body}</p>
                           </div>
-                        ) : (
+                        ) : answerable === null || answerable.has(m.id) ? (
                           <ReplyForm lang={lang} messageId={m.id} />
+                        ) : (
+                          // Visible to him, not his to answer. Said once, here,
+                          // rather than after he has written a reply.
+                          <p className="mt-2 text-xs italic text-muted">
+                            {t('questions.notYours', lang)}
+                          </p>
                         )}
                       </Card>
                     </li>

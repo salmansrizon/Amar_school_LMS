@@ -220,6 +220,26 @@ describe('Question and correction scope (#508, ADR 0018)', () => {
     expect(after.data?.reply_body).toBeNull()
   })
 
+  it('tells the inbox which questions the caller may answer, matching the policy', async () => {
+    // The UI hides a reply box the reply policy would refuse (#509). The set and
+    // the policy are two statements of one rule, so this pins them together: if
+    // they drift, the page over-offers or under-offers and nothing else notices.
+    const forSubjectTeacher = await subjectTeacher.rpc('answerable_message_ids')
+    expect(forSubjectTeacher.error).toBeNull()
+    const ids = (forSubjectTeacher.data as string[]).map(String)
+    expect(ids).toContain(askedOnTaughtSubject)
+    expect(ids).not.toContain(askedOnForeignSubject)
+
+    // The Class Teacher may answer both — attachment, not anchor.
+    const forClassTeacher = await classTeacher.rpc('answerable_message_ids')
+    const classIds = (forClassTeacher.data as string[]).map(String)
+    expect(classIds).toEqual(expect.arrayContaining([askedOnTaughtSubject, askedOnForeignSubject]))
+
+    // Office staff are offered nothing, because they may answer nothing.
+    const forOffice = await officeStaff.rpc('answerable_message_ids')
+    expect(forOffice.data).toEqual([])
+  })
+
   it('the Class Teacher answers any question from their own class', async () => {
     const { data, error } = await classTeacher
       .from('student_messages')
