@@ -77,7 +77,13 @@ async function notifyClassTeacher(
 }
 
 /** A teacher (or the Owner) answering. One reply, and answering is final —
- *  status moves to 'answered' and the reply is what the Student reads. */
+ *  status moves to 'answered' and the reply is what the Student reads.
+ *
+ *  Who may answer is decided in RLS (0152, ADR 0018): the Owner, the Class
+ *  Teacher of the asking student's class, or a Subject Teacher whose own subject
+ *  or publication the question is anchored to. A refusal comes back as zero rows
+ *  updated rather than an error, so it is turned into a legible message here —
+ *  `.single()` would have surfaced it as PGRST116. */
 export async function answerQuestion(
   messageId: string,
   formData: FormData,
@@ -103,8 +109,9 @@ export async function answerQuestion(
     })
     .eq('id', messageId)
     .select('student_id, subject')
-    .single()
+    .maybeSingle()
   if (error) return { error: error.message }
+  if (!data) return { error: 'notYours' }
 
   const { data: profileId } = await supabase.rpc('student_profile_for', { p_student: data.student_id })
   if (profileId) {

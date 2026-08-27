@@ -1,19 +1,27 @@
-import { redirect } from 'next/navigation'
 import Form from 'next/form'
 import { currentLang } from '@/lib/i18n-server'
 import { t } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { responseReport, withinRange, type MessageForStats, type ResponseStats } from '@/lib/student/response-performance'
+import { hubSummary } from '@/lib/student/hub-source'
 import { Card, PageHeader } from '@/components/ui/page'
+import { HubTabs } from '../../messages-hub-tabs'
 
-// The Owner's view of how well the school answers its students (#455).
+// The Response tab of বার্তা ও অনুরোধ (#455 report, #509 section).
 //
 // Deliberately passive: no aging alert. The Class Teacher is already notified
 // per question (#454); an escalating second notification to the Owner would
-// turn a support tool into surveillance, and nobody asked for it. If a school
-// wants one later, the notification engine is already wired.
+// turn a support tool into surveillance, and nobody asked for it.
 //
-// Owner-only, and ordered by name rather than by any metric — see the module.
+// #509 drops the owner-only redirect this page used to open with. It splits by
+// role instead: the Owner keeps the full per-teacher table, and a teacher sees
+// **their own row plus the school-wide Σ** — enough to know "I'm at 14h, the
+// school is at 9h" without publishing a league table to the people on it.
+//
+// The per-teacher half is a filter over rows already fetched. The Σ half is not:
+// 0152 scopes her SELECT to her own classes, so her Σ has to come from
+// `school_question_timings`, which returns timestamps and nothing else. See the
+// comment at the call.
 export default async function ResponsePerformancePage({
   searchParams,
 }: {
@@ -22,22 +30,35 @@ export default async function ResponsePerformancePage({
   const { from = '', to = '' } = await searchParams
   const lang = await currentLang()
   const { supabase, role } = await getSchoolContext()
-  if (role !== 'school_owner') redirect('/school/questions')
+  const isOwner = role === 'school_owner'
 
-  const [{ data: messages }, { data: classes }, { data: employees }] = await Promise.all([
-    supabase
-      .from('student_message_inbox')
-      .select('id, subject, created_at, replied_at, class_name, section')
-      .limit(2000),
-    supabase.from('classes').select('name, section, class_teacher_id'),
-    // employee_card, not employees: this page is Owner-only today, but the
-    // base table now needs the Employees grant (0136) and a name is all we want.
-    supabase.from('employee_card').select('id, full_name'),
-  ])
+  const [{ data: messages }, { data: classes }, { data: employees }, { data: myEmployeeId }, summary, schoolWide] =
+    await Promise.all([
+      // Scoped by 0152: a teacher's rows are her own classes', the Owner's are
+      // the school's.
+      supabase
+        .from('student_message_inbox')
+        .select('id, subject, created_at, replied_at, class_name, section')
+        .limit(2000),
+      supabase.from('classes').select('name, section, class_teacher_id'),
+      // employee_card, not employees: the base table needs the Employees grant
+      // (0136) and a name is all we want.
+      supabase.from('employee_card').select('id, full_name'),
+      supabase.rpc('app_current_employee_id'),
+      hubSummary(supabase),
+      // The Σ row. For a teacher this MUST come from the definer RPC: her own
+      // SELECT stops at her classes, so rolling her rows up would print her own
+      // total under the school's label — a wrong number is worse than no number.
+      // The RPC hands back timestamps only, so she learns the school's latency
+      // and not one question outside her classes (ADR 0018 / migration 0152).
+      isOwner
+        ? Promise.resolve({ data: null })
+        : supabase.rpc('school_question_timings', { p_from: from || null, p_to: to || null }),
+    ])
 
   // A question is accounted to the Class Teacher of the asking student's class.
   // Not to whoever happened to reply: an unanswered question has no replier, and
-  // "who should have answered this" is the question the Owner is asking.
+  // "who should have answered this" is the question being asked.
   const teacherById = new Map((employees ?? []).map((e) => [e.id, e.full_name]))
   const teacherByClass = new Map(
     (classes ?? []).map((c) => [`${c.name}|${c.section ?? ''}`, c.class_teacher_id as string | null]),
@@ -55,7 +76,27 @@ export default async function ResponsePerformancePage({
     }
   })
 
-  const report = responseReport(withinRange(rows, from || null, to || null))
+  const inRange = withinRange(rows, from || null, to || null)
+  const report = responseReport(inRange)
+
+  // Same arithmetic, same module — only the source of the rows differs.
+  const schoolTimings = (schoolWide.data ?? null) as { created_at: string; replied_at: string | null }[] | null
+  const overall = schoolTimings
+    ? responseReport(
+        schoolTimings.map((m, i) => ({
+          id: String(i),
+          subject: '',
+          created_at: m.created_at,
+          replied_at: m.replied_at,
+          teacherId: null,
+          teacherName: null,
+        })),
+      ).overall
+    : report.overall
+  const me = (myEmployeeId as string | null) ?? null
+  // A teacher sees only her own row. Where the class has no teacher assigned the
+  // row is "unassigned" and belongs to nobody, so it stays with the Owner.
+  const perTeacher = isOwner ? report.perTeacher : report.perTeacher.filter((s) => s.teacherId === me)
 
   const hours = (n: number | null) => (n === null ? '—' : `${n}${t('response.hours', lang)}`)
 
@@ -88,10 +129,13 @@ export default async function ResponsePerformancePage({
 
   return (
     <>
-      <PageHeader title={t('response.title', lang)} backHref="/school/questions" backLabel={t('questions.title', lang)} />
+      <PageHeader title={t('hub.title', lang)} />
+      <HubTabs active="/school/questions/response" lang={lang} summary={summary} />
 
       <Card>
-        <p className="mb-4 text-sm text-muted">{t('response.intro', lang)}</p>
+        <p className="mb-4 text-sm text-muted">
+          {t(isOwner ? 'response.intro' : 'response.introTeacher', lang)}
+        </p>
 
         <Form action="/school/questions/response" className="mb-4 flex flex-wrap items-end gap-2">
           <label className="text-xs font-semibold text-muted">
@@ -108,7 +152,9 @@ export default async function ResponsePerformancePage({
         </Form>
 
         {!report.overall.received ? (
-          <p className="text-sm text-muted">{t('response.none', lang)}</p>
+          <p className="text-sm text-muted">
+            {summary.reachesAnyClass ? t('response.none', lang) : t('hub.noClasses', lang)}
+          </p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full border-collapse">
@@ -131,19 +177,25 @@ export default async function ResponsePerformancePage({
               </thead>
               <tbody>
                 <tr className="border-b-2 border-line-strong bg-paper-muted font-semibold">
-                  <td className="px-3 py-2 text-sm">Σ</td>
-                  <td className="px-3 py-2 text-sm">{report.overall.received}</td>
-                  <td className="px-3 py-2 text-sm">{report.overall.answered}</td>
-                  <td className="px-3 py-2 text-sm">{report.overall.unanswered || '—'}</td>
-                  <td className="px-3 py-2 text-sm">{hours(report.overall.medianHours)}</td>
-                  <td className="px-3 py-2 text-sm">{hours(report.overall.slowestHours)}</td>
-                  <td className="px-3 py-2 text-sm">{hours(report.overall.oldestWaiting?.hours ?? null)}</td>
+                  <td className="px-3 py-2 text-sm">
+                    Σ <span className="ml-1 text-xs font-normal text-muted">{t('response.schoolWide', lang)}</span>
+                  </td>
+                  <td className="px-3 py-2 text-sm">{overall.received}</td>
+                  <td className="px-3 py-2 text-sm">{overall.answered}</td>
+                  <td className="px-3 py-2 text-sm">{overall.unanswered || '—'}</td>
+                  <td className="px-3 py-2 text-sm">{hours(overall.medianHours)}</td>
+                  <td className="px-3 py-2 text-sm">{hours(overall.slowestHours)}</td>
+                  <td className="px-3 py-2 text-sm">{hours(overall.oldestWaiting?.hours ?? null)}</td>
                 </tr>
-                {report.perTeacher.map((stats) => (
+                {perTeacher.map((stats) => (
                   <StatRow
                     key={stats.teacherId ?? 'unassigned'}
                     stats={stats}
-                    label={stats.teacherName ?? t('response.unassigned', lang)}
+                    label={
+                      !isOwner && stats.teacherId === me
+                        ? t('response.mine', lang)
+                        : (stats.teacherName ?? t('response.unassigned', lang))
+                    }
                   />
                 ))}
               </tbody>

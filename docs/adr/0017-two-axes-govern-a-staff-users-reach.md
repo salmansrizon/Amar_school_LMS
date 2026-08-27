@@ -1,7 +1,15 @@
 ---
-status: accepted
+status: superseded by ADR-0018
 supersedes: ADR-0016
 ---
+
+> **Superseded by [ADR 0018](0018-the-anchor-authorises-the-reply.md).** The two
+> axes stand; 0018 restates them in full and changes two things. Class attachment
+> now governs *reading* as well as acting (migration 0152 moves the two
+> student-facing queues to RLS), and a Subject Teacher **may** answer a question
+> anchored to their own subject or their own publication — reversing the "no
+> answering questions" line below, which forced every such question through the
+> Class Teacher as a relay. Read 0018 rather than this file.
 
 # Two axes govern a Staff User's reach: a Grant, and a class attachment
 

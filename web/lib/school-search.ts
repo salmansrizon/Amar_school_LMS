@@ -26,7 +26,19 @@ export const SCHOOL_SEARCH: SearchEntry[] = [
   { screen: 'sms', href: '/school/sms', titleKey: 'sms.title', keywords: ['sms', 'message', 'notify', 'এসএমএস', 'বার্তা'] },
   { screen: 'notices', href: '/school/notices', titleKey: 'notices.title', keywords: ['notice', 'publish', 'gallery', 'নোটিশ', 'প্রকাশনা'] },
   { screen: 'notices', href: '/school/notices/new', titleKey: 'dash.qaNewNotice', keywords: ['new notice', 'announcement', 'নতুন নোটিশ'] },
-  { screen: 'feedback', href: '/school/feedback', titleKey: 'feedback.title', keywords: ['feedback', 'rating', 'inbox', 'মতামত'] },
+  // বার্তা ও অনুরোধ (#510). Three entries, not one: the tabs are genuinely
+  // different destinations, and search is where specific intent shows up —
+  // someone typing সংশোধন means the corrections queue, not the questions page
+  // with a tab to click.
+  //
+  // `screen: 'dashboard'` is the always-available sentinel, matching the hub
+  // riding no screen key (ADR 0018). What each tab shows is scoped in RLS.
+  { screen: 'dashboard', href: '/school/questions', titleKey: 'hub.tabQuestions', keywords: ['question', 'student question', 'ask', 'inbox', 'প্রশ্ন', 'শিক্ষার্থী', 'জিজ্ঞাসা'] },
+  { screen: 'dashboard', href: '/school/corrections', titleKey: 'hub.tabCorrections', keywords: ['correction', 'change request', 'profile', 'সংশোধন', 'অনুরোধ', 'তথ্য পরিবর্তন'] },
+  { screen: 'dashboard', href: '/school/questions/response', titleKey: 'hub.tabResponse', keywords: ['response', 'reply time', 'performance', 'উত্তর', 'অবস্থা', 'সময়'] },
+  // GUARDIAN FEEDBACK IS HIDDEN, not removed — see SCHOOL_MODULES in
+  // lib/school-nav.ts for the other half of the same one-line reversal.
+  // { screen: 'feedback', href: '/school/feedback', titleKey: 'feedback.title', keywords: ['feedback', 'rating', 'inbox', 'মতামত'] },
   { screen: 'institute', href: '/school/institute', titleKey: 'institute.title', keywords: ['institute', 'setup', 'profile', 'settings', 'প্রতিষ্ঠান', 'সেটআপ'] },
   { screen: 'staff', href: '/school/staff', titleKey: 'staff.title', keywords: ['permission', 'access', 'role', 'অনুমতি', 'স্টাফ'] },
 ]
