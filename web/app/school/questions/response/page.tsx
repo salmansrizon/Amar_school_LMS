@@ -40,7 +40,7 @@ export default async function ResponsePerformancePage({
   const { supabase, role } = await getSchoolContext()
   const isOwner = role === 'school_owner'
 
-  const [{ data: messages }, { data: classes }, { data: employees }, { data: myEmployeeId }, summary, schoolWide] =
+  const [{ data: messages }, { data: classes }, { data: employees }, { data: repliers }, { data: myEmployeeId }, summary, schoolWide] =
     await Promise.all([
       // Scoped by 0152: a teacher's rows are her own classes', the Owner's are
       // the school's.
@@ -50,9 +50,13 @@ export default async function ResponsePerformancePage({
         .limit(2000),
       supabase.from('classes').select('name, section, class_teacher_id'),
       // employee_card, not employees: the base table needs the Employees grant
-      // (0136) and a name is all we want. `profile_id` (0156) is how a reply —
-      // which records a login — reaches the Employee the table keys on.
-      supabase.from('employee_card').select('id, full_name, profile_id'),
+      // (0136) and a name is all we want.
+      supabase.from('employee_card').select('id, full_name'),
+      // How a reply — which records a login — reaches the Employee this table
+      // keys on. A definer RPC rather than `profile_id` on employee_card,
+      // because 0138 refused to widen that view into a login directory; this
+      // returns only logins that have actually answered a question here (0156).
+      supabase.rpc('student_message_repliers'),
       supabase.rpc('app_current_employee_id'),
       hubSummary(supabase),
       // The Σ row. For a teacher this MUST come from the definer RPC: her own
@@ -71,7 +75,10 @@ export default async function ResponsePerformancePage({
   // being asked. ADR 0019.
   const teacherById = new Map((employees ?? []).map((e) => [e.id, e.full_name]))
   const employeeByProfile = new Map(
-    (employees ?? []).filter((e) => e.profile_id).map((e) => [e.profile_id as string, e.id]),
+    ((repliers ?? []) as { profile_id: string; employee_id: string }[]).map((r) => [
+      r.profile_id,
+      r.employee_id,
+    ]),
   )
   const teacherByClass = new Map(
     (classes ?? []).map((c) => [`${c.name}|${c.section ?? ''}`, c.class_teacher_id as string | null]),

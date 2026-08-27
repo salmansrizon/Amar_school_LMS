@@ -108,7 +108,11 @@ describe('Permission Grant is enforced by RLS (#GHSA-f3w3-vrhc-983v)', () => {
     expect(card.error).toBeNull()
 
     // Absent from the view, not merely unselected — no select('*') can leak them.
-    for (const column of ['bank_account', 'bank_branch', 'bank_name', 'date_of_birth']) {
+    // `profile_id` is on the list because 0138 refused to put it here: the view
+    // must not become a map from every colleague to their login. The Response
+    // Performance report needs that mapping and gets it from a definer function
+    // scoped to actual repliers instead (0156).
+    for (const column of ['bank_account', 'bank_branch', 'bank_name', 'date_of_birth', 'profile_id']) {
       const { error } = await staff.from('employee_card').select(column)
       expect(error, `${column} must not exist on employee_card`).not.toBeNull()
     }
