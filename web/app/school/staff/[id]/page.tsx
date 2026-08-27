@@ -43,7 +43,7 @@ export default async function StaffPermissionsPage({
         <ul className="divide-y divide-line">
           {GRANTABLE_SCREENS.map((screen) => (
             <li key={screen.key} className="flex items-center justify-between py-2.5">
-              <span className="text-sm font-medium">{screen.label[lang]}</span>
+              <span className="text-sm font-medium">{t(screen.titleKey, lang)}</span>
               <ScreenToggle
                 staffUserId={staff.id}
                 screenKey={screen.key}

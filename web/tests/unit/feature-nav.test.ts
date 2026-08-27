@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { filterEnabledNav } from '@/lib/engines/feature/engine'
-import { FEATURE_KEYS } from '@/lib/engines/feature/catalog'
+import { FEATURE_KEYS } from '@/lib/auth/screens'
 
 describe('feature catalog', () => {
   it('has unique keys', () => {

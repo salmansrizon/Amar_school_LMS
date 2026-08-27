@@ -4,10 +4,10 @@ import type { ScreenKey } from './auth/screens'
 // Searchable feature index for the global-search command palette. Each entry is a
 // place in the app the user can jump straight to. `keywords` (English + Bangla
 // synonyms) broaden matching beyond the visible title. Gating is by `screen`
-// (canOpenScreen); 'dashboard' is always available.
+// (canOpenScreen); the `dashboard` screen is a member screen, always available.
 
 export interface SearchEntry {
-  screen: ScreenKey | 'dashboard'
+  screen: ScreenKey
   href: string
   titleKey: MessageKey
   keywords: string[]

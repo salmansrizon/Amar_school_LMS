@@ -1,7 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { canAccess, homeFor, isProtectedPath, isSchoolScopedRole, type Role } from '@/lib/auth/routing'
-import { canOpenScreen, screenKeyForPath } from '@/lib/auth/screens'
+import { canOpenScreen, isSchoolPath, screenFor, screenKeyForPath } from '@/lib/auth/screens'
 import { resolveHost, rootDomain } from '@/lib/auth/tenant-host'
 import { isTenantPath, tenantRoute, type TenantSession } from '@/lib/auth/tenant-routing'
 import { firstRelation } from '@/lib/supabase/relation'
@@ -109,16 +109,34 @@ export async function proxy(request: NextRequest) {
     return NextResponse.rewrite(new URL('/account-blocked', request.url))
   }
 
-  // Staff Users: per-screen allow-list (issue #2) — server-enforced, not just nav.
   const screen = screenKeyForPath(path)
-  if (role === 'staff_user' && screen) {
-    const { data: grant } = await supabase
-      .from('staff_permissions')
-      .select('screen_key')
-      .eq('staff_user_id', user.id)
-      .eq('screen_key', screen)
-      .maybeSingle()
-    if (!canOpenScreen(role, grant ? [grant.screen_key] : [], screen)) {
+
+  // Fail closed (#513/#515). A /school URL whose first segment has no row in the
+  // screen registry is refused, for every role. Until #515 this branch did not
+  // exist: an unknown segment returned null and null was read as "ungated", so a
+  // typo in a nav href widened access instead of breaking a link. A route added
+  // without a registry row is now unreachable rather than silently open, which
+  // is the trade this makes on purpose.
+  if (isSchoolPath(path) && !screen) {
+    return NextResponse.redirect(new URL('/school/permission-denied', request.url))
+  }
+
+  // Staff Users: per-screen allow-list (issue #2) — server-enforced, not just
+  // nav. A `member` screen needs no decision here at all; an `owner` screen is
+  // refused from the registry alone; only a `grant` screen costs the query
+  // (ADR 0020).
+  if (role === 'staff_user' && screen && screenFor(screen).gate !== 'member') {
+    const grants =
+      screenFor(screen).gate === 'grant'
+        ? await supabase
+            .from('staff_permissions')
+            .select('screen_key')
+            .eq('staff_user_id', user.id)
+            .eq('screen_key', screen)
+            .maybeSingle()
+            .then(({ data }) => (data ? [data.screen_key] : []))
+        : []
+    if (!canOpenScreen(role, grants, screen)) {
       return NextResponse.redirect(new URL('/school/permission-denied', request.url))
     }
   }

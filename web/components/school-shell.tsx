@@ -9,11 +9,10 @@ import { NotificationBell } from '@/components/notification-bell'
 import { SCHOOL_SEARCH } from '@/lib/school-search'
 import { t, type Lang } from '@/lib/i18n'
 import { FOCUS_RING, ICON_BUTTON } from '@/lib/ui-tokens'
-import { canOpenScreen } from '@/lib/auth/screens'
+import { canOpenScreen, FEATURE_KEYS } from '@/lib/auth/screens'
 import type { ScreenKey } from '@/lib/auth/screens'
 import type { Role } from '@/lib/auth/routing'
 import { SCHOOL_MODULES } from '@/lib/school-nav'
-import { FEATURE_KEYS } from '@/lib/engines/feature/catalog'
 import type { SchoolSmsCredit } from '@/lib/sms/credit'
 
 // SMS-balance badge styling by level (map #171 T9).
@@ -34,8 +33,8 @@ function buildSchoolNav(
   lang: Lang,
   enabledFeatures?: readonly string[],
 ): AppNavItem[] {
-  const allow = (screen: ScreenKey | 'dashboard') => {
-    if (screen !== 'dashboard' && !canOpenScreen(role, grants, screen)) return false
+  const allow = (screen: ScreenKey) => {
+    if (!canOpenScreen(role, grants, screen)) return false
     if (
       enabledFeatures &&
       (FEATURE_KEYS as readonly string[]).includes(screen) &&
@@ -46,7 +45,7 @@ function buildSchoolNav(
     return true
   }
   const toItem = (it: {
-    screen: ScreenKey | 'dashboard'
+    screen: ScreenKey
     href: string
     titleKey: Parameters<typeof t>[0]
     icon?: string
