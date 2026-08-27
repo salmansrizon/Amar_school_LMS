@@ -141,8 +141,8 @@ const dict = {
   // on a question about a colleague's subject — the row is visibly theirs to
   // read and not theirs to answer, and silence would read as a broken form.
   'questions.notYours': {
-    bn: 'এই প্রশ্নটি তোমার বিষয় বা পোস্ট নিয়ে নয় — শ্রেণি শিক্ষক বা প্রধান শিক্ষক উত্তর দেবেন।',
-    en: 'This question is not about your subject or your post — the Class Teacher or the School Owner answers it.',
+    bn: 'এই প্রশ্নটি তোমার বিষয় বা পোস্ট নিয়ে নয় — যাঁর বিষয় বা পোস্ট, সেই শিক্ষক, শ্রেণি শিক্ষক অথবা প্রধান শিক্ষক উত্তর দেবেন।',
+    en: 'This question is not about your subject or your post — it is answered by the teacher whose subject or post it is, by the Class Teacher, or by the School Owner.',
   },
   'response.title': { bn: 'প্রশ্নের উত্তরের অবস্থা', en: 'Response to Student Questions' },
   'response.intro': {

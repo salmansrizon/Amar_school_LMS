@@ -8,14 +8,19 @@
 -- grant could read every child's question and every correction request in the
 -- school. ADR 0018 restates the rule and this migration enforces it.
 --
---   Actor           | Reads                       | Replies / acts
---   ----------------+-----------------------------+---------------------------
---   School Owner    | every question and request  | replies; sole applier
---   Class Teacher   | their own classes           | replies for their classes
---   Subject Teacher | classes they teach, plus    | replies only on their own
---                   | anything anchored to work   | anchor — own subject, or a
---                   | they set                    | post they published
---   Office staff    | nothing student-facing      | nothing
+--   Actor           | Questions          | Corrections | Replies / acts
+--   ----------------+--------------------+-------------+--------------------
+--   School Owner    | all                | all         | replies; sole applier
+--   Class Teacher   | own classes        | own classes | replies, own classes
+--   Subject Teacher | classes they teach | NONE        | replies only on their
+--                   | + own anchor       |             | own anchor
+--   Office staff    | nothing            | nothing     | nothing
+--
+-- The two queues are scoped differently on purpose. A question carries an
+-- Anchor, so a Subject Teacher has something to earn his reach with; a
+-- correction request is about the CHILD, has no anchor, and he could not act on
+-- one anyway — so reading it would buy him nothing and cost the child's guardian
+-- phone number, blood group, religion and home address. See ADR 0018.
 --
 -- Additive only — staging and main share one project.
 
@@ -57,15 +62,23 @@ language sql stable security definer set search_path = public as $$
     -- Neither axis exists without an Employee record to attach to. Office staff,
     -- and any staff login not linked through employees.profile_id, land here.
     when public.app_current_employee_id() is null then null
+    -- Aggregated across EVERY matching class row, not `limit 1` over an
+    -- arbitrary one. `classes` carries no uniqueness on (school_id, name,
+    -- section) — only classes_id_school_unique (id, school_id) from 0024 — and
+    -- `students` joins to it by name and section rather than by id. So two rows
+    -- with the same name and section are possible, and `limit 1` would let the
+    -- planner decide whether a Class Teacher may read her own class. bool_or
+    -- also puts ADR 0018's "the stronger capacity wins" in the code instead of
+    -- leaving it incidental.
     else (
       select case
-               when c.class_teacher_id = public.app_current_employee_id()
+               when bool_or(c.class_teacher_id = public.app_current_employee_id())
                  then 'class_teacher'
-               when exists (
+               when bool_or(exists (
                       select 1 from routine_slots r
                        where r.class_id = c.id
                          and r.teacher_id = public.app_current_employee_id()
-                    )
+                    ))
                  then 'subject_teacher'
              end
         from students s
@@ -75,7 +88,6 @@ language sql stable security definer set search_path = public as $$
          and coalesce(c.section, '') = coalesce(s.section, '')
        where s.id = p_student
          and s.school_id = public.app_current_school_id()
-       limit 1
     )
   end
 $$;
@@ -84,49 +96,7 @@ comment on function public.staff_class_capacity_for_student(uuid) is
   'ADR 0018: which capacity the calling Staff User holds over this Student — owner / class_teacher / subject_teacher / null (no reach).';
 
 -- ---------------------------------------------------------------------------
--- 2. "Is this question about work I set?" — the anchor.
---
--- The amendment ADR 0018 makes to 0017. A question must anchor to a publication
--- or a subject, so "why is question 4 due Thursday?" is a question about a
--- specific task — visible under 0017 to the Subject Teacher who set that task
--- and answerable only by the Class Teacher, who then has to go and ask them.
--- The relay is the defect. The anchor authorises the reply.
---
--- A Subject Teacher still decides nothing *about the child*: no leave, no
--- correction, no profile. They decide about the work they set.
-create or replace function public.staff_owns_message_anchor(p_message uuid)
-returns boolean
-language sql stable security definer set search_path = public as $$
-  select exists (
-    select 1 from student_messages m
-     where m.id = p_message
-       and m.school_id = public.app_current_school_id()
-       and (
-         -- A post they published. `created_by` is a profiles.id, so this is the
-         -- caller's own login rather than an employee lookup.
-         exists (
-           select 1 from publications p
-            where p.id = m.publication_id
-              and p.created_by = auth.uid()
-         )
-         -- A subject they teach anywhere in this school. A null teacher_id and a
-         -- null app_current_employee_id() both fail the equality, so an office
-         -- staff login matches nothing here.
-         or exists (
-           select 1 from routine_slots r
-            where r.subject_id = m.subject_id
-              and r.school_id = m.school_id
-              and r.teacher_id = public.app_current_employee_id()
-         )
-       )
-  )
-$$;
-
-comment on function public.staff_owns_message_anchor(uuid) is
-  'ADR 0018: is this question anchored to work the caller set — their own subject in the routine, or a post they published?';
-
--- ---------------------------------------------------------------------------
--- 3. "Do I reach any class at all?" — for the section's empty-scope line.
+-- 2. "Do I reach any class at all?" — for the section's empty-scope line.
 --
 -- A Subject Teacher whose routine has not been entered yet resolves to no
 -- classes, and #509 must tell them why rather than showing a blank section. The
@@ -163,11 +133,64 @@ comment on function public.staff_reaches_any_class() is
   'ADR 0018: does the caller hold a class attachment anywhere in their school? Drives the empty-scope line on Messages & Requests (#509).';
 
 -- ---------------------------------------------------------------------------
+-- 3. "Is this question about work I set?" — the anchor.
+--
+-- The amendment ADR 0018 makes to 0017. A question must anchor to a publication
+-- or a subject, so "why is question 4 due Thursday?" is a question about a
+-- specific task — visible under 0017 to the Subject Teacher who set that task
+-- and answerable only by the Class Teacher, who then has to go and ask them.
+-- The relay is the defect. The anchor authorises the reply.
+--
+-- A Subject Teacher still decides nothing *about the child*: no leave, no
+-- correction, no profile. They decide about the work they set.
+create or replace function public.staff_owns_message_anchor(p_message uuid)
+returns boolean
+language sql stable security definer set search_path = public as $$
+  select exists (
+    select 1 from student_messages m
+     where m.id = p_message
+       and m.school_id = public.app_current_school_id()
+       and (
+         -- A post they published — but only if they teach somewhere.
+         --
+         -- `publications.created_by` is a profiles.id, a LOGIN, so authorship on
+         -- its own says nothing about class attachment: an office clerk holding
+         -- the `notices` grant can publish a school-wide notice. Without this
+         -- guard, doing so would hand them every question asked about it, across
+         -- every class — and #508 is explicit that office staff read "nothing
+         -- student-facing". Authorship is a form of attachment only for someone
+         -- who already has one; for everyone else the question falls to the
+         -- Class Teacher and the Owner, as it did before ADR 0018.
+         (
+           public.staff_reaches_any_class()
+           and exists (
+             select 1 from publications p
+              where p.id = m.publication_id
+                and p.created_by = auth.uid()
+           )
+         )
+         -- A subject they teach anywhere in this school. A null teacher_id and a
+         -- null app_current_employee_id() both fail the equality, so an office
+         -- staff login matches nothing here.
+         or exists (
+           select 1 from routine_slots r
+            where r.subject_id = m.subject_id
+              and r.school_id = m.school_id
+              and r.teacher_id = public.app_current_employee_id()
+         )
+       )
+  )
+$$;
+
+comment on function public.staff_owns_message_anchor(uuid) is
+  'ADR 0018: is this question anchored to work the caller set — their own subject in the routine, or a post they published?';
+
+-- ---------------------------------------------------------------------------
 -- 4. The school-wide Σ a teacher is allowed to see.
 --
 -- #509 gives a teacher her own response row "plus the school-wide Σ aggregate —
 -- enough to know 'I'm at 14h, the school is at 9h' without publishing a league
--- table to the people on it". Section 5 below makes that impossible to compute
+-- table to the people on it". Section 6 below makes that impossible to compute
 -- on the client: her SELECT is scoped to her own classes, so her Σ would be her
 -- own total wearing the school's label, which is worse than no Σ at all.
 --
@@ -186,7 +209,13 @@ create or replace function public.school_question_timings(
 language sql stable security definer set search_path = public as $$
   select m.created_at, m.replied_at
     from student_messages m
-   where m.school_id = public.app_current_school_id()
+   -- Attachment, not merely school membership. Without this the aggregate is
+   -- open to any authenticated staff login — including the office staff who read
+   -- nothing student-facing — and the only thing keeping it off their screen is
+   -- the page's render condition. README.md: RLS is the authority, "never as the
+   -- only gate".
+   where public.staff_reaches_any_class()
+     and m.school_id = public.app_current_school_id()
      and (p_from is null or m.created_at >= p_from::timestamptz)
      -- Inclusive of the end date, matching withinRange()'s date-only comparison.
      and (p_to is null or m.created_at < (p_to + 1)::timestamptz)
@@ -197,29 +226,49 @@ comment on function public.school_question_timings(date, date) is
   'ADR 0018 / #509: question timings school-wide, timestamps only. Lets a teacher see the school-wide response aggregate without seeing a single question outside her own classes.';
 
 -- ---------------------------------------------------------------------------
--- 5. "Which of these may I actually answer?" — so the UI can stop offering.
+-- 5. "May I answer this one?" — the reply rule, once.
 --
--- The reply policy in section 6 refuses a Subject Teacher on a colleague's
--- anchor, and refuses correctly. But a refusal the person only meets after
--- typing an answer and pressing send is a bad way to teach a rule: the inbox
--- shows a Subject Teacher every question from the classes he teaches, and on
--- roughly half of them the reply box was never going to work.
+-- The reply predicate is NOT the read predicate. A Subject Teacher who can see a
+-- class's questions is still refused on one anchored to a colleague's subject —
+-- that refusal is the whole point of the anchor rule.
 --
--- One scan returning the ids he may answer, rather than the obvious shape — a
--- boolean column on student_message_inbox — which would be one SECURITY DEFINER
--- call per row on a view already capped at 500. The predicate below is the reply
--- policy's, restated once; if the two ever drift the page over-offers or
--- under-offers, and the policy is still the thing that decides.
+-- It lives here rather than inside the UPDATE policy because two things need the
+-- same answer: the policy, per row, when a reply is written; and the inbox, in
+-- bulk, so it can stop offering a reply box that would be refused. Writing it
+-- twice and pinning the copies with a test would be testing around a duplication
+-- instead of removing it.
+create or replace function public.staff_may_answer_message(p_message uuid)
+returns boolean
+language sql stable security definer set search_path = public as $$
+  select exists (
+    select 1 from student_messages m
+     where m.id = p_message
+       and m.school_id = public.app_current_school_id()
+       and (
+         public.staff_class_capacity_for_student(m.student_id) in ('owner', 'class_teacher')
+         or public.staff_owns_message_anchor(m.id)
+       )
+  )
+$$;
+
+comment on function public.staff_may_answer_message(uuid) is
+  'ADR 0018: may the caller reply to this question? Owner or Class Teacher of the asking Student, or the teacher whose subject or publication it is anchored to.';
+
+-- The same rule in bulk, so the inbox can hide a box the policy would refuse.
+--
+-- A set rather than the obvious shape — a boolean column on
+-- student_message_inbox — which would be one SECURITY DEFINER call per row on a
+-- view already capped at 500. And NOT the other direction either: a policy
+-- written as `id in (select answerable_message_ids())` would make a single-row
+-- reply scan every message in the school. The policy stays per-row; this scans
+-- once per page load.
 create or replace function public.answerable_message_ids()
 returns setof uuid
 language sql stable security definer set search_path = public as $$
   select m.id
     from student_messages m
    where m.school_id = public.app_current_school_id()
-     and (
-       public.staff_class_capacity_for_student(m.student_id) in ('owner', 'class_teacher')
-       or public.staff_owns_message_anchor(m.id)
-     )
+     and public.staff_may_answer_message(m.id)
 $$;
 
 comment on function public.answerable_message_ids() is
@@ -231,6 +280,7 @@ revoke execute on function public.staff_class_capacity_for_student(uuid) from pu
 revoke execute on function public.staff_owns_message_anchor(uuid) from public;
 revoke execute on function public.staff_reaches_any_class() from public;
 revoke execute on function public.school_question_timings(date, date) from public;
+revoke execute on function public.staff_may_answer_message(uuid) from public;
 revoke execute on function public.answerable_message_ids() from public;
 grant execute on function public.staff_class_capacity_for_student(uuid) to authenticated;
 grant execute on function public.staff_class_capacity_for_student(uuid) to service_role;
@@ -240,6 +290,8 @@ grant execute on function public.staff_reaches_any_class() to authenticated;
 grant execute on function public.staff_reaches_any_class() to service_role;
 grant execute on function public.school_question_timings(date, date) to authenticated;
 grant execute on function public.school_question_timings(date, date) to service_role;
+grant execute on function public.staff_may_answer_message(uuid) to authenticated;
+grant execute on function public.staff_may_answer_message(uuid) to service_role;
 grant execute on function public.answerable_message_ids() to authenticated;
 grant execute on function public.answerable_message_ids() to service_role;
 
@@ -262,17 +314,13 @@ create policy "attached staff read messages" on public.student_messages
     )
   );
 
--- The reply predicate is NOT the read predicate. A Subject Teacher who can see a
--- class's questions is still refused on one anchored to a colleague's subject —
--- that refusal is the whole point of the anchor rule.
+-- Replying: section 5's predicate, per row. The rule has one home; this is one
+-- of its two callers.
 drop policy if exists "school members answer messages" on public.student_messages;
 create policy "attached staff answer messages" on public.student_messages
   for update using (
     school_id = (select public.app_current_school_id())
-    and (
-      public.staff_class_capacity_for_student(student_id) in ('owner', 'class_teacher')
-      or public.staff_owns_message_anchor(id)
-    )
+    and public.staff_may_answer_message(id)
   ) with check (school_id = (select public.app_current_school_id()));
 
 -- ---------------------------------------------------------------------------
@@ -281,13 +329,24 @@ create policy "attached staff answer messages" on public.student_messages
 -- `owner resolves change requests` and apply_profile_change_request both stay
 -- exactly as 0149 wrote them — the Owner remains the sole applier, because
 -- applying writes the school's own record of enrolment. What changes here is
--- who may read the queue. There is no anchor branch: a correction request is
--- about the child, not about anybody's coursework.
+-- who may read the queue.
+--
+-- Owner and Class Teacher only — narrower than the questions queue above, and
+-- deliberately so. There is no anchor here: a correction request is about the
+-- CHILD, not about anybody's coursework, so a Subject Teacher has nothing to
+-- earn his reach with. He also cannot act on one, so the reach would buy him
+-- nothing and cost the child's guardian phone number, blood group, religion and
+-- home address. This map set a stricter bar than that for the child's own
+-- profile — 0131's student_self hides guardian_nid and sibling_info behind a
+-- definer view "so they are absent rather than merely unselected".
+--
+-- A Subject Teacher therefore opens an empty Corrections tab; #509's badge
+-- hides at zero and the empty-scope line explains it.
 drop policy if exists "school members read change requests" on public.student_profile_change_requests;
 create policy "attached staff read change requests" on public.student_profile_change_requests
   for select using (
     school_id = (select public.app_current_school_id())
-    and public.staff_class_capacity_for_student(student_id) is not null
+    and public.staff_class_capacity_for_student(student_id) in ('owner', 'class_teacher')
   );
 
 -- ---------------------------------------------------------------------------

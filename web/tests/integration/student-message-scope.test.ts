@@ -148,6 +148,7 @@ describe('Question and correction scope (#508, ADR 0018)', () => {
     await superAdmin.from('student_messages').delete().like('subject', `${P}%`)
     await superAdmin.from('student_profile_change_requests').delete().like('note', `${P}%`)
     await owner.from('subjects').delete().like('name', `${P}%`)
+    await owner.from('publications').delete().like('title', `${P}%`)
   })
 
   // -------------------------------------------------------------- reading
@@ -240,6 +241,55 @@ describe('Question and correction scope (#508, ADR 0018)', () => {
     expect(forOffice.data).toEqual([])
   })
 
+  it('the set and the per-row predicate are the same rule, not two copies', async () => {
+    // Both the UPDATE policy and answerable_message_ids() call
+    // staff_may_answer_message. Asserting they agree row by row is what makes
+    // that a single definition rather than a claim in a comment.
+    const set = new Set(
+      ((await subjectTeacher.rpc('answerable_message_ids')).data as string[]).map(String),
+    )
+    for (const id of [askedOnTaughtSubject, askedOnForeignSubject]) {
+      const { data } = await subjectTeacher.rpc('staff_may_answer_message', { p_message: id })
+      expect(data).toBe(set.has(id))
+    }
+  })
+
+  it('an office clerk who publishes a notice does not thereby read questions about it', async () => {
+    // publications.created_by is a LOGIN, so authorship alone says nothing about
+    // class attachment (ADR 0018). Without the guard, the `notices` grant would
+    // have been a back door into every class's questions.
+    const pub = await officeStaff
+      .from('publications')
+      .insert({
+        kind: 'notice',
+        title: `${P}Clerk notice`,
+        importance: 'normal',
+        target_type: 'all',
+      })
+      .select('id')
+      .single()
+    if (pub.error) throw new Error(pub.error.message)
+
+    const asked = await student
+      .from('student_messages')
+      .insert({
+        school_id: schoolId,
+        student_id: studentId,
+        publication_id: pub.data.id,
+        subject: `${P}About the clerk's notice`,
+        body: 'When does this start?',
+      })
+      .select('id')
+      .single()
+    if (asked.error) throw new Error(asked.error.message)
+
+    const seen = await officeStaff.from('student_messages').select('id').eq('id', asked.data.id)
+    expect(seen.data).toEqual([])
+
+    const mayAnswer = await officeStaff.rpc('staff_may_answer_message', { p_message: asked.data.id })
+    expect(mayAnswer.data).toBe(false)
+  })
+
   it('the Class Teacher answers any question from their own class', async () => {
     const { data, error } = await classTeacher
       .from('student_messages')
@@ -283,12 +333,15 @@ describe('Question and correction scope (#508, ADR 0018)', () => {
       expect(data?.length).toBe(1)
     })
 
-    it('a Subject Teacher reads the queue of a class they teach', async () => {
+    it('a Subject Teacher reads no correction requests at all', async () => {
+      // Narrower than the questions queue, deliberately (ADR 0018). A correction
+      // is about the child, not about coursework, so there is no anchor to earn
+      // his reach — and he could not act on one anyway.
       const { data } = await subjectTeacher
         .from('student_profile_change_requests')
         .select('id')
         .like('note', `${P}%`)
-      expect(data?.length).toBe(1)
+      expect(data).toEqual([])
     })
 
     it('office staff read nothing', async () => {
@@ -297,6 +350,23 @@ describe('Question and correction scope (#508, ADR 0018)', () => {
         .select('id')
         .like('note', `${P}%`)
       expect(data).toEqual([])
+    })
+
+    it('the school-wide aggregate is closed to office staff too', async () => {
+      // The page happened not to show it to them, but the page is not the gate
+      // (README: "RLS is the authority ... never as the only gate").
+      const { data } = await officeStaff.rpc('school_question_timings', {
+        p_from: null,
+        p_to: null,
+      })
+      expect(data).toEqual([])
+
+      // A Class Teacher still gets it — that is what the Σ row is for.
+      const forTeacher = await classTeacher.rpc('school_question_timings', {
+        p_from: null,
+        p_to: null,
+      })
+      expect((forTeacher.data as unknown[]).length).toBeGreaterThan(0)
     })
 
     it('applying stays owner-only — attachment widened reading, not acting', async () => {

@@ -125,7 +125,7 @@ An Employee who appears in a Class's routine (`routine_slots.teacher_id`) withou
 _Avoid_: Teacher (ambiguous — say Class Teacher or Subject Teacher), assigned teacher
 
 **Student Question**:
-One thing a Student asks their Class Teacher, and the one reply it gets — not a thread. Always carries an **Anchor**, and is stored in `student_messages`. The name mismatch is deliberate: the domain term is Question, the table is `student_messages`, and renaming a live table with a view, four policies, a trigger and two definer functions attached is not worth the tidiness — so the table carries a comment saying so, and a search for "question" lands on the first try either way. Who may read one and who may answer it are different questions with different answers (ADR 0018).
+One thing a Student asks their Class Teacher, and the one reply it gets — not a thread. **Addressed** to the Class Teacher, who is the one notified; **answerable** by her, by the School Owner, or by the Subject Teacher whose own Subject or Publication the Anchor points at (ADR 0018) — so the person who replies is not always the person it was sent to. Always carries an **Anchor**, and is stored in `student_messages`. The name mismatch is deliberate: the domain term is Question, the table is `student_messages`, and renaming a live table with a view, four policies, a trigger and two definer functions attached is not worth the tidiness — so the table carries a comment saying so, and a search for "question" lands on the first try either way. Who may read one and who may answer it are different questions with different answers (ADR 0018).
 _Avoid_: Message, chat, thread (each implies a back-and-forth this deliberately is not)
 
 **Anchor**:

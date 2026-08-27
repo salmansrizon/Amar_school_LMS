@@ -27,7 +27,7 @@ Resolved: **only the School Owner sees everything.**
 | --- | --- | --- |
 | School Owner | every question and request in the school | replies; sole applier of a correction |
 | Class Teacher | their own classes (`classes.class_teacher_id`) | replies for their own classes |
-| Subject Teacher | classes they teach (`routine_slots.teacher_id`), plus anything anchored to work they set | replies **only** where the anchor is their own subject or their own publication |
+| Subject Teacher | **questions** for classes they teach (`routine_slots.teacher_id`), plus anything anchored to work they set. **No correction requests at all** — see below | replies **only** where the anchor is their own subject or their own publication |
 | Office staff (neither axis) | nothing student-facing | nothing |
 
 This *tightens* 0148's read policy rather than inheriting it. Owner oversight survives intact — the Owner still reads every question — but oversight was never an argument for the clerk in the front office reading them.
@@ -42,11 +42,13 @@ The relay is the defect, and it is not a small one: the response-performance tab
 
 **A Subject Teacher may answer a question anchored to their own subject or their own publication, and nothing else.** They still decide nothing *about the child* — no leave, no correction, no profile change. They decide about the work they set. A question anchored to a colleague's subject is refused at the database even when the row is plainly visible to them, because they teach the class it came from.
 
-### Authorship counts as attachment, for this one purpose
+### Authorship counts as attachment — but only for someone who has one
 
-`publications.created_by` is a login, not an employee, so the anchor branch asks "did you publish this?" rather than "do you teach this?". One consequence follows and is accepted: an office staff member who publishes a school-wide notice can read and answer questions asked *about that notice*. They see nothing else about that Student, or any other. Someone has to answer a question about a post, and the person who wrote it is the right someone.
+`publications.created_by` is a **login**, not an employee, so "did you publish this?" says nothing on its own about class attachment: an office staff member holding the `notices` grant can publish a school-wide notice. Taking authorship alone as sufficient would have handed them every question asked about that notice, across every Class — directly contradicting the rule three paragraphs above, which says office staff read nothing student-facing.
 
-This is also why the read predicate carries the anchor branch and not only the three capacities: a school-wide post reaches classes its author does not teach, and a reply grant that points at a row the replier cannot fetch is not a grant.
+So the publication branch of the anchor is guarded: **the caller must already hold a class attachment somewhere.** A teacher who set the work answers for it; an office clerk who published a notice does not, and questions about it fall to the Class Teacher and the Owner as they did before this ADR. The Subject-Teacher branch needs no such guard — appearing in a routine *is* an attachment.
+
+This is also why the read predicate carries the anchor branch and not only the three capacities: a school-wide post reaches Classes its author does not teach, and a reply grant that points at a row the replier cannot fetch is not a grant.
 
 ## Enforcement status of the three surfaces 0017 named
 
@@ -65,6 +67,19 @@ Two of the four are now enforced at the database rather than by which page issue
 
 So `feedback` survives as a grant key with no visible nav entry. That is deliberate and temporary: hiding is a nav decision, meant to read as a one-line reversal. The key is **not** to be reused for the merged section, and **not** to be dropped while the routes still exist — a dropped key would silently widen `/school/feedback` from "granted staff only" to "anyone who types the URL". If guardian feedback is ever removed rather than hidden, the key goes with the routes in the same change.
 
+## What this ADR did NOT fix: the accounting
+
+The relay above is justified by the response-performance table (#455) — it measures the latency the relay introduces and blames the Class Teacher for it. **This ADR fixes the relay and leaves the accounting exactly as it was.**
+
+`lib/student/response-performance.ts` still accounts every question to the Class Teacher of the asking Student's Class, "not to whoever happened to reply". So after this ADR:
+
+- A Subject Teacher who answers forty questions about his own Subject gets **no row of his own**. The report keys on Class Teacher, and he only ever appears if he is one somewhere. He sees the school-wide Σ and nothing else.
+- A Class Teacher is still credited with, and still blamed for, questions a colleague answered or failed to answer — which is the blame this ADR claims to have removed.
+
+`student_messages.replied_by` is written on every reply, so the data to fix it exists. The likely shape is: account an **answered** question to whoever replied, an **unanswered** one to the Class Teacher — which preserves the stated reason for the current rule ("an unanswered question has no replier, and *who should have answered this* is what the Owner is asking") while stopping a Class Teacher being credited with a colleague's work.
+
+It is not done here because none of #508/#509/#510 asks for it, and it rewrites the meaning of a screen the School Owner already uses. It has its own ticket on map #434. Recorded here so the gap is not mistaken for an oversight by whoever reads this ADR next.
+
 ## Consequences
 
 - **Office staff see an empty section by design.** #509 ships a fallback line explaining why rather than a blank page — a Subject Teacher whose routine has not been entered resolves to no classes and would otherwise be told nothing.
@@ -77,3 +92,4 @@ So `feedback` survives as a grant key with no visible nav entry. That is deliber
 - **Leaving reads school-wide and scoping in the page query.** The section would have been correct and the API would not — RLS is the authority in this codebase, and "which page issued the query" is not an access control mechanism.
 - **A separate `student-questions` screen key for the hub.** Every school would have had to re-grant it, and it would have re-created the coupling #509 exists to remove.
 - **Extending the anchor rule to corrections.** A correction request is about the child, not about anybody's coursework; there is no anchor to authorise anything, and a Subject Teacher applying one would be exactly what 0017 forbids.
+- **Letting a Subject Teacher read the correction queue for classes he teaches.** He cannot act on one — only the Owner applies — so the reach buys him nothing, and it costs the child's guardian phone number, blood group, religion and home address. This map set a stricter bar than that for the child's *own* profile: 0131's `student_self` hides `guardian_nid` and `sibling_info` behind a definer view so they are absent rather than merely unselected. He opens an empty Corrections tab, and #509's empty-scope line explains it.
