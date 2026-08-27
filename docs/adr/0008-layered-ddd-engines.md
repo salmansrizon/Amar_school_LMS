@@ -63,3 +63,5 @@ Additive and backward-compatible by default (`docs/008`). `main` is pre-launch, 
 - Engines are testable in isolation and reusable by every future module.
 - Migration is gradual — the app keeps shipping on staging between phases; no frozen big-bang rewrite.
 - Cost: an indirection layer over today's flat modules, justified by the PRD's multi-engine end state.
+
+> **Amended by ADR 0020** (#514): the Policy Engine listed here was a declared interface with no implementation and no adapters. It is retired. Authorization inside a school is RLS plus the screen registry; `authorize()` remains for vendor-vs-tenant permissions. The other six engines are unaffected.

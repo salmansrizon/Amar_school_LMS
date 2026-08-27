@@ -1,11 +1,18 @@
-// Policy Engine resolver (map #258, #262). The single app-layer authorization
-// entry point: resolves a permission for the calling session via the
-// app_has_permission definer RPC (which reads role_permissions for the caller's
-// role). RLS remains the DB backstop; this gives modules a clean allow/deny
-// without duplicating role logic.
+// Vendor-vs-tenant authorization (map #258, #262): resolves a permission for the
+// calling session via the app_has_permission definer RPC, which reads
+// role_permissions for the caller's role.
+//
+// This is NOT the central authorization pipeline the deleted `PolicyEngine`
+// interface described, and #514 stopped it claiming to be. Inside a school, the
+// authority is RLS plus the screen registry (lib/auth/screens.ts) — see ADR
+// 0020. Six permission keys live here, all of them vendor-side.
 import type { SupabaseClient } from '@supabase/supabase-js'
-import type { PolicyDecision } from './index'
 import type { PermissionKey } from './catalog'
+
+export interface PolicyDecision {
+  allowed: boolean
+  reason?: string
+}
 
 /** Resolve whether the calling session holds a permission. */
 export async function authorize(
