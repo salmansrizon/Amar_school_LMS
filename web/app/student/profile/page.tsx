@@ -1,5 +1,6 @@
 import { currentLang } from '@/lib/i18n-server'
 import { t, type MessageKey } from '@/lib/i18n'
+import { guardianRelationLabel } from '@/lib/students/guardian-relation'
 import { getStudentContext, isReadOnly } from '@/lib/student/context'
 import { sortRequests, isPhotoRequest, type CorrectionRequest } from '@/lib/student/corrections'
 import { classSectionLabel } from '@/lib/students'
@@ -62,7 +63,13 @@ export default async function StudentProfilePage() {
     ['students.roll', ctx.student.roll_number !== null ? String(ctx.student.roll_number) : null],
     ...Object.entries(FIELD_LABELS)
       .filter(([field]) => field !== 'photo_path')
-      .map(([field, key]) => [key, record[field] ?? null] as [string, string | null]),
+      // Stored values are rendered as stored, except where the value is a
+      // vocabulary rather than the guardian's own words: `father` in the middle
+      // of a Bangla page is the child reading a column name (#539).
+      .map(([field, key]) => [
+        key,
+        field === 'guardian_relation' ? guardianRelationLabel(record[field], lang) : (record[field] ?? null),
+      ] as [string, string | null]),
   ]
 
   const locale = lang === 'bn' ? 'bn-BD' : 'en-GB'

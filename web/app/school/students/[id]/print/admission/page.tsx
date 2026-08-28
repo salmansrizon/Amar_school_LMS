@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
 import { t } from '@/lib/i18n'
+import { guardianRelationLabel } from '@/lib/students/guardian-relation'
 import { getSchoolContext } from '@/lib/school/context'
 import { PrintPage, InstituteHeader, InfoGrid, SignatureRow, QrFooterRow } from '@/components/print/pieces'
 import { PrintButton } from '@/components/print/print-button'
@@ -58,7 +59,8 @@ export default async function AdmissionPrintPage({ params }: { params: Promise<{
             { label: t('students.mobile', lang), value: v(student.student_mobile) },
             { label: t('students.address', lang), value: address || dash },
             { label: t('students.guardianName', lang), value: v(student.guardian_name) },
-            { label: t('students.guardianRelation', lang), value: v(student.guardian_relation) },
+            // Printed onto an official document, so it must not say `father` on a Bangla form (#539).
+            { label: t('students.guardianRelation', lang), value: v(guardianRelationLabel(student.guardian_relation, lang)) },
             { label: t('students.guardianMobile', lang), value: v(student.guardian_mobile) },
             { label: t('students.previousInstitute', lang), value: v(student.previous_institute) },
             { label: t('students.previousClass', lang), value: v(student.previous_class) },
