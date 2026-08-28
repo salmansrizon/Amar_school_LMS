@@ -20,9 +20,17 @@ export function poolBalance(rows: PoolLedgerRow[]): number {
 /** Below this, nudge the admin to re-buy from the gateway. */
 export const SMS_POOL_LOW = 500
 
-export type PoolLevel = BalanceLevel
+/** `impossible` is not a worse `empty` — it is a different kind of fact.
+ *
+ *  A pool of 0 is a business state the Super Admin fixes by buying more. A pool
+ *  below 0 says segments left the gateway that were never bought, which means the
+ *  ledger and reality disagree and no amount of buying explains it. The UAT pass
+ *  found -981 rendered as an ordinary KPI beside the words "pool is empty" (#529);
+ *  a number that cannot happen must read as a fault, not as a metric. */
+export type PoolLevel = BalanceLevel | 'impossible'
 
 export function poolLevel(balance: number): PoolLevel {
+  if (balance < 0) return 'impossible'
   return balanceLevel(balance, SMS_POOL_LOW)
 }
 

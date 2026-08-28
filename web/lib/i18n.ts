@@ -550,6 +550,12 @@ const dict = {
   // SMS credit panel (map #171 T7)
   'sa.sms.creditTitle': { bn: 'SMS ক্রেডিট', en: 'SMS credits' },
   'sa.sms.balance': { bn: 'বর্তমান ব্যালেন্স', en: 'Current balance' },
+  // #529: a negative pool is not an empty pool. It says segments left the gateway
+  // that were never bought, so the ledger disagrees with reality.
+  'sa.pool.impossible': {
+    bn: 'অসম্ভব অবস্থা: পুলের ব্যালেন্স ঋণাত্মক। যত এসএমএস কেনা হয়েছে তার চেয়ে বেশি পাঠানো হয়েছে — লেজার মিলছে না। বরাদ্দ ও সেটেলমেন্ট বন্ধ রাখুন, আগে মিলিয়ে নিন।',
+    en: 'Impossible state: the pool balance is negative. More segments have been sent than were ever bought, so the ledger disagrees with reality. Hold allocation and settlement until this is reconciled.',
+  },
   'sa.sms.credits': { bn: 'ক্রেডিট (সংখ্যা)', en: 'Credits' },
   'sa.sms.amount': { bn: 'গৃহীত অর্থ (৳)', en: 'Amount collected (৳)' },
   'sa.sms.note': { bn: 'নোট (ঐচ্ছিক)', en: 'Note (optional)' },
@@ -668,6 +674,13 @@ const dict = {
   'sms.buyNote': { bn: 'কেনার সাথে একটি ইনভয়েস তৈরি হয় এবং সেগমেন্ট আপনার ওয়ালেটে যোগ হয়।', en: 'A purchase issues an invoice and adds the segments to your wallet.' },
   'sms.lowBalance': { bn: 'SMS ক্রেডিট কম — শীঘ্রই টপ-আপের জন্য অ্যাডমিনের সাথে যোগাযোগ করুন।', en: 'Low SMS balance — contact admin to top up soon.' },
   'sms.balanceEmpty': { bn: 'SMS ক্রেডিট শেষ — পাঠাতে অ্যাডমিনের কাছে টপ-আপ করান।', en: 'Out of SMS credit — ask admin to top up to keep sending.' },
+  // #529: the send gate now fails for two different reasons, and the school can
+  // do something about only one of them. Telling an owner with 8,000 credits that
+  // her credit is exhausted sends her to the wrong place.
+  'sms.poolExhausted': {
+    bn: 'প্ল্যাটফর্মে এসএমএস স্টক শেষ — আপনার ব্যালেন্স ঠিক আছে, কিন্তু সুপার অ্যাডমিন গেটওয়ে থেকে এসএমএস না কেনা পর্যন্ত পাঠানো যাবে না।',
+    en: 'The platform is out of SMS stock — your balance is fine, but nothing can be sent until the Super Admin buys more from the gateway.',
+  },
 
   // Clusters (#167)
   'sa.clusters.title': { bn: 'ক্লাস্টার ব্যবস্থাপনা', en: 'Clusters' },

@@ -7,7 +7,7 @@ import { currentLang } from '@/lib/i18n-server'
 import { t } from '@/lib/i18n'
 import { smsGateway } from '@/lib/sms/gateway'
 import { countSmsSegments } from '@/lib/sms/segments'
-import { smsCanSend, smsRecordDebit } from '@/lib/sms/credit'
+import { smsCanSend, smsPoolBalance, smsRecordDebit } from '@/lib/sms/credit'
 import {
   resolveRecipients,
   COMPOSE_STUDENT_COLUMNS,
@@ -166,8 +166,13 @@ export async function sendCompose(formData: FormData): Promise<{ error?: string;
   // on for this school and the balance can't cover the whole batch, deny before
   // sending; the successful segments are debited afterwards. Enforcement is
   // off by default, so unmetered schools send exactly as before.
-  if (!(await smsCanSend(supabase, schoolId, recipients.length * segments))) {
-    return { error: t('sms.creditExhausted', lang) }
+  const needed = recipients.length * segments
+  if (!(await smsCanSend(supabase, schoolId, needed))) {
+    // Two failures, one boolean (#529). Ask which one before blaming the school:
+    // an owner with credit to spare must not be sent to a top-up screen that
+    // cannot help her.
+    const poolShort = (await smsPoolBalance(supabase)) < needed
+    return { error: t(poolShort ? 'sms.poolExhausted' : 'sms.creditExhausted', lang) }
   }
 
   const gateway = smsGateway()
