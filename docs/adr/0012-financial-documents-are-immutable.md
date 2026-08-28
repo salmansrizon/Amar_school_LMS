@@ -2,6 +2,14 @@
 
 Status: Accepted (map #458, docs/012_super_admin_ui.md §6/§30)
 
+> **Amended by [ADR 0022](0022-gapless-numbering-serialises-its-issuers.md).** The
+> requirement below stands unchanged. What 0022 settles is *how* a gapless number is
+> allocated: a Postgres `SEQUENCE` cannot be gapless — `nextval` is non-transactional
+> by design, so a rolled-back issue burns its number permanently — and the numbering
+> clause below was implemented with one. It is now a counter row incremented inside
+> the issuing transaction, at the cost of serialising concurrent issuers. Read 0022
+> before touching invoice or receipt numbering.
+
 ## Context
 
 The vendor expects an external audit firm to be able to trace every transaction
