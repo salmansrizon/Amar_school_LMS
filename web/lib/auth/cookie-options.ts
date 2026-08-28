@@ -39,11 +39,43 @@ export function authCookieDomain(host: string | null | undefined): string | unde
   return `.${root}`
 }
 
-/** The `cookieOptions` every Supabase client passes. */
+/** Whether this host is local development, where `Secure` cookies cannot be set.
+ *
+ *  Keyed on the host being loopback rather than on `authCookieDomain` returning
+ *  undefined: a `*.vercel.app` preview also has no root-domain match, but it is
+ *  served over HTTPS and its session must still be `Secure`. */
+function isLoopbackHost(host: string | null | undefined): boolean {
+  if (!host) return false
+  const h = host.trim().toLowerCase().split(':')[0]
+  return h === 'localhost' || h === '127.0.0.1' || h === '[::1]' || h === '::1' || h.endsWith('.localhost')
+}
+
+/** The `cookieOptions` every Supabase client passes.
+ *
+ *  `@supabase/ssr`'s DEFAULT_COOKIE_OPTIONS sets `path`, `sameSite: 'lax'`,
+ *  `httpOnly: false` and `maxAge`, and our object is spread over it — but it has
+ *  no `secure` key at all, so without this the session cookie shipped without
+ *  the attribute. That matters more here than in a single-host app: the cookie is
+ *  deliberately widened to `.<root>` so it reaches every tenant subdomain (see
+ *  `authCookieDomain`), and a domain-wide cookie with no `Secure` travels to any
+ *  one of them that ever answers on plaintext HTTP.
+ *
+ *  `sameSite` is pinned rather than inherited so the value is visible at the one
+ *  place the session's shape is decided, and a library default change cannot
+ *  loosen it silently.
+ *
+ *  `httpOnly` is deliberately absent: `@supabase/ssr` reads the session from
+ *  `document.cookie` in the browser client, and a server-only `httpOnly: true`
+ *  makes the browser discard the refresh writes (RFC 6265bis §5.7) — sign-in
+ *  appears to work and the session then dies. See #526; the migration off the
+ *  browser client is #527. */
 export function authCookieOptions(host: string | null | undefined): {
   name: string
   domain?: string
+  secure: boolean
+  sameSite: 'lax'
 } {
   const domain = authCookieDomain(host)
-  return domain ? { name: AUTH_COOKIE_NAME, domain } : { name: AUTH_COOKIE_NAME }
+  const base = { name: AUTH_COOKIE_NAME, secure: !isLoopbackHost(host), sameSite: 'lax' as const }
+  return domain ? { ...base, domain } : base
 }

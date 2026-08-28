@@ -35,9 +35,38 @@ describe('authCookieOptions', () => {
     expect(authCookieOptions('adarshamodelschool.edumebd.com')).toEqual({
       name: AUTH_COOKIE_NAME,
       domain: '.edumebd.com',
+      secure: true,
+      sameSite: 'lax',
     })
     // Local dev keeps the name but never sets a domain.
     process.env.NEXT_PUBLIC_ROOT_DOMAIN = 'localhost:3000'
-    expect(authCookieOptions('localhost:3000')).toEqual({ name: AUTH_COOKIE_NAME })
+    expect(authCookieOptions('localhost:3000')).toEqual({
+      name: AUTH_COOKIE_NAME,
+      secure: false,
+      sameSite: 'lax',
+    })
+  })
+
+  // #545: the cookie is deliberately widened to every tenant subdomain, so a
+  // missing Secure would let it travel to any of them answering plaintext HTTP.
+  // @supabase/ssr's DEFAULT_COOKIE_OPTIONS has no `secure` key, so nothing else
+  // supplies it.
+  it('marks the session Secure everywhere except loopback', () => {
+    process.env.NEXT_PUBLIC_ROOT_DOMAIN = 'edumebd.com'
+    expect(authCookieOptions('edumebd.com').secure).toBe(true)
+    expect(authCookieOptions('adarshamodelschool.edumebd.com').secure).toBe(true)
+    // No root-domain match, but still HTTPS — a preview deploy must stay Secure.
+    expect(authCookieOptions('amar-school.vercel.app').secure).toBe(true)
+    expect(authCookieOptions(null).secure).toBe(true)
+
+    expect(authCookieOptions('localhost:3000').secure).toBe(false)
+    expect(authCookieOptions('127.0.0.1:3000').secure).toBe(false)
+    expect(authCookieOptions('school.localhost:3000').secure).toBe(false)
+  })
+
+  it('pins SameSite rather than inheriting it from the library default', () => {
+    process.env.NEXT_PUBLIC_ROOT_DOMAIN = 'edumebd.com'
+    expect(authCookieOptions('edumebd.com').sameSite).toBe('lax')
+    expect(authCookieOptions('localhost:3000').sameSite).toBe('lax')
   })
 })

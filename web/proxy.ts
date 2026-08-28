@@ -26,14 +26,36 @@ export async function proxy(request: NextRequest) {
       cookieOptions,
       cookies: {
         getAll: () => request.cookies.getAll(),
-        setAll: (toSet) => {
+        setAll: (toSet, headers) => {
           toSet.forEach(({ name, value }) => request.cookies.set(name, value))
           response = NextResponse.next({ request })
           toSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options))
+          // A refresh writes Set-Cookie, and @supabase/ssr hands us the headers
+          // that keep a CDN from caching that response and serving one user's
+          // session to the next. The old one-argument signature silently dropped
+          // them (#545) — behind Vercel's edge that needs no attacker at all.
+          if (headers) for (const [key, value] of Object.entries(headers)) response.headers.set(key, value)
         },
       },
     },
   )
+
+  /** Carry a refreshed session onto a response this proxy is about to return instead.
+   *
+   *  Every redirect/rewrite below builds a *new* response, so without this the
+   *  Set-Cookie and no-store headers written by a refresh above are discarded —
+   *  and the next request arrives with the same stale token, refreshes again, and
+   *  drops it again. The login bounce is exactly such a redirect, so this is the
+   *  path most likely to hit it. */
+  const carry = (next: NextResponse) => {
+    response.cookies.getAll().forEach((cookie) => next.cookies.set(cookie))
+    response.headers.forEach((value, key) => {
+      if (key.toLowerCase().startsWith('cache-control') || key.toLowerCase() === 'pragma' || key.toLowerCase() === 'expires') {
+        next.headers.set(key, value)
+      }
+    })
+    return next
+  }
 
   // Always call getUser() so expired sessions refresh on any matched route.
   const {
@@ -81,30 +103,30 @@ export async function proxy(request: NextRequest) {
   // Subdomain routing decision (apex vs tenant, wrong-subdomain bounce, unknown).
   const decision = tenantRoute({ host, path, session, schoolForHostId })
   if (decision.type === 'no-such-school') {
-    return NextResponse.rewrite(new URL('/no-such-school', request.url))
+    return carry(NextResponse.rewrite(new URL('/no-such-school', request.url)))
   }
   if (decision.type === 'redirect-subdomain') {
     const target = new URL(request.url)
     target.host = `${decision.slug}.${root}`
     target.pathname = decision.path
-    return NextResponse.redirect(target)
+    return carry(NextResponse.redirect(target))
   }
 
   // Below here: the existing role-group + staff-permission gate for protected paths.
   if (!isProtectedPath(path)) return response
 
   if (!user) {
-    return NextResponse.redirect(new URL('/login', request.url))
+    return carry(NextResponse.redirect(new URL('/login', request.url)))
   }
 
   if (!profileRole) {
     // Authenticated but not yet registered (e.g. mid-signup) — finish at login.
-    return NextResponse.redirect(new URL('/login', request.url))
+    return carry(NextResponse.redirect(new URL('/login', request.url)))
   }
 
   const role = profileRole
   if (!canAccess(role, path)) {
-    return NextResponse.redirect(new URL(homeFor(role), request.url))
+    return carry(NextResponse.redirect(new URL(homeFor(role), request.url)))
   }
 
   // Hard block: a deactivated school (schools.deactivated_at, issue #161) denies
@@ -113,7 +135,7 @@ export async function proxy(request: NextRequest) {
   // — this is a manual super-admin switch, so the message is a suspension, not a
   // renewal prompt. Pages re-verify; this is the optimistic gate.
   if (isSchoolScopedRole(role) && schoolDeactivated) {
-    return NextResponse.rewrite(new URL('/account-blocked', request.url))
+    return carry(NextResponse.rewrite(new URL('/account-blocked', request.url)))
   }
 
   const screen = screenKeyForPath(path)
@@ -125,7 +147,7 @@ export async function proxy(request: NextRequest) {
   // without a registry row is now unreachable rather than silently open, which
   // is the trade this makes on purpose.
   if (isSchoolPath(path) && !screen) {
-    return NextResponse.redirect(new URL('/school/permission-denied', request.url))
+    return carry(NextResponse.redirect(new URL('/school/permission-denied', request.url)))
   }
 
   // Staff Users: per-screen allow-list (issue #2) — server-enforced, not just
@@ -144,7 +166,7 @@ export async function proxy(request: NextRequest) {
             .then(({ data }) => (data ? [data.screen_key] : []))
         : []
     if (!canOpenScreen(role, grants, screen)) {
-      return NextResponse.redirect(new URL('/school/permission-denied', request.url))
+      return carry(NextResponse.redirect(new URL('/school/permission-denied', request.url)))
     }
   }
 
