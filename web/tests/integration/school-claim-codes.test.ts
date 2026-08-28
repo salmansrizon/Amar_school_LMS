@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import { schoolFixtures } from '../helpers/school-fixture'
 import { signedIn } from '../helpers/auth'
 
 // Seam: schools.subdomain + owner-claim codes (issue #108, map #104).
@@ -19,22 +20,21 @@ describe('School claim codes + subdomain (issue #108)', () => {
     return { data: data as { code: string; school_id: string } | null, error }
   }
 
+  const schools = schoolFixtures(() => admin)
+
   beforeAll(async () => {
     admin = await signedIn('super@test.local')
     owner = await signedIn('owner-a@test.local')
-    const { data, error } = await admin
-      .from('schools')
-      .insert({ name: `ZZ Claim Test ${crypto.randomUUID().slice(0, 8)}` })
-      .select('id')
-      .single()
-    if (error) throw new Error(error.message)
-    schoolId = data.id
+    schoolId = await schools.create({ name: `ZZ Claim Test ${crypto.randomUUID().slice(0, 8)}` })
   })
 
   afterAll(async () => {
     if (generatedCodes.length) {
       await admin.from('school_claim_codes').delete().in('code', generatedCodes).is('redeemed_at', null)
     }
+    // #541: this used to leave the school behind. The billing sweep then kept
+    // issuing it invoices for weeks after this run finished.
+    await schools.cleanup()
   })
 
   it('super admin mints a claim code bound to the school', async () => {

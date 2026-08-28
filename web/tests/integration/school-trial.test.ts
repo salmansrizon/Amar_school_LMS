@@ -1,5 +1,6 @@
-import { describe, it, expect, beforeAll } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { schoolFixtures } from '../helpers/school-fixture'
 import { signedIn } from '../helpers/auth'
 
 // Seam: time-boxed trials + redefined subscription status (issue #111).
@@ -19,17 +20,16 @@ describe('Time-boxed trials + status (issue #111)', () => {
     return (await admin.rpc('school_subscription_status', { sid: schoolId })).data as string
   }
 
+  const schools = schoolFixtures(() => admin)
+
   beforeAll(async () => {
     admin = await signedIn('super@test.local')
     owner = await signedIn('owner-a@test.local')
-    const { data, error } = await admin
-      .from('schools')
-      .insert({ name: `ZZ Trial ${crypto.randomUUID().slice(0, 8)}` })
-      .select('id')
-      .single()
-    if (error) throw new Error(error.message)
-    schoolId = data.id
+    schoolId = await schools.create({ name: `ZZ Trial ${crypto.randomUUID().slice(0, 8)}` })
   })
+
+  // #541: no teardown at all before this — every run left a school behind.
+  afterAll(schools.cleanup)
 
   it('no-history + no expiry → open-ended trial', async () => {
     await admin.from('schools').update({ subscription_expires_at: null }).eq('id', schoolId)
