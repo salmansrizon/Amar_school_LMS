@@ -30,6 +30,7 @@ import {
 } from '@/lib/grading'
 import { rankResults, type RankBasis, type RankableResult } from '@/lib/exam-results'
 import { loadGradingScheme } from '@/lib/grading-scheme-loader'
+import { selectAllRows } from '@/lib/supabase/select-all'
 
 type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>
 
@@ -198,10 +199,22 @@ export async function loadExamRosterResults(
         .order('roll_number', { ascending: true, nullsFirst: false })
       rosterQuery = cls.section ? rosterQuery.eq('section', cls.section) : rosterQuery.is('section', null)
 
-      const [{ data: roster }, { data: marksRows }] = await Promise.all([
+      // Paged, not unbounded (#546). A missing mark does not render as missing —
+      // assembleRosterRows below reads an absent entry as 0 — so a silently
+      // truncated fetch prints a wrong grade on a report card rather than an
+      // obvious blank. One exam is students x subjects, which passes 1000 at
+      // roughly 125 students.
+      const [{ data: roster }, marks] = await Promise.all([
         rosterQuery,
-        supabase.from('exam_marks').select('student_id, subject_id, obtained_marks').eq('exam_id', examId),
+        selectAllRows<{ student_id: string; subject_id: string; obtained_marks: number }>((from, to) =>
+          supabase
+            .from('exam_marks')
+            .select('student_id, subject_id, obtained_marks')
+            .eq('exam_id', examId)
+            .range(from, to),
+        ),
       ])
+      const marksRows = marks.rows
       const marksMap = new Map(
         (marksRows ?? []).map((m) => [`${m.student_id}:${m.subject_id}`, Number(m.obtained_marks)]),
       )

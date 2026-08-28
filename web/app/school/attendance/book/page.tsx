@@ -15,6 +15,7 @@ import { PrintButton } from '@/components/print/print-button'
 import { AttendanceTabs } from '../attendance-tabs'
 import { loadInstitutePrintHeader } from '@/lib/institute-print'
 import { ClassSectionSelect } from '@/components/ui/class-section-select'
+import { selectAllRows } from '@/lib/supabase/select-all'
 
 // Layout per ui/school-owner/attendance-book.html: class/section + month
 // filter, Filled/Blank toggle, print button, monthly P/A register grid
@@ -70,14 +71,20 @@ export default async function AttendanceBookPage({
 
   const [{ data: offDaysRaw }, { data: recordsRaw }, { data: leavesRaw }] = await Promise.all([
     supabase.from('off_days').select('day, label, is_significant').gte('day', monthStart).lte('day', monthEnd),
+    // Paged (#546): a class-month is students x school days — 40 x 30 already
+    // passes 1000 — and a record this fetch drops does not render as unknown, it
+    // renders as ABSENT, which then feeds the fine calculation.
     visibleIds.length
-      ? supabase
-          .from('attendance_records')
-          .select('person_id, att_date')
-          .eq('person_type', 'student')
-          .gte('att_date', monthStart)
-          .lte('att_date', monthEnd)
-          .in('person_id', visibleIds)
+      ? selectAllRows<{ person_id: string; att_date: string }>((from, to) =>
+          supabase
+            .from('attendance_records')
+            .select('person_id, att_date')
+            .eq('person_type', 'student')
+            .gte('att_date', monthStart)
+            .lte('att_date', monthEnd)
+            .in('person_id', visibleIds)
+            .range(from, to),
+        ).then(({ rows }) => ({ data: rows }))
       : Promise.resolve({ data: [] as { person_id: string; att_date: string }[] }),
     visibleIds.length
       ? supabase
