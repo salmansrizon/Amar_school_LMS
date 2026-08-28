@@ -37,6 +37,7 @@ describe('authCookieOptions', () => {
       domain: '.edumebd.com',
       secure: true,
       sameSite: 'lax',
+      httpOnly: true,
     })
     // Local dev keeps the name but never sets a domain.
     process.env.NEXT_PUBLIC_ROOT_DOMAIN = 'localhost:3000'
@@ -44,6 +45,7 @@ describe('authCookieOptions', () => {
       name: AUTH_COOKIE_NAME,
       secure: false,
       sameSite: 'lax',
+      httpOnly: true,
     })
   })
 
@@ -77,5 +79,22 @@ describe('authCookieOptions', () => {
     process.env.NEXT_PUBLIC_ROOT_DOMAIN = 'edumebd.com'
     expect(authCookieOptions('edumebd.com').sameSite).toBe('lax')
     expect(authCookieOptions('localhost:3000').sameSite).toBe('lax')
+  })
+})
+
+// #527: the finding this whole branch exists for. httpOnly could not be set while
+// any browser Supabase client remained — createBrowserClient reads the session
+// from document.cookie, so an HttpOnly cookie is invisible to it and the app
+// behaves as though nobody is signed in. Setting it server-side only, with a
+// browser client still present, is worse: RFC 6265bis 5.7 makes the browser
+// discard that client's refresh writes, so sign-in appears to work and the session
+// then dies.
+describe('the session is not readable by page JavaScript (#527)', () => {
+  it('is httpOnly on every host, local development included', () => {
+    process.env.NEXT_PUBLIC_ROOT_DOMAIN = 'edumebd.com'
+    expect(authCookieOptions('adarshamodelschool.edumebd.com').httpOnly).toBe(true)
+    expect(authCookieOptions('amar-school.vercel.app').httpOnly).toBe(true)
+    expect(authCookieOptions('localhost:3000').httpOnly).toBe(true)
+    expect(authCookieOptions(null).httpOnly).toBe(true)
   })
 })

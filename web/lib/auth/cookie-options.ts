@@ -68,18 +68,33 @@ function isLoopbackHost(host: string | null | undefined): boolean {
  *  place the session's shape is decided, and a library default change cannot
  *  loosen it silently.
  *
- *  `httpOnly` is deliberately absent: `@supabase/ssr` reads the session from
- *  `document.cookie` in the browser client, and a server-only `httpOnly: true`
- *  makes the browser discard the refresh writes (RFC 6265bis §5.7) — sign-in
- *  appears to work and the session then dies. See #526; the migration off the
- *  browser client is #527. */
+ *  `httpOnly` is now safe to set, and is the point of #527: with the browser
+ *  Supabase client deleted, no page JavaScript reads this cookie, so making it
+ *  unreadable costs nothing and closes the #526 finding. */
 export function authCookieOptions(host: string | null | undefined): {
   name: string
   domain?: string
   secure: boolean
   sameSite: 'lax'
+  httpOnly: true
 } {
   const domain = authCookieDomain(host)
-  const base = { name: AUTH_COOKIE_NAME, secure: !isLoopbackHost(host), sameSite: 'lax' as const }
+  const base = {
+    name: AUTH_COOKIE_NAME,
+    secure: !isLoopbackHost(host),
+    sameSite: 'lax' as const,
+    // The whole point of #527. This was impossible while any browser Supabase
+    // client existed — `createBrowserClient` reads the session from
+    // `document.cookie`, so an HttpOnly cookie would simply be invisible to it and
+    // the app would behave as though nobody were signed in.
+    //
+    // Setting it server-side only, with a browser client still present, is the
+    // trap #526 named: RFC 6265bis 5.7 makes the browser discard that client's
+    // refresh writes, so sign-in appears to work and the session then dies. It is
+    // safe here precisely because `lib/supabase/client.ts` is gone — all fifteen
+    // call sites are server actions now, and nothing in the page ever needs to
+    // read the cookie.
+    httpOnly: true as const,
+  }
   return domain ? { ...base, domain } : base
 }

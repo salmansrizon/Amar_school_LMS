@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { AuthCard, inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
 import { t } from '@/lib/i18n'
 import { useLang } from '@/lib/use-lang'
-import { createClient } from '@/lib/supabase/client'
+import { claimEntryPhase, redeemClaimCode, signUpForClaim } from '@/lib/auth/session-actions'
 import { validateSlug, normalizeSlug } from '@/lib/subdomain'
 import { claimErrorKey } from '@/lib/claim'
 import { homeFor, type Role } from '@/lib/auth/routing'
@@ -29,19 +29,14 @@ export default function ClaimPage() {
   const [success, setSuccess] = useState(false)
 
   useEffect(() => {
-    const supabase = createClient()
-    supabase.auth.getUser().then(async ({ data: { user } }) => {
-      const codeParam = new URLSearchParams(window.location.search).get('code')
-      if (codeParam) setCode(codeParam)
-      if (!user) {
-        setPhase('need-account')
-        return
-      }
-      const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-      if (profile) {
-        router.replace(homeFor(profile.role as Role))
-        return
-      }
+    const codeParam = new URLSearchParams(window.location.search).get('code')
+    if (codeParam) setCode(codeParam)
+    // Which of the three phases to show is decided server-side now (#527): signed
+    // out, signed in and already bound to a school, or signed in and waiting to
+    // redeem a code.
+    claimEntryPhase().then(({ signedIn, destination }) => {
+      if (!signedIn) return setPhase('need-account')
+      if (destination) return router.replace(destination)
       setPhase('claim')
     })
   }, [router])
@@ -51,18 +46,19 @@ export default function ClaimPage() {
     setBusy(true)
     setError(null)
     const form = new FormData(e.currentTarget)
-    const supabase = createClient()
-    const { data, error } = await supabase.auth.signUp({
-      email: String(form.get('email')),
-      password: String(form.get('password')),
-      options: { emailRedirectTo: `${location.origin}/claim` },
-    })
+    const { hasSession, error } = await signUpForClaim(
+      String(form.get('email')),
+      String(form.get('password')),
+      // Read here rather than in the action: the confirmation link must return to
+      // the host the caller started on, which a server action cannot know.
+      `${location.origin}/claim`,
+    )
     setBusy(false)
     if (error) {
-      setError(error.message)
+      setError(error)
       return
     }
-    setPhase(data.session ? 'claim' : 'confirm-email')
+    setPhase(hasSession ? 'claim' : 'confirm-email')
   }
 
   async function onClaim(e: React.FormEvent<HTMLFormElement>) {
@@ -74,13 +70,9 @@ export default function ClaimPage() {
     }
     setBusy(true)
     setError(null)
-    const supabase = createClient()
-    const { error } = await supabase.rpc('redeem_school_claim_code', {
-      code_text: code.trim(),
-      desired_subdomain: normalizeSlug(slug),
-    })
+    const { error } = await redeemClaimCode(code.trim(), normalizeSlug(slug))
     if (error) {
-      setError(t(claimErrorKey(error.message), lang))
+      setError(t(claimErrorKey(error), lang))
       setBusy(false)
       return
     }
