@@ -2,9 +2,9 @@
 
 import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 import { t, type Lang } from '@/lib/i18n'
-import { deleteSyllabus, recordSyllabus, syllabusUploadPath } from './actions'
+import { uploadWithSignedToken } from '@/lib/storage/signed-upload'
+import { deleteSyllabus, recordSyllabus, syllabusUploadTicket } from './actions'
 
 const MAX_BYTES = 10 * 1024 * 1024
 
@@ -48,20 +48,19 @@ export function SyllabusRow({
       return
     }
     setBusy(true)
-    // Ask the server for the canonical path (derived from the caller's School),
-    // then upload the bytes straight to Storage; RLS still guards the folder.
-    const { path, error: pathErr } = await syllabusUploadPath(classId)
-    if (pathErr || !path) {
-      setError(pathErr ?? 'Upload failed')
+    // Ask the server to authorise this one write, then send the bytes straight to
+    // Storage with the token it issued. The path is still derived from the
+    // caller's School server-side; what changed is that the browser no longer
+    // needs a session of its own to upload (#527).
+    const { upload, error: ticketErr } = await syllabusUploadTicket(classId)
+    if (ticketErr || !upload) {
+      setError(ticketErr ?? 'Upload failed')
       setBusy(false)
       return
     }
-    const supabase = createClient()
-    const { error: upErr } = await supabase.storage
-      .from('syllabus')
-      .upload(path, file, { upsert: true, contentType: 'application/pdf' })
+    const { error: upErr } = await uploadWithSignedToken('syllabus', upload, file, 'application/pdf')
     if (upErr) {
-      setError(upErr.message)
+      setError(upErr)
       setBusy(false)
       return
     }
