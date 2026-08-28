@@ -29,16 +29,52 @@ sends each role to its home group; `proxy.ts` + RLS enforce access.
 | --- | --- | --- | --- |
 | `super_admin` | `/super-admin` | Vendor panel: schools, subscriptions, distributors, agents, gov officials, territories, workflows, notifications, SMS commerce, invoices, settlements, accounting, audit, off-days | `demo.super@amarschool.test` / `DemoSuper#2026` |
 | `school_owner` | `/school` | Full school management (all modules) | `demo.owner@amarschool.test` / `DemoOwner#2026` |
-| `staff_user` | `/school` | School management, limited to granted screens | `demo.staff@amarschool.test` / `DemoStaff#2026` |
+| `staff_user` | `/school` | School management, limited to granted screens. No class attachment, so no reach into any Student (ADR 0018) | `demo.staff@amarschool.test` / `DemoStaff#2026` |
+| `staff_user` | `/school` | Class Teacher of **Eight / Day - A** — the same role plus a class attachment: their own class's questions, leave, corrections, and `/school/my-classes` | `demo.teacher@amarschool.test` / `DemoTeacher#2026` |
 | `distributor` | `/distributor` | Subscription-code sales, assigned territory, CRM pipeline, onboarding, wallet (renamed from `dealer`, #271) | `demo.distributor@amarschool.test` / `DemoDist#2026` |
 | `agent` | `/agent` | Field agent under a distributor: assigned tasks (dashboard, task list, mark-done) | `demo.agent@amarschool.test` / `DemoAgent#2026` |
 | `gov_official` | `/gov` | Read oversight scoped to designation + territory | created by super-admin (no seeded demo) |
+| `student` | `/student` | Their own school life: routine, notices, tasks, materials, results, attendance, fees, exam schedule, leave. Requests and their own work only — never edits a school record | `s0022@adarshamodelschool.students.invalid` / `DemoStudent#2026` |
+
+Every school-side role above belongs to the same School — **Azgara Hazi Altaf Ali
+High School And College**, subdomain `adarshamodelschool` — so one login of each
+kind sees the same data from its own side. Hasibul Islam (S0022) is in Karim
+Sir's class, and Fatema Begum teaches periods in that class *without* being its
+Class Teacher, which is the Subject Teacher case ADR 0018 turns on.
 
 Demo logins are seeded by migrations (`0054` school owner/staff, `0066`
-super-admin, `0110` distributor/agent + partner/financial/workflow sample data)
-and are throwaway demo accounts — change freely. An owner with no
-profile yet claims a pre-created school at `/claim` with a super-admin activation
-code.
+super-admin, `0110` distributor/agent + partner/financial/workflow sample data,
+`0151` class teacher + student + a published routine) and are throwaway demo
+accounts — change freely. An owner with no profile yet claims a pre-created
+school at `/claim` with a super-admin activation code.
+
+A Student's address is derived, never chosen —
+`<student_no>@<schools.student_login_domain>.students.invalid`, lowercased. The
+School's login domain has to be set before any address exists. A Student also
+signs in **at their School's subdomain** (`adarshamodelschool.staging.edumebd.com/login`);
+the apex login bounces them to it rather than signing them in. Owner and staff
+logins work from either.
+
+### Test fixtures
+
+Separate from the demo school, in `Test School A`, seeded by
+`web/supabase/seed-test.sql` and `web/supabase/e2e-seed.sql`. All of them use the
+password `test-password-123!`:
+
+| Account | Role |
+| --- | --- |
+| `super@test.local` | `super_admin` |
+| `owner-a@test.local` | `school_owner` |
+| `staff-a1@test.local`, `staff-e2e@test.local` | `staff_user`, no grants |
+| `teacher-e2e@test.local` | `staff_user` granted attendance, classes, exams, notices, students |
+| `dealer-e2e@test.local` | `distributor` |
+| `agent-e2e@test.local` | `agent` |
+| `gov-e2e@test.local` | `gov_official` |
+| `s9001@test-a.students.invalid` | `student` |
+
+`Test School A` has no subdomain, which makes it the one to use against a preview
+deployment: a login on the demo school bounces to its own subdomain, and a
+preview host has no certificate for that.
 
 ## Project structure
 
