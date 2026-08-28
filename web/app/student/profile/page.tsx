@@ -1,6 +1,6 @@
 import { currentLang } from '@/lib/i18n-server'
 import { t, type MessageKey } from '@/lib/i18n'
-import { guardianRelationLabel } from '@/lib/students/guardian-relation'
+import { storedFieldLabel } from '@/lib/students/stored-labels'
 import { getStudentContext, isReadOnly } from '@/lib/student/context'
 import { sortRequests, isPhotoRequest, type CorrectionRequest } from '@/lib/student/corrections'
 import { classSectionLabel } from '@/lib/students'
@@ -66,10 +66,10 @@ export default async function StudentProfilePage() {
       // Stored values are rendered as stored, except where the value is a
       // vocabulary rather than the guardian's own words: `father` in the middle
       // of a Bangla page is the child reading a column name (#539).
-      .map(([field, key]) => [
-        key,
-        field === 'guardian_relation' ? guardianRelationLabel(record[field], lang) : (record[field] ?? null),
-      ] as [string, string | null]),
+      // Dispatched by field name rather than special-casing one column: this list
+      // is generic, so the next vocabulary added to stored-labels is covered here
+      // without touching this file.
+      .map(([field, key]) => [key, storedFieldLabel(field, record[field], lang)] as [string, string | null]),
   ]
 
   const locale = lang === 'bn' ? 'bn-BD' : 'en-GB'

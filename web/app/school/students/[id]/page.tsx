@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import { averageRating, isEntryLocked } from '@/lib/behaviour'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang, type MessageKey } from '@/lib/i18n'
-import { guardianRelationLabel } from '@/lib/students/guardian-relation'
+import { genderLabel, guardianRelationLabel } from '@/lib/students/stored-labels'
 import { getSchoolContext } from '@/lib/school/context'
 import { classSectionLabel } from '@/lib/students'
 import { AddEntryForm, EditableEntry } from './behaviour-controls'
@@ -152,13 +152,7 @@ export default async function StudentDetailPage({
             />
             <InfoRow
               label={t('students.gender', lang)}
-              value={
-                student.gender === 'male'
-                  ? t('students.male', lang)
-                  : student.gender === 'female'
-                    ? t('students.female', lang)
-                    : student.gender
-              }
+              value={genderLabel(student.gender, lang)}
             />
             <InfoRow label={t('students.bloodGroup', lang)} value={student.blood_group} />
             <InfoRow label={t('students.studentNo', lang)} value={student.student_no} />

@@ -53,14 +53,29 @@ export function AskForm({
         })
       }}
     >
-      {/* No subjects assigned: the picker used to render as a `required` select
+      {/* No subjects assigned. The picker used to render as a `required` select
           holding only a disabled placeholder, so the child could not choose and
-          therefore could not send at all. Explain, and let the question through —
-          it routes to the class teacher exactly as an anchored one would (#535). */}
+          could not send — with nothing saying why.
+          
+          An anchorless question genuinely cannot be sent: ADR 0018 makes the
+          anchor the thing that authorises a reply, and both validateQuestion and
+          a check constraint on student_messages enforce it. So this does not let
+          the question through — an earlier version of this branch said it did,
+          which would have turned a dead end at the select into a dead end after
+          the child had typed the whole question. It sends them where asking
+          actually works instead (#535). */}
       {!publicationId && subjects && subjects.length === 0 && (
-        <p className="rounded-sm border border-line bg-paper-muted p-2 text-xs text-muted">
-          {t('student.noSubjectsYet', lang)}
-        </p>
+        <div className="rounded-sm border border-line bg-paper-muted p-3 text-xs">
+          <p className="text-muted">{t('student.noSubjectsYet', lang)}</p>
+          <span className="mt-2 flex gap-3">
+            <Link href="/student/notices" className="font-semibold text-brand-600 hover:underline">
+              {t('student.noticesTitle', lang)}
+            </Link>
+            <Link href="/student/tasks" className="font-semibold text-brand-600 hover:underline">
+              {t('student.tasksTitle', lang)}
+            </Link>
+          </span>
+        </div>
       )}
 
       {!publicationId && subjects && subjects.length > 0 && (

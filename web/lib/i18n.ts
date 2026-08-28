@@ -108,8 +108,8 @@ const dict = {
   // only a disabled placeholder — the child could not choose and so could not
   // send. Say why, and let the question go to the class teacher instead.
   'student.noSubjectsYet': {
-    bn: 'আপনার শ্রেণিতে এখনো কোনো বিষয় যুক্ত করা হয়নি — আপনার প্রশ্নটি শ্রেণি শিক্ষকের কাছে যাবে।',
-    en: 'No subjects have been added to your class yet — your question will go to your class teacher.',
+    bn: 'আপনার শ্রেণিতে এখনো কোনো বিষয় যুক্ত করা হয়নি, তাই এখান থেকে সাধারণ প্রশ্ন পাঠানো যাবে না। যেকোনো নোটিশ বা বাড়ির কাজ খুলে সেখান থেকে প্রশ্ন করুন — শিক্ষক তখন বুঝবেন প্রশ্নটি কীসের বিষয়ে।',
+    en: 'No subjects have been added to your class yet, so a general question cannot be sent from here. Open any notice or homework and ask from there instead — that tells the teacher what your question is about.',
   },
   'student.send': { bn: 'পাঠাও', en: 'Send' },
   'student.noQuestions': { bn: 'তুমি এখনো কোনো প্রশ্ন করোনি।', en: 'You have not asked anything yet.' },
