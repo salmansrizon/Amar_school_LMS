@@ -23,6 +23,7 @@ import {
   type PayableForecast,
 } from '@/lib/super-admin/financials'
 import { smsPoolFrom, type SmsPool } from '@/lib/sms/pool'
+import { selectAllRows } from '@/lib/supabase/select-all'
 
 export const DEFAULT_TREND_MONTHS = 12
 /** How many recent events the activity feed shows. */
@@ -152,7 +153,12 @@ export async function loadSuperAdminDashboard(
     await Promise.all([
       supabase.from('schools').select('id, name, subscription_expires_at, deactivated_at, created_at').order('name'),
       supabase.rpc('schools_with_code_history'),
-      supabase.from('subscription_codes').select('price, redeemed_at, redeemed_school_id'),
+      // Paged (#546): these rows are folded into revenue totals and the trend
+      // chart, so a short read shows less money than was taken.
+      selectAllRows<{ price: number; redeemed_at: string | null; redeemed_school_id: string | null }>(
+        (from, to) =>
+          supabase.from('subscription_codes').select('price, redeemed_at, redeemed_school_id').range(from, to),
+      ).then(({ rows }) => ({ data: rows })),
       supabase.from('sms_credit_ledger').select('amount, created_at').eq('reason', 'topup'),
       supabase.from('sms_pool_summary').select('balance, bought, sent').maybeSingle(),
     ])

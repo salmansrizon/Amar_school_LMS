@@ -4,6 +4,7 @@ import { formatTaka } from '@/lib/money'
 import { accruedByDistributor } from '@/lib/super-admin/ledger-view'
 import { RunSettlementForm, ApproveSettlementButton } from './settlement-forms'
 import { railClass, type Tone } from '@/components/ui/page'
+import { selectAllRows } from '@/lib/supabase/select-all'
 
 // Settlements CRUD (#297, over #271 viewer). Run a settlement (bundles accrued
 // commissions) and approve/pay it (GL payout + SettlementCompleted) via RPC.
@@ -16,7 +17,10 @@ export default async function SettlementsPage() {
       .select('id, distributor_id, period_start, period_end, total_amount, status, profiles(full_name)')
       .order('period_end', { ascending: false })
       .limit(100),
-    supabase.from('commissions').select('distributor_id, commission_amount, status'),
+    // Paged (#546): this total is the amount an operator approves and pays.
+    selectAllRows<{ distributor_id: string; commission_amount: number; status: string }>((from, to) =>
+      supabase.from('commissions').select('distributor_id, commission_amount, status').range(from, to),
+    ).then(({ rows }) => ({ data: rows })),
     supabase.from('profiles').select('id, full_name').eq('role', 'distributor').order('full_name'),
     // #530: settlement_approve refuses outright when the ledger does not balance.
     // The button follows the boundary rather than defining it — a disabled control

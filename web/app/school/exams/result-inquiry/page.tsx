@@ -133,6 +133,7 @@ export default async function ResultInquiryPage({
       .select('student_id')
       .eq('exam_id', examId)
       .eq('subject_id', subjectParam)
+      .range(0, 4999)
     subjectStudentIds = new Set((marks ?? []).map((m) => m.student_id))
   }
 

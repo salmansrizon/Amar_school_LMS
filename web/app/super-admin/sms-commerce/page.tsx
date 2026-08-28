@@ -3,6 +3,7 @@ import { getSuperAdminContext } from '@/lib/super-admin/context'
 import { formatTaka } from '@/lib/money'
 import { AddPackageForm, PackageRowActions, RateForm } from './sms-forms'
 import { railClass } from '@/components/ui/page'
+import { selectAllRows } from '@/lib/supabase/select-all'
 
 type JsonText = { en?: string; bn?: string } | null
 const en = (x: JsonText, fallback: string) => x?.en ?? fallback
@@ -24,11 +25,14 @@ export default async function SmsCommercePage() {
   const walletIds = (wallets ?? []).map((w) => w.id)
   const segmentBalance = new Map<string, number>()
   if (walletIds.length) {
-    const { data: entries } = await supabase
-      .from('wallet_ledger_entries')
-      .select('wallet_id, quantity')
-      .in('wallet_id', walletIds)
-    for (const e of entries ?? []) {
+    // Paged (#546): every school's wallet entries in one query, so this is the
+    // most likely of the set to pass 1000 — and a short read understates a
+    // school's SMS balance, which is the number that decides whether it can send.
+    const { rows: entries } = await selectAllRows<{ wallet_id: string; quantity: number | null }>(
+      (from, to) =>
+        supabase.from('wallet_ledger_entries').select('wallet_id, quantity').in('wallet_id', walletIds).range(from, to),
+    )
+    for (const e of entries) {
       segmentBalance.set(e.wallet_id, (segmentBalance.get(e.wallet_id) ?? 0) + (e.quantity ?? 0))
     }
   }
