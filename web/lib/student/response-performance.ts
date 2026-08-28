@@ -192,7 +192,7 @@ export function withinRange(
  * and neither is read for the Σ row — only `oldestWaiting.hours` is.
  */
 export function schoolWideOverall(
-  timings: { created_at: string; replied_at: string | null }[],
+  timings: readonly { created_at: string; replied_at: string | null }[],
   now: Date = new Date(),
 ): ResponseStats {
   return responseReport(
@@ -235,4 +235,134 @@ export function visibleTeacherRows(
 ): ResponseStats[] {
   if (isOwner) return report.perTeacher
   return report.perTeacher.filter((stats) => stats.teacherId !== null && stats.teacherId === employeeId)
+}
+
+/**
+ * Everything the উত্তরের অবস্থা screen shows, from the rows as they arrive.
+ *
+ * The page fetches and renders; every rule between those two lives here. Until
+ * the architecture review of 2026-08-28 the joins below sat in the page instead — the class lookup, the login →
+ * Employee lookup, the Owner fallback, the date window and the two visibility
+ * rules — where no test could reach them. The pure module underneath was
+ * exhaustively tested and the shaping above it was not tested at all, which put
+ * the seam one level below the bugs.
+ *
+ * Null-tolerant on every source because Supabase returns null on error, and a
+ * failed fetch should print an empty report rather than crash the screen.
+ */
+export interface ResponseSources {
+  /** `student_message_inbox`, already scoped by 0152 to what the caller may read. */
+  messages: readonly InboxRow[] | null
+  classes: readonly ClassRow[] | null
+  /** `employee_card` — names only; the base table needs the Employees grant. */
+  employees: readonly EmployeeRow[] | null
+  /** `student_message_repliers()` — logins that have actually answered here (0156). */
+  repliers: readonly ReplierRow[] | null
+  /**
+   * `school_question_timings` — the school-wide Σ for a teacher, whose own
+   * SELECT stops at her classes. Null for the Owner, who IS the school and
+   * needs no RPC.
+   */
+  schoolTimings: readonly Timing[] | null
+}
+
+export interface InboxRow {
+  id: string
+  subject: string
+  created_at: string
+  replied_at: string | null
+  replied_by: string | null
+  status: MessageStatus
+  class_name: string | null
+  section: string | null
+}
+
+export interface ClassRow {
+  name: string
+  section: string | null
+  class_teacher_id: string | null
+}
+
+export interface EmployeeRow {
+  id: string
+  full_name: string
+}
+
+export interface ReplierRow {
+  profile_id: string
+  employee_id: string
+}
+
+export interface Timing {
+  created_at: string
+  replied_at: string | null
+}
+
+export interface ResponseViewOptions {
+  isOwner: boolean
+  /** The caller's own `employees.id`, for picking their row out of the table. */
+  employeeId: string | null
+  from: string | null
+  to: string | null
+}
+
+/** Students join to a Class by name and section, as text — a null section and
+ *  an empty one are the same class. The same key the access policies walk
+ *  (0152), so the report and the permission agree on what a class is. */
+const classKey = (name: string | null, section: string | null) => `${name ?? ''}|${section ?? ''}`
+
+export interface ResponseViewResult extends PerformanceReport {
+  /**
+   * How many questions the caller can actually see in this window.
+   *
+   * Not `overall.received`: for a teacher, `overall` is the school-wide Σ from
+   * the definer RPC, and a school with questions in it would hide the "nothing
+   * here" line from a teacher who has none of them.
+   */
+  receivedInScope: number
+}
+
+export function responseView(
+  sources: ResponseSources,
+  { isOwner, employeeId, from, to }: ResponseViewOptions,
+  now: Date = new Date(),
+): ResponseViewResult {
+  const nameByEmployee = new Map((sources.employees ?? []).map((e) => [e.id, e.full_name]))
+  const employeeByLogin = new Map((sources.repliers ?? []).map((r) => [r.profile_id, r.employee_id]))
+  const teacherByClass = new Map(
+    (sources.classes ?? []).map((c) => [classKey(c.name, c.section), c.class_teacher_id]),
+  )
+
+  // A reply records a login. A login with no Employee record behind it is the
+  // School Owner — every other actor who may reply holds a class attachment,
+  // and an attachment is read off an `employees` row (ADR 0018). So the
+  // fallback is not a guess; it is the only remaining case.
+  const accountedReplier = (login: string | null): string | null =>
+    login ? (employeeByLogin.get(login) ?? OWNER_BUCKET) : null
+
+  const rows: MessageForStats[] = (sources.messages ?? []).map((m) => {
+    const teacherId = teacherByClass.get(classKey(m.class_name, m.section)) ?? null
+    const repliedById = accountedReplier(m.replied_by)
+    return {
+      id: m.id,
+      subject: m.subject,
+      created_at: m.created_at,
+      replied_at: m.replied_at,
+      status: m.status,
+      teacherId,
+      teacherName: teacherId ? (nameByEmployee.get(teacherId) ?? null) : null,
+      repliedById,
+      repliedByName: repliedById ? (nameByEmployee.get(repliedById) ?? null) : null,
+    }
+  })
+
+  const report = responseReport(withinRange(rows, from, to), now)
+
+  return {
+    // Both halves come from this module, so "median" has one definition and the
+    // Owner's figures and a teacher's are computed the same way.
+    overall: sources.schoolTimings ? schoolWideOverall(sources.schoolTimings, now) : report.overall,
+    perTeacher: visibleTeacherRows(report, { isOwner, employeeId }),
+    receivedInScope: report.overall.received,
+  }
 }

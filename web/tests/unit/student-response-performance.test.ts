@@ -6,6 +6,7 @@ import {
   schoolWideOverall,
   visibleTeacherRows,
   OWNER_BUCKET,
+  responseView,
   type MessageForStats,
 } from '@/lib/student/response-performance'
 
@@ -285,5 +286,188 @@ describe('visibleTeacherRows', () => {
     // arbitrary teacher's page would make her look accountable for it.
     const rows = visibleTeacherRows(report, { isOwner: false, employeeId: null })
     expect(rows).toEqual([])
+  })
+})
+
+describe('responseView: the whole screen behind one interface', () => {
+  // Everything below used to live in app/school/questions/response/page.tsx —
+  // three hand-built Maps, a fallback, a date filter and two visibility rules,
+  // none of which any test could reach. The page fetched rows and shaped them;
+  // the tests entered one level lower, at responseReport(messages), which is
+  // under the shaping rather than over it.
+  const KARIM = 'emp-karim'
+  const RAHIM = 'emp-rahim'
+  const KARIM_LOGIN = 'login-karim'
+  const RAHIM_LOGIN = 'login-rahim'
+  const OWNER_LOGIN = 'login-owner'
+
+  const sources = (over: Partial<Parameters<typeof responseView>[0]> = {}) => ({
+    messages: [],
+    classes: [
+      { name: 'Six', section: 'A', class_teacher_id: KARIM },
+      { name: 'Seven', section: null, class_teacher_id: null },
+    ],
+    employees: [
+      { id: KARIM, full_name: 'Karim Sir' },
+      { id: RAHIM, full_name: 'Rahim Sir' },
+    ],
+    repliers: [
+      { profile_id: KARIM_LOGIN, employee_id: KARIM },
+      { profile_id: RAHIM_LOGIN, employee_id: RAHIM },
+    ],
+    schoolTimings: null,
+    ...over,
+  })
+
+  const inbox = (over: Record<string, unknown> & { id: string }) => ({
+    subject: over.id,
+    created_at: '2026-08-01T00:00:00Z',
+    replied_at: null,
+    replied_by: null,
+    status: 'unread' as const,
+    class_name: 'Six',
+    section: 'A',
+    ...over,
+  })
+
+  const AT = new Date('2026-08-02T00:00:00Z')
+  const owner = { isOwner: true, employeeId: null, from: null, to: null }
+
+  it('joins a question to its class teacher by name and section', () => {
+    const view = responseView(
+      sources({ messages: [inbox({ id: 'a' })] }),
+      owner,
+      AT,
+    )
+    expect(view.perTeacher).toHaveLength(1)
+    expect(view.perTeacher[0]).toMatchObject({ teacherId: KARIM, teacherName: 'Karim Sir', unanswered: 1 })
+  })
+
+  it('treats a null section and an empty one as the same class', () => {
+    const view = responseView(
+      sources({ messages: [inbox({ id: 'a', class_name: 'Seven', section: null })] }),
+      owner,
+      AT,
+    )
+    // Class Seven has no class teacher — the unassigned bucket, not a crash.
+    expect(view.perTeacher[0]).toMatchObject({ teacherId: null, unanswered: 1 })
+  })
+
+  it('maps a reply from a login to the employee who made it', () => {
+    const view = responseView(
+      sources({
+        messages: [inbox({ id: 'a', status: 'answered', replied_at: '2026-08-01T06:00:00Z', replied_by: RAHIM_LOGIN })],
+      }),
+      owner,
+      AT,
+    )
+    expect(view.perTeacher[0]).toMatchObject({ teacherId: RAHIM, teacherName: 'Rahim Sir', answered: 1 })
+  })
+
+  it('puts a reply from a login with no employee row in the owner bucket', () => {
+    // The School Owner has no `employees` row. Every other actor who may reply
+    // holds a class attachment, which is read off one — so this is the only
+    // remaining case, not a guess (ADR 0018/0019).
+    const view = responseView(
+      sources({
+        messages: [inbox({ id: 'a', status: 'answered', replied_at: '2026-08-01T06:00:00Z', replied_by: OWNER_LOGIN })],
+      }),
+      owner,
+      AT,
+    )
+    expect(view.perTeacher[0]).toMatchObject({ teacherId: OWNER_BUCKET, answered: 1 })
+  })
+
+  it('keeps a question with no recorded replier on the class teacher', () => {
+    const view = responseView(
+      sources({ messages: [inbox({ id: 'a', status: 'answered', replied_at: '2026-08-01T06:00:00Z' })] }),
+      owner,
+      AT,
+    )
+    expect(view.perTeacher[0]).toMatchObject({ teacherId: KARIM, answered: 1 })
+  })
+
+  it('applies the date window before anything else', () => {
+    const view = responseView(
+      sources({
+        messages: [
+          inbox({ id: 'in', created_at: '2026-08-01T00:00:00Z' }),
+          inbox({ id: 'out', created_at: '2026-07-01T00:00:00Z' }),
+        ],
+      }),
+      { ...owner, from: '2026-08-01', to: '2026-08-31' },
+      AT,
+    )
+    expect(view.overall.received).toBe(1)
+  })
+
+  it('gives a teacher her own row and the school-wide sum from the RPC', () => {
+    // Her own SELECT stops at her classes (0152), so rolling her rows up would
+    // print her own total under the school's label.
+    const view = responseView(
+      sources({
+        messages: [inbox({ id: 'mine' })],
+        schoolTimings: [
+          { created_at: '2026-08-01T00:00:00Z', replied_at: '2026-08-01T03:00:00Z' },
+          { created_at: '2026-08-01T00:00:00Z', replied_at: null },
+        ],
+      }),
+      { isOwner: false, employeeId: KARIM, from: null, to: null },
+      AT,
+    )
+    expect(view.perTeacher.map((r) => r.teacherId)).toEqual([KARIM])
+    expect(view.overall.received).toBe(2)
+  })
+
+  it('rolls the owner up from her own rows, with no RPC', () => {
+    const view = responseView(
+      sources({ messages: [inbox({ id: 'a' }), inbox({ id: 'b' })] }),
+      owner,
+      AT,
+    )
+    expect(view.overall.received).toBe(2)
+  })
+
+  it('hides the unassigned and owner buckets from a teacher', () => {
+    const view = responseView(
+      sources({
+        messages: [
+          inbox({ id: 'mine' }),
+          inbox({ id: 'nobody', class_name: 'Seven', section: null }),
+          inbox({ id: 'owners', status: 'answered', replied_at: '2026-08-01T06:00:00Z', replied_by: OWNER_LOGIN }),
+        ],
+        schoolTimings: [],
+      }),
+      { isOwner: false, employeeId: KARIM, from: null, to: null },
+      AT,
+    )
+    expect(view.perTeacher.map((r) => r.teacherId)).toEqual([KARIM])
+  })
+
+  it('counts what the caller can see separately from the school-wide sum', () => {
+    // A teacher with none of her own questions must still get the "nothing
+    // here" line, even when the school has plenty.
+    const view = responseView(
+      sources({
+        messages: [],
+        schoolTimings: [{ created_at: '2026-08-01T00:00:00Z', replied_at: null }],
+      }),
+      { isOwner: false, employeeId: KARIM, from: null, to: null },
+      AT,
+    )
+    expect(view.overall.received).toBe(1)
+    expect(view.receivedInScope).toBe(0)
+  })
+
+  it('survives every source coming back null', () => {
+    // Supabase hands back null on error, and this screen must not be the thing
+    // that turns a failed fetch into a crash.
+    const view = responseView(
+      { messages: null, classes: null, employees: null, repliers: null, schoolTimings: null },
+      owner,
+      AT,
+    )
+    expect(view.overall.received).toBe(0)
+    expect(view.perTeacher).toEqual([])
   })
 })

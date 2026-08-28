@@ -3,13 +3,11 @@ import { currentLang } from '@/lib/i18n-server'
 import { t } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import {
-  responseReport,
-  withinRange,
-  schoolWideOverall,
-  visibleTeacherRows,
+  responseView,
   OWNER_BUCKET,
-  type MessageForStats,
+  type ReplierRow,
   type ResponseStats,
+  type Timing,
 } from '@/lib/student/response-performance'
 import { hubSummary } from '@/lib/student/hub-source'
 import { Card, PageHeader } from '@/components/ui/page'
@@ -69,54 +67,24 @@ export default async function ResponsePerformancePage({
         : supabase.rpc('school_question_timings', { p_from: from || null, p_to: to || null }),
     ])
 
-  // An answered question is accounted to whoever replied; an unanswered one to
-  // the Class Teacher of the asking student's class, because an unanswered
-  // question has no replier and "who should have answered this" is the question
-  // being asked. ADR 0019.
-  const teacherById = new Map((employees ?? []).map((e) => [e.id, e.full_name]))
-  const employeeByProfile = new Map(
-    ((repliers ?? []) as { profile_id: string; employee_id: string }[]).map((r) => [
-      r.profile_id,
-      r.employee_id,
-    ]),
-  )
-  const teacherByClass = new Map(
-    (classes ?? []).map((c) => [`${c.name}|${c.section ?? ''}`, c.class_teacher_id as string | null]),
-  )
-
-  // A reply records a login. A login with no Employee record behind it is the
-  // School Owner — every other actor who may reply holds a class attachment,
-  // and an attachment is read off an `employees` row (ADR 0018). So the fallback
-  // is not a guess; it is the only remaining case.
-  const repliedBy = (profileId: string | null): string | null =>
-    profileId ? (employeeByProfile.get(profileId) ?? OWNER_BUCKET) : null
-
-  const rows: MessageForStats[] = (messages ?? []).map((m) => {
-    const teacherId = teacherByClass.get(`${m.class_name}|${m.section ?? ''}`) ?? null
-    const repliedById = repliedBy(m.replied_by)
-    return {
-      id: m.id,
-      subject: m.subject,
-      created_at: m.created_at,
-      replied_at: m.replied_at,
-      status: m.status,
-      teacherId,
-      teacherName: teacherId ? (teacherById.get(teacherId) ?? null) : null,
-      repliedById,
-      repliedByName: repliedById ? (teacherById.get(repliedById) ?? null) : null,
-    }
-  })
-
-  const report = responseReport(withinRange(rows, from || null, to || null))
+  // Every rule between the fetch above and the render below lives in
+  // lib/student/response-performance.ts: the class join, the login → Employee
+  // lookup, the Owner fallback, the date window, and which rows this caller may
+  // see. It used to live here, where no test could reach it (architecture
+  // review, 2026-08-28).
   const me = (myEmployeeId as string | null) ?? null
-
-  // Both halves of the table come from lib/student/response-performance.ts, so
-  // "median" has one definition and the Owner's figures and a teacher's are
-  // computed the same way. The Owner needs no RPC — her own rows already are
-  // the school.
-  const schoolTimings = (schoolWide.data ?? null) as { created_at: string; replied_at: string | null }[] | null
-  const overall = schoolTimings ? schoolWideOverall(schoolTimings) : report.overall
-  const perTeacher = visibleTeacherRows(report, { isOwner, employeeId: me })
+  const { overall, perTeacher, receivedInScope } = responseView(
+    {
+      messages,
+      classes,
+      employees,
+      // Both RPCs come back untyped; the module owns the shape, so the cast
+      // names its type rather than restating it.
+      repliers: repliers as ReplierRow[] | null,
+      schoolTimings: schoolWide.data as Timing[] | null,
+    },
+    { isOwner, employeeId: me, from: from || null, to: to || null },
+  )
 
   const hours = (n: number | null) => (n === null ? '—' : `${n}${t('response.hours', lang)}`)
 
@@ -171,7 +139,7 @@ export default async function ResponsePerformancePage({
           </button>
         </Form>
 
-        {!report.overall.received ? (
+        {!receivedInScope ? (
           <p className="text-sm text-muted">
             {summary.reachesAnyClass ? t('response.none', lang) : t('hub.noClasses', lang)}
           </p>
