@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { monthGrid, attendancePercent, monthRange, shiftMonth, daysInMonth } from '@/lib/student/attendance'
+import { monthGrid, attendancePercent, monthLeadIn, monthRange, shiftMonth, daysInMonth } from '@/lib/student/attendance'
 
 describe('monthGrid', () => {
   const base = { year: 2026, month: 9, presentDates: [], approvedLeaveRanges: [], offDays: [] }
@@ -61,6 +61,15 @@ describe('attendancePercent', () => {
 
   it('handles a full-absence month honestly', () => {
     expect(attendancePercent(0, 20)).toBe(0)
+  })
+})
+
+describe('monthLeadIn', () => {
+  it('offsets day 1 to its own weekday, Sunday-start', () => {
+    // 2026-08-01 is a Saturday: six blanks before it.
+    expect(monthLeadIn(2026, 8)).toBe(6)
+    // 2026-02-01 is a Sunday: none.
+    expect(monthLeadIn(2026, 2)).toBe(0)
   })
 })
 

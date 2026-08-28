@@ -1,5 +1,5 @@
 import { currentLang } from '@/lib/i18n-server'
-import { t } from '@/lib/i18n'
+import { t, localeOf, numberFmt } from '@/lib/i18n'
 import { getStudentContext, isReadOnly } from '@/lib/student/context'
 import { loadStudentRoutine } from '@/lib/student/routine-source'
 import { todayAndTomorrow } from '@/lib/student/routine'
@@ -10,6 +10,9 @@ import { nextPaper, type ExamRoutineRow } from '@/lib/student/exam-schedule'
 import { splitTasks, pendingCount } from '@/lib/student/tasks'
 import Link from 'next/link'
 import { DayPlanCard } from './day-plan'
+import { LatestNotices, FeesDue } from './home-cards'
+import { sortFees, totalFees, type FeeRecord } from '@/lib/student/fees'
+import { pageTitle } from '@/lib/student/metadata'
 
 // Student home (#444). Identity, then Today and Tomorrow.
 //
@@ -17,16 +20,19 @@ import { DayPlanCard } from './day-plan'
 // and no clock time anywhere, so there is nothing to count down to. Today and
 // Tomorrow is what the routine on the classroom wall tells them, and it is
 // honest about what the data actually knows.
+export const generateMetadata = pageTitle('home.student')
+
 export default async function StudentHome() {
   const lang = await currentLang()
   const ctx = await getStudentContext()
   const { student } = ctx
 
   const today = schoolToday()
-  const [{ rows, offDays }, feed, tasks] = await Promise.all([
+  const [{ rows, offDays }, feed, tasks, feeRows] = await Promise.all([
     loadStudentRoutine(ctx.supabase, lang, [today, addDays(today, 1)]),
     loadNoticeFeed(ctx.supabase, 30),
     loadStudentTasks(ctx.supabase),
+    ctx.supabase.from('student_fee_record').select('*'),
   ])
 
   // An exam is the most important thing on a student's calendar, so it sits
@@ -40,6 +46,11 @@ export default async function StudentHome() {
   const upcoming = nextPaper((examRows ?? []) as ExamRoutineRow[], today)
   const pending = pendingCount(splitTasks(tasks, new Date()))
   const [todayPlan, tomorrowPlan] = todayAndTomorrow(today, rows, offDays)
+  const feeTotals = totalFees(sortFees((feeRows.data ?? []) as FeeRecord[]))
+  const locale = localeOf(lang)
+  // One formatter for every figure on this screen: counts, a roll number and
+  // taka all want the reader's digits, and only one of them is money.
+  const num = (n: number) => numberFmt(lang, { maximumFractionDigits: 2 }).format(n)
 
   const facts = [
     { label: t('student.home.studentNo', lang), value: student.student_no ?? '—' },
@@ -47,7 +58,10 @@ export default async function StudentHome() {
       label: t('student.home.class', lang),
       value: [student.class_name, student.section].filter(Boolean).join(' - ') || '—',
     },
-    { label: t('student.home.roll', lang), value: student.roll_number ?? '—' },
+    {
+      label: t('student.home.roll', lang),
+      value: student.roll_number !== null ? num(student.roll_number) : '—',
+    },
   ]
 
   return (
@@ -68,7 +82,7 @@ export default async function StudentHome() {
           href="/student/tasks"
           className="mb-4 mr-2 inline-flex items-center gap-2 rounded-full border border-sun bg-sun-soft px-4 py-1.5 text-sm font-semibold text-sun-deep hover:brightness-95"
         >
-          <span className="rounded-full bg-sun-deep px-2 text-xs text-white">{pending}</span>
+          <span className="rounded-full bg-sun-deep px-2 text-xs text-white">{num(pending)}</span>
           {t('student.pendingCount', lang)}
         </Link>
       )}
@@ -78,7 +92,7 @@ export default async function StudentHome() {
           href="/student/notices"
           className="mb-4 inline-flex items-center gap-2 rounded-full border border-brand-300 bg-brand-50 px-4 py-1.5 text-sm font-semibold text-brand-700 hover:bg-brand-100"
         >
-          <span className="rounded-full bg-brand-500 px-2 text-xs text-white">{feed.unread.size}</span>
+          <span className="rounded-full bg-brand-500 px-2 text-xs text-white">{num(feed.unread.size)}</span>
           {t('student.newCount', lang)}
         </Link>
       )}
@@ -117,6 +131,8 @@ export default async function StudentHome() {
       <div className="grid max-w-4xl gap-4 sm:grid-cols-2">
         <DayPlanCard plan={todayPlan} title={t('student.today', lang)} lang={lang} />
         <DayPlanCard plan={tomorrowPlan} title={t('student.tomorrow', lang)} lang={lang} />
+        <LatestNotices notices={feed.notices} unread={feed.unread} lang={lang} locale={locale} />
+        <FeesDue due={feeTotals.due} lang={lang} money={num} />
       </div>
     </main>
   )

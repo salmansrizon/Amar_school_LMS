@@ -1,7 +1,9 @@
 import { currentLang } from '@/lib/i18n-server'
 import { t, type MessageKey } from '@/lib/i18n'
 import { getStudentContext, isReadOnly } from '@/lib/student/context'
-import { LeaveRequestForm } from './leave-form'
+import { schoolToday } from '@/lib/school-time'
+import { LeaveRequestForm, WithdrawLeaveButton } from './leave-form'
+import { pageTitle } from '@/lib/student/metadata'
 
 const STATUS_LABEL: Record<string, MessageKey> = {
   pending: 'student.leavePending',
@@ -17,6 +19,8 @@ const STATUS_TONE: Record<string, string> = {
 
 // The Student's leave requests (#452). The request joins the SAME owner queue
 // Attendance I already built — nothing new on the staff side.
+export const generateMetadata = pageTitle('student.leaveTitle')
+
 export default async function StudentLeavePage() {
   const lang = await currentLang()
   const ctx = await getStudentContext()
@@ -40,7 +44,7 @@ export default async function StudentLeavePage() {
       <h1 className="mb-4 text-2xl font-extrabold">{t('student.leaveTitle', lang)}</h1>
 
       <section className="mb-6 rounded-lg border border-line bg-paper p-5">
-        <LeaveRequestForm lang={lang} disabled={isReadOnly(ctx)} />
+        <LeaveRequestForm lang={lang} disabled={isReadOnly(ctx)} today={schoolToday()} />
       </section>
 
       {!leaves?.length ? (
@@ -58,10 +62,19 @@ export default async function StudentLeavePage() {
                 </span>
                 {leave.reason && <span className="block text-xs text-muted">{leave.reason}</span>}
               </span>
-              <span
-                className={`rounded-full px-2 py-0.5 text-xs font-semibold ${STATUS_TONE[leave.status] ?? ''}`}
-              >
-                {t(STATUS_LABEL[leave.status] ?? 'student.leavePending', lang)}
+              <span className="flex items-center gap-3">
+                <span
+                  className={`rounded-full px-2 py-0.5 text-xs font-semibold ${STATUS_TONE[leave.status] ?? ''}`}
+                >
+                  {t(STATUS_LABEL[leave.status] ?? 'student.leavePending', lang)}
+                </span>
+                {leave.status === 'pending' && (
+                  <WithdrawLeaveButton
+                    lang={lang}
+                    leaveId={leave.id}
+                    disabled={isReadOnly(ctx)}
+                  />
+                )}
               </span>
             </li>
           ))}

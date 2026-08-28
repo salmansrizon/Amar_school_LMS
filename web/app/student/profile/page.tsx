@@ -4,6 +4,7 @@ import { getStudentContext, isReadOnly } from '@/lib/student/context'
 import { sortRequests, isPhotoRequest, type CorrectionRequest } from '@/lib/student/corrections'
 import { classSectionLabel } from '@/lib/students'
 import { CorrectionForm } from './correction-form'
+import { pageTitle } from '@/lib/student/metadata'
 
 // The Student's own profile (#456): strictly read-only, with a way to ask.
 //
@@ -36,6 +37,8 @@ const STATUS_TONE: Record<string, string> = {
   applied: 'bg-mint-soft text-mint-deep',
   rejected: 'bg-alert-soft text-alert-deep',
 }
+
+export const generateMetadata = pageTitle('student.profileTitle')
 
 export default async function StudentProfilePage() {
   const lang = await currentLang()
@@ -70,6 +73,29 @@ export default async function StudentProfilePage() {
       <p className="mb-4 text-sm text-muted">{t('student.profileReadOnly', lang)}</p>
 
       <section className="mb-6 rounded-lg border border-line bg-paper p-5">
+        {/* Their own face, which the profile never showed — while offering a
+            correction request for it. /api/student/photo is the Student-guarded
+            route the admit card already uses; it 404s when no photo is on file,
+            so a missing one degrades to the placeholder. */}
+        <div className="mb-4 flex items-center gap-4">
+          {record.photo_path ? (
+            // eslint-disable-next-line @next/next/no-img-element -- private object behind a signed-URL redirect, not an optimizable asset
+            <img
+              src="/api/student/photo"
+              alt={t('student.myPhoto', lang)}
+              className="size-20 rounded-lg border border-line object-cover"
+            />
+          ) : (
+            <span className="flex size-20 items-center justify-center rounded-lg border border-dashed border-line-strong text-xs text-muted">
+              {t('student.myPhoto', lang)}
+            </span>
+          )}
+          <span>
+            <span className="block text-lg font-bold">{ctx.student.full_name}</span>
+            <span className="block text-sm text-muted">{ctx.student.student_no}</span>
+          </span>
+        </div>
+
         <dl className="grid gap-3 sm:grid-cols-2">
           {rows.map(([key, value]) => (
             <div key={key}>

@@ -105,12 +105,18 @@ export function CorrectionForm({
           {isPhoto ? t('student.newPhoto', lang) : t('student.correctionValue', lang)}
         </span>
         {isPhoto ? (
-          <input
-            ref={photoRef}
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            className="h-9 w-full text-sm"
-          />
+          <>
+            {/* The bare browser control ("Choose File / No file chosen") is
+                English whatever the page language is and belongs to no design
+                system — file:* styles the button it renders. */}
+            <input
+              ref={photoRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              className="w-full text-sm text-muted file:mr-3 file:cursor-pointer file:rounded-full file:border-0 file:bg-brand-50 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-brand-700 hover:file:bg-brand-100"
+            />
+            <span className="mt-1 block text-[11px] font-normal text-muted">JPG · PNG · WEBP</span>
+          </>
         ) : (
           <input
             name="requested_value"

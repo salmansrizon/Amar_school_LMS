@@ -5,7 +5,7 @@ import { t } from '@/lib/i18n'
 import { getStudentContext } from '@/lib/student/context'
 import { markPublicationRead } from '@/lib/student/notices-source'
 import { isForMyClass } from '@/lib/student/notices'
-import { importanceBadgeClass } from '@/lib/publishing'
+import { importanceBadgeClass, importanceLabel } from '@/lib/publishing'
 import { isReadOnly } from '@/lib/student/context'
 import { AskForm } from '../../questions/ask-form'
 
@@ -45,7 +45,7 @@ export default async function StudentNoticePage({
         <span
           className={`rounded-full px-2 py-0.5 text-xs font-semibold ${importanceBadgeClass(notice.importance)}`}
         >
-          {notice.importance}
+          {importanceLabel(notice.importance, lang)}
         </span>
         <span className="text-xs text-muted">
           {isForMyClass(notice) ? t('student.forMyClass', lang) : t('student.forEveryone', lang)}

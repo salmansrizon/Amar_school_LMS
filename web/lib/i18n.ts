@@ -28,7 +28,9 @@ const dict = {
   'shell.logout': { bn: 'লগআউট', en: 'Log out' },
   'shell.welcome': { bn: 'স্বাগতম', en: 'Welcome' },
   'app.tagline': { bn: 'শিক্ষা ব্যবস্থাপনা', en: 'Education Management' },
-  'shell.search': { bn: 'গ্লোবাল টাস্ক খুঁজুন...', en: 'Search global tasks...' },
+  // Neutral on purpose: every role group shares this box, and "global tasks"
+  // meant nothing in a Student's portal (or a School Owner's, for that matter).
+  'shell.search': { bn: 'খুঁজুন...', en: 'Search...' },
   'shell.addStudent': { bn: 'শিক্ষার্থী যোগ করুন', en: 'Add Student' },
   'shell.notifications': { bn: 'বিজ্ঞপ্তি', en: 'Notifications' },
   'shell.nav': { bn: 'প্রধান নেভিগেশন', en: 'Main navigation' },
@@ -195,6 +197,57 @@ const dict = {
   'corrections.reason': { bn: 'কারণ', en: 'Reason' },
   'corrections.was': { bn: 'বর্তমান', en: 'Currently' },
   'corrections.becomes': { bn: 'হবে', en: 'Becomes' },
+  'student.search': { bn: 'তোমার সবকিছু খুঁজো...', en: 'Search your school life...' },
+  'student.feePayable': { bn: 'ধার্য', en: 'Payable' },
+  'student.totalPayable': { bn: 'মোট ধার্য', en: 'Total payable' },
+  'student.attNoRecords': {
+    bn: 'এই মাসে স্কুল এখনো হাজিরা তোলেনি।',
+    en: 'The school has not taken attendance this month yet.',
+  },
+  'student.attAbsent': { bn: 'অনুপস্থিত', en: 'Absent' },
+  'student.attRecordedOn': { bn: 'হাজিরা তোলা হয়েছে', en: 'Attendance taken' },
+  'student.attDays': { bn: 'দিন', en: 'days' },
+  'student.leaveOrder': {
+    bn: 'শেষের তারিখ শুরুর তারিখের আগে হতে পারে না।',
+    en: 'The end date cannot come before the start date.',
+  },
+  'student.leavePast': {
+    bn: 'আগের তারিখে ছুটির আবেদন করা যায় না।',
+    en: 'Leave cannot be requested for a date that has passed.',
+  },
+  'student.leaveOverlap': {
+    bn: 'এই তারিখগুলোর জন্য আবেদন আগেই করা আছে।',
+    en: 'You already have a request covering those dates.',
+  },
+  'student.leaveWithdraw': { bn: 'আবেদন ফিরিয়ে নাও', en: 'Withdraw' },
+  'student.leaveWithdrawn': { bn: 'আবেদন ফিরিয়ে নেওয়া হয়েছে।', en: 'Request withdrawn.' },
+  'student.leaveDecided': {
+    bn: 'সিদ্ধান্ত হয়ে গেছে — আর ফিরিয়ে নেওয়া যাবে না।',
+    en: 'This has been decided and can no longer be withdrawn.',
+  },
+  'student.questionSent': { bn: 'প্রশ্ন পাঠানো হয়েছে।', en: 'Question sent.' },
+  'student.questionAbout': { bn: 'প্রসঙ্গ', en: 'About' },
+  'student.seeQuestions': { bn: 'আমার প্রশ্নগুলো দেখো', en: 'See my questions' },
+  'student.fileHint': {
+    bn: 'ছবি বা PDF, সর্বোচ্চ {size}',
+    en: 'Image or PDF, up to {size}',
+  },
+  'student.chooseFile': { bn: 'ফাইল বাছাই করো', en: 'Choose a file' },
+  'student.noFileChosen': { bn: 'কোনো ফাইল বাছাই করা হয়নি', en: 'No file chosen' },
+  'student.myPhoto': { bn: 'আমার ছবি', en: 'My photo' },
+  'student.dueOn': { bn: 'জমা দেওয়ার তারিখ', en: 'Due' },
+  'student.handedIn': { bn: 'জমা দেওয়া হয়েছে', en: 'Handed in' },
+  'student.noQuestionsHint': {
+    bn: 'উপরের ফর্মে, বা যেকোনো নোটিশ বা কাজের পাতা থেকে প্রশ্ন করতে পারো।',
+    en: 'Ask from the form above, or from any notice or task page.',
+  },
+  'shell.skipToContent': { bn: 'মূল অংশে যাও', en: 'Skip to content' },
+  'notFound.title': { bn: 'পাতাটি পাওয়া যায়নি', en: 'Page not found' },
+  'notFound.body': {
+    bn: 'যে ঠিকানায় এসেছ সেখানে কিছু নেই — সরে গেছে বা কখনো ছিল না।',
+    en: 'There is nothing at this address — it moved, or it never existed.',
+  },
+  'notFound.home': { bn: 'হোমে ফিরে যাও', en: 'Go home' },
   'student.feesTitle': { bn: 'আমার ফি', en: 'My Fees' },
   'student.noFees': { bn: 'কোনো ফি রেকর্ড নেই।', en: 'No fee records yet.' },
   'student.feePaid': { bn: 'জমা', en: 'Paid' },
@@ -242,6 +295,7 @@ const dict = {
   'student.passed': { bn: 'উত্তীর্ণ', en: 'Passed' },
   'student.failed': { bn: 'অনুত্তীর্ণ', en: 'Not passed' },
   'student.printMarkSheet': { bn: 'মার্কশিট প্রিন্ট', en: 'Print mark sheet' },
+  'student.printRoutine': { bn: 'রুটিন প্রিন্ট', en: 'Print routine' },
   'exams.publishResults': { bn: 'ফলাফল প্রকাশ করুন', en: 'Publish results' },
   'exams.unpublishResults': { bn: 'প্রকাশ বাতিল করুন', en: 'Unpublish results' },
   'exams.resultsPublished': { bn: 'ফলাফল প্রকাশিত', en: 'Results published' },
@@ -250,6 +304,18 @@ const dict = {
     en: 'Publishing lets students see their own results. It can be undone.',
   },
   'student.materialsTitle': { bn: 'পড়ার উপকরণ', en: 'Study Material' },
+  'student.noMaterialsHint': {
+    bn: 'শিক্ষক সিলেবাস বা পাঠ পরিকল্পনা দিলে সেটি এখানে আসবে।',
+    en: 'A syllabus or lesson plan your teacher posts will appear here.',
+  },
+  'student.noResultsHint': {
+    bn: 'পরীক্ষা শেষে স্কুল ফলাফল প্রকাশ করলে এখানে দেখতে পাবে।',
+    en: 'You will see your marks here once the school publishes them.',
+  },
+  'student.noExamsHint': {
+    bn: 'সময়সূচি প্রকাশ হলে তারিখ, কক্ষ ও আসন এখানে দেখাবে।',
+    en: 'Dates, rooms and seats appear here once the schedule is published.',
+  },
   'student.noMaterials': { bn: 'এখনো কোনো উপকরণ নেই।', en: 'No study material yet.' },
   'student.download': { bn: 'ডাউনলোড', en: 'Download' },
   'student.postedBy': { bn: 'দিয়েছেন', en: 'Posted by' },
@@ -2268,4 +2334,16 @@ export type MessageKey = keyof typeof dict
 
 export function t(key: MessageKey, lang: Lang): string {
   return dict[key][lang]
+}
+
+/** The BCP-47 locale for a language. One place, because the ternary was spelled
+ *  out at every call site and one of them drifted: the printed fee statement
+ *  kept Latin amounts beside Bangla months. */
+export function localeOf(lang: Lang): string {
+  return lang === 'bn' ? 'bn-BD' : 'en-GB'
+}
+
+/** Numbers in the reader's own digits — ৳৬০০, not ৳600. */
+export function numberFmt(lang: Lang, options?: Intl.NumberFormatOptions): Intl.NumberFormat {
+  return new Intl.NumberFormat(localeOf(lang), options)
 }

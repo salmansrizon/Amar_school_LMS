@@ -20,7 +20,18 @@ interface NotificationRow {
   created_at: string
 }
 
-export function NotificationsBell({ lang, buttonClass }: { lang: Lang; buttonClass: string }) {
+export function NotificationsBell({
+  lang,
+  buttonClass,
+  /** Where "view all" goes. The shared /notifications inbox has no role shell,
+   *  so a group with its own inbox route (the Student portal) passes it here
+   *  rather than dropping the user out of their portal mid-flow. */
+  viewAllHref = '/notifications',
+}: {
+  lang: Lang
+  buttonClass: string
+  viewAllHref?: string
+}) {
   const [open, setOpen] = useState(false)
   const [items, setItems] = useState<NotificationRow[] | null>(null)
   const [unread, setUnread] = useState(0)
@@ -131,7 +142,7 @@ export function NotificationsBell({ lang, buttonClass }: { lang: Lang; buttonCla
 
           <div className="shrink-0 border-t border-line p-2">
             <Link
-              href="/notifications"
+              href={viewAllHref}
               onClick={() => setOpen(false)}
               className="flex items-center justify-center gap-1 rounded-xl px-3 py-2 text-xs font-semibold text-brand-600 hover:bg-brand-50/60"
             >

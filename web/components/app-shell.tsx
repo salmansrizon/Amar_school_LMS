@@ -190,6 +190,7 @@ export function AppShell({
   initialCollapsed = false,
   search,
   bell,
+  notificationsHref,
   topbarExtras,
   banner,
   footerCta,
@@ -209,6 +210,8 @@ export function AppShell({
   search?: AppShellSearch
   /** Notification bell node. Omit until wired for the role (#287). */
   bell?: React.ReactNode
+  /** Inbox route for the default bell's "view all", when the group has its own. */
+  notificationsHref?: string
   /** Extra topbar controls before the bell (e.g. SMS balance badge). */
   topbarExtras?: React.ReactNode
   /** Strip under the topbar (e.g. subscription reminder). */
@@ -293,11 +296,25 @@ export function AppShell({
               onNavigate={() => setDrawerOpen(false)}
               footerCta={footerCta}
             />
+            {/* The header has no room for these on a phone (see above), and a
+                Bangla-default product cannot hide its language switch. */}
+            <div className="mt-4 flex shrink-0 items-center justify-between gap-2 border-t border-line/70 pt-4 sm:hidden">
+              <ThemeSwitch preference={theme} lang={lang} />
+              <LangSwitch lang={lang} />
+            </div>
           </aside>
         </div>
       )}
 
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden print:block print:overflow-visible">
+        {/* Keyboard users landed in a 12-item sidebar on every navigation with
+            no way past it. Visible only when focused. */}
+        <a
+          href="#app-content"
+          className={`sr-only z-30 focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:rounded-full focus:bg-brand-600 focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-white ${FOCUS_RING}`}
+        >
+          {t('shell.skipToContent', lang)}
+        </a>
         <header className="z-20 shrink-0 border-b border-line/70 bg-paper/90 px-4 py-3 backdrop-blur print:hidden">
           <div className="flex items-center gap-3">
             <button
@@ -336,9 +353,18 @@ export function AppShell({
 
             <div className="ml-auto flex shrink-0 flex-nowrap items-center gap-1 sm:gap-2">
               {topbarExtras}
-              {bell ?? <NotificationsBell lang={lang} buttonClass={ICON_BUTTON} />}
+              {bell ?? (
+                <NotificationsBell
+                  lang={lang}
+                  buttonClass={ICON_BUTTON}
+                  viewAllHref={notificationsHref}
+                />
+              )}
               <span className="mx-1 hidden h-6 w-px bg-line sm:block" />
-              <div className="flex shrink-0 items-center gap-2">
+              {/* Theme + language are ~150px of a 390px header. Keeping them here
+                  on a phone pushed the avatar and Log out off-screen entirely,
+                  with nothing to scroll — so below sm they live in the drawer. */}
+              <div className="hidden shrink-0 items-center gap-2 sm:flex">
                 <ThemeSwitch preference={theme} lang={lang} />
                 <LangSwitch lang={lang} />
               </div>
@@ -375,7 +401,7 @@ export function AppShell({
             inner container (contentContainer) or the page's own <main> (else). */}
         <div className="relative flex-1 overflow-hidden bg-paper-muted print:overflow-visible print:bg-transparent">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,color-mix(in_srgb,var(--color-brand-500)_6%,transparent),transparent_28%),radial-gradient(circle_at_top_right,color-mix(in_srgb,var(--color-mint)_6%,transparent),transparent_24%)] print:hidden" />
-          <div className="relative h-full overflow-y-auto overflow-x-hidden print:h-auto print:overflow-visible">
+          <div id="app-content" tabIndex={-1} className="relative h-full overflow-y-auto overflow-x-hidden print:h-auto print:overflow-visible">
             {/* Fluid content (map #370). The old `max-w-7xl` capped every page at
                 1280px, so a 1920px screen wasted ~280px of dead gutter on each
                 side. ERP/CRM layouts fill the viewport instead; a page that needs

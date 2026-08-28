@@ -1,6 +1,8 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { currentLang } from '@/lib/i18n-server'
+import { t } from '@/lib/i18n'
 
 // Dynamic per-record global search (#304). Infers the caller's role and runs
 // RLS-scoped ilike queries across that role's record sources, returning navigable
@@ -66,7 +68,9 @@ export async function globalRecordSearch(query: string): Promise<RecordHit[]> {
     //
     // The sublabel is not decoration: four kinds share a title space here, and
     // "Chapter 4" alone tells a student nothing about whether they are opening
-    // the task or the lesson plan.
+    // the task or the lesson plan. It is also the only English left on a
+    // Bangla-default screen if it is not translated.
+    const lang = await currentLang()
     const [pubs, material, exams, subjects] = await Promise.all([
       supabase
         .from('publications')
@@ -83,22 +87,22 @@ export async function globalRecordSearch(query: string): Promise<RecordHit[]> {
       const isTask = p.kind === 'homework'
       hits.push({
         label: p.title,
-        sublabel: isTask ? 'Task' : 'Notice',
+        sublabel: t(isTask ? 'student.tasksTitle' : 'student.noticesTitle', lang),
         href: isTask ? `/student/tasks/${p.id}` : `/student/notices/${p.id}`,
       })
     }
     for (const m of material.data ?? []) {
-      hits.push({ label: m.title, sublabel: 'Material', href: '/student/materials' })
+      hits.push({ label: m.title, sublabel: t('student.materialsTitle', lang), href: '/student/materials' })
     }
     // student_exam_result is one row per subject, so an exam repeats — collapse.
     const seenExams = new Set<string>()
     for (const e of exams.data ?? []) {
       if (seenExams.has(e.exam_id)) continue
       seenExams.add(e.exam_id)
-      hits.push({ label: e.exam_name, sublabel: 'Result', href: `/student/results/${e.exam_id}` })
+      hits.push({ label: e.exam_name, sublabel: t('student.resultsTitle', lang), href: `/student/results/${e.exam_id}` })
     }
     for (const s of subjects.data ?? []) {
-      hits.push({ label: s.name, sublabel: 'Subject', href: '/student/routine' })
+      hits.push({ label: s.name, sublabel: t('student.subject', lang), href: '/student/routine' })
     }
   } else if (role === 'gov_official') {
     // Territory schools (definer-scoped RPC), filtered by name in-memory; the gov

@@ -1,8 +1,8 @@
 import { currentLang } from '@/lib/i18n-server'
-import { t } from '@/lib/i18n'
+import { t, numberFmt } from '@/lib/i18n'
 import { getStudentContext } from '@/lib/student/context'
 import { loadInstitutePrintHeader } from '@/lib/institute-print'
-import { sortFees, totalFees, monthLabel, type FeeRecord } from '@/lib/student/fees'
+import { sortFees, totalFees, monthLabel, payableOf, type FeeRecord } from '@/lib/student/fees'
 import { classSectionLabel } from '@/lib/students'
 import { PrintPage, InstituteHeader, InfoGrid } from '@/components/print/pieces'
 
@@ -22,7 +22,9 @@ export default async function StudentFeeStatementPage() {
 
   const records = sortFees((data ?? []) as FeeRecord[])
   const totals = totalFees(records)
-  const money = (n: number) => new Intl.NumberFormat('en-GB', { maximumFractionDigits: 2 }).format(n)
+  // The reader's own digits, same as the screen — a Bangla month beside a
+  // Latin amount was two number systems in one row.
+  const money = (n: number) => numberFmt(lang, { maximumFractionDigits: 2 }).format(n)
 
   return (
     <PrintPage>
@@ -44,6 +46,7 @@ export default async function StudentFeeStatementPage() {
         <thead>
           <tr>
             <th className="border border-line px-2 py-1 text-left">{t('student.month', lang)}</th>
+            <th className="border border-line px-2 py-1 text-left">{t('student.feePayable', lang)}</th>
             <th className="border border-line px-2 py-1 text-left">{t('student.feePaid', lang)}</th>
             <th className="border border-line px-2 py-1 text-left">{t('student.feeFine', lang)}</th>
             <th className="border border-line px-2 py-1 text-left">{t('student.feeDue', lang)}</th>
@@ -53,6 +56,7 @@ export default async function StudentFeeStatementPage() {
           {records.map((r) => (
             <tr key={r.id}>
               <td className="border border-line px-2 py-1">{monthLabel(r.month, r.year, lang)}</td>
+              <td className="border border-line px-2 py-1">{money(payableOf(r))}</td>
               <td className="border border-line px-2 py-1">{money(Number(r.pay_amount))}</td>
               <td className="border border-line px-2 py-1">{money(Number(r.fine_amount))}</td>
               <td className="border border-line px-2 py-1">{money(Number(r.due_amount))}</td>
@@ -60,6 +64,7 @@ export default async function StudentFeeStatementPage() {
           ))}
           <tr className="font-bold">
             <td className="border border-line px-2 py-1">Σ</td>
+            <td className="border border-line px-2 py-1">{money(totals.payable)}</td>
             <td className="border border-line px-2 py-1">{money(totals.paid)}</td>
             <td className="border border-line px-2 py-1">{money(totals.fine)}</td>
             <td className="border border-line px-2 py-1">{money(totals.due)}</td>

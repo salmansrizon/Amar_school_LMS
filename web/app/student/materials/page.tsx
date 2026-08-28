@@ -2,6 +2,7 @@ import { currentLang } from '@/lib/i18n-server'
 import { t, type MessageKey } from '@/lib/i18n'
 import { getStudentContext } from '@/lib/student/context'
 import { groupMaterials, fileKind, isDownloadable, type StudentMaterial } from '@/lib/student/materials'
+import { pageTitle } from '@/lib/student/metadata'
 
 // The kinds we have labels for. An unexpected kind still renders — groupMaterials
 // keeps it — so it falls back to its own name rather than throwing in t().
@@ -15,6 +16,8 @@ const KIND_LABELS: Record<string, MessageKey> = {
 // Study material (#447): the class syllabus and the posted lesson plans, on one
 // surface. `student_material` (0141) unions both and has already decided what
 // this Student may see, so there is no filtering here.
+export const generateMetadata = pageTitle('student.materialsTitle')
+
 export default async function StudentMaterialsPage() {
   const lang = await currentLang()
   const { supabase } = await getStudentContext()
@@ -34,6 +37,7 @@ export default async function StudentMaterialsPage() {
       {!groups.length ? (
         <p className="rounded-lg border border-line bg-paper p-6 text-sm text-muted">
           {t('student.noMaterials', lang)}
+          <span className="mt-1 block text-xs">{t('student.noMaterialsHint', lang)}</span>
         </p>
       ) : (
         <div className="space-y-4">
