@@ -3,9 +3,9 @@
 import { useRef, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { t, type Lang, type MessageKey } from '@/lib/i18n'
-import { createClient } from '@/lib/supabase/client'
+import { uploadWithSignedToken } from '@/lib/storage/upload-client'
 import { CORRECTABLE_FIELDS } from '@/lib/student/corrections'
-import { pendingPhotoPath, requestCorrection } from '@/lib/student/corrections-source'
+import { pendingPhotoUploadTicket, requestCorrection } from '@/lib/student/corrections-source'
 
 const ERRORS: Record<string, MessageKey> = {
   field: 'student.correctionFieldBad',
@@ -42,19 +42,19 @@ export function CorrectionForm({
     const file = photoRef.current?.files?.[0]
     if (!file) return setError(t('student.correctionValueBad', lang))
     setBusy(true)
-    const { path, error: pathError } = await pendingPhotoPath(file.type)
-    if (!path) {
+    const { upload, error: pathError } = await pendingPhotoUploadTicket(file.type)
+    if (!upload) {
       setBusy(false)
       return setError(pathError === 'type' ? t('student.rejectType', lang) : (pathError ?? 'error'))
     }
-    const upload = await createClient().storage.from('student-photos').upload(path, file)
-    if (upload.error) {
+    const sent = await uploadWithSignedToken('student-photos', upload, file, file.type)
+    if (sent.error) {
       setBusy(false)
-      return setError(upload.error.message)
+      return setError(sent.error)
     }
     const data = new FormData()
     data.set('field', 'photo_path')
-    data.set('requested_value', path)
+    data.set('requested_value', upload.path)
     data.set('current_value', current.photo_path ?? '')
     const result = await requestCorrection(data)
     setBusy(false)
