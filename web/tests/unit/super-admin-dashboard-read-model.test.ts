@@ -31,7 +31,9 @@ const data: DashboardData = {
     { amount: 2000, created_at: '2026-07-05T00:00:00Z' },
     { amount: 1000, created_at: '2026-06-05T00:00:00Z' },
   ],
-  pool: [{ delta: 10000 }, { delta: -1500 }],
+  // 0164: the pool arrives pre-aggregated from sms_pool_summary rather than as
+  // ledger rows the app folds — an unbounded fetch is capped at 1000 (#530).
+  pool: { balance: 8500, bought: 10000, sent: 1500 },
 }
 
 describe('buildDashboardViewModel', () => {
@@ -59,10 +61,11 @@ describe('buildDashboardViewModel', () => {
     expect(vm.smsIncome).toEqual({ total: 2000, delta: 100 })
   })
 
-  it('summarizes the master SMS pool (bought − sent)', () => {
+  it('carries the master SMS pool totals through and levels them', () => {
     expect(vm.smsPool.bought).toBe(10000)
     expect(vm.smsPool.sent).toBe(1500)
     expect(vm.smsPool.balance).toBe(8500)
+    expect(vm.smsPool.level).toBe('ok')
   })
 
   it('sums pending collection and dormant = expired + paused', () => {

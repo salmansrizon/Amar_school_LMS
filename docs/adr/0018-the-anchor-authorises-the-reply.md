@@ -1,9 +1,16 @@
 ---
-status: accepted
+status: superseded in part by ADR-0021
 supersedes: ADR-0017
 ---
 
 # Class attachment governs reading, and the anchor authorises the reply
+
+> **Superseded in part by [ADR 0021](0021-a-class-attachment-narrows-a-grant.md).** The
+> axes below stand. What 0021 settles is the case this ADR never states: what
+> happens when both axes are present and *disagree*. The attachment **narrows** a
+> Grant rather than unioning with it, and the signal is the `employees` row rather
+> than the attachment itself. Read 0021 alongside this file before changing any
+> student-scoped policy.
 
 ADR 0017 introduced the second axis — **class attachment** — alongside the Permission Grant, and named three surfaces that enforced less than the rule. Two of those move to Row Level Security here (migration 0152), and one line of 0017 turns out to be wrong in practice. This ADR restates the whole rule so there is one place to read it, rather than a rule plus an amendment.
 

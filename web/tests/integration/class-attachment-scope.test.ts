@@ -124,4 +124,34 @@ describe('Class attachment narrows a Grant (#525, migration 0160)', () => {
     const { error } = await officeStaff.from('classes').update({ group_department: 'Science' }).eq('name', `${TAG}-B`)
     expect(error).toBeNull()
   })
+
+  // Found in review of 0160, fixed by 0163. The WITH CHECK term called
+  // staff_class_capacity_for_student(id), which re-reads the COMMITTED row — so on
+  // UPDATE it re-asked the question USING had already answered and always agreed.
+  // A Class Teacher could move a child into a class she does not hold and strand
+  // them somewhere she can then neither see nor undo.
+  it('a Class Teacher cannot move her own child into a class she does not hold', async () => {
+    await classTeacher.from('students').update({ class_name: `${TAG}-B` }).eq('id', studentInA)
+    const { data } = await owner.from('students').select('class_name').eq('id', studentInA).single()
+    expect(data!.class_name).toBe(`${TAG}-A`)
+  })
+
+  // ADR 0021: a Subject Teacher gets the students of classes he teaches so he can
+  // teach them, and decides nothing about them. 0160 wrote both halves as
+  // `capacity is not null`, which is true for subject_teacher.
+  it('reports the caller class scope from one definer function', async () => {
+    const scopes = await Promise.all(
+      [owner, officeStaff, classTeacher, unattached].map((c) => c.rpc('app_class_scope').then((r) => r.data)),
+    )
+    expect(scopes).toEqual(['school-wide', 'school-wide', 'attached', 'none'])
+  })
+
+  // The reason app_class_scope has to be a definer function: employees and
+  // routine_slots are grant-gated, so a teacher cannot read her own attachment.
+  // An earlier TypeScript version read them directly, got nothing back, and
+  // concluded she was office staff.
+  it('a Class Teacher cannot read the tables her own attachment lives in', async () => {
+    const { data: employees } = await classTeacher.from('employees').select('id').limit(1)
+    expect(employees ?? []).toEqual([])
+  })
 })

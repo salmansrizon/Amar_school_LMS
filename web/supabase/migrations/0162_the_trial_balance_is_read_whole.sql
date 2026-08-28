@@ -34,9 +34,13 @@ create or replace view public.gl_trial_balance as
 comment on view public.gl_trial_balance is
   'Per-account debit/credit totals over the whole ledger. Ticket #530: the page previously summed gl_lines in the app, where PostgREST truncated it to 1000 rows and produced a phantom ৳2,800 imbalance.';
 
--- The view is owned by the migration role and RLS on gl_lines does not apply
--- through it, so grant deliberately: the ledger is vendor-level and super-admin
--- only, exactly as the underlying table is.
+-- security_invoker = true is load-bearing, not decoration: it makes gl_lines' own
+-- RLS apply to whoever queries the view. `read visible gl_lines` gates on
+-- gl_entry_visible -> app_tenant_member, and vendor-level entries carry a null
+-- school_id, so a School Owner sees only their own school's totals through this
+-- view and a Student or Distributor sees nothing. Without it the view would run
+-- as its definer and hand every authenticated caller the vendor ledger. Do not
+-- flip it off.
 alter view public.gl_trial_balance set (security_invoker = true);
 grant select on public.gl_trial_balance to authenticated;
 

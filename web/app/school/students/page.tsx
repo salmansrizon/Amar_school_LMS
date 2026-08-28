@@ -40,7 +40,7 @@ export default async function StudentsPage({
 }) {
   const { q = '', classSection = '' } = await searchParams
   const lang: Lang = await currentLang()
-  const { supabase, role, userId } = await getSchoolContext()
+  const { supabase, role } = await getSchoolContext()
 
   const [{ data: students }, { data: ratings }, { data: classes }] = await Promise.all([
     supabase
@@ -61,7 +61,7 @@ export default async function StudentsPage({
   // 0160 narrows this list to the caller's class attachment, so an Employee with
   // no attachment gets nothing back. "No students yet" would be a lie in a school
   // of hundreds — ask why the list is empty only when it actually is.
-  const scope = students?.length ? 'attached' : await classScopeFor(supabase, userId)
+  const scope = students?.length ? 'attached' : await classScopeFor(supabase)
 
   return (
     <>
