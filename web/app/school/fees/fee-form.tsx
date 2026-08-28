@@ -65,7 +65,6 @@ export function FeeForm({
 
   return (
     <form
-      id="collect-form"
       className="grid gap-3 sm:grid-cols-4"
       onSubmit={(e) => {
         e.preventDefault()
@@ -88,9 +87,19 @@ export function FeeForm({
             return
           }
           if (result.existingId) {
-            // Race: a record appeared between page load and submit — reload
-            // into the edit flow instead of silently overwriting it.
-            router.push(`/school/fees?student=${student.id}&month=${month}&year=${year}`)
+            // Race: a record appeared between page load and submit — reload into
+            // the edit flow instead of silently overwriting it.
+            //
+            // refresh() and NOT a push (#531). This pushed
+            // `/school/fees?student=…&month=…&year=…`, dropping the `class`
+            // param — and the roster, the record map and therefore the collection
+            // form itself are all built only when a class resolves. So the
+            // recovery path from a lost race landed the operator on a page with a
+            // student selected, no roster, and no form: exactly the "opened a
+            // filtered fee page but no visible collection form appeared" that a
+            // UAT pass reported as a release blocker. The current URL already
+            // carries class, month, year and student, so re-rendering it is both
+            // correct and less code.
             router.refresh()
             return
           }
