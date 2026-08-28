@@ -29,14 +29,19 @@ export function RunSettlementForm({ distributors }: { distributors: { id: string
   )
 }
 
-export function ApproveSettlementButton({ id }: { id: string }) {
+export function ApproveSettlementButton({ id, ledgerBalanced = true }: { id: string; ledgerBalanced?: boolean }) {
   const { error, pending, run } = useCrudAction(approveSettlement)
   return (
     <span className="flex items-center gap-2">
       {error && <span className="text-xs text-alert-deep">{error}</span>}
+      {/* #530: settlement_approve refuses server-side when debits and credits
+          disagree. Saying so here means the operator learns before clicking
+          rather than from a raised exception. */}
+      {!ledgerBalanced && <span className="text-xs text-alert-deep">Ledger out of balance</span>}
       <button
         type="button"
-        disabled={pending}
+        title={ledgerBalanced ? undefined : 'The general ledger is out of balance — reconcile it before paying a settlement.'}
+        disabled={pending || !ledgerBalanced}
         onClick={() => {
           const d = new FormData()
           d.set('id', id)

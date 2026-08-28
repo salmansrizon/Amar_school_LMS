@@ -10,13 +10,20 @@ type Labelled = { code: string; name?: { en?: string; bn?: string } | null; type
 export default async function AccountingPage() {
   const { supabase } = await getSuperAdminContext()
 
-  const [{ data: accounts }, { data: lines }] = await Promise.all([
+  // #530: this used to select gl_lines unbounded and fold them in the app.
+  // PostgREST caps an unbounded select at 1000 rows, so it summed 1,000 of 46,521
+  // lines and rendered the difference of that arbitrary prefix as a ledger
+  // imbalance — ৳2,800.00, which a UAT pass reasonably read as a financial
+  // blocker. A trial balance over a paginated fetch is always wrong, and wrong in
+  // a way that looks exactly like fraud. The aggregate is 15 rows and belongs in
+  // the database, where nothing can silently truncate it.
+  const [{ data: accounts }, { data: rows }] = await Promise.all([
     supabase.from('gl_accounts').select('code, name, type, normal_side').order('code'),
-    supabase.from('gl_lines').select('account_code, debit, credit'),
+    supabase.from('gl_trial_balance').select('account_code, debit, credit'),
   ])
 
   const { perAccount: totals, totalDebit: sumDebit, totalCredit: sumCredit, balanced } =
-    trialBalance(lines ?? [])
+    trialBalance(rows ?? [])
 
   const name = (a: Labelled) => a.name?.en ?? a.code
 
@@ -69,8 +76,9 @@ export default async function AccountingPage() {
           </table>
         </div>
         {!balanced && (
-          <p className="mt-3 text-sm font-semibold text-alert-deep">
-            ⚠ Ledger out of balance by {formatTaka(Math.abs(sumDebit - sumCredit))}.
+          <p role="alert" className="mt-3 text-sm font-semibold text-alert-deep">
+            ⚠ Ledger out of balance by {formatTaka(Math.abs(sumDebit - sumCredit))}. Settlement and payment
+            are refused until this is reconciled.
           </p>
         )}
       </section>
