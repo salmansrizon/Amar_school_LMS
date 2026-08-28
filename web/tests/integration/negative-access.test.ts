@@ -150,13 +150,22 @@ describe('Negative access at the data layer (#542)', () => {
     // #530 added gl_trial_balance as a view. security_invoker = true is what keeps
     // gl_lines' own RLS applying through it; without that flag every authenticated
     // caller would read the vendor ledger. Pin the consequence, not the flag.
-    it('a School Owner reads no vendor-level ledger rows through the view', async () => {
-      const { data } = await owner.from('gl_trial_balance').select('account_code, debit, credit')
-      const { data: adminRows } = await (await signedIn('super@test.local'))
-        .from('gl_trial_balance')
-        .select('account_code')
-      expect((adminRows ?? []).length).toBeGreaterThan(0)
-      expect((data ?? []).length).toBeLessThan((adminRows ?? []).length + 1)
+    it('a School Owner reads only their own school’s totals, not the vendor’s', async () => {
+      const admin = await signedIn('super@test.local')
+      const sum = (rows: { debit: number; credit: number }[] | null) =>
+        (rows ?? []).reduce((n, r) => n + Number(r.debit) + Number(r.credit), 0)
+
+      const { data: ownerRows } = await owner.from('gl_trial_balance').select('account_code, debit, credit')
+      const { data: adminRows } = await admin.from('gl_trial_balance').select('account_code, debit, credit')
+
+      // Most of this ledger is vendor-level (entries with a null school_id), so an
+      // Owner must see strictly less than the platform total. An earlier version
+      // asserted `owner.length <= admin.length + 1`, which is true whether or not
+      // the boundary works — it would have passed if security_invoker were turned
+      // off and the Owner saw everything.
+      expect(sum(adminRows)).toBeGreaterThan(0)
+      expect(sum(ownerRows)).toBeGreaterThan(0)
+      expect(sum(ownerRows)).toBeLessThan(sum(adminRows))
     })
 
     it('a Student reads nothing through it', async () => {

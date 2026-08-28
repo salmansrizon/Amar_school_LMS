@@ -1355,7 +1355,6 @@ const dict = {
     en: 'This QR code does not match any ID card.',
   },
   'verify.issuedBy': { bn: 'প্রদানকারী', en: 'Issued by' },
-  'markSheet.title': { bn: 'মার্কশিট প্রিভিউ', en: 'Mark Sheet Preview' },
   'markSheet.sampleNote': {
     bn: 'নমুনা তথ্য — প্রকৃত ফলাফল পরীক্ষার মডিউল চালু হলে দেখা যাবে।',
     en: 'Sample data — real results appear when the exams module lands.',
