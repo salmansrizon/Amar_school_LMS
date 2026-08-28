@@ -4,6 +4,26 @@ Written at the end of a long execution session. Everything below is state a fres
 agent cannot reconstruct from the repo alone. Anything that *is* in the repo is
 referenced, not repeated.
 
+## Session 2 (2026-08-28, later): what this handoff asked for is done
+
+Everything in "Documentation work outstanding" below is closed, and the four
+remaining code tickets went with it. Kept as written because the reasoning still
+applies; read this block first, then the original for the why.
+
+- **§1 research docs** — cherry-picked onto this branch (`11e9151`, `02387e8`). Both now live at `docs/research/`. `research/session-cookie` and `research/security-headers` still exist and still carry `2a2f934`, a real student-portal refactor + 10 tests that is on NO other branch. Not merged here — it is behaviour-preserving work nobody asked for in this map, and it is the user's call. **Do not delete those branches until that commit has a home.**
+- **§2 UAT report** — tracked, byte-identical, with a corrections annex and a banner pointing at it (`11824e2`). `docs/testing/uat-plan.md` came too; `uat-checklist.md` had been linking to an untracked file.
+- **§3 ADR** — `docs/adr/0022-gapless-numbering-serialises-its-issuers.md` (`aed6f3b`). 0012 gained an amendment banner. The session-cookie ADR stayed unwritten, as decided.
+- **§4 CONTEXT.md** — one sentence, not none (`1d5aa87`). The Permission Grant entry still said the two axes were "independent", which is the exact reading ADR 0021 overturned. Nothing added.
+- **#531, #538, #540, #528** — closed. Reasoning is on each issue.
+- **#544** remains open by design: it needs a deployed staging to walk.
+
+Two things found on the way, neither reported by UAT:
+
+- **An Owner could not delete an open exam** whose children existed — the cascade guard read the already-deleted parent as "closed". Fixed in `0171`, pinned in `exam-delete-guard.test.ts`.
+- **A subject cannot be deleted once a student has asked about it**, by anyone but a Super Admin, and it fails with a constraint error naming a table the Owner has never seen. Filed as **#548** with the four candidate fixes; it needs a decision, not a patch.
+
+Migrations `0170` and `0171` are applied to the shared project.
+
 ## Where things are
 
 - **Branch:** `feat/525-class-attachment-narrows-grant`, 36 commits ahead of `origin/staging`. Nothing pushed. No PR yet — `web/AGENTS.md` says the PR is opened once the map completes, not per ticket.
