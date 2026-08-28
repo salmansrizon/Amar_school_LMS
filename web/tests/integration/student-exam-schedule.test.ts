@@ -19,6 +19,37 @@ describe('Student exam schedule (#450)', () => {
   let roll: number
   let subjectId: string
 
+  // A subject cannot be deleted once a student has asked a question about it:
+  // student_messages.subject_id is ON DELETE SET NULL, and
+  // student_message_has_anchor (ADR 0018) forbids a message with no anchor, so
+  // the cascade raises and the delete fails. No role except Super Admin may
+  // delete the question either. That is why `XS1 Physics` survived a run and
+  // collided with subjects_unique_per_class (#535) on the next one — filed
+  // separately as a product defect.
+  //
+  // So this fixture stops trying to delete the subject and REUSES it instead:
+  // one row, whether this is the first run or the fiftieth. Exams and rooms have
+  // no such problem and are still torn down, with an assertion, because a
+  // teardown that silently does nothing is how the shared project fills up.
+  async function cleanupExamsAndRooms() {
+    await owner.from('exams').delete().like('name', `${P}%`)
+    await owner.from('rooms').delete().like('name', `${P}%`)
+    const { data: left } = await owner.from('exams').select('id').like('name', `${P}%`)
+    expect(left).toHaveLength(0)
+  }
+
+  async function subjectFixture(): Promise<string> {
+    const { data: existing } = await owner.from('subjects').select('id').eq('name', `${P}Physics`).maybeSingle()
+    if (existing) return existing.id
+    const created = await owner
+      .from('subjects')
+      .insert({ name: `${P}Physics`, class_id: classId, theory_marks: 100 })
+      .select('id')
+      .single()
+    if (created.error) throw new Error(created.error.message)
+    return created.data.id
+  }
+
   beforeAll(async () => {
     owner = await signedIn('owner-a@test.local')
     student = await signedIn('s9001@test-a.students.invalid')
@@ -32,17 +63,8 @@ describe('Student exam schedule (#450)', () => {
     classId = (await owner.from('classes').select('id').eq('name', 'Seed Class').eq('section', 'A').single())
       .data!.id
 
-    await owner.from('exams').delete().like('name', `${P}%`)
-    await owner.from('rooms').delete().like('name', `${P}%`)
-    await owner.from('subjects').delete().like('name', `${P}%`)
-
-    const subject = await owner
-      .from('subjects')
-      .insert({ name: `${P}Physics`, class_id: classId, theory_marks: 100 })
-      .select('id')
-      .single()
-    if (subject.error) throw new Error(subject.error.message)
-    subjectId = subject.data.id
+    await cleanupExamsAndRooms()
+    subjectId = await subjectFixture()
 
     const building = await owner.from('buildings').select('id').limit(1).maybeSingle()
     const room = await owner
@@ -80,19 +102,9 @@ describe('Student exam schedule (#450)', () => {
     if (plan.error) throw new Error(plan.error.message)
   })
 
-  afterAll(async () => {
-    await owner.from('exams').delete().like('name', `${P}%`)
-    await owner.from('rooms').delete().like('name', `${P}%`)
-    await owner.from('subjects').delete().like('name', `${P}%`)
-
-    const subject = await owner
-      .from('subjects')
-      .insert({ name: `${P}Physics`, class_id: classId, theory_marks: 100 })
-      .select('id')
-      .single()
-    if (subject.error) throw new Error(subject.error.message)
-    subjectId = subject.data.id
-  })
+  // Teardown only. This used to delete the fixtures and then re-insert the
+  // subject, which is how one survived every run.
+  afterAll(cleanupExamsAndRooms)
 
   it('shows the exam routine for the student’s own class', async () => {
     const { data, error } = await student
