@@ -102,11 +102,22 @@ export default async function EmployeesPage({
           >
             {t('employees.oldEmployees', lang)}
           </Link>
+          {/* Two entry points on purpose (#533). "New employee" is the HR record
+              alone, which is right for an accountant or a driver. A teacher needs
+              a login and a class as well, and creating one without them is silent
+              and student-facing — the portal simply looks broken to a child whose
+              questions nobody can answer. */}
           <Link
             href="/school/employees/new"
-            className="rounded-full bg-brand-500 px-4 py-1.5 text-xs font-semibold text-white hover:bg-brand-600"
+            className="rounded-full border border-line-strong px-4 py-1.5 text-xs font-semibold hover:bg-paper-muted"
           >
             + {t('employees.add', lang)}
+          </Link>
+          <Link
+            href="/school/employees/new-teacher"
+            className="rounded-full bg-brand-500 px-4 py-1.5 text-xs font-semibold text-white hover:bg-brand-600"
+          >
+            + {t('teacher.createTitle', lang)}
           </Link>
         </div>
       </div>

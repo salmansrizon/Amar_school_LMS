@@ -183,3 +183,66 @@ export async function setEmployeeLogin(
   revalidatePath(`${PAGE}/${employeeId}`)
   return {}
 }
+
+/** Create a teacher in one step: HR record, login, the link between them, and the
+ *  class assignment (#533).
+ *
+ *  Every piece already existed — createEmployee, create_staff_user,
+ *  setEmployeeLogin, and classes.class_teacher_id — across four separate screens.
+ *  Nothing here is new capability; what was missing is that all four had to be
+ *  remembered in order. A UAT pass created a teacher, stopped after the HR record,
+ *  and could not test Class Teacher behaviour at all because the employee had no
+ *  login. The failure is silent and student-facing: questions sit unanswered and
+ *  the portal looks broken to a child.
+ *
+ *  No permission grant is set, and that is not an omission. ADR 0021 makes a Class
+ *  Teacher's reach follow from the assignment itself — "the attachment alone is
+ *  sufficient and no Grant is required" — so a grants step here would be a second
+ *  chance to get it wrong.
+ *
+ *  Not transactional, because the pieces span auth and public schemas. Ordered so
+ *  a failure leaves the least-bad state: the HR record is created first and is
+ *  harmless alone, and the class assignment is last so a half-finished teacher is
+ *  never attached to children. */
+export async function createTeacher(
+  formData: FormData,
+): Promise<{ employeeId?: string; error?: string }> {
+  const email = String(formData.get('email') ?? '').trim()
+  const password = String(formData.get('password') ?? '')
+  const classId = String(formData.get('class_id') ?? '').trim()
+
+  if (!email) return { error: 'Email is required' }
+  if (password.length < 8) return { error: 'Password must be at least 8 characters' }
+
+  const created = await createEmployee(formData)
+  if (created.error || !created.id) return { error: created.error ?? 'Could not create the employee record' }
+
+  const supabase = await createClient()
+  const { data: profileId, error: loginError } = await supabase.rpc('create_staff_user', {
+    staff_email: email,
+    staff_password: password,
+    staff_full_name: String(formData.get('full_name') ?? '').trim(),
+  })
+  if (loginError) {
+    // Name the half that succeeded. The employee exists and is reachable; telling
+    // the Owner only "failed" would have them create a second one.
+    return { employeeId: created.id, error: `Staff record created, but the login failed: ${loginError.message}` }
+  }
+
+  const linked = await setEmployeeLogin(created.id, profileId as string)
+  if (linked.error) return { employeeId: created.id, error: `Login created, but linking it failed: ${linked.error}` }
+
+  if (classId) {
+    const { error: classError } = await supabase
+      .from('classes')
+      .update({ class_teacher_id: created.id })
+      .eq('id', classId)
+    if (classError) {
+      return { employeeId: created.id, error: `Teacher created, but the class assignment failed: ${classError.message}` }
+    }
+  }
+
+  revalidatePath(PAGE)
+  revalidatePath('/school/classes')
+  return { employeeId: created.id }
+}

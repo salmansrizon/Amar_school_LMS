@@ -1704,6 +1704,41 @@ const dict = {
   'students.district': { bn: 'জেলা', en: 'District' },
   'students.guardianInfo': { bn: 'অভিভাবক তথ্য', en: 'Guardian Info' },
   'students.guardianName': { bn: 'অভিভাবকের নাম', en: 'Guardian Name' },
+  // #533: what a teacher will be able to reach, shown before the Owner confirms.
+  'teacher.createTitle': { bn: 'নতুন শিক্ষক যুক্ত করুন', en: 'Add a teacher' },
+  'teacher.stepIdentity': { bn: '১. পরিচয়', en: '1. Identity' },
+  'teacher.stepLogin': { bn: '২. লগইন', en: '2. Login' },
+  'teacher.stepLoginHelp': {
+    bn: 'লগইন ছাড়া শিক্ষক পোর্টালে ঢুকতে পারবেন না এবং শিক্ষার্থীদের প্রশ্নের উত্তর দিতে পারবেন না।',
+    en: 'Without a login the teacher cannot open the portal or answer a student’s question.',
+  },
+  'teacher.stepClass': { bn: '৩. শ্রেণি', en: '3. Class' },
+  'teacher.stepClassHelp': {
+    bn: 'শ্রেণি শিক্ষক হিসেবে যুক্ত করলে আলাদা কোনো অনুমতি দিতে হয় না — দায়িত্বই অ্যাক্সেস নির্ধারণ করে।',
+    en: 'Assigning a class teacher needs no separate permission — the assignment itself decides the access.',
+  },
+  'teacher.noClassYet': { bn: 'এখন কোনো শ্রেণি নয়', en: 'No class for now' },
+  'teacher.classAlreadyHasTeacher': { bn: 'ইতিমধ্যে শিক্ষক আছেন', en: 'already has a teacher' },
+  'teacher.previewTitle': { bn: 'এই শিক্ষক যা দেখতে পাবেন', en: 'What this teacher will see' },
+  'teacher.createSubmit': { bn: 'শিক্ষক তৈরি করুন', en: 'Create teacher' },
+  'teacher.reachClassTeacher': { bn: 'শ্রেণি শিক্ষক', en: 'Class teacher of' },
+  'teacher.reachClassTeacherDetail': {
+    bn: 'এই শ্রেণির শিক্ষার্থী, উপস্থিতি, প্রশ্ন, ছুটি ও নোটিশ দেখতে ও পরিচালনা করতে পারবেন।',
+    en: 'Can see and manage that class’s students, attendance, questions, leave and notices.',
+  },
+  'teacher.reachSubjectTeacher': { bn: 'বিষয় শিক্ষক', en: 'Teaches' },
+  'teacher.reachSubjectTeacherDetail': {
+    bn: 'এই শ্রেণিগুলোর শিক্ষার্থী ও পাঠ্য উপকরণ দেখতে পারবেন, তবে তাদের বিষয়ে কোনো সিদ্ধান্ত নিতে পারবেন না।',
+    en: 'Can see those classes’ students and publish material, but decides nothing about them.',
+  },
+  'teacher.reachNone': {
+    bn: 'এখনো কোনো শ্রেণিতে যুক্ত নন — লগইন করতে পারবেন, কিন্তু কোনো শিক্ষার্থী দেখতে পাবেন না।',
+    en: 'Not assigned to any class yet — they can sign in, but will see no students at all.',
+  },
+  'teacher.reachNever': {
+    bn: 'অন্য কোনো শ্রেণির শিক্ষার্থী, ফি, এসএমএস বা প্রতিষ্ঠান সেটিংস দেখতে পাবেন না।',
+    en: 'Will never see another class’s students, fees, SMS or institute settings.',
+  },
   'students.relation': { bn: 'সম্পর্ক', en: 'Relation' },
   'students.father': { bn: 'পিতা', en: 'Father' },
   'students.mother': { bn: 'মাতা', en: 'Mother' },
