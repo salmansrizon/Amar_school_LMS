@@ -29,6 +29,21 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
     section: string | null
   } | null
   const institute = await loadInstitutePrintHeader(supabase, lang)
+
+  // #531 asks the owner to see the ledger impact without leaving the flow. The
+  // posting is made by the fee_gl_post trigger (0097) in the same transaction as
+  // the record, under the ref `fee:<record id>:<seq>` — one entry per write,
+  // because an edit posts the delta rather than restating the total. Reading it
+  // back here is what proves the payment reached the books; the ledger tab shows
+  // the same money derived from the source tables instead.
+  const { data: glEntries } = await supabase
+    .from('gl_entries')
+    .select('id, gl_lines(account_code, debit, credit)')
+    .like('ref', `fee:${id}:%`)
+    .order('created_at')
+  const glLines = (glEntries ?? []).flatMap(
+    (e) => (e.gl_lines as unknown as { account_code: string; debit: number; credit: number }[]) ?? [],
+  )
   // Adjustment is a discount/scholarship — it reduces what was actually collected.
   // Shared with the collection form's live preview (lib/fees.ts).
   const total = totalPayable(Number(record.pay_amount), Number(record.fine_amount), Number(record.adjust_amount))
@@ -91,6 +106,32 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
             {record.note}
           </p>
         )}
+
+        <section className="mt-4 rounded-md border border-line px-3 py-2 text-xs print:hidden">
+          <h2 className="mb-1 font-semibold">{t('fees.ledgerImpact', lang)}</h2>
+          {!glLines.length ? (
+            <p className="text-muted">{t('fees.ledgerNone', lang)}</p>
+          ) : (
+            <table className="w-full">
+              <tbody>
+                {glLines.map((l, i) => (
+                  <tr key={i}>
+                    <td className="py-0.5">{l.account_code}</td>
+                    <td className="py-0.5 text-right">
+                      {Number(l.debit) ? `${t('fees.ledgerDebit', lang)} ৳${(Number(l.debit) / 100).toFixed(2)}` : ''}
+                    </td>
+                    <td className="py-0.5 text-right">
+                      {Number(l.credit) ? `${t('fees.ledgerCredit', lang)} ৳${(Number(l.credit) / 100).toFixed(2)}` : ''}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+          <Link href="/school/fees/ledger" className="mt-1 inline-block font-semibold text-brand-600 hover:underline">
+            {t('fees.ledgerOpen', lang)}
+          </Link>
+        </section>
 
         <footer className="mt-6 text-center text-xs text-muted">
           {t('fees.method', lang)}: {t(`fees.${record.payment_method}` as 'fees.cash', lang)} ·{' '}

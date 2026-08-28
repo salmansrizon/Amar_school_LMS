@@ -60,6 +60,12 @@ export function FeeForm({
   const [calculating, startCalculating] = useTransition()
   const [saving, startSaving] = useTransition()
   const [error, setError] = useState<string | null>(null)
+  // #531: money is not recorded on the first press. The first press shows the
+  // receipt this collection would produce and freezes the fields behind it; the
+  // second one writes. The fee_gl_post trigger (0097) posts to the general
+  // ledger in the same transaction as the record, so a wrong figure is not a
+  // typo — it is a correction against a receipt the parent already holds.
+  const [review, setReview] = useState(false)
 
   const classLabel = [student.class_name, student.section].filter(Boolean).join(' / ')
 
@@ -68,6 +74,11 @@ export function FeeForm({
       className="grid gap-3 sm:grid-cols-4"
       onSubmit={(e) => {
         e.preventDefault()
+        if (!review) {
+          setError(null)
+          setReview(true)
+          return
+        }
         const data = new FormData()
         data.set('student_id', student.id)
         data.set('month', String(month))
@@ -115,6 +126,11 @@ export function FeeForm({
         {classLabel || '—'} · {month}/{year}
       </p>
 
+      {/* `contents` keeps the grid intact while `disabled` freezes every field
+          behind the review panel — one wrapper rather than a disabled prop on
+          each input, and it covers the Calculate Fine button too. Children keep
+          their indentation; re-indenting them would bury the change. */}
+      <fieldset disabled={review} className="contents">
       <div>
         <label className={labelClass} htmlFor="fee_amount">
           {t('fees.feeAmount', lang)}
@@ -236,10 +252,67 @@ export function FeeForm({
         />
       </div>
 
+      </fieldset>
+
+      {review && (
+        <section className="rounded-lg border border-line-strong bg-paper-muted p-4 sm:col-span-4">
+          <h4 className="mb-2 text-sm font-bold">{t('fees.reviewHeading', lang)}</h4>
+          <dl className="flex flex-col gap-1 text-sm">
+            <div className="flex justify-between">
+              <dt className="text-muted">{t('fees.student', lang)}</dt>
+              <dd className="font-medium">
+                {student.full_name}
+                {classLabel ? ` — ${classLabel}` : ''}
+              </dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-muted">{t('fees.month', lang)}</dt>
+              <dd>
+                {month}/{year}
+              </dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-muted">{t('fees.feeAmount', lang)}</dt>
+              <dd>৳{fee.toFixed(2)}</dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-muted">{t('fees.fine', lang)}</dt>
+              <dd>৳{fine.toFixed(2)}</dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-muted">{t('fees.adjust', lang)}</dt>
+              <dd>৳{adjust.toFixed(2)}</dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-muted">{t('fees.method', lang)}</dt>
+              <dd>{t(`fees.${method}` as 'fees.cash', lang)}</dd>
+            </div>
+            <div className="flex justify-between border-t border-line pt-1 font-bold">
+              <dt>{t('fees.receivedAmount', lang)}</dt>
+              <dd>৳{received.toFixed(2)}</dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-muted">{t('fees.due', lang)}</dt>
+              <dd>৳{due.toFixed(2)}</dd>
+            </div>
+          </dl>
+        </section>
+      )}
+
       {error && <p className="text-sm text-alert-deep sm:col-span-4">{error}</p>}
       <button type="submit" disabled={saving} className={`${primaryBtnClass} sm:col-span-4`}>
-        {t('fees.collectAndPrint', lang)}
+        {review ? t('fees.confirmCollect', lang) : t('fees.reviewReceipt', lang)}
       </button>
+      {review && (
+        <button
+          type="button"
+          disabled={saving}
+          onClick={() => setReview(false)}
+          className="cursor-pointer text-xs font-semibold text-brand-600 hover:underline disabled:opacity-50 sm:col-span-4"
+        >
+          {t('fees.editAmounts', lang)}
+        </button>
+      )}
     </form>
   )
 }

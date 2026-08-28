@@ -1555,6 +1555,22 @@ const dict = {
   'fees.calculating': { bn: 'হিসাব হচ্ছে…', en: 'Calculating…' },
   'fees.absentDays': { bn: 'অনুপস্থিত কর্মদিবস', en: 'Absent working days' },
   'fees.collectAndPrint': { bn: 'আদায় করুন ও রসিদ ছাপুন', en: 'Collect & Print Receipt' },
+  // #531: the operator reviews the receipt before the money is recorded. A Fee
+  // Collection Record posts to the general ledger on insert (0097), so a wrong
+  // figure is not a typo — it is a correction the parent already holds a printed
+  // receipt for.
+  'fees.reviewReceipt': { bn: 'রসিদ দেখে নিন', en: 'Review receipt' },
+  'fees.reviewHeading': { bn: 'নিশ্চিত করার আগে দেখে নিন', en: 'Check before you confirm' },
+  'fees.confirmCollect': { bn: 'নিশ্চিত করুন ও রসিদ ছাপুন', en: 'Confirm & Print Receipt' },
+  'fees.editAmounts': { bn: 'সংশোধন করুন', en: 'Change amounts' },
+  'fees.ledgerImpact': { bn: 'খতিয়ানে প্রভাব', en: 'Ledger impact' },
+  'fees.ledgerDebit': { bn: 'ডেবিট', en: 'Debit' },
+  'fees.ledgerCredit': { bn: 'ক্রেডিট', en: 'Credit' },
+  'fees.ledgerOpen': { bn: 'সাধারণ খতিয়ান দেখুন', en: 'Open general ledger' },
+  'fees.ledgerNone': {
+    bn: 'এই রেকর্ডের জন্য কোনো খতিয়ান এন্ট্রি নেই — প্রাপ্ত পরিমাণ ও জরিমানা দুটোই শূন্য।',
+    en: 'No ledger entry for this record — both the received amount and the fine are zero.',
+  },
   'fees.pickClassPrompt': {
     bn: 'শিক্ষার্থীদের তালিকা দেখতে একটি শ্রেণি নির্বাচন করুন।',
     en: 'Select a class to see its student roster.',
