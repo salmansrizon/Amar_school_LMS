@@ -3,7 +3,6 @@
 import { useMemo, useRef, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
-import { createClient as createSupabaseClient } from '@/lib/supabase/client'
 import { t, type Lang } from '@/lib/i18n'
 import { EDUCATION_LEVELS } from '@/lib/institute'
 import { logoImageExtension, LOGO_MAX_BYTES } from '@/lib/institute-print'
@@ -13,10 +12,12 @@ import {
   recordSchoolLogo,
   removeSchoolLogo,
   savePrintTheme,
-  schoolLogoUploadPath,
+  schoolLogoUploadTicket,
   updateInstituteProfile,
 } from './actions'
 import { selectClass } from '@/components/ui/field'
+import { removeUploadedObject } from '@/lib/storage/remove-object'
+import { uploadWithSignedToken } from '@/lib/storage/upload-client'
 
 type SchoolRow = {
   id: string
@@ -397,27 +398,24 @@ function LogoControl({ lang, isOwner, hasLogo }: { lang: Lang; isOwner: boolean;
       return
     }
     setBusy(true)
-    const { path, error: pathErr } = await schoolLogoUploadPath(file.type)
-    if (pathErr || !path) {
+    const { upload, error: pathErr } = await schoolLogoUploadTicket(file.type)
+    if (pathErr || !upload) {
       setError(pathErr ?? 'Upload failed')
       setBusy(false)
       return
     }
-    const supabase = createSupabaseClient()
-    const { error: upErr } = await supabase.storage
-      .from('school-logos')
-      .upload(path, file, { contentType: file.type, upsert: true })
+    const { error: upErr } = await uploadWithSignedToken('school-logos', upload, file, file.type)
     if (upErr) {
-      setError(upErr.message)
+      setError(upErr)
       setBusy(false)
       return
     }
-    const res = await recordSchoolLogo(path)
+    const res = await recordSchoolLogo(upload.path)
     setBusy(false)
     if (inputRef.current) inputRef.current.value = ''
     if (res.error) {
       // Row update failed — drop the orphaned object rather than leave it.
-      await supabase.storage.from('school-logos').remove([path])
+      await removeUploadedObject('school-logos', upload.path)
       setError(res.error)
       return
     }

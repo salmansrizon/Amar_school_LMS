@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { currentActor } from '@/lib/school/actor'
 import { galleryImageExtension } from '@/lib/publishing'
+import { createSignedUpload, type SignedUpload } from '@/lib/storage/signed-upload'
 
 // Photo bytes are uploaded client-side straight to the private 'gallery'
 // bucket (mirrors issue #45's syllabus pattern); these actions only manage
@@ -49,10 +50,10 @@ export async function deleteAlbum(id: string): Promise<{ error?: string }> {
 }
 
 /** The deterministic object path a client must upload a new photo to. */
-export async function galleryUploadPath(
+export async function galleryUploadTicket(
   albumId: string,
   mimeType: string,
-): Promise<{ path?: string; error?: string }> {
+): Promise<{ upload?: SignedUpload; error?: string }> {
   const me = await currentActor()
   if ('error' in me) return { error: me.error }
   const ext = galleryImageExtension(mimeType)
@@ -61,7 +62,7 @@ export async function galleryUploadPath(
   // RLS-scoped: an album the caller can't see returns nothing.
   const { data: album } = await supabase.from('gallery_albums').select('id').eq('id', albumId).maybeSingle()
   if (!album) return { error: 'Album not found' }
-  return { path: `${me.schoolId}/${albumId}/${crypto.randomUUID()}.${ext}` }
+  return createSignedUpload('gallery', `${me.schoolId}/${albumId}/${crypto.randomUUID()}.${ext}`)
 }
 
 export async function recordGalleryPhoto(

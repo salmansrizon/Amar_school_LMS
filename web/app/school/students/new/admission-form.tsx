@@ -3,7 +3,6 @@
 import { useMemo, useRef, useState, useTransition } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 import { t, type Lang } from '@/lib/i18n'
 import { compressImage, IMAGE_PRESETS } from '@/lib/image/compress'
 import {
@@ -14,8 +13,9 @@ import {
   type ClassNameSectionRow,
   type RollRow,
 } from '@/lib/students'
-import { admitStudent, studentPhotoPath, recordStudentPhoto } from '../actions'
+import { admitStudent, studentPhotoUploadTicket, recordStudentPhoto } from '../actions'
 import { dateInputClass, selectClass } from '@/components/ui/field'
+import { uploadWithSignedToken } from '@/lib/storage/upload-client'
 
 const MAX_PHOTO_BYTES = 2 * 1024 * 1024 // mirrors the bucket's server-enforced cap
 
@@ -257,13 +257,10 @@ export async function uploadStudentPhoto(
   // Compress before the size check so large phone photos fit the 2 MB bucket cap.
   const photo = await compressImage(file, IMAGE_PRESETS.studentPhoto)
   if (photo.size > MAX_PHOTO_BYTES) return t('students.photoTooBig', lang)
-  const { path, error: pathErr } = await studentPhotoPath(studentId, photo.type)
-  if (pathErr || !path) return pathErr ?? 'Upload failed'
-  const supabase = createClient()
-  const { error: upErr } = await supabase.storage
-    .from('student-photos')
-    .upload(path, photo, { upsert: true, contentType: photo.type })
-  if (upErr) return upErr.message
+  const { upload, error: pathErr } = await studentPhotoUploadTicket(studentId, photo.type)
+  if (pathErr || !upload) return pathErr ?? 'Upload failed'
+  const { error: upErr } = await uploadWithSignedToken('student-photos', upload, photo, photo.type)
+  if (upErr) return upErr
   const res = await recordStudentPhoto(studentId, photo.type)
   return res.error ?? null
 }

@@ -5,6 +5,7 @@ import { currentOwner } from '@/lib/school/actor'
 import { validateInstituteProfile, type InstituteProfileInput } from '@/lib/institute'
 import { logoImageExtension } from '@/lib/institute-print'
 import { isThemeKey, type ThemedDocType } from '@/lib/print-themes'
+import { createSignedUpload, type SignedUpload } from '@/lib/storage/signed-upload'
 
 // Institute profile (issue #39, PRD §5.11) — owner-only (RLS "owner updates
 // own school" + requireSchoolOwner belt-and-suspenders here).
@@ -86,14 +87,14 @@ export async function savePrintTheme(
 /** The deterministic object path the owner's browser uploads the logo to
  *  (issue #92) — mirrors galleryUploadPath: the server owns the path, the
  *  client owns the bytes. One object per School, replaced in place. */
-export async function schoolLogoUploadPath(
+export async function schoolLogoUploadTicket(
   mimeType: string,
-): Promise<{ path?: string; error?: string }> {
+): Promise<{ upload?: SignedUpload; error?: string }> {
   const ext = logoImageExtension(mimeType)
   if (!ext) return { error: 'logoBadType' }
   const actor = await currentOwner()
   if ('error' in actor) return { error: actor.error }
-  return { path: `${actor.schoolId}/logo.${ext}` }
+  return createSignedUpload('school-logos', `${actor.schoolId}/logo.${ext}`)
 }
 
 /** Records the uploaded object on the School row; the old object is removed

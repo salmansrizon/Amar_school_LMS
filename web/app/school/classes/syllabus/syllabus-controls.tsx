@@ -3,7 +3,7 @@
 import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { t, type Lang } from '@/lib/i18n'
-import { uploadWithSignedToken } from '@/lib/storage/signed-upload'
+import { uploadWithSignedToken } from '@/lib/storage/upload-client'
 import { deleteSyllabus, recordSyllabus, syllabusUploadTicket } from './actions'
 
 const MAX_BYTES = 10 * 1024 * 1024

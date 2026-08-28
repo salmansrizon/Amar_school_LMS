@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { getStudentContext, isReadOnly } from '@/lib/student/context'
 import { MAX_SUBMISSION_BYTES, MAX_SUBMISSION_FILES, submissionExtension } from '@/lib/student/submissions'
+import { createSignedUpload, type SignedUpload } from '@/lib/storage/signed-upload'
 
 // Submission writes (#448). The upload itself is client-direct to Storage; this
 // records the row, and the row is what the caps and tenancy trigger guard.
@@ -11,10 +12,10 @@ import { MAX_SUBMISSION_BYTES, MAX_SUBMISSION_FILES, submissionExtension } from 
 /** Derives the storage path server-side. The client never chooses where its own
  *  file lands — the first two folders are the tenancy check the storage
  *  policies key on, so a client-supplied path would be the whole hole. */
-export async function submissionUploadPath(
+export async function submissionUploadTicket(
   publicationId: string,
   mimeType: string,
-): Promise<{ path?: string; schoolId?: string; error?: string }> {
+): Promise<{ upload?: SignedUpload; schoolId?: string; error?: string }> {
   const ctx = await getStudentContext()
   if (isReadOnly(ctx)) return { error: 'readOnly' }
 
@@ -22,10 +23,11 @@ export async function submissionUploadPath(
   if (!ext) return { error: 'type' }
 
   const { student } = ctx
-  return {
-    path: `${student.school_id}/${student.id}/${publicationId}/${crypto.randomUUID()}.${ext}`,
-    schoolId: student.school_id,
-  }
+  const signed = await createSignedUpload(
+    'submissions',
+    `${student.school_id}/${student.id}/${publicationId}/${crypto.randomUUID()}.${ext}`,
+  )
+  return signed.error ? { error: signed.error } : { upload: signed.upload, schoolId: student.school_id }
 }
 
 export async function recordSubmission(input: {
