@@ -1,4 +1,4 @@
--- 0155_submission_object_cleanup_via_storage_api.sql
+-- 0157_submission_object_cleanup_via_storage_api.sql
 -- Map #434 / audit fix: withdrawing homework never worked.
 --
 -- 0142 deleted the storage object from a trigger (`delete from storage.objects`).

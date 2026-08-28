@@ -1,4 +1,4 @@
--- 0156_expiry_reminder_stops_reaching_students.sql
+-- 0158_expiry_reminder_stops_reaching_students.sql
 -- Map #434 / audit fix: students were reading their school's billing reminders.
 --
 -- 0069 recorded the 7-day expiry reminder as a `publications` notice with
