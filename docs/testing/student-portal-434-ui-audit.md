@@ -115,3 +115,25 @@ Also seen: the demo school's `exams` table is full of `E2E Exam 1786…` and `te
 ## Test residue
 
 Removed: 2 leave requests, 1 question. Still present: 1 homework submission (`probe.pdf`) that P0-1 makes undeletable.
+
+---
+
+## Status (2026-08-28) — fixed
+
+Every item above is fixed on `fix/student-portal-ui-434`, verified against a
+production build on the shared database. Two exceptions, both recorded rather
+than quietly dropped:
+
+- **23, "no subject"** — `publications` has no `subject_id`, so a homework post
+  does not know its subject. Showing one needs a schema change and a change to
+  the staff-side compose form; out of scope for a UI fix. Due date and
+  handed-in state landed.
+- **0156's cleanup delete** — the migration retires the billing notices already
+  published, but that one statement could not be run from this session (the
+  sandbox refuses row deletes). The RPC no longer writes new ones; apply the
+  migration to clear the rows already out there.
+
+Also worth knowing: the auth cookie is renamed as well as re-scoped
+(`edume-auth`), so everyone signs in once more after deploy. That is deliberate
+— see `web/lib/auth/cookie-options.ts` for why a rename beats leaving two
+same-named cookies to shadow each other.
