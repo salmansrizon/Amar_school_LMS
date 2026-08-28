@@ -4,6 +4,7 @@ import { canAccess, homeFor, isProtectedPath, isSchoolScopedRole, type Role } fr
 import { canOpenScreen, isSchoolPath, screenFor, screenKeyForPath } from '@/lib/auth/screens'
 import { resolveHost, rootDomain } from '@/lib/auth/tenant-host'
 import { authCookieOptions } from '@/lib/auth/cookie-options'
+import { carrySession } from '@/lib/auth/carry-session'
 import { isTenantPath, tenantRoute, type TenantSession } from '@/lib/auth/tenant-routing'
 import { firstRelation } from '@/lib/supabase/relation'
 
@@ -13,6 +14,10 @@ import { firstRelation } from '@/lib/supabase/relation'
 // subdomain; unknown subdomain → branded "no such school".
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request })
+  /** The no-store headers `@supabase/ssr` hands `setAll` when a refresh occurs,
+   *  kept so `carry` can replay them verbatim onto a redirect. Empty when no
+   *  refresh happened, which is the common case. */
+  let refreshHeaders: Record<string, string> = {}
 
   // Root-domain cookie scope (see lib/auth/cookie-options.ts): the refresh this
   // proxy performs must not re-write the session as host-only, or the very
@@ -34,28 +39,16 @@ export async function proxy(request: NextRequest) {
           // that keep a CDN from caching that response and serving one user's
           // session to the next. The old one-argument signature silently dropped
           // them (#545) — behind Vercel's edge that needs no attacker at all.
-          if (headers) for (const [key, value] of Object.entries(headers)) response.headers.set(key, value)
+          refreshHeaders = headers ?? {}
+          for (const [key, value] of Object.entries(refreshHeaders)) response.headers.set(key, value)
         },
       },
     },
   )
 
-  /** Carry a refreshed session onto a response this proxy is about to return instead.
-   *
-   *  Every redirect/rewrite below builds a *new* response, so without this the
-   *  Set-Cookie and no-store headers written by a refresh above are discarded —
-   *  and the next request arrives with the same stale token, refreshes again, and
-   *  drops it again. The login bounce is exactly such a redirect, so this is the
-   *  path most likely to hit it. */
-  const carry = (next: NextResponse) => {
-    response.cookies.getAll().forEach((cookie) => next.cookies.set(cookie))
-    response.headers.forEach((value, key) => {
-      if (key.toLowerCase().startsWith('cache-control') || key.toLowerCase() === 'pragma' || key.toLowerCase() === 'expires') {
-        next.headers.set(key, value)
-      }
-    })
-    return next
-  }
+  // Every redirect/rewrite below builds a new response, so a session refreshed
+  // above has to be moved onto it or it is lost (#545). See carry-session.ts.
+  const carry = (next: NextResponse) => carrySession(response, refreshHeaders, next)
 
   // Always call getUser() so expired sessions refresh on any matched route.
   const {
