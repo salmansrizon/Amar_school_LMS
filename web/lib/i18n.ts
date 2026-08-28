@@ -5,6 +5,47 @@ export type Lang = 'bn' | 'en'
 export const DEFAULT_LANG: Lang = 'bn'
 export const LANG_COOKIE = 'asm-lang'
 
+/** The `document.cookie` assignment that persists a language choice.
+ *
+ *  Carries the same root-domain scope the session cookie does (#109's two-host
+ *  routing model). Without a domain the preference is host-only, so a user who
+ *  switches to English on the apex and is then bounced to `<slug>.<root>` — which
+ *  is what happens on login — lands on a Bangla page and has to switch again. The
+ *  UAT report recorded that as the switch "not visibly changing the page" (#539).
+ *
+ *  Secure everywhere except loopback, and SameSite=Lax, for the same reasons the
+ *  session cookie carries them: this one is not sensitive, but a cookie widened to
+ *  every tenant subdomain should not travel over plaintext either. */
+export function langCookieAssignment(next: Lang, host: string | null | undefined): string {
+  const parts = [`${LANG_COOKIE}=${next}`, 'path=/', 'max-age=31536000', 'samesite=lax']
+  const domain = langCookieDomain(host)
+  if (domain) parts.push(`domain=${domain}`)
+  if (!isLoopback(host)) parts.push('secure')
+  return parts.join(';')
+}
+
+function isLoopback(host: string | null | undefined): boolean {
+  if (!host) return false
+  const raw = host.trim().toLowerCase()
+  const close = raw.startsWith('[') ? raw.indexOf(']') : -1
+  const h = close > 0 ? raw.slice(1, close) : raw.split(':')[0]
+  return h === 'localhost' || h === '127.0.0.1' || h === '::1' || h.endsWith('.localhost')
+}
+
+/** Root-domain scope for the language cookie, or undefined to stay host-only.
+ *
+ *  Deliberately duplicated from `authCookieDomain` rather than imported: that
+ *  module is server-only in spirit and this runs in the browser, and the two
+ *  cookies are allowed to diverge — widening the session is a security decision,
+ *  widening a language preference is not. */
+function langCookieDomain(host: string | null | undefined): string | undefined {
+  const root = (process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? '').trim().toLowerCase().split(':')[0]
+  if (!host || !root.includes('.')) return undefined
+  const h = host.trim().toLowerCase().split(':')[0]
+  if (h !== root && !h.endsWith(`.${root}`)) return undefined
+  return `.${root}`
+}
+
 type Entry = { bn: string; en: string }
 
 const dict = {
