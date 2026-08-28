@@ -1321,6 +1321,19 @@ const dict = {
     en: 'Remove this syllabus file?',
   },
   'print.print': { bn: 'প্রিন্ট করুন', en: 'Print' },
+  // #532: a print route with no data used to render its branded header and an
+  // empty table, which reads as a finished document until it is handed out.
+  'print.nothingYet': { bn: 'প্রিন্ট করার মতো কিছু নেই', en: 'Nothing to print yet' },
+  'print.pickClassTitle': { bn: 'কোন শ্রেণির রুটিন?', en: 'Which class routine?' },
+  'print.pickClassHelp': {
+    bn: 'রুটিন প্রিন্ট করতে নিচ থেকে একটি শ্রেণি বেছে নিন।',
+    en: 'Choose a class below to print its routine.',
+  },
+  'print.examRoutineEmpty': {
+    bn: 'এই পরীক্ষার রুটিনে এখনো কোনো বিষয়, তারিখ বা কক্ষ যোগ করা হয়নি — আগে রুটিন তৈরি করুন, তারপর প্রিন্ট করুন।',
+    en: 'This exam routine has no subjects, dates or rooms yet — build the routine first, then print it.',
+  },
+  'print.buildExamRoutine': { bn: 'রুটিন তৈরি করুন', en: 'Build the routine' },
   'print.poweredBy': {
     bn: 'EdumeBD দ্বারা পরিচালিত',
     en: 'Powered by EdumeBD',

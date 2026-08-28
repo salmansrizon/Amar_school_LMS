@@ -10,6 +10,7 @@ import { PrintButton } from '@/components/print/print-button'
 import { embeddedBuildingName, roomVenueLabel } from '@/lib/venues'
 import { BackLink } from '@/components/back-link'
 import { resolveBackHref } from '@/lib/back-nav'
+import { PrintPreflight } from '@/components/print/preflight'
 
 // Printable exam routine (ADR 0007: browser-native print), mirrors the class
 // routine print page's shape.
@@ -56,6 +57,20 @@ export default async function ExamRoutinePrintPage({
   )
   const sorted = sortRoutineEntries(entries ?? [])
   const examLabel = `${exam.name} (${exam.exam_year})`
+
+  // #532: with no entries this rendered the institute header, the column titles
+  // and nothing else — a document that looks finished right up until it is handed
+  // out. The exam attendance sheet already blocks with a prerequisite message;
+  // this is that same answer, given here.
+  if (!sorted.length) {
+    return (
+      <PrintPreflight
+        title={`${t('print.nothingYet', lang)} — ${examLabel}`}
+        explanation={t('print.examRoutineEmpty', lang)}
+        action={{ href: `/school/exams/${id}/routine`, label: t('print.buildExamRoutine', lang) }}
+      />
+    )
+  }
 
   const thClass =
     'border border-line-strong bg-paper-muted p-2 text-sm font-bold uppercase tracking-wide'

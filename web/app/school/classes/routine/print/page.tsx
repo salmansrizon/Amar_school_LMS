@@ -8,6 +8,7 @@ import { PrintPage, InstituteHeader, QrFooterRow } from '@/components/print/piec
 import { PrintButton } from '@/components/print/print-button'
 import { loadInstitutePrintHeader } from '@/lib/institute-print'
 import { classCatalogueLabel } from '@/lib/class-catalogue'
+import { PrintPreflight } from '@/components/print/preflight'
 
 // Printable weekly routine (ADR 0007: browser-native print, composed from the
 // shared pieces). Landscape-ish grid fits portrait A4 at this density.
@@ -21,7 +22,36 @@ export default async function RoutinePrintPage({
   const { supabase } = await getSchoolContext()
 
   const { class: classId } = await searchParams
-  if (!classId) notFound()
+
+  // #532: this used to notFound() here, and a UAT pass read that as the route
+  // being broken — a routine exists as a feature, so `/routine/print` returning
+  // "page not found" says the wrong thing. What is missing is a choice, not a
+  // page, so offer the choice.
+  if (!classId) {
+    const { data: classes } = await supabase
+      .from('classes')
+      .select('id, name, section, group_department')
+      .order('created_at')
+    return (
+      <PrintPreflight
+        title={t('print.pickClassTitle', lang)}
+        explanation={t('print.pickClassHelp', lang)}
+      >
+        <ul className="mt-4 flex flex-wrap gap-2">
+          {(classes ?? []).map((c) => (
+            <li key={c.id}>
+              <Link
+                href={`/school/classes/routine/print?class=${c.id}`}
+                className="inline-flex rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted"
+              >
+                {classCatalogueLabel(c)}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </PrintPreflight>
+    )
+  }
 
   const [institute, { data: cls }, { data: slots }, { data: subjects }, { data: teachers }, { data: rooms }] =
     await Promise.all([
