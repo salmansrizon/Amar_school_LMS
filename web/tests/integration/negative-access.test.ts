@@ -137,6 +137,37 @@ describe('Negative access at the data layer (#542)', () => {
     })
   })
 
+  // The report's failure condition: "Revoked access remains usable through an open
+  // tab or cached response." Worth testing rather than assuming, because the two
+  // halves behave differently: the JWT stays valid until it expires — identity does
+  // not change when a grant does — but authorisation is re-read from
+  // staff_permissions on every request, by both RLS and the proxy. So a session
+  // that is minutes old should lose access the instant the grant goes, with no
+  // sign-out and no refresh.
+  describe('a revoked grant stops working on the session that already exists', () => {
+    it('loses the granted table the moment the grant is deleted', async () => {
+      const staff = await signedIn('office-staff@test.local', PASSWORD)
+      const { data: staffUser } = await staff.auth.getUser()
+      const staffId = staffUser.user!.id
+
+      // Rows must exist to begin with, or "sees nothing afterwards" proves nothing.
+      const before = await staff.from('fee_collection_records').select('id')
+      expect((before.data ?? []).length).toBeGreaterThan(0)
+
+      // Same client, same token, no re-authentication anywhere below.
+      await owner.from('staff_permissions').delete().eq('staff_user_id', staffId).eq('screen_key', 'fees')
+      const afterRevoke = await staff.from('fee_collection_records').select('id')
+      expect(afterRevoke.data ?? []).toEqual([])
+
+      // Restore, and prove the same session regains them just as immediately.
+      // Without this the test would also pass against a session that had simply
+      // broken, or a table that had been emptied.
+      await owner.from('staff_permissions').insert({ staff_user_id: staffId, screen_key: 'fees' })
+      const restored = await staff.from('fee_collection_records').select('id')
+      expect((restored.data ?? []).length).toBe((before.data ?? []).length)
+    })
+  })
+
   describe('anonymous callers', () => {
     it('read no students, no schools, no permissions', async () => {
       const anon = anonClient()
