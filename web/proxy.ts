@@ -5,6 +5,7 @@ import { canOpenScreen, isSchoolPath, screenFor, screenKeyForPath } from '@/lib/
 import { resolveHost, rootDomain } from '@/lib/auth/tenant-host'
 import { authCookieOptions } from '@/lib/auth/cookie-options'
 import { carrySession } from '@/lib/auth/carry-session'
+import { cspFor, cspHeaderName, isPrefetch } from '@/lib/auth/csp'
 import { isTenantPath, tenantRoute, type TenantSession } from '@/lib/auth/tenant-routing'
 import { firstRelation } from '@/lib/supabase/relation'
 
@@ -13,7 +14,34 @@ import { firstRelation } from '@/lib/supabase/relation'
 // no session → /login; wrong role group → own home; wrong subdomain → own
 // subdomain; unknown subdomain → branded "no such school".
 export async function proxy(request: NextRequest) {
-  let response = NextResponse.next({ request })
+  // CSP (#528). The nonce must reach the REQUEST headers, not only the response:
+  // Next parses the request-side Content-Security-Policy during SSR and stamps
+  // every inline script it emits — including the RSC flight chunks flushed after
+  // the shell. Response-only means unstamped bootstrap scripts, so the page
+  // renders and is then dead.
+  const nonce = crypto.randomUUID()
+  const csp = cspFor(nonce)
+  const skipCsp = isPrefetch(request.headers)
+
+  // Rebuilt at each call site rather than hoisted: the Supabase cookie setAll()
+  // below mutates request.cookies, and a Headers snapshot taken up here would
+  // forward the stale auth cookie and undo the refresh.
+  const fwd = () => {
+    const headers = new Headers(request.headers)
+    if (!skipCsp) {
+      headers.set('x-nonce', nonce)
+      headers.set('Content-Security-Policy', csp)
+    }
+    return { headers }
+  }
+
+  /** Attach the policy to a response that renders a document. */
+  const withCsp = (res: NextResponse) => {
+    if (!skipCsp) res.headers.set(cspHeaderName(), csp)
+    return res
+  }
+
+  let response = withCsp(NextResponse.next({ request: fwd() }))
   /** The no-store headers `@supabase/ssr` hands `setAll` when a refresh occurs,
    *  kept so `carry` can replay them verbatim onto a redirect. Empty when no
    *  refresh happened, which is the common case. */
@@ -33,7 +61,7 @@ export async function proxy(request: NextRequest) {
         getAll: () => request.cookies.getAll(),
         setAll: (toSet, headers) => {
           toSet.forEach(({ name, value }) => request.cookies.set(name, value))
-          response = NextResponse.next({ request })
+          response = withCsp(NextResponse.next({ request: fwd() }))
           toSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options))
           // A refresh writes Set-Cookie, and @supabase/ssr hands us the headers
           // that keep a CDN from caching that response and serving one user's
@@ -96,7 +124,7 @@ export async function proxy(request: NextRequest) {
   // Subdomain routing decision (apex vs tenant, wrong-subdomain bounce, unknown).
   const decision = tenantRoute({ host, path, session, schoolForHostId })
   if (decision.type === 'no-such-school') {
-    return carry(NextResponse.rewrite(new URL('/no-such-school', request.url)))
+    return carry(withCsp(NextResponse.rewrite(new URL('/no-such-school', request.url), { request: fwd() })))
   }
   if (decision.type === 'redirect-subdomain') {
     const target = new URL(request.url)
@@ -128,7 +156,7 @@ export async function proxy(request: NextRequest) {
   // — this is a manual super-admin switch, so the message is a suspension, not a
   // renewal prompt. Pages re-verify; this is the optimistic gate.
   if (isSchoolScopedRole(role) && schoolDeactivated) {
-    return carry(NextResponse.rewrite(new URL('/account-blocked', request.url)))
+    return carry(withCsp(NextResponse.rewrite(new URL('/account-blocked', request.url), { request: fwd() })))
   }
 
   const screen = screenKeyForPath(path)
