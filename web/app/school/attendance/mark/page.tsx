@@ -3,10 +3,10 @@ import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
-import { filterRoster } from '@/lib/attendance-manual'
+import { filterRoster, latestMark, type AttendanceMark } from '@/lib/attendance-manual'
 import { resolveClassSection } from '@/lib/class-catalogue'
 import { AttendanceTabs } from '../attendance-tabs'
-import { MarkAttendanceForm } from './mark-form'
+import { MarkAttendanceForm, type MarkedBy } from './mark-form'
 import { dateInputClass } from '@/components/ui/field'
 import { ClassSectionSelect } from '@/components/ui/class-section-select'
 
@@ -25,7 +25,7 @@ export default async function MarkAttendancePage({
 }) {
   const { classSection = '', date = todayIso() } = await searchParams
   const lang: Lang = await currentLang()
-  const { supabase } = await getSchoolContext()
+  const { supabase, userId } = await getSchoolContext()
 
   const [{ data: students }, { data: classes }] = await Promise.all([
     supabase
@@ -43,7 +43,7 @@ export default async function MarkAttendancePage({
     visibleIds.length
       ? supabase
           .from('attendance_records')
-          .select('person_id')
+          .select('person_id, marked_by, marked_at')
           .eq('person_type', 'student')
           .eq('att_date', date)
           .in('person_id', visibleIds)
@@ -51,12 +51,28 @@ export default async function MarkAttendancePage({
     visibleIds.length
       ? supabase
           .from('attendance_absence_notes')
-          .select('person_id, cause')
+          .select('person_id, cause, marked_by, marked_at')
           .eq('person_type', 'student')
           .eq('att_date', date)
           .in('person_id', visibleIds)
       : Promise.resolve({ data: [] as { person_id: string; cause: string | null }[] }),
   ])
+
+  // #540: "not yet taken" and "everyone present" render the same roster, so the
+  // page has to know which it is. A day is marked across BOTH tables — present
+  // students in attendance_records, absent ones in the notes — so the latest
+  // mark is the later of the two, and the absence of both means nobody has taken
+  // this register.
+  const latest = latestMark([...(records ?? []), ...(notes ?? [])] as AttendanceMark[])
+  // The marker's name is readable by the Owner (0001 lets an Owner read their
+  // school's profiles) and by the marker themselves. A Staff User looking at a
+  // colleague's mark gets the time without the name rather than an error.
+  const { data: marker } = latest?.marked_by
+    ? await supabase.from('profiles').select('full_name').eq('id', latest.marked_by).maybeSingle()
+    : { data: null }
+  const markedBy: MarkedBy | null = latest?.marked_at
+    ? { at: latest.marked_at, name: marker?.full_name ?? null, isSelf: latest.marked_by === userId }
+    : null
 
   const presentIds = new Set((records ?? []).map((r) => r.person_id))
   const causeByPerson = new Map((notes ?? []).map((n) => [n.person_id, n.cause ?? '']))
@@ -108,7 +124,7 @@ export default async function MarkAttendancePage({
           {t('attendance.none', lang)}
         </p>
       ) : (
-        <MarkAttendanceForm key={`${classSection}-${date}`} lang={lang} date={date} students={initial} />
+        <MarkAttendanceForm key={`${classSection}-${date}`} lang={lang} date={date} students={initial} markedBy={markedBy} />
       )}
     </div>
   )

@@ -229,3 +229,23 @@ export function attendancePercent(presentCount: number, absentWorkingDays: numbe
   if (total <= 0) return null
   return Math.round((presentCount / total) * 100)
 }
+
+/** A manual mark, from either table that records one (0170). */
+export interface AttendanceMark {
+  marked_by: string | null
+  marked_at: string | null
+}
+
+/** The most recent manual mark for a date, or null if nobody has taken it.
+ *
+ *  A day is marked across two tables — present students in attendance_records,
+ *  absent ones in attendance_absence_notes — so neither one alone answers "has
+ *  this register been taken". Null here is what lets the screen say "not taken
+ *  yet" instead of showing a roster that looks like everyone was present (#540).
+ *
+ *  Rows written by the RFID job carry no marked_at (nobody marked them), and
+ *  those are skipped rather than treated as the latest: the question this
+ *  answers is who last took the register by hand. */
+export function latestMark(marks: readonly AttendanceMark[]): AttendanceMark | null {
+  return marks.filter((m) => m.marked_at).sort((a, b) => (a.marked_at! < b.marked_at! ? 1 : -1))[0] ?? null
+}
