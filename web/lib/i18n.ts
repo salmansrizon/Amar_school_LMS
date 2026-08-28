@@ -476,6 +476,20 @@ const dict = {
     en: 'You do not have access to this screen. Contact your School Owner.',
   },
   'denied.back': { bn: 'ড্যাশবোর্ডে ফিরুন', en: 'Back to dashboard' },
+  // #538: refusal and failure are designed states. The destination is kept so
+  // the reader can tell the Owner which screen they need, and the reference is
+  // Next's error digest — the same string in the server log.
+  'denied.destination': { bn: 'যে পাতায় যেতে চেয়েছিলেন', en: 'You were trying to open' },
+  'denied.contact': { bn: 'স্কুল মালিকের সাথে যোগাযোগ', en: 'Contact school owner' },
+  'states.emptyAnnounce': { bn: 'এই তালিকায় কিছু নেই', en: 'This list is empty' },
+  'states.errorTitle': { bn: 'কিছু একটা ভুল হয়েছে', en: 'Something went wrong' },
+  'states.errorBody': {
+    bn: 'পাতাটি লোড করা যায়নি। আবার চেষ্টা করুন — সমস্যা থাকলে নিচের রেফারেন্স নম্বরটি জানান।',
+    en: 'This page could not be loaded. Try again — if it keeps happening, quote the reference below.',
+  },
+  'states.retry': { bn: 'আবার চেষ্টা করুন', en: 'Try again' },
+  'states.goHome': { bn: 'হোমে ফিরুন', en: 'Go home' },
+  'states.reference': { bn: 'রেফারেন্স', en: 'Reference' },
   'common.add': { bn: 'যোগ করুন', en: 'Add' },
   'locations.title': { bn: 'টেরিটরি ও লোকেশন', en: 'Territory & Locations' },
   'locations.tree': { bn: 'লোকেশন ট্রি', en: 'Location tree' },
@@ -2044,6 +2058,20 @@ const dict = {
   },
   'attendance.saveAttendance': { bn: 'হাজিরা সংরক্ষণ করুন', en: 'Save Attendance' },
   'attendance.saved': { bn: 'হাজিরা সংরক্ষিত হয়েছে', en: 'Attendance saved' },
+  // #540: a register that has never been marked must not look like a register
+  // where everyone was present. It is the same screen either way until it says so.
+  'attendance.notTaken': { bn: 'আজকের হাজিরা এখনো নেওয়া হয়নি', en: 'Attendance not taken yet' },
+  'attendance.notTakenHelp': {
+    bn: 'নিচের তালিকায় সবাইকে উপস্থিত ধরা হয়েছে — সংরক্ষণ করার আগে এটি কারও হাজিরা নয়।',
+    en: 'The list below starts with everyone present. Until you save, this is nobody’s attendance.',
+  },
+  'attendance.savedAt': { bn: 'সংরক্ষিত', en: 'Saved' },
+  'attendance.savedBy': { bn: 'সংরক্ষণ করেছেন', en: 'by' },
+  'attendance.savedByYou': { bn: 'আপনি', en: 'you' },
+  'attendance.unsaved': { bn: 'সংরক্ষণ করা হয়নি', en: 'Unsaved changes' },
+  'attendance.presentShort': { bn: 'উপস্থিত', en: 'Present' },
+  'attendance.absentShort': { bn: 'অনুপস্থিত', en: 'Absent' },
+  'attendance.causePlaceholder': { bn: 'অনুপস্থিতির কারণ', en: 'Reason for absence' },
   'attendance.pickClass': { bn: 'একটি শ্রেণি নির্বাচন করুন', en: 'Pick a class to load the roster' },
 
   'attendance.leaveTitle': { bn: 'ছুটি ব্যবস্থাপনা', en: 'Leave Management' },

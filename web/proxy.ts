@@ -179,7 +179,7 @@ export async function proxy(request: NextRequest) {
   // without a registry row is now unreachable rather than silently open, which
   // is the trade this makes on purpose.
   if (isSchoolPath(path) && !screen) {
-    return carry(NextResponse.redirect(new URL('/school/permission-denied', request.url)))
+    return carry(NextResponse.redirect(deniedUrl(request, path)))
   }
 
   // Staff Users: per-screen allow-list (issue #2) — server-enforced, not just
@@ -198,7 +198,7 @@ export async function proxy(request: NextRequest) {
             .then(({ data }) => (data ? [data.screen_key] : []))
         : []
     if (!canOpenScreen(role, grants, screen)) {
-      return carry(NextResponse.redirect(new URL('/school/permission-denied', request.url)))
+      return carry(NextResponse.redirect(deniedUrl(request, path)))
     }
   }
 
@@ -208,6 +208,15 @@ export async function proxy(request: NextRequest) {
 
 /** Supabase returns an embedded to-one relation as an object, but the typings
  *  widen it to an array — normalize either shape to the subdomain string. */
+// #538: a refused reader should be told which screen was refused, not just that
+// something was. The destination rides in `from`; the denied page validates it
+// through safeReturnPath before rendering it.
+function deniedUrl(request: NextRequest, path: string): URL {
+  const url = new URL('/school/permission-denied', request.url)
+  url.searchParams.set('from', path)
+  return url
+}
+
 function extractSubdomain(
   rel: { subdomain: string | null } | { subdomain: string | null }[] | null,
 ): string | null {
