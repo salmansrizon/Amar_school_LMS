@@ -1626,6 +1626,16 @@ const dict = {
   'students.class': { bn: 'শ্রেণি', en: 'Class' },
   'students.section': { bn: 'শাখা', en: 'Section' },
   'students.none': { bn: 'এখনো কোনো শিক্ষার্থী নেই', en: 'No students yet' },
+  // 0160/#525: an Employee with no class attachment reads no students at all.
+  // Without these the screen says "No students yet" in a school of hundreds.
+  'students.noClassAssigned': {
+    bn: 'আপনাকে এখনো কোনো শ্রেণিতে যুক্ত করা হয়নি',
+    en: 'You have not been assigned to a class yet',
+  },
+  'students.noClassAssignedHelp': {
+    bn: 'শ্রেণি শিক্ষক বা বিষয় শিক্ষক হিসেবে যুক্ত হলে আপনি শুধু সেই শ্রেণির শিক্ষার্থীদের দেখতে পাবেন। প্রতিষ্ঠান প্রধানের সাথে যোগাযোগ করুন।',
+    en: 'Once you are assigned as a class teacher or given a routine slot, you will see that class\'s students here. Contact your school owner to be assigned.',
+  },
   'students.listTitle': { bn: 'শিক্ষার্থী তালিকা', en: 'Students List' },
   'students.search': {
     bn: 'নাম, রোল বা অভিভাবক দিয়ে খুঁজুন',

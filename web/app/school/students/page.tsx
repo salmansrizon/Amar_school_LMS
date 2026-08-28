@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
+import { classScopeFor } from '@/lib/school/class-scope'
 import { filterStudents, behaviourAverages } from '@/lib/students'
 import { resolveClassSection } from '@/lib/class-catalogue'
 import { Badge } from '@/components/ui/badge'
@@ -39,7 +40,7 @@ export default async function StudentsPage({
 }) {
   const { q = '', classSection = '' } = await searchParams
   const lang: Lang = await currentLang()
-  const { supabase, role } = await getSchoolContext()
+  const { supabase, role, userId } = await getSchoolContext()
 
   const [{ data: students }, { data: ratings }, { data: classes }] = await Promise.all([
     supabase
@@ -56,6 +57,11 @@ export default async function StudentsPage({
   const { combos, className: klass, section } = resolveClassSection(classes ?? [], classSection)
   const visible = filterStudents(students ?? [], q, klass, section)
   const avgs = behaviourAverages(ratings ?? [])
+
+  // 0160 narrows this list to the caller's class attachment, so an Employee with
+  // no attachment gets nothing back. "No students yet" would be a lie in a school
+  // of hundreds — ask why the list is empty only when it actually is.
+  const scope = students?.length ? 'attached' : await classScopeFor(supabase, userId)
 
   return (
     <>
@@ -96,7 +102,14 @@ export default async function StudentsPage({
 
       <Card padded={!visible.length}>
         {!visible.length ? (
-          <p className="text-sm text-muted">{t('students.none', lang)}</p>
+          scope === 'none' ? (
+            <div className="space-y-1">
+              <p className="text-sm font-semibold">{t('students.noClassAssigned', lang)}</p>
+              <p className="text-sm text-muted">{t('students.noClassAssignedHelp', lang)}</p>
+            </div>
+          ) : (
+            <p className="text-sm text-muted">{t('students.none', lang)}</p>
+          )
         ) : (
           <Table>
             <TableHeader>
