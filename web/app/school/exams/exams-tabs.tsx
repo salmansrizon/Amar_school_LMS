@@ -5,12 +5,14 @@ import { t, type Lang, type MessageKey } from '@/lib/i18n'
 // (Accounting/Attendance/SMS/Institute/Notices): one horizontally-scrollable row
 // with an active-state underline. Replaces the inline header links the exams
 // pages used before.
+// No mark-sheet tab: a mark sheet is per student per exam, so it is reached from
+// an exam's student list (/school/exams/[id]/mark-sheet/[studentId]). The tab used
+// to point at the issue #25 POC, which printed hardcoded sample marks (#534).
 const TABS: { href: string; key: MessageKey }[] = [
   { href: '/school/exams', key: 'exams.title' },
   { href: '/school/exams/grading-schemes', key: 'grading.title' },
   { href: '/school/exams/combinations', key: 'combinations.title' },
   { href: '/school/exams/cocurricular-items', key: 'cocurricular.itemsTitle' },
-  { href: '/school/exams/mark-sheet-preview', key: 'markSheet.title' },
   { href: '/school/exams/result-inquiry', key: 'resultInquiry.title' },
 ]
 
