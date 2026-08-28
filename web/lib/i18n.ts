@@ -104,6 +104,13 @@ const dict = {
   'student.questionSubject': { bn: 'বিষয়', en: 'Subject' },
   'student.questionBody': { bn: 'প্রশ্ন', en: 'Your question' },
   'student.pickSubject': { bn: 'কোন বিষয়ে?', en: 'Which subject?' },
+  // #535: with no subjects assigned, the picker was a required <select> holding
+  // only a disabled placeholder — the child could not choose and so could not
+  // send. Say why, and let the question go to the class teacher instead.
+  'student.noSubjectsYet': {
+    bn: 'আপনার শ্রেণিতে এখনো কোনো বিষয় যুক্ত করা হয়নি — আপনার প্রশ্নটি শ্রেণি শিক্ষকের কাছে যাবে।',
+    en: 'No subjects have been added to your class yet — your question will go to your class teacher.',
+  },
   'student.send': { bn: 'পাঠাও', en: 'Send' },
   'student.noQuestions': { bn: 'তুমি এখনো কোনো প্রশ্ন করোনি।', en: 'You have not asked anything yet.' },
   'student.teacherReplied': { bn: 'শিক্ষকের উত্তর', en: 'Teacher’s reply' },

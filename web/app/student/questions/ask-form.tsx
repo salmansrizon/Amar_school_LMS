@@ -53,7 +53,17 @@ export function AskForm({
         })
       }}
     >
-      {!publicationId && subjects && (
+      {/* No subjects assigned: the picker used to render as a `required` select
+          holding only a disabled placeholder, so the child could not choose and
+          therefore could not send at all. Explain, and let the question through —
+          it routes to the class teacher exactly as an anchored one would (#535). */}
+      {!publicationId && subjects && subjects.length === 0 && (
+        <p className="rounded-sm border border-line bg-paper-muted p-2 text-xs text-muted">
+          {t('student.noSubjectsYet', lang)}
+        </p>
+      )}
+
+      {!publicationId && subjects && subjects.length > 0 && (
         <label className="text-xs font-semibold text-muted">
           <span className="mb-1 block">{t('student.pickSubject', lang)}</span>
           <select
