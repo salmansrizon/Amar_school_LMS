@@ -1,6 +1,6 @@
 import { test, expect } from '../fixtures/roles'
 import { expectNoError } from '../helpers'
-import { ownerClient, createClass, createStudent } from './factories'
+import { cleanupAll, ownerClient, createClass, createStudent } from './factories'
 
 // Deep CRUD for the Attendance module (map #329, ticket #362). Attendance is
 // mark (create) + correct (update) + persisted read — no separate delete. A
@@ -13,6 +13,11 @@ const SAVE = 'হাজিরা সংরক্ষণ করুন' // attendan
 const SAVED = 'হাজিরা সংরক্ষিত হয়েছে' // attendance.saved
 
 test.describe('@crud @school attendance-deep', () => {
+  // #541: drains whatever the factories built, pass or fail. The per-object
+  // cleanup() call at the end of a test body never runs when the test is the
+  // thing that failed, which is how 61 orphaned students accumulated.
+  test.afterEach(cleanupAll)
+
   test('mark → correct → persists on reload', async ({ ownerPage: page }) => {
     const owner = await ownerClient()
     const className = `E2E AttCls ${Date.now()}`

@@ -1,10 +1,15 @@
 import { test, expect } from '../fixtures/roles'
-import { ownerClient, createClass, createStudent } from './factories'
+import { cleanupAll, ownerClient, createClass, createStudent } from './factories'
 
 // Proves the deep-CRUD factory foundation (map #329, ticket #358): a class and a
 // student can be built + read back + cleaned up via the owner client, isolated
 // per run. The module specs (#359–#364) compose these.
 test.describe('@crud deep-crud factories', () => {
+  // #541: drains whatever the factories built, pass or fail. The per-object
+  // cleanup() call at the end of a test body never runs when the test is the
+  // thing that failed, which is how 61 orphaned students accumulated.
+  test.afterEach(cleanupAll)
+
   test('createClass + createStudent build, read back, and clean up', async () => {
     const owner = await ownerClient()
 
