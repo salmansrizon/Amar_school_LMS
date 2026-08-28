@@ -46,8 +46,12 @@ export function authCookieDomain(host: string | null | undefined): string | unde
  *  served over HTTPS and its session must still be `Secure`. */
 function isLoopbackHost(host: string | null | undefined): boolean {
   if (!host) return false
-  const h = host.trim().toLowerCase().split(':')[0]
-  return h === 'localhost' || h === '127.0.0.1' || h === '[::1]' || h === '::1' || h.endsWith('.localhost')
+  const raw = host.trim().toLowerCase()
+  // An IPv6 literal in a Host header is bracketed — `[::1]:3000` — so splitting
+  // on ':' the way the IPv4 path does truncates it to '[' and matches nothing.
+  const close = raw.startsWith('[') ? raw.indexOf(']') : -1
+  const h = close > 0 ? raw.slice(1, close) : raw.split(':')[0]
+  return h === 'localhost' || h === '127.0.0.1' || h === '::1' || h.endsWith('.localhost')
 }
 
 /** The `cookieOptions` every Supabase client passes.

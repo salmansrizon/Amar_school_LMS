@@ -64,6 +64,15 @@ describe('authCookieOptions', () => {
     expect(authCookieOptions('school.localhost:3000').secure).toBe(false)
   })
 
+  // An IPv6 Host header is bracketed, so the IPv4 `split(':')[0]` truncates it to
+  // '[' and every comparison fails. A dev on http://[::1]:3000 then gets a Secure
+  // cookie the browser refuses to store, and cannot log in at all.
+  it('recognises bracketed IPv6 loopback', () => {
+    process.env.NEXT_PUBLIC_ROOT_DOMAIN = 'edumebd.com'
+    expect(authCookieOptions('[::1]:3000').secure).toBe(false)
+    expect(authCookieOptions('[::1]').secure).toBe(false)
+  })
+
   it('pins SameSite rather than inheriting it from the library default', () => {
     process.env.NEXT_PUBLIC_ROOT_DOMAIN = 'edumebd.com'
     expect(authCookieOptions('edumebd.com').sameSite).toBe('lax')

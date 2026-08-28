@@ -14,6 +14,12 @@ export async function createClient() {
       cookieOptions,
       cookies: {
         getAll: () => cookieStore.getAll(),
+        // One-argument on purpose, unlike proxy.ts's. @supabase/ssr also hands
+        // `setAll` the no-store headers a refresh needs, but `next/headers`
+        // exposes a cookie store and no response, so there is nothing here to set
+        // them on. A refresh that happens inside a Route Handler or Server Action
+        // therefore still emits Set-Cookie without them — #545 could not close
+        // that half, and #527 owns it along with the rest of the session move.
         setAll: (toSet) => {
           try {
             toSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
