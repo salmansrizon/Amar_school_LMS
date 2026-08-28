@@ -22,6 +22,11 @@ describe('cspFor', () => {
   it('allows inline style ATTRIBUTES without loosening inline style ELEMENTS', () => {
     expect(directive(csp, 'style-src-attr')).toBe("style-src-attr 'unsafe-inline'")
     expect(directive(csp, 'style-src')).not.toContain('unsafe-inline')
+    // sonner appends its stylesheet as a <style> element at import time and takes
+    // no nonce, so it is allowed by hash instead — the only two violations the
+    // whole app produced under CSP_MODE=enforce. A hash is not 'unsafe-inline':
+    // it authorises exactly one byte-for-byte sheet.
+    expect(directive(csp, 'style-src')).toContain("'sha256-StEaX+se6YS7pqjzrzMIA0KaX9zF/8zAhvQXZAe5epY='")
   })
 
   // Trap 2. Twelve /api/* routes 302 to a signed Supabase Storage URL and CSP
