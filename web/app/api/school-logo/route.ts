@@ -1,7 +1,4 @@
-import type { SupabaseClient } from '@supabase/supabase-js'
-import { signedObjectRoute } from '@/lib/storage/signed-object'
-import { requireSchoolMember } from '@/lib/auth/require-role'
-import { isStudent } from '@/lib/student/guard'
+import { signedObjectRoute, memberOrStudent } from '@/lib/storage/signed-object'
 
 // Supabase storage client needs Node APIs.
 export const runtime = 'nodejs'
@@ -14,9 +11,6 @@ export const runtime = 'nodejs'
 // mark sheet, admit card), and `schools` is readable to them through their own
 // policy — so the guard is member-or-student. Without this the logo 403s and
 // every student print loses its letterhead.
-const memberOrStudent = async (client: SupabaseClient) =>
-  (await requireSchoolMember(client)) || (await isStudent(client))
-
 export const GET = signedObjectRoute(
   () => ({
     bucket: 'school-logos',

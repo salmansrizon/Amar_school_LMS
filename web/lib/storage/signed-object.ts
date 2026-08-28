@@ -2,6 +2,7 @@ import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { requireSchoolMember } from '@/lib/auth/require-role'
+import { isStudent } from '@/lib/student/guard'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 // The one seam behind every "open a private file" route (student photo, gallery
@@ -51,6 +52,12 @@ export type SignedObjectGuard = (client: SupabaseClient) => Promise<boolean>
  *
  * The route file still sets `export const runtime = 'nodejs'` (storage needs it).
  */
+/** School Owner, Staff User — or a Student. For objects that belong to the
+ *  School rather than to one person, and that both audiences legitimately open:
+ *  the logo on a printed header is the same logo whoever prints it. */
+export const memberOrStudent: SignedObjectGuard = async (client) =>
+  (await requireSchoolMember(client)) || (await isStudent(client))
+
 export function signedObjectRoute(
   resolve: SpecResolver,
   guard: SignedObjectGuard = requireSchoolMember,

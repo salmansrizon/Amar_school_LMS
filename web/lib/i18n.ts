@@ -235,6 +235,11 @@ const dict = {
   'student.noFileChosen': { bn: 'কোনো ফাইল বাছাই করা হয়নি', en: 'No file chosen' },
   'student.myPhoto': { bn: 'আমার ছবি', en: 'My photo' },
   'student.dueOn': { bn: 'জমা দেওয়ার তারিখ', en: 'Due' },
+  'student.handedIn': { bn: 'জমা দেওয়া হয়েছে', en: 'Handed in' },
+  'student.noQuestionsHint': {
+    bn: 'উপরের ফর্মে, বা যেকোনো নোটিশ বা কাজের পাতা থেকে প্রশ্ন করতে পারো।',
+    en: 'Ask from the form above, or from any notice or task page.',
+  },
   'shell.skipToContent': { bn: 'মূল অংশে যাও', en: 'Skip to content' },
   'notFound.title': { bn: 'পাতাটি পাওয়া যায়নি', en: 'Page not found' },
   'notFound.body': {
@@ -2328,4 +2333,16 @@ export type MessageKey = keyof typeof dict
 
 export function t(key: MessageKey, lang: Lang): string {
   return dict[key][lang]
+}
+
+/** The BCP-47 locale for a language. One place, because the ternary was spelled
+ *  out at every call site and one of them drifted: the printed fee statement
+ *  kept Latin amounts beside Bangla months. */
+export function localeOf(lang: Lang): string {
+  return lang === 'bn' ? 'bn-BD' : 'en-GB'
+}
+
+/** Numbers in the reader's own digits — ৳৬০০, not ৳600. */
+export function numberFmt(lang: Lang, options?: Intl.NumberFormatOptions): Intl.NumberFormat {
+  return new Intl.NumberFormat(localeOf(lang), options)
 }

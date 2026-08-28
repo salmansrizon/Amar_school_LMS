@@ -1,5 +1,5 @@
 import { currentLang } from '@/lib/i18n-server'
-import { t } from '@/lib/i18n'
+import { t, numberFmt } from '@/lib/i18n'
 import { getStudentContext } from '@/lib/student/context'
 import { loadInstitutePrintHeader } from '@/lib/institute-print'
 import { sortFees, totalFees, monthLabel, payableOf, type FeeRecord } from '@/lib/student/fees'
@@ -22,7 +22,9 @@ export default async function StudentFeeStatementPage() {
 
   const records = sortFees((data ?? []) as FeeRecord[])
   const totals = totalFees(records)
-  const money = (n: number) => new Intl.NumberFormat('en-GB', { maximumFractionDigits: 2 }).format(n)
+  // The reader's own digits, same as the screen — a Bangla month beside a
+  // Latin amount was two number systems in one row.
+  const money = (n: number) => numberFmt(lang, { maximumFractionDigits: 2 }).format(n)
 
   return (
     <PrintPage>

@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { canAccess, homeFor, isProtectedPath, isSchoolScopedRole, type Role } from '@/lib/auth/routing'
 import { canOpenScreen, screenKeyForPath } from '@/lib/auth/screens'
 import { resolveHost, rootDomain } from '@/lib/auth/tenant-host'
-import { authCookieDomain } from '@/lib/auth/cookie-domain'
+import { authCookieOptions } from '@/lib/auth/cookie-options'
 import { isTenantPath, tenantRoute, type TenantSession } from '@/lib/auth/tenant-routing'
 import { firstRelation } from '@/lib/supabase/relation'
 
@@ -14,16 +14,16 @@ import { firstRelation } from '@/lib/supabase/relation'
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request })
 
-  // Root-domain cookie scope (see lib/auth/cookie-domain.ts): the refresh this
+  // Root-domain cookie scope (see lib/auth/cookie-options.ts): the refresh this
   // proxy performs must not re-write the session as host-only, or the very
   // bounce below would drop it again.
-  const cookieDomain = authCookieDomain(request.headers.get('host'))
+  const cookieOptions = authCookieOptions(request.headers.get('host'))
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
-      ...(cookieDomain ? { cookieOptions: { domain: cookieDomain } } : {}),
+      cookieOptions,
       cookies: {
         getAll: () => request.cookies.getAll(),
         setAll: (toSet) => {

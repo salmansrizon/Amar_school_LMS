@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
-import { t, type Lang, type MessageKey } from '@/lib/i18n'
+import { t, localeOf, numberFmt, type Lang, type MessageKey } from '@/lib/i18n'
 import { getStudentContext, isReadOnly } from '@/lib/student/context'
 import { loadStudentTasks } from '@/lib/student/tasks-read'
 import { splitTasks, type StudentTask, type TaskBucket } from '@/lib/student/tasks'
@@ -19,7 +19,7 @@ const SECTIONS: { bucket: TaskBucket; titleKey: MessageKey; tone: string }[] = [
 ]
 
 function TaskRow({ task, lang, readOnly }: { task: StudentTask; lang: Lang; readOnly: boolean }) {
-  const locale = lang === 'bn' ? 'bn-BD' : 'en-GB'
+  const locale = localeOf(lang)
   return (
     <li className="flex items-start justify-between gap-3 py-3">
       <span className="min-w-0">
@@ -38,7 +38,7 @@ function TaskRow({ task, lang, readOnly }: { task: StudentTask; lang: Lang; read
           )}
           {task.submitted && (
             <span className="rounded-full bg-mint-soft px-2 py-0.5 text-[11px] font-semibold text-mint-deep">
-              {t('student.mySubmissions', lang)}
+              {t('student.handedIn', lang)}
             </span>
           )}
         </span>
@@ -71,10 +71,7 @@ export default async function StudentTasksPage() {
           {SECTIONS.filter((s) => buckets[s.bucket].length > 0).map((s) => (
             <section key={s.bucket} className="rounded-lg border border-line bg-paper p-5">
               <h2 className={`mb-2 text-sm font-bold ${s.tone}`}>
-                {t(s.titleKey, lang)} ·{' '}
-                {new Intl.NumberFormat(lang === 'bn' ? 'bn-BD' : 'en-GB').format(
-                  buckets[s.bucket].length,
-                )}
+                {t(s.titleKey, lang)} · {numberFmt(lang).format(buckets[s.bucket].length)}
               </h2>
               <ul className="divide-y divide-line">
                 {buckets[s.bucket].map((task) => (

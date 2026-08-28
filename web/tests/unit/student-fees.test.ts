@@ -30,7 +30,7 @@ describe('totalFees', () => {
         rec({ id: 'a', pay_amount: 1000, fine_amount: 50, due_amount: 200 }),
         rec({ id: 'b', pay_amount: 500, fine_amount: 0, due_amount: 700 }),
       ]),
-    ).toEqual({ payable: 2450, paid: 1500, fine: 50, due: 900 })
+    ).toEqual({ payable: 2400, paid: 1500, fine: 50, due: 900 })
   })
 
   it('is zeroed for an empty record set, not NaN', () => {
@@ -43,9 +43,16 @@ describe('totalFees', () => {
   })
 
   it('derives payable from the record, never from the list price (ADR 0015)', () => {
-    // paid + fine + still-owed is already net of any waiver, so it cannot be
+    // paid + still-owed is already net of any waiver, so it cannot be
     // subtracted from a fee_structures figure to reveal one.
-    expect(payableOf(rec({ id: 'a', pay_amount: 600, fine_amount: 50, due_amount: 400 }))).toBe(1050)
+    expect(payableOf(rec({ id: 'a', pay_amount: 600, due_amount: 400 }))).toBe(1000)
+  })
+
+  it('does not bill the fine twice — due already contains it', () => {
+    // Staff side: totalPayable = fee + fine - adjust, due = totalPayable - pay.
+    // So a 1,000 fee with a 50 fine and 600 paid leaves due 450, and the month
+    // asked for 1,050 — not 1,100.
+    expect(payableOf(rec({ id: 'a', pay_amount: 600, fine_amount: 50, due_amount: 450 }))).toBe(1050)
   })
 })
 

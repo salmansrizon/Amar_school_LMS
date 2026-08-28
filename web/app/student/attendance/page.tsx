@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
-import { t } from '@/lib/i18n'
+import { t, localeOf, numberFmt } from '@/lib/i18n'
 import { getStudentContext } from '@/lib/student/context'
 import { schoolToday } from '@/lib/school-time'
 import { monthGrid, monthLeadIn, monthRange, shiftMonth, attendancePercent } from '@/lib/student/attendance'
@@ -57,14 +57,14 @@ export default async function StudentAttendancePage({
 
   const prev = shiftMonth(year, month, -1)
   const next = shiftMonth(year, month, 1)
-  const locale = lang === 'bn' ? 'bn-BD' : 'en-GB'
+  const locale = localeOf(lang)
   const monthLabel = new Date(Date.UTC(year, month - 1, 1)).toLocaleDateString(locale, {
     month: 'long',
     year: 'numeric',
     timeZone: 'UTC',
   })
 
-  const num = new Intl.NumberFormat(locale, { useGrouping: false })
+  const num = numberFmt(lang, { useGrouping: false })
   // Sunday-start, to match the routine's রবি … বৃহঃ week. 2026-02-01 is a
   // Sunday and is only ever used to name the seven weekdays.
   const A_SUNDAY = Date.UTC(2026, 1, 1)

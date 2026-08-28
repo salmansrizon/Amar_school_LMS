@@ -17,7 +17,7 @@ export function LangSwitch({ lang }: { lang: Lang }) {
     <button
       type="button"
       onClick={() => set(value)}
-      className={`px-3 py-1 text-xs cursor-pointer ${
+      className={`min-h-11 px-3 py-1 text-xs cursor-pointer sm:min-h-8 ${
         lang === value ? 'bg-brand-500 text-white' : 'bg-paper text-muted'
       }`}
     >

@@ -25,7 +25,7 @@ export async function requestLeave(formData: FormData): Promise<{ error?: string
   const toDay = String(formData.get('to_day') ?? '')
   const reason = String(formData.get('reason') ?? '').trim() || null
 
-  if (!fromDay || !toDay) return { error: 'required' satisfies LeaveError }
+  if (!fromDay || !toDay || !reason) return { error: 'required' satisfies LeaveError }
   if (toDay < fromDay) return { error: 'order' satisfies LeaveError }
   // Leave is permission to miss school, so it cannot be asked for backwards.
   // Same Asia/Dhaka "today" the rest of the portal uses.
@@ -37,6 +37,12 @@ export async function requestLeave(formData: FormData): Promise<{ error?: string
   // twice with two taps, and the Owner's queue filled with duplicates nobody
   // could tell apart. Overlap, not equality: two requests covering the same
   // Tuesday are the same question asked twice.
+  //
+  // ponytail: check-then-insert, so two truly simultaneous submits can still
+  // both land. Closing that needs an exclusion constraint on
+  // (student_id, daterange(from_day, to_day)) with btree_gist, which cannot be
+  // added to a shared database that already holds overlapping rows without
+  // reconciling them first. Add it if duplicates show up in the Owner's queue.
   const { data: clashes } = await supabase
     .from('student_leaves')
     .select('id')

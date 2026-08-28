@@ -49,6 +49,12 @@ end $$;
 -- Retire the reminders already published. They are billing messages sitting in
 -- every student's notice list right now; the Owner's inbox notification carries
 -- the same content, so nothing is lost by removing them.
+--
+-- Matched on the body the sweep writes, not on the title alone: this runs on a
+-- database two branches and every tenant share, and a school that happens to
+-- title its own notice "Subscription expiring soon" must keep it.
 delete from public.publications
  where kind = 'notice'
-   and title = 'Subscription expiring soon';
+   and title = 'Subscription expiring soon'
+   and content like '%subscription expires on%'
+   and content like '%Please renew to avoid interruption.%';

@@ -1,5 +1,5 @@
 import { describe, expect, it, afterEach } from 'vitest'
-import { authCookieDomain } from '@/lib/auth/cookie-domain'
+import { AUTH_COOKIE_NAME, authCookieDomain, authCookieOptions } from '@/lib/auth/cookie-options'
 
 const ROOT = process.env.NEXT_PUBLIC_ROOT_DOMAIN
 
@@ -26,5 +26,18 @@ describe('authCookieDomain', () => {
   it('is a no-op in local dev, where there is no dotted root', () => {
     process.env.NEXT_PUBLIC_ROOT_DOMAIN = 'localhost:3000'
     expect(authCookieDomain('localhost:3000')).toBeUndefined()
+  })
+})
+
+describe('authCookieOptions', () => {
+  it('always renames the cookie, so a stale host-only session cannot shadow it', () => {
+    process.env.NEXT_PUBLIC_ROOT_DOMAIN = 'edumebd.com'
+    expect(authCookieOptions('adarshamodelschool.edumebd.com')).toEqual({
+      name: AUTH_COOKIE_NAME,
+      domain: '.edumebd.com',
+    })
+    // Local dev keeps the name but never sets a domain.
+    process.env.NEXT_PUBLIC_ROOT_DOMAIN = 'localhost:3000'
+    expect(authCookieOptions('localhost:3000')).toEqual({ name: AUTH_COOKIE_NAME })
   })
 })

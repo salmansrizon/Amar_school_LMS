@@ -26,13 +26,21 @@ export function sortFees(records: FeeRecord[]): FeeRecord[] {
   return [...records].sort((a, b) => b.year - a.year || b.month - a.month)
 }
 
-/** What the month actually asked of this family: what was paid, plus the fine,
- *  plus whatever is still outstanding. Derived here rather than read from
- *  fee_structures, which ADR 0015 keeps closed — the list price is what would
- *  betray a waiver by subtraction, and this figure is already net of it. Without
- *  it the statement showed "৳600 paid" with nothing to compare it against. */
+/** What the month actually asked of this family: what was paid, plus whatever is
+ *  still outstanding.
+ *
+ *  The fine is NOT added on top. The staff side defines the bill as
+ *  `totalPayable = fee + fine - adjust` and `due = totalPayable - pay`
+ *  (lib/fees.ts), so `pay + due` already reconstitutes it, fine included —
+ *  adding fine_amount again would bill the family for it twice and print a
+ *  figure the school never issued.
+ *
+ *  Derived here rather than read from fee_structures, which ADR 0015 keeps
+ *  closed: the list price is what would betray a waiver by subtraction, and
+ *  this figure is already net of it. Without it the statement showed "৳600
+ *  paid" with nothing to compare it against. */
 export function payableOf(r: FeeRecord): number {
-  return Number(r.pay_amount ?? 0) + Number(r.fine_amount ?? 0) + Number(r.due_amount ?? 0)
+  return Number(r.pay_amount ?? 0) + Number(r.due_amount ?? 0)
 }
 
 export interface FeeTotals {
@@ -46,6 +54,7 @@ export function totalFees(records: FeeRecord[]): FeeTotals {
   return records.reduce<FeeTotals>(
     (sum, r) => ({
       payable: sum.payable + payableOf(r),
+      // paid/fine/due stay as the record states them; only payable is derived.
       paid: sum.paid + Number(r.pay_amount ?? 0),
       fine: sum.fine + Number(r.fine_amount ?? 0),
       due: sum.due + Number(r.due_amount ?? 0),

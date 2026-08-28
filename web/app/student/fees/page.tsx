@@ -1,5 +1,5 @@
 import { currentLang } from '@/lib/i18n-server'
-import { t } from '@/lib/i18n'
+import { t, numberFmt } from '@/lib/i18n'
 import { getStudentContext } from '@/lib/student/context'
 import { sortFees, totalFees, monthLabel, payableOf, type FeeRecord } from '@/lib/student/fees'
 import { PrintTrigger } from '@/components/print/print-trigger'
@@ -23,10 +23,7 @@ export default async function StudentFeesPage() {
   const records = sortFees((data ?? []) as FeeRecord[])
   const totals = totalFees(records)
 
-  const money = (n: number) =>
-    new Intl.NumberFormat(lang === 'bn' ? 'bn-BD' : 'en-GB', {
-      maximumFractionDigits: 2,
-    }).format(n)
+  const money = (n: number) => numberFmt(lang, { maximumFractionDigits: 2 }).format(n)
 
   return (
     <main className="w-full max-w-3xl p-6">

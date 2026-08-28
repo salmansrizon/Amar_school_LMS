@@ -81,6 +81,7 @@ export function LeaveRequestForm({
             enough room to write one. */}
         <textarea
           name="reason"
+          required
           rows={2}
           className="w-full rounded-sm border border-line-strong bg-paper px-2 py-1.5 text-sm"
         />

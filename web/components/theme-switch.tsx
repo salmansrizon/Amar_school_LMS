@@ -76,7 +76,7 @@ export function ThemeSwitch({ preference, lang }: { preference: ThemePreference;
             aria-label={label}
             title={label}
             onClick={() => set(option.value)}
-            className={`cursor-pointer px-2.5 py-1 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 ${
+            className={`min-h-11 cursor-pointer px-2.5 py-1 transition sm:min-h-8 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 ${
               active ? 'bg-brand-500 text-white' : 'bg-paper text-muted hover:text-ink'
             }`}
           >

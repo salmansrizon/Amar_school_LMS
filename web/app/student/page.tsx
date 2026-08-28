@@ -1,5 +1,5 @@
 import { currentLang } from '@/lib/i18n-server'
-import { t } from '@/lib/i18n'
+import { t, localeOf, numberFmt } from '@/lib/i18n'
 import { getStudentContext, isReadOnly } from '@/lib/student/context'
 import { loadStudentRoutine } from '@/lib/student/routine-source'
 import { todayAndTomorrow } from '@/lib/student/routine'
@@ -10,7 +10,7 @@ import { nextPaper, type ExamRoutineRow } from '@/lib/student/exam-schedule'
 import { splitTasks, pendingCount } from '@/lib/student/tasks'
 import Link from 'next/link'
 import { DayPlanCard } from './day-plan'
-import { LatestNotices, FeesDue } from './home-extras'
+import { LatestNotices, FeesDue } from './home-cards'
 import { sortFees, totalFees, type FeeRecord } from '@/lib/student/fees'
 import { pageTitle } from '@/lib/student/metadata'
 
@@ -47,8 +47,10 @@ export default async function StudentHome() {
   const pending = pendingCount(splitTasks(tasks, new Date()))
   const [todayPlan, tomorrowPlan] = todayAndTomorrow(today, rows, offDays)
   const feeTotals = totalFees(sortFees((feeRows.data ?? []) as FeeRecord[]))
-  const locale = lang === 'bn' ? 'bn-BD' : 'en-GB'
-  const money = (n: number) => new Intl.NumberFormat(locale, { maximumFractionDigits: 2 }).format(n)
+  const locale = localeOf(lang)
+  // One formatter for every figure on this screen: counts, a roll number and
+  // taka all want the reader's digits, and only one of them is money.
+  const num = (n: number) => numberFmt(lang, { maximumFractionDigits: 2 }).format(n)
 
   const facts = [
     { label: t('student.home.studentNo', lang), value: student.student_no ?? '—' },
@@ -58,7 +60,7 @@ export default async function StudentHome() {
     },
     {
       label: t('student.home.roll', lang),
-      value: student.roll_number !== null ? money(student.roll_number) : '—',
+      value: student.roll_number !== null ? num(student.roll_number) : '—',
     },
   ]
 
@@ -80,7 +82,7 @@ export default async function StudentHome() {
           href="/student/tasks"
           className="mb-4 mr-2 inline-flex items-center gap-2 rounded-full border border-sun bg-sun-soft px-4 py-1.5 text-sm font-semibold text-sun-deep hover:brightness-95"
         >
-          <span className="rounded-full bg-sun-deep px-2 text-xs text-white">{money(pending)}</span>
+          <span className="rounded-full bg-sun-deep px-2 text-xs text-white">{num(pending)}</span>
           {t('student.pendingCount', lang)}
         </Link>
       )}
@@ -90,7 +92,7 @@ export default async function StudentHome() {
           href="/student/notices"
           className="mb-4 inline-flex items-center gap-2 rounded-full border border-brand-300 bg-brand-50 px-4 py-1.5 text-sm font-semibold text-brand-700 hover:bg-brand-100"
         >
-          <span className="rounded-full bg-brand-500 px-2 text-xs text-white">{money(feed.unread.size)}</span>
+          <span className="rounded-full bg-brand-500 px-2 text-xs text-white">{num(feed.unread.size)}</span>
           {t('student.newCount', lang)}
         </Link>
       )}
@@ -130,7 +132,7 @@ export default async function StudentHome() {
         <DayPlanCard plan={todayPlan} title={t('student.today', lang)} lang={lang} />
         <DayPlanCard plan={tomorrowPlan} title={t('student.tomorrow', lang)} lang={lang} />
         <LatestNotices notices={feed.notices} unread={feed.unread} lang={lang} locale={locale} />
-        <FeesDue due={feeTotals.due} lang={lang} money={money} />
+        <FeesDue due={feeTotals.due} lang={lang} money={num} />
       </div>
     </main>
   )

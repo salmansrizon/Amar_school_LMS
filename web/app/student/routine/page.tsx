@@ -40,8 +40,50 @@ export default async function StudentRoutinePage() {
           {t('student.noRoutine', lang)}
         </p>
       ) : (
-        // Scrolls sideways on a phone rather than crushing five columns.
-        <div className="overflow-x-auto rounded-lg border border-line bg-paper">
+        <>
+        {/* One card per day below sm. A weekly grid on a 390px screen was a
+            595px table inside a 340px scroller: readable only by dragging, and
+            never showing a whole day at once. */}
+        <div className="space-y-3 sm:hidden">
+          {week.map((d) => (
+            <section
+              key={d.day}
+              className={`rounded-lg border bg-paper p-4 ${
+                d.day === todayColumn ? 'border-brand-300 bg-brand-50/40' : 'border-line'
+              }`}
+            >
+              <h2 className="mb-2 text-sm font-bold">
+                {dayLabel(d.day, lang)}
+                {d.day === todayColumn && (
+                  <span className="ml-2 rounded-full bg-brand-500 px-2 py-0.5 text-[11px] font-semibold text-white">
+                    {t('student.today', lang)}
+                  </span>
+                )}
+              </h2>
+              {!d.periods.length ? (
+                <p className="text-xs text-muted">—</p>
+              ) : (
+                <ul className="divide-y divide-line">
+                  {d.periods.map((slot) => (
+                    <li key={slot.period} className="flex gap-3 py-2">
+                      <span className="w-5 shrink-0 text-sm font-semibold text-brand-700">
+                        {slot.period}
+                      </span>
+                      <span className="min-w-0">
+                        <span className="block text-sm font-medium">{slot.subject_name ?? '—'}</span>
+                        <span className="block text-xs text-muted">
+                          {[slot.teacher_name, slot.room_name].filter(Boolean).join(' · ')}
+                        </span>
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          ))}
+        </div>
+
+        <div className="hidden overflow-x-auto rounded-lg border border-line bg-paper sm:block">
           <table className="w-full min-w-[36rem] border-collapse">
             <thead>
               <tr className="border-b border-line-strong">
@@ -92,6 +134,7 @@ export default async function StudentRoutinePage() {
             </tbody>
           </table>
         </div>
+        </>
       )}
     </main>
   )
