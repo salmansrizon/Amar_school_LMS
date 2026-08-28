@@ -5,6 +5,7 @@ import { canOpenScreen, isSchoolPath, screenFor, screenKeyForPath } from '@/lib/
 import { resolveHost, rootDomain } from '@/lib/auth/tenant-host'
 import { authCookieOptions } from '@/lib/auth/cookie-options'
 import { carrySession } from '@/lib/auth/carry-session'
+import { expireLegacySessionCookie } from '@/lib/auth/legacy-cookie'
 import { cspFor, cspHeaderName, isPrefetch } from '@/lib/auth/csp'
 import { isTenantPath, tenantRoute, type TenantSession } from '@/lib/auth/tenant-routing'
 import { firstRelation } from '@/lib/supabase/relation'
@@ -76,7 +77,14 @@ export async function proxy(request: NextRequest) {
 
   // Every redirect/rewrite below builds a new response, so a session refreshed
   // above has to be moved onto it or it is lost (#545). See carry-session.ts.
-  const carry = (next: NextResponse) => carrySession(response, refreshHeaders, next)
+  const carry = (next: NextResponse) => {
+    const carried = carrySession(response, refreshHeaders, next)
+    // #545: the cookie this app used before the edume-auth rename is unreachable
+    // by signOut, so it would otherwise sit in the browser with its token material
+    // for the library's 400-day default. Fires only when it is actually present.
+    expireLegacySessionCookie(request, carried)
+    return carried
+  }
 
   // Always call getUser() so expired sessions refresh on any matched route.
   const {
@@ -134,7 +142,10 @@ export async function proxy(request: NextRequest) {
   }
 
   // Below here: the existing role-group + staff-permission gate for protected paths.
-  if (!isProtectedPath(path)) return response
+  if (!isProtectedPath(path)) {
+    expireLegacySessionCookie(request, response)
+    return response
+  }
 
   if (!user) {
     return carry(NextResponse.redirect(new URL('/login', request.url)))
@@ -191,6 +202,7 @@ export async function proxy(request: NextRequest) {
     }
   }
 
+  expireLegacySessionCookie(request, response)
   return response
 }
 
