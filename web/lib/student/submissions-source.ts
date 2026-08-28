@@ -61,7 +61,7 @@ export async function recordSubmission(input: {
  *  decides whether this Student may withdraw it at all — and the object follows
  *  through the Storage API. 0142 deleted the object from an `after delete`
  *  trigger instead, which the platform rejects ("Direct deletion from storage
- *  tables is not allowed"), taking the row delete down with it; 0155 drops that
+ *  tables is not allowed"), taking the row delete down with it; 0157 drops that
  *  trigger. A failed object removal leaves an orphan the Student still owns and
  *  can overwrite, which is strictly better than a withdrawal that cannot
  *  happen. */

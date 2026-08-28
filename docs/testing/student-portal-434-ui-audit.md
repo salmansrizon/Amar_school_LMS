@@ -128,7 +128,7 @@ than quietly dropped:
   does not know its subject. Showing one needs a schema change and a change to
   the staff-side compose form; out of scope for a UI fix. Due date and
   handed-in state landed.
-- **0156's cleanup delete** — the migration retires the billing notices already
+- **0158's cleanup delete** — the migration retires the billing notices already
   published, but that one statement could not be run from this session (the
   sandbox refuses row deletes). The RPC no longer writes new ones; apply the
   migration to clear the rows already out there.

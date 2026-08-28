@@ -68,7 +68,7 @@ export async function requestLeave(formData: FormData): Promise<{ error?: string
   return {}
 }
 
-/** Taking a request back while it is still only a request (0157).
+/** Taking a request back while it is still only a request (0159).
  *
  *  RLS is the authority on "still pending" — a decided request returns zero
  *  rows here rather than being deleted. */
