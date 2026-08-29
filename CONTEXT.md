@@ -44,6 +44,14 @@ _Avoid_: Ticket, job, activity, visit
 The single netted statement of what the platform owes a Distributor for one period, and the payment that clears it. Builds up from commission per source invoice, minus Discount Agreement shares, minus the Distributor's own unpaid invoices (SMS packs, code batches, Certification fees), adjusted by task completion, plus any recoveries from earlier periods. One per Distributor per period. A negative net is carried forward, not written off.
 _Avoid_: Payout, remittance, commission payment (each names only one part of it)
 
+**Payment Intent**:
+The server-created request to collect one invoice amount through a configured payment provider. It is not a payment or ledger entry until the provider result is verified and the existing payment confirmation flow succeeds.
+_Avoid_: Checkout, transaction (both can mean the provider event or the accounting record)
+
+**Payment Provider Event**:
+An append-only notification received from a payment provider, deduplicated by provider event identity and linked to a Payment Intent when known. Its stored payload is redacted operational evidence, not the accounting truth.
+_Avoid_: Callback payment, webhook payment
+
 **Territory**:
 A geographic area (built from the legacy 4-level `location` hierarchy: Zone/Division → District → Upozilla → Union) assigned to a Distributor or Government Official, defining which Schools they can sell to / oversee. A Distributor or Government Official can hold **multiple** Territory assignments at once (e.g. two separate Unions) — assignment is a list, not a single field. "Extended School access" (an individual out-of-territory School grant) is not a separate mechanism: it's the same kind of assignment, just pointing at one School instead of a location node — but it must be visually flagged as such wherever that School appears in the assignee's Schools list (e.g. an "Extended access" badge), so it's never indistinguishable from a normal in-territory School.
 _Avoid_: Area, region, zone (unless referring to a specific level in the location hierarchy)
