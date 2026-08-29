@@ -19,6 +19,12 @@ describe('Readiness decision framework (#554)', () => {
     const result = await superClient.rpc('tax_treatment_resolve', { p_supply_type: 'subscription' })
     expect(result.error).toBeNull()
     expect(result.data?.[0]).toMatchObject({ status: 'pending', rate_bp: 0, inclusive: false })
+
+    const unknown = await superClient.rpc('tax_treatment_resolve', {
+      p_supply_type: 'subscription', p_customer_type: 'future-buyer',
+    })
+    expect(unknown.error).toBeNull()
+    expect(unknown.data?.[0]).toMatchObject({ status: 'pending', rate_bp: 0, inclusive: false })
   })
 
   it('keeps tender evidence vendor-only', async () => {
