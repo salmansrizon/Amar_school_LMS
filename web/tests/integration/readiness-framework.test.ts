@@ -28,12 +28,11 @@ describe('Readiness decision framework (#554)', () => {
   })
 
   it('keeps tender evidence vendor-only', async () => {
-    const profile = (await superClient.from('government_tender_profiles').insert({
-      procuring_entity: 'Test procuring entity', tender_reference: `TEST-${crypto.randomUUID()}`,
-    }).select('id').single()).data!
-    await superClient.from('government_tender_evidence').insert({
-      profile_id: profile.id, evidence_area: 'security', status: 'baseline', amar_evidence: 'existing security gate',
-    })
+    const profile = (await superClient.rpc('government_tender_profile_create', {
+      p_procuring_entity: 'Test procuring entity', p_tender_reference: `TEST-${crypto.randomUUID()}`,
+    })).data as string
+    const evidence = (await superClient.from('government_tender_evidence').select('evidence_area').eq('profile_id', profile)).data!
+    expect(evidence).toHaveLength(12)
     expect((await owner.from('government_tender_profiles').select('id')).data).toEqual([])
     expect((await owner.from('government_tender_evidence').select('id')).data).toEqual([])
   })
