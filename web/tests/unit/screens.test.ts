@@ -1,4 +1,6 @@
 import { describe, it, expect } from 'vitest'
+import fs from 'node:fs'
+import path from 'node:path'
 import { screenKeyForPath, canOpenScreen, GRANTABLE_SCREENS, FEATURE_KEYS, SCREENS } from '@/lib/auth/screens'
 import { SCHOOL_MODULES, SCHOOL_QUICK_ACTIONS, flattenSchoolModules } from '@/lib/school-nav'
 import { SCHOOL_SEARCH } from '@/lib/school-search'
@@ -98,5 +100,19 @@ describe('the registry is the one copy (#515)', () => {
     for (const screen of SCREENS.filter((s) => s.gate === 'member')) {
       expect(canOpenScreen('staff_user', [], screen.key)).toBe(true)
     }
+  })
+})
+
+describe('every registry row is a screen that exists (#552)', () => {
+  // The registry is the single source of truth for what gates a screen (ADR
+  // 0020), and #515 made an UNregistered segment fail closed. A registered
+  // segment with no page is the mirror image: `/school/subscription` was
+  // registered as a member screen and returned a 404, because the directory
+  // holds server actions and nothing else.
+  const appDir = path.join(process.cwd(), 'app', 'school')
+
+  it.each(SCREENS.map((s) => s.key))('/school/%s has a page', (key) => {
+    const page = key === 'dashboard' ? path.join(appDir, 'page.tsx') : path.join(appDir, key, 'page.tsx')
+    expect(fs.existsSync(page), `${page} is missing`).toBe(true)
   })
 })
