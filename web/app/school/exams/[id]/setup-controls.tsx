@@ -10,6 +10,8 @@ import { ExamAction, examActionClass } from '../exam-action'
 import { ExamDocumentsModal } from '../exam-documents-modal'
 import { withOrigin } from '@/lib/back-nav'
 import { assignSubjectTeacher, setExamGradingScheme, updateExamBasicInfo } from './actions'
+import { deleteExam } from '../actions'
+import { ConfirmDialog } from '@/components/confirm-dialog'
 import { dateInputClass, selectClass } from '@/components/ui/field'
 import { classCatalogueLabel, type ClassCatalogueRow } from '@/lib/class-catalogue'
 
@@ -40,6 +42,31 @@ export interface SubjectRow {
  * a class and a grading scheme must be set. Closing is permanent (issue #8);
  * the confirmation is CloseExamModal (exam-controls.tsx), a dedicated dialog
  * per exam-close-confirm-modal.html, not a bare window.confirm(). */
+/** Delete an open exam, and leave the page it was on. Everything the exam owns
+ *  goes with it — routine, seat plan, marks, co-curricular marks — which is
+ *  what the body says before the operator confirms. */
+function DeleteExamButton({ examId, examLabel, lang }: { examId: string; examLabel: string; lang: Lang }) {
+  const router = useRouter()
+  return (
+    <ConfirmDialog
+      triggerLabel={t('exams.delete', lang)}
+      triggerClassName={`cursor-pointer ${examActionClass('header')} border-alert text-alert-deep`}
+      title={t('exams.deleteTitle', lang)}
+      body={`${examLabel} — ${t('exams.deleteBody', lang)}`}
+      confirmLabel={t('exams.deleteConfirm', lang)}
+      cancelLabel={t('exams.closeModalCancel', lang)}
+      onConfirm={async () => {
+        const result = await deleteExam(examId)
+        if (result.error === 'closed') return { error: t('exams.deleteClosed', lang) }
+        if (result.error === 'not-found') return { error: t('exams.deleteMissing', lang) }
+        if (result.error) return result
+        // The page this button is on no longer exists.
+        router.push('/school/exams')
+      }}
+    />
+  )
+}
+
 export function ExamHeader({
   examId,
   examLabel,
@@ -89,6 +116,11 @@ export function ExamHeader({
             size="header"
           />
         )}
+        {/* #551: an exam created by mistake used to be permanent for every school
+            role — there was no delete anywhere in the product. Only while open:
+            a Closed exam keeps its results and the 0037 trigger refuses to drop
+            it, so the control is hidden rather than offered and then denied. */}
+        {!closed && <DeleteExamButton examId={examId} examLabel={examLabel} lang={lang} />}
         {!closed && (
           <CloseExamModal
             examId={examId}
