@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { Icon } from '@/components/school-icons'
-import { createClient } from '@/lib/supabase/client'
+import { markNotificationRead, recentNotifications, unreadNotificationCount } from '@/lib/notifications/actions'
 import { t, type Lang } from '@/lib/i18n'
 
 // Recipient-based notification bell (#287) — role-agnostic. Reads the caller's own
@@ -37,7 +37,6 @@ export function NotificationsBell({
   const [unread, setUnread] = useState(0)
   const [sheetTop, setSheetTop] = useState<number | null>(null)
   const ref = useRef<HTMLDivElement>(null)
-  const supabase = createClient()
 
   const dateFmt = new Intl.DateTimeFormat(lang === 'bn' ? 'bn-BD' : 'en-GB', {
     day: 'numeric',
@@ -46,22 +45,15 @@ export function NotificationsBell({
     minute: '2-digit',
   })
 
-  // Unread badge on mount (count only).
+  // Unread badge on mount (count only). Both reads are server actions now — the
+  // queries are unchanged and still RLS-scoped to the caller's own rows; what went
+  // away is the browser Supabase client they needed (#527).
   useEffect(() => {
-    supabase
-      .from('notifications')
-      .select('id', { count: 'exact', head: true })
-      .is('read_at', null)
-      .then(({ count }) => setUnread(count ?? 0))
-  }, [supabase])
+    unreadNotificationCount().then(setUnread)
+  }, [])
 
   async function load() {
-    const { data } = await supabase
-      .from('notifications')
-      .select('id, title, body, read_at, created_at')
-      .order('created_at', { ascending: false })
-      .limit(20)
-    setItems((data as NotificationRow[]) ?? [])
+    setItems((await recentNotifications()) as NotificationRow[])
   }
 
   function toggle() {
@@ -74,7 +66,7 @@ export function NotificationsBell({
   }
 
   async function markRead(id: string) {
-    await supabase.rpc('notification_mark_read', { p_id: id })
+    await markNotificationRead(id)
     setItems((prev) => prev?.map((n) => (n.id === id ? { ...n, read_at: new Date().toISOString() } : n)) ?? null)
     setUnread((u) => Math.max(0, u - 1))
   }

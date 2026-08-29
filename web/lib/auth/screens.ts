@@ -72,7 +72,6 @@ export const SCREENS = [
   // - activity       the dashboard's "View All"; the three streams behind it are
   //                  each RLS-scoped already.
   // - profile        the caller's own account.
-  // - subscription   the school's own plan.
   // - permission-denied  where this file sends people. Gating it is a loop.
   { key: 'dashboard', gate: 'member' },
   { key: 'questions', gate: 'member' },
@@ -81,7 +80,11 @@ export const SCREENS = [
   { key: 'approvals', gate: 'member' },
   { key: 'activity', gate: 'member' },
   { key: 'profile', gate: 'member' },
-  { key: 'subscription', gate: 'member' },
+  // No `subscription` row: `app/school/subscription` holds server actions only,
+  // consumed by components/subscription-gate.tsx. A registry row for a route
+  // with no page advertises a screen the product does not have, and the next
+  // person to add one would inherit whichever gate it happened to carry.
+  // Pinned by 'every registry row has a page' below (#552).
   { key: 'permission-denied', gate: 'member' },
 ] as const satisfies readonly ScreenDef[]
 

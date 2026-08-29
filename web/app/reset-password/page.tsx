@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { AuthCard, inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
 import { t } from '@/lib/i18n'
 import { useLang } from '@/lib/use-lang'
-import { createClient } from '@/lib/supabase/client'
+import { requestPasswordReset } from '@/lib/auth/session-actions'
 
 export default function ResetPasswordPage() {
   const lang = useLang()
@@ -15,10 +15,13 @@ export default function ResetPasswordPage() {
     e.preventDefault()
     setBusy(true)
     const form = new FormData(e.currentTarget)
-    const supabase = createClient()
-    await supabase.auth.resetPasswordForEmail(String(form.get('email')), {
-      redirectTo: `${location.origin}/auth/callback?next=/reset-password/update`,
-    })
+    // location.origin is read here and passed in, because a server action has no
+    // window — and the redirect must land on the tenant subdomain the caller
+    // actually started from, not a canonical host.
+    await requestPasswordReset(
+      String(form.get('email')),
+      `${location.origin}/auth/callback?next=/reset-password/update`,
+    )
     setSent(true)
     setBusy(false)
   }

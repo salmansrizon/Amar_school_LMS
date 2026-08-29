@@ -10,6 +10,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { startOfUtcToday } from '@/lib/subscription'
 import { lifecycleStatus, type LifecycleStatus, type SchoolRow } from '@/lib/super-admin/dashboard'
 import { perSchoolLedger, lastPaidBySchool, type CodeRow } from '@/lib/super-admin/financials'
+import { selectAllRows } from '@/lib/supabase/select-all'
 
 export interface SchoolFetchRow {
   id: string
@@ -119,7 +120,12 @@ export async function loadSchoolsManager(supabase: SupabaseClient): Promise<Scho
         .from('school_claim_codes')
         .select('code, school_id, redeemed_at')
         .order('created_at', { ascending: false }),
-      supabase.from('subscription_codes').select('price, redeemed_at, redeemed_school_id'),
+      // Paged (#546): these rows are folded into revenue totals and the trend
+      // chart, so a short read shows less money than was taken.
+      selectAllRows<{ price: number; redeemed_at: string | null; redeemed_school_id: string | null }>(
+        (from, to) =>
+          supabase.from('subscription_codes').select('price, redeemed_at, redeemed_school_id').range(from, to),
+      ).then(({ rows }) => ({ data: rows })),
     ])
   const schoolRows = (schools ?? []) as SchoolFetchRow[]
 

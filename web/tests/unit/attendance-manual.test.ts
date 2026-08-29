@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest'
 import {
-  filterRoster,
   mergeLeaves,
   filterLeaves,
   monthGrid,
@@ -17,22 +16,7 @@ const students = [
   { id: '4', full_name: 'Nusrat Jahan', class_name: null, section: null, roll_number: null, office_time_id: null },
 ]
 
-describe('filterRoster', () => {
-  it('filters by class and section, sorted by roll number', () => {
-    // Class 8 has Tamim (roll 1) and Rakib (roll 2) -> roll order, not name order
-    expect(filterRoster(students, 'Class 8', '').map((s) => s.id)).toEqual(['2', '1'])
-    expect(filterRoster(students, 'Class 8', 'B').map((s) => s.id)).toEqual(['2'])
-  })
-
-  it('empty filters return everything sorted', () => {
-    expect(filterRoster(students, '', '')).toHaveLength(4)
-  })
-
-  it('rolls without a number sort after rolled students, then by name', () => {
-    const rows = filterRoster(students, '', '')
-    expect(rows.map((r) => r.id)).toEqual(['2', '1', '4', '3'])
-  })
-})
+// filterRoster's cases moved with it to tests/unit/school-roster.test.ts.
 
 describe('mergeLeaves / filterLeaves', () => {
   const studentLeaves = [

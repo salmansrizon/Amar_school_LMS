@@ -29,6 +29,7 @@ import {
 import { BackLink } from '@/components/back-link'
 import { resolveBackHref } from '@/lib/back-nav'
 import type { ClassCatalogueRow } from '@/lib/class-catalogue'
+import { selectAllRows } from '@/lib/supabase/select-all'
 
 // Layout per ui/school-owner/promotion-transfer.html: result-source + rank-
 // basis toolbar over the Promote-selected table, with the Graduating Batch /
@@ -161,11 +162,20 @@ export default async function PromotionPage({
   if (!selectedCombo) {
     scheme = exam.grading_scheme_id ? await loadGradingScheme(supabase, exam.grading_scheme_id) : null
     if (scheme) {
-      const { data: marksRows } = await supabase
-        .from('exam_marks')
-        .select('student_id, subject_id, obtained_marks')
-        .eq('exam_id', exam.id)
-      const marksMap = new Map((marksRows ?? []).map((m) => [`${m.student_id}:${m.subject_id}`, Number(m.obtained_marks)]))
+      // Paged (#546): a missing mark is read as 0 four lines below, so truncation
+      // does not lose a row here, it fails a child.
+      const { rows: marksRows } = await selectAllRows<{
+        student_id: string
+        subject_id: string
+        obtained_marks: number
+      }>((from, to) =>
+        supabase
+          .from('exam_marks')
+          .select('student_id, subject_id, obtained_marks')
+          .eq('exam_id', exam.id)
+          .range(from, to),
+      )
+      const marksMap = new Map(marksRows.map((m) => [`${m.student_id}:${m.subject_id}`, Number(m.obtained_marks)]))
       for (const s of roster) {
         const marks: SubjectMark[] = subjects.map((sub) => ({
           subjectId: sub.id,
@@ -183,12 +193,22 @@ export default async function PromotionPage({
     const memberExamIds = members.map((m) => m.exam_id)
 
     if (scheme && memberExamIds.length) {
-      const { data: marksRows } = await supabase
-        .from('exam_marks')
-        .select('exam_id, student_id, subject_id, obtained_marks')
-        .in('exam_id', memberExamIds)
+      // A combination spans several exams, so this one is the most likely of the
+      // three to pass 1000 rows.
+      const { rows: marksRows } = await selectAllRows<{
+        exam_id: string
+        student_id: string
+        subject_id: string
+        obtained_marks: number
+      }>((from, to) =>
+        supabase
+          .from('exam_marks')
+          .select('exam_id, student_id, subject_id, obtained_marks')
+          .in('exam_id', memberExamIds)
+          .range(from, to),
+      )
       const marksMap = new Map(
-        (marksRows ?? []).map((m) => [`${m.exam_id}:${m.student_id}:${m.subject_id}`, Number(m.obtained_marks)]),
+        marksRows.map((m) => [`${m.exam_id}:${m.student_id}:${m.subject_id}`, Number(m.obtained_marks)]),
       )
 
       if (selectedCombo.strategy === 'sum') {

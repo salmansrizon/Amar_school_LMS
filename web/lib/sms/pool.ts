@@ -20,9 +20,17 @@ export function poolBalance(rows: PoolLedgerRow[]): number {
 /** Below this, nudge the admin to re-buy from the gateway. */
 export const SMS_POOL_LOW = 500
 
-export type PoolLevel = BalanceLevel
+/** `impossible` is not a worse `empty` — it is a different kind of fact.
+ *
+ *  A pool of 0 is a business state the Super Admin fixes by buying more. A pool
+ *  below 0 says segments left the gateway that were never bought, which means the
+ *  ledger and reality disagree and no amount of buying explains it. The UAT pass
+ *  found -981 rendered as an ordinary KPI beside the words "pool is empty" (#529);
+ *  a number that cannot happen must read as a fault, not as a metric. */
+export type PoolLevel = BalanceLevel | 'impossible'
 
 export function poolLevel(balance: number): PoolLevel {
+  if (balance < 0) return 'impossible'
   return balanceLevel(balance, SMS_POOL_LOW)
 }
 
@@ -35,9 +43,19 @@ export interface SmsPool {
   sent: number
 }
 
-/** Shape the pool ledger rows into the admin view model — pure, so it is
- *  unit-testable and the dashboard read model can own the fetch (rows are modest:
- *  one per purchase, one per send, so summing is fine). */
+/** Attach the level to totals the database already aggregated (view
+ *  `sms_pool_summary`, 0164). */
+export function smsPoolFrom(totals: { balance: number; bought: number; sent: number }): SmsPool {
+  return { ...totals, level: poolLevel(totals.balance) }
+}
+
+/** Shape raw pool ledger rows into the admin view model.
+ *
+ *  Retained for callers that genuinely hold every row — the pure fold is still
+ *  the rule in one place. It is NOT how the dashboard reads the pool: "one per
+ *  purchase, one per send, so summing is fine" was true at 297 rows and is the
+ *  same reasoning that produced #530's phantom ৳2,800 at 46,521. An unbounded
+ *  fetch is capped at 1000 and the fold cannot tell. See `sms_pool_summary`. */
 export function summarizeSmsPool(rows: PoolLedgerRow[]): SmsPool {
   const balance = poolBalance(rows)
   let bought = 0

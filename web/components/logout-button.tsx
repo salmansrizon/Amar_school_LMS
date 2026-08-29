@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
+import { signOutAction } from '@/lib/auth/session-actions'
 
 export function LogoutButton({
   label,
@@ -18,7 +18,7 @@ export function LogoutButton({
       type="button"
       className={className}
       onClick={async () => {
-        await createClient().auth.signOut()
+        await signOutAction()
         router.replace('/login')
       }}
     >

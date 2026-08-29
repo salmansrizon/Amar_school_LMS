@@ -1,5 +1,6 @@
 import { currentLang } from '@/lib/i18n-server'
 import { t, type MessageKey } from '@/lib/i18n'
+import { storedFieldLabel } from '@/lib/students/stored-labels'
 import { getSchoolContext } from '@/lib/school/context'
 import { sortRequests, isPhotoRequest, type CorrectionRequest } from '@/lib/student/corrections'
 import { hubSummary } from '@/lib/student/hub-source'
@@ -120,11 +121,15 @@ export default async function CorrectionsQueuePage() {
                       <span className="text-muted">{t('student.newPhoto', lang)}</span>
                     ) : (
                       <>
+                        {/* The requested field is free-form, so translate by
+                            field name — a guardian_relation request otherwise
+                            reads `father` -> `Father` mid-Bangla (#539). */}
                         <span className="text-muted">
-                          {t('corrections.was', lang)}: {r.current_value || '—'}
+                          {t('corrections.was', lang)}: {storedFieldLabel(r.field, r.current_value, lang) || '—'}
                         </span>
                         <span className="ml-2">
-                          {t('corrections.becomes', lang)}: <strong>{r.requested_value}</strong>
+                          {t('corrections.becomes', lang)}:{' '}
+                          <strong>{storedFieldLabel(r.field, r.requested_value, lang)}</strong>
                         </span>
                       </>
                     )}

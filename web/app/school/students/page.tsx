@@ -2,8 +2,8 @@ import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
-import { filterStudents, behaviourAverages } from '@/lib/students'
-import { resolveClassSection } from '@/lib/class-catalogue'
+import { schoolRoster } from '@/lib/school/roster-source'
+import { behaviourAverages } from '@/lib/students'
 import { Badge } from '@/components/ui/badge'
 import {
   Table,
@@ -14,6 +14,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Card, PageHeader, Toolbar, railClass } from '@/components/ui/page'
+import { EmptyState } from '@/components/ui/states'
 import { StudentFilters } from './student-filters'
 
 // Layout per ui/school-owner/students-list.html: search (name/roll/guardian) +
@@ -41,20 +42,12 @@ export default async function StudentsPage({
   const lang: Lang = await currentLang()
   const { supabase, role } = await getSchoolContext()
 
-  const [{ data: students }, { data: ratings }, { data: classes }] = await Promise.all([
-    supabase
-      .from('students')
-      .select('id, full_name, roll_number, class_name, section, guardian_name, archived_at')
-      .is('archived_at', null)
-      .order('class_name')
-      .order('roll_number'),
+  const [roster, { data: ratings }] = await Promise.all([
+    schoolRoster(supabase, { classSection, q }),
     // ponytail: whole-table scan capped at 10k rows, mirrors the classes page.
     supabase.from('behaviour_log_entries').select('student_id, rating').limit(10000),
-    supabase.from('classes').select('id, name, section, group_department').order('created_at'),
   ])
-
-  const { combos, className: klass, section } = resolveClassSection(classes ?? [], classSection)
-  const visible = filterStudents(students ?? [], q, klass, section)
+  const visible = roster.students
   const avgs = behaviourAverages(ratings ?? [])
 
   return (
@@ -65,7 +58,7 @@ export default async function StudentsPage({
           <>
             <Link
               href="/school/students/archive"
-              className="rounded-full border border-line-strong px-4 py-1.5 text-xs font-semibold hover:bg-paper-muted"
+              className="inline-flex h-11 items-center rounded-full border border-line-strong px-4 text-xs font-semibold hover:bg-paper-muted"
             >
               {t('students.oldStudents', lang)}
             </Link>
@@ -73,14 +66,14 @@ export default async function StudentsPage({
             {role === 'school_owner' && (
               <Link
                 href="/school/students/logins"
-                className="rounded-full border border-line-strong px-4 py-1.5 text-xs font-semibold hover:bg-paper-muted"
+                className="inline-flex h-11 items-center rounded-full border border-line-strong px-4 text-xs font-semibold hover:bg-paper-muted"
               >
                 {t('students.loginBulk', lang)}
               </Link>
             )}
             <Link
               href="/school/students/new"
-              className="rounded-full bg-brand-500 px-4 py-1.5 text-xs font-semibold text-white hover:bg-brand-600"
+              className="inline-flex h-11 items-center rounded-full bg-brand-500 px-4 text-xs font-semibold text-white hover:bg-brand-600"
             >
               + {t('students.newAdmission', lang)}
             </Link>
@@ -90,15 +83,69 @@ export default async function StudentsPage({
 
       <Toolbar
         filters={
-          <StudentFilters q={q} classSection={classSection} combos={combos} lang={lang} />
+          <StudentFilters q={q} classSection={classSection} combos={roster.combos} lang={lang} />
         }
       />
 
       <Card padded={!visible.length}>
-        {!visible.length ? (
-          <p className="text-sm text-muted">{t('students.none', lang)}</p>
+        {/* #538: an empty list says which kind of empty it is and offers the one
+            action that changes it. Three kinds, and the model decides which
+            (lib/school/roster.ts) — this page only renders the answer.
+            An unassigned Employee is not sent to the admission form: she cannot
+            admit anyone (ADR 0021), and her way out is an Owner assigning her a
+            class, which is not a button she has. A filter that matched nothing
+            is not sent there either — the school HAS students, and offering to
+            admit another is the conflation #538 exists to forbid. */}
+        {roster.empty ? (
+          roster.empty === 'unassigned' ? (
+            <EmptyState
+              title={t('students.noClassAssigned', lang)}
+              body={t('students.noClassAssignedHelp', lang)}
+              action={{ href: '/school', label: t('denied.back', lang) }}
+              lang={lang}
+            />
+          ) : roster.empty === 'no-match' ? (
+            <EmptyState
+              title={t('students.noMatch', lang)}
+              body={t('students.noMatchHelp', lang)}
+              action={{ href: '/school/students', label: t('students.clearFilters', lang) }}
+              lang={lang}
+            />
+          ) : (
+            <EmptyState
+              title={t('students.none', lang)}
+              action={{ href: '/school/students/new', label: t('students.newAdmission', lang) }}
+              lang={lang}
+            />
+          )
         ) : (
-          <Table>
+          <>
+          {/* Phone: cards, no horizontal scroll for the one action that matters
+              (#540). Desktop keeps the seven-column grid. */}
+          <ul className="flex flex-col gap-2 md:hidden">
+            {visible.map((s) => (
+              <li key={s.id} className="rounded-lg border border-line bg-paper p-3">
+                <div className="flex items-baseline justify-between gap-2">
+                  <span className="font-medium">{s.full_name}</span>
+                  <span className="text-xs text-muted">
+                    {t('students.roll', lang)} {s.roll_number ?? '—'}
+                  </span>
+                </div>
+                <p className="mt-0.5 text-xs text-muted">
+                  {[s.class_name, s.section].filter(Boolean).join(' / ') || '—'}
+                  {s.guardian_name ? ` · ${s.guardian_name}` : ''}
+                </p>
+                <Link
+                  href={`/school/students/${s.id}`}
+                  className="mt-2 inline-flex h-11 w-full items-center justify-center rounded-full border border-line-strong text-sm font-semibold hover:bg-paper-muted"
+                >
+                  {t('students.view', lang)}
+                </Link>
+              </li>
+            ))}
+          </ul>
+
+          <Table className="hidden md:table">
             <TableHeader>
               <TableRow>
                 <TableHead className={railClass(undefined)}>{t('students.roll', lang)}</TableHead>
@@ -138,6 +185,7 @@ export default async function StudentsPage({
               ))}
             </TableBody>
           </Table>
+          </>
         )}
       </Card>
     </>

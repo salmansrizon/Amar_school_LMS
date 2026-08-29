@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
 import { t } from '@/lib/i18n'
+import { genderLabel, guardianRelationLabel } from '@/lib/students/stored-labels'
 import { getSchoolContext } from '@/lib/school/context'
 import { PrintPage, InstituteHeader, InfoGrid, SignatureRow, QrFooterRow } from '@/components/print/pieces'
 import { PrintButton } from '@/components/print/print-button'
@@ -51,14 +52,15 @@ export default async function AdmissionPrintPage({ params }: { params: Promise<{
             { label: t('students.name', lang), value: student.full_name },
             { label: t('classes.class', lang), value: `${v(student.class_name)} ${student.section ?? ''}`.trim() },
             { label: t('students.roll', lang), value: v(student.roll_number) },
-            { label: t('students.gender', lang), value: v(student.gender) },
+            { label: t('students.gender', lang), value: v(genderLabel(student.gender, lang)) },
             { label: t('students.dob', lang), value: v(student.date_of_birth) },
             { label: t('students.bloodGroup', lang), value: v(student.blood_group) },
             { label: t('students.religion', lang), value: v(student.religion) },
             { label: t('students.mobile', lang), value: v(student.student_mobile) },
             { label: t('students.address', lang), value: address || dash },
             { label: t('students.guardianName', lang), value: v(student.guardian_name) },
-            { label: t('students.guardianRelation', lang), value: v(student.guardian_relation) },
+            // Printed onto an official document, so it must not say `father` on a Bangla form (#539).
+            { label: t('students.guardianRelation', lang), value: v(guardianRelationLabel(student.guardian_relation, lang)) },
             { label: t('students.guardianMobile', lang), value: v(student.guardian_mobile) },
             { label: t('students.previousInstitute', lang), value: v(student.previous_institute) },
             { label: t('students.previousClass', lang), value: v(student.previous_class) },

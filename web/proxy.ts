@@ -4,6 +4,9 @@ import { canAccess, homeFor, isProtectedPath, isSchoolScopedRole, type Role } fr
 import { canOpenScreen, isSchoolPath, screenFor, screenKeyForPath } from '@/lib/auth/screens'
 import { resolveHost, rootDomain } from '@/lib/auth/tenant-host'
 import { authCookieOptions } from '@/lib/auth/cookie-options'
+import { carrySession } from '@/lib/auth/carry-session'
+import { expireLegacySessionCookie } from '@/lib/auth/legacy-cookie'
+import { cspFor, cspHeaderName, isPrefetch } from '@/lib/auth/csp'
 import { isTenantPath, tenantRoute, type TenantSession } from '@/lib/auth/tenant-routing'
 import { firstRelation } from '@/lib/supabase/relation'
 
@@ -12,7 +15,38 @@ import { firstRelation } from '@/lib/supabase/relation'
 // no session → /login; wrong role group → own home; wrong subdomain → own
 // subdomain; unknown subdomain → branded "no such school".
 export async function proxy(request: NextRequest) {
-  let response = NextResponse.next({ request })
+  // CSP (#528). The nonce must reach the REQUEST headers, not only the response:
+  // Next parses the request-side Content-Security-Policy during SSR and stamps
+  // every inline script it emits — including the RSC flight chunks flushed after
+  // the shell. Response-only means unstamped bootstrap scripts, so the page
+  // renders and is then dead.
+  const nonce = crypto.randomUUID()
+  const csp = cspFor(nonce)
+  const skipCsp = isPrefetch(request.headers)
+
+  // Rebuilt at each call site rather than hoisted: the Supabase cookie setAll()
+  // below mutates request.cookies, and a Headers snapshot taken up here would
+  // forward the stale auth cookie and undo the refresh.
+  const fwd = () => {
+    const headers = new Headers(request.headers)
+    if (!skipCsp) {
+      headers.set('x-nonce', nonce)
+      headers.set('Content-Security-Policy', csp)
+    }
+    return { headers }
+  }
+
+  /** Attach the policy to a response that renders a document. */
+  const withCsp = (res: NextResponse) => {
+    if (!skipCsp) res.headers.set(cspHeaderName(), csp)
+    return res
+  }
+
+  let response = withCsp(NextResponse.next({ request: fwd() }))
+  /** The no-store headers `@supabase/ssr` hands `setAll` when a refresh occurs,
+   *  kept so `carry` can replay them verbatim onto a redirect. Empty when no
+   *  refresh happened, which is the common case. */
+  let refreshHeaders: Record<string, string> = {}
 
   // Root-domain cookie scope (see lib/auth/cookie-options.ts): the refresh this
   // proxy performs must not re-write the session as host-only, or the very
@@ -26,14 +60,31 @@ export async function proxy(request: NextRequest) {
       cookieOptions,
       cookies: {
         getAll: () => request.cookies.getAll(),
-        setAll: (toSet) => {
+        setAll: (toSet, headers) => {
           toSet.forEach(({ name, value }) => request.cookies.set(name, value))
-          response = NextResponse.next({ request })
+          response = withCsp(NextResponse.next({ request: fwd() }))
           toSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options))
+          // A refresh writes Set-Cookie, and @supabase/ssr hands us the headers
+          // that keep a CDN from caching that response and serving one user's
+          // session to the next. The old one-argument signature silently dropped
+          // them (#545) — behind Vercel's edge that needs no attacker at all.
+          refreshHeaders = headers ?? {}
+          for (const [key, value] of Object.entries(refreshHeaders)) response.headers.set(key, value)
         },
       },
     },
   )
+
+  // Every redirect/rewrite below builds a new response, so a session refreshed
+  // above has to be moved onto it or it is lost (#545). See carry-session.ts.
+  const carry = (next: NextResponse) => {
+    const carried = carrySession(response, refreshHeaders, next)
+    // #545: the cookie this app used before the edume-auth rename is unreachable
+    // by signOut, so it would otherwise sit in the browser with its token material
+    // for the library's 400-day default. Fires only when it is actually present.
+    expireLegacySessionCookie(request, carried)
+    return carried
+  }
 
   // Always call getUser() so expired sessions refresh on any matched route.
   const {
@@ -81,30 +132,33 @@ export async function proxy(request: NextRequest) {
   // Subdomain routing decision (apex vs tenant, wrong-subdomain bounce, unknown).
   const decision = tenantRoute({ host, path, session, schoolForHostId })
   if (decision.type === 'no-such-school') {
-    return NextResponse.rewrite(new URL('/no-such-school', request.url))
+    return carry(withCsp(NextResponse.rewrite(new URL('/no-such-school', request.url), { request: fwd() })))
   }
   if (decision.type === 'redirect-subdomain') {
     const target = new URL(request.url)
     target.host = `${decision.slug}.${root}`
     target.pathname = decision.path
-    return NextResponse.redirect(target)
+    return carry(NextResponse.redirect(target))
   }
 
   // Below here: the existing role-group + staff-permission gate for protected paths.
-  if (!isProtectedPath(path)) return response
+  if (!isProtectedPath(path)) {
+    expireLegacySessionCookie(request, response)
+    return response
+  }
 
   if (!user) {
-    return NextResponse.redirect(new URL('/login', request.url))
+    return carry(NextResponse.redirect(new URL('/login', request.url)))
   }
 
   if (!profileRole) {
     // Authenticated but not yet registered (e.g. mid-signup) — finish at login.
-    return NextResponse.redirect(new URL('/login', request.url))
+    return carry(NextResponse.redirect(new URL('/login', request.url)))
   }
 
   const role = profileRole
   if (!canAccess(role, path)) {
-    return NextResponse.redirect(new URL(homeFor(role), request.url))
+    return carry(NextResponse.redirect(new URL(homeFor(role), request.url)))
   }
 
   // Hard block: a deactivated school (schools.deactivated_at, issue #161) denies
@@ -113,7 +167,7 @@ export async function proxy(request: NextRequest) {
   // — this is a manual super-admin switch, so the message is a suspension, not a
   // renewal prompt. Pages re-verify; this is the optimistic gate.
   if (isSchoolScopedRole(role) && schoolDeactivated) {
-    return NextResponse.rewrite(new URL('/account-blocked', request.url))
+    return carry(withCsp(NextResponse.rewrite(new URL('/account-blocked', request.url), { request: fwd() })))
   }
 
   const screen = screenKeyForPath(path)
@@ -125,7 +179,7 @@ export async function proxy(request: NextRequest) {
   // without a registry row is now unreachable rather than silently open, which
   // is the trade this makes on purpose.
   if (isSchoolPath(path) && !screen) {
-    return NextResponse.redirect(new URL('/school/permission-denied', request.url))
+    return carry(NextResponse.redirect(deniedUrl(request, path)))
   }
 
   // Staff Users: per-screen allow-list (issue #2) — server-enforced, not just
@@ -144,15 +198,25 @@ export async function proxy(request: NextRequest) {
             .then(({ data }) => (data ? [data.screen_key] : []))
         : []
     if (!canOpenScreen(role, grants, screen)) {
-      return NextResponse.redirect(new URL('/school/permission-denied', request.url))
+      return carry(NextResponse.redirect(deniedUrl(request, path)))
     }
   }
 
+  expireLegacySessionCookie(request, response)
   return response
 }
 
 /** Supabase returns an embedded to-one relation as an object, but the typings
  *  widen it to an array — normalize either shape to the subdomain string. */
+// #538: a refused reader should be told which screen was refused, not just that
+// something was. The destination rides in `from`; the denied page validates it
+// through safeReturnPath before rendering it.
+function deniedUrl(request: NextRequest, path: string): URL {
+  const url = new URL('/school/permission-denied', request.url)
+  url.searchParams.set('from', path)
+  return url
+}
+
 function extractSubdomain(
   rel: { subdomain: string | null } | { subdomain: string | null }[] | null,
 ): string | null {

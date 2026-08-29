@@ -22,7 +22,8 @@ import {
   type PendingCollection,
   type PayableForecast,
 } from '@/lib/super-admin/financials'
-import { summarizeSmsPool, type PoolLedgerRow, type SmsPool } from '@/lib/sms/pool'
+import { smsPoolFrom, type SmsPool } from '@/lib/sms/pool'
+import { selectAllRows } from '@/lib/supabase/select-all'
 
 export const DEFAULT_TREND_MONTHS = 12
 /** How many recent events the activity feed shows. */
@@ -83,8 +84,10 @@ export interface DashboardData {
   codes: CodeRow[]
   /** sms_credit_ledger top-up rows (amount + created_at) for SMS income. */
   topups: TopupRow[]
-  /** sms_pool_ledger rows (delta) for the master SMS pool (#188). */
-  pool: PoolLedgerRow[]
+  /** Pre-aggregated master SMS pool totals (view `sms_pool_summary`, 0164).
+   *  Aggregated in the database rather than folded here: an unbounded fetch is
+   *  capped at 1000 rows and a truncated sum cannot tell (#530). */
+  pool: { balance: number; bought: number; sent: number }
 }
 
 /** The one reference time the whole view uses (status + income share it). */
@@ -136,7 +139,7 @@ export function buildDashboardViewModel(
     dormant: dormantCount(kpis),
     payable: payableForecast(kpis.soonExpiring, data.codes),
     activity: buildRecentActivity(data.schools, data.codes),
-    smsPool: summarizeSmsPool(data.pool),
+    smsPool: smsPoolFrom(data.pool),
   }
 }
 
@@ -150,9 +153,14 @@ export async function loadSuperAdminDashboard(
     await Promise.all([
       supabase.from('schools').select('id, name, subscription_expires_at, deactivated_at, created_at').order('name'),
       supabase.rpc('schools_with_code_history'),
-      supabase.from('subscription_codes').select('price, redeemed_at, redeemed_school_id'),
+      // Paged (#546): these rows are folded into revenue totals and the trend
+      // chart, so a short read shows less money than was taken.
+      selectAllRows<{ price: number; redeemed_at: string | null; redeemed_school_id: string | null }>(
+        (from, to) =>
+          supabase.from('subscription_codes').select('price, redeemed_at, redeemed_school_id').range(from, to),
+      ).then(({ rows }) => ({ data: rows })),
       supabase.from('sms_credit_ledger').select('amount, created_at').eq('reason', 'topup'),
-      supabase.from('sms_pool_ledger').select('delta'),
+      supabase.from('sms_pool_summary').select('balance, bought, sent').maybeSingle(),
     ])
   return buildDashboardViewModel(
     {
@@ -160,7 +168,7 @@ export async function loadSuperAdminDashboard(
       history: (history ?? []) as string[],
       codes: (codes ?? []) as CodeRow[],
       topups: (topups ?? []) as TopupRow[],
-      pool: (pool ?? []) as PoolLedgerRow[],
+      pool: (pool as { balance: number; bought: number; sent: number } | null) ?? { balance: 0, bought: 0, sent: 0 },
     },
     { today: startOfUtcToday(), asOf: new Date() },
     trendMonths,

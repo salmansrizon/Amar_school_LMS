@@ -27,9 +27,27 @@ const EXAM = 'ZZ Map366 Verify Exam'
 
 // A second exam with a class but *no* grading scheme — the mixed gate state,
 // and the control for "is the exam id hardcoded anywhere" (acceptance test K).
-const OTHER_EXAM = 'SP2 Exam Six'
+//
+// Was 'SP2 Exam Six', which belongs to the seat-plan suite and is deleted by its
+// cleanup. That delete used to fail silently — an open exam with child rows was
+// undeletable until migration 0171 — so this spec had been leaning on a bug to
+// keep its fixture alive. Both exams are seeded now (supabase/seed-test.sql).
+const OTHER_EXAM = 'ZZ Map366 Gate Exam'
 
 const row = (page: Page, name: string) => page.locator('div[id^="exam-"]').filter({ hasText: name }).first()
+
+/** The list, already filtered to one exam by name.
+ *
+ *  The list shows the newest 25 rows and pages from there (#550) — 570 exams on
+ *  one screen was 934 controls under 44px on a phone. So a spec that wants an
+ *  exam seeded long ago finds it the way a human does, through the search box,
+ *  rather than relying on the whole table being present. `?q=` seeds exactly the
+ *  filter the box sets, and the row's own Back origin carries it back.
+ *
+ *  Tests I and J keep the unfiltered list on purpose: I needs a list long enough
+ *  that its target row is genuinely off-screen, and J types into the box itself. */
+const openList = (page: Page, name: string = EXAM) =>
+  page.goto(`/school/exams?q=${encodeURIComponent(name)}`)
 
 /** Click a row action and *wait for the soft navigation to land*. Without the
  *  wait, the next click hits the still-mounted list page — whose own chevron
@@ -63,7 +81,7 @@ async function expectBackOnRow(page: Page, name: string) {
 test.describe('@crud @school exams back-navigation (map #373)', () => {
   test('A+B: every row offers six actions, in order, for its own exam', async ({ browser }) => {
     const page = await asRole(browser, 'owner')
-    await page.goto('/school/exams')
+    await openList(page)
 
     const target = row(page, EXAM)
     await expect(target).toBeVisible()
@@ -86,7 +104,7 @@ test.describe('@crud @school exams back-navigation (map #373)', () => {
 
   test('G: direct Generate Seat Plan → Back lands on the same row', async ({ browser }) => {
     const page = await asRole(browser, 'owner')
-    await page.goto('/school/exams')
+    await openList(page)
     await openFromRow(page, EXAM, GENERATE_SEAT_PLAN, /\/seat-plan\?from=/)
     await clickBack(page)
     await expectBackOnRow(page, EXAM)
@@ -95,7 +113,7 @@ test.describe('@crud @school exams back-navigation (map #373)', () => {
 
   test('F: direct Make Exam Routine → Back lands on the same row', async ({ browser }) => {
     const page = await asRole(browser, 'owner')
-    await page.goto('/school/exams')
+    await openList(page)
     await openFromRow(page, EXAM, MAKE_ROUTINE, /\/routine\?from=/)
     await clickBack(page)
     await expectBackOnRow(page, EXAM)
@@ -104,7 +122,7 @@ test.describe('@crud @school exams back-navigation (map #373)', () => {
 
   test('C+D: Documents → Exam Routine closes the popup, and Back lands on the row', async ({ browser }) => {
     const page = await asRole(browser, 'owner')
-    await page.goto('/school/exams')
+    await openList(page)
     await row(page, EXAM).getByRole('button', { name: DOCUMENTS }).click()
 
     const dialog = page.getByRole('dialog', { name: DOCUMENTS })
@@ -122,7 +140,7 @@ test.describe('@crud @school exams back-navigation (map #373)', () => {
 
   test('E: Documents → Seat Plan → Back lands on the row', async ({ browser }) => {
     const page = await asRole(browser, 'owner')
-    await page.goto('/school/exams')
+    await openList(page)
     await row(page, EXAM).getByRole('button', { name: DOCUMENTS }).click()
     const dialog = page.getByRole('dialog', { name: DOCUMENTS })
     // examDocs.seatPlan — the modal calls it 'আসন বিন্যাস', not the row's 'সিট প্ল্যান তৈরি'.
@@ -135,7 +153,7 @@ test.describe('@crud @school exams back-navigation (map #373)', () => {
 
   test('H: Back never exposes Basic Info or a generator screen', async ({ browser }) => {
     const page = await asRole(browser, 'owner')
-    await page.goto('/school/exams')
+    await openList(page)
     await openFromRow(page, EXAM, MAKE_ROUTINE, /\/routine\?from=/)
     await clickBack(page)
 
@@ -198,7 +216,7 @@ test.describe('@crud @school exams back-navigation (map #373)', () => {
     const page = await asRole(browser, 'owner')
     // No `from`: the fallback must be the structural parent, exactly as before
     // map #373 (report §6 — "preserve those legitimate flows").
-    await page.goto('/school/exams')
+    await openList(page)
     const href = await row(page, EXAM).getByRole('link', { name: GENERATE_SEAT_PLAN }).getAttribute('href')
     const examId = href!.match(/exams\/([0-9a-f-]{36})/)![1]
 
@@ -213,7 +231,7 @@ test.describe('@crud @school exams back-navigation (map #373)', () => {
   // Proves the gate is read per exam and no id is baked in.
   test('K: a second exam behaves the same, with its own gate state', async ({ browser }) => {
     const page = await asRole(browser, 'owner')
-    await page.goto('/school/exams')
+    await openList(page, OTHER_EXAM)
 
     const second = row(page, OTHER_EXAM)
     await expect(second).toBeVisible()
@@ -235,7 +253,7 @@ test.describe('@crud @school exams back-navigation (map #373)', () => {
   // intermediate screen.
   test('L: browser Back also returns to the list, not an intermediate screen', async ({ browser }) => {
     const page = await asRole(browser, 'owner')
-    await page.goto('/school/exams')
+    await openList(page)
     await openFromRow(page, EXAM, GENERATE_SEAT_PLAN, /\/seat-plan\?from=/)
 
     await page.goBack()
@@ -254,7 +272,7 @@ test.describe('@crud @school exams back-navigation (map #373)', () => {
   test('six actions stay usable on a phone viewport, with no horizontal overflow', async ({ browser }) => {
     const page = await asRole(browser, 'owner')
     await page.setViewportSize({ width: 390, height: 844 })
-    await page.goto('/school/exams')
+    await openList(page)
 
     const target = row(page, EXAM)
     await target.scrollIntoViewIfNeeded()
@@ -280,7 +298,7 @@ test.describe('@crud @school exams back-navigation (map #373)', () => {
   // nests: the sheet returns to the seat plan, and the seat plan to the row.
   test('origin survives a hop inside a destination (seat plan → attendance sheet)', async ({ browser }) => {
     const page = await asRole(browser, 'owner')
-    await page.goto('/school/exams')
+    await openList(page)
     await openFromRow(page, EXAM, GENERATE_SEAT_PLAN, /\/seat-plan\?from=/)
 
     await page.getByRole('link', { name: ATTENDANCE_SHEET }).first().click()

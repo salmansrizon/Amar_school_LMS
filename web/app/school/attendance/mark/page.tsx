@@ -3,12 +3,12 @@ import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
-import { filterRoster } from '@/lib/attendance-manual'
-import { resolveClassSection } from '@/lib/class-catalogue'
+import { studentRegister } from '@/lib/school/roster-source'
 import { AttendanceTabs } from '../attendance-tabs'
 import { MarkAttendanceForm } from './mark-form'
 import { dateInputClass } from '@/components/ui/field'
 import { ClassSectionSelect } from '@/components/ui/class-section-select'
+import { EmptyState } from '@/components/ui/states'
 
 // Layout per ui/school-owner/attendance-student-mark.html: class/section/
 // class/section/date filters, bulk all-present/all-absent, per-row
@@ -18,6 +18,21 @@ function todayIso(): string {
   return new Date().toISOString().slice(0, 10)
 }
 
+// Each kind of empty gets its own sentence and its own way out. "No students in
+// this class" and "you have no class" are different problems for different
+// people, and only one of them is solved by admitting a student.
+const EMPTY_TITLE = {
+  unassigned: 'students.noClassAssigned',
+  'no-students': 'students.none',
+  'no-match': 'attendance.none',
+} as const
+
+const EMPTY_ACTION = {
+  unassigned: { href: '/school', label: 'denied.back' },
+  'no-students': { href: '/school/students/new', label: 'students.newAdmission' },
+  'no-match': { href: '/school/attendance/mark', label: 'attendance.allClasses' },
+} as const
+
 export default async function MarkAttendancePage({
   searchParams,
 }: {
@@ -25,48 +40,12 @@ export default async function MarkAttendancePage({
 }) {
   const { classSection = '', date = todayIso() } = await searchParams
   const lang: Lang = await currentLang()
-  const { supabase } = await getSchoolContext()
+  const { supabase, userId } = await getSchoolContext()
 
-  const [{ data: students }, { data: classes }] = await Promise.all([
-    supabase
-      .from('students')
-      .select('id, full_name, class_name, section, roll_number')
-      .order('full_name'),
-    supabase.from('classes').select('id, name, section, group_department').order('created_at'),
-  ])
-  const roster = students ?? []
-  const { combos, className, section } = resolveClassSection(classes ?? [], classSection)
-  const visible = filterRoster(roster, className, section)
-  const visibleIds = visible.map((s) => s.id)
-
-  const [{ data: records }, { data: notes }] = await Promise.all([
-    visibleIds.length
-      ? supabase
-          .from('attendance_records')
-          .select('person_id')
-          .eq('person_type', 'student')
-          .eq('att_date', date)
-          .in('person_id', visibleIds)
-      : Promise.resolve({ data: [] as { person_id: string }[] }),
-    visibleIds.length
-      ? supabase
-          .from('attendance_absence_notes')
-          .select('person_id, cause')
-          .eq('person_type', 'student')
-          .eq('att_date', date)
-          .in('person_id', visibleIds)
-      : Promise.resolve({ data: [] as { person_id: string; cause: string | null }[] }),
-  ])
-
-  const presentIds = new Set((records ?? []).map((r) => r.person_id))
-  const causeByPerson = new Map((notes ?? []).map((n) => [n.person_id, n.cause ?? '']))
-  const initial = visible.map((s) => ({
-    id: s.id,
-    full_name: s.full_name,
-    roll_number: s.roll_number,
-    present: presentIds.has(s.id) || !causeByPerson.has(s.id),
-    cause: causeByPerson.get(s.id) ?? '',
-  }))
+  // One call, one model. This used to be ~60 lines of assembly: two Promise.all
+  // waves, an .in(visibleIds) guard, a conditional profiles lookup for the
+  // marker's name and three Map/Set joins — none of it reachable by a test.
+  const register = await studentRegister(supabase, { classSection, date, viewerId: userId })
 
   return (
     <div>
@@ -81,7 +60,7 @@ export default async function MarkAttendancePage({
         <div>
           <label className="mb-1 block text-xs font-semibold text-muted">{t('attendance.classSection', lang)}</label>
           <ClassSectionSelect
-            combos={combos}
+            combos={register.combos}
             value={classSection}
             ariaLabel={t('attendance.classSection', lang)}
             allLabel={t('attendance.allClasses', lang)}
@@ -103,12 +82,26 @@ export default async function MarkAttendancePage({
         </div>
       </Form>
 
-      {!visible.length ? (
-        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted">
-          {t('attendance.none', lang)}
-        </p>
+      {/* An empty register says which kind of empty it is: a teacher with no
+          class attachment is not told her school has no students (#538). */}
+      {register.empty ? (
+        <EmptyState
+          title={t(EMPTY_TITLE[register.empty], lang)}
+          body={register.empty === 'unassigned' ? t('students.noClassAssignedHelp', lang) : undefined}
+          action={{
+            href: EMPTY_ACTION[register.empty].href,
+            label: t(EMPTY_ACTION[register.empty].label, lang),
+          }}
+          lang={lang}
+        />
       ) : (
-        <MarkAttendanceForm key={`${classSection}-${date}`} lang={lang} date={date} students={initial} />
+        <MarkAttendanceForm
+          key={`${classSection}-${date}`}
+          lang={lang}
+          date={date}
+          students={register.rows}
+          markedBy={register.markedBy}
+        />
       )}
     </div>
   )

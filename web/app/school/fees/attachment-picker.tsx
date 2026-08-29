@@ -1,11 +1,11 @@
 'use client'
 
 import { useRef, useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import { labelClass } from '@/components/auth-card'
 import { t, type Lang } from '@/lib/i18n'
 import { compressImage, IMAGE_PRESETS } from '@/lib/image/compress'
-import { accountingAttachmentUploadPath, type AttachmentKind } from './attachment-actions'
+import { accountingAttachmentUploadTicket, type AttachmentKind } from './attachment-actions'
+import { uploadWithSignedToken } from '@/lib/storage/upload-client'
 
 export interface AttachmentMeta {
   path: string
@@ -76,23 +76,25 @@ export function AttachmentPicker({
       setUploadingState(false)
       return
     }
-    const { path, error: pathErr } = await accountingAttachmentUploadPath(kind, ext)
-    if (pathErr || !path) {
+    const { upload, error: pathErr } = await accountingAttachmentUploadTicket(kind, ext)
+    if (pathErr || !upload) {
       setError(pathErr ?? 'Upload failed')
       setUploadingState(false)
       return
     }
-    const supabase = createClient()
-    const { error: upErr } = await supabase.storage
-      .from('accounting-attachments')
-      .upload(path, attachment, { contentType: attachment.type })
+    const { error: upErr } = await uploadWithSignedToken(
+      'accounting-attachments',
+      upload,
+      attachment,
+      attachment.type,
+    )
     setUploadingState(false)
     if (upErr) {
-      setError(upErr.message)
+      setError(upErr)
       return
     }
     setFileName(file.name)
-    onUploaded({ path, name: file.name, mime: attachment.type, size: attachment.size })
+    onUploaded({ path: upload.path, name: file.name, mime: attachment.type, size: attachment.size })
   }
 
   return (

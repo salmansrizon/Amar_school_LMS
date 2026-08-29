@@ -29,7 +29,12 @@ export default async function ExamsPage({
     supabase
       .from('exams')
       .select('id, name, exam_year, status, class_id, grading_scheme_id, start_date')
-      .order('created_at', { ascending: false }),
+      .order('created_at', { ascending: false })
+      // ponytail: newest 500. A school runs a handful of exams a year, and the
+      // filters below are client-side over what arrives — so this is a guard
+      // against an unbounded read (#546), not a paging scheme. If a school ever
+      // reaches 500 exams, the filters move to the server (#550).
+      .limit(500),
     supabase.from('classes').select('id, name, section, group_department').order('created_at'),
   ])
 

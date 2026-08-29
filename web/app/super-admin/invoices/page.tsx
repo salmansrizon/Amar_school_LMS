@@ -3,6 +3,7 @@ import { getSuperAdminContext } from '@/lib/super-admin/context'
 import { formatTaka } from '@/lib/money'
 import { BillDistributorForm } from './bill-distributor-form'
 import { railClass, type Tone } from '@/components/ui/page'
+import { selectAllRows } from '@/lib/supabase/select-all'
 
 // Invoices + payments (#271 viewer + #319 distributor billing). School and
 // distributor invoices; issue a single-line distributor invoice inline.
@@ -17,7 +18,11 @@ export default async function InvoicesPage() {
       )
       .order('issued_at', { ascending: false })
       .limit(100),
-    supabase.from('payments').select('invoice_id, amount, status'),
+    // Paged (#546): every payment ever, folded into paid-per-invoice. Truncated,
+    // the "due" column overstates what a customer still owes.
+    selectAllRows<{ invoice_id: string; amount: number; status: string }>((from, to) =>
+      supabase.from('payments').select('invoice_id, amount, status').range(from, to),
+    ).then(({ rows }) => ({ data: rows })),
     supabase.from('profiles').select('id, full_name').eq('role', 'distributor').order('full_name'),
   ])
 

@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getStudentContext, isReadOnly } from '@/lib/student/context'
 import { requireSchoolOwnerProfile } from '@/lib/auth/require-role'
 import { rejectCorrection } from '@/lib/student/corrections'
+import { createSignedUpload, type SignedUpload } from '@/lib/storage/signed-upload'
 
 // Correction requests (#456). The Student asks; the Owner applies.
 
@@ -40,18 +41,22 @@ export async function requestCorrection(formData: FormData): Promise<{ error?: s
 /** A pending photo, uploaded to the student's own pending folder. The path is
  *  derived server-side: the storage policy keys on those folders, so a
  *  client-chosen path would be the whole hole. */
-export async function pendingPhotoPath(
+export async function pendingPhotoUploadTicket(
   mimeType: string,
-): Promise<{ path?: string; error?: string }> {
+): Promise<{ upload?: SignedUpload; error?: string }> {
   const ctx = await getStudentContext()
   if (isReadOnly(ctx)) return { error: 'readOnly' }
 
   const ext = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' }[mimeType]
   if (!ext) return { error: 'type' }
 
-  return {
-    path: `${ctx.student.school_id}/pending/${ctx.student.id}/${crypto.randomUUID()}.${ext}`,
-  }
+  // Same path and same read-only check as before; only the credential moves
+  // server-side, so a Student no longer needs a Supabase client to send a photo
+  // with a correction request (#527).
+  return createSignedUpload(
+    'student-photos',
+    `${ctx.student.school_id}/pending/${ctx.student.id}/${crypto.randomUUID()}.${ext}`,
+  )
 }
 
 /** Applying goes through the RPC, never a raw update: the write to `students`

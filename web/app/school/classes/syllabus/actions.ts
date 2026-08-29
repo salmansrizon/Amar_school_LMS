@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { createSignedUpload, type SignedUpload } from '@/lib/storage/signed-upload'
 import { currentActor } from '@/lib/school/actor'
 
 // The file bytes are uploaded client-side straight to Storage (avoids the Next
@@ -25,9 +26,21 @@ async function ownPath(classId: string): Promise<{ path?: string; error?: string
   return { path: pathFor(actor.schoolId, classId) }
 }
 
-/** The deterministic object path a client must upload to for this class. */
-export async function syllabusUploadPath(classId: string): Promise<{ path?: string; error?: string }> {
-  return ownPath(classId)
+/** A one-shot permission to write this class's syllabus object.
+ *
+ *  Was `syllabusUploadPath`, which returned only the path and left the browser to
+ *  authorise itself with its own session. That works only while the session cookie
+ *  is readable by page JavaScript, which is the #526 finding #527 removes. The
+ *  authorisation moves here; the bytes still go straight to Storage (#527).
+ *
+ *  Who may write is unchanged: this runs as the signed-in caller, so the class
+ *  lookup above and Storage RLS decide whether a token is issued at all. */
+export async function syllabusUploadTicket(
+  classId: string,
+): Promise<{ upload?: SignedUpload; error?: string }> {
+  const { path, error } = await ownPath(classId)
+  if (error || !path) return { error: error ?? 'Class not found' }
+  return createSignedUpload('syllabus', path)
 }
 
 export async function recordSyllabus(

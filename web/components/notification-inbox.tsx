@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
+import { markNotificationRead, markNotificationsRead } from '@/lib/notifications/actions'
 import { t, type Lang } from '@/lib/i18n'
 
 export interface InboxRow {
@@ -16,7 +16,6 @@ export interface InboxRow {
 // rows are handed in; mark-read goes through the recipient-scoped RPC.
 export function NotificationInbox({ initial, lang }: { initial: InboxRow[]; lang: Lang }) {
   const [rows, setRows] = useState(initial)
-  const supabase = createClient()
   const dateFmt = new Intl.DateTimeFormat(lang === 'bn' ? 'bn-BD' : 'en-GB', {
     day: 'numeric',
     month: 'short',
@@ -26,13 +25,13 @@ export function NotificationInbox({ initial, lang }: { initial: InboxRow[]; lang
   })
 
   async function markRead(id: string) {
-    await supabase.rpc('notification_mark_read', { p_id: id })
+    await markNotificationRead(id)
     setRows((prev) => prev.map((n) => (n.id === id ? { ...n, read_at: new Date().toISOString() } : n)))
   }
 
   async function markAll() {
     const unread = rows.filter((n) => !n.read_at)
-    await Promise.all(unread.map((n) => supabase.rpc('notification_mark_read', { p_id: n.id })))
+    await markNotificationsRead(unread.map((n) => n.id))
     setRows((prev) => prev.map((n) => ({ ...n, read_at: n.read_at ?? new Date().toISOString() })))
   }
 

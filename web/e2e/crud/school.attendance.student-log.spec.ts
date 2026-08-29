@@ -22,7 +22,10 @@ const TODAY_FILTER = 'আজ' // attendance.filterToday
 const CUSTOM_FILTER = 'নির্দিষ্ট সময়সীমা' // attendance.filterCustom
 const PRINT = 'প্রিন্ট করুন' // print.print
 const SAVE = 'হাজিরা সংরক্ষণ করুন' // attendance.saveAttendance
-const SAVED = 'হাজিরা সংরক্ষিত হয়েছে' // attendance.saved
+// #540 replaced the flat "attendance saved" line with a save STATE: the bar
+// reads `সংরক্ষিত <time> · সংরক্ষণ করেছেন <who>`, because a register that says
+// only "saved" cannot answer the question a parent asks — who marked it.
+const SAVED = 'সংরক্ষিত' // attendance.savedAt
 
 function todayIso(): string {
   return new Date().toISOString().slice(0, 10)

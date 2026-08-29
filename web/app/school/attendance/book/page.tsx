@@ -3,18 +3,18 @@ import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
+import { schoolRoster } from '@/lib/school/roster-source'
 import {
-  filterRoster,
   monthGrid,
   registerDayStatus,
   type OffDay,
 } from '@/lib/attendance-manual'
-import { resolveClassSection } from '@/lib/class-catalogue'
 import { PrintPage, InstituteHeader, PaginatedSheet } from '@/components/print/pieces'
 import { PrintButton } from '@/components/print/print-button'
 import { AttendanceTabs } from '../attendance-tabs'
 import { loadInstitutePrintHeader } from '@/lib/institute-print'
 import { ClassSectionSelect } from '@/components/ui/class-section-select'
+import { selectAllRows } from '@/lib/supabase/select-all'
 
 // Layout per ui/school-owner/attendance-book.html: class/section + month
 // filter, Filled/Blank toggle, print button, monthly P/A register grid
@@ -58,26 +58,28 @@ export default async function AttendanceBookPage({
   const daysInMonth = new Date(Date.UTC(year, month + 1, 0)).getUTCDate()
   const monthEnd = `${monthPrefix}-${String(daysInMonth).padStart(2, '0')}`
 
-  const [institute, { data: students }, { data: classes }] = await Promise.all([
+  const [institute, { combos, className, section, students: visible }] = await Promise.all([
     loadInstitutePrintHeader(supabase, lang),
-    supabase.from('students').select('id, full_name, class_name, section, roll_number').order('full_name'),
-    supabase.from('classes').select('id, name, section, group_department').order('created_at'),
+    schoolRoster(supabase, { classSection }),
   ])
-  const roster = students ?? []
-  const { combos, className, section } = resolveClassSection(classes ?? [], classSection)
-  const visible = filterRoster(roster, className, section)
   const visibleIds = visible.map((s) => s.id)
 
   const [{ data: offDaysRaw }, { data: recordsRaw }, { data: leavesRaw }] = await Promise.all([
     supabase.from('off_days').select('day, label, is_significant').gte('day', monthStart).lte('day', monthEnd),
+    // Paged (#546): a class-month is students x school days — 40 x 30 already
+    // passes 1000 — and a record this fetch drops does not render as unknown, it
+    // renders as ABSENT, which then feeds the fine calculation.
     visibleIds.length
-      ? supabase
-          .from('attendance_records')
-          .select('person_id, att_date')
-          .eq('person_type', 'student')
-          .gte('att_date', monthStart)
-          .lte('att_date', monthEnd)
-          .in('person_id', visibleIds)
+      ? selectAllRows<{ person_id: string; att_date: string }>((from, to) =>
+          supabase
+            .from('attendance_records')
+            .select('person_id, att_date')
+            .eq('person_type', 'student')
+            .gte('att_date', monthStart)
+            .lte('att_date', monthEnd)
+            .in('person_id', visibleIds)
+            .range(from, to),
+        ).then(({ rows }) => ({ data: rows }))
       : Promise.resolve({ data: [] as { person_id: string; att_date: string }[] }),
     visibleIds.length
       ? supabase

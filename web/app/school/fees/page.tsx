@@ -165,8 +165,17 @@ export default async function FeesPage({
               {roster.map((s) => {
                 const collected = recordMap.has(s.id)
                 const href = `/school/fees?class=${selectedClass}&month=${month}&year=${year}&student=${s.id}#collect-form`
+                // The collection form renders above this table, so on a tall
+                // roster the row you just clicked is the only thing still in
+                // view. Without a mark, collecting looks like it did nothing
+                // (#531).
+                const isSelected = s.id === selectedStudent
                 return (
-                  <tr key={s.id} className="border-b border-line">
+                  <tr
+                    key={s.id}
+                    aria-current={isSelected ? 'true' : undefined}
+                    className={`border-b border-line ${isSelected ? 'bg-brand-50' : ''}`}
+                  >
                     <td className={`${tdClass} ${railClass(collected ? 'mint' : 'sun')}`}>{s.roll_number ?? '—'}</td>
                     <td className={`${tdClass} font-medium`}>{s.full_name}</td>
                     <td className={tdClass}>{[s.class_name, s.section].filter(Boolean).join(' / ')}</td>

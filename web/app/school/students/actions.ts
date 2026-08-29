@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { currentActor } from '@/lib/school/actor'
 import { sendStudentSms } from '@/lib/sms/student-sms'
 import { photoExtension, behaviourSmsBody, parseRollNumber, rollScopeChanged } from '@/lib/students'
+import { createSignedUpload, type SignedUpload } from '@/lib/storage/signed-upload'
 
 // RLS scopes everything to the caller's School; the 3-day lock trigger is the
 // authority for edit rejection, the assign_student_roll trigger for auto-roll.
@@ -168,7 +169,13 @@ export async function transferStudent(formData: FormData): Promise<{ error?: str
 
 /** Server-derived Storage path for a student photo (mirrors the syllabus
  *  pattern: client uploads the bytes, path is never trusted from the client). */
-export async function studentPhotoPath(
+/** The deterministic object path for a student's photo.
+ *
+ *  Shared by the upload ticket and by recordStudentPhoto, which needs the same
+ *  string afterwards. Split out when the ticket started minting a signed token:
+ *  re-calling the exported function to recompute a path would have issued a fresh
+ *  upload credential purely as a side effect of wanting a filename. */
+async function studentPhotoObjectPath(
   studentId: string,
   mimeType: string,
 ): Promise<{ path?: string; error?: string }> {
@@ -185,12 +192,21 @@ export async function studentPhotoPath(
   return { path: `${actor.schoolId}/${studentId}.${ext}` }
 }
 
+export async function studentPhotoUploadTicket(
+  studentId: string,
+  mimeType: string,
+): Promise<{ upload?: SignedUpload; error?: string }> {
+  const { path, error } = await studentPhotoObjectPath(studentId, mimeType)
+  if (error || !path) return { error: error ?? 'Student not found' }
+  return createSignedUpload('student-photos', path)
+}
+
 /** Records the uploaded photo's path on the student row (after upload). */
 export async function recordStudentPhoto(
   studentId: string,
   mimeType: string,
 ): Promise<{ error?: string }> {
-  const { path, error: pathError } = await studentPhotoPath(studentId, mimeType)
+  const { path, error: pathError } = await studentPhotoObjectPath(studentId, mimeType)
   if (pathError || !path) return { error: pathError ?? 'Student not found' }
   const supabase = await createClient()
   const { error } = await supabase.from('students').update({ photo_path: path }).eq('id', studentId)

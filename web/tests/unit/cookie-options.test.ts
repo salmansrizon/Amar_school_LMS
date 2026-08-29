@@ -35,9 +35,66 @@ describe('authCookieOptions', () => {
     expect(authCookieOptions('adarshamodelschool.edumebd.com')).toEqual({
       name: AUTH_COOKIE_NAME,
       domain: '.edumebd.com',
+      secure: true,
+      sameSite: 'lax',
+      httpOnly: true,
     })
     // Local dev keeps the name but never sets a domain.
     process.env.NEXT_PUBLIC_ROOT_DOMAIN = 'localhost:3000'
-    expect(authCookieOptions('localhost:3000')).toEqual({ name: AUTH_COOKIE_NAME })
+    expect(authCookieOptions('localhost:3000')).toEqual({
+      name: AUTH_COOKIE_NAME,
+      secure: false,
+      sameSite: 'lax',
+      httpOnly: true,
+    })
+  })
+
+  // #545: the cookie is deliberately widened to every tenant subdomain, so a
+  // missing Secure would let it travel to any of them answering plaintext HTTP.
+  // @supabase/ssr's DEFAULT_COOKIE_OPTIONS has no `secure` key, so nothing else
+  // supplies it.
+  it('marks the session Secure everywhere except loopback', () => {
+    process.env.NEXT_PUBLIC_ROOT_DOMAIN = 'edumebd.com'
+    expect(authCookieOptions('edumebd.com').secure).toBe(true)
+    expect(authCookieOptions('adarshamodelschool.edumebd.com').secure).toBe(true)
+    // No root-domain match, but still HTTPS — a preview deploy must stay Secure.
+    expect(authCookieOptions('amar-school.vercel.app').secure).toBe(true)
+    expect(authCookieOptions(null).secure).toBe(true)
+
+    expect(authCookieOptions('localhost:3000').secure).toBe(false)
+    expect(authCookieOptions('127.0.0.1:3000').secure).toBe(false)
+    expect(authCookieOptions('school.localhost:3000').secure).toBe(false)
+  })
+
+  // An IPv6 Host header is bracketed, so the IPv4 `split(':')[0]` truncates it to
+  // '[' and every comparison fails. A dev on http://[::1]:3000 then gets a Secure
+  // cookie the browser refuses to store, and cannot log in at all.
+  it('recognises bracketed IPv6 loopback', () => {
+    process.env.NEXT_PUBLIC_ROOT_DOMAIN = 'edumebd.com'
+    expect(authCookieOptions('[::1]:3000').secure).toBe(false)
+    expect(authCookieOptions('[::1]').secure).toBe(false)
+  })
+
+  it('pins SameSite rather than inheriting it from the library default', () => {
+    process.env.NEXT_PUBLIC_ROOT_DOMAIN = 'edumebd.com'
+    expect(authCookieOptions('edumebd.com').sameSite).toBe('lax')
+    expect(authCookieOptions('localhost:3000').sameSite).toBe('lax')
+  })
+})
+
+// #527: the finding this whole branch exists for. httpOnly could not be set while
+// any browser Supabase client remained — createBrowserClient reads the session
+// from document.cookie, so an HttpOnly cookie is invisible to it and the app
+// behaves as though nobody is signed in. Setting it server-side only, with a
+// browser client still present, is worse: RFC 6265bis 5.7 makes the browser
+// discard that client's refresh writes, so sign-in appears to work and the session
+// then dies.
+describe('the session is not readable by page JavaScript (#527)', () => {
+  it('is httpOnly on every host, local development included', () => {
+    process.env.NEXT_PUBLIC_ROOT_DOMAIN = 'edumebd.com'
+    expect(authCookieOptions('adarshamodelschool.edumebd.com').httpOnly).toBe(true)
+    expect(authCookieOptions('amar-school.vercel.app').httpOnly).toBe(true)
+    expect(authCookieOptions('localhost:3000').httpOnly).toBe(true)
+    expect(authCookieOptions(null).httpOnly).toBe(true)
   })
 })

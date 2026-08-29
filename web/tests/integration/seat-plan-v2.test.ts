@@ -27,10 +27,18 @@ describe('Seat plan v2 (issue #95)', () => {
   // re-runnable rather than green only on a virgin database.
   async function cleanup(client: SupabaseClient) {
     await client.from('exams').delete().like('name', `${P}%`).eq('status', 'open')
-    await client.from('students').delete().like('full_name', `${P}%`)
+    // By CLASS, not by student name (#520). The suite's rolls are 1-4 and
+    // 101-104 inside its own two classes, and `students_roll_unique` is
+    // (school, class_name, section, roll) — so ANY row another suite leaves in
+    // one of these classes collides, whatever it is called. Two archived
+    // `ST999 PostMigration` students holding rolls 2 and 3 did exactly that,
+    // and because the insert below is one multi-row statement, all eight
+    // students failed together and every seating test saw an empty roster.
+    await client.from('students').delete().like('class_name', `${P}%`)
     await client.from('rooms').delete().like('name', `${P}%`)
     await client.from('buildings').delete().like('name', `${P}%`)
-    await client.from('classes').delete().like('name', `${P}%`)
+    // Classes are NOT deleted: a closed exam pins its class through the FK, and
+    // this school has plenty. ensureClass below reuses whatever survives.
   }
 
   /** Insert if absent, reuse if a previous run left it behind. */
@@ -98,7 +106,10 @@ describe('Seat plan v2 (issue #95)', () => {
     classAId = await ensureClass(ownerA, `${P}Class Six`)
     classBId = await ensureClass(ownerA, `${P}Class Seven`)
 
-    await ownerA.from('students').insert([
+    // Asserted, not fired and forgotten. A silent failure here is what made
+    // #520 look like eight broken seat-plan features instead of one missing
+    // roster (the handoff's "cleanups that silently do nothing", one layer up).
+    const seeded = await ownerA.from('students').insert([
       ...[1, 2, 3, 4].map((n) => ({
         full_name: `${P}Six Student ${n}`,
         class_name: `${P}Class Six`,
@@ -112,6 +123,7 @@ describe('Seat plan v2 (issue #95)', () => {
         roll_number: 100 + n,
       })),
     ])
+    if (seeded.error) throw new Error(`fixture students: ${seeded.error.message}`)
 
     const { data: exams } = await ownerA
       .from('exams')

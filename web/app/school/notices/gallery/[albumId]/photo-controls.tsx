@@ -2,12 +2,13 @@
 
 import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 import { formatBytes } from '@/lib/routine'
 import { albumCountLabel, albumIsFull, galleryImageExtension, photoExceedsCap } from '@/lib/publishing'
 import { t, type Lang } from '@/lib/i18n'
 import { compressImage, IMAGE_PRESETS } from '@/lib/image/compress'
-import { deleteGalleryPhoto, galleryUploadPath, recordGalleryPhoto } from '../actions'
+import { deleteGalleryPhoto, galleryUploadTicket, recordGalleryPhoto } from '../actions'
+import { removeUploadedObject } from '@/lib/storage/remove-object'
+import { uploadWithSignedToken } from '@/lib/storage/upload-client'
 
 export function PhotoGrid({
   albumId,
@@ -52,28 +53,25 @@ export function PhotoGrid({
     // Ask the server for the canonical path (derived from the caller's School),
     // then upload the bytes straight to Storage; the row-locking cap trigger
     // is still the real authority when the row gets recorded below.
-    const { path, error: pathErr } = await galleryUploadPath(albumId, photo.type)
-    if (pathErr || !path) {
+    const { upload, error: pathErr } = await galleryUploadTicket(albumId, photo.type)
+    if (pathErr || !upload) {
       setError(pathErr ?? 'Upload failed')
       setBusy(false)
       return
     }
-    const supabase = createClient()
-    const { error: upErr } = await supabase.storage
-      .from('gallery')
-      .upload(path, photo, { contentType: photo.type })
+    const { error: upErr } = await uploadWithSignedToken('gallery', upload, photo, photo.type)
     if (upErr) {
-      setError(upErr.message)
+      setError(upErr)
       setBusy(false)
       return
     }
-    const res = await recordGalleryPhoto(albumId, path, file.name, photo.size)
+    const res = await recordGalleryPhoto(albumId, upload.path, file.name, photo.size)
     setBusy(false)
     if (inputRef.current) inputRef.current.value = ''
     if (res.error) {
       // The insert failed (e.g. the cap trigger rejected it) — the uploaded
       // object is now orphaned; clean it up so it doesn't linger unreferenced.
-      await supabase.storage.from('gallery').remove([path])
+      await removeUploadedObject('gallery', upload.path)
       setError(res.error)
       return
     }

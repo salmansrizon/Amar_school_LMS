@@ -8,11 +8,14 @@ import { archiveStudent, restoreStudent, updateStudent } from '../actions'
 import { ConfirmDialog } from '@/components/confirm-dialog'
 import type { ClassNameSectionRow } from '@/lib/students'
 
+// 44px on a phone, the compact pill on a pointer device (#540). These two are
+// the Upload Photo / Replace Photo and Archive / Restore controls the UAT pass
+// measured at 26-30px.
 const btnSecondary =
-  'cursor-pointer rounded-full border border-line-strong px-4 py-1.5 text-xs font-semibold hover:bg-paper-muted disabled:opacity-50'
+  'inline-flex min-h-11 cursor-pointer items-center justify-center rounded-full border border-line-strong px-4 text-xs font-semibold hover:bg-paper-muted disabled:opacity-50 sm:min-h-9'
 // Destructive tone for archive/delete triggers (#365).
 const btnDanger =
-  'cursor-pointer rounded-full border border-alert px-4 py-1.5 text-xs font-semibold text-alert-deep hover:bg-alert-soft disabled:opacity-50'
+  'inline-flex min-h-11 cursor-pointer items-center justify-center rounded-full border border-alert px-4 text-xs font-semibold text-alert-deep hover:bg-alert-soft disabled:opacity-50 sm:min-h-9'
 
 /** Read-mode profile with an Edit toggle; edit reuses the admission sections. */
 export function ProfileEditor({

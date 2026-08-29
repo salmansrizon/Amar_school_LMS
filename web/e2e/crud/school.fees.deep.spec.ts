@@ -1,6 +1,6 @@
 import { test, expect } from '../fixtures/roles'
 import { expectNoError } from '../helpers'
-import { ownerClient, createClass, createStudent } from './factories'
+import { cleanupAll, ownerClient, createClass, createStudent } from './factories'
 
 // Deep CRUD for the Fees module (map #329, ticket #364). Fee collection needs a
 // class + a student in it: the collection page resolves the roster by
@@ -20,6 +20,11 @@ async function feePayAmount(owner: Awaited<ReturnType<typeof ownerClient>>, stud
 }
 
 test.describe('@crud @school fees-deep', () => {
+  // #541: drains whatever the factories built, pass or fail. The per-object
+  // cleanup() call at the end of a test body never runs when the test is the
+  // thing that failed, which is how 61 orphaned students accumulated.
+  test.afterEach(cleanupAll)
+
   test('record payment → verify → edit amount', async ({ ownerPage: page }) => {
     const owner = await ownerClient()
     const klass = await createClass(owner)

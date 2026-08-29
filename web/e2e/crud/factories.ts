@@ -20,6 +20,37 @@ export interface Made {
 let unique = 0
 const stamp = () => `${Date.now()}-${unique++}`
 
+// Everything a spec has built in this run, newest first.
+//
+// cleanup() alone was not enough (#541). It is opt-in, and a spec that fails
+// mid-test never reaches the call at the end of its body — so exactly the runs
+// that go wrong are the ones that leak. 61 orphaned `E2E …` students had built up
+// on the shared database that way, and because students carry class_name as TEXT
+// rather than a foreign key, deleting the class left the students behind pointing
+// at a name that no longer existed: 39 phantom class/section combinations in the
+// fixture school's own student list.
+//
+// Registered here and drained from afterEach, so a failing spec cleans up too.
+const made: (() => Promise<void>)[] = []
+
+function register(cleanup: () => Promise<void>): () => Promise<void> {
+  made.unshift(cleanup)
+  return cleanup
+}
+
+/** Drop everything this run created, newest first. Call from `test.afterEach`.
+ *
+ *  Reverse order matters: a class is deleted after the students that name it, or
+ *  the students are orphaned rather than removed. */
+export async function cleanupAll(): Promise<void> {
+  const pending = made.splice(0, made.length)
+  for (const cleanup of pending) {
+    // One failure must not strand the rest — a spec that already deleted its own
+    // row is the common case, not an error.
+    await cleanup().catch(() => {})
+  }
+}
+
 /** An owner-authenticated client for the seeded Test School A. */
 export function ownerClient(): Promise<SupabaseClient> {
   return signedIn('owner-a@test.local')
@@ -34,7 +65,12 @@ export async function createClass(
   const { data, error } = await owner.from('classes').insert({ name, section }).select('id').single()
   if (error) throw new Error(`createClass failed: ${error.message}`)
   const id = data!.id as string
-  return { id, name, section, cleanup: async () => void (await owner.from('classes').delete().eq('id', id)) }
+  return {
+    id,
+    name,
+    section,
+    cleanup: register(async () => void (await owner.from('classes').delete().eq('id', id))),
+  }
 }
 
 export async function createStudent(
@@ -49,5 +85,9 @@ export async function createStudent(
     .single()
   if (error) throw new Error(`createStudent failed: ${error.message}`)
   const id = data!.id as string
-  return { id, name, cleanup: async () => void (await owner.from('students').delete().eq('id', id)) }
+  return {
+    id,
+    name,
+    cleanup: register(async () => void (await owner.from('students').delete().eq('id', id))),
+  }
 }

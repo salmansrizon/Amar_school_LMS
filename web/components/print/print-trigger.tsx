@@ -7,8 +7,12 @@ import { useRef, useState } from 'react'
 // dialog in place, so the user never leaves /school/students/[id]. Reuses the
 // print routes (ADR 0007) — printable markup + @media rules stay in one place.
 
+// #540 measured this at 26-30px on a phone. 44px is the floor for a thumb, and
+// this is the only definition of a print trigger in the app, so raising it here
+// raises every print button rather than the two the UAT pass happened to measure.
+// Desktop keeps the compact pill — a mouse does not need 44px.
 const triggerClass =
-  'cursor-pointer rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted disabled:opacity-50'
+  'inline-flex min-h-11 cursor-pointer items-center justify-center rounded-full border border-line-strong px-4 text-xs font-semibold hover:bg-paper-muted disabled:opacity-50 sm:min-h-9 sm:px-3'
 
 export function PrintTrigger({ href, label }: { href: string; label: string }) {
   const [busy, setBusy] = useState(false)

@@ -93,7 +93,8 @@ export default async function MarksEntryPage({
       .from('exam_marks')
       .select('student_id, theory_obtained, mcq_obtained, practical_obtained')
       .eq('exam_id', id)
-      .eq('subject_id', selectedSubject.id),
+      .eq('subject_id', selectedSubject.id)
+      .range(0, 4999),
     supabase.from('student_subjects').select('student_id, is_optional').eq('subject_id', selectedSubject.id),
     exam.grading_scheme_id ? loadGradingScheme(supabase, exam.grading_scheme_id) : Promise.resolve(null),
   ])

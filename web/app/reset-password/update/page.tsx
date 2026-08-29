@@ -3,10 +3,9 @@
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { AuthCard, inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
-import { postLoginDestination } from '@/lib/auth/post-login'
 import { t } from '@/lib/i18n'
 import { useLang } from '@/lib/use-lang'
-import { createClient } from '@/lib/supabase/client'
+import { updatePassword } from '@/lib/auth/session-actions'
 
 export default function UpdatePasswordPage() {
   const lang = useLang()
@@ -19,16 +18,13 @@ export default function UpdatePasswordPage() {
     setBusy(true)
     setError(null)
     const form = new FormData(e.currentTarget)
-    const supabase = createClient()
-    const { error } = await supabase.auth.updateUser({
-      password: String(form.get('password')),
-    })
-    if (error) {
-      setError(error.message)
+    const { destination, error } = await updatePassword(String(form.get('password')))
+    if (error || !destination) {
+      setError(error ?? 'error')
       setBusy(false)
       return
     }
-    router.replace(await postLoginDestination(supabase))
+    router.replace(destination)
   }
 
   return (
