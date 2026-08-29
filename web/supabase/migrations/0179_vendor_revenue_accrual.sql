@@ -88,7 +88,7 @@ begin
     select s.invoice_id, s.amount, i.school_id, i.income_account, i.number
     from public.invoice_revenue_schedule s
     join public.invoices i on i.id = s.invoice_id
-    where s.period = month and s.released_at is null
+    where s.period = month and s.released_at is null and s.voided_at is null
     for update of s
   loop
     perform public.gl_post(

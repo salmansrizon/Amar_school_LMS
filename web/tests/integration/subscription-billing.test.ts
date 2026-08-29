@@ -116,6 +116,33 @@ describe('Subscription billing (#269)', () => {
     expect(Number(c.commission_amount)).toBe(Math.floor((subtotal * commissionRate) / 10000))
   })
 
+  it('voids an uncollected subscription with contra entries', async () => {
+    const inv = await billSubscription(superClient, { schoolId: schoolA, students: 10 })
+    const { error } = await superClient.rpc('vendor_invoice_void', { p_invoice: inv })
+    expect(error).toBeNull()
+
+    const status = (await superClient.from('invoices').select('status').eq('id', inv).single()).data!
+    expect(status.status).toBe('void')
+    const reversals = (await superClient
+      .from('gl_entries')
+      .select('ref')
+      .like('ref', `reversal:%${inv}%`)).data ?? []
+    expect(reversals.map((entry) => entry.ref)).toEqual(expect.arrayContaining([
+      `reversal:invoice:${inv}`,
+      `reversal:invoice-defer:${inv}`,
+    ]))
+
+    const release = await superClient.rpc('vendor_revenue_release', { p_period: new Date().toISOString().slice(0, 10) })
+    expect(release.error).toBeNull()
+    const schedule = (await superClient
+      .from('invoice_revenue_schedule')
+      .select('voided_at, released_at')
+      .eq('invoice_id', inv)
+      .single()).data!
+    expect(schedule.voided_at).toBeTruthy()
+    expect(schedule.released_at).toBeNull()
+  })
+
   it('blocks non-super billing', async () => {
     await expect(billSubscription(owner, { schoolId: schoolA, students: 10 })).rejects.toThrow()
   })
