@@ -2,20 +2,28 @@
 //
 //   UAT_BASE=http://localhost:3200 node e2e/uat-pass3-access.mjs
 //
-// Reads nothing from the database: every expected number is written here as a
-// literal, taken from a direct SQL count at the time of the run and quoted in
-// the report. A test that asks the same query the page asks proves only that
-// two identical queries agree.
+// Asks the database nothing: a check that runs the same query the page runs
+// proves only that two identical queries agree. Fixture facts are literals here;
+// the school's own totals are read from the Owner's screen and every narrower
+// view is measured against that, because the shared project's row counts move
+// whenever any suite runs.
 import { chromium } from '@playwright/test'
 
 const BASE = process.env.UAT_BASE ?? 'http://localhost:3200'
 const PASSWORD = 'test-password-123!'
 
-// Facts, counted in SQL on 2026-08-29 against school 3d5b6aaf (owner-a):
-const OWNER_STUDENTS = 22          // active students in the school
-const CT_STUDENTS = 1              // students of Seed Class/A, teacher-e2e's class
+// The Class Teacher's class holds exactly one student, which is a fixture fact
+// (Seed Class / A). The SCHOOL's total is not pinned to a literal: E2E suites
+// admit and archive students against this shared project all day, and a run that
+// fails because the number moved is a run that teaches you to ignore it.
+//
+// What ADR 0021 actually says is a RELATIONSHIP — an attachment is a ceiling —
+// so that is what these assert: office staff see what the Owner sees, and the
+// Class Teacher sees strictly fewer.
+const CT_STUDENTS = 1
 const UNATTACHED_STUDENT = '86ecd367-1979-4fd5-8d1d-995a01a6412f' // not in her class
 const CT_CLASS = 'c46c1e74-0cf9-4cb9-a9ae-6b2180be74c4'
+let ownerStudents = 0
 
 const results = []
 function record(persona, check, status, detail = '') {
@@ -49,10 +57,10 @@ const browser = await chromium.launch()
 // ---------------------------------------------------- 1. the ADR 0021 matrix
 {
   const { context, page } = await signIn(browser, 'owner-a@test.local')
-  const r = await body(page, '/school/students')
-  const rows = await page.locator('tbody tr').count()
-  record('owner', 'student list shows the whole school', rows === OWNER_STUDENTS ? 'pass' : 'fail',
-    `${rows} rows, expected ${OWNER_STUDENTS}`)
+  await body(page, '/school/students')
+  ownerStudents = await page.locator('tbody tr').count()
+  record('owner', 'student list shows the whole school', ownerStudents > CT_STUDENTS ? 'pass' : 'fail',
+    `${ownerStudents} rows — the baseline every narrower view is measured against`)
   await context.close()
 }
 {
@@ -61,8 +69,9 @@ const browser = await chromium.launch()
   await page.goto(`${BASE}/school/students`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(400)
   const rows = await page.locator('tbody tr').count()
-  record('classTeacher', 'student list is narrowed to her own class', rows === CT_STUDENTS ? 'pass' : 'fail',
-    `${rows} rows, expected ${CT_STUDENTS} (school has ${OWNER_STUDENTS})`)
+  record('classTeacher', 'student list is narrowed to her own class',
+    rows === CT_STUDENTS && rows < ownerStudents ? 'pass' : 'fail',
+    `${rows} rows, expected ${CT_STUDENTS} (the school has ${ownerStudents})`)
 
   const other = await body(page, `/school/students/${UNATTACHED_STUDENT}`)
   const leaked = !/not found|পাওয়া যায়নি|permission|অনুমতি/i.test(other.text) && other.text.length > 200
@@ -79,8 +88,8 @@ const browser = await chromium.launch()
   await page.goto(`${BASE}/school/students`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(400)
   const rows = await page.locator('tbody tr').count()
-  record('officeStaff', 'office staff sees the whole school', rows === OWNER_STUDENTS ? 'pass' : 'fail',
-    `${rows} rows, expected ${OWNER_STUDENTS}`)
+  record('officeStaff', 'office staff sees the whole school', rows === ownerStudents ? 'pass' : 'fail',
+    `${rows} rows against the Owner's ${ownerStudents} — grants with no employees row are not narrowed`)
   for (const [path, allowed] of [['/school/fees', true], ['/school/classes', true], ['/school/exams', false], ['/school/sms', false], ['/school/staff', false]]) {
     const r = await body(page, path)
     const denied = /permission-denied/.test(r.url)
@@ -173,9 +182,14 @@ const browser = await chromium.launch()
 
 // -------------------------------------------------------- 4. headers
 {
+  // Through a real page, not context.request: a bot-mitigation edge (Vercel's
+  // Security Checkpoint on staging) answers a bare fetch with its own 429 and
+  // none of the app's headers, which reads as "every header missing" when in
+  // fact none were measured.
   const context = await browser.newContext()
-  const res = await context.request.get(`${BASE}/login`)
-  const h = res.headers()
+  const page = await context.newPage()
+  const res = await page.goto(`${BASE}/login`, { waitUntil: 'domcontentloaded' })
+  const h = res?.headers() ?? {}
   const checks = [
     ['Strict-Transport-Security includes subdomains', /includeSubDomains/.test(h['strict-transport-security'] ?? '')],
     ['X-Frame-Options DENY', h['x-frame-options'] === 'DENY'],
