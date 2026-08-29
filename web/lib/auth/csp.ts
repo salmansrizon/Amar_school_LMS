@@ -30,6 +30,7 @@ export function cspFor(nonce: string): string {
   const origin = supabaseOrigin()
   const ws = origin.replace(/^http/, 'ws')
   const isDev = process.env.NODE_ENV === 'development'
+  const enforcing = cspHeaderName() === 'Content-Security-Policy'
 
   return [
     `default-src 'self'`,
@@ -72,7 +73,10 @@ export function cspFor(nonce: string): string {
     // Deprecated in CSP3 in favour of report-to, but still the one several shipping
     // browsers actually honour. Both may be present.
     `report-uri /api/csp-report`,
-    `upgrade-insecure-requests`,
+    // Only when enforcing. A report-only policy cannot upgrade anything, and
+    // every browser logs a console error saying so — on every page, for every
+    // user, which is exactly the noise that hides a real error (UAT pass 3).
+    ...(enforcing ? ['upgrade-insecure-requests'] : []),
   ].join('; ')
 }
 
