@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { getSuperAdminContext } from '@/lib/super-admin/context'
 import { LegalProfileForm } from './legal-profile-form'
 import { TenderEvidenceForm, TenderProfileForm } from './tender-forms'
+import { TaxTreatmentForm } from './tax-forms'
 
 type Status = 'pending' | 'proposed' | 'blocked' | 'baseline' | 'ready' | 'approved' | 'retired' | 'expired'
 
@@ -15,7 +16,7 @@ export default async function ReadinessPage() {
   const [{ data: legal }, { data: launch }, { data: taxes }, { data: tenders }] = await Promise.all([
     supabase.from('vendor_legal_profile').select('status, legal_entity_name, tin, bin, registered_address, adviser_evidence').maybeSingle(),
     supabase.from('launch_package_config').select('status, billing_period, pricing_model, payment_mode, languages, support_channel, support_response_hours, included_modules, deferred_capabilities').maybeSingle(),
-    supabase.from('tax_treatment_config').select('supply_type, customer_type, status, rate_bp, inclusive').order('supply_type'),
+    supabase.from('tax_treatment_config').select('id, supply_type, customer_type, status, rate_bp, inclusive, source_reference').order('supply_type'),
     supabase.from('government_tender_profiles').select('id, procuring_entity, tender_reference, status, government_tender_evidence(id, evidence_area, buyer_requirement, amar_evidence, accountable_owner, status)'),
   ])
 
@@ -50,7 +51,7 @@ export default async function ReadinessPage() {
 
       <section className="mt-4 rounded-lg border border-line bg-paper p-5">
         <div className="flex items-center justify-between"><h2 className="font-bold">Tax treatments</h2><span className="text-xs text-muted">Pending does not calculate VAT</span></div>
-        <div className="mt-3 overflow-x-auto"><table className="w-full text-left text-sm"><thead><tr className="border-b border-line text-xs uppercase text-muted"><th className="py-2 pr-4">Supply</th><th className="py-2 pr-4">Customer</th><th className="py-2 pr-4">Status</th><th className="py-2 pr-4">Rate</th></tr></thead><tbody className="divide-y divide-line">{(taxes ?? []).map((tax) => <tr key={`${tax.supply_type}-${tax.customer_type}`}><td className="py-2 pr-4">{tax.supply_type}</td><td className="py-2 pr-4">{tax.customer_type}</td><td className="py-2 pr-4"><Badge status={tax.status} /></td><td className="py-2 pr-4">{tax.rate_bp} bp</td></tr>)}</tbody></table></div>
+        <div className="mt-3 overflow-x-auto"><table className="w-full text-left text-sm"><thead><tr className="border-b border-line text-xs uppercase text-muted"><th className="py-2 pr-4">Supply</th><th className="py-2 pr-4">Customer</th><th className="py-2 pr-4">Status</th><th className="py-2 pr-4">Configuration</th></tr></thead><tbody className="divide-y divide-line">{(taxes ?? []).map((tax) => <tr key={`${tax.supply_type}-${tax.customer_type}`}><td className="py-2 pr-4">{tax.supply_type}</td><td className="py-2 pr-4">{tax.customer_type}</td><td className="py-2 pr-4"><Badge status={tax.status} /></td><td className="py-2 pr-4"><TaxTreatmentForm item={tax} /></td></tr>)}</tbody></table></div>
       </section>
 
       <section className="mt-4 rounded-lg border border-line bg-paper p-5">

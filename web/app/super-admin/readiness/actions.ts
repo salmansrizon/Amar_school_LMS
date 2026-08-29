@@ -63,3 +63,20 @@ export async function updateTenderEvidence(formData: FormData): Promise<{ error?
   revalidatePath('/super-admin/readiness')
   return {}
 }
+
+export async function updateTaxTreatment(formData: FormData): Promise<{ error?: string }> {
+  const { supabase } = await getSuperAdminContext()
+  const id = String(formData.get('id') ?? '')
+  const rate = Number(formData.get('rate_bp') ?? 0)
+  const inclusive = String(formData.get('inclusive') ?? '') === 'true'
+  const source = String(formData.get('source_reference') ?? '').trim() || null
+  if (!id || !Number.isInteger(rate) || rate < 0) return { error: 'Rate must be a non-negative whole number.' }
+  const current = await supabase.from('tax_treatment_config').select('status').eq('id', id).single()
+  if (current.error || current.data?.status !== 'pending') return { error: 'Only pending treatments can be edited here.' }
+  const { error } = await supabase.from('tax_treatment_config').update({
+    rate_bp: rate, inclusive, source_reference: source, status: 'pending',
+  }).eq('id', id)
+  if (error) return { error: error.message }
+  revalidatePath('/super-admin/readiness')
+  return {}
+}
