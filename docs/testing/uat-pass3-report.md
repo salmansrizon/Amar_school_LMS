@@ -180,6 +180,11 @@ One thing this pass found and fixed on the spot: `upgrade-insecure-requests` is 
 
 | Priority | Finding | Evidence |
 |---|---|---|
+> **All five findings below were fixed after this pass.** #550, #551 and #552 are
+> closed, with the before/after numbers on each issue; the P2 SMS deficit is a data
+> reconciliation, and the P3 chrome targets are shell, not content. The table is
+> kept as the pass recorded it.
+
 | P1 | **Large lists render whole.** `/super-admin/locations` renders 5,218 nodes and 5,911 controls in one page; `/school/exams` renders 570 exam links. Both work, both are heavy on a low-end phone | 5.7 s to idle; 934 sub-44 px controls on the exam list |
 | P1 | **An exam cannot be deleted from the UI by anyone.** There is no delete control on the list or the detail page. The 136 leftover `SP2 ` exams on the shared project have no product-level remedy; this pass had to remove its own exam through SQL | `app/school/exams` has no delete action |
 | P2 | **The screen registry has a row with no page.** `subscription` is registered as a `member` screen, but `app/school/subscription` contains only server actions, so a deep link 404s. Nothing links to it | `/school/subscription` → 404 |
