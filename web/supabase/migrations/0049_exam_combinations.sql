@@ -44,6 +44,7 @@ begin
   return new;
 end $$;
 
+drop trigger if exists exam_combination_same_school on public.exam_combinations;
 create trigger exam_combination_same_school
   before insert or update on public.exam_combinations
   for each row execute function public.enforce_exam_combination_school();
@@ -105,6 +106,7 @@ begin
   return new;
 end $$;
 
+drop trigger if exists exam_combination_member_same_school on public.exam_combination_members;
 create trigger exam_combination_member_same_school
   before insert or update on public.exam_combination_members
   for each row execute function public.enforce_exam_combination_member_school();

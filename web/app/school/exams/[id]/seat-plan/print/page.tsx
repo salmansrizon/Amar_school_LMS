@@ -14,6 +14,8 @@ import {
 import { PrintPage, InstituteHeader, PaginatedSheet } from '@/components/print/pieces'
 import { PrintButton } from '@/components/print/print-button'
 import { embeddedBuildingName, roomVenueLabel } from '@/lib/venues'
+import { BackLink } from '@/components/back-link'
+import { resolveBackHref, withOrigin } from '@/lib/back-nav'
 
 // Notice-board seat plan (issue #96, docs/improvement.md §2B; ADR 0007 —
 // browser-native print). Organised by room, because that is what a student
@@ -29,10 +31,19 @@ export default async function SeatPlanPrintPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>
-  searchParams: Promise<{ date?: string }>
+  searchParams: Promise<{ date?: string; from?: string | string[] }>
 }) {
   const { id } = await params
-  const { date: sittingDate } = await searchParams
+  const { date: sittingDate, from } = await searchParams
+  const backHref = resolveBackHref(from, `/school/exams/${id}/seat-plan`)
+  // Switching sitting is a filter on this same page, not a new destination, so
+  // each link keeps the origin verbatim — nesting would add a pointless Back hop
+  // and, dropped entirely, Back fell through to the seat-plan editor (§3).
+  const origin = resolveBackHref(from, '')
+  const sittingHref = (d?: string) => {
+    const base = `/school/exams/${id}/seat-plan/print${d ? `?date=${d}` : ''}`
+    return origin ? withOrigin(base, origin) : base
+  }
   const lang: Lang = await currentLang()
   const { supabase } = await getSchoolContext()
 
@@ -120,19 +131,13 @@ export default async function SeatPlanPrintPage({
   return (
     <main className="mx-auto w-full max-w-4xl flex-1 p-6">
       <div className="mb-4 flex items-center justify-between print:hidden">
-        <Link
-          href={`/school/exams/${id}/seat-plan`}
-          aria-label={t('seatPlan.title', lang)}
-          className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg>
-        </Link>
+        <BackLink href={backHref} label={t('common.back', lang)} />
         <div className="flex items-center gap-3">
           {examDates.length > 1 && (
             <nav className="flex flex-wrap items-center gap-2 text-xs">
               <span className="text-muted">{t('seatPlan.forSitting', lang)}</span>
               <Link
-                href={`/school/exams/${id}/seat-plan/print`}
+                href={sittingHref()}
                 className={`rounded-full border px-2 py-0.5 font-semibold ${
                   sittingDate ? 'border-line text-muted hover:bg-paper-muted' : 'border-brand-500 text-brand-600'
                 }`}
@@ -142,7 +147,7 @@ export default async function SeatPlanPrintPage({
               {examDates.map((d) => (
                 <Link
                   key={d}
-                  href={`/school/exams/${id}/seat-plan/print?date=${d}`}
+                  href={sittingHref(d)}
                   className={`rounded-full border px-2 py-0.5 font-semibold ${
                     sittingDate === d ? 'border-brand-500 text-brand-600' : 'border-line text-muted hover:bg-paper-muted'
                   }`}
@@ -156,7 +161,7 @@ export default async function SeatPlanPrintPage({
         </div>
       </div>
 
-      <PrintPage>
+      <PrintPage orientation="landscape">
         <PaginatedSheet
           header={
             <InstituteHeader

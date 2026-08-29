@@ -5,6 +5,7 @@ import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { countFor, studentCounts } from '@/lib/classes'
 import { AddClassForm, AddSubjectForm, DeleteButton } from './class-controls'
+import { ClassTeacherPicker } from './class-teacher-picker'
 import { AddDetails } from '@/components/add-details'
 import { selectClass } from '@/components/ui/field'
 
@@ -24,11 +25,11 @@ export default async function ClassesPage({
   const lang: Lang = await currentLang()
   const { supabase } = await getSchoolContext()
 
-  const [{ data: classes }, { data: subjects }, { data: students }] =
+  const [{ data: classes }, { data: subjects }, { data: students }, { data: teachers }] =
     await Promise.all([
       supabase
         .from('classes')
-        .select('id, name, section, education_level, group_department')
+        .select('id, name, section, education_level, group_department, class_teacher_id')
         .order('created_at'),
       supabase
         .from('subjects')
@@ -39,6 +40,14 @@ export default async function ClassesPage({
       // ponytail: whole-table scan capped at 10k rows; switch to a count RPC
       // if a school ever outgrows it.
       supabase.from('students').select('class_name, section').limit(10000),
+      // Class teachers are Employees (#435). Archived staff are not offerable.
+      // employee_card, not employees: 0136 gates the base table on the Employees
+      // grant, and this picker belongs to Classes. A name is all it wants.
+      supabase
+        .from('employee_card')
+        .select('id, full_name')
+        .is('archived_at', null)
+        .order('full_name'),
     ])
 
   const levels = [...new Set((classes ?? []).map((c) => c.education_level).filter(Boolean))] as string[]
@@ -52,7 +61,7 @@ export default async function ClassesPage({
   const dash = <span className="text-muted">—</span>
 
   return (
-    <main className="mx-auto w-full max-w-4xl flex-1 p-6">
+    <div>
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold">{t('classes.title', lang)}</h1>
         <Link href="/school" aria-label={t('common.back', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
@@ -74,7 +83,7 @@ export default async function ClassesPage({
       </nav>
 
       {/* Classes */}
-      <section id="classes" className="mb-8 rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section id="classes" className="mb-8 rounded-lg border border-line bg-paper p-5">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <Form className="flex flex-wrap items-center gap-2" action="/school/classes">
             <input
@@ -103,7 +112,7 @@ export default async function ClassesPage({
             </button>
           </Form>
           <AddDetails label={t('classes.addClass', lang)}>
-            <AddClassForm lang={lang} />
+            <AddClassForm lang={lang} teachers={teachers ?? []} />
           </AddDetails>
         </div>
         {!visibleClasses.length ? (
@@ -117,6 +126,7 @@ export default async function ClassesPage({
                   <th className={thClass}>{t('classes.section', lang)}</th>
                   <th className={thClass}>{t('classes.educationLevel', lang)}</th>
                   <th className={thClass}>{t('classes.groupDept', lang)}</th>
+                  <th className={thClass}>{t('classes.classTeacher', lang)}</th>
                   <th className={thClass}>{t('classes.students', lang)}</th>
                   <th className={thClass}>{t('classes.actions', lang)}</th>
                 </tr>
@@ -128,6 +138,14 @@ export default async function ClassesPage({
                     <td className={tdClass}>{c.section ?? dash}</td>
                     <td className={tdClass}>{c.education_level ?? dash}</td>
                     <td className={tdClass}>{c.group_department ?? dash}</td>
+                    <td className={tdClass}>
+                      <ClassTeacherPicker
+                        lang={lang}
+                        classId={c.id}
+                        teachers={teachers ?? []}
+                        current={c.class_teacher_id}
+                      />
+                    </td>
                     <td className={tdClass}>{countFor(counts, c.name, c.section)}</td>
                     <td className={tdClass}>
                       <div className="flex flex-wrap items-center gap-2">
@@ -163,7 +181,7 @@ export default async function ClassesPage({
       {/* Rooms moved to Institute Setup -> Venues (issue #93): rooms now belong
           to a building and are institute master data, not class configuration.
           The anchor and this link stay so existing navigation still lands. */}
-      <section id="rooms" className="mb-8 rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section id="rooms" className="mb-8 rounded-lg border border-line bg-paper p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h2 className="font-bold">{t('classes.roomList', lang)}</h2>
@@ -179,7 +197,7 @@ export default async function ClassesPage({
       </section>
 
       {/* Subjects */}
-      <section id="subjects" className="rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section id="subjects" className="rounded-lg border border-line bg-paper p-5">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <h2 className="font-bold">{t('classes.subjectList', lang)}</h2>
           <AddDetails label={t('classes.addSubject', lang)}>
@@ -239,6 +257,6 @@ export default async function ClassesPage({
           </div>
         )}
       </section>
-    </main>
+    </div>
   )
 }

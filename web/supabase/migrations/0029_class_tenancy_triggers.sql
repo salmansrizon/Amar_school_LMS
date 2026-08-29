@@ -15,10 +15,12 @@ begin
   return new;
 end $$;
 
+drop trigger if exists class_routine_same_school on public.class_routines;
 create trigger class_routine_same_school
   before insert or update on public.class_routines
   for each row execute function public.enforce_class_ref_school();
 
+drop trigger if exists class_syllabus_same_school on public.class_syllabi;
 create trigger class_syllabus_same_school
   before insert or update on public.class_syllabi
   for each row execute function public.enforce_class_ref_school();

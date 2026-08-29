@@ -142,7 +142,7 @@ function ChecklistSection({ props }: { props: ProgressReportTemplateProps }) {
 function ClassicTemplate(props: ProgressReportTemplateProps) {
   const { lang } = props
   return (
-    <PrintPage>
+    <PrintPage fill>
       <InstituteHeader institute={props.institute} docTitle={`${t('progressReport.docWord', lang)} — ${props.examLabel}`} />
       <InfoGrid rows={baseInfoRows(props)} />
       <SubjectTable rows={props.subjectRows} lang={lang} />
@@ -162,7 +162,7 @@ function BorderedTemplate(props: ProgressReportTemplateProps) {
     rows.push({ label: t('promotion.position', lang), value: `${props.rankPosition} / ${props.rankOutOf}` })
   }
   return (
-    <PrintPage>
+    <PrintPage fill>
       <InstituteHeader institute={props.institute} docTitle={`${t('progressReport.docWord', lang)} — ${props.examLabel}`} />
       <InfoGrid rows={rows} />
       <div className="rounded-md border-2 border-line-strong p-3">
@@ -181,7 +181,7 @@ function BorderedTemplate(props: ProgressReportTemplateProps) {
 function SideBySideTemplate(props: ProgressReportTemplateProps) {
   const { lang } = props
   return (
-    <PrintPage>
+    <PrintPage fill>
       <InstituteHeader institute={props.institute} docTitle={`${t('progressReport.docWord', lang)} — ${props.examLabel}`} />
       <InfoGrid rows={baseInfoRows(props)} />
       <SubjectTable rows={props.subjectRows} lang={lang} />

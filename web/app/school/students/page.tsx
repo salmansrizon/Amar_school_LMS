@@ -1,17 +1,31 @@
-import Form from 'next/form'
 import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
-import { filterStudents, behaviourAverages } from '@/lib/students'
-import { selectClass } from '@/components/ui/field'
+import { schoolRoster } from '@/lib/school/roster-source'
+import { behaviourAverages } from '@/lib/students'
+import { Badge } from '@/components/ui/badge'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { Card, PageHeader, Toolbar, railClass } from '@/components/ui/page'
+import { EmptyState } from '@/components/ui/states'
+import { StudentFilters } from './student-filters'
 
 // Layout per ui/school-owner/students-list.html: search (name/roll/guardian) +
 // class/section filters, table Roll | Name | Class/Section | Guardian |
 // Behaviour Avg | Status | View, with Old Students + New Admission actions.
-
-const thClass = 'px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted'
-const tdClass = 'px-3 py-2 text-sm'
+//
+// List archetype (gate #372): renders bare content — the shell owns the <main>,
+// the width and the gutters — so the table fills the viewport instead of sitting
+// in an 896px column. Columns distribute across that width the way an ERP grid
+// does; an earlier pass clustered them left and left the right half of the card
+// empty, which read as broken rather than tidy.
 function avgBadge(avg: number | undefined) {
   if (avg === undefined) return <span className="text-muted">—</span>
   const tone =
@@ -22,135 +36,158 @@ function avgBadge(avg: number | undefined) {
 export default async function StudentsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; class?: string; section?: string }>
+  searchParams: Promise<{ q?: string; classSection?: string }>
 }) {
-  const { q = '', class: klass = '', section = '' } = await searchParams
+  const { q = '', classSection = '' } = await searchParams
   const lang: Lang = await currentLang()
-  const { supabase } = await getSchoolContext()
+  const { supabase, role } = await getSchoolContext()
 
-  const [{ data: students }, { data: ratings }] = await Promise.all([
-    supabase
-      .from('students')
-      .select('id, full_name, roll_number, class_name, section, guardian_name, archived_at')
-      .is('archived_at', null)
-      .order('class_name')
-      .order('roll_number'),
+  const [roster, { data: ratings }] = await Promise.all([
+    schoolRoster(supabase, { classSection, q }),
     // ponytail: whole-table scan capped at 10k rows, mirrors the classes page.
     supabase.from('behaviour_log_entries').select('student_id, rating').limit(10000),
   ])
-
-  const visible = filterStudents(students ?? [], q, klass, section)
+  const visible = roster.students
   const avgs = behaviourAverages(ratings ?? [])
-  const classNames = [...new Set((students ?? []).map((s) => s.class_name).filter(Boolean))] as string[]
-  const sections = [
-    ...new Set(
-      (students ?? [])
-        .filter((s) => !klass || s.class_name === klass)
-        .map((s) => s.section)
-        .filter(Boolean),
-    ),
-  ] as string[]
 
   return (
-    <main className="mx-auto w-full max-w-4xl flex-1 p-6">
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-extrabold">{t('students.listTitle', lang)}</h1>
-        <Link href="/school" aria-label={t('common.back', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
-      </div>
+    <>
+      <PageHeader
+        title={t('students.listTitle', lang)}
+        actions={
+          <>
+            <Link
+              href="/school/students/archive"
+              className="inline-flex h-11 items-center rounded-full border border-line-strong px-4 text-xs font-semibold hover:bg-paper-muted"
+            >
+              {t('students.oldStudents', lang)}
+            </Link>
+            {/* Issuing logins is owner-only (#442) — the screen redirects Staff. */}
+            {role === 'school_owner' && (
+              <Link
+                href="/school/students/logins"
+                className="inline-flex h-11 items-center rounded-full border border-line-strong px-4 text-xs font-semibold hover:bg-paper-muted"
+              >
+                {t('students.loginBulk', lang)}
+              </Link>
+            )}
+            <Link
+              href="/school/students/new"
+              className="inline-flex h-11 items-center rounded-full bg-brand-500 px-4 text-xs font-semibold text-white hover:bg-brand-600"
+            >
+              + {t('students.newAdmission', lang)}
+            </Link>
+          </>
+        }
+      />
 
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <Form className="flex flex-wrap items-center gap-2" action="/school/students">
-          <input
-            name="q"
-            defaultValue={q}
-            placeholder={t('students.search', lang)}
-            className="w-56 rounded-md border border-line bg-paper px-3 py-1.5 text-sm"
-          />
-          <select name="class" defaultValue={klass} className={selectClass()}>
-            <option value="">{t('students.allClasses', lang)}</option>
-            {classNames.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
-          <select name="section" defaultValue={section} className={selectClass()}>
-            <option value="">{t('students.allSections', lang)}</option>
-            {sections.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </select>
-          <button
-            type="submit"
-            className="cursor-pointer rounded-full border border-line px-3 py-1 text-xs font-semibold hover:bg-paper-muted"
-          >
-            {t('classes.filter', lang)}
-          </button>
-        </Form>
-        <div className="flex gap-2">
-          <Link
-            href="/school/students/archive"
-            className="rounded-full border border-line-strong px-4 py-1.5 text-xs font-semibold hover:bg-paper-muted"
-          >
-            {t('students.oldStudents', lang)}
-          </Link>
-          <Link
-            href="/school/students/new"
-            className="rounded-full bg-brand-500 px-4 py-1.5 text-xs font-semibold text-white hover:bg-brand-600"
-          >
-            + {t('students.newAdmission', lang)}
-          </Link>
-        </div>
-      </div>
+      <Toolbar
+        filters={
+          <StudentFilters q={q} classSection={classSection} combos={roster.combos} lang={lang} />
+        }
+      />
 
-      <section className="rounded-lg border border-line bg-paper p-5 shadow-card">
-        {!visible.length ? (
-          <p className="text-sm text-muted">{t('students.none', lang)}</p>
+      <Card padded={!visible.length}>
+        {/* #538: an empty list says which kind of empty it is and offers the one
+            action that changes it. Three kinds, and the model decides which
+            (lib/school/roster.ts) — this page only renders the answer.
+            An unassigned Employee is not sent to the admission form: she cannot
+            admit anyone (ADR 0021), and her way out is an Owner assigning her a
+            class, which is not a button she has. A filter that matched nothing
+            is not sent there either — the school HAS students, and offering to
+            admit another is the conflation #538 exists to forbid. */}
+        {roster.empty ? (
+          roster.empty === 'unassigned' ? (
+            <EmptyState
+              title={t('students.noClassAssigned', lang)}
+              body={t('students.noClassAssignedHelp', lang)}
+              action={{ href: '/school', label: t('denied.back', lang) }}
+              lang={lang}
+            />
+          ) : roster.empty === 'no-match' ? (
+            <EmptyState
+              title={t('students.noMatch', lang)}
+              body={t('students.noMatchHelp', lang)}
+              action={{ href: '/school/students', label: t('students.clearFilters', lang) }}
+              lang={lang}
+            />
+          ) : (
+            <EmptyState
+              title={t('students.none', lang)}
+              action={{ href: '/school/students/new', label: t('students.newAdmission', lang) }}
+              lang={lang}
+            />
+          )
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="border-b border-line-strong">
-                  <th className={thClass}>{t('students.roll', lang)}</th>
-                  <th className={thClass}>{t('students.name', lang)}</th>
-                  <th className={thClass}>{t('students.classSection', lang)}</th>
-                  <th className={thClass}>{t('students.guardian', lang)}</th>
-                  <th className={thClass}>{t('students.behaviourAvg', lang)}</th>
-                  <th className={thClass}>{t('students.status', lang)}</th>
-                  <th className={thClass} />
-                </tr>
-              </thead>
-              <tbody>
-                {visible.map((s) => (
-                  <tr key={s.id} className="border-b border-line">
-                    <td className={tdClass}>{s.roll_number ?? <span className="text-muted">—</span>}</td>
-                    <td className={`${tdClass} font-medium`}>{s.full_name}</td>
-                    <td className={tdClass}>
-                      {[s.class_name, s.section].filter(Boolean).join(' / ') || (
-                        <span className="text-muted">—</span>
-                      )}
-                    </td>
-                    <td className={tdClass}>{s.guardian_name ?? <span className="text-muted">—</span>}</td>
-                    <td className={tdClass}>{avgBadge(avgs.get(s.id))}</td>
-                    <td className={tdClass}>
-                      <span className="rounded-full bg-mint-soft px-2 py-0.5 text-xs font-semibold text-mint-deep">
-                        {t('students.active', lang)}
-                      </span>
-                    </td>
-                    <td className={tdClass}>
-                      <Link href={`/school/students/${s.id}`} className="text-brand-600 hover:underline">
-                        {t('students.view', lang)}
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <>
+          {/* Phone: cards, no horizontal scroll for the one action that matters
+              (#540). Desktop keeps the seven-column grid. */}
+          <ul className="flex flex-col gap-2 md:hidden">
+            {visible.map((s) => (
+              <li key={s.id} className="rounded-lg border border-line bg-paper p-3">
+                <div className="flex items-baseline justify-between gap-2">
+                  <span className="font-medium">{s.full_name}</span>
+                  <span className="text-xs text-muted">
+                    {t('students.roll', lang)} {s.roll_number ?? '—'}
+                  </span>
+                </div>
+                <p className="mt-0.5 text-xs text-muted">
+                  {[s.class_name, s.section].filter(Boolean).join(' / ') || '—'}
+                  {s.guardian_name ? ` · ${s.guardian_name}` : ''}
+                </p>
+                <Link
+                  href={`/school/students/${s.id}`}
+                  className="mt-2 inline-flex h-11 w-full items-center justify-center rounded-full border border-line-strong text-sm font-semibold hover:bg-paper-muted"
+                >
+                  {t('students.view', lang)}
+                </Link>
+              </li>
+            ))}
+          </ul>
+
+          <Table className="hidden md:table">
+            <TableHeader>
+              <TableRow>
+                <TableHead className={railClass(undefined)}>{t('students.roll', lang)}</TableHead>
+                <TableHead>{t('students.name', lang)}</TableHead>
+                <TableHead>{t('students.classSection', lang)}</TableHead>
+                <TableHead>{t('students.guardian', lang)}</TableHead>
+                <TableHead>{t('students.behaviourAvg', lang)}</TableHead>
+                <TableHead>{t('students.status', lang)}</TableHead>
+                <TableHead className="text-right">{t('students.view', lang)}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {visible.map((s) => (
+                <TableRow key={s.id}>
+                  {/* Rail carries "active" visually; the Status cell still spells
+                      it out, so colour is never the only signal. */}
+                  <TableCell className={railClass('mint')}>
+                    {s.roll_number ?? <span className="text-muted">—</span>}
+                  </TableCell>
+                  <TableCell className="font-medium">{s.full_name}</TableCell>
+                  <TableCell>
+                    {[s.class_name, s.section].filter(Boolean).join(' / ') || (
+                      <span className="text-muted">—</span>
+                    )}
+                  </TableCell>
+                  <TableCell>{s.guardian_name ?? <span className="text-muted">—</span>}</TableCell>
+                  <TableCell>{avgBadge(avgs.get(s.id))}</TableCell>
+                  <TableCell>
+                    <Badge variant="secondary">{t('students.active', lang)}</Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Link href={`/school/students/${s.id}`} className="text-brand-600 hover:underline">
+                      {t('students.view', lang)}
+                    </Link>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+          </>
         )}
-      </section>
-    </main>
+      </Card>
+    </>
   )
 }

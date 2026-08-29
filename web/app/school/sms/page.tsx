@@ -21,7 +21,7 @@ export default async function SmsComposePage() {
   // app/school/students/page.tsx, app/school/employees/page.tsx).
   const [{ data: students }, { data: employees }] = await Promise.all([
     supabase.from('students').select(COMPOSE_STUDENT_COLUMNS).is('archived_at', null),
-    supabase.from('employees').select(COMPOSE_EMPLOYEE_COLUMNS).is('archived_at', null),
+    supabase.from('employee_card').select(COMPOSE_EMPLOYEE_COLUMNS).is('archived_at', null),
   ])
 
   const classNames = [...new Set((students ?? []).map((s) => s.class_name).filter(Boolean))] as string[]
@@ -29,20 +29,28 @@ export default async function SmsComposePage() {
   const categories = [...new Set((employees ?? []).map((e) => e.category).filter(Boolean))] as string[]
 
   return (
-    <main className="mx-auto w-full max-w-3xl flex-1 p-6">
+    <div>
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold">{t('sms.composeTitle', lang)}</h1>
-        <Link href="/school" aria-label={t('common.back', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
+        <div className="flex items-center gap-3">
+          <Link
+            href="/school/sms/buy"
+            className="rounded-full bg-brand-600 px-4 py-1.5 text-sm font-semibold text-white hover:bg-brand-700"
+          >
+            {t('sms.buyMore', lang)}
+          </Link>
+          <Link href="/school" aria-label={t('common.back', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
+        </div>
       </div>
 
       {smsCredit && (
         <div
-          className={`mb-4 rounded-2xl border p-4 ${
+          className={`mb-4 rounded-lg border p-4 ${
             smsCredit.level === 'empty'
               ? 'border-alert/40 bg-alert-soft/40'
               : smsCredit.level === 'low'
-                ? 'border-amber-300 bg-amber-50'
-                : 'border-line/70 bg-paper'
+                ? 'border-sun-deep/30 bg-sun-soft'
+                : 'border-line bg-paper'
           }`}
         >
           <div className="flex items-center justify-between">
@@ -52,7 +60,7 @@ export default async function SmsComposePage() {
             </span>
           </div>
           {smsCredit.level !== 'ok' && (
-            <p className={`mt-1 text-xs font-semibold ${smsCredit.level === 'empty' ? 'text-alert-deep' : 'text-amber-600'}`}>
+            <p className={`mt-1 text-xs font-semibold ${smsCredit.level === 'empty' ? 'text-alert-deep' : 'text-sun-deep'}`}>
               {t(smsCredit.level === 'empty' ? 'sms.balanceEmpty' : 'sms.lowBalance', lang)}
             </p>
           )}
@@ -89,6 +97,6 @@ export default async function SmsComposePage() {
         sections={sections}
         categories={categories}
       />
-    </main>
+    </div>
   )
 }

@@ -3,8 +3,9 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { currentActor } from '@/lib/school/actor'
-import { smsGateway } from '@/lib/sms/gateway'
-import { photoExtension, behaviourSmsBody } from '@/lib/students'
+import { sendStudentSms } from '@/lib/sms/student-sms'
+import { photoExtension, behaviourSmsBody, parseRollNumber, rollScopeChanged } from '@/lib/students'
+import { createSignedUpload, type SignedUpload } from '@/lib/storage/signed-upload'
 
 // RLS scopes everything to the caller's School; the 3-day lock trigger is the
 // authority for edit rejection, the assign_student_roll trigger for auto-roll.
@@ -22,7 +23,9 @@ function text(formData: FormData, key: string): string | null {
   return String(formData.get(key) ?? '').trim() || null
 }
 
-/** The full admission-profile columns shared by admit and edit. */
+/** The full admission-profile columns shared by admit and edit — everything
+ *  except roll_number, whose null-handling differs between the two (see
+ *  admitStudent/updateStudent). */
 function profileFields(formData: FormData) {
   return {
     class_name: text(formData, 'class_name'),
@@ -50,17 +53,21 @@ function profileFields(formData: FormData) {
   }
 }
 
-/** Admission (issue #27): roll_number left null so the trigger assigns the
- *  next roll within the School+class. Returns the new id for photo upload. */
+/** Admission (issue #27): the form prefills Roll Number with the next roll for
+ *  the chosen class+section (issue #503), but a blank field still falls
+ *  through to assign_student_roll so a school without JS-computed rolls keeps
+ *  working. Returns the new id for photo upload. */
 export async function admitStudent(
   formData: FormData,
 ): Promise<{ id?: string; error?: string }> {
   const name = String(formData.get('full_name') ?? '').trim()
   if (!name) return { error: 'Name is required' }
+  const roll = parseRollNumber(String(formData.get('roll_number') ?? ''))
+  if (roll.error) return { error: roll.error }
   const supabase = await createClient()
   const { data, error } = await supabase
     .from('students')
-    .insert({ full_name: name, ...profileFields(formData) })
+    .insert({ full_name: name, roll_number: roll.value, ...profileFields(formData) })
     .select('id')
     .single()
   if (error) return { error: error.message }
@@ -73,10 +80,29 @@ export async function updateStudent(formData: FormData): Promise<{ error?: strin
   if (!id) return { error: 'Student is required' }
   const name = String(formData.get('full_name') ?? '').trim()
   if (!name) return { error: 'Name is required' }
+  const roll = parseRollNumber(String(formData.get('roll_number') ?? ''))
+  if (roll.error) return { error: roll.error }
+  const fields = profileFields(formData)
   const supabase = await createClient()
+
+  // An explicit roll always wins; a blank one only keeps the existing roll
+  // when class+section haven't actually changed (rollScopeChanged) —
+  // otherwise the old roll would silently ride along into a class+section it
+  // was never computed for.
+  const { data: current } = await supabase
+    .from('students')
+    .select('class_name, section')
+    .eq('id', id)
+    .maybeSingle()
+  const scopeChanged = rollScopeChanged(current, fields)
+
   const { data, error } = await supabase
     .from('students')
-    .update({ full_name: name, ...profileFields(formData) })
+    .update({
+      full_name: name,
+      ...(roll.value !== null ? { roll_number: roll.value } : scopeChanged ? { roll_number: null } : {}),
+      ...fields,
+    })
     .eq('id', id)
     .select('id')
   if (error) return { error: error.message }
@@ -143,7 +169,13 @@ export async function transferStudent(formData: FormData): Promise<{ error?: str
 
 /** Server-derived Storage path for a student photo (mirrors the syllabus
  *  pattern: client uploads the bytes, path is never trusted from the client). */
-export async function studentPhotoPath(
+/** The deterministic object path for a student's photo.
+ *
+ *  Shared by the upload ticket and by recordStudentPhoto, which needs the same
+ *  string afterwards. Split out when the ticket started minting a signed token:
+ *  re-calling the exported function to recompute a path would have issued a fresh
+ *  upload credential purely as a side effect of wanting a filename. */
+async function studentPhotoObjectPath(
   studentId: string,
   mimeType: string,
 ): Promise<{ path?: string; error?: string }> {
@@ -160,12 +192,21 @@ export async function studentPhotoPath(
   return { path: `${actor.schoolId}/${studentId}.${ext}` }
 }
 
+export async function studentPhotoUploadTicket(
+  studentId: string,
+  mimeType: string,
+): Promise<{ upload?: SignedUpload; error?: string }> {
+  const { path, error } = await studentPhotoObjectPath(studentId, mimeType)
+  if (error || !path) return { error: error ?? 'Student not found' }
+  return createSignedUpload('student-photos', path)
+}
+
 /** Records the uploaded photo's path on the student row (after upload). */
 export async function recordStudentPhoto(
   studentId: string,
   mimeType: string,
 ): Promise<{ error?: string }> {
-  const { path, error: pathError } = await studentPhotoPath(studentId, mimeType)
+  const { path, error: pathError } = await studentPhotoObjectPath(studentId, mimeType)
   if (pathError || !path) return { error: pathError ?? 'Student not found' }
   const supabase = await createClient()
   const { error } = await supabase.from('students').update({ photo_path: path }).eq('id', studentId)
@@ -228,36 +269,20 @@ export async function sendBehaviourSms(entryId: string): Promise<{ error?: strin
     .eq('id', entryId)
     .maybeSingle()
   if (!entry) return { error: 'Entry not found' }
-
-  const { data: student } = await supabase
-    .from('students')
-    .select('id, full_name, guardian_phone, school_id')
-    .eq('id', entry.student_id)
-    .maybeSingle()
-  if (!student) return { error: 'Student not found' }
-  if (!student.guardian_phone) return { error: 'No guardian phone on file for this student' }
   if (entry.rating === null) return { error: 'Entry has no rating — cannot compose SMS' }
   if (!entry.note) return { error: 'Entry has no note — cannot compose SMS' }
 
-  const body = behaviourSmsBody(student.full_name, entry.note, entry.rating)
-  const gateway = smsGateway()
-  const result = await gateway.send(student.guardian_phone, body)
-  if (!result.ok) return { error: 'SMS gateway failed to send' }
+  const { data: student } = await supabase
+    .from('students')
+    .select('full_name')
+    .eq('id', entry.student_id)
+    .maybeSingle()
+  if (!student) return { error: 'Student not found' }
 
-  const { error } = await supabase.from('sms_log').insert({
-    school_id: student.school_id,
-    student_id: student.id,
-    sent_on: new Date().toISOString().slice(0, 10),
-    phone: student.guardian_phone,
-    body,
-    provider: gateway.name,
-    // Send Log (issue #36) groups sms_log rows by kind/recipient_label; give
-    // this single-recipient send a real label instead of falling through to
-    // the compose screen's "Manual Numbers" default.
-    recipient_label: student.full_name,
-  })
-  // The SMS is already sent — a log-insert failure must not surface as a
-  // retryable error, or the guardian gets a duplicate message on retry.
-  if (error) console.error('sms_log insert failed after successful send', error)
-  return {}
+  const result = await sendStudentSms(
+    supabase,
+    entry.student_id,
+    behaviourSmsBody(student.full_name, entry.note, entry.rating),
+  )
+  return result.ok ? {} : { error: result.error }
 }

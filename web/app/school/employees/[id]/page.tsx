@@ -3,8 +3,9 @@ import { notFound } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
-import { OfficeTimeToggle } from '../employee-controls'
+import { LoginLinkPicker, OfficeTimeToggle } from '../employee-controls'
 import { ArchiveToggle, ProfileEditor } from './profile-controls'
+import { railClass } from '@/components/ui/page'
 
 // Layout per ui/school-owner/employee-detail.html: status header with
 // Archive/Restore action, carded profile sections (Identity / Bank Info /
@@ -23,7 +24,7 @@ function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
 
 function InfoCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="mb-4 rounded-lg border border-line bg-paper p-5 shadow-card">
+    <section className="mb-4 rounded-lg border border-line bg-paper p-5">
       <h3 className="mb-3 font-bold">{title}</h3>
       <dl className="grid gap-3 sm:grid-cols-2">{children}</dl>
     </section>
@@ -37,7 +38,7 @@ export default async function EmployeeDetailPage({
 }) {
   const { id } = await params
   const lang: Lang = await currentLang()
-  const { supabase, schoolId } = await getSchoolContext()
+  const { supabase, schoolId, role } = await getSchoolContext()
 
   const { data: employee } = await supabase.from('employees').select('*').eq('id', id).single()
   if (!employee) notFound()
@@ -48,12 +49,22 @@ export default async function EmployeeDetailPage({
     { data: assignments },
     { data: categories },
     { data: effective },
+    { data: logins },
   ] = await Promise.all([
     supabase.from('schools').select('default_grace_minutes').eq('id', schoolId).single(),
     supabase.from('office_times').select('id, name, grace_minutes').order('name'),
     supabase.from('employee_office_times').select('employee_id, office_time_id').eq('employee_id', id),
     supabase.from('category_grace_minutes').select('category, grace_minutes').order('category'),
     supabase.rpc('effective_grace_minutes', { emp: id }),
+    // The Staff User logins this Employee could be linked to (#443). profiles
+    // RLS only lets a School Owner list them, so this is empty for Staff.
+    role === 'school_owner'
+      ? supabase
+          .from('profiles')
+          .select('id, full_name')
+          .eq('role', 'staff_user')
+          .order('full_name')
+      : Promise.resolve({ data: [] as { id: string; full_name: string | null }[] }),
   ])
 
   const archived = employee.archived_at !== null
@@ -77,7 +88,7 @@ export default async function EmployeeDetailPage({
   ]
 
   return (
-    <main className="mx-auto w-full max-w-3xl flex-1 p-6">
+    <div>
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold">{employee.full_name}</h1>
         <Link href="/school/employees" aria-label={t('employees.title', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
@@ -93,6 +104,20 @@ export default async function EmployeeDetailPage({
         </span>
         <ArchiveToggle lang={lang} employeeId={id} archived={archived} />
       </div>
+
+      {role === 'school_owner' && (
+        <section className="mb-4 rounded-lg border border-line bg-paper p-5">
+          <h3 className="mb-3 font-bold">{t('employees.loginLink', lang)}</h3>
+          <div className="max-w-sm">
+            <LoginLinkPicker
+              lang={lang}
+              employeeId={id}
+              current={employee.profile_id}
+              logins={logins ?? []}
+            />
+          </div>
+        </section>
+      )}
 
       <ProfileEditor lang={lang} employee={employee}>
         <InfoCard title={t('employees.identity', lang)}>
@@ -120,7 +145,7 @@ export default async function EmployeeDetailPage({
           <InfoRow label={t('employees.department', lang)} value={employee.department} />
         </InfoCard>
 
-        <section className="mb-4 rounded-lg border border-line bg-paper p-5 shadow-card">
+        <section className="mb-4 rounded-lg border border-line bg-paper p-5">
           <h3 className="mb-3 font-bold">{t('employees.subjectOfficeTime', lang)}</h3>
           <dl className="mb-3 grid gap-3 sm:grid-cols-2">
             <InfoRow label={t('employees.subjectTaught', lang)} value={employee.subject_taught} />
@@ -141,7 +166,7 @@ export default async function EmployeeDetailPage({
         </section>
       </ProfileEditor>
 
-      <section className="rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="rounded-lg border border-line bg-paper p-5">
         <h3 className="mb-2 font-bold">{t('employees.graceWindowTitle', lang)}</h3>
         <p className="mb-3 text-sm text-muted">{t('grace.hint', lang)}</p>
         <div className="overflow-x-auto">
@@ -164,7 +189,7 @@ export default async function EmployeeDetailPage({
                 const winning = l.minutes !== null && l.minutes === effectiveGrace
                 return (
                   <tr key={l.label} className="border-b border-line">
-                    <td className={`px-3 py-2 text-sm ${winning ? 'font-semibold' : ''}`}>{l.label}</td>
+                    <td className={`px-3 py-2 text-sm ${winning ? 'font-semibold' : ''} ${railClass(winning ? 'sky' : 'muted')}`}>{l.label}</td>
                     <td className="px-3 py-2 text-sm">
                       {l.minutes ?? <span className="text-muted">—</span>}
                     </td>
@@ -185,6 +210,6 @@ export default async function EmployeeDetailPage({
           {t('employees.effective', lang)}: {effectiveGrace}m
         </p>
       </section>
-    </main>
+    </div>
   )
 }

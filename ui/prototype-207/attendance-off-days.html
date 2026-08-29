@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>Prototype #207 — Off Day Calendar (Pattern B)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          ink: '#131313', 'ink-card': '#1c1c1c',
+          paper: '#ffffff', 'paper-muted': '#f4f4f6',
+          line: '#ececec', 'line-strong': '#d8d8d8', muted: '#767676',
+          brand: { 50: '#f1eefe', 100: '#e3dcfd', 300: '#b3a4f7', 500: '#6d4dfb', 600: '#5a37e8', 700: '#4826c4' },
+          mint: { DEFAULT: '#00d26a', deep: '#0a7a48', soft: '#e6f9ef' },
+          sun: { DEFAULT: '#ffc94a', deep: '#c98a00', soft: '#fff6e0' },
+          alert: { DEFAULT: '#ef4444', deep: '#dc2626', soft: '#fdeaea' },
+          sky: { DEFAULT: '#00b2ff', deep: '#0077b8', soft: '#e5f6ff' },
+        },
+        borderRadius: { sm: '8px', md: '14px', lg: '20px' },
+        boxShadow: { card: '0 12px 32px rgb(0 0 0 / 0.08)', modal: '0 24px 64px rgb(0 0 0 / 0.16)' },
+      }
+    }
+  }
+</script>
+<style>
+  body { font-family: 'Plus Jakarta Sans', 'Hind Siliguri', system-ui, sans-serif; }
+</style>
+</head>
+<body class="bg-paper-muted text-ink">
+
+<div class="sticky top-0 z-50 bg-ink text-white text-xs font-semibold px-4 py-2">🧪 THROWAWAY PROTOTYPE — map #207 · ticket <a href="https://github.com/salmansrizon/Amar_school_LMS/issues/217" class="underline">#217 Attendance</a> — Off Days: add-off-day form is its own Card, the 12-month mini-calendar grid gets ONE wrapping Card (each month tile kept intact, not converted to individual cards), off-day list stays a plain Card below</div>
+
+<main class="mx-auto w-full max-w-5xl flex-1 p-6">
+
+  <div class="mb-4 flex items-center justify-between">
+    <h1 class="text-2xl font-extrabold">ছুটির দিন ক্যালেন্ডার · Off Day Calendar — ২০২৬ · 2026</h1>
+    <a href="attendance-hub.html" aria-label="Back" class="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-5"><path d="m15 18-6-6 6-6" /></svg>
+    </a>
+  </div>
+
+  <div class="mb-4 flex flex-nowrap gap-1 overflow-x-auto border-b border-line">
+    <a href="attendance-mark.html" class="shrink-0 whitespace-nowrap rounded-t-md px-3 py-2 text-sm font-semibold text-muted hover:text-ink">উপস্থিতি নেওয়া · Mark</a>
+    <a href="attendance-book.html" class="shrink-0 whitespace-nowrap rounded-t-md px-3 py-2 text-sm font-semibold text-muted hover:text-ink">উপস্থিতি বই · Book</a>
+    <a href="attendance-employee.html" class="shrink-0 whitespace-nowrap rounded-t-md px-3 py-2 text-sm font-semibold text-muted hover:text-ink">কর্মচারী · Employee</a>
+    <a href="attendance-leave.html" class="shrink-0 whitespace-nowrap rounded-t-md px-3 py-2 text-sm font-semibold text-muted hover:text-ink">ছুটি ব্যবস্থাপনা · Leave</a>
+    <a href="attendance-off-days.html" class="shrink-0 whitespace-nowrap rounded-t-md px-3 py-2 text-sm font-semibold border-b-2 border-brand-500 text-brand-600">ছুটির দিন · Off Days</a>
+  </div>
+
+  <!-- Pattern B: Form archetype — one Card -->
+  <div class="mb-6 rounded-2xl border border-line bg-paper p-5 shadow-card">
+    <h3 class="mb-3 font-bold">নতুন ছুটির দিন যোগ করুন · Add New Off Day</h3>
+    <form class="flex flex-wrap items-end gap-3">
+      <div>
+        <label class="mb-1 block text-xs font-semibold text-muted">তারিখ · Date</label>
+        <input type="date" value="2026-12-16" class="rounded-md border border-line bg-paper px-3 py-2 text-sm">
+      </div>
+      <div>
+        <label class="mb-1 block text-xs font-semibold text-muted">লেবেল · Label</label>
+        <input placeholder="যেমন: বিজয় দিবস · e.g. Victory Day" class="w-56 rounded-md border border-line bg-paper px-3 py-2 text-sm">
+      </div>
+      <label class="flex h-10 items-center gap-2 text-sm">
+        <input type="checkbox">
+        গুরুত্বপূর্ণ দিন · Significant day
+      </label>
+      <button type="button" class="h-10 cursor-pointer rounded-full bg-brand-500 px-5 text-sm font-semibold text-white hover:bg-brand-600">যোগ করুন · Add</button>
+    </form>
+    <div class="mt-3 border-t border-line pt-3">
+      <button type="button" class="h-10 cursor-pointer rounded-full border border-line-strong px-5 text-sm font-semibold hover:bg-paper-muted">কেন্দ্রীয় তালিকা থেকে আমদানি · Import from Central List</button>
+    </div>
+  </div>
+
+  <div class="mb-4 flex flex-wrap items-center gap-4 text-sm">
+    <span class="flex items-center gap-2"><span class="h-3 w-3 rounded-full bg-alert"></span> সাপ্তাহিক/সাধারণ ছুটি · Regular off day</span>
+    <span class="flex items-center gap-2"><span class="h-3 w-3 rounded-full bg-sky"></span> গুরুত্বপূর্ণ দিন · Significant day</span>
+  </div>
+
+  <!-- Pattern B: the 12-month grid is a cohesive visual unit (calendar), so it gets ONE
+       wrapping Card rather than 12 separate per-month cards — matches "no per-row/tile
+       mini-cards" guidance while keeping every month + every day cell intact. -->
+  <div class="rounded-2xl border border-line bg-paper p-5 shadow-card">
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div class="rounded-xl border border-line p-3">
+        <h4 class="mb-2 text-center text-sm font-bold">জানুয়ারি · January</h4>
+        <div class="grid grid-cols-7 gap-0.5 text-xs">
+          <span class="text-center text-muted">র</span><span class="text-center text-muted">সো</span><span class="text-center text-muted">ম</span><span class="text-center text-muted">বু</span><span class="text-center text-muted">বৃ</span><span class="text-center text-muted">শু</span><span class="text-center text-muted">শ</span>
+          <span></span><span></span><span></span><span></span><span class="text-center">1</span><span class="text-center bg-alert-soft font-semibold text-alert-deep rounded-sm">2</span><span class="text-center bg-alert-soft font-semibold text-alert-deep rounded-sm">3</span>
+          <span class="text-center">4</span><span class="text-center">5</span><span class="text-center">6</span><span class="text-center">7</span><span class="text-center">8</span><span class="text-center bg-alert-soft font-semibold text-alert-deep rounded-sm">9</span><span class="text-center bg-alert-soft font-semibold text-alert-deep rounded-sm">10</span>
+          <span class="text-center">11</span><span class="text-center">12</span><span class="text-center">13</span><span class="text-center">14</span><span class="text-center">15</span><span class="text-center bg-alert-soft font-semibold text-alert-deep rounded-sm">16</span><span class="text-center bg-alert-soft font-semibold text-alert-deep rounded-sm">17</span>
+          <span class="text-center">18</span><span class="text-center">19</span><span class="text-center">20</span><span class="text-center">21</span><span class="text-center">22</span><span class="text-center bg-alert-soft font-semibold text-alert-deep rounded-sm">23</span><span class="text-center bg-alert-soft font-semibold text-alert-deep rounded-sm">24</span>
+          <span class="text-center">25</span><span class="text-center">26</span><span class="text-center">27</span><span class="text-center">28</span><span class="text-center">29</span><span class="text-center bg-alert-soft font-semibold text-alert-deep rounded-sm">30</span><span class="text-center bg-alert-soft font-semibold text-alert-deep rounded-sm">31</span>
+        </div>
+      </div>
+      <div class="rounded-xl border border-line p-3">
+        <h4 class="mb-2 text-center text-sm font-bold">ফেব্রুয়ারি · February</h4>
+        <div class="grid grid-cols-7 gap-0.5 text-xs">
+          <span class="text-center text-muted">র</span><span class="text-center text-muted">সো</span><span class="text-center text-muted">ম</span><span class="text-center text-muted">বু</span><span class="text-center text-muted">বৃ</span><span class="text-center text-muted">শু</span><span class="text-center text-muted">শ</span>
+          <span class="text-center">1</span><span class="text-center">2</span><span class="text-center">3</span><span class="text-center">4</span><span class="text-center">5</span><span class="text-center bg-alert-soft font-semibold text-alert-deep rounded-sm">6</span><span class="text-center bg-alert-soft font-semibold text-alert-deep rounded-sm">7</span>
+          <span class="text-center">8</span><span class="text-center">9</span><span class="text-center">10</span><span class="text-center">11</span><span class="text-center">12</span><span class="text-center bg-alert-soft font-semibold text-alert-deep rounded-sm">13</span><span class="text-center bg-alert-soft font-semibold text-alert-deep rounded-sm">14</span>
+          <span class="text-center">15</span><span class="text-center">16</span><span class="text-center">17</span><span class="text-center">18</span><span class="text-center">19</span><span class="text-center bg-alert-soft font-semibold text-alert-deep rounded-sm">20</span><span class="text-center bg-sky-soft font-semibold text-sky-deep rounded-sm">21</span>
+          <span class="text-center">22</span><span class="text-center">23</span><span class="text-center">24</span><span class="text-center">25</span><span class="text-center">26</span><span class="text-center bg-alert-soft font-semibold text-alert-deep rounded-sm">27</span><span class="text-center bg-alert-soft font-semibold text-alert-deep rounded-sm">28</span>
+        </div>
+      </div>
+      <div class="rounded-xl border border-line p-3">
+        <h4 class="mb-2 text-center text-sm font-bold">মার্চ · March</h4>
+        <div class="grid grid-cols-7 gap-0.5 text-xs">
+          <span class="text-center text-muted">র</span><span class="text-center text-muted">সো</span><span class="text-center text-muted">ম</span><span class="text-center text-muted">বু</span><span class="text-center text-muted">বৃ</span><span class="text-center text-muted">শু</span><span class="text-center text-muted">শ</span>
+          <span></span><span class="text-center">1</span><span class="text-center">2</span><span class="text-center">3</span><span class="text-center">4</span><span class="text-center bg-alert-soft font-semibold text-alert-deep rounded-sm">5</span><span class="text-center bg-alert-soft font-semibold text-alert-deep rounded-sm">6</span>
+          <span class="text-center">7</span><span class="text-center">8</span><span class="text-center">9</span><span class="text-center">10</span><span class="text-center">11</span><span class="text-center bg-alert-soft font-semibold text-alert-deep rounded-sm">12</span><span class="text-center bg-alert-soft font-semibold text-alert-deep rounded-sm">13</span>
+          <span class="text-center">14</span><span class="text-center">15</span><span class="text-center">16</span><span class="text-center">17</span><span class="text-center">18</span><span class="text-center bg-alert-soft font-semibold text-alert-deep rounded-sm">19</span><span class="text-center bg-alert-soft font-semibold text-alert-deep rounded-sm">20</span>
+          <span class="text-center">21</span><span class="text-center">22</span><span class="text-center">23</span><span class="text-center">24</span><span class="text-center">25</span><span class="text-center bg-sky-soft font-semibold text-sky-deep rounded-sm">26</span><span class="text-center bg-alert-soft font-semibold text-alert-deep rounded-sm">27</span>
+          <span class="text-center">28</span><span class="text-center">29</span><span class="text-center">30</span><span class="text-center">31</span><span></span><span></span><span></span>
+        </div>
+      </div>
+      <div class="rounded-xl border border-line p-3">
+        <h4 class="mb-2 text-center text-sm font-bold">এপ্রিল · April</h4>
+        <div class="grid grid-cols-7 gap-0.5 text-xs">
+          <span class="text-center text-muted">র</span><span class="text-center text-muted">সো</span><span class="text-center text-muted">ম</span><span class="text-center text-muted">বু</span><span class="text-center text-muted">বৃ</span><span class="text-center text-muted">শু</span><span class="text-center text-muted">শ</span>
+          <span></span><span></span><span></span><span class="text-center">1</span><span class="text-center">2</span><span class="text-center bg-alert-soft font-semibold text-alert-deep rounded-sm">3</span><span class="text-center bg-alert-soft font-semibold text-alert-deep rounded-sm">4</span>
+          <span class="text-center">5</span><span class="text-center">6</span><span class="text-center">7</span><span class="text-center">8</span><span class="text-center">9</span><span class="text-center bg-alert-soft font-semibold text-alert-deep rounded-sm">10</span><span class="text-center bg-alert-soft font-semibold text-alert-deep rounded-sm">11</span>
+          <span class="text-center">12</span><span class="text-center">13</span><span class="text-center bg-sky-soft font-semibold text-sky-deep rounded-sm">14</span><span class="text-center">15</span><span class="text-center">16</span><span class="text-center bg-alert-soft font-semibold text-alert-deep rounded-sm">17</span><span class="text-center bg-alert-soft font-semibold text-alert-deep rounded-sm">18</span>
+          <span class="text-center">19</span><span class="text-center">20</span><span class="text-center">21</span><span class="text-center">22</span><span class="text-center">23</span><span class="text-center bg-alert-soft font-semibold text-alert-deep rounded-sm">24</span><span class="text-center bg-alert-soft font-semibold text-alert-deep rounded-sm">25</span>
+          <span class="text-center">26</span><span class="text-center">27</span><span class="text-center">28</span><span class="text-center">29</span><span class="text-center">30</span><span></span><span></span>
+        </div>
+      </div>
+      <p class="col-span-full text-center text-xs text-muted italic">… মে – ডিসেম্বর একই প্যাটার্নে চলতে থাকে (মোট ১২টি মাস) · May – December continue in the same pattern (12 months total) — omitted here for prototype brevity, real page renders all 12</p>
+    </div>
+  </div>
+
+  <p class="mt-4 text-xs text-muted">প্রতিটি শনিবার ডাটাবেসে সারি ছাড়াই নিয়মিত সাপ্তাহিক ছুটি হিসেবে শেড হয়। · Every Saturday shades as the regular weekly off-day without needing a database row.</p>
+
+  <div class="mt-6 rounded-2xl border border-line bg-paper p-5 shadow-card">
+    <ul class="divide-y divide-line text-sm">
+      <li class="flex items-center justify-between py-2">
+        <span>2026-02-21 — আন্তর্জাতিক মাতৃভাষা দিবস · International Mother Language Day <span class="ml-2 rounded-full bg-sky-soft px-2 py-0.5 text-xs font-semibold text-sky-deep">গুরুত্বপূর্ণ · Significant</span></span>
+        <span class="flex items-center gap-2"><button type="button" class="cursor-pointer rounded-full px-3 py-1 text-xs font-semibold text-alert-deep hover:bg-alert-soft">মুছুন · Delete</button></span>
+      </li>
+      <li class="flex items-center justify-between py-2">
+        <span>2026-03-26 — স্বাধীনতা দিবস · Independence Day <span class="ml-2 rounded-full bg-sky-soft px-2 py-0.5 text-xs font-semibold text-sky-deep">গুরুত্বপূর্ণ · Significant</span></span>
+        <span class="flex items-center gap-2"><button type="button" class="cursor-pointer rounded-full px-3 py-1 text-xs font-semibold text-alert-deep hover:bg-alert-soft">মুছুন · Delete</button></span>
+      </li>
+      <li class="flex items-center justify-between py-2">
+        <span>2026-04-14 — পহেলা বৈশাখ · Pahela Baishakh <span class="ml-2 rounded-full bg-sky-soft px-2 py-0.5 text-xs font-semibold text-sky-deep">গুরুত্বপূর্ণ · Significant</span></span>
+        <span class="flex items-center gap-2"><button type="button" class="cursor-pointer rounded-full px-3 py-1 text-xs font-semibold text-alert-deep hover:bg-alert-soft">মুছুন · Delete</button></span>
+      </li>
+      <li class="flex items-center justify-between py-2">
+        <span>2026-12-16 — বিজয় দিবস · Victory Day</span>
+        <span class="flex items-center gap-2"><button type="button" class="cursor-pointer rounded-full px-3 py-1 text-xs font-semibold text-alert-deep hover:bg-alert-soft">মুছুন · Delete</button></span>
+      </li>
+    </ul>
+  </div>
+
+</main>
+</body>
+</html>

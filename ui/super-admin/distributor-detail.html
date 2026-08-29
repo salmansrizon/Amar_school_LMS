@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>ডিস্ট্রিবিউটর বিস্তারিত · Distributor Detail — Super Admin</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../shared/design-system.css">
+<script src="../shared/app.js" defer></script>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="mark">A</span><span>Super Admin</span></div>
+    <nav>
+      <a class="nav-item" href="schools-list.html"><span data-i18n="bn">স্কুলসমূহ</span><span data-i18n="en">Schools</span></a>
+      <a class="nav-item" href="dealers-list.html"><span data-i18n="bn">ডিলার</span><span data-i18n="en">Dealers</span></a>
+      <a class="nav-item active" href="distributors-list.html"><span data-i18n="bn">ডিস্ট্রিবিউটর</span><span data-i18n="en">Distributors</span></a>
+      <a class="nav-item" href="gov-officials-list.html"><span data-i18n="bn">সরকারি কর্মকর্তা</span><span data-i18n="en">Government Officials</span></a>
+      <a class="nav-item" href="codes-list.html"><span data-i18n="bn">সাবস্ক্রিপশন কোড</span><span data-i18n="en">Subscription Codes</span></a>
+      <a class="nav-item" href="locations-tree.html"><span data-i18n="bn">টেরিটরি ও লোকেশন</span><span data-i18n="en">Territory & Locations</span></a>
+      <a class="nav-item" href="vendor-accounting-ledger.html"><span data-i18n="bn">ভেন্ডর হিসাব</span><span data-i18n="en">Vendor Accounting</span></a>
+      <a class="nav-item" href="vendor-sms-compose.html"><span data-i18n="bn">ভেন্ডর এসএমএস</span><span data-i18n="en">Vendor SMS</span></a>
+      <a class="nav-item" href="central-holiday-calendar.html"><span data-i18n="bn">কেন্দ্রীয় ছুটির তালিকা</span><span data-i18n="en">Central Off-Day</span></a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="title">Sylhet Edu Ventures</div>
+      <div class="actions">
+        <a class="btn btn-secondary btn-sm" href="../index.html" title="Home">🏠</a>
+        <a class="btn btn-secondary btn-sm" href="../sitemap.html" title="Sitemap">📋</a>
+        <a class="btn btn-secondary btn-sm" href="distributors-list.html">&larr; <span data-i18n="bn">ডিস্ট্রিবিউটর তালিকা</span><span data-i18n="en">Distributors list</span></a>
+        <div class="lang-switch">
+          <button data-lang-btn="bn" onclick="setLang('bn')">বাং</button>
+          <button data-lang-btn="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="theme-switch">
+          <button data-theme-btn="light" onclick="setTheme('light')">☀</button>
+          <button data-theme-btn="dark" onclick="setTheme('dark')">☾</button>
+          <button data-theme-btn="system" onclick="setTheme('system')">Auto</button>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+
+      <div class="card mb-4">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="mt-0"><span data-i18n="bn">প্রোফাইল</span><span data-i18n="en">Profile</span></h3>
+          <span class="badge badge-success"><span data-i18n="bn">অনুমোদিত</span><span data-i18n="en">Approved</span></span>
+        </div>
+        <div class="form-grid">
+          <div class="field"><label><span data-i18n="bn">নাম</span><span data-i18n="en">Name</span></label><input type="text" value="Sylhet Edu Ventures"></div>
+          <div class="field"><label><span data-i18n="bn">মোবাইল</span><span data-i18n="en">Mobile</span></label><input type="text" value="01711-990011"></div>
+          <div class="field"><label><span data-i18n="bn">ইমেইল</span><span data-i18n="en">Email</span></label><input type="email" value="contact@sylhetedu.example.com"></div>
+          <div class="field"><label><span data-i18n="bn">ট্রেড লাইসেন্স নং</span><span data-i18n="en">Trade License No.</span></label><input type="text" value="TRAD/SYL/00812"></div>
+          <div class="field"><label><span data-i18n="bn">এনআইডি</span><span data-i18n="en">NID</span></label><input type="text" value="1987654321098"></div>
+          <div class="field"><label><span data-i18n="bn">অবস্থা</span><span data-i18n="en">Status</span></label>
+            <div><span class="badge badge-success"><span data-i18n="bn">অনুমোদিত</span><span data-i18n="en">Approved</span></span></div>
+          </div>
+        </div>
+        <div class="flex gap-2" style="margin-top:var(--space-4);">
+          <button class="btn btn-primary"><span data-i18n="bn">সংরক্ষণ করুন</span><span data-i18n="en">Save Changes</span></button>
+          <button class="btn btn-secondary"><span data-i18n="bn">অনুমোদন করুন</span><span data-i18n="en">Approve</span></button>
+          <button class="btn btn-secondary"><span data-i18n="bn">স্থগিত করুন</span><span data-i18n="en">Suspend</span></button>
+          <button class="btn btn-danger"><span data-i18n="bn">ব্লক করুন</span><span data-i18n="en">Block</span></button>
+        </div>
+      </div>
+
+      <div class="grid" style="display:grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); margin-bottom: var(--space-4);">
+        <div class="card">
+          <h3 class="mt-0"><span data-i18n="bn">ব্যাংক বিবরণ</span><span data-i18n="en">Bank Details</span></h3>
+          <div class="form-grid">
+            <div class="field"><label><span data-i18n="bn">ব্যাংকের নাম</span><span data-i18n="en">Bank Name</span></label><input type="text" value="Sonali Bank PLC"></div>
+            <div class="field"><label><span data-i18n="bn">অ্যাকাউন্ট নম্বর</span><span data-i18n="en">Account Number</span></label><input type="text" value="0134-5567-8901"></div>
+            <div class="field"><label><span data-i18n="bn">শাখা</span><span data-i18n="en">Branch</span></label><input type="text" value="Zindabazar, Sylhet"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 class="mt-0"><span data-i18n="bn">চুক্তির অবস্থা</span><span data-i18n="en">Agreement Status</span></h3>
+          <div class="form-grid">
+            <div class="field"><label><span data-i18n="bn">সংস্করণ</span><span data-i18n="en">Version</span></label><input type="text" value="v2.3" disabled></div>
+            <div class="field"><label><span data-i18n="bn">গৃহীত হয়েছে</span><span data-i18n="en">Accepted At</span></label><input type="text" value="2026-01-14 10:22" disabled></div>
+            <div class="field"><label>IP</label><input type="text" value="103.94.xx.xx" disabled></div>
+            <div class="field"><label><span data-i18n="bn">ডিভাইস</span><span data-i18n="en">Device</span></label><input type="text" value="Chrome / Windows 11" disabled></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card mb-4">
+        <h3 class="mt-0"><span data-i18n="bn">নথিপত্র</span><span data-i18n="en">Documents</span></h3>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th><span data-i18n="bn">নথির নাম</span><span data-i18n="en">Document Name</span></th>
+              <th><span data-i18n="bn">আপলোডের তারিখ</span><span data-i18n="en">Uploaded On</span></th>
+              <th><span data-i18n="bn">কার্যক্রম</span><span data-i18n="en">Actions</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span data-i18n="bn">ট্রেড লাইসেন্স স্ক্যান</span><span data-i18n="en">Trade License Scan</span></td>
+              <td>2026-01-10</td>
+              <td><a href="#"><span data-i18n="bn">দেখুন</span><span data-i18n="en">View</span></a></td>
+            </tr>
+            <tr>
+              <td><span data-i18n="bn">এনআইডি স্ক্যান</span><span data-i18n="en">NID Scan</span></td>
+              <td>2026-01-10</td>
+              <td><a href="#"><span data-i18n="bn">দেখুন</span><span data-i18n="en">View</span></a></td>
+            </tr>
+            <tr>
+              <td><span data-i18n="bn">ব্যাংক স্টেটমেন্ট</span><span data-i18n="en">Bank Statement</span></td>
+              <td>2026-01-12</td>
+              <td><a href="#"><span data-i18n="bn">দেখুন</span><span data-i18n="en">View</span></a></td>
+            </tr>
+            <tr>
+              <td><span data-i18n="bn">স্বাক্ষরিত চুক্তিপত্র</span><span data-i18n="en">Signed Agreement</span></td>
+              <td>2026-01-14</td>
+              <td><a href="#"><span data-i18n="bn">দেখুন</span><span data-i18n="en">View</span></a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card mb-4">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="mt-0"><span data-i18n="bn">টেরিটরি বরাদ্দ</span><span data-i18n="en">Territory Assignments</span></h3>
+          <button class="btn btn-secondary btn-sm"><span data-i18n="bn">+ বরাদ্দ যোগ করুন</span><span data-i18n="en">+ Add Assignment</span></button>
+        </div>
+
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th><span data-i18n="bn">পরিসীমা</span><span data-i18n="en">Scope</span></th>
+              <th><span data-i18n="bn">টিয়ার</span><span data-i18n="en">Tier</span></th>
+              <th><span data-i18n="bn">বরাদ্দের তারিখ</span><span data-i18n="en">Assigned On</span></th>
+              <th><span data-i18n="bn">কার্যক্রম</span><span data-i18n="en">Actions</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span data-i18n="bn">সিলেট বিভাগ</span><span data-i18n="en">Sylhet Division</span></td>
+              <td><span class="badge badge-neutral"><span data-i18n="bn">বিভাগীয় ডিস্ট্রিবিউটর</span><span data-i18n="en">Divisional Distributor</span></span></td>
+              <td>2024-09-05</td>
+              <td><button class="btn btn-secondary btn-sm"><span data-i18n="bn">সরান</span><span data-i18n="en">Remove</span></button></td>
+            </tr>
+            <tr>
+              <td><span data-i18n="bn">মৌলভীবাজার জেলা</span><span data-i18n="en">Moulvibazar District</span></td>
+              <td><span class="badge badge-neutral"><span data-i18n="bn">জেলা ডিস্ট্রিবিউটর</span><span data-i18n="en">Zilla Distributor</span></span></td>
+              <td>2025-03-18</td>
+              <td><button class="btn btn-secondary btn-sm"><span data-i18n="bn">সরান</span><span data-i18n="en">Remove</span></button></td>
+            </tr>
+            <tr>
+              <td><span data-i18n="bn">সেন্ট যোসেফ হাই স্কুল, মৌলভীবাজার</span><span data-i18n="en">St. Joseph High School, Moulvibazar</span> <span class="text-secondary">(out of territory)</span></td>
+              <td><span class="badge badge-extended"><span data-i18n="bn">এক্সটেন্ডেড অ্যাক্সেস</span><span data-i18n="en">Extended access</span></span></td>
+              <td>2025-12-02</td>
+              <td><button class="btn btn-secondary btn-sm"><span data-i18n="bn">সরান</span><span data-i18n="en">Remove</span></button></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <p class="locked-note" style="margin-top:var(--space-3);">
+          <span data-i18n="bn">টিয়ার হলো প্রতিটি বরাদ্দের নিজস্ব বৈশিষ্ট্য, ডিস্ট্রিবিউটরের সামগ্রিক একক মান নয় — তাই একই ডিস্ট্রিবিউটর বিভিন্ন বরাদ্দে ভিন্ন টিয়ারে থাকতে পারে। টিয়ার শুধুই বর্ণনামূলক/সাংগঠনিক — এটি মূল্য, কমিশন বা কোড-ক্রয় অনুমতিতে কোনো প্রভাব ফেলে না। "এক্সটেন্ডেড অ্যাক্সেস" সারিটি একটি লোকেশনের পরিবর্তে একক স্কুলে সরাসরি বরাদ্দ — তাই এটি আলাদাভাবে চিহ্নিত রাখা হয়েছে।</span>
+          <span data-i18n="en">Tier is a property of each individual assignment, not one value on the Distributor as a whole — the same Distributor can hold different tiers across different assignments. Tier is descriptive/organizational only; it does not affect pricing, commission, or code-purchase permissions. The "Extended access" row is an assignment pointing at a single out-of-territory School rather than a location node, so it's visually flagged rather than blended in silently.</span>
+        </p>
+      </div>
+
+      <div class="card">
+        <h3 class="mt-0"><span data-i18n="bn">নিয়োজিত এজেন্ট</span><span data-i18n="en">Assigned Agents</span></h3>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th><span data-i18n="bn">নাম</span><span data-i18n="en">Name</span></th>
+              <th><span data-i18n="bn">অবস্থা</span><span data-i18n="en">Status</span></th>
+              <th><span data-i18n="bn">স্কুল সংখ্যা</span><span data-i18n="en">Schools Count</span></th>
+              <th><span data-i18n="bn">কার্যক্রম</span><span data-i18n="en">Actions</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span data-i18n="bn">রফিক আহমেদ</span><span data-i18n="en">Rafiq Ahmed</span></td>
+              <td><span class="badge badge-success"><span data-i18n="bn">সক্রিয়</span><span data-i18n="en">Active</span></span></td>
+              <td>2</td>
+              <td><a class="btn btn-secondary btn-sm" href="agent-detail.html?id=rafiq-ahmed"><span data-i18n="bn">দেখুন</span><span data-i18n="en">View</span></a></td>
+            </tr>
+            <tr>
+              <td><span data-i18n="bn">সুমাইয়া খাতুন</span><span data-i18n="en">Sumaiya Khatun</span></td>
+              <td><span class="badge badge-success"><span data-i18n="bn">সক্রিয়</span><span data-i18n="en">Active</span></span></td>
+              <td>2</td>
+              <td><a class="btn btn-secondary btn-sm" href="agent-detail.html?id=sumaiya-khatun"><span data-i18n="bn">দেখুন</span><span data-i18n="en">View</span></a></td>
+            </tr>
+            <tr>
+              <td><span data-i18n="bn">নাসির উদ্দিন</span><span data-i18n="en">Nasir Uddin</span></td>
+              <td><span class="badge badge-warning"><span data-i18n="bn">অনবোর্ডিং</span><span data-i18n="en">Onboarding</span></span></td>
+              <td>1</td>
+              <td><a class="btn btn-secondary btn-sm" href="agent-detail.html?id=nasir-uddin"><span data-i18n="bn">দেখুন</span><span data-i18n="en">View</span></a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

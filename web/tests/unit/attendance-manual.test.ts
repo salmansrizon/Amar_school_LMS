@@ -1,12 +1,11 @@
 import { describe, it, expect } from 'vitest'
 import {
-  studentClassOptions,
-  studentSectionOptions,
-  filterRoster,
   mergeLeaves,
   filterLeaves,
   monthGrid,
+  dateRangeDays,
   registerDayStatus,
+  studentLogDayStatus,
   attendancePercent,
 } from '@/lib/attendance-manual'
 
@@ -17,33 +16,7 @@ const students = [
   { id: '4', full_name: 'Nusrat Jahan', class_name: null, section: null, roll_number: null, office_time_id: null },
 ]
 
-describe('studentClassOptions / studentSectionOptions', () => {
-  it('returns distinct sorted classes, skipping nulls', () => {
-    expect(studentClassOptions(students)).toEqual(['Class 8', 'Class 9'])
-  })
-
-  it('returns sections scoped to a class', () => {
-    expect(studentSectionOptions(students, 'Class 8')).toEqual(['A', 'B'])
-    expect(studentSectionOptions(students, 'Class 9')).toEqual(['A'])
-  })
-})
-
-describe('filterRoster', () => {
-  it('filters by class and section, sorted by roll number', () => {
-    // Class 8 has Tamim (roll 1) and Rakib (roll 2) -> roll order, not name order
-    expect(filterRoster(students, 'Class 8', '').map((s) => s.id)).toEqual(['2', '1'])
-    expect(filterRoster(students, 'Class 8', 'B').map((s) => s.id)).toEqual(['2'])
-  })
-
-  it('empty filters return everything sorted', () => {
-    expect(filterRoster(students, '', '')).toHaveLength(4)
-  })
-
-  it('rolls without a number sort after rolled students, then by name', () => {
-    const rows = filterRoster(students, '', '')
-    expect(rows.map((r) => r.id)).toEqual(['2', '1', '4', '3'])
-  })
-})
+// filterRoster's cases moved with it to tests/unit/school-roster.test.ts.
 
 describe('mergeLeaves / filterLeaves', () => {
   const studentLeaves = [
@@ -117,6 +90,39 @@ describe('monthGrid', () => {
   })
 })
 
+// Student Log Custom filter (map #380): flat [from, to] day list.
+describe('dateRangeDays', () => {
+  it('lists every ISO date in the range inclusive, shading Saturdays off', () => {
+    const days = dateRangeDays('2026-07-01', '2026-07-04', [])
+    expect(days.map((d) => d.iso)).toEqual(['2026-07-01', '2026-07-02', '2026-07-03', '2026-07-04'])
+    expect(days.find((d) => d.iso === '2026-07-04')?.isOff).toBe(true) // Saturday
+    expect(days.find((d) => d.iso === '2026-07-01')?.isOff).toBe(false)
+  })
+
+  it('a single-day range (from === to) returns that one day', () => {
+    expect(dateRangeDays('2026-07-01', '2026-07-01', []).map((d) => d.iso)).toEqual(['2026-07-01'])
+  })
+
+  it('a reversed range (from > to) is empty, not a crash', () => {
+    expect(dateRangeDays('2026-07-10', '2026-07-01', [])).toEqual([])
+  })
+
+  it('a missing bound is empty', () => {
+    expect(dateRangeDays('', '2026-07-10', [])).toEqual([])
+    expect(dateRangeDays('2026-07-01', '', [])).toEqual([])
+  })
+
+  it('an explicit off_days row marks a non-Saturday off too', () => {
+    const days = dateRangeDays('2026-07-05', '2026-07-06', [{ day: '2026-07-05', label: 'Eid', is_significant: true }])
+    expect(days.find((d) => d.iso === '2026-07-05')?.isOff).toBe(true)
+    expect(days.find((d) => d.iso === '2026-07-06')?.isOff).toBe(false)
+  })
+
+  it('caps at a year of days rather than hanging on a huge range', () => {
+    expect(dateRangeDays('2020-01-01', '2030-01-01', [])).toHaveLength(366)
+  })
+})
+
 // Attendance Book (issue #30): monthly register cell status.
 describe('registerDayStatus', () => {
   const today = '2026-07-15'
@@ -154,6 +160,54 @@ describe('registerDayStatus', () => {
   it('today itself with no record and no excuse is absent (day already happened)', () => {
     expect(
       registerDayStatus({ iso: today, today, isOff: false, onApprovedLeave: false, hasRecord: false }),
+    ).toBe('absent')
+  })
+})
+
+// Student Log (map #380): same signals as registerDayStatus, but off-day and
+// approved-leave stay told apart instead of collapsing to 'blank'.
+describe('studentLogDayStatus', () => {
+  const today = '2026-07-15'
+
+  it('a day with a record is present, regardless of anything else', () => {
+    expect(
+      studentLogDayStatus({ iso: '2026-07-05', today, isOff: true, onApprovedLeave: true, hasRecord: true }),
+    ).toBe('present')
+  })
+
+  it('a future day is null, not a status', () => {
+    expect(
+      studentLogDayStatus({ iso: '2026-07-20', today, isOff: false, onApprovedLeave: false, hasRecord: false }),
+    ).toBeNull()
+  })
+
+  it('an off-day with no record is holiday', () => {
+    expect(
+      studentLogDayStatus({ iso: '2026-07-04', today, isOff: true, onApprovedLeave: false, hasRecord: false }),
+    ).toBe('holiday')
+  })
+
+  it('an approved-leave day with no record is on_leave', () => {
+    expect(
+      studentLogDayStatus({ iso: '2026-07-06', today, isOff: false, onApprovedLeave: true, hasRecord: false }),
+    ).toBe('on_leave')
+  })
+
+  it('off-day wins over approved leave when both are true (school is closed either way)', () => {
+    expect(
+      studentLogDayStatus({ iso: '2026-07-04', today, isOff: true, onApprovedLeave: true, hasRecord: false }),
+    ).toBe('holiday')
+  })
+
+  it('a past working day with no record and no excuse is absent', () => {
+    expect(
+      studentLogDayStatus({ iso: '2026-07-10', today, isOff: false, onApprovedLeave: false, hasRecord: false }),
+    ).toBe('absent')
+  })
+
+  it('today itself with no record and no excuse is absent (day already happened)', () => {
+    expect(
+      studentLogDayStatus({ iso: today, today, isOff: false, onApprovedLeave: false, hasRecord: false }),
     ).toBe('absent')
   })
 })

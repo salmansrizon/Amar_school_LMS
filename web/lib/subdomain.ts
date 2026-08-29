@@ -10,7 +10,7 @@ const RESERVED_INFRA = [
 
 /** Every top-level app route segment — a slug colliding with one would shadow it. */
 const RESERVED_ROUTES = [
-  'api', 'auth', 'dealer', 'gov', 'login', 'reset-password', 'school', 'signup', 'super-admin',
+  'agent', 'api', 'auth', 'dealer', 'distributor', 'gov', 'login', 'reset-password', 'school', 'signup', 'super-admin',
 ]
 
 /** Full reserved set (deduped, sorted) — infra hosts + app route segments. */

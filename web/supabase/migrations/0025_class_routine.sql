@@ -74,6 +74,7 @@ begin
   return new;
 end $$;
 
+drop trigger if exists routine_slot_same_school on public.routine_slots;
 create trigger routine_slot_same_school
   before insert or update on public.routine_slots
   for each row execute function public.enforce_routine_slot_school();

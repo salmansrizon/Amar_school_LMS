@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>স্কুল ব্যবস্থাপনা · Prototype 207</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          ink: '#131313',
+          'ink-card': '#1c1c1c',
+          paper: '#ffffff',
+          'paper-muted': '#f4f4f6',
+          line: '#ececec',
+          'line-strong': '#d8d8d8',
+          muted: '#767676',
+          brand: { 50: '#f1eefe', 100: '#e3dcfd', 300: '#b3a4f7', 500: '#6d4dfb', 600: '#5a37e8', 700: '#4826c4' },
+          mint: { DEFAULT: '#00d26a', deep: '#0a7a48', soft: '#e6f9ef' },
+          sun: { DEFAULT: '#ffc94a', deep: '#c98a00', soft: '#fff6e0' },
+          alert: { DEFAULT: '#ef4444', deep: '#dc2626', soft: '#fdeaea' },
+          sky: { DEFAULT: '#00b2ff', deep: '#0077b8', soft: '#e5f6ff' },
+        },
+        borderRadius: { sm: '8px', md: '14px', lg: '20px' },
+        boxShadow: { card: '0 12px 32px rgb(0 0 0 / 0.08)' },
+        fontFamily: { sans: ["Plus Jakarta Sans", "Hind Siliguri", "system-ui", "sans-serif"] },
+      },
+    },
+  }
+</script>
+<style>
+  body { font-family: 'Plus Jakarta Sans', 'Hind Siliguri', system-ui, sans-serif; background: #f4f4f6; color: #131313; }
+</style>
+</head>
+<body>
+<div class="sticky top-0 z-50 bg-ink text-white text-xs font-semibold px-4 py-2">
+  🧪 THROWAWAY PROTOTYPE — map #207 · ticket <a href="https://github.com/salmansrizon/Amar_school_LMS/issues/221" class="underline">#221 Super-admin</a> — create-school Form Card + schools List table (one Card, sticky first column), per-school management controls moved to the school detail page
+</div>
+
+<main class="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
+  <div class="mb-4 flex items-center justify-between">
+    <h1 class="text-2xl font-extrabold">স্কুল ব্যবস্থাপনা <span class="text-base font-medium text-muted">· Schools</span></h1>
+    <a href="dashboards-super-admin.html" class="text-sm font-semibold text-brand-600 hover:underline">← সুপার অ্যাডমিন</a>
+  </div>
+
+  <!-- Form archetype: create-school -->
+  <section class="rounded-2xl border border-line bg-paper p-5 shadow-card">
+    <h2 class="mb-3 font-bold">নতুন স্কুল তৈরি করুন <span class="text-xs font-normal text-muted">· Create School</span></h2>
+    <form class="grid gap-3 sm:grid-cols-2">
+      <div class="sm:col-span-2">
+        <label class="mb-1 block text-xs font-semibold text-muted">স্কুলের নাম</label>
+        <input required class="h-10 w-full rounded-md border border-line-strong bg-paper px-3 text-sm outline-none focus:border-brand-500" placeholder="আদর্শ উচ্চ বিদ্যালয়" />
+      </div>
+      <div>
+        <label class="mb-1 block text-xs font-semibold text-muted">মোবাইল</label>
+        <input class="h-10 w-full rounded-md border border-line-strong bg-paper px-3 text-sm outline-none focus:border-brand-500" placeholder="017XXXXXXXX" />
+      </div>
+      <div>
+        <label class="mb-1 block text-xs font-semibold text-muted">ইমেইল</label>
+        <input type="email" class="h-10 w-full rounded-md border border-line-strong bg-paper px-3 text-sm outline-none focus:border-brand-500" placeholder="school@example.com" />
+      </div>
+      <div>
+        <label class="mb-1 block text-xs font-semibold text-muted">EIIN</label>
+        <input class="h-10 w-full rounded-md border border-line-strong bg-paper px-3 text-sm outline-none focus:border-brand-500" placeholder="১১৩৫৪৭" />
+      </div>
+      <div>
+        <label class="mb-1 block text-xs font-semibold text-muted">ঠিকানা</label>
+        <input class="h-10 w-full rounded-md border border-line-strong bg-paper px-3 text-sm outline-none focus:border-brand-500" placeholder="মিরপুর, ঢাকা" />
+      </div>
+      <div class="sm:col-span-2 rounded-md border border-mint-deep bg-mint-soft p-3 text-sm">
+        <p class="font-semibold text-mint-deep">স্কুল তৈরি হয়েছে — মালিকানা কোড:</p>
+        <p class="mt-1 font-mono text-base">CLM-7F2K9Q</p>
+        <p class="mt-1 text-xs text-muted">এই কোডটি স্কুল মালিককে দিন — একবারই দেখানো হবে</p>
+      </div>
+      <button type="submit" class="sm:col-span-2 h-10 cursor-pointer rounded-full bg-brand-500 text-sm font-semibold text-white hover:bg-brand-600">স্কুল তৈরি করুন</button>
+    </form>
+  </section>
+
+  <!-- List archetype: full table, one Card, header = title + primary action -->
+  <section class="mt-4 rounded-2xl border border-line bg-paper p-5 shadow-card">
+    <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+      <h2 class="font-bold">স্কুল তালিকা <span class="text-xs font-normal text-muted">· {{count}} স্কুল</span></h2>
+      <a href="superadmin-schools-upcoming.html" class="text-sm font-semibold text-brand-600 hover:underline">মেয়াদোত্তীর্ণ হতে যাচ্ছে →</a>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full border-collapse">
+        <thead>
+          <tr class="border-b border-line-strong">
+            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted sticky left-0 bg-paper">স্কুলের নাম</th>
+            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">সাবডোমেইন</th>
+            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">অবস্থা</th>
+            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">মেয়াদ শেষ</th>
+            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">পরিশোধিত মাস</th>
+            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">মোট পরিশোধ</th>
+            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">সর্বশেষ পরিশোধ</th>
+            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">মালিক</th>
+            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-line">
+            <td class="px-3 py-2 text-sm font-medium sticky left-0 bg-paper">আদর্শ উচ্চ বিদ্যালয়</td>
+            <td class="px-3 py-2 text-sm font-mono">adarsho</td>
+            <td class="px-3 py-2 text-sm"><span class="rounded-full bg-mint-soft px-2 py-0.5 text-xs font-bold text-mint-deep">সক্রিয়</span></td>
+            <td class="px-3 py-2 text-sm text-muted">২০২৬-১১-০৩</td>
+            <td class="px-3 py-2 text-sm">১২</td>
+            <td class="px-3 py-2 text-sm">৳ ৩৬,০০০</td>
+            <td class="px-3 py-2 text-sm">৳ ৩,০০০</td>
+            <td class="px-3 py-2 text-sm">আছে</td>
+            <td class="px-3 py-2 text-sm text-right"><a href="superadmin-school-detail.html" class="rounded-full border border-line-strong px-3 py-0.5 text-xs font-semibold hover:bg-paper-muted">বিস্তারিত</a></td>
+          </tr>
+          <tr class="border-b border-line">
+            <td class="px-3 py-2 text-sm font-medium sticky left-0 bg-paper">গ্রিন ভ্যালি স্কুল অ্যান্ড কলেজ</td>
+            <td class="px-3 py-2 text-sm font-mono">greenvalley</td>
+            <td class="px-3 py-2 text-sm"><span class="rounded-full bg-sky-soft px-2 py-0.5 text-xs font-bold text-sky-deep">ট্রায়াল</span></td>
+            <td class="px-3 py-2 text-sm text-muted">২০২৬-০৮-১২</td>
+            <td class="px-3 py-2 text-sm">০</td>
+            <td class="px-3 py-2 text-sm">৳ ০</td>
+            <td class="px-3 py-2 text-sm">—</td>
+            <td class="px-3 py-2 text-sm">আছে</td>
+            <td class="px-3 py-2 text-sm text-right"><a href="superadmin-school-detail.html" class="rounded-full border border-line-strong px-3 py-0.5 text-xs font-semibold hover:bg-paper-muted">বিস্তারিত</a></td>
+          </tr>
+          <tr class="border-b border-line">
+            <td class="px-3 py-2 text-sm font-medium sticky left-0 bg-paper">নিউ মডেল হাই স্কুল</td>
+            <td class="px-3 py-2 text-sm font-mono text-muted">—</td>
+            <td class="px-3 py-2 text-sm"><span class="rounded-full bg-alert-soft px-2 py-0.5 text-xs font-bold text-alert-deep">মেয়াদোত্তীর্ণ</span></td>
+            <td class="px-3 py-2 text-sm text-muted">২০২৬-০৭-০১</td>
+            <td class="px-3 py-2 text-sm">৬</td>
+            <td class="px-3 py-2 text-sm">৳ ১৮,০০০</td>
+            <td class="px-3 py-2 text-sm">৳ ৩,০০০</td>
+            <td class="px-3 py-2 text-sm">আছে</td>
+            <td class="px-3 py-2 text-sm text-right"><a href="superadmin-school-detail.html" class="rounded-full border border-line-strong px-3 py-0.5 text-xs font-semibold hover:bg-paper-muted">বিস্তারিত</a></td>
+          </tr>
+          <tr class="border-b border-line">
+            <td class="px-3 py-2 text-sm font-medium sticky left-0 bg-paper">উত্তরা আইডিয়াল একাডেমি</td>
+            <td class="px-3 py-2 text-sm font-mono">uttara-ideal</td>
+            <td class="px-3 py-2 text-sm"><span class="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-bold text-amber-600">স্থগিত</span></td>
+            <td class="px-3 py-2 text-sm text-muted">২০২৬-০৩-১৫</td>
+            <td class="px-3 py-2 text-sm">৪</td>
+            <td class="px-3 py-2 text-sm">৳ ১২,০০০</td>
+            <td class="px-3 py-2 text-sm">৳ ৩,০০০</td>
+            <td class="px-3 py-2 text-sm">নেই</td>
+            <td class="px-3 py-2 text-sm text-right"><a href="superadmin-school-detail.html" class="rounded-full border border-line-strong px-3 py-0.5 text-xs font-semibold hover:bg-paper-muted">বিস্তারিত</a></td>
+          </tr>
+          <tr>
+            <td class="px-3 py-2 text-sm font-medium sticky left-0 bg-paper">সেন্ট্রাল বয়েজ হাই স্কুল</td>
+            <td class="px-3 py-2 text-sm font-mono">central-boys</td>
+            <td class="px-3 py-2 text-sm"><span class="rounded-full bg-mint-soft px-2 py-0.5 text-xs font-bold text-mint-deep">সক্রিয়</span></td>
+            <td class="px-3 py-2 text-sm text-muted">২০২৭-০১-২০</td>
+            <td class="px-3 py-2 text-sm">২৪</td>
+            <td class="px-3 py-2 text-sm">৳ ৭২,০০০</td>
+            <td class="px-3 py-2 text-sm">৳ ৩,০০০</td>
+            <td class="px-3 py-2 text-sm">আছে</td>
+            <td class="px-3 py-2 text-sm text-right"><a href="superadmin-school-detail.html" class="rounded-full border border-line-strong px-3 py-0.5 text-xs font-semibold hover:bg-paper-muted">বিস্তারিত</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+</body>
+</html>

@@ -5,10 +5,51 @@ export type Lang = 'bn' | 'en'
 export const DEFAULT_LANG: Lang = 'bn'
 export const LANG_COOKIE = 'asm-lang'
 
+/** The `document.cookie` assignment that persists a language choice.
+ *
+ *  Carries the same root-domain scope the session cookie does (#109's two-host
+ *  routing model). Without a domain the preference is host-only, so a user who
+ *  switches to English on the apex and is then bounced to `<slug>.<root>` — which
+ *  is what happens on login — lands on a Bangla page and has to switch again. The
+ *  UAT report recorded that as the switch "not visibly changing the page" (#539).
+ *
+ *  Secure everywhere except loopback, and SameSite=Lax, for the same reasons the
+ *  session cookie carries them: this one is not sensitive, but a cookie widened to
+ *  every tenant subdomain should not travel over plaintext either. */
+export function langCookieAssignment(next: Lang, host: string | null | undefined): string {
+  const parts = [`${LANG_COOKIE}=${next}`, 'path=/', 'max-age=31536000', 'samesite=lax']
+  const domain = langCookieDomain(host)
+  if (domain) parts.push(`domain=${domain}`)
+  if (!isLoopback(host)) parts.push('secure')
+  return parts.join(';')
+}
+
+function isLoopback(host: string | null | undefined): boolean {
+  if (!host) return false
+  const raw = host.trim().toLowerCase()
+  const close = raw.startsWith('[') ? raw.indexOf(']') : -1
+  const h = close > 0 ? raw.slice(1, close) : raw.split(':')[0]
+  return h === 'localhost' || h === '127.0.0.1' || h === '::1' || h.endsWith('.localhost')
+}
+
+/** Root-domain scope for the language cookie, or undefined to stay host-only.
+ *
+ *  Deliberately duplicated from `authCookieDomain` rather than imported: that
+ *  module is server-only in spirit and this runs in the browser, and the two
+ *  cookies are allowed to diverge — widening the session is a security decision,
+ *  widening a language preference is not. */
+function langCookieDomain(host: string | null | undefined): string | undefined {
+  const root = (process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? '').trim().toLowerCase().split(':')[0]
+  if (!host || !root.includes('.')) return undefined
+  const h = host.trim().toLowerCase().split(':')[0]
+  if (h !== root && !h.endsWith(`.${root}`)) return undefined
+  return `.${root}`
+}
+
 type Entry = { bn: string; en: string }
 
 const dict = {
-  'app.name': { bn: 'আমার স্কুল', en: 'Amar School' },
+  'app.name': { bn: 'এডুমিবিডি', en: 'EdumeBD' },
   'login.title': { bn: 'লগইন', en: 'Log in' },
   'login.email': { bn: 'ইমেইল', en: 'Email' },
   'login.password': { bn: 'পাসওয়ার্ড', en: 'Password' },
@@ -28,17 +69,26 @@ const dict = {
   'shell.logout': { bn: 'লগআউট', en: 'Log out' },
   'shell.welcome': { bn: 'স্বাগতম', en: 'Welcome' },
   'app.tagline': { bn: 'শিক্ষা ব্যবস্থাপনা', en: 'Education Management' },
-  'shell.search': { bn: 'গ্লোবাল টাস্ক খুঁজুন...', en: 'Search global tasks...' },
+  // Neutral on purpose: every role group shares this box, and "global tasks"
+  // meant nothing in a Student's portal (or a School Owner's, for that matter).
+  'shell.search': { bn: 'খুঁজুন...', en: 'Search...' },
   'shell.addStudent': { bn: 'শিক্ষার্থী যোগ করুন', en: 'Add Student' },
   'shell.notifications': { bn: 'বিজ্ঞপ্তি', en: 'Notifications' },
+  'shell.nav': { bn: 'প্রধান নেভিগেশন', en: 'Main navigation' },
   'shell.help': { bn: 'সহায়তা', en: 'Help' },
   'shell.chat': { bn: 'চ্যাট', en: 'Chat' },
   'shell.profile': { bn: 'প্রোফাইল', en: 'Profile' },
+  // Theme control (map #370) — light / dark / follow the OS.
+  'theme.label': { bn: 'থিম', en: 'Theme' },
+  'theme.light': { bn: 'উজ্জ্বল', en: 'Light' },
+  'theme.dark': { bn: 'অন্ধকার', en: 'Dark' },
+  'theme.system': { bn: 'সিস্টেম অনুযায়ী', en: 'System' },
   'shell.collapseSidebar': { bn: 'সাইডবার সংকুচিত করুন', en: 'Collapse sidebar' },
   'shell.expandSidebar': { bn: 'সাইডবার প্রসারিত করুন', en: 'Expand sidebar' },
   'shell.comingSoon': { bn: 'শীঘ্রই আসছে', en: 'coming soon' },
   'search.suggested': { bn: 'প্রস্তাবিত', en: 'Suggested' },
   'search.noResults': { bn: 'কোনো ফলাফল নেই', en: 'No matches' },
+  'search.records': { bn: 'রেকর্ড', en: 'Records' },
   'search.hint': { bn: 'নেভিগেট করতে ↑↓, খুলতে Enter', en: '↑↓ to navigate, Enter to open' },
   'dash.viewAll': { bn: 'সব দেখুন', en: 'View All' },
   'activity.title': { bn: 'সকল কার্যক্রম', en: 'All Activity' },
@@ -60,7 +110,317 @@ const dict = {
   'profile.roleOwner': { bn: 'প্রতিষ্ঠান মালিক', en: 'School Owner' },
   'profile.roleStaff': { bn: 'স্টাফ', en: 'Staff' },
   'home.school': { bn: 'স্কুল ড্যাশবোর্ড', en: 'School Dashboard' },
-  'home.dealer': { bn: 'ডিলার ড্যাশবোর্ড', en: 'Dealer Dashboard' },
+  'home.distributor': { bn: 'ডিস্ট্রিবিউটর ড্যাশবোর্ড', en: 'Distributor Dashboard' },
+  'dist.nav.dashboard': { bn: 'ড্যাশবোর্ড', en: 'Dashboard' },
+  'dist.nav.crm': { bn: 'সিআরএম পাইপলাইন', en: 'CRM Pipeline' },
+  'dist.nav.onboarding': { bn: 'অনবোর্ডিং', en: 'Onboarding' },
+  'dist.nav.wallet': { bn: 'ওয়ালেট', en: 'Wallet' },
+  'dist.nav.invoices': { bn: 'ইনভয়েস', en: 'Invoices' },
+  'home.agent': { bn: 'এজেন্ট ড্যাশবোর্ড', en: 'Agent Dashboard' },
+  'agent.nav.dashboard': { bn: 'ড্যাশবোর্ড', en: 'Dashboard' },
+  'agent.nav.tasks': { bn: 'কাজ', en: 'Tasks' },
+  // Student Portal (map #434, #441). Bangla is the default the students read.
+  'home.student': { bn: 'শিক্ষার্থী পোর্টাল', en: 'Student Portal' },
+  'student.nav.home': { bn: 'হোম', en: 'Home' },
+  'student.nav.routine': { bn: 'রুটিন', en: 'Routine' },
+  'student.nav.notices': { bn: 'নোটিশ', en: 'Notices' },
+  'student.nav.tasks': { bn: 'কাজ', en: 'Tasks' },
+  'student.nav.materials': { bn: 'পড়ার উপকরণ', en: 'Study Material' },
+  'student.nav.results': { bn: 'ফলাফল', en: 'Results' },
+  'student.nav.exams': { bn: 'পরীক্ষা', en: 'Exams' },
+  'student.nav.attendance': { bn: 'উপস্থিতি', en: 'Attendance' },
+  'student.attendanceTitle': { bn: 'আমার উপস্থিতি', en: 'My Attendance' },
+  'student.present': { bn: 'উপস্থিত', en: 'Present' },
+  'student.absentDays': { bn: 'অনুপস্থিত কার্যদিবস', en: 'Absent working days' },
+  'student.attendancePercent': { bn: 'উপস্থিতির হার', en: 'Attendance' },
+  'student.onLeave': { bn: 'ছুটি', en: 'On leave' },
+  'student.prevMonth': { bn: 'আগের মাস', en: 'Previous month' },
+  'student.nextMonth': { bn: 'পরের মাস', en: 'Next month' },
+  'student.nav.leave': { bn: 'ছুটি', en: 'Leave' },
+  'student.nav.fees': { bn: 'ফি', en: 'Fees' },
+  'student.nav.questions': { bn: 'প্রশ্ন', en: 'Questions' },
+  'student.questionsTitle': { bn: 'শিক্ষককে প্রশ্ন', en: 'Ask your teacher' },
+  'student.askAbout': { bn: 'এ বিষয়ে প্রশ্ন করো', en: 'Ask about this' },
+  'student.askGeneral': { bn: 'সাধারণ প্রশ্ন', en: 'Ask a question' },
+  'student.questionSubject': { bn: 'বিষয়', en: 'Subject' },
+  'student.questionBody': { bn: 'প্রশ্ন', en: 'Your question' },
+  'student.pickSubject': { bn: 'কোন বিষয়ে?', en: 'Which subject?' },
+  // #535: with no subjects assigned, the picker was a required <select> holding
+  // only a disabled placeholder — the child could not choose and so could not
+  // send. Say why, and let the question go to the class teacher instead.
+  'student.noSubjectsYet': {
+    bn: 'আপনার শ্রেণিতে এখনো কোনো বিষয় যুক্ত করা হয়নি, তাই এখান থেকে সাধারণ প্রশ্ন পাঠানো যাবে না। যেকোনো নোটিশ বা বাড়ির কাজ খুলে সেখান থেকে প্রশ্ন করুন — শিক্ষক তখন বুঝবেন প্রশ্নটি কীসের বিষয়ে।',
+    en: 'No subjects have been added to your class yet, so a general question cannot be sent from here. Open any notice or homework and ask from there instead — that tells the teacher what your question is about.',
+  },
+  'student.send': { bn: 'পাঠাও', en: 'Send' },
+  'student.noQuestions': { bn: 'তুমি এখনো কোনো প্রশ্ন করোনি।', en: 'You have not asked anything yet.' },
+  'student.teacherReplied': { bn: 'শিক্ষকের উত্তর', en: 'Teacher’s reply' },
+  'student.awaitingReply': { bn: 'উত্তরের অপেক্ষায়', en: 'Awaiting a reply' },
+  'student.anchorRequired': {
+    bn: 'কোন পোস্ট বা বিষয়ে প্রশ্ন, সেটি বেছে নাও।',
+    en: 'Pick the post or the subject your question is about.',
+  },
+  'student.subjectRequired': { bn: 'বিষয় লেখো।', en: 'A subject is required.' },
+  'student.bodyRequired': { bn: 'প্রশ্ন লেখো।', en: 'A question is required.' },
+  // বার্তা ও অনুরোধ — the merged section (#509). Three sidebar entries became
+  // one, so the section needs a name of its own that neither queue owns.
+  'hub.title': { bn: 'বার্তা ও অনুরোধ', en: 'Messages & Requests' },
+  'hub.tabQuestions': { bn: 'শিক্ষার্থীদের প্রশ্ন', en: 'Questions' },
+  'hub.tabCorrections': { bn: 'সংশোধনের অনুরোধ', en: 'Corrections' },
+  'hub.tabResponse': { bn: 'উত্তরের অবস্থা', en: 'Response' },
+  'hub.waiting': { bn: 'অপেক্ষায়', en: 'waiting' },
+  'hub.waitingHours': { bn: 'ঘণ্টা ধরে অপেক্ষায়', en: 'h waiting' },
+  'hub.answeredIn': { bn: 'ঘণ্টায় উত্তর', en: 'h to reply' },
+  'hub.freshlyAsked': { bn: 'এইমাত্র', en: 'just now' },
+  // The empty-scope line. Not a silent blank page: a Subject Teacher whose
+  // routine has not been entered would otherwise think the section is broken.
+  'hub.noClasses': {
+    bn: 'তোমার নামে কোনো শ্রেণি নেই — তাই এখানে দেখানোর মতো কিছু নেই। প্রধান শিক্ষক শ্রেণি শিক্ষক হিসেবে নিযুক্ত করলে বা রুটিনে নাম উঠলে শিক্ষার্থীদের প্রশ্ন ও অনুরোধ এখানে আসবে।',
+    en: 'No classes are attached to you, so there is nothing to show here. Questions and requests appear once the School Owner makes you a Class Teacher, or your name is entered in a class routine.',
+  },
+  'hub.dashCard': { bn: 'শিক্ষার্থীরা অপেক্ষা করছে', en: 'Students are waiting' },
+  'hub.dashQuestions': { bn: 'প্রশ্নের উত্তর বাকি', en: 'questions unanswered' },
+  'hub.dashCorrections': { bn: 'সংশোধনের অনুরোধ বাকি', en: 'corrections pending' },
+  'questions.title': { bn: 'শিক্ষার্থীদের প্রশ্ন', en: 'Student Questions' },
+  'questions.none': { bn: 'কোনো প্রশ্ন নেই।', en: 'No questions.' },
+  'questions.unanswered': { bn: 'উত্তর বাকি', en: 'unanswered' },
+  'questions.reply': { bn: 'উত্তর দাও', en: 'Reply' },
+  'questions.replied': { bn: 'উত্তর দেওয়া হয়েছে', en: 'Replied' },
+  'questions.generalBucket': { bn: 'সাধারণ', en: 'General' },
+  // The anchor rule, said in a sentence (ADR 0018). A Subject Teacher sees this
+  // on a question about a colleague's subject — the row is visibly theirs to
+  // read and not theirs to answer, and silence would read as a broken form.
+  'questions.notYours': {
+    bn: 'এই প্রশ্নটি তোমার বিষয় বা পোস্ট নিয়ে নয় — যাঁর বিষয় বা পোস্ট, সেই শিক্ষক, শ্রেণি শিক্ষক অথবা প্রধান শিক্ষক উত্তর দেবেন।',
+    en: 'This question is not about your subject or your post — it is answered by the teacher whose subject or post it is, by the Class Teacher, or by the School Owner.',
+  },
+  'response.title': { bn: 'প্রশ্নের উত্তরের অবস্থা', en: 'Response to Student Questions' },
+  'response.intro': {
+    bn: 'কোন প্রশ্নগুলো এখনো উত্তরের অপেক্ষায় এবং কতদিন ধরে — আলোচনার জন্য, র‍্যাঙ্কিংয়ের জন্য নয়।',
+    en: 'What is still waiting, and for how long. Meant to start a conversation, not to rank people.',
+  },
+  'response.received': { bn: 'দায়িত্বে', en: 'Accountable' },
+  'response.answered': { bn: 'উত্তর দেওয়া', en: 'Answered' },
+  'response.unanswered': { bn: 'উত্তর বাকি', en: 'Still waiting' },
+  'response.median': { bn: 'সাধারণত উত্তর', en: 'Typical reply' },
+  'response.slowest': { bn: 'সবচেয়ে দেরিতে', en: 'Slowest reply' },
+  'response.oldestWaiting': { bn: 'সবচেয়ে পুরনো অপেক্ষমাণ', en: 'Longest waiting' },
+  'response.teacher': { bn: 'শিক্ষক', en: 'Teacher' },
+  'response.owner': { bn: 'প্রতিষ্ঠান মালিক', en: 'School Owner' },
+  'response.unassigned': { bn: 'শিক্ষক নির্ধারিত নয়', en: 'No class teacher assigned' },
+  'response.hours': { bn: 'ঘণ্টা', en: 'h' },
+  'response.from': { bn: 'শুরু', en: 'From' },
+  'response.to': { bn: 'শেষ', en: 'To' },
+  'response.apply': { bn: 'দেখাও', en: 'Show' },
+  'response.none': { bn: 'এই সময়ে কোনো প্রশ্ন নেই।', en: 'No questions in this period.' },
+  'response.mine': { bn: 'আমার', en: 'Me' },
+  'response.schoolWide': { bn: 'পুরো বিদ্যালয়', en: 'School-wide' },
+  'response.introTeacher': {
+    bn: 'তোমার নিজের হিসাব, পাশে পুরো বিদ্যালয়ের গড় — তুলনার জন্য, তালিকার জন্য নয়।',
+    en: 'Your own figures, next to the school-wide total. For comparison, not for a league table.',
+  },
+  'student.nav.profile': { bn: 'আমার তথ্য', en: 'My Profile' },
+  'student.profileTitle': { bn: 'আমার তথ্য', en: 'My Profile' },
+  'student.profileReadOnly': {
+    bn: 'এই তথ্য স্কুলের রেকর্ড — তুমি সংশোধনের অনুরোধ করতে পারো।',
+    en: 'This is the school’s record. You can request a correction.',
+  },
+  'student.requestCorrection': { bn: 'সংশোধনের অনুরোধ', en: 'Request a correction' },
+  'student.correctionField': { bn: 'কোন তথ্য', en: 'Which detail' },
+  'student.correctionValue': { bn: 'সঠিক তথ্য', en: 'Correct value' },
+  'student.correctionNote': { bn: 'মন্তব্য', en: 'Note' },
+  'student.myRequests': { bn: 'আমার অনুরোধ', en: 'My requests' },
+  'student.noRequests': { bn: 'কোনো অনুরোধ নেই।', en: 'No requests yet.' },
+  'student.reqPending': { bn: 'অপেক্ষমাণ', en: 'Pending' },
+  'student.reqApplied': { bn: 'প্রয়োগ হয়েছে', en: 'Applied' },
+  'student.reqRejected': { bn: 'নামঞ্জুর', en: 'Rejected' },
+  'student.correctionUnchanged': { bn: 'এই তথ্য ইতিমধ্যেই এমন আছে।', en: 'That is already what the record says.' },
+  'student.correctionFieldBad': { bn: 'এই তথ্য এভাবে বদলানো যায় না।', en: 'That detail cannot be corrected this way.' },
+  'student.correctionValueBad': { bn: 'সঠিক তথ্য লেখো।', en: 'A value is required.' },
+  'student.newPhoto': { bn: 'নতুন ছবি', en: 'New photo' },
+  'corrections.title': { bn: 'সংশোধনের অনুরোধ', en: 'Correction Requests' },
+  'corrections.none': { bn: 'কোনো অনুরোধ নেই।', en: 'No correction requests.' },
+  'corrections.apply': { bn: 'প্রয়োগ করো', en: 'Apply' },
+  'corrections.reject': { bn: 'নামঞ্জুর', en: 'Reject' },
+  'corrections.reason': { bn: 'কারণ', en: 'Reason' },
+  'corrections.was': { bn: 'বর্তমান', en: 'Currently' },
+  'corrections.becomes': { bn: 'হবে', en: 'Becomes' },
+  'student.search': { bn: 'তোমার সবকিছু খুঁজো...', en: 'Search your school life...' },
+  'student.feePayable': { bn: 'ধার্য', en: 'Payable' },
+  'student.totalPayable': { bn: 'মোট ধার্য', en: 'Total payable' },
+  'student.attNoRecords': {
+    bn: 'এই মাসে স্কুল এখনো হাজিরা তোলেনি।',
+    en: 'The school has not taken attendance this month yet.',
+  },
+  'student.attAbsent': { bn: 'অনুপস্থিত', en: 'Absent' },
+  'student.attRecordedOn': { bn: 'হাজিরা তোলা হয়েছে', en: 'Attendance taken' },
+  'student.attDays': { bn: 'দিন', en: 'days' },
+  'student.leaveOrder': {
+    bn: 'শেষের তারিখ শুরুর তারিখের আগে হতে পারে না।',
+    en: 'The end date cannot come before the start date.',
+  },
+  'student.leavePast': {
+    bn: 'আগের তারিখে ছুটির আবেদন করা যায় না।',
+    en: 'Leave cannot be requested for a date that has passed.',
+  },
+  'student.leaveOverlap': {
+    bn: 'এই তারিখগুলোর জন্য আবেদন আগেই করা আছে।',
+    en: 'You already have a request covering those dates.',
+  },
+  'student.leaveWithdraw': { bn: 'আবেদন ফিরিয়ে নাও', en: 'Withdraw' },
+  'student.leaveWithdrawn': { bn: 'আবেদন ফিরিয়ে নেওয়া হয়েছে।', en: 'Request withdrawn.' },
+  'student.leaveDecided': {
+    bn: 'সিদ্ধান্ত হয়ে গেছে — আর ফিরিয়ে নেওয়া যাবে না।',
+    en: 'This has been decided and can no longer be withdrawn.',
+  },
+  'student.questionSent': { bn: 'প্রশ্ন পাঠানো হয়েছে।', en: 'Question sent.' },
+  'student.questionAbout': { bn: 'প্রসঙ্গ', en: 'About' },
+  'student.seeQuestions': { bn: 'আমার প্রশ্নগুলো দেখো', en: 'See my questions' },
+  'student.fileHint': {
+    bn: 'ছবি বা PDF, সর্বোচ্চ {size}',
+    en: 'Image or PDF, up to {size}',
+  },
+  'student.chooseFile': { bn: 'ফাইল বাছাই করো', en: 'Choose a file' },
+  'student.noFileChosen': { bn: 'কোনো ফাইল বাছাই করা হয়নি', en: 'No file chosen' },
+  'student.myPhoto': { bn: 'আমার ছবি', en: 'My photo' },
+  'student.dueOn': { bn: 'জমা দেওয়ার তারিখ', en: 'Due' },
+  'student.handedIn': { bn: 'জমা দেওয়া হয়েছে', en: 'Handed in' },
+  'student.noQuestionsHint': {
+    bn: 'উপরের ফর্মে, বা যেকোনো নোটিশ বা কাজের পাতা থেকে প্রশ্ন করতে পারো।',
+    en: 'Ask from the form above, or from any notice or task page.',
+  },
+  'shell.skipToContent': { bn: 'মূল অংশে যাও', en: 'Skip to content' },
+  'notFound.title': { bn: 'পাতাটি পাওয়া যায়নি', en: 'Page not found' },
+  'notFound.body': {
+    bn: 'যে ঠিকানায় এসেছ সেখানে কিছু নেই — সরে গেছে বা কখনো ছিল না।',
+    en: 'There is nothing at this address — it moved, or it never existed.',
+  },
+  'notFound.home': { bn: 'হোমে ফিরে যাও', en: 'Go home' },
+  'student.feesTitle': { bn: 'আমার ফি', en: 'My Fees' },
+  'student.noFees': { bn: 'কোনো ফি রেকর্ড নেই।', en: 'No fee records yet.' },
+  'student.feePaid': { bn: 'জমা', en: 'Paid' },
+  'student.feeFine': { bn: 'জরিমানা', en: 'Fine' },
+  'student.feeDue': { bn: 'বকেয়া', en: 'Due' },
+  'student.totalDue': { bn: 'মোট বকেয়া', en: 'Total due' },
+  'student.month': { bn: 'মাস', en: 'Month' },
+  'student.printStatement': { bn: 'বিবরণী প্রিন্ট', en: 'Print statement' },
+  'student.statementNote': {
+    bn: 'এটি একটি বিবরণী — প্রতিটি লেনদেনের রসিদ নয়।',
+    en: 'This is a statement, not a receipt for each payment.',
+  },
+  'student.leaveTitle': { bn: 'ছুটির আবেদন', en: 'Leave' },
+  'student.requestLeave': { bn: 'ছুটির আবেদন করো', en: 'Request leave' },
+  'student.leaveFrom': { bn: 'শুরু', en: 'From' },
+  'student.leaveTo': { bn: 'শেষ', en: 'To' },
+  'student.leaveReason': { bn: 'কারণ', en: 'Reason' },
+  'student.leavePending': { bn: 'অপেক্ষমাণ', en: 'Pending' },
+  'student.leaveApproved': { bn: 'অনুমোদিত', en: 'Approved' },
+  'student.leaveRejected': { bn: 'নামঞ্জুর', en: 'Rejected' },
+  'student.noLeave': { bn: 'কোনো ছুটির আবেদন নেই।', en: 'No leave requests yet.' },
+  'student.leaveSubmitted': { bn: 'আবেদন পাঠানো হয়েছে।', en: 'Request sent.' },
+  'student.examsTitle': { bn: 'পরীক্ষার সময়সূচি', en: 'Exam Schedule' },
+  'student.noExams': { bn: 'কোনো পরীক্ষার সময়সূচি নেই।', en: 'No exam schedule yet.' },
+  'student.examDate': { bn: 'তারিখ', en: 'Date' },
+  'student.examTime': { bn: 'সময়', en: 'Time' },
+  'student.room': { bn: 'কক্ষ', en: 'Room' },
+  'student.yourSeat': { bn: 'তোমার আসন', en: 'Your seat' },
+  'student.seatPending': {
+    bn: 'আসন বিন্যাস এখনো প্রকাশ করা হয়নি।',
+    en: 'The seat plan has not been published yet.',
+  },
+  'student.printAdmitCard': { bn: 'প্রবেশপত্র প্রিন্ট', en: 'Print admit card' },
+  'student.upcomingExam': { bn: 'আসন্ন পরীক্ষা', en: 'Upcoming exam' },
+  'student.resultsTitle': { bn: 'পরীক্ষার ফলাফল', en: 'Exam Results' },
+  'student.noResults': {
+    bn: 'এখনো কোনো ফলাফল প্রকাশ করা হয়নি।',
+    en: 'No results have been published yet.',
+  },
+  'student.subject': { bn: 'বিষয়', en: 'Subject' },
+  'student.marks': { bn: 'নম্বর', en: 'Marks' },
+  'student.grade': { bn: 'গ্রেড', en: 'Grade' },
+  'student.gpa': { bn: 'জিপিএ', en: 'GPA' },
+  'student.rank': { bn: 'মেধাক্রম', en: 'Rank' },
+  'student.passed': { bn: 'উত্তীর্ণ', en: 'Passed' },
+  'student.failed': { bn: 'অনুত্তীর্ণ', en: 'Not passed' },
+  'student.printMarkSheet': { bn: 'মার্কশিট প্রিন্ট', en: 'Print mark sheet' },
+  'student.printRoutine': { bn: 'রুটিন প্রিন্ট', en: 'Print routine' },
+  'exams.publishResults': { bn: 'ফলাফল প্রকাশ করুন', en: 'Publish results' },
+  'exams.unpublishResults': { bn: 'প্রকাশ বাতিল করুন', en: 'Unpublish results' },
+  'exams.resultsPublished': { bn: 'ফলাফল প্রকাশিত', en: 'Results published' },
+  'exams.publishHint': {
+    bn: 'প্রকাশ করলে শিক্ষার্থীরা নিজেদের ফলাফল দেখতে পাবে। প্রয়োজনে আবার বাতিল করা যাবে।',
+    en: 'Publishing lets students see their own results. It can be undone.',
+  },
+  'student.materialsTitle': { bn: 'পড়ার উপকরণ', en: 'Study Material' },
+  'student.noMaterialsHint': {
+    bn: 'শিক্ষক সিলেবাস বা পাঠ পরিকল্পনা দিলে সেটি এখানে আসবে।',
+    en: 'A syllabus or lesson plan your teacher posts will appear here.',
+  },
+  'student.noResultsHint': {
+    bn: 'পরীক্ষা শেষে স্কুল ফলাফল প্রকাশ করলে এখানে দেখতে পাবে।',
+    en: 'You will see your marks here once the school publishes them.',
+  },
+  'student.noExamsHint': {
+    bn: 'সময়সূচি প্রকাশ হলে তারিখ, কক্ষ ও আসন এখানে দেখাবে।',
+    en: 'Dates, rooms and seats appear here once the schedule is published.',
+  },
+  'student.noMaterials': { bn: 'এখনো কোনো উপকরণ নেই।', en: 'No study material yet.' },
+  'student.download': { bn: 'ডাউনলোড', en: 'Download' },
+  'student.postedBy': { bn: 'দিয়েছেন', en: 'Posted by' },
+  'material.syllabus': { bn: 'সিলেবাস', en: 'Syllabus' },
+  'material.lesson_plan': { bn: 'পাঠ পরিকল্পনা', en: 'Lesson Plan' },
+  'material.daily_lesson': { bn: 'দৈনিক পাঠ', en: 'Daily Lesson' },
+  'material.exam_prep': { bn: 'পরীক্ষা প্রস্তুতি', en: 'Exam Prep' },
+  'student.tasksTitle': { bn: 'বাড়ির কাজ', en: 'Homework' },
+  'student.noTasks': { bn: 'এখন কোনো কাজ নেই।', en: 'Nothing to do right now.' },
+  'student.taskOverdue': { bn: 'সময় পেরিয়ে গেছে', en: 'Overdue' },
+  'student.taskDueSoon': { bn: 'শীঘ্রই জমা', en: 'Due soon' },
+  'student.taskLater': { bn: 'পরে', en: 'Later' },
+  'student.taskDone': { bn: 'শেষ হয়েছে', en: 'Done' },
+  'student.taskDue': { bn: 'জমার তারিখ', en: 'Due' },
+  'student.markDone': { bn: 'শেষ হয়েছে চিহ্নিত করো', en: 'Mark done' },
+  'student.markNotDone': { bn: 'আবার বাকি', en: 'Not done' },
+  'student.pendingCount': { bn: 'কাজ বাকি', en: 'tasks pending' },
+  'student.ownClaim': {
+    bn: 'তুমি নিজে চিহ্নিত করছ — এটি জমা দেওয়া নয়।',
+    en: 'This is your own tick — it is not a submission.',
+  },
+  'student.noticesTitle': { bn: 'নোটিশ', en: 'Notices' },
+  'student.noNotices': { bn: 'এখনো কোনো নোটিশ নেই।', en: 'No notices yet.' },
+  'student.forMyClass': { bn: 'আমার শ্রেণির জন্য', en: 'For my class' },
+  'student.forEveryone': { bn: 'সকলের জন্য', en: 'School-wide' },
+  'student.newBadge': { bn: 'নতুন', en: 'New' },
+  'student.newCount': { bn: 'নতুন নোটিশ', en: 'new notices' },
+  'student.openLink': { bn: 'লিংক খুলুন', en: 'Open link' },
+  'student.backToNotices': { bn: 'নোটিশে ফিরে যাও', en: 'Back to notices' },
+  'student.today': { bn: 'আজ', en: 'Today' },
+  'student.tomorrow': { bn: 'আগামীকাল', en: 'Tomorrow' },
+  'student.routineTitle': { bn: 'সাপ্তাহিক ক্লাস রুটিন', en: 'Weekly Class Routine' },
+  'student.period': { bn: 'পিরিয়ড', en: 'Period' },
+  'student.noRoutine': {
+    bn: 'তোমার ক্লাসের রুটিন এখনো প্রকাশ করা হয়নি।',
+    en: 'Your class routine has not been published yet.',
+  },
+  'student.weekend': { bn: 'সাপ্তাহিক ছুটি', en: 'Weekend' },
+  'student.offDay': { bn: 'ছুটির দিন', en: 'Holiday' },
+  'student.noClassesToday': { bn: 'আজ কোনো ক্লাস নেই', en: 'No classes today' },
+  'student.readOnly': {
+    bn: 'তোমার স্কুলের সাবস্ক্রিপশনের মেয়াদ শেষ — এখন শুধু দেখা যাবে, কিছু পাঠানো যাবে না।',
+    en: 'Your school’s subscription has lapsed — you can read everything, but not submit anything.',
+  },
+  'student.home.greeting': { bn: 'স্বাগতম', en: 'Welcome' },
+  'student.home.studentNo': { bn: 'শিক্ষার্থী নম্বর', en: 'Student Number' },
+  'student.home.class': { bn: 'শ্রেণি', en: 'Class' },
+  'student.home.roll': { bn: 'রোল', en: 'Roll' },
+  'student.home.soon': {
+    bn: 'তোমার ক্লাস, নোটিশ, ফলাফল ও ফি শীঘ্রই এখানে দেখা যাবে।',
+    en: 'Your classes, notices, results and fees arrive here shortly.',
+  },
+  'gov.nav.dashboard': { bn: 'ড্যাশবোর্ড', en: 'Dashboard' },
+  'gov.kpi.schools': { bn: 'অঞ্চলের স্কুল', en: 'Schools in territory' },
+  'gov.kpi.extended': { bn: 'বর্ধিত অ্যাক্সেস', en: 'Extended access' },
+  'notif.none': { bn: 'কোনো নোটিফিকেশন নেই', en: 'No notifications' },
+  'notif.markAll': { bn: 'সব পঠিত চিহ্নিত করুন', en: 'Mark all read' },
   'home.superAdmin': { bn: 'সুপার অ্যাডমিন', en: 'Super Admin' },
   'home.gov': { bn: 'সরকারি পর্যবেক্ষণ', en: 'Government Oversight' },
   'home.placeholder': {
@@ -116,10 +476,31 @@ const dict = {
     en: 'You do not have access to this screen. Contact your School Owner.',
   },
   'denied.back': { bn: 'ড্যাশবোর্ডে ফিরুন', en: 'Back to dashboard' },
+  // #538: refusal and failure are designed states. The destination is kept so
+  // the reader can tell the Owner which screen they need, and the reference is
+  // Next's error digest — the same string in the server log.
+  'denied.destination': { bn: 'যে পাতায় যেতে চেয়েছিলেন', en: 'You were trying to open' },
+  'denied.contact': { bn: 'স্কুল মালিকের সাথে যোগাযোগ', en: 'Contact school owner' },
+  'states.emptyAnnounce': { bn: 'এই তালিকায় কিছু নেই', en: 'This list is empty' },
+  'states.errorTitle': { bn: 'কিছু একটা ভুল হয়েছে', en: 'Something went wrong' },
+  'states.errorBody': {
+    bn: 'পাতাটি লোড করা যায়নি। আবার চেষ্টা করুন — সমস্যা থাকলে নিচের রেফারেন্স নম্বরটি জানান।',
+    en: 'This page could not be loaded. Try again — if it keeps happening, quote the reference below.',
+  },
+  'states.retry': { bn: 'আবার চেষ্টা করুন', en: 'Try again' },
+  'states.goHome': { bn: 'হোমে ফিরুন', en: 'Go home' },
+  'states.reference': { bn: 'রেফারেন্স', en: 'Reference' },
   'common.add': { bn: 'যোগ করুন', en: 'Add' },
   'locations.title': { bn: 'টেরিটরি ও লোকেশন', en: 'Territory & Locations' },
   'locations.tree': { bn: 'লোকেশন ট্রি', en: 'Location tree' },
   'locations.empty': { bn: 'এখনো কোনো লোকেশন নেই — একটি বিভাগ দিয়ে শুরু করুন', en: 'No locations yet — start with a Division' },
+  // #550: the tree is collapsed now, so it has to answer "where is Amtali"
+  // itself — a collapsed branch has nothing to Ctrl+F through.
+  'locations.searchPlaceholder': { bn: 'লোকেশন খুঁজুন', en: 'Search locations' },
+  'locations.clearSearch': { bn: 'সার্চ মুছুন', en: 'Clear search' },
+  'locations.noMatch': { bn: 'এই নামে কোনো লোকেশন নেই', en: 'No location by that name' },
+  'locations.showInTree': { bn: 'ট্রিতে দেখুন', en: 'Show in tree' },
+  'locations.total': { bn: 'মোট লোকেশন', en: 'Total locations' },
   'locations.clusters': { bn: 'ক্লাস্টার', en: 'Clusters' },
   'locations.clusterName': { bn: 'ক্লাস্টারের নাম', en: 'Cluster name' },
   'locations.confirmDelete': {
@@ -133,10 +514,10 @@ const dict = {
   'territory.mySchools': { bn: 'আমার স্কুলসমূহ', en: 'My Schools' },
   'territory.noSchools': { bn: 'এখনো কোনো টেরিটরি বরাদ্দ নেই', en: 'No territory assignments yet' },
   'territory.extended': { bn: 'বর্ধিত অ্যাক্সেস', en: 'Extended access' },
-  'partners.title': { bn: 'ডিলার ও সরকারি কর্মকর্তা', en: 'Dealers & Officials' },
+  'partners.title': { bn: 'ডিস্ট্রিবিউটর ও সরকারি কর্মকর্তা', en: 'Distributors & Officials' },
   'partners.create': { bn: 'নতুন অ্যাকাউন্ট', en: 'New account' },
   'partners.role': { bn: 'ভূমিকা', en: 'Role' },
-  'partners.dealer': { bn: 'ডিলার', en: 'Dealer' },
+  'partners.distributor': { bn: 'ডিস্ট্রিবিউটর', en: 'Distributor' },
   'partners.gov': { bn: 'সরকারি কর্মকর্তা', en: 'Government Official' },
   'partners.list': { bn: 'অ্যাকাউন্ট তালিকা', en: 'Accounts' },
   'partners.assignments': { bn: 'টেরিটরি বরাদ্দ', en: 'Territory assignments' },
@@ -195,20 +576,35 @@ const dict = {
   'sa.title': { bn: 'সুপার অ্যাডমিন প্যানেল', en: 'Super Admin Panel' },
   'sa.nav.dashboard': { bn: 'ড্যাশবোর্ড', en: 'Dashboard' },
   'sa.nav.schools': { bn: 'স্কুলসমূহ', en: 'Schools' },
-  'sa.nav.dealers': { bn: 'ডিলার', en: 'Dealers' },
+  'sa.nav.distributors': { bn: 'ডিস্ট্রিবিউটর', en: 'Distributors' },
   'sa.nav.gov': { bn: 'সরকারি কর্মকর্তা', en: 'Government Officials' },
   'sa.nav.codes': { bn: 'সাবস্ক্রিপশন কোড', en: 'Subscription Codes' },
   'sa.nav.territory': { bn: 'টেরিটরি ও লোকেশন', en: 'Territory & Locations' },
   'sa.nav.sms': { bn: 'ভেন্ডর SMS', en: 'Vendor SMS' },
   'sa.nav.offDays': { bn: 'কেন্দ্রীয় ছুটি', en: 'Central Off-Day' },
   'sa.nav.clusters': { bn: 'ক্লাস্টার', en: 'Clusters' },
+  'sa.nav.auditLog': { bn: 'অডিট লগ', en: 'Audit Log' },
+  'sa.nav.rolePermissions': { bn: 'রোল ও অনুমতি', en: 'Roles & Permissions' },
+  'sa.nav.moduleConfig': { bn: 'মডিউল ও ফিচার', en: 'Modules & Features' },
+  'sa.nav.subscriptionConfig': { bn: 'সাবস্ক্রিপশন কনফিগ', en: 'Subscription Config' },
+  'sa.nav.coupons': { bn: 'কুপন', en: 'Coupons' },
+  'sa.nav.settlements': { bn: 'সেটেলমেন্ট', en: 'Settlements' },
+  'sa.nav.accounting': { bn: 'হিসাব খতিয়ান', en: 'Accounting' },
+  'sa.nav.readiness': { bn: 'প্রস্তুতি', en: 'Readiness' },
+  'sa.nav.jobMonitor': { bn: 'জব মনিটর', en: 'Job Monitor' },
+  'sa.nav.agents': { bn: 'এজেন্ট', en: 'Agents' },
+  'sa.nav.agreements': { bn: 'চুক্তি', en: 'Agreements' },
+  'sa.nav.workflows': { bn: 'ওয়ার্কফ্লো', en: 'Workflows' },
+  'sa.nav.notifications': { bn: 'নোটিফিকেশন', en: 'Notifications' },
+  'sa.nav.smsCommerce': { bn: 'এসএমএস কমার্স', en: 'SMS Commerce' },
+  'sa.nav.invoices': { bn: 'ইনভয়েস', en: 'Invoices' },
   'sa.kpi.totalSchools': { bn: 'মোট স্কুল', en: 'Total schools' },
   'sa.kpi.trial': { bn: 'ট্রায়াল', en: 'Trial' },
   'sa.kpi.active': { bn: 'সক্রিয়', en: 'Active' },
   'sa.kpi.expired': { bn: 'মেয়াদোত্তীর্ণ', en: 'Expired' },
   'sa.kpi.blocked': { bn: 'ব্লককৃত', en: 'Blocked' },
   'sa.kpi.govOfficials': { bn: 'সরকারি কর্মকর্তা', en: 'Gov officials' },
-  'sa.kpi.dealers': { bn: 'ডিলার', en: 'Dealers' },
+  'sa.kpi.distributors': { bn: 'ডিস্ট্রিবিউটর', en: 'Distributors' },
   'sa.kpi.codesOutstanding': { bn: 'অব্যবহৃত কোড', en: 'Codes outstanding' },
   'sa.soonExpiring.title': { bn: 'শীঘ্রই মেয়াদ শেষ (৭ দিন)', en: 'Soon expiring (7 days)' },
   'sa.soonExpiring.none': { bn: 'আগামী ৭ দিনে কোনো স্কুলের মেয়াদ শেষ হচ্ছে না', en: 'No schools expiring in the next 7 days' },
@@ -224,6 +620,12 @@ const dict = {
   // SMS credit panel (map #171 T7)
   'sa.sms.creditTitle': { bn: 'SMS ক্রেডিট', en: 'SMS credits' },
   'sa.sms.balance': { bn: 'বর্তমান ব্যালেন্স', en: 'Current balance' },
+  // #529: a negative pool is not an empty pool. It says segments left the gateway
+  // that were never bought, so the ledger disagrees with reality.
+  'sa.pool.impossible': {
+    bn: 'অসম্ভব অবস্থা: পুলের ব্যালেন্স ঋণাত্মক। যত এসএমএস কেনা হয়েছে তার চেয়ে বেশি পাঠানো হয়েছে — লেজার মিলছে না। বরাদ্দ ও সেটেলমেন্ট বন্ধ রাখুন, আগে মিলিয়ে নিন।',
+    en: 'Impossible state: the pool balance is negative. More segments have been sent than were ever bought, so the ledger disagrees with reality. Hold allocation and settlement until this is reconciled.',
+  },
   'sa.sms.credits': { bn: 'ক্রেডিট (সংখ্যা)', en: 'Credits' },
   'sa.sms.amount': { bn: 'গৃহীত অর্থ (৳)', en: 'Amount collected (৳)' },
   'sa.sms.note': { bn: 'নোট (ঐচ্ছিক)', en: 'Note (optional)' },
@@ -292,6 +694,15 @@ const dict = {
   'sa.school.paused': { bn: 'পজকৃত', en: 'Paused' },
   'sa.school.pauseNote': { bn: 'পজকৃত স্কুলের মালিক ও স্টাফ লগইন করতে পারবে না; পেমেন্ট পেলে চালু করুন।', en: 'A paused school’s owner and staff cannot log in; resume once they pay.' },
   'sa.school.pauseConfirm': { bn: 'এই স্কুলের সাবস্ক্রিপশন পজ করবেন? মালিক ও স্টাফ লগইন করতে পারবে না।', en: 'Pause this school’s subscription? Owner and staff will be unable to log in.' },
+  'sa.school.students': { bn: 'শিক্ষার্থী', en: 'Students' },
+  'sa.school.subscription': { bn: 'সাবস্ক্রিপশন', en: 'Subscription' },
+  'sa.school.more': { bn: 'বিস্তারিত', en: 'Details' },
+  'sa.school.months': { bn: 'মাস', en: 'mo' },
+  'pager.total': { bn: 'মোট', en: 'Total' },
+  'pager.prev': { bn: 'আগের পাতা', en: 'Previous page' },
+  'pager.next': { bn: 'পরের পাতা', en: 'Next page' },
+  'partners.search': { bn: 'নাম দিয়ে খুঁজুন…', en: 'Search by name…' },
+  'partners.viewProfile': { bn: 'সম্পূর্ণ প্রোফাইল', en: 'Full profile' },
   'sa.school.monthsPaid': { bn: 'পরিশোধিত মাস', en: 'Months paid' },
   'sa.school.totalPaid': { bn: 'মোট পরিশোধ', en: 'Total paid' },
   'sa.school.lastPaid': { bn: 'সর্বশেষ মূল্য', en: 'Last paid' },
@@ -320,8 +731,26 @@ const dict = {
   // Owner-side SMS balance (map #171 T9)
   'sms.balance': { bn: 'SMS ব্যালেন্স', en: 'SMS balance' },
   'sms.creditsLeft': { bn: 'ক্রেডিট বাকি', en: 'credits left' },
+  'approvals.title': { bn: 'অনুমোদন', en: 'Approvals' },
+  'approvals.approve': { bn: 'অনুমোদন', en: 'Approve' },
+  'approvals.reject': { bn: 'প্রত্যাখ্যান', en: 'Reject' },
+  'approvals.comment': { bn: 'মন্তব্য (ঐচ্ছিক)', en: 'Comment (optional)' },
+  'approvals.none': { bn: 'কোনো অপেক্ষমাণ অনুমোদন নেই', en: 'No pending approvals' },
+  'sms.buyTitle': { bn: 'এসএমএস প্যাকেজ কিনুন', en: 'Buy SMS package' },
+  'sms.buyMore': { bn: 'এসএমএস কিনুন', en: 'Buy SMS' },
+  'sms.buy': { bn: 'কিনুন', en: 'Buy' },
+  'sms.buyOwnerOnly': { bn: 'শুধু স্কুল মালিক এসএমএস প্যাকেজ কিনতে পারেন।', en: 'Only the school owner can buy SMS packages.' },
+  'sms.buyNone': { bn: 'কোনো প্যাকেজ নেই।', en: 'No packages available.' },
+  'sms.buyNote': { bn: 'কেনার সাথে একটি ইনভয়েস তৈরি হয় এবং সেগমেন্ট আপনার ওয়ালেটে যোগ হয়।', en: 'A purchase issues an invoice and adds the segments to your wallet.' },
   'sms.lowBalance': { bn: 'SMS ক্রেডিট কম — শীঘ্রই টপ-আপের জন্য অ্যাডমিনের সাথে যোগাযোগ করুন।', en: 'Low SMS balance — contact admin to top up soon.' },
   'sms.balanceEmpty': { bn: 'SMS ক্রেডিট শেষ — পাঠাতে অ্যাডমিনের কাছে টপ-আপ করান।', en: 'Out of SMS credit — ask admin to top up to keep sending.' },
+  // #529: the send gate now fails for two different reasons, and the school can
+  // do something about only one of them. Telling an owner with 8,000 credits that
+  // her credit is exhausted sends her to the wrong place.
+  'sms.poolExhausted': {
+    bn: 'প্ল্যাটফর্মে এসএমএস স্টক শেষ — আপনার ব্যালেন্স ঠিক আছে, কিন্তু সুপার অ্যাডমিন গেটওয়ে থেকে এসএমএস না কেনা পর্যন্ত পাঠানো যাবে না।',
+    en: 'The platform is out of SMS stock — your balance is fine, but nothing can be sent until the Super Admin buys more from the gateway.',
+  },
 
   // Clusters (#167)
   'sa.clusters.title': { bn: 'ক্লাস্টার ব্যবস্থাপনা', en: 'Clusters' },
@@ -334,6 +763,12 @@ const dict = {
   'sa.clusters.none': { bn: 'কোনো ক্লাস্টার নেই', en: 'No clusters yet' },
   'sa.clusters.noSchools': { bn: 'কোনো স্কুল যুক্ত নেই', en: 'No schools assigned' },
   'sa.clusters.noUnassigned': { bn: 'যুক্ত করার মতো স্কুল নেই', en: 'No unassigned schools' },
+  'sa.clusters.distributor': { bn: 'ডিস্ট্রিবিউটর', en: 'Distributor' },
+  'sa.clusters.assignDistributor': { bn: 'বরাদ্দ করুন', en: 'Assign' },
+  'sa.clusters.unassignDistributor': { bn: 'বরাদ্দ বাতিল', en: 'Unassign' },
+  'sa.clusters.noDistributors': { bn: 'কোনো ডিস্ট্রিবিউটর নেই', en: 'No distributors yet' },
+  'sa.clusters.distributorAssigned': { bn: 'ডিস্ট্রিবিউটর বরাদ্দ হয়েছে', en: 'Distributor assigned' },
+  'sa.clusters.distributorUnassigned': { bn: 'বরাদ্দ বাতিল হয়েছে', en: 'Distributor unassigned' },
 
   // Central off-day calendar (#166)
   'sa.offday.title': { bn: 'কেন্দ্রীয় ছুটির তালিকা', en: 'Central off-day calendar' },
@@ -382,6 +817,10 @@ const dict = {
   // Blocked-account gate (owner/staff of a deactivated school) (#161)
   'blocked.title': { bn: 'অ্যাকাউন্ট স্থগিত', en: 'Account suspended' },
   'blocked.message': { bn: 'আপনার স্কুলের অ্যাক্সেস সাময়িকভাবে বন্ধ করা হয়েছে। অনুগ্রহ করে অ্যাডমিনের সাথে যোগাযোগ করুন।', en: 'Access to your school has been suspended. Please contact the administrator.' },
+  // A Student whose record is archived or unlinked (#441) — their school is fine,
+  // so this must not read as a suspension.
+  'blocked.studentInactiveTitle': { bn: 'অ্যাকাউন্ট নিষ্ক্রিয়', en: 'Account inactive' },
+  'blocked.studentInactiveMessage': { bn: 'তোমার শিক্ষার্থী অ্যাকাউন্ট এখন সক্রিয় নয়। স্কুল অফিসে যোগাযোগ করো।', en: 'Your student account is not active. Please contact the school office.' },
 
   // School-side subscription gate + reminder banner (#169)
   'sub.expired.title': { bn: 'আপনার সাবস্ক্রিপশনের মেয়াদ শেষ', en: 'Your subscription has expired' },
@@ -472,6 +911,21 @@ const dict = {
   'exams.none': { bn: 'এখনো কোনো পরীক্ষা নেই', en: 'No exams yet' },
   'exams.open': { bn: 'চলমান', en: 'Open' },
   'exams.closed': { bn: 'বন্ধ', en: 'Closed' },
+  // #551: an exam created by mistake used to be permanent for every school
+  // role — there was no delete anywhere in the product.
+  'exams.delete': { bn: 'মুছে ফেলুন', en: 'Delete' },
+  'exams.showMore': { bn: 'আরও দেখুন', en: 'Show more' },
+  'exams.deleteTitle': { bn: 'পরীক্ষা মুছে ফেলবেন?', en: 'Delete this exam?' },
+  'exams.deleteBody': {
+    bn: 'পরীক্ষার রুটিন, আসন বিন্যাস, নম্বর ও সহপাঠ্যক্রমিক নম্বর — সবকিছু একসাথে মুছে যাবে। বন্ধ করা পরীক্ষা মোছা যায় না।',
+    en: 'Its routine, seat plan, marks and co-curricular marks go with it. A closed exam cannot be deleted.',
+  },
+  'exams.deleteConfirm': { bn: 'হ্যাঁ, মুছে ফেলুন', en: 'Yes, delete' },
+  'exams.deleteClosed': {
+    bn: 'বন্ধ করা পরীক্ষা মোছা যায় না — ফলাফল ইতিমধ্যে প্রকাশিত।',
+    en: 'A closed exam cannot be deleted — its results are already out.',
+  },
+  'exams.deleteMissing': { bn: 'পরীক্ষাটি পাওয়া যায়নি।', en: 'Exam not found.' },
   'exams.close': { bn: 'পরীক্ষা বন্ধ করুন', en: 'Close exam' },
   'exams.closeConfirm': {
     bn: 'পরীক্ষা বন্ধ করলে আর কখনো খোলা যাবে না — সব সম্পাদনা স্থায়ীভাবে বন্ধ হবে। নিশ্চিত?',
@@ -485,16 +939,28 @@ const dict = {
   'exams.searchPlaceholder': { bn: 'পরীক্ষার নাম খুঁজুন', en: 'Search exam name' },
   'exams.allClasses': { bn: 'সকল শ্রেণি', en: 'All Classes' },
   'exams.allStatus': { bn: 'সকল অবস্থা', en: 'All Status' },
-  'exams.setup': { bn: 'সম্পাদনা', en: 'Edit' },
-  'exams.seatPlan': { bn: 'সিট প্ল্যান', en: 'Seat Plan' },
-  'exams.routine': { bn: 'পরীক্ষার রুটিন', en: 'Exam Routine' },
   'exams.markEntry': { bn: 'নম্বর এন্ট্রি', en: 'Marks Entry' },
   'exams.promotion': { bn: 'প্রমোশন', en: 'Promotion' },
-  'exams.viewResult': { bn: 'ফলাফল দেখুন', en: 'View Result' },
-  'exams.lockedEdit': {
-    bn: 'পরীক্ষা বন্ধ থাকায় সম্পাদনা করা যাবে না',
-    en: 'Locked — closed exams cannot be edited',
+  // Map #373 puts Seat Plan and Routine back on the exam row as direct actions
+  // (docs/010_exam_module.md §1). Separate keys from `seatPlan.generate` and
+  // `examRoutine.title` on purpose: those label a full-width page button and a
+  // page heading, whose Bangla is deliberately explicit
+  // ("স্বয়ংক্রিয় সিট প্ল্যান তৈরি করুন"), which is far too long for a row pill
+  // sitting next to five others.
+  'exams.generateSeatPlan': { bn: 'সিট প্ল্যান তৈরি', en: 'Generate Seat Plan' },
+  'exams.makeRoutine': { bn: 'রুটিন তৈরি', en: 'Make Exam Routine' },
+  // Map #366: Mark Entry and Documents need a class and a grading scheme set
+  // on the exam first — both plain columns, no new workflow state. Co-curricular
+  // needs only the class, so it says so rather than blaming Basic Info at large.
+  'exams.completeBasicInfoFirst': {
+    bn: 'আগে মৌলিক তথ্য পূরণ করুন',
+    en: 'Complete Basic Info first',
   },
+  'exams.selectClassFirst': {
+    bn: 'আগে একটি শ্রেণি নির্বাচন করুন',
+    en: 'Select a class first',
+  },
+  'exams.viewResult': { bn: 'ফলাফল দেখুন', en: 'View Result' },
   'exams.lockedSeatPlan': {
     bn: 'পরীক্ষা বন্ধ থাকায় সিট প্ল্যান পরিবর্তন করা যাবে না',
     en: 'Locked — seat plan is final',
@@ -540,7 +1006,6 @@ const dict = {
     en: 'Select a class before assigning subject teachers.',
   },
   'examSetup.nextRoutine': { bn: 'পরবর্তী: পরীক্ষার রুটিন', en: 'Next: Exam Routine' },
-  'examSetup.nextSeatPlan': { bn: 'পরবর্তী: সিট প্ল্যান', en: 'Next: Seat Plan' },
   // Exam Routine (issue #47).
   'examRoutine.title': { bn: 'পরীক্ষার রুটিন', en: 'Exam Routine' },
   'examRoutine.docWord': { bn: 'পরীক্ষার রুটিন', en: 'Exam Routine' },
@@ -573,6 +1038,7 @@ const dict = {
   // exam has, over routes that already exist.
   'examDocs.title': { bn: 'পরীক্ষার কাগজপত্র', en: 'Exam Documents' },
   'examDocs.open': { bn: 'খুলুন', en: 'Open' },
+  'examDocs.close': { bn: 'বন্ধ করুন', en: 'Close' },
   'examDocs.routine': { bn: 'পরীক্ষার রুটিন', en: 'Exam Routine' },
   'examDocs.routineHint': {
     bn: 'নোটিশ বোর্ডের জন্য তারিখ, সময় ও বিষয়ের সূচি।',
@@ -803,6 +1269,43 @@ const dict = {
   'classes.tabRooms': { bn: 'কক্ষসমূহ', en: 'Rooms' },
   'classes.tabSubjects': { bn: 'বিষয়সমূহ', en: 'Subjects' },
   'classes.addClass': { bn: '+ শ্রেণি যোগ করুন', en: '+ Add Class' },
+  // Class Teacher (map #434, #443).
+  'classes.classTeacher': { bn: 'শ্রেণি শিক্ষক', en: 'Class Teacher' },
+  'classes.classTeacherNone': { bn: '— নির্ধারিত নয় —', en: '— not set —' },
+  'classes.classTeacherMissing': { bn: 'শিক্ষক নির্ধারিত নয়', en: 'No class teacher' },
+  'myClasses.title': { bn: 'আমার শ্রেণি', en: 'My Classes' },
+  'myClasses.homework': { bn: 'বাড়ির কাজ', en: 'Homework' },
+  'review.marks': { bn: 'নম্বর', en: 'Marks' },
+  'review.comment': { bn: 'মন্তব্য', en: 'Comment' },
+  'review.save': { bn: 'সংরক্ষণ', en: 'Save' },
+  'student.submitWork': { bn: 'কাজ জমা দাও', en: 'Submit work' },
+  'student.mySubmissions': { bn: 'আমার জমা', en: 'My submissions' },
+  'student.noSubmission': { bn: 'এখনো কিছু জমা দাওনি।', en: 'You have not submitted anything yet.' },
+  'student.withdraw': { bn: 'সরিয়ে নাও', en: 'Withdraw' },
+  'student.reviewed': { bn: 'দেখা হয়েছে', en: 'Reviewed' },
+  'student.uploading': { bn: 'আপলোড হচ্ছে…', en: 'Uploading…' },
+  'student.rejectType': { bn: 'শুধু ছবি বা PDF জমা দেওয়া যাবে।', en: 'Only images or a PDF can be submitted.' },
+  'student.rejectSize': { bn: 'ফাইলটি অনুমোদিত আকারের চেয়ে বড়।', en: 'That file is larger than the limit.' },
+  'student.rejectCount': { bn: 'এই কাজের জন্য সর্বোচ্চ ফাইল জমা হয়ে গেছে।', en: 'This task already has its maximum number of files.' },
+  'tasks.submissions': { bn: 'জমা', en: 'Submissions' },
+  'tasks.claimNotProof': {
+    bn: 'শিক্ষার্থী নিজে চিহ্নিত করেছে — এটি জমা দেওয়ার প্রমাণ নয়।',
+    en: 'Ticked by the student themselves — this is a claim, not proof of submitted work.',
+  },
+  'myClasses.none': {
+    bn: 'তুমি এখনো কোনো শ্রেণির শ্রেণি শিক্ষক নও।',
+    en: 'You are not the class teacher of any class yet.',
+  },
+  'myClasses.notLinked': {
+    bn: 'তোমার লগইন কোনো কর্মচারী রেকর্ডের সাথে যুক্ত নয়। স্কুল অফিসে যোগাযোগ করো।',
+    en: 'Your login is not linked to an employee record. Please contact the school office.',
+  },
+  'employees.loginLink': { bn: 'যুক্ত লগইন', en: 'Linked login' },
+  'employees.loginLinkNone': { bn: '— যুক্ত নয় —', en: '— not linked —' },
+  'employees.loginLinkHint': {
+    bn: 'শ্রেণি শিক্ষক হিসেবে কাজ করতে হলে কর্মচারীর সাথে একটি স্টাফ লগইন যুক্ত থাকতে হবে।',
+    en: 'Link a Staff User login so this employee can act as a class teacher.',
+  },
   'classes.addRoom': { bn: '+ কক্ষ যোগ করুন', en: '+ Add Room' },
   'classes.addSubject': { bn: '+ বিষয় যোগ করুন', en: '+ Add Subject' },
   'classes.class': { bn: 'শ্রেণি', en: 'Class' },
@@ -832,9 +1335,22 @@ const dict = {
   'classes.papers': { bn: 'পত্র সংখ্যা', en: 'Papers' },
   'classes.code': { bn: 'কোড (ঐচ্ছিক)', en: 'Code (optional)' },
   'classes.selectClass': { bn: 'শ্রেণি নির্বাচন করুন', en: 'Select class' },
+  // Subject Name combobox (issue #504) — the ⌄ trigger and its empty state.
+  'classes.subjectSuggestions': { bn: 'প্রস্তাবিত বিষয়সমূহ', en: 'Suggested subjects' },
+  'classes.subjectNoSuggestions': {
+    bn: 'কোনো মিল নেই — একটি কাস্টম বিষয়ের নাম লিখুন',
+    en: 'No matches — type a custom subject name',
+  },
   'classes.deleteConfirm': {
     bn: 'মুছে ফেলা হবে — শ্রেণি মুছলে এর বিষয়গুলোও মুছে যাবে। নিশ্চিত?',
     en: 'This will be deleted — deleting a class also deletes its subjects. Are you sure?',
+  },
+  // #548: deleting a subject takes its marks, its student questions and its
+  // routine links with it. That has been true of marks since 0031; the dialog
+  // said none of it.
+  'classes.deleteConfirmSubject': {
+    bn: 'বিষয়টি মুছে ফেলা হবে — এর নম্বর, শিক্ষার্থীদের প্রশ্ন ও রুটিনের সংযোগও মুছে যাবে। নিশ্চিত?',
+    en: 'This subject will be deleted — its marks, student questions and routine links go with it. Are you sure?',
   },
   'classes.deleteConfirmSimple': {
     bn: 'মুছে ফেলা হবে। নিশ্চিত?',
@@ -890,9 +1406,22 @@ const dict = {
     en: 'Remove this syllabus file?',
   },
   'print.print': { bn: 'প্রিন্ট করুন', en: 'Print' },
+  // #532: a print route with no data used to render its branded header and an
+  // empty table, which reads as a finished document until it is handed out.
+  'print.nothingYet': { bn: 'প্রিন্ট করার মতো কিছু নেই', en: 'Nothing to print yet' },
+  'print.pickClassTitle': { bn: 'কোন শ্রেণির রুটিন?', en: 'Which class routine?' },
+  'print.pickClassHelp': {
+    bn: 'রুটিন প্রিন্ট করতে নিচ থেকে একটি শ্রেণি বেছে নিন।',
+    en: 'Choose a class below to print its routine.',
+  },
+  'print.examRoutineEmpty': {
+    bn: 'এই পরীক্ষার রুটিনে এখনো কোনো বিষয়, তারিখ বা কক্ষ যোগ করা হয়নি — আগে রুটিন তৈরি করুন, তারপর প্রিন্ট করুন।',
+    en: 'This exam routine has no subjects, dates or rooms yet — build the routine first, then print it.',
+  },
+  'print.buildExamRoutine': { bn: 'রুটিন তৈরি করুন', en: 'Build the routine' },
   'print.poweredBy': {
-    bn: 'Amar School Management দ্বারা পরিচালিত',
-    en: 'Powered by Amar School Management',
+    bn: 'EdumeBD দ্বারা পরিচালিত',
+    en: 'Powered by EdumeBD',
   },
   'print.qr': { bn: 'QR কোড', en: 'QR Code' },
   'verify.valid': { bn: 'বৈধ পরিচয়পত্র', en: 'Valid ID card' },
@@ -911,7 +1440,6 @@ const dict = {
     en: 'This QR code does not match any ID card.',
   },
   'verify.issuedBy': { bn: 'প্রদানকারী', en: 'Issued by' },
-  'markSheet.title': { bn: 'মার্কশিট প্রিভিউ', en: 'Mark Sheet Preview' },
   'markSheet.sampleNote': {
     bn: 'নমুনা তথ্য — প্রকৃত ফলাফল পরীক্ষার মডিউল চালু হলে দেখা যাবে।',
     en: 'Sample data — real results appear when the exams module lands.',
@@ -1071,6 +1599,22 @@ const dict = {
   'fees.calculating': { bn: 'হিসাব হচ্ছে…', en: 'Calculating…' },
   'fees.absentDays': { bn: 'অনুপস্থিত কর্মদিবস', en: 'Absent working days' },
   'fees.collectAndPrint': { bn: 'আদায় করুন ও রসিদ ছাপুন', en: 'Collect & Print Receipt' },
+  // #531: the operator reviews the receipt before the money is recorded. A Fee
+  // Collection Record posts to the general ledger on insert (0097), so a wrong
+  // figure is not a typo — it is a correction the parent already holds a printed
+  // receipt for.
+  'fees.reviewReceipt': { bn: 'রসিদ দেখে নিন', en: 'Review receipt' },
+  'fees.reviewHeading': { bn: 'নিশ্চিত করার আগে দেখে নিন', en: 'Check before you confirm' },
+  'fees.confirmCollect': { bn: 'নিশ্চিত করুন ও রসিদ ছাপুন', en: 'Confirm & Print Receipt' },
+  'fees.editAmounts': { bn: 'সংশোধন করুন', en: 'Change amounts' },
+  'fees.ledgerImpact': { bn: 'খতিয়ানে প্রভাব', en: 'Ledger impact' },
+  'fees.ledgerDebit': { bn: 'ডেবিট', en: 'Debit' },
+  'fees.ledgerCredit': { bn: 'ক্রেডিট', en: 'Credit' },
+  'fees.ledgerOpen': { bn: 'সাধারণ খতিয়ান দেখুন', en: 'Open general ledger' },
+  'fees.ledgerNone': {
+    bn: 'এই রেকর্ডের জন্য কোনো খতিয়ান এন্ট্রি নেই — প্রাপ্ত পরিমাণ ও জরিমানা দুটোই শূন্য।',
+    en: 'No ledger entry for this record — both the received amount and the fine are zero.',
+  },
   'fees.pickClassPrompt': {
     bn: 'শিক্ষার্থীদের তালিকা দেখতে একটি শ্রেণি নির্বাচন করুন।',
     en: 'Select a class to see its student roster.',
@@ -1215,13 +1759,31 @@ const dict = {
   'students.class': { bn: 'শ্রেণি', en: 'Class' },
   'students.section': { bn: 'শাখা', en: 'Section' },
   'students.none': { bn: 'এখনো কোনো শিক্ষার্থী নেই', en: 'No students yet' },
+  // 0160/#525: an Employee with no class attachment reads no students at all.
+  // Without these the screen says "No students yet" in a school of hundreds.
+  // #538, review follow-up: a filter that matches nothing is not an empty
+  // school. Telling an Owner "no students yet" because their search missed is a
+  // false statement about their own school.
+  'students.noMatch': { bn: 'এই খোঁজে কোনো শিক্ষার্থী মেলেনি', en: 'No student matches this search' },
+  'students.noMatchHelp': {
+    bn: 'স্কুলে শিক্ষার্থী আছে — এই শ্রেণি বা খোঁজার শব্দে কেউ পড়েনি।',
+    en: 'The school has students — none of them fall under this class or search term.',
+  },
+  'students.clearFilters': { bn: 'ফিল্টার মুছুন', en: 'Clear filters' },
+  'students.noClassAssigned': {
+    bn: 'আপনাকে এখনো কোনো শ্রেণিতে যুক্ত করা হয়নি',
+    en: 'You have not been assigned to a class yet',
+  },
+  'students.noClassAssignedHelp': {
+    bn: 'শ্রেণি শিক্ষক বা বিষয় শিক্ষক হিসেবে যুক্ত হলে আপনি শুধু সেই শ্রেণির শিক্ষার্থীদের দেখতে পাবেন। প্রতিষ্ঠান প্রধানের সাথে যোগাযোগ করুন।',
+    en: 'Once you are assigned as a class teacher or given a routine slot, you will see that class\'s students here. Contact your school owner to be assigned.',
+  },
   'students.listTitle': { bn: 'শিক্ষার্থী তালিকা', en: 'Students List' },
   'students.search': {
     bn: 'নাম, রোল বা অভিভাবক দিয়ে খুঁজুন',
     en: 'Search by name, roll or guardian',
   },
   'students.allClasses': { bn: 'সকল শ্রেণি', en: 'All Classes' },
-  'students.allSections': { bn: 'সকল শাখা', en: 'All Sections' },
   'students.oldStudents': { bn: 'পুরাতন শিক্ষার্থী', en: 'Old Students' },
   'students.newAdmission': { bn: 'নতুন ভর্তি', en: 'New Admission' },
   'students.roll': { bn: 'রোল', en: 'Roll' },
@@ -1242,8 +1804,8 @@ const dict = {
   'students.religion': { bn: 'ধর্ম', en: 'Religion' },
   'students.studentMobile': { bn: 'শিক্ষার্থীর মোবাইল', en: 'Student Mobile' },
   'students.rollAutoNote': {
-    bn: 'রোল নম্বর স্বয়ংক্রিয়ভাবে নির্ধারিত হবে (শ্রেণি অনুযায়ী পরবর্তী নম্বর)।',
-    en: 'Roll number is assigned automatically (next number within the class).',
+    bn: 'ফাঁকা রাখলে শ্রেণি ও শাখা অনুযায়ী পরবর্তী রোল স্বয়ংক্রিয়ভাবে নির্ধারিত হবে — প্রয়োজনে নিজে লিখুন।',
+    en: 'Leave blank to auto-assign the next roll for this class & section — or type your own.',
   },
   'students.address': { bn: 'ঠিকানা', en: 'Address' },
   'students.village': { bn: 'গ্রাম', en: 'Village' },
@@ -1252,6 +1814,41 @@ const dict = {
   'students.district': { bn: 'জেলা', en: 'District' },
   'students.guardianInfo': { bn: 'অভিভাবক তথ্য', en: 'Guardian Info' },
   'students.guardianName': { bn: 'অভিভাবকের নাম', en: 'Guardian Name' },
+  // #533: what a teacher will be able to reach, shown before the Owner confirms.
+  'teacher.createTitle': { bn: 'নতুন শিক্ষক যুক্ত করুন', en: 'Add a teacher' },
+  'teacher.stepIdentity': { bn: '১. পরিচয়', en: '1. Identity' },
+  'teacher.stepLogin': { bn: '২. লগইন', en: '2. Login' },
+  'teacher.stepLoginHelp': {
+    bn: 'লগইন ছাড়া শিক্ষক পোর্টালে ঢুকতে পারবেন না এবং শিক্ষার্থীদের প্রশ্নের উত্তর দিতে পারবেন না।',
+    en: 'Without a login the teacher cannot open the portal or answer a student’s question.',
+  },
+  'teacher.stepClass': { bn: '৩. শ্রেণি', en: '3. Class' },
+  'teacher.stepClassHelp': {
+    bn: 'শ্রেণি শিক্ষক হিসেবে যুক্ত করলে আলাদা কোনো অনুমতি দিতে হয় না — দায়িত্বই অ্যাক্সেস নির্ধারণ করে।',
+    en: 'Assigning a class teacher needs no separate permission — the assignment itself decides the access.',
+  },
+  'teacher.noClassYet': { bn: 'এখন কোনো শ্রেণি নয়', en: 'No class for now' },
+  'teacher.classAlreadyHasTeacher': { bn: 'ইতিমধ্যে শিক্ষক আছেন', en: 'already has a teacher' },
+  'teacher.previewTitle': { bn: 'এই শিক্ষক যা দেখতে পাবেন', en: 'What this teacher will see' },
+  'teacher.createSubmit': { bn: 'শিক্ষক তৈরি করুন', en: 'Create teacher' },
+  'teacher.reachClassTeacher': { bn: 'শ্রেণি শিক্ষক', en: 'Class teacher of' },
+  'teacher.reachClassTeacherDetail': {
+    bn: 'এই শ্রেণির শিক্ষার্থী, উপস্থিতি, প্রশ্ন, ছুটি ও নোটিশ দেখতে ও পরিচালনা করতে পারবেন।',
+    en: 'Can see and manage that class’s students, attendance, questions, leave and notices.',
+  },
+  'teacher.reachSubjectTeacher': { bn: 'বিষয় শিক্ষক', en: 'Teaches' },
+  'teacher.reachSubjectTeacherDetail': {
+    bn: 'এই শ্রেণিগুলোর শিক্ষার্থী ও পাঠ্য উপকরণ দেখতে পারবেন, তবে তাদের বিষয়ে কোনো সিদ্ধান্ত নিতে পারবেন না।',
+    en: 'Can see those classes’ students and publish material, but decides nothing about them.',
+  },
+  'teacher.reachNone': {
+    bn: 'এখনো কোনো শ্রেণিতে যুক্ত নন — লগইন করতে পারবেন, কিন্তু কোনো শিক্ষার্থী দেখতে পাবেন না।',
+    en: 'Not assigned to any class yet — they can sign in, but will see no students at all.',
+  },
+  'teacher.reachNever': {
+    bn: 'অন্য কোনো শ্রেণির শিক্ষার্থী, ফি, এসএমএস বা প্রতিষ্ঠান সেটিংস দেখতে পাবেন না।',
+    en: 'Will never see another class’s students, fees, SMS or institute settings.',
+  },
   'students.relation': { bn: 'সম্পর্ক', en: 'Relation' },
   'students.father': { bn: 'পিতা', en: 'Father' },
   'students.mother': { bn: 'মাতা', en: 'Mother' },
@@ -1307,6 +1904,41 @@ const dict = {
   'students.lastClassSection': { bn: 'শেষ শ্রেণি/শাখা', en: 'Last Class/Section' },
   'students.archivedOn': { bn: 'আর্কাইভের তারিখ', en: 'Archived On' },
   'students.transfer': { bn: 'শ্রেণি/শাখা স্থানান্তর', en: 'Transfer Class/Section' },
+  // Student login management, owner side (map #434, #442).
+  'students.studentNo': { bn: 'শিক্ষার্থী নম্বর', en: 'Student Number' },
+  'students.login': { bn: 'শিক্ষার্থী লগইন', en: 'Student login' },
+  'students.loginNone': { bn: 'এই শিক্ষার্থীর এখনো লগইন নেই।', en: 'This student has no login yet.' },
+  'students.loginCreate': { bn: 'লগইন তৈরি করুন', en: 'Create login' },
+  'students.loginReset': { bn: 'পাসওয়ার্ড রিসেট', en: 'Reset password' },
+  'students.loginResetConfirm': {
+    bn: 'নতুন পাসওয়ার্ড তৈরি হবে এবং শিক্ষার্থীর চালু সব সেশন বন্ধ হয়ে যাবে।',
+    en: 'A new password is issued and every session this student has open is ended.',
+  },
+  'students.loginUser': { bn: 'ইউজারনেম', en: 'Username' },
+  'students.loginPassword': { bn: 'পাসওয়ার্ড', en: 'Password' },
+  'students.loginLastUsed': { bn: 'শেষ ব্যবহার', en: 'Last used' },
+  'students.loginNeverUsed': { bn: 'এখনো ব্যবহার হয়নি', en: 'Never used' },
+  'students.loginShownOnce': {
+    bn: 'পাসওয়ার্ড শুধু এখনই দেখা যাবে — প্রিন্ট বা কপি করে নিন।',
+    en: 'This password is shown once — print or copy it now.',
+  },
+  'students.loginSms': { bn: 'অভিভাবককে SMS পাঠান', en: 'SMS to guardian' },
+  'students.loginChoosePassword': { bn: 'পাসওয়ার্ড নিজে দিন (ঐচ্ছিক)', en: 'Set a password (optional)' },
+  'students.loginGenerate': { bn: 'ফাঁকা রাখলে স্বয়ংক্রিয় তৈরি হবে', en: 'Leave blank to generate one' },
+  'students.loginPrint': { bn: 'স্লিপ প্রিন্ট করুন', en: 'Print slips' },
+  'students.loginBulk': { bn: 'ক্লাসভিত্তিক লগইন', en: 'Class logins' },
+  'students.loginBulkTitle': { bn: 'পুরো ক্লাসের লগইন', en: 'Logins for a whole class' },
+  'students.loginBulkIntro': {
+    bn: 'ক্লাস বেছে নিন। যাদের লগইন নেই শুধু তাদেরই তৈরি হবে — আবার চালালে বাকিরা যুক্ত হবে।',
+    en: 'Pick a class. Only students without a login are created, so re-running just fills the gaps.',
+  },
+  'students.loginBulkPreview': { bn: 'যাদের লগইন তৈরি হবে', en: 'Will get a login' },
+  'students.loginBulkNone': {
+    bn: 'এই ক্লাসের সবার লগইন ইতিমধ্যে আছে।',
+    en: 'Everyone in this class already has a login.',
+  },
+  'students.loginBulkIssued': { bn: 'তৈরি হয়েছে', en: 'Issued' },
+  'students.loginBulkFailed': { bn: 'ব্যর্থ', en: 'Failed' },
   'students.transferTitle': { bn: 'শ্রেণি/শাখা স্থানান্তর করুন', en: 'Transfer Class / Section' },
   'students.backToProfile': { bn: 'প্রোফাইলে ফিরুন', en: 'Back to Profile' },
   'students.transferHistory': { bn: 'স্থানান্তর ইতিহাস', en: 'Transfer History' },
@@ -1451,8 +2083,8 @@ const dict = {
   'attendance.markTitle': { bn: 'শিক্ষার্থী উপস্থিতি — হাজিরা নিন', en: 'Student Attendance — Mark' },
   'attendance.class': { bn: 'শ্রেণি', en: 'Class' },
   'attendance.section': { bn: 'শাখা', en: 'Section' },
+  'attendance.classSection': { bn: 'শ্রেণি/শাখা', en: 'Class/Section' },
   'attendance.allClasses': { bn: 'সকল শ্রেণি', en: 'All Classes' },
-  'attendance.allSections': { bn: 'সকল শাখা', en: 'All Sections' },
   'attendance.studentsTotal': { bn: 'জন শিক্ষার্থী মোট', en: 'students total' },
   'attendance.markAllPresent': { bn: 'সকলকে উপস্থিত করুন', en: 'Mark All Present' },
   'attendance.markAllAbsent': { bn: 'সকলকে অনুপস্থিত করুন', en: 'Mark All Absent' },
@@ -1465,6 +2097,20 @@ const dict = {
   },
   'attendance.saveAttendance': { bn: 'হাজিরা সংরক্ষণ করুন', en: 'Save Attendance' },
   'attendance.saved': { bn: 'হাজিরা সংরক্ষিত হয়েছে', en: 'Attendance saved' },
+  // #540: a register that has never been marked must not look like a register
+  // where everyone was present. It is the same screen either way until it says so.
+  'attendance.notTaken': { bn: 'আজকের হাজিরা এখনো নেওয়া হয়নি', en: 'Attendance not taken yet' },
+  'attendance.notTakenHelp': {
+    bn: 'নিচের তালিকায় সবাইকে উপস্থিত ধরা হয়েছে — সংরক্ষণ করার আগে এটি কারও হাজিরা নয়।',
+    en: 'The list below starts with everyone present. Until you save, this is nobody’s attendance.',
+  },
+  'attendance.savedAt': { bn: 'সংরক্ষিত', en: 'Saved' },
+  'attendance.savedBy': { bn: 'সংরক্ষণ করেছেন', en: 'by' },
+  'attendance.savedByYou': { bn: 'আপনি', en: 'you' },
+  'attendance.unsaved': { bn: 'সংরক্ষণ করা হয়নি', en: 'Unsaved changes' },
+  'attendance.presentShort': { bn: 'উপস্থিত', en: 'Present' },
+  'attendance.absentShort': { bn: 'অনুপস্থিত', en: 'Absent' },
+  'attendance.causePlaceholder': { bn: 'অনুপস্থিতির কারণ', en: 'Reason for absence' },
   'attendance.pickClass': { bn: 'একটি শ্রেণি নির্বাচন করুন', en: 'Pick a class to load the roster' },
 
   'attendance.leaveTitle': { bn: 'ছুটি ব্যবস্থাপনা', en: 'Leave Management' },
@@ -1519,6 +2165,7 @@ const dict = {
   'attendance.graceSourceOverride': { bn: 'ব্যক্তিগত ওভাররাইড', en: 'individual override' },
   'status.absent': { bn: 'অনুপস্থিত', en: 'Absent' },
   'status.on_leave': { bn: 'ছুটিতে', en: 'On Leave' },
+  'status.holiday': { bn: 'ছুটির দিন', en: 'Holiday / Off Day' },
   'attendance.employeeGraceNote': {
     bn: 'প্রযোজ্য গ্রেস সবসময় গ্লোবাল, বিভাগ, অফিস সময় ও ব্যক্তিগত ওভাররাইডের মধ্যে সর্বোচ্চটি — কখনোই কড়া/ছোট মান নয়।',
     en: 'The applied grace is always the MAX of global, category, office time and individual override — never the stricter/smaller value.',
@@ -1547,6 +2194,15 @@ const dict = {
     en: 'P = Present, A = Absent.',
   },
   'attendance.bookNoRoster': { bn: 'এই শ্রেণিতে কোনো শিক্ষার্থী নেই', en: 'No students in this class' },
+
+  // Student Log (map #380, docs/011_student_module.md): per-student attendance
+  // history, reusing the class/section roster + status logic above.
+  'attendance.tabStudentLog': { bn: 'শিক্ষার্থী লগ', en: 'Student Log' },
+  'attendance.studentLogTitle': { bn: 'শিক্ষার্থী উপস্থিতি লগ', en: 'Student Attendance Log' },
+  'attendance.viewLog': { bn: 'লগ দেখুন', en: 'View Log' },
+  'attendance.filterToday': { bn: 'আজ', en: 'Today' },
+  'attendance.filterMonthly': { bn: 'মাসিক', en: 'Monthly' },
+  'attendance.filterCustom': { bn: 'নির্দিষ্ট সময়সীমা', en: 'Custom Range' },
 
   // Institute Setup & Misc (issue #39, PRD §5.11)
   'institute.title': { bn: 'প্রতিষ্ঠান সেটআপ', en: 'Institute Setup' },
@@ -1659,6 +2315,17 @@ const dict = {
     en: 'Only JPEG, PNG or WebP images are allowed',
   },
   'institute.errLogoTooBig': { bn: 'লোগো ২ MB এর বেশি হতে পারবে না', en: 'Logo must be under 2 MB' },
+  // Roll numbering (issue #503) — the increment assign_student_roll steps by.
+  'institute.rollNumbering': { bn: 'রোল নম্বরিং', en: 'Roll Numbering' },
+  'institute.rollIncrement': { bn: 'রোল বৃদ্ধির হার', en: 'Roll number increment' },
+  'institute.rollIncrementHint': {
+    bn: 'প্রতিটি শ্রেণি ও শাখায় স্বয়ংক্রিয় পরবর্তী রোল কত বাড়বে। যেমন ২ দিলে রোল হবে ১, ৩, ৫...',
+    en: 'How much each auto-assigned roll steps by, within a class & section. E.g. 2 gives rolls 1, 3, 5…',
+  },
+  'institute.errRollIncrementInvalid': {
+    bn: 'রোল বৃদ্ধির হার অবশ্যই ১ বা তার বেশি পূর্ণসংখ্যা হতে হবে',
+    en: 'Roll increment must be a whole number of 1 or more',
+  },
   'institute.checklistToday': { bn: 'আজকের চেকলিস্ট', en: "Today's Checklist" },
   'institute.cancel': { bn: 'বাতিল', en: 'Cancel' },
   'institute.checklistManageItems': { bn: 'চেকলিস্ট আইটেম পরিচালনা', en: 'Manage checklist items' },
@@ -1868,4 +2535,16 @@ export type MessageKey = keyof typeof dict
 
 export function t(key: MessageKey, lang: Lang): string {
   return dict[key][lang]
+}
+
+/** The BCP-47 locale for a language. One place, because the ternary was spelled
+ *  out at every call site and one of them drifted: the printed fee statement
+ *  kept Latin amounts beside Bangla months. */
+export function localeOf(lang: Lang): string {
+  return lang === 'bn' ? 'bn-BD' : 'en-GB'
+}
+
+/** Numbers in the reader's own digits — ৳৬০০, not ৳600. */
+export function numberFmt(lang: Lang, options?: Intl.NumberFormatOptions): Intl.NumberFormat {
+  return new Intl.NumberFormat(localeOf(lang), options)
 }

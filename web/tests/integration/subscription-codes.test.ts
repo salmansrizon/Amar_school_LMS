@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { schoolFixtures } from '../helpers/school-fixture'
 import { signedIn } from '../helpers/auth'
 
 // Seam: subscription_codes schema + generate/redeem/decrease RPCs (issues #5, #6).
@@ -33,18 +34,15 @@ describe('Subscription Codes (issue #5) + manual expiry correction (issue #6)', 
     return data as string
   }
 
+  const schools = schoolFixtures(() => admin)
+
   beforeAll(async () => {
     admin = await signedIn('super@test.local')
     // Redemption is permanent (trigger-enforced), so each run gets a fresh
-    // throwaway school. Used codes pin it in the DB — a tiny, acceptable
-    // residue in the dev project.
-    const { data, error } = await admin
-      .from('schools')
-      .insert({ name: `ZZ Codes Test ${crypto.randomUUID().slice(0, 8)}` })
-      .select('id')
-      .single()
-    if (error) throw new Error(error.message)
-    schoolBId = data.id
+    // throwaway school — and drops it again. The "tiny, acceptable residue" this
+    // comment used to claim was 48 schools carrying 292 invoices, because the
+    // billing sweep kept working on them long after the run ended (#541).
+    schoolBId = await schools.create({ name: `ZZ Codes Test ${crypto.randomUUID().slice(0, 8)}` })
   })
 
   afterAll(async () => {
@@ -53,6 +51,7 @@ describe('Subscription Codes (issue #5) + manual expiry correction (issue #6)', 
     if (generatedCodes.length) {
       await admin.from('subscription_codes').delete().in('code', generatedCodes).is('redeemed_at', null)
     }
+    await schools.cleanup()
   })
 
   it('generates a batch of unique codes with validity and price', async () => {

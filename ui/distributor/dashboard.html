@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>ড্যাশবোর্ড · Dashboard — Distributor Portal</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../shared/design-system.css">
+<script src="../shared/app.js" defer></script>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="mark">D</span><span>Distributor Portal</span></div>
+    <nav>
+      <a class="nav-item active" href="dashboard.html"><span data-i18n="bn">ড্যাশবোর্ড</span><span data-i18n="en">Dashboard</span></a>
+      <a class="nav-item" href="dashboard.html#schools"><span data-i18n="bn">আমার স্কুল</span><span data-i18n="en">My Schools</span></a>
+      <a class="nav-item" href="crm-pipeline.html"><span data-i18n="bn">বিক্রয় পাইপলাইন</span><span data-i18n="en">Sales Pipeline</span></a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="title"><span data-i18n="bn">ড্যাশবোর্ড</span><span data-i18n="en">Dashboard</span></div>
+      <div class="actions">
+        <a class="btn btn-secondary btn-sm" href="../index.html" title="Home">🏠</a>
+        <a class="btn btn-secondary btn-sm" href="../sitemap.html" title="Sitemap">📋</a>
+        <div class="lang-switch">
+          <button data-lang-btn="bn" onclick="setLang('bn')">বাং</button>
+          <button data-lang-btn="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="theme-switch">
+          <button data-theme-btn="light" onclick="setTheme('light')">☀</button>
+          <button data-theme-btn="dark" onclick="setTheme('dark')">☾</button>
+          <button data-theme-btn="system" onclick="setTheme('system')">Auto</button>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="label"><span data-i18n="bn">সক্রিয় স্কুল</span><span data-i18n="en">Active Schools</span></div>
+          <div class="value">42</div>
+          <div class="delta text-secondary"><span data-i18n="bn">৪টি টেরিটরি জুড়ে</span><span data-i18n="en">across 4 territories</span></div>
+        </div>
+        <div class="kpi-card">
+          <div class="label"><span data-i18n="bn">সক্রিয় এজেন্ট</span><span data-i18n="en">Active Agents</span></div>
+          <div class="value">7</div>
+          <div class="delta text-secondary"><span data-i18n="bn">১জন এজেন্ট নিয়োগ প্রক্রিয়াধীন</span><span data-i18n="en">1 agent onboarding</span></div>
+        </div>
+        <div class="kpi-card">
+          <div class="label"><span data-i18n="bn">এমআরআর (মাসিক পুনরাবৃত্ত আয়)</span><span data-i18n="en">MRR (Monthly Recurring Revenue)</span></div>
+          <div class="value">৳3,84,500</div>
+          <div class="delta text-secondary"><span data-i18n="bn">গত মাসের তুলনায় ৬% বৃদ্ধি</span><span data-i18n="en">up 6% vs last month</span></div>
+        </div>
+        <div class="kpi-card">
+          <div class="label"><span data-i18n="bn">অপরিশোধিত কমিশন</span><span data-i18n="en">Pending Commission</span></div>
+          <div class="value">৳62,300</div>
+          <div class="delta text-secondary"><span data-i18n="bn">৩টি নিষ্পত্তি অপেক্ষমাণ</span><span data-i18n="en">3 settlements pending</span></div>
+        </div>
+        <div class="kpi-card">
+          <div class="label"><span data-i18n="bn">নবায়ন (শীঘ্রই দেয়)</span><span data-i18n="en">Renewals (due soon)</span></div>
+          <div class="value">9</div>
+          <div class="delta text-secondary"><span data-i18n="bn">আগামী ৩০ দিনে</span><span data-i18n="en">within next 30 days</span></div>
+        </div>
+      </div>
+
+      <div class="grid" style="display:grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); margin-bottom: var(--space-4);">
+        <div class="card">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="mt-0"><span data-i18n="bn">বিক্রয় পাইপলাইন সারাংশ</span><span data-i18n="en">Sales Pipeline Summary</span></h3>
+            <a class="btn btn-secondary btn-sm" href="crm-pipeline.html"><span data-i18n="bn">সম্পূর্ণ পাইপলাইন দেখুন</span><span data-i18n="en">View full pipeline</span></a>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th><span data-i18n="bn">পর্যায়</span><span data-i18n="en">Stage</span></th>
+                <th><span data-i18n="bn">সংখ্যা</span><span data-i18n="en">Count</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span data-i18n="bn">লিড</span><span data-i18n="en">Leads</span></td>
+                <td>16</td>
+              </tr>
+              <tr>
+                <td><span data-i18n="bn">ডেমো</span><span data-i18n="en">Demos</span></td>
+                <td>8</td>
+              </tr>
+              <tr>
+                <td><span data-i18n="bn">প্রস্তাবনা</span><span data-i18n="en">Proposals</span></td>
+                <td>5</td>
+              </tr>
+              <tr>
+                <td><span data-i18n="bn">দরকষাকষি</span><span data-i18n="en">Negotiations</span></td>
+                <td>3</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="card">
+          <h3 class="mt-0"><span data-i18n="bn">অপারেশন সারাংশ</span><span data-i18n="en">Operations Summary</span></h3>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th><span data-i18n="bn">বিভাগ</span><span data-i18n="en">Category</span></th>
+                <th><span data-i18n="bn">সংখ্যা</span><span data-i18n="en">Count</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span data-i18n="bn">অনবোর্ডিং চলমান</span><span data-i18n="en">Onboarding in progress</span></td>
+                <td>4</td>
+              </tr>
+              <tr>
+                <td><span data-i18n="bn">প্রশিক্ষণ নির্ধারিত</span><span data-i18n="en">Training scheduled</span></td>
+                <td>3</td>
+              </tr>
+              <tr>
+                <td><span data-i18n="bn">সাপোর্ট টিকেট (খোলা)</span><span data-i18n="en">Support tickets (open)</span></td>
+                <td>6</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card mb-4">
+        <h3 class="mt-0"><span data-i18n="bn">আমার টেরিটরি অ্যাসাইনমেন্ট</span><span data-i18n="en">My Territory Assignments</span></h3>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th><span data-i18n="bn">লোকেশন / স্কুল</span><span data-i18n="en">Location / School</span></th>
+              <th><span data-i18n="bn">ধরন</span><span data-i18n="en">Type</span></th>
+              <th><span data-i18n="bn">টিয়ার</span><span data-i18n="en">Tier</span></th>
+              <th><span data-i18n="bn">স্কুল সংখ্যা</span><span data-i18n="en">Schools Covered</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span data-i18n="bn">সিলেট বিভাগ</span><span data-i18n="en">Sylhet Division</span></td>
+              <td><span class="badge badge-neutral"><span data-i18n="bn">লোকেশন-ভিত্তিক</span><span data-i18n="en">Location-based</span></span></td>
+              <td><span data-i18n="bn">বিভাগীয় ডিস্ট্রিবিউটর</span><span data-i18n="en">Divisional Distributor</span></td>
+              <td>24</td>
+            </tr>
+            <tr>
+              <td><span data-i18n="bn">মৌলভীবাজার জেলা</span><span data-i18n="en">Moulvibazar District</span></td>
+              <td><span class="badge badge-neutral"><span data-i18n="bn">লোকেশন-ভিত্তিক</span><span data-i18n="en">Location-based</span></span></td>
+              <td><span data-i18n="bn">জেলা ডিস্ট্রিবিউটর</span><span data-i18n="en">Zilla Distributor</span></td>
+              <td>11</td>
+            </tr>
+            <tr>
+              <td><span data-i18n="bn">হবিগঞ্জ সদর উপজেলা</span><span data-i18n="en">Habiganj Sadar Upazila</span></td>
+              <td><span class="badge badge-neutral"><span data-i18n="bn">লোকেশন-ভিত্তিক</span><span data-i18n="en">Location-based</span></span></td>
+              <td><span data-i18n="bn">উপজেলা ডিস্ট্রিবিউটর</span><span data-i18n="en">Upazila Distributor</span></td>
+              <td>6</td>
+            </tr>
+            <tr>
+              <td><span data-i18n="bn">সেন্ট যোসেফ হাই স্কুল, মৌলভীবাজার</span><span data-i18n="en">St. Joseph High School, Moulvibazar</span></td>
+              <td><span class="badge badge-extended"><span data-i18n="bn">এক্সটেন্ডেড অ্যাক্সেস</span><span data-i18n="en">Extended Access</span></span></td>
+              <td><span data-i18n="bn">প্রযোজ্য নয়</span><span data-i18n="en">n/a</span></td>
+              <td>1</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div id="schools" class="card">
+        <div class="toolbar">
+          <h3 class="mt-0"><span data-i18n="bn">আমার স্কুল (সকল টেরিটরি জুড়ে)</span><span data-i18n="en">My Schools (aggregated across all territories)</span></h3>
+          <div class="flex gap-2">
+            <input class="search-input" type="text" placeholder="স্কুল খুঁজুন · Search schools">
+            <a class="btn btn-primary" href="crm-pipeline.html"><span data-i18n="bn">নতুন লিড যোগ করুন</span><span data-i18n="en">Add New Lead</span></a>
+          </div>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th><span data-i18n="bn">স্কুলের নাম</span><span data-i18n="en">School Name</span></th>
+              <th>EIIN</th>
+              <th><span data-i18n="bn">লোকেশন</span><span data-i18n="en">Location</span></th>
+              <th><span data-i18n="bn">অ্যাক্সেসের ধরন</span><span data-i18n="en">Access Type</span></th>
+              <th><span data-i18n="bn">সাবস্ক্রিপশন</span><span data-i18n="en">Subscription</span></th>
+              <th><span data-i18n="bn">দায়িত্বপ্রাপ্ত এজেন্ট</span><span data-i18n="en">Assigned Agent</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span data-i18n="bn">সিলেট গভর্নমেন্ট পাইলট স্কুল</span><span data-i18n="en">Sylhet Government Pilot School</span></td>
+              <td>221144</td>
+              <td><span data-i18n="bn">সিলেট বিভাগ</span><span data-i18n="en">Sylhet Division</span></td>
+              <td><span class="badge badge-neutral"><span data-i18n="bn">টেরিটরি</span><span data-i18n="en">Territory</span></span></td>
+              <td><span class="badge badge-success"><span data-i18n="bn">সক্রিয়</span><span data-i18n="en">Active</span></span></td>
+              <td><span data-i18n="bn">রফিক আহমেদ</span><span data-i18n="en">Rafiq Ahmed</span></td>
+            </tr>
+            <tr>
+              <td><span data-i18n="bn">মৌলভীবাজার আদর্শ উচ্চ বিদ্যালয়</span><span data-i18n="en">Moulvibazar Adarsha High School</span></td>
+              <td>223390</td>
+              <td><span data-i18n="bn">মৌলভীবাজার জেলা</span><span data-i18n="en">Moulvibazar District</span></td>
+              <td><span class="badge badge-neutral"><span data-i18n="bn">টেরিটরি</span><span data-i18n="en">Territory</span></span></td>
+              <td><span class="badge badge-info"><span data-i18n="bn">ট্রায়াল</span><span data-i18n="en">Trial</span></span></td>
+              <td><span data-i18n="bn">সুমাইয়া খাতুন</span><span data-i18n="en">Sumaiya Khatun</span></td>
+            </tr>
+            <tr>
+              <td><span data-i18n="bn">হবিগঞ্জ গার্লস হাই স্কুল</span><span data-i18n="en">Habiganj Girls' High School</span></td>
+              <td>224511</td>
+              <td><span data-i18n="bn">হবিগঞ্জ সদর উপজেলা</span><span data-i18n="en">Habiganj Sadar Upazila</span></td>
+              <td><span class="badge badge-neutral"><span data-i18n="bn">টেরিটরি</span><span data-i18n="en">Territory</span></span></td>
+              <td><span class="badge badge-danger"><span data-i18n="bn">মেয়াদোত্তীর্ণ</span><span data-i18n="en">Expired</span></span></td>
+              <td><span data-i18n="bn">নাসির উদ্দিন</span><span data-i18n="en">Nasir Uddin</span></td>
+            </tr>
+            <tr>
+              <td><span data-i18n="bn">শ্রীমঙ্গল উচ্চ বিদ্যালয়</span><span data-i18n="en">Sreemangal High School</span></td>
+              <td>225007</td>
+              <td><span data-i18n="bn">মৌলভীবাজার জেলা</span><span data-i18n="en">Moulvibazar District</span></td>
+              <td><span class="badge badge-neutral"><span data-i18n="bn">টেরিটরি</span><span data-i18n="en">Territory</span></span></td>
+              <td><span class="badge badge-success"><span data-i18n="bn">সক্রিয়</span><span data-i18n="en">Active</span></span></td>
+              <td><span data-i18n="bn">রফিক আহমেদ</span><span data-i18n="en">Rafiq Ahmed</span></td>
+            </tr>
+            <tr>
+              <td><span data-i18n="bn">সেন্ট যোসেফ হাই স্কুল, মৌলভীবাজার</span><span data-i18n="en">St. Joseph High School, Moulvibazar</span></td>
+              <td>229981</td>
+              <td><span data-i18n="bn">মৌলভীবাজার সদর (টেরিটরির বাইরে)</span><span data-i18n="en">Moulvibazar Sadar (out of territory)</span></td>
+              <td><span class="badge badge-extended"><span data-i18n="bn">এক্সটেন্ডেড অ্যাক্সেস</span><span data-i18n="en">Extended Access</span></span></td>
+              <td><span class="badge badge-success"><span data-i18n="bn">সক্রিয়</span><span data-i18n="en">Active</span></span></td>
+              <td><span data-i18n="bn">সুমাইয়া খাতুন</span><span data-i18n="en">Sumaiya Khatun</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

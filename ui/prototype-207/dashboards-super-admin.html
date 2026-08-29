@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>Prototype #207 — Super Admin Dashboard (Pattern B)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          ink: '#131313', 'ink-card': '#1c1c1c',
+          paper: '#ffffff', 'paper-muted': '#f4f4f6',
+          line: '#ececec', 'line-strong': '#d8d8d8', muted: '#767676',
+          brand: { 50: '#f1eefe', 100: '#e3dcfd', 300: '#b3a4f7', 500: '#6d4dfb', 600: '#5a37e8', 700: '#4826c4' },
+          mint: { DEFAULT: '#00d26a', deep: '#0a7a48', soft: '#e6f9ef' },
+          sun: { DEFAULT: '#ffc94a', deep: '#c98a00', soft: '#fff6e0' },
+          alert: { DEFAULT: '#ef4444', deep: '#dc2626', soft: '#fdeaea' },
+          sky: { DEFAULT: '#00b2ff', deep: '#0077b8', soft: '#e5f6ff' },
+        },
+        borderRadius: { sm: '8px', md: '14px', lg: '20px' },
+        boxShadow: { card: '0 12px 32px rgb(0 0 0 / 0.08)', modal: '0 24px 64px rgb(0 0 0 / 0.16)' },
+      }
+    }
+  }
+</script>
+<style> body { font-family: 'Plus Jakarta Sans', 'Hind Siliguri', system-ui, sans-serif; } </style>
+</head>
+<body class="bg-paper-muted text-ink">
+
+<div class="sticky top-0 z-50 bg-ink text-white text-xs font-semibold px-4 py-2">
+  🧪 THROWAWAY PROTOTYPE — map #207 · ticket <a href="https://github.com/salmansrizon/Amar_school_LMS/issues/213" class="underline">#213 Dashboards</a> — Super Admin dashboard, Pattern B — real content shown as-of app/super-admin/page.tsx (KpiCard/SectionCard already close to spec; tightened to the exact Card shell here), no logic changed
+</div>
+
+<main class="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
+
+  <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+    <div>
+      <h1 class="text-2xl font-extrabold tracking-tight">সুপার অ্যাডমিন ড্যাশবোর্ড · Super Admin Dashboard</h1>
+      <p class="mt-1 text-sm text-muted">প্ল্যাটফর্মের আয়, স্কুল ও রিনিউয়াল এক নজরে · Income, schools & renewals at a glance</p>
+    </div>
+    <div class="flex gap-2">
+      <a href="#" class="rounded-xl bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700">+ স্কুল তৈরি</a>
+      <a href="#" class="rounded-xl border border-line-strong px-4 py-2 text-sm font-semibold text-ink hover:border-brand-300">+ কোড তৈরি</a>
+    </div>
+  </div>
+
+  <!-- KPI row -->
+  <section class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5 lg:gap-4">
+    <div class="rounded-2xl border border-line bg-paper p-5 shadow-card">
+      <div class="text-xs font-semibold uppercase tracking-wide text-muted">এই মাসের আয় · Income (Month)</div>
+      <div class="mt-2 text-2xl font-extrabold text-mint-deep">৳৪,৮২,৫০০</div>
+      <div class="mt-1 text-xs text-muted">↑ ১২% গত মাসের তুলনায়</div>
+    </div>
+    <div class="rounded-2xl border border-line bg-paper p-5 shadow-card">
+      <div class="text-xs font-semibold uppercase tracking-wide text-muted">এসএমএস আয় · SMS Income</div>
+      <div class="mt-2 text-2xl font-extrabold text-brand-600">৳৩৮,২০০</div>
+      <div class="mt-1 text-xs text-muted">↑ ৪% গত মাসের তুলনায়</div>
+    </div>
+    <div class="rounded-2xl border border-line bg-paper p-5 shadow-card">
+      <div class="text-xs font-semibold uppercase tracking-wide text-muted">সক্রিয় স্কুল · Active Schools</div>
+      <div class="mt-2 text-2xl font-extrabold text-brand-600">১৪২ / ১৬৮</div>
+      <div class="mt-1 text-xs text-muted">১১ ট্রায়াল · ৯ মেয়াদোত্তীর্ণ · ৬ নিষ্ক্রিয়</div>
+    </div>
+    <div class="rounded-2xl border border-line bg-paper p-5 shadow-card">
+      <div class="text-xs font-semibold uppercase tracking-wide text-muted">শীঘ্রই মেয়াদোত্তীর্ণ · Expiring Soon</div>
+      <div class="mt-2 text-2xl font-extrabold text-sun-deep">৭</div>
+      <div class="mt-1 text-xs text-muted">আগামী ৭ দিনে</div>
+    </div>
+    <div class="rounded-2xl border border-line bg-paper p-5 shadow-card">
+      <div class="text-xs font-semibold uppercase tracking-wide text-muted">অপেক্ষমান · Pending</div>
+      <div class="mt-2 text-2xl font-extrabold text-alert-deep">৳১৫,০০০</div>
+      <div class="mt-1 text-xs text-muted">৩টি কোড ব্যাচ</div>
+    </div>
+  </section>
+
+  <!-- Trend + donut -->
+  <section class="mt-4 grid gap-4 lg:grid-cols-5">
+    <div class="lg:col-span-3 rounded-2xl border border-line bg-paper shadow-card p-5">
+      <h2 class="mb-3 text-sm font-bold text-ink">আয়ের প্রবণতা · Income Trend</h2>
+      <div class="flex h-40 items-end gap-2">
+        <div class="flex-1 rounded-t bg-brand-200" style="height:55%"></div>
+        <div class="flex-1 rounded-t bg-brand-200" style="height:70%"></div>
+        <div class="flex-1 rounded-t bg-brand-300" style="height:60%"></div>
+        <div class="flex-1 rounded-t bg-brand-500" style="height:85%"></div>
+        <div class="flex-1 rounded-t bg-brand-500" style="height:78%"></div>
+        <div class="flex-1 rounded-t bg-brand-600" style="height:95%"></div>
+      </div>
+    </div>
+    <div class="lg:col-span-2 rounded-2xl border border-line bg-paper shadow-card p-5">
+      <h2 class="mb-3 text-sm font-bold text-ink">স্ট্যাটাস মিশ্রণ · Status Mix</h2>
+      <div class="flex items-center gap-4">
+        <div class="relative size-24 rounded-full" style="background: conic-gradient(#0a7a48 0% 65%, #0077b8 65% 82%, #dc2626 82% 96%, #c98a00 96% 100%)">
+          <div class="absolute inset-3 rounded-full bg-paper flex items-center justify-center text-sm font-bold">১৬৮</div>
+        </div>
+        <ul class="text-xs space-y-1">
+          <li><span class="inline-block size-2 rounded-full bg-mint-deep mr-1"></span>সক্রিয় ১০৯</li>
+          <li><span class="inline-block size-2 rounded-full bg-sky-deep mr-1"></span>ট্রায়াল ২৯</li>
+          <li><span class="inline-block size-2 rounded-full bg-alert-deep mr-1"></span>মেয়াদোত্তীর্ণ ২৪</li>
+          <li><span class="inline-block size-2 rounded-full bg-sun-deep mr-1"></span>নিষ্ক্রিয় ৬</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- SMS pool -->
+  <section class="mt-4 rounded-2xl border border-line bg-paper shadow-card p-5">
+    <h2 class="mb-2 text-sm font-bold text-ink">এসএমএস পুল · SMS Credit Pool</h2>
+    <div class="h-2 w-full rounded-full bg-paper-muted overflow-hidden"><div class="h-full bg-brand-500" style="width:64%"></div></div>
+    <p class="mt-2 text-xs text-muted">৬৪% ব্যবহৃত · ৬৪,০০০ / ১,০০,০০০ ক্রেডিট</p>
+  </section>
+
+  <!-- Renewals + activity -->
+  <section class="mt-4 grid gap-4 lg:grid-cols-2">
+    <div class="rounded-2xl border border-line bg-paper shadow-card overflow-hidden">
+      <div class="flex items-center justify-between px-5 py-3 border-b border-line">
+        <h2 class="text-sm font-bold text-ink">রিনিউয়াল · Renewals</h2>
+        <a href="#" class="text-xs font-semibold text-brand-600 hover:underline">সব দেখুন →</a>
+      </div>
+      <div class="divide-y divide-line">
+        <div class="flex items-center justify-between px-5 py-3 text-sm"><span>আদর্শ মডেল স্কুল</span><span class="text-alert-deep font-semibold">৩ দিন বাকি</span></div>
+        <div class="flex items-center justify-between px-5 py-3 text-sm"><span>দেবিদ্বার উচ্চ বিদ্যালয়</span><span class="text-sun-deep font-semibold">৭ দিন বাকি</span></div>
+      </div>
+    </div>
+    <div class="rounded-2xl border border-line bg-paper shadow-card overflow-hidden">
+      <div class="flex items-center justify-between px-5 py-3 border-b border-line">
+        <h2 class="text-sm font-bold text-ink">সাম্প্রতিক কার্যক্রম · Recent Activity</h2>
+      </div>
+      <div class="divide-y divide-line">
+        <div class="px-5 py-3 text-sm">নতুন স্কুল যুক্ত হয়েছে — কুমিল্লা মডেল স্কুল</div>
+        <div class="px-5 py-3 text-sm">৳৫,০০০ পেমেন্ট গ্রহণ করা হয়েছে</div>
+      </div>
+    </div>
+  </section>
+
+</main>
+</body>
+</html>

@@ -13,6 +13,7 @@ begin
   return new;
 end $$;
 
+drop trigger if exists code_redemption_permanent on public.subscription_codes;
 create trigger code_redemption_permanent
   before update on public.subscription_codes
   for each row execute function public.protect_code_redemption();

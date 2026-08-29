@@ -1,10 +1,12 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { LANG_COOKIE, type Lang } from '@/lib/i18n'
+import { langCookieAssignment, type Lang } from '@/lib/i18n'
 
 function writeLangCookie(next: Lang) {
-  document.cookie = `${LANG_COOKIE}=${next};path=/;max-age=31536000`
+  // Root-domain scoped, so the choice survives the apex-to-subdomain bounce
+  // instead of being forgotten on arrival (#539).
+  document.cookie = langCookieAssignment(next, window.location.host)
 }
 
 export function LangSwitch({ lang }: { lang: Lang }) {
@@ -17,7 +19,7 @@ export function LangSwitch({ lang }: { lang: Lang }) {
     <button
       type="button"
       onClick={() => set(value)}
-      className={`px-3 py-1 text-xs cursor-pointer ${
+      className={`min-h-11 px-3 py-1 text-xs cursor-pointer sm:min-h-8 ${
         lang === value ? 'bg-brand-500 text-white' : 'bg-paper text-muted'
       }`}
     >

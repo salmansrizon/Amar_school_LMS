@@ -72,6 +72,7 @@ begin
   return new;
 end $$;
 
+drop trigger if exists employee_leave_same_school on public.employee_leaves;
 create trigger employee_leave_same_school
   before insert or update on public.employee_leaves
   for each row execute function public.enforce_employee_leave_school();

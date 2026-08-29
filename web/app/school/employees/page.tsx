@@ -47,14 +47,14 @@ export default async function EmployeesPage({
   const dash = <span className="text-muted">—</span>
 
   return (
-    <main className="mx-auto w-full max-w-4xl flex-1 p-6">
+    <div>
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold">{t('employees.title', lang)}</h1>
         <Link href="/school" aria-label={t('common.back', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
       </div>
       <p className="mb-4 text-xs text-muted">{t('grace.hint', lang)}</p>
 
-      <section className="mb-6 grid gap-4 rounded-lg border border-line bg-paper p-5 shadow-card sm:grid-cols-3">
+      <section className="mb-6 grid gap-4 rounded-lg border border-line bg-paper p-5 sm:grid-cols-3">
         <DefaultGraceForm current={school?.default_grace_minutes ?? null} lang={lang} />
         <AddOfficeTimeForm lang={lang} />
         <CategoryGraceForm lang={lang} />
@@ -102,16 +102,27 @@ export default async function EmployeesPage({
           >
             {t('employees.oldEmployees', lang)}
           </Link>
+          {/* Two entry points on purpose (#533). "New employee" is the HR record
+              alone, which is right for an accountant or a driver. A teacher needs
+              a login and a class as well, and creating one without them is silent
+              and student-facing — the portal simply looks broken to a child whose
+              questions nobody can answer. */}
           <Link
             href="/school/employees/new"
-            className="rounded-full bg-brand-500 px-4 py-1.5 text-xs font-semibold text-white hover:bg-brand-600"
+            className="rounded-full border border-line-strong px-4 py-1.5 text-xs font-semibold hover:bg-paper-muted"
           >
             + {t('employees.add', lang)}
+          </Link>
+          <Link
+            href="/school/employees/new-teacher"
+            className="rounded-full bg-brand-500 px-4 py-1.5 text-xs font-semibold text-white hover:bg-brand-600"
+          >
+            + {t('teacher.createTitle', lang)}
           </Link>
         </div>
       </div>
 
-      <section className="rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="rounded-lg border border-line bg-paper p-5">
         {!visible.length ? (
           <p className="text-sm text-muted">{t('employees.none', lang)}</p>
         ) : (
@@ -153,6 +164,6 @@ export default async function EmployeesPage({
           </div>
         )}
       </section>
-    </main>
+    </div>
   )
 }

@@ -10,6 +10,7 @@ import { PrintButton } from '@/components/print/print-button'
 import { AccountingTabs } from '../accounting-tabs'
 import { loadInstitutePrintHeader } from '@/lib/institute-print'
 import { dateInputClass } from '@/components/ui/field'
+import { selectAllRows } from '@/lib/supabase/select-all'
 
 // Layout per ui/school-owner/general-ledger.html: a date-range toolbar over a
 // Date | Source | Description | Debit | Credit | Balance table, combining
@@ -67,15 +68,36 @@ export default async function GeneralLedgerPage({
 
   const [{ data: feeRecords }, { data: vouchers }, { data: assets }, { data: bankTxns }, { data: directorTxns }] =
     await Promise.all([
-      supabase
-        .from('fee_collection_records')
-        .select('id, month, year, pay_amount, updated_at, students(full_name)'),
-      supabase.from('vouchers').select('id, txn_date, description, amount, created_at, voucher_categories(type)'),
-      supabase.from('assets').select('id, name, purchase_date, purchase_value, created_at'),
-      supabase
-        .from('bank_cash_transactions')
-        .select('id, txn_date, txn_type, amount, created_at, bank_cash_accounts(name)'),
-      supabase.from('director_capital_transactions').select('id, txn_date, txn_type, amount, note, created_at'),
+      // All five are all-time reads folded into one income/expense statement
+      // (#546). A school past its first thousand receipts would have been shown a
+      // statement that silently omitted the oldest of them.
+      selectAllRows((from, to) =>
+        supabase
+          .from('fee_collection_records')
+          .select('id, month, year, pay_amount, updated_at, students(full_name)')
+          .range(from, to),
+      ).then(({ rows }) => ({ data: rows })),
+      selectAllRows((from, to) =>
+        supabase
+          .from('vouchers')
+          .select('id, txn_date, description, amount, created_at, voucher_categories(type)')
+          .range(from, to),
+      ).then(({ rows }) => ({ data: rows })),
+      selectAllRows((from, to) =>
+        supabase.from('assets').select('id, name, purchase_date, purchase_value, created_at').range(from, to),
+      ).then(({ rows }) => ({ data: rows })),
+      selectAllRows((from, to) =>
+        supabase
+          .from('bank_cash_transactions')
+          .select('id, txn_date, txn_type, amount, created_at, bank_cash_accounts(name)')
+          .range(from, to),
+      ).then(({ rows }) => ({ data: rows })),
+      selectAllRows((from, to) =>
+        supabase
+          .from('director_capital_transactions')
+          .select('id, txn_date, txn_type, amount, note, created_at')
+          .range(from, to),
+      ).then(({ rows }) => ({ data: rows })),
     ])
 
   const rows: LedgerSourceRow[] = []
@@ -146,7 +168,7 @@ export default async function GeneralLedgerPage({
   const locale = lang === 'bn' ? 'bn-BD' : 'en-GB'
 
   return (
-    <main className="mx-auto w-full max-w-5xl flex-1 p-6">
+    <div>
       <div className="mb-4 flex items-center justify-between print:hidden">
         <h1 className="text-2xl font-extrabold">{t('ledger.title', lang)}</h1>
         <Link href="/school" aria-label={t('common.back', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
@@ -221,6 +243,6 @@ export default async function GeneralLedgerPage({
         <QrFooterRow qrLabel={t('print.qr', lang)} poweredBy={t('print.poweredBy', lang)} />
         </PaginatedSheet>
       </PrintPage>
-    </main>
+    </div>
   )
 }

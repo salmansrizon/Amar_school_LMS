@@ -41,6 +41,7 @@ begin
   return new;
 end $$;
 
+drop trigger if exists student_subject_same_school on public.student_subjects;
 create trigger student_subject_same_school
   before insert or update on public.student_subjects
   for each row execute function public.enforce_student_subject_school();

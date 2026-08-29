@@ -1,4 +1,3 @@
-import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
@@ -6,6 +5,8 @@ import { getSchoolContext } from '@/lib/school/context'
 import { subjectsForClass } from '@/lib/students'
 import { loadGradingScheme } from '@/lib/grading-scheme-loader'
 import { MarksEntryTable, SubjectPicker, type MarkStudentRow, type SubjectOption } from './marks-entry-controls'
+import { BackLink } from '@/components/back-link'
+import { resolveBackHref } from '@/lib/back-nav'
 
 // Layout per ui/school-owner/marks-entry.html: subject-picker toolbar over
 // the Roll/Name/Theory/MCQ/Practical/Total/Grade table, one Save per subject.
@@ -21,10 +22,11 @@ export default async function MarksEntryPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>
-  searchParams: Promise<{ subject?: string }>
+  searchParams: Promise<{ subject?: string; from?: string | string[] }>
 }) {
   const { id } = await params
-  const { subject: subjectParam } = await searchParams
+  const { subject: subjectParam, from } = await searchParams
+  const backHref = resolveBackHref(from, `/school/exams/${id}`)
   const lang: Lang = await currentLang()
   const { supabase } = await getSchoolContext()
 
@@ -42,18 +44,18 @@ export default async function MarksEntryPage({
       <h1 className="text-2xl font-extrabold">
         {t('markEntry.title', lang)} — {examLabel}
       </h1>
-      <Link href={`/school/exams/${exam.id}`} aria-label={t('examSetup.title', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
+      <BackLink href={backHref} label={t('common.back', lang)} />
     </div>
   )
 
   if (!exam.class_id) {
     return (
-      <main className="mx-auto w-full max-w-4xl flex-1 p-6">
+      <div>
         {header}
-        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted shadow-card">
+        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted">
           {t('markEntry.noClassSet', lang)}
         </p>
-      </main>
+      </div>
     )
   }
 
@@ -66,12 +68,12 @@ export default async function MarksEntryPage({
 
   if (!subjects.length) {
     return (
-      <main className="mx-auto w-full max-w-4xl flex-1 p-6">
+      <div>
         {header}
-        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted shadow-card">
+        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted">
           {t('markEntry.noSubjects', lang)}
         </p>
-      </main>
+      </div>
     )
   }
 
@@ -91,19 +93,20 @@ export default async function MarksEntryPage({
       .from('exam_marks')
       .select('student_id, theory_obtained, mcq_obtained, practical_obtained')
       .eq('exam_id', id)
-      .eq('subject_id', selectedSubject.id),
+      .eq('subject_id', selectedSubject.id)
+      .range(0, 4999),
     supabase.from('student_subjects').select('student_id, is_optional').eq('subject_id', selectedSubject.id),
     exam.grading_scheme_id ? loadGradingScheme(supabase, exam.grading_scheme_id) : Promise.resolve(null),
   ])
 
   if (!students?.length) {
     return (
-      <main className="mx-auto w-full max-w-4xl flex-1 p-6">
+      <div>
         {header}
-        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted shadow-card">
+        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted">
           {t('markEntry.noStudents', lang)}
         </p>
-      </main>
+      </div>
     )
   }
 
@@ -123,7 +126,7 @@ export default async function MarksEntryPage({
   })
 
   return (
-    <main className="mx-auto w-full max-w-4xl flex-1 p-6">
+    <div>
       {header}
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
@@ -133,7 +136,7 @@ export default async function MarksEntryPage({
 
       {!exam.grading_scheme_id && <p className="mb-3 text-xs text-muted">{t('markEntry.noScheme', lang)}</p>}
 
-      <section className="rounded-lg border border-line bg-paper p-4 shadow-card">
+      <section className="rounded-lg border border-line bg-paper p-4">
         <MarksEntryTable
           examId={exam.id}
           subject={selectedSubject}
@@ -143,6 +146,6 @@ export default async function MarksEntryPage({
           lang={lang}
         />
       </section>
-    </main>
+    </div>
   )
 }

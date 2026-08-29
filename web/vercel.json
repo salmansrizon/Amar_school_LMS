@@ -12,6 +12,18 @@
     {
       "path": "/api/subscription/expiry-sweep",
       "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/events/drain",
+      "schedule": "15 3 * * *"
+    },
+    {
+      "path": "/api/subscription/billing-sweep",
+      "schedule": "0 2 1 * *"
+    },
+    {
+      "path": "/api/subscription/revenue-release",
+      "schedule": "15 2 1 * *"
     }
   ]
 }

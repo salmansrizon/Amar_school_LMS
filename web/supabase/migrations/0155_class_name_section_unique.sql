@@ -1,0 +1,58 @@
+-- 0155_class_name_section_unique.sql
+-- Map #434 / ticket #512: `classes` had no uniqueness on (school_id, name,
+-- section), and access decisions join through it.
+--
+-- `students` does not reference `classes` by id. It carries `class_name` and
+-- `section` as text, so every walk from a Student to their Class is:
+--
+--     c.school_id = s.school_id
+--     and c.name = s.class_name
+--     and coalesce(c.section, '') = coalesce(s.section, '')
+--
+-- Since 0152 that join decides ACCESS, not just display:
+-- `staff_class_capacity_for_student` walks it to answer whether a Staff User may
+-- read a child's questions. 0152 hardened against the symptom by aggregating
+-- with bool_or instead of `limit 1` — deterministic, and it takes the strongest
+-- capacity — but `class_teacher_profile_for` (0148) still uses `limit 1` on the
+-- same join, and every other consumer of (class_name, section) has the same
+-- exposure. This closes it at the source.
+--
+-- Additive only — staging and main share one project.
+
+-- ---------------------------------------------------------------------------
+-- The audit that made this safe, run 2026-08-27 against the shared project:
+--
+--   duplicate (school_id, name, coalesce(section,'')) groups ......... 0
+--   classes rows .................................................... 27
+--   schools holding classes .......................................... 3
+--
+-- Zero duplicates anywhere, so nothing is merged, nothing is destroyed, and no
+-- School loses a Class it legitimately has. Recorded here rather than in an ADR
+-- because the finding is what makes the next reader of 0152's `bool_or` comment
+-- able to tell a decision from a workaround: the aggregate is defence in depth
+-- now, not a live workaround.
+--
+-- (The same audit found 81 of 118 Students matching no `classes` row at all —
+-- every one of them an E2E fixture in `Test School A`, with 33 carrying a null
+-- class_name. Both real Schools matched cleanly. That is test-fixture
+-- accumulation on a shared project, not a product defect, and this migration
+-- deliberately does not try to fix it: a Student pointing at no Class is a
+-- separate question from two Classes answering to one name.)
+
+-- ---------------------------------------------------------------------------
+-- coalesce, not a plain `unique (school_id, name, section)`.
+--
+-- Postgres treats NULLs as distinct in a unique index, so the plain form would
+-- happily accept two rows both named 'Class Seven' with a null section — the
+-- exact duplicate this exists to refuse, and live data does carry null sections.
+-- The expression also matches the join predicate above character for character,
+-- which is the property that makes the index the join's guarantee rather than a
+-- second, subtly different rule.
+--
+-- NOT `concurrently`, deliberately: `supabase db push` runs each migration
+-- inside a transaction and CREATE INDEX CONCURRENTLY cannot run in one. The
+-- table is 27 rows across the whole project, so the ordinary form takes a write
+-- lock for microseconds. Revisit only if `classes` ever grows by orders of
+-- magnitude, in which case it needs its own out-of-transaction apply step.
+create unique index if not exists classes_school_name_section_unique
+  on public.classes (school_id, name, coalesce(section, ''));

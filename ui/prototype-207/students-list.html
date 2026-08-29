@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>শিক্ষার্থী তালিকা · Prototype 207</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          ink: '#131313',
+          'ink-card': '#1c1c1c',
+          paper: '#ffffff',
+          'paper-muted': '#f4f4f6',
+          line: '#ececec',
+          'line-strong': '#d8d8d8',
+          muted: '#767676',
+          brand: { 50: '#f1eefe', 100: '#e3dcfd', 300: '#b3a4f7', 500: '#6d4dfb', 600: '#5a37e8', 700: '#4826c4' },
+          mint: { DEFAULT: '#00d26a', deep: '#0a7a48', soft: '#e6f9ef' },
+          sun: { DEFAULT: '#ffc94a', deep: '#c98a00', soft: '#fff6e0' },
+          alert: { DEFAULT: '#ef4444', deep: '#dc2626', soft: '#fdeaea' },
+          sky: { DEFAULT: '#00b2ff', deep: '#0077b8', soft: '#e5f6ff' },
+        },
+        borderRadius: { sm: '8px', md: '14px', lg: '20px' },
+        boxShadow: { card: '0 12px 32px rgb(0 0 0 / 0.08)' },
+        fontFamily: { sans: ["Plus Jakarta Sans", "Hind Siliguri", "system-ui", "sans-serif"] },
+      },
+    },
+  }
+</script>
+<style>
+  body { font-family: 'Plus Jakarta Sans', 'Hind Siliguri', system-ui, sans-serif; background: #f4f4f6; color: #131313; }
+</style>
+</head>
+<body>
+<div class="sticky top-0 z-50 bg-ink text-white text-xs font-semibold px-4 py-2">
+  🧪 THROWAWAY PROTOTYPE — map #207 · ticket <a href="https://github.com/salmansrizon/Amar_school_LMS/issues/215" class="underline">#215 Students</a> — list wrapped in one Card (header = title + New Admission action), table itself unchanged
+</div>
+
+<main class="mx-auto w-full max-w-4xl flex-1 p-6">
+  <div class="mb-4 flex items-center justify-between">
+    <h1 class="text-2xl font-extrabold">শিক্ষার্থী তালিকা <span class="text-base font-medium text-muted">· Students List</span></h1>
+    <a href="#" aria-label="Back" class="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-5"><path d="m15 18-6-6 6-6" /></svg>
+    </a>
+  </div>
+
+  <!-- Pattern B: single Card, header = title/actions row already above the card; card header row below carries filters + primary action -->
+  <section class="rounded-2xl border border-line bg-paper p-5 shadow-card">
+    <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+      <form class="flex flex-wrap items-center gap-2">
+        <input name="q" placeholder="নাম, রোল বা অভিভাবক দিয়ে খুঁজুন" class="w-56 rounded-md border border-line bg-paper px-3 py-1.5 text-sm" />
+        <select name="class" class="rounded-md border border-line bg-paper px-3 py-1.5 text-sm">
+          <option value="">সকল শ্রেণি</option>
+          <option>Class 6</option>
+          <option>Class 7</option>
+          <option selected>Class 8</option>
+          <option>Class 9</option>
+          <option>Class 10</option>
+        </select>
+        <select name="section" class="rounded-md border border-line bg-paper px-3 py-1.5 text-sm">
+          <option value="">সকল শাখা</option>
+          <option selected>A</option>
+          <option>B</option>
+        </select>
+        <button type="submit" class="cursor-pointer rounded-full border border-line px-3 py-1 text-xs font-semibold hover:bg-paper-muted">ফিল্টার</button>
+      </form>
+      <div class="flex gap-2">
+        <a href="students-archive.html" class="rounded-full border border-line-strong px-4 py-1.5 text-xs font-semibold hover:bg-paper-muted">পুরাতন শিক্ষার্থী</a>
+        <a href="students-form.html" class="rounded-full bg-brand-500 px-4 py-1.5 text-xs font-semibold text-white hover:bg-brand-600">+ নতুন ভর্তি</a>
+      </div>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full border-collapse">
+        <thead>
+          <tr class="border-b border-line-strong">
+            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted sticky left-0 bg-paper">রোল</th>
+            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">পূর্ণ নাম</th>
+            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">শ্রেণি/শাখা</th>
+            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">অভিভাবক</th>
+            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">আচরণ লগ (গড়)</th>
+            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">অবস্থা</th>
+            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-line">
+            <td class="px-3 py-2 text-sm sticky left-0 bg-paper">০১</td>
+            <td class="px-3 py-2 text-sm font-medium">রাকিবুল ইসলাম</td>
+            <td class="px-3 py-2 text-sm">Class 8 / A</td>
+            <td class="px-3 py-2 text-sm">মোঃ শাহজাহান</td>
+            <td class="px-3 py-2 text-sm"><span class="rounded-full px-2 py-0.5 text-xs font-semibold bg-mint-soft text-mint-deep">4.5</span></td>
+            <td class="px-3 py-2 text-sm"><span class="rounded-full bg-mint-soft px-2 py-0.5 text-xs font-semibold text-mint-deep">সক্রিয়</span></td>
+            <td class="px-3 py-2 text-sm"><a href="students-detail.html" class="text-brand-600 hover:underline">দেখুন</a></td>
+          </tr>
+          <tr class="border-b border-line">
+            <td class="px-3 py-2 text-sm sticky left-0 bg-paper">০২</td>
+            <td class="px-3 py-2 text-sm font-medium">সুমাইয়া আক্তার</td>
+            <td class="px-3 py-2 text-sm">Class 8 / A</td>
+            <td class="px-3 py-2 text-sm">মোঃ কামাল হোসেন</td>
+            <td class="px-3 py-2 text-sm"><span class="rounded-full px-2 py-0.5 text-xs font-semibold bg-mint-soft text-mint-deep">3.8</span></td>
+            <td class="px-3 py-2 text-sm"><span class="rounded-full bg-mint-soft px-2 py-0.5 text-xs font-semibold text-mint-deep">সক্রিয়</span></td>
+            <td class="px-3 py-2 text-sm"><a href="students-detail.html" class="text-brand-600 hover:underline">দেখুন</a></td>
+          </tr>
+          <tr class="border-b border-line">
+            <td class="px-3 py-2 text-sm sticky left-0 bg-paper">০৩</td>
+            <td class="px-3 py-2 text-sm font-medium">তানভীর আহমেদ</td>
+            <td class="px-3 py-2 text-sm">Class 8 / B</td>
+            <td class="px-3 py-2 text-sm">মোসাঃ রহিমা বেগম</td>
+            <td class="px-3 py-2 text-sm"><span class="rounded-full px-2 py-0.5 text-xs font-semibold bg-alert-soft text-alert-deep">2.9</span></td>
+            <td class="px-3 py-2 text-sm"><span class="rounded-full bg-mint-soft px-2 py-0.5 text-xs font-semibold text-mint-deep">সক্রিয়</span></td>
+            <td class="px-3 py-2 text-sm"><a href="students-detail.html" class="text-brand-600 hover:underline">দেখুন</a></td>
+          </tr>
+          <tr class="border-b border-line">
+            <td class="px-3 py-2 text-sm sticky left-0 bg-paper">০৪</td>
+            <td class="px-3 py-2 text-sm font-medium">ফারিহা জান্নাত</td>
+            <td class="px-3 py-2 text-sm">Class 7 / A</td>
+            <td class="px-3 py-2 text-sm">মোঃ আব্দুল করিম</td>
+            <td class="px-3 py-2 text-sm"><span class="rounded-full px-2 py-0.5 text-xs font-semibold bg-mint-soft text-mint-deep">4.2</span></td>
+            <td class="px-3 py-2 text-sm"><span class="rounded-full bg-mint-soft px-2 py-0.5 text-xs font-semibold text-mint-deep">সক্রিয়</span></td>
+            <td class="px-3 py-2 text-sm"><a href="students-detail.html" class="text-brand-600 hover:underline">দেখুন</a></td>
+          </tr>
+          <tr class="border-b border-line">
+            <td class="px-3 py-2 text-sm sticky left-0 bg-paper">০৫</td>
+            <td class="px-3 py-2 text-sm font-medium">আরিফুল ইসলাম</td>
+            <td class="px-3 py-2 text-sm">Class 7 / A</td>
+            <td class="px-3 py-2 text-sm">মোঃ নুরুল আমিন</td>
+            <td class="px-3 py-2 text-sm"><span class="text-muted">—</span></td>
+            <td class="px-3 py-2 text-sm"><span class="rounded-full bg-mint-soft px-2 py-0.5 text-xs font-semibold text-mint-deep">সক্রিয়</span></td>
+            <td class="px-3 py-2 text-sm"><a href="students-detail.html" class="text-brand-600 hover:underline">দেখুন</a></td>
+          </tr>
+          <tr class="border-b border-line">
+            <td class="px-3 py-2 text-sm sticky left-0 bg-paper">০৬</td>
+            <td class="px-3 py-2 text-sm font-medium">নুসরাত জাহান</td>
+            <td class="px-3 py-2 text-sm">Class 9 / A</td>
+            <td class="px-3 py-2 text-sm">মোঃ মিজানুর রহমান</td>
+            <td class="px-3 py-2 text-sm"><span class="rounded-full px-2 py-0.5 text-xs font-semibold bg-sun-soft text-sun-deep">3.5</span></td>
+            <td class="px-3 py-2 text-sm"><span class="rounded-full bg-mint-soft px-2 py-0.5 text-xs font-semibold text-mint-deep">সক্রিয়</span></td>
+            <td class="px-3 py-2 text-sm"><a href="students-detail.html" class="text-brand-600 hover:underline">দেখুন</a></td>
+          </tr>
+          <tr class="border-b border-line">
+            <td class="px-3 py-2 text-sm sticky left-0 bg-paper">০৭</td>
+            <td class="px-3 py-2 text-sm font-medium">মেহেদী হাসান</td>
+            <td class="px-3 py-2 text-sm">Class 9 / B</td>
+            <td class="px-3 py-2 text-sm">মোঃ ফরিদ উদ্দিন</td>
+            <td class="px-3 py-2 text-sm"><span class="rounded-full px-2 py-0.5 text-xs font-semibold bg-mint-soft text-mint-deep">4.8</span></td>
+            <td class="px-3 py-2 text-sm"><span class="rounded-full bg-mint-soft px-2 py-0.5 text-xs font-semibold text-mint-deep">সক্রিয়</span></td>
+            <td class="px-3 py-2 text-sm"><a href="students-detail.html" class="text-brand-600 hover:underline">দেখুন</a></td>
+          </tr>
+          <tr>
+            <td class="px-3 py-2 text-sm sticky left-0 bg-paper">০৮</td>
+            <td class="px-3 py-2 text-sm font-medium">সাদিয়া ইসলাম</td>
+            <td class="px-3 py-2 text-sm">Class 6 / A</td>
+            <td class="px-3 py-2 text-sm">মোঃ ইউসুফ আলী</td>
+            <td class="px-3 py-2 text-sm"><span class="rounded-full px-2 py-0.5 text-xs font-semibold bg-sun-soft text-sun-deep">3.1</span></td>
+            <td class="px-3 py-2 text-sm"><span class="rounded-full bg-mint-soft px-2 py-0.5 text-xs font-semibold text-mint-deep">সক্রিয়</span></td>
+            <td class="px-3 py-2 text-sm"><a href="students-detail.html" class="text-brand-600 hover:underline">দেখুন</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+</body>
+</html>

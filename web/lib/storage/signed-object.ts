@@ -2,6 +2,8 @@ import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { requireSchoolMember } from '@/lib/auth/require-role'
+import { isStudent } from '@/lib/student/guard'
+import type { SupabaseClient } from '@supabase/supabase-js'
 
 // The one seam behind every "open a private file" route (student photo, gallery
 // photo, publication image, accounting attachment, school logo, syllabus). Each
@@ -32,6 +34,12 @@ export interface SignedObjectSpec {
  *  a bad/missing parameter (before any auth or DB work). */
 type SpecResolver = (req: NextRequest) => SignedObjectSpec | Response
 
+/** Who may open the object. Defaults to a School member; the Student portal
+ *  (#445) passes its own, because a Student is not one and must still be able
+ *  to open the image on a notice addressed to them. RLS on the metadata table
+ *  is what decides WHICH object — this only decides who gets that far. */
+export type SignedObjectGuard = (client: SupabaseClient) => Promise<boolean>
+
 /**
  * Builds a GET route handler that serves a private storage object as a redirect
  * to a signed URL. Usage:
@@ -44,13 +52,22 @@ type SpecResolver = (req: NextRequest) => SignedObjectSpec | Response
  *
  * The route file still sets `export const runtime = 'nodejs'` (storage needs it).
  */
-export function signedObjectRoute(resolve: SpecResolver) {
+/** School Owner, Staff User — or a Student. For objects that belong to the
+ *  School rather than to one person, and that both audiences legitimately open:
+ *  the logo on a printed header is the same logo whoever prints it. */
+export const memberOrStudent: SignedObjectGuard = async (client) =>
+  (await requireSchoolMember(client)) || (await isStudent(client))
+
+export function signedObjectRoute(
+  resolve: SpecResolver,
+  guard: SignedObjectGuard = requireSchoolMember,
+) {
   return async function GET(req: NextRequest): Promise<Response> {
     const spec = resolve(req)
     if (spec instanceof Response) return spec
 
     const supabase = await createClient()
-    if (!(await requireSchoolMember(supabase))) return new Response('forbidden', { status: 403 })
+    if (!(await guard(supabase))) return new Response('forbidden', { status: 403 })
 
     let query = supabase.from(spec.table).select(spec.pathColumn)
     for (const [column, value] of Object.entries(spec.match ?? {})) query = query.eq(column, value)

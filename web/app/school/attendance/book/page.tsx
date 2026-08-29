@@ -3,19 +3,18 @@ import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
+import { schoolRoster } from '@/lib/school/roster-source'
 import {
-  filterRoster,
   monthGrid,
   registerDayStatus,
-  studentClassOptions,
-  studentSectionOptions,
   type OffDay,
 } from '@/lib/attendance-manual'
 import { PrintPage, InstituteHeader, PaginatedSheet } from '@/components/print/pieces'
 import { PrintButton } from '@/components/print/print-button'
 import { AttendanceTabs } from '../attendance-tabs'
 import { loadInstitutePrintHeader } from '@/lib/institute-print'
-import { selectClass } from '@/components/ui/field'
+import { ClassSectionSelect } from '@/components/ui/class-section-select'
+import { selectAllRows } from '@/lib/supabase/select-all'
 
 // Layout per ui/school-owner/attendance-book.html: class/section + month
 // filter, Filled/Blank toggle, print button, monthly P/A register grid
@@ -40,11 +39,10 @@ function monthLabel(year: number, month: number, lang: Lang): string {
 export default async function AttendanceBookPage({
   searchParams,
 }: {
-  searchParams: Promise<{ class?: string; section?: string; month?: string; mode?: string }>
+  searchParams: Promise<{ classSection?: string; month?: string; mode?: string }>
 }) {
   const {
-    class: className = '',
-    section = '',
+    classSection = '',
     month: monthParam = currentMonthParam(),
     mode: modeParam = 'filled',
   } = await searchParams
@@ -60,26 +58,28 @@ export default async function AttendanceBookPage({
   const daysInMonth = new Date(Date.UTC(year, month + 1, 0)).getUTCDate()
   const monthEnd = `${monthPrefix}-${String(daysInMonth).padStart(2, '0')}`
 
-  const [institute, { data: students }] = await Promise.all([
+  const [institute, { combos, className, section, students: visible }] = await Promise.all([
     loadInstitutePrintHeader(supabase, lang),
-    supabase.from('students').select('id, full_name, class_name, section, roll_number').order('full_name'),
+    schoolRoster(supabase, { classSection }),
   ])
-  const roster = students ?? []
-  const classes = studentClassOptions(roster)
-  const sections = className ? studentSectionOptions(roster, className) : []
-  const visible = filterRoster(roster, className, section)
   const visibleIds = visible.map((s) => s.id)
 
   const [{ data: offDaysRaw }, { data: recordsRaw }, { data: leavesRaw }] = await Promise.all([
     supabase.from('off_days').select('day, label, is_significant').gte('day', monthStart).lte('day', monthEnd),
+    // Paged (#546): a class-month is students x school days — 40 x 30 already
+    // passes 1000 — and a record this fetch drops does not render as unknown, it
+    // renders as ABSENT, which then feeds the fine calculation.
     visibleIds.length
-      ? supabase
-          .from('attendance_records')
-          .select('person_id, att_date')
-          .eq('person_type', 'student')
-          .gte('att_date', monthStart)
-          .lte('att_date', monthEnd)
-          .in('person_id', visibleIds)
+      ? selectAllRows<{ person_id: string; att_date: string }>((from, to) =>
+          supabase
+            .from('attendance_records')
+            .select('person_id, att_date')
+            .eq('person_type', 'student')
+            .gte('att_date', monthStart)
+            .lte('att_date', monthEnd)
+            .in('person_id', visibleIds)
+            .range(from, to),
+        ).then(({ rows }) => ({ data: rows }))
       : Promise.resolve({ data: [] as { person_id: string; att_date: string }[] }),
     visibleIds.length
       ? supabase
@@ -107,12 +107,12 @@ export default async function AttendanceBookPage({
     (leavesByStudent.get(studentId) ?? []).some((l) => iso >= l.from && iso <= l.to)
 
   const buildLink = (overrides: Record<string, string>) => {
-    const params = new URLSearchParams({ class: className, section, month: monthParam, mode, ...overrides })
+    const params = new URLSearchParams({ classSection, month: monthParam, mode, ...overrides })
     return `/school/attendance/book?${params.toString()}`
   }
 
   return (
-    <main className="mx-auto w-full max-w-5xl flex-1 p-6">
+    <div>
       <div className="mb-4 flex items-center justify-between print:hidden">
         <h1 className="text-2xl font-extrabold">{t('attendance.bookTitle', lang)}</h1>
         <Link href="/school" aria-label={t('common.back', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
@@ -124,30 +124,12 @@ export default async function AttendanceBookPage({
 
       <Form className="mb-4 flex flex-wrap items-center justify-between gap-2 print:hidden" action="/school/attendance/book">
         <div className="flex flex-wrap items-center gap-2">
-          <select
-            name="class"
-            defaultValue={className}
-            className={selectClass()}
-          >
-            <option value="">{t('attendance.allClasses', lang)}</option>
-            {classes.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
-          <select
-            name="section"
-            defaultValue={section}
-            className={selectClass()}
-          >
-            <option value="">{t('attendance.allSections', lang)}</option>
-            {sections.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </select>
+          <ClassSectionSelect
+            combos={combos}
+            value={classSection}
+            ariaLabel={t('attendance.classSection', lang)}
+            allLabel={t('attendance.allClasses', lang)}
+          />
           <input
             type="month"
             name="month"
@@ -184,7 +166,7 @@ export default async function AttendanceBookPage({
       </Form>
 
       {!visible.length ? (
-        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted shadow-card print:hidden">
+        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted print:hidden">
           {t('attendance.bookNoRoster', lang)}
         </p>
       ) : (
@@ -253,6 +235,6 @@ export default async function AttendanceBookPage({
           </PaginatedSheet>
         </PrintPage>
       )}
-    </main>
+    </div>
   )
 }

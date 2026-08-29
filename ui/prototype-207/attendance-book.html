@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>Prototype #207 — Attendance Book (Pattern B)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          ink: '#131313', 'ink-card': '#1c1c1c',
+          paper: '#ffffff', 'paper-muted': '#f4f4f6',
+          line: '#ececec', 'line-strong': '#d8d8d8', muted: '#767676',
+          brand: { 50: '#f1eefe', 100: '#e3dcfd', 300: '#b3a4f7', 500: '#6d4dfb', 600: '#5a37e8', 700: '#4826c4' },
+          mint: { DEFAULT: '#00d26a', deep: '#0a7a48', soft: '#e6f9ef' },
+          sun: { DEFAULT: '#ffc94a', deep: '#c98a00', soft: '#fff6e0' },
+          alert: { DEFAULT: '#ef4444', deep: '#dc2626', soft: '#fdeaea' },
+          sky: { DEFAULT: '#00b2ff', deep: '#0077b8', soft: '#e5f6ff' },
+        },
+        borderRadius: { sm: '8px', md: '14px', lg: '20px' },
+        boxShadow: { card: '0 12px 32px rgb(0 0 0 / 0.08)', modal: '0 24px 64px rgb(0 0 0 / 0.16)' },
+      }
+    }
+  }
+</script>
+<style>
+  body { font-family: 'Plus Jakarta Sans', 'Hind Siliguri', system-ui, sans-serif; }
+  .sticky-col { position: sticky; left: 0; background: #fff; z-index: 1; }
+  thead .sticky-col { z-index: 2; }
+</style>
+</head>
+<body class="bg-paper-muted text-ink">
+
+<div class="sticky top-0 z-50 bg-ink text-white text-xs font-semibold px-4 py-2">🧪 THROWAWAY PROTOTYPE — map #207 · ticket <a href="https://github.com/salmansrizon/Amar_school_LMS/issues/217" class="underline">#217 Attendance</a> — Book (density hotspot): print-header + full P/A day-grid unchanged inside ONE Card, sticky Name column (validated #210) since the grid runs 30+ day columns wide</div>
+
+<main class="mx-auto w-full max-w-5xl flex-1 p-6">
+
+  <div class="mb-4 flex items-center justify-between">
+    <h1 class="text-2xl font-extrabold">উপস্থিতি বই · Attendance Book</h1>
+    <a href="attendance-hub.html" aria-label="Back" class="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-5"><path d="m15 18-6-6 6-6" /></svg>
+    </a>
+  </div>
+
+  <div class="mb-4 flex flex-nowrap gap-1 overflow-x-auto border-b border-line">
+    <a href="attendance-mark.html" class="shrink-0 whitespace-nowrap rounded-t-md px-3 py-2 text-sm font-semibold text-muted hover:text-ink">উপস্থিতি নেওয়া · Mark</a>
+    <a href="attendance-book.html" class="shrink-0 whitespace-nowrap rounded-t-md px-3 py-2 text-sm font-semibold border-b-2 border-brand-500 text-brand-600">উপস্থিতি বই · Book</a>
+    <a href="attendance-employee.html" class="shrink-0 whitespace-nowrap rounded-t-md px-3 py-2 text-sm font-semibold text-muted hover:text-ink">কর্মচারী · Employee</a>
+    <a href="attendance-leave.html" class="shrink-0 whitespace-nowrap rounded-t-md px-3 py-2 text-sm font-semibold text-muted hover:text-ink">ছুটি ব্যবস্থাপনা · Leave</a>
+    <a href="attendance-off-days.html" class="shrink-0 whitespace-nowrap rounded-t-md px-3 py-2 text-sm font-semibold text-muted hover:text-ink">ছুটির দিন · Off Days</a>
+  </div>
+
+  <!-- Filter toolbar: class/section/month + Filled/Blank toggle + Print — unchanged, same row -->
+  <div class="mb-4 flex flex-wrap items-center justify-between gap-2">
+    <div class="flex flex-wrap items-center gap-2">
+      <select class="rounded-md border border-line bg-paper px-3 py-1.5 text-sm">
+        <option>সব শ্রেণি · All Classes</option>
+        <option selected>অষ্টম শ্রেণি · Class Eight</option>
+      </select>
+      <select class="rounded-md border border-line bg-paper px-3 py-1.5 text-sm">
+        <option>সব শাখা · All Sections</option>
+        <option selected>A</option>
+      </select>
+      <input type="month" value="2026-08" class="rounded-md border border-line bg-paper px-3 py-1.5 text-sm">
+      <button type="button" class="cursor-pointer rounded-full border border-line px-3 py-1 text-xs font-semibold hover:bg-paper-muted">ফিল্টার · Filter</button>
+    </div>
+    <div class="flex gap-2">
+      <button type="button" class="rounded-full border border-brand-500 bg-brand-500 px-3 py-1 text-xs font-semibold text-white">পূরণকৃত · Filled</button>
+      <button type="button" class="rounded-full border border-line px-3 py-1 text-xs font-semibold hover:bg-paper-muted">খালি · Blank</button>
+      <button type="button" class="cursor-pointer rounded-full border border-line px-3 py-1 text-xs font-semibold hover:bg-paper-muted">🖨️ প্রিন্ট · Print</button>
+    </div>
+  </div>
+
+  <!-- Pattern B: EXISTING register table unchanged, wrapped in ONE Card (print header inside).
+       Sticky first (Name) column + overflow-x-auto — grid has 31 day columns for August. -->
+  <div class="rounded-2xl border border-line bg-paper p-5 shadow-card">
+    <div class="mb-3 text-center">
+      <p class="text-sm font-bold">আদর্শ মডেল স্কুল · Adarsha Model School</p>
+      <p class="text-xs text-muted">উপস্থিতি রেজিস্টার — অষ্টম শ্রেণি, A · Attendance Register — Class Eight, A — আগস্ট ২০২৬ · August 2026</p>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full border-collapse text-xs whitespace-nowrap">
+        <thead>
+          <tr>
+            <th class="sticky-col min-w-40 border border-line-strong px-2 py-1 text-left font-semibold">নাম · Name</th>
+            <th class="border border-line-strong px-1.5 py-1 text-center font-semibold">1</th>
+            <th class="border border-line-strong px-1.5 py-1 text-center font-semibold">2</th>
+            <th class="border border-line-strong px-1.5 py-1 text-center font-semibold">3</th>
+            <th class="border border-line-strong px-1.5 py-1 text-center font-semibold bg-alert-soft">4</th>
+            <th class="border border-line-strong px-1.5 py-1 text-center font-semibold">5</th>
+            <th class="border border-line-strong px-1.5 py-1 text-center font-semibold">6</th>
+            <th class="border border-line-strong px-1.5 py-1 text-center font-semibold">7</th>
+            <th class="border border-line-strong px-1.5 py-1 text-center font-semibold">8</th>
+            <th class="border border-line-strong px-1.5 py-1 text-center font-semibold">9</th>
+            <th class="border border-line-strong px-1.5 py-1 text-center font-semibold">10</th>
+            <th class="border border-line-strong px-1.5 py-1 text-center font-semibold">11</th>
+            <th class="border border-line-strong px-1.5 py-1 text-center font-semibold bg-alert-soft">12</th>
+            <th class="border border-line-strong px-1.5 py-1 text-center font-semibold">13</th>
+            <th class="border border-line-strong px-1.5 py-1 text-center font-semibold">14</th>
+            <th class="border border-line-strong px-1.5 py-1 text-center font-semibold">15</th>
+            <th class="border border-line-strong px-1.5 py-1 text-center font-semibold">16</th>
+            <th class="border border-line-strong px-1.5 py-1 text-center font-semibold">17</th>
+            <th class="border border-line-strong px-1.5 py-1 text-center font-semibold">18</th>
+            <th class="border border-line-strong px-1.5 py-1 text-center font-semibold bg-alert-soft">19</th>
+            <th class="border border-line-strong px-1.5 py-1 text-center font-semibold">20</th>
+            <th class="border border-line-strong px-1.5 py-1 text-center font-semibold">21</th>
+            <th class="border border-line-strong px-1.5 py-1 text-center font-semibold">22</th>
+            <th class="border border-line-strong px-1.5 py-1 text-center font-semibold">23</th>
+            <th class="border border-line-strong px-1.5 py-1 text-center font-semibold">24</th>
+            <th class="border border-line-strong px-1.5 py-1 text-center font-semibold">25</th>
+            <th class="border border-line-strong px-1.5 py-1 text-center font-semibold bg-alert-soft">26</th>
+            <th class="border border-line-strong px-1.5 py-1 text-center font-semibold">27</th>
+            <th class="border border-line-strong px-1.5 py-1 text-center font-semibold">28</th>
+            <th class="border border-line-strong px-1.5 py-1 text-center font-semibold">29</th>
+            <th class="border border-line-strong px-1.5 py-1 text-center font-semibold">30</th>
+            <th class="border border-line-strong px-1.5 py-1 text-center font-semibold">31</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="sticky-col border border-line px-2 py-1 text-left">01 রাকিব হাসান</td>
+            <td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center bg-alert-soft"></td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center font-semibold text-alert-deep">A</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center bg-alert-soft"></td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center bg-alert-soft"></td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center"></td><td class="border border-line px-1.5 py-1 text-center"></td><td class="border border-line px-1.5 py-1 text-center"></td><td class="border border-line px-1.5 py-1 text-center"></td><td class="border border-line px-1.5 py-1 text-center bg-alert-soft"></td><td class="border border-line px-1.5 py-1 text-center"></td><td class="border border-line px-1.5 py-1 text-center"></td><td class="border border-line px-1.5 py-1 text-center"></td><td class="border border-line px-1.5 py-1 text-center"></td><td class="border border-line px-1.5 py-1 text-center"></td>
+          </tr>
+          <tr>
+            <td class="sticky-col border border-line px-2 py-1 text-left">02 সুমাইয়া আক্তার</td>
+            <td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center bg-alert-soft"></td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center bg-alert-soft"></td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center font-semibold text-alert-deep">A</td><td class="border border-line px-1.5 py-1 text-center font-semibold text-alert-deep">A</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center bg-alert-soft"></td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center"></td><td class="border border-line px-1.5 py-1 text-center"></td><td class="border border-line px-1.5 py-1 text-center"></td><td class="border border-line px-1.5 py-1 text-center"></td><td class="border border-line px-1.5 py-1 text-center bg-alert-soft"></td><td class="border border-line px-1.5 py-1 text-center"></td><td class="border border-line px-1.5 py-1 text-center"></td><td class="border border-line px-1.5 py-1 text-center"></td><td class="border border-line px-1.5 py-1 text-center"></td><td class="border border-line px-1.5 py-1 text-center"></td>
+          </tr>
+          <tr>
+            <td class="sticky-col border border-line px-2 py-1 text-left">03 তানভীর আহমেদ</td>
+            <td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center bg-alert-soft"></td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center bg-alert-soft"></td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center bg-alert-soft"></td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center"></td><td class="border border-line px-1.5 py-1 text-center"></td><td class="border border-line px-1.5 py-1 text-center"></td><td class="border border-line px-1.5 py-1 text-center"></td><td class="border border-line px-1.5 py-1 text-center bg-alert-soft"></td><td class="border border-line px-1.5 py-1 text-center"></td><td class="border border-line px-1.5 py-1 text-center"></td><td class="border border-line px-1.5 py-1 text-center"></td><td class="border border-line px-1.5 py-1 text-center"></td><td class="border border-line px-1.5 py-1 text-center"></td>
+          </tr>
+          <tr>
+            <td class="sticky-col border border-line px-2 py-1 text-left">04 নুসরাত জাহান</td>
+            <td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center font-semibold text-alert-deep">A</td><td class="border border-line px-1.5 py-1 text-center bg-alert-soft"></td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center bg-alert-soft"></td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center bg-alert-soft"></td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center"></td><td class="border border-line px-1.5 py-1 text-center"></td><td class="border border-line px-1.5 py-1 text-center"></td><td class="border border-line px-1.5 py-1 text-center"></td><td class="border border-line px-1.5 py-1 text-center bg-alert-soft"></td><td class="border border-line px-1.5 py-1 text-center"></td><td class="border border-line px-1.5 py-1 text-center"></td><td class="border border-line px-1.5 py-1 text-center"></td><td class="border border-line px-1.5 py-1 text-center"></td><td class="border border-line px-1.5 py-1 text-center"></td>
+          </tr>
+          <tr>
+            <td class="sticky-col border border-line px-2 py-1 text-left">05 ফাহিম হোসেন</td>
+            <td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center bg-alert-soft"></td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center bg-alert-soft"></td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center bg-alert-soft"></td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center"></td><td class="border border-line px-1.5 py-1 text-center"></td><td class="border border-line px-1.5 py-1 text-center"></td><td class="border border-line px-1.5 py-1 text-center"></td><td class="border border-line px-1.5 py-1 text-center bg-alert-soft"></td><td class="border border-line px-1.5 py-1 text-center"></td><td class="border border-line px-1.5 py-1 text-center"></td><td class="border border-line px-1.5 py-1 text-center"></td><td class="border border-line px-1.5 py-1 text-center"></td><td class="border border-line px-1.5 py-1 text-center"></td>
+          </tr>
+          <tr>
+            <td class="sticky-col border border-line px-2 py-1 text-left">06 মেহজাবিন ইসলাম</td>
+            <td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center bg-alert-soft"></td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center bg-alert-soft"></td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center bg-alert-soft"></td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center">P</td><td class="border border-line px-1.5 py-1 text-center"></td><td class="border border-line px-1.5 py-1 text-center"></td><td class="border border-line px-1.5 py-1 text-center"></td><td class="border border-line px-1.5 py-1 text-center"></td><td class="border border-line px-1.5 py-1 text-center bg-alert-soft"></td><td class="border border-line px-1.5 py-1 text-center"></td><td class="border border-line px-1.5 py-1 text-center"></td><td class="border border-line px-1.5 py-1 text-center"></td><td class="border border-line px-1.5 py-1 text-center"></td><td class="border border-line px-1.5 py-1 text-center"></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p class="mt-3 text-xs text-muted">P = উপস্থিত · Present, A = অনুপস্থিত · Absent, লাল কলাম = ছুটির দিন (শুক্র/শনি বা সরকারি ছুটি) · red columns = off days (Fri/Sat or holiday)</p>
+  </div>
+
+</main>
+</body>
+</html>

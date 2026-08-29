@@ -1,4 +1,3 @@
-import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
 import { t } from '@/lib/i18n'
 import { ExamsTabs } from '../exams-tabs'
@@ -6,12 +5,13 @@ import { getSchoolContext } from '@/lib/school/context'
 import {
   AddCombinationForm,
   CombinationCard,
-  type ClassOption,
   type CombinationRow,
   type ExamOption,
   type MemberRow,
   type SchemeOption,
 } from './combination-controls'
+import { BackLink } from '@/components/back-link'
+import { classCatalogueLabel, type ClassCatalogueRow } from '@/lib/class-catalogue'
 
 // Multi-exam combination (issue #32, PRD §5.5): a named recipe for combining
 // several exams — 'sum' (raw marks add together) or 'weighted_percentage'
@@ -31,7 +31,7 @@ export default async function ExamCombinationsPage() {
       .from('exam_combinations')
       .select('id, name, class_id, strategy, grading_scheme_id')
       .order('created_at', { ascending: false }),
-    supabase.from('classes').select('id, name, section').order('created_at'),
+    supabase.from('classes').select('id, name, section, group_department').order('created_at'),
     supabase.from('grading_schemes').select('id, name').order('name'),
     supabase.from('exams').select('id, name, exam_year').order('created_at', { ascending: false }),
   ])
@@ -54,24 +54,24 @@ export default async function ExamCombinationsPage() {
   const schemeById = new Map((schemes ?? []).map((s) => [s.id, s]))
 
   return (
-    <main className="mx-auto w-full max-w-3xl flex-1 p-6">
+    <div>
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold">{t('combinations.title', lang)}</h1>
-        <Link href="/school/exams" aria-label={t('exams.title', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
+        <BackLink href="/school/exams" label={t('exams.title', lang)} />
       </div>
 
       <ExamsTabs active="/school/exams/combinations" lang={lang} />
 
-      <section className="mb-6 rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="mb-6 rounded-lg border border-line bg-paper p-5">
         <h2 className="mb-3 font-bold">{t('combinations.add', lang)}</h2>
-        <AddCombinationForm classes={(classes ?? []) as ClassOption[]} schemes={(schemes ?? []) as SchemeOption[]} lang={lang} />
+        <AddCombinationForm classes={(classes ?? []) as ClassCatalogueRow[]} schemes={(schemes ?? []) as SchemeOption[]} lang={lang} />
       </section>
 
       <section className="space-y-4">
         {!combinations?.length && <p className="text-sm text-muted">{t('combinations.none', lang)}</p>}
         {combinations?.map((c) => {
           const cls = classById.get(c.class_id ?? '')
-          const classLabel = cls ? `${cls.name}${cls.section ? ` - ${cls.section}` : ''}` : null
+          const classLabel = cls ? classCatalogueLabel(cls) : null
           return (
             <CombinationCard
               key={c.id}
@@ -85,6 +85,6 @@ export default async function ExamCombinationsPage() {
           )
         })}
       </section>
-    </main>
+    </div>
   )
 }

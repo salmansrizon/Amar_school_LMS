@@ -10,7 +10,26 @@ import { themeStyle, type PrintTheme } from '@/lib/print-themes'
 /** One printed sheet: a card on screen, a bare A4 page in print. Batch
  *  printing renders several PrintPages in a row — each but the last breaks
  *  the page (an unconditional break would print a blank trailing sheet). */
-export function PrintPage({ children, theme }: { children: ReactNode; theme?: PrintTheme }) {
+export function PrintPage({
+  children,
+  theme,
+  orientation = 'portrait',
+  fill = false,
+}: {
+  children: ReactNode
+  theme?: PrintTheme
+  /** Wide documents (attendance register, seat plan, routine) print on a
+   *  landscape A4 sheet via the `@page landscape` rule; the default portrait
+   *  keeps the plain `@page`. Only affects print, not the on-screen card. */
+  orientation?: 'portrait' | 'landscape'
+  /** Full-page single-sheet documents (mark sheet, progress report, result
+   *  book, admission form) opt in: in print the sheet becomes a full-height
+   *  flex column so a trailing `SignatureRow` (via its `mt-auto`) is pushed to
+   *  the foot of the A4 page and the gap above it grows to fill the sheet —
+   *  signatures never look cramped under short content. Left off for compact /
+   *  multi-up printables (admit cards) that should hug their content. */
+  fill?: boolean
+}) {
   // A themed sheet (issue #94) paints its own paper and ink from the curated
   // preset; an unthemed one keeps the app's paper token exactly as before.
   const style = theme
@@ -19,9 +38,9 @@ export function PrintPage({ children, theme }: { children: ReactNode; theme?: Pr
   return (
     <div
       style={style}
-      className={`mx-auto w-full max-w-190 rounded-md border border-line-strong p-8 shadow-card not-last:break-after-page print:max-w-none print:rounded-none print:border-0 print:p-0 print:shadow-none${
-        theme ? '' : ' bg-paper'
-      }`}
+      className={`mx-auto w-full ${orientation === 'landscape' ? 'max-w-280 print-landscape' : 'max-w-190'} rounded-md border border-line-strong p-8 shadow-card not-last:break-after-page print:max-w-none print:rounded-none print:border-0 print:p-0 print:shadow-none${
+        fill ? ' print:flex print:min-h-screen print:flex-col' : ''
+      }${theme ? '' : ' bg-paper'}`}
     >
       {children}
     </div>
@@ -134,15 +153,20 @@ export function InfoGrid({ rows }: { rows: { label: string; value: ReactNode }[]
 
 /** Right-aligned totals strip under a grade/marks table. */
 export function GradePanelRow({ children }: { children: ReactNode }) {
-  return <div className="mt-3 flex justify-end gap-6 text-sm font-semibold">{children}</div>
+  return <div className="print-keep mt-3 flex justify-end gap-6 text-sm font-semibold">{children}</div>
 }
 
-/** Signature lines along the sheet's bottom. */
+/** Signature lines along the sheet's bottom. `print-keep` stops the block from
+ *  being split across a page boundary. In print, `mt-auto` inside the sheet's
+ *  full-height flex column pushes the signatures to the foot of the A4 page and
+ *  lets the gap above them grow to fill whatever vertical space is left — so a
+ *  short mark sheet is never cramped and a full one still fits. On screen the
+ *  fixed `mt-12` keeps a sensible gap (no flex column there). */
 export function SignatureRow({ labels }: { labels: string[] }) {
   return (
-    <div className="mt-8 flex justify-between text-xs">
+    <div className="print-keep mt-12 flex justify-between gap-6 text-xs print:mt-auto">
       {labels.map((label) => (
-        <span key={label} className="w-40 border-t border-line-strong pt-1 text-center">
+        <span key={label} className="w-40 border-t border-line-strong pt-2 text-center">
           {label}
         </span>
       ))}
@@ -208,7 +232,7 @@ export function QrFooterRow({
   qr?: ReactNode
 }) {
   return (
-    <div className="mt-6 flex items-center justify-between border-t border-line pt-4">
+    <div className="print-keep mt-6 flex items-center justify-between border-t border-line pt-4">
       {qr ?? (
         <div className="flex size-21 items-center justify-center rounded-sm border border-dashed border-line-strong text-center text-xs text-muted">
           {qrLabel}
@@ -270,7 +294,7 @@ export function PhotoBox({ src, label }: { src?: string | null; label: string })
 /** A section heading inside a printed sheet (mockup's `.section-title`) —
  *  e.g. "Behaviour Rating", "Co-curricular Checklist". */
 export function SectionTitle({ children }: { children: ReactNode }) {
-  return <div className="mt-5 mb-2 text-sm font-bold">{children}</div>
+  return <div className="mt-5 mb-2 text-sm font-bold break-after-avoid">{children}</div>
 }
 
 /** A plain two-column table (label + value per row) — the progress report's

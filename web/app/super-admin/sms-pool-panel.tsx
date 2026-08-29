@@ -40,17 +40,32 @@ export function SmsPoolPanel({ pool, lang }: { pool: SmsPool; lang: Lang }) {
   }
 
   const balanceTone =
-    pool.level === 'empty' ? 'text-alert-deep' : pool.level === 'low' ? 'text-amber-600' : 'text-ink'
+    pool.level === 'impossible' || pool.level === 'empty'
+      ? 'text-alert-deep'
+      : pool.level === 'low'
+        ? 'text-amber-600'
+        : 'text-ink'
 
   return (
     <SectionCard title={t('sa.pool.title', lang)}>
+      {/* An impossible number leads, before the KPIs, and says what to stop doing.
+          Rendering -981 as an ordinary stat is what let it sit there for weeks. */}
+      {pool.level === 'impossible' && (
+        <p
+          role="alert"
+          className="mb-3 rounded-sm border border-alert-deep/30 bg-alert-soft p-3 text-xs font-semibold text-alert-deep"
+        >
+          {t('sa.pool.impossible', lang)}
+        </p>
+      )}
+
       <div className="grid grid-cols-3 gap-2">
         <Stat label={t('sa.pool.remaining', lang)} value={String(pool.balance)} valueClass={balanceTone} />
         <Stat label={t('sa.pool.bought', lang)} value={String(pool.bought)} />
         <Stat label={t('sa.pool.sent', lang)} value={String(pool.sent)} />
       </div>
 
-      {pool.level !== 'ok' && (
+      {(pool.level === 'empty' || pool.level === 'low') && (
         <p className={`mt-3 text-xs font-semibold ${pool.level === 'empty' ? 'text-alert-deep' : 'text-amber-600'}`}>
           {t(pool.level === 'empty' ? 'sa.pool.empty' : 'sa.pool.low', lang)}
         </p>

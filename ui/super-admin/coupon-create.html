@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>কুপন তৈরি করুন · Create Coupon — Super Admin</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../shared/design-system.css">
+<script src="../shared/app.js" defer></script>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="mark">A</span><span>Super Admin</span></div>
+    <nav>
+      <a class="nav-item" href="schools-list.html"><span data-i18n="bn">স্কুলসমূহ</span><span data-i18n="en">Schools</span></a>
+      <a class="nav-item" href="dealers-list.html"><span data-i18n="bn">ডিলার</span><span data-i18n="en">Dealers</span></a>
+      <a class="nav-item" href="gov-officials-list.html"><span data-i18n="bn">সরকারি কর্মকর্তা</span><span data-i18n="en">Government Officials</span></a>
+      <a class="nav-item" href="codes-list.html"><span data-i18n="bn">সাবস্ক্রিপশন কোড</span><span data-i18n="en">Subscription Codes</span></a>
+      <a class="nav-item active" href="coupons-list.html"><span data-i18n="bn">কুপন ও ছাড়</span><span data-i18n="en">Coupons & Discounts</span></a>
+      <a class="nav-item" href="subscription-config.html"><span data-i18n="bn">সাবস্ক্রিপশন ফি কনফিগারেশন</span><span data-i18n="en">Subscription Fee Config</span></a>
+      <a class="nav-item" href="locations-tree.html"><span data-i18n="bn">টেরিটরি ও লোকেশন</span><span data-i18n="en">Territory & Locations</span></a>
+      <a class="nav-item" href="vendor-accounting-ledger.html"><span data-i18n="bn">ভেন্ডর হিসাব</span><span data-i18n="en">Vendor Accounting</span></a>
+      <a class="nav-item" href="vendor-sms-compose.html"><span data-i18n="bn">ভেন্ডর এসএমএস</span><span data-i18n="en">Vendor SMS</span></a>
+      <a class="nav-item" href="central-holiday-calendar.html"><span data-i18n="bn">কেন্দ্রীয় ছুটির তালিকা</span><span data-i18n="en">Central Off-Day</span></a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="title"><span data-i18n="bn">নতুন কুপন তৈরি করুন</span><span data-i18n="en">Create a New Coupon</span></div>
+      <div class="actions">
+        <a class="btn btn-secondary btn-sm" href="../index.html" title="Home">🏠</a>
+        <a class="btn btn-secondary btn-sm" href="../sitemap.html" title="Sitemap">📋</a>
+        <a class="btn btn-secondary btn-sm" href="coupons-list.html">&larr; <span data-i18n="bn">কুপন তালিকা</span><span data-i18n="en">Coupons list</span></a>
+        <div class="lang-switch">
+          <button data-lang-btn="bn" onclick="setLang('bn')">বাং</button>
+          <button data-lang-btn="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="theme-switch">
+          <button data-theme-btn="light" onclick="setTheme('light')">☀</button>
+          <button data-theme-btn="dark" onclick="setTheme('dark')">☾</button>
+          <button data-theme-btn="system" onclick="setTheme('system')">Auto</button>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+
+      <div class="card" style="max-width:680px;">
+        <h3 class="mt-0"><span data-i18n="bn">কুপনের বিবরণ</span><span data-i18n="en">Coupon Details</span></h3>
+        <div class="form-grid">
+          <div class="field">
+            <label><span data-i18n="bn">কুপন কোড</span><span data-i18n="en">Coupon Code</span></label>
+            <input type="text" placeholder="e.g. WELCOME20" style="text-transform:uppercase;">
+          </div>
+          <div class="field">
+            <label><span data-i18n="bn">স্কোপ (কোন ফি প্রযোজ্য)</span><span data-i18n="en">Scope (applies to fee)</span></label>
+            <select id="scope-select" onchange="document.getElementById('duration-field').style.display = this.value==='subscription' ? '' : 'none';">
+              <option value="subscription"><span data-i18n="bn">মাসিক সাবস্ক্রিপশন</span><span data-i18n="en">Monthly Subscription</span></option>
+              <option value="implementation"><span data-i18n="bn">বাস্তবায়ন ফি</span><span data-i18n="en">Implementation Fee</span></option>
+              <option value="licensing"><span data-i18n="bn">লাইসেন্সিং</span><span data-i18n="en">Licensing</span></option>
+              <option value="other"><span data-i18n="bn">অন্যান্য</span><span data-i18n="en">Other</span></option>
+            </select>
+          </div>
+        </div>
+
+        <h3><span data-i18n="bn">লক্ষ্য</span><span data-i18n="en">Target</span></h3>
+        <div class="form-grid">
+          <div class="field">
+            <label><span data-i18n="bn">লক্ষ্যের ধরন</span><span data-i18n="en">Target Type</span></label>
+            <select>
+              <option><span data-i18n="bn">নির্দিষ্ট ডিলার</span><span data-i18n="en">Specific Distributor</span></option>
+              <option><span data-i18n="bn">নির্দিষ্ট স্কুল</span><span data-i18n="en">Specific School</span></option>
+              <option><span data-i18n="bn">নির্দিষ্ট এজেন্ট</span><span data-i18n="en">Specific Agent</span></option>
+              <option><span data-i18n="bn">যেকোনো</span><span data-i18n="en">Any</span></option>
+            </select>
+          </div>
+          <div class="field">
+            <label><span data-i18n="bn">লক্ষ্য নির্বাচন করুন</span><span data-i18n="en">Select Target</span></label>
+            <input type="text" list="target-options" placeholder="Search distributor / school / agent…">
+            <datalist id="target-options">
+              <option value="Karim Traders (Mirpur Union Dealer)"></option>
+              <option value="Rupali Distributors (Rangpur Zilla Dealer)"></option>
+              <option value="Adarsha High School"></option>
+            </datalist>
+          </div>
+        </div>
+
+        <h3><span data-i18n="bn">ছাড়</span><span data-i18n="en">Discount</span></h3>
+        <div class="field">
+          <label><span data-i18n="bn">ছাড়ের ধরন</span><span data-i18n="en">Discount Type</span></label>
+          <div class="flex gap-3" style="margin-top:var(--space-1);">
+            <label class="flex gap-1" style="align-items:center; font-weight:400;">
+              <input type="radio" name="discount-type" value="percentage" checked>
+              <span data-i18n="bn">শতাংশ (%)</span><span data-i18n="en">Percentage (%)</span>
+            </label>
+            <label class="flex gap-1" style="align-items:center; font-weight:400;">
+              <input type="radio" name="discount-type" value="flat">
+              <span data-i18n="bn">নির্দিষ্ট পরিমাণ (৳)</span><span data-i18n="en">Flat Amount (BDT)</span>
+            </label>
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="field">
+            <label><span data-i18n="bn">ছাড়ের মান</span><span data-i18n="en">Discount Value</span></label>
+            <input type="number" min="0" placeholder="e.g. 20">
+          </div>
+          <div class="field" id="duration-field">
+            <label><span data-i18n="bn">মেয়াদকাল (মাস) — শুধু সাবস্ক্রিপশনের জন্য</span><span data-i18n="en">Duration (months) — subscription only</span></label>
+            <input type="number" min="1" max="24" value="3">
+          </div>
+        </div>
+
+        <h3><span data-i18n="bn">খরচ শেয়ারিং</span><span data-i18n="en">Cost Sharing</span></h3>
+        <div class="field">
+          <label><span data-i18n="bn">কোম্পানি শেয়ার % (বাকিটা ডিলার/এজেন্ট বহন করবে)</span><span data-i18n="en">Company Share % (remainder is borne by distributor/agent)</span></label>
+          <div class="flex gap-2" style="align-items:center;">
+            <input type="range" min="0" max="100" value="70" step="5" style="flex:1;" oninput="document.getElementById('sharing-readout').textContent = this.value + '% Company / ' + (100 - this.value) + '% Distributor';">
+            <span id="sharing-readout" class="badge badge-info" style="white-space:nowrap;">70% Company / 30% Distributor</span>
+          </div>
+          <p class="text-secondary" style="font-size:var(--text-xs); margin-top:var(--space-1);">
+            <span data-i18n="bn">এই বিভাজন কোম্পানি ও ডিলার/এজেন্ট উভয়ের বিলেই দেখানো হবে।</span>
+            <span data-i18n="en">This split is shown on both the company's and the distributor's/agent's bills.</span>
+          </p>
+        </div>
+
+        <h3><span data-i18n="bn">মেয়াদ</span><span data-i18n="en">Validity</span></h3>
+        <div class="form-grid">
+          <div class="field">
+            <label><span data-i18n="bn">মেয়াদোত্তীর্ণের তারিখ</span><span data-i18n="en">Expiry Date</span></label>
+            <input type="date" value="2026-12-31">
+          </div>
+          <div class="field">
+            <label><span data-i18n="bn">সর্বোচ্চ ব্যবহার সংখ্যা (ঐচ্ছিক)</span><span data-i18n="en">Max Redemptions (optional)</span></label>
+            <input type="number" min="1" placeholder="e.g. 100">
+          </div>
+        </div>
+
+        <div class="card" style="background:var(--info-bg); border-color:var(--info-border); margin-top:var(--space-4);">
+          <p style="margin:0; font-size:var(--text-sm); color:var(--info-fg);">
+            <span data-i18n="bn">লক্ষ্য "যেকোনো" রেখে দিলে কুপনটি সকল স্কুল/ডিলার/এজেন্টের জন্য উন্মুক্ত থাকবে। মেয়াদকাল শুধুমাত্র মাসিক সাবস্ক্রিপশন স্কোপের ছাড়ে প্রযোজ্য — অন্য স্কোপে এটি একবারের ছাড় হিসেবে গণ্য হয়।</span>
+            <span data-i18n="en">Leaving Target as "Any" makes the coupon open to all schools/distributors/agents. Duration only applies to Monthly Subscription-scope discounts — for other scopes the discount is treated as one-time.</span>
+          </p>
+        </div>
+
+        <div class="flex gap-2" style="margin-top:var(--space-4);">
+          <button class="btn btn-primary"><span data-i18n="bn">কুপন তৈরি করুন</span><span data-i18n="en">Create Coupon</span></button>
+          <a class="btn btn-secondary" href="coupons-list.html"><span data-i18n="bn">বাতিল</span><span data-i18n="en">Cancel</span></a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

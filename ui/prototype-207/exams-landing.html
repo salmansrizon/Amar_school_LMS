@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>পরীক্ষা তালিকা — Prototype 207</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          ink: '#131313',
+          'ink-card': '#1c1c1c',
+          paper: '#ffffff',
+          'paper-muted': '#f4f4f6',
+          line: '#ececec',
+          'line-strong': '#d8d8d8',
+          muted: '#767676',
+          brand: {
+            50: '#f1eefe',
+            100: '#e3dcfd',
+            300: '#b3a4f7',
+            500: '#6d4dfb',
+            600: '#5a37e8',
+            700: '#4826c4',
+          },
+          mint: { DEFAULT: '#00d26a', deep: '#0a7a48', soft: '#e6f9ef' },
+          sun: { DEFAULT: '#ffc94a', deep: '#c98a00', soft: '#fff6e0' },
+          alert: { DEFAULT: '#ef4444', deep: '#dc2626', soft: '#fdeaea' },
+          sky: { DEFAULT: '#00b2ff', deep: '#0077b8', soft: '#e5f6ff' },
+        },
+        borderRadius: { sm: '8px', md: '14px', lg: '20px' },
+        boxShadow: { card: '0 12px 32px rgb(0 0 0 / 0.08)' },
+        fontFamily: {
+          sans: ["'Plus Jakarta Sans'", "'Hind Siliguri'", 'system-ui', 'sans-serif'],
+        },
+      },
+    },
+  }
+</script>
+<style>
+  body { background: #f4f4f6; color: #131313; font-family: 'Plus Jakarta Sans', 'Hind Siliguri', system-ui, sans-serif; }
+</style>
+</head>
+<body class="min-h-screen">
+
+<div class="sticky top-0 z-50 bg-ink text-white text-xs font-semibold px-4 py-2">
+  🧪 THROWAWAY PROTOTYPE — map #207 · ticket <a href="https://github.com/salmansrizon/Amar_school_LMS/issues/218" class="underline">#218 Exams (+#192 additions)</a> — Landing: existing create/search/filter/close list kept as ONE Card (parity); the school-wide exam calendar section is NEW (#192 addition, aggregates every open exam's routine entries).
+</div>
+
+<main class="mx-auto w-full max-w-5xl flex-1 p-6">
+
+  <div class="mb-4 flex items-center justify-between">
+    <h1 class="text-2xl font-extrabold">পরীক্ষা ও ফলাফল <span class="text-base font-medium text-muted">· Exams &amp; Results</span></h1>
+    <a href="#" aria-label="ফিরে যান" class="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-5"><path d="m15 18-6-6 6-6" /></svg>
+    </a>
+  </div>
+
+  <!-- ExamsTabs (unchanged) -->
+  <nav class="mb-5 flex flex-nowrap gap-1 overflow-x-auto border-b border-line text-sm font-semibold">
+    <a href="exams-landing.html" class="shrink-0 whitespace-nowrap rounded-t-md px-4 py-2 border-b-2 border-brand-500 text-brand-600">পরীক্ষা তালিকা</a>
+    <a href="exams-grading-schemes.html" class="shrink-0 whitespace-nowrap rounded-t-md px-4 py-2 text-muted hover:bg-paper hover:text-ink">গ্রেডিং স্কিম</a>
+    <a href="exams-combinations.html" class="shrink-0 whitespace-nowrap rounded-t-md px-4 py-2 text-muted hover:bg-paper hover:text-ink">সমন্বয় (Combinations)</a>
+    <a href="#" class="shrink-0 whitespace-nowrap rounded-t-md px-4 py-2 text-muted hover:bg-paper hover:text-ink">সহশিক্ষা কার্যক্রম তালিকা</a>
+    <a href="#" class="shrink-0 whitespace-nowrap rounded-t-md px-4 py-2 text-muted hover:bg-paper hover:text-ink">মার্কশিট প্রিভিউ</a>
+    <a href="#" class="shrink-0 whitespace-nowrap rounded-t-md px-4 py-2 text-muted hover:bg-paper hover:text-ink">ফলাফল অনুসন্ধান</a>
+  </nav>
+
+  <!-- NEW: StatTile row — teaser for the nearest countdown, links into the calendar/profile -->
+  <div class="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+    <div class="rounded-2xl border border-line bg-paper p-4 shadow-card">
+      <p class="text-xs font-semibold text-muted">চলমান পরীক্ষা</p>
+      <p class="mt-1 text-2xl font-extrabold">৪</p>
+    </div>
+    <div class="rounded-2xl border border-line bg-paper p-4 shadow-card">
+      <p class="text-xs font-semibold text-muted">বন্ধ পরীক্ষা</p>
+      <p class="mt-1 text-2xl font-extrabold text-muted">৯</p>
+    </div>
+    <div class="rounded-2xl border border-brand-300 bg-brand-50 p-4 shadow-card sm:col-span-2">
+      <p class="text-xs font-semibold text-brand-700">🆕 আসন্ন পরীক্ষা · Upcoming</p>
+      <p class="mt-1 text-sm font-bold text-ink">অর্ধ-বার্ষিক পরীক্ষা ২০২৬ — শুরু হতে <span class="text-brand-700">৮ দিন</span> বাকি</p>
+      <p class="text-xs text-muted">প্রথম বিষয়: বাংলা, ১০ আগস্ট ২০২৬</p>
+    </div>
+  </div>
+
+  <!-- Pattern B: Form -> Add Exam kept as its own compact Card (existing feature, unchanged fields) -->
+  <section class="mb-6 rounded-2xl border border-line bg-paper p-5 shadow-card">
+    <h2 class="mb-3 font-bold">নতুন পরীক্ষা যোগ করুন <span class="text-sm font-normal text-muted">· Add Exam</span></h2>
+    <form class="grid gap-3 sm:grid-cols-3">
+      <div class="sm:col-span-2">
+        <label class="mb-1 block text-xs font-semibold text-muted">পরীক্ষার নাম</label>
+        <input class="w-full rounded-md border border-line-strong bg-paper px-3 py-2 text-sm" placeholder="যেমন: অর্ধ-বার্ষিক পরীক্ষা ২০২৬" />
+      </div>
+      <div>
+        <label class="mb-1 block text-xs font-semibold text-muted">শিক্ষাবর্ষ</label>
+        <input type="number" value="2026" class="w-full rounded-md border border-line-strong bg-paper px-3 py-2 text-sm" />
+      </div>
+      <button type="button" class="sm:col-span-3 rounded-full bg-brand-500 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600">+ পরীক্ষা যোগ করুন</button>
+    </form>
+  </section>
+
+  <!-- Pattern B: List/table -> ONE Card, full table unchanged, header = title + primary action -->
+  <section class="mb-6 rounded-2xl border border-line bg-paper p-5 shadow-card">
+    <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+      <h2 class="font-bold">পরীক্ষার তালিকা <span class="text-sm font-normal text-muted">· Exam List</span></h2>
+      <div class="flex flex-wrap items-center gap-2">
+        <input placeholder="পরীক্ষার নাম খুঁজুন" class="rounded-md border border-line-strong bg-paper px-3 py-1.5 text-sm" />
+        <select class="rounded-md border border-line-strong bg-paper px-3 py-1.5 text-sm">
+          <option>সকল শ্রেণি</option>
+          <option>ষষ্ঠ শ্রেণি - ক</option>
+          <option>অষ্টম শ্রেণি - খ</option>
+          <option>দশম শ্রেণি - বিজ্ঞান</option>
+        </select>
+        <select class="rounded-md border border-line-strong bg-paper px-3 py-1.5 text-sm">
+          <option>সকল অবস্থা</option>
+          <option>চলমান</option>
+          <option>বন্ধ</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full border-collapse">
+        <thead>
+          <tr class="border-b border-line-strong">
+            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">পরীক্ষার নাম</th>
+            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">শ্রেণি</th>
+            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">শিক্ষাবর্ষ</th>
+            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">শুরুর তারিখ</th>
+            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">অবস্থা</th>
+            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">কার্যক্রম</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-line">
+            <td class="px-3 py-2 text-sm font-medium">অর্ধ-বার্ষিক পরীক্ষা ২০২৬</td>
+            <td class="px-3 py-2 text-sm">ষষ্ঠ শ্রেণি - ক</td>
+            <td class="px-3 py-2 text-sm">2026</td>
+            <td class="px-3 py-2 text-sm">১০ আগস্ট ২০২৬</td>
+            <td class="px-3 py-2 text-sm"><span class="rounded-full bg-mint-soft px-2 py-0.5 text-xs font-semibold text-mint-deep">চলমান</span></td>
+            <td class="px-3 py-2 text-sm">
+              <div class="flex flex-wrap items-center gap-2">
+                <a href="exams-profile.html" class="rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted">সম্পাদনা</a>
+                <a href="exams-seat-plan.html" class="rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted">সিট প্ল্যান</a>
+                <button type="button" class="rounded-full bg-alert-soft px-3 py-1 text-xs font-semibold text-alert-deep hover:bg-alert/20">পরীক্ষা বন্ধ করুন</button>
+              </div>
+            </td>
+          </tr>
+          <tr class="border-b border-line">
+            <td class="px-3 py-2 text-sm font-medium">নির্বাচনী পরীক্ষা ২০২৬</td>
+            <td class="px-3 py-2 text-sm">অষ্টম শ্রেণি - খ</td>
+            <td class="px-3 py-2 text-sm">2026</td>
+            <td class="px-3 py-2 text-sm">০৫ জুলাই ২০২৬</td>
+            <td class="px-3 py-2 text-sm"><span class="rounded-full bg-mint-soft px-2 py-0.5 text-xs font-semibold text-mint-deep">চলমান</span></td>
+            <td class="px-3 py-2 text-sm">
+              <div class="flex flex-wrap items-center gap-2">
+                <a href="exams-profile.html" class="rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted">সম্পাদনা</a>
+                <a href="exams-seat-plan.html" class="rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted">সিট প্ল্যান</a>
+                <button type="button" class="rounded-full bg-alert-soft px-3 py-1 text-xs font-semibold text-alert-deep hover:bg-alert/20">পরীক্ষা বন্ধ করুন</button>
+              </div>
+            </td>
+          </tr>
+          <tr class="border-b border-line">
+            <td class="px-3 py-2 text-sm font-medium">প্রথম সাময়িক পরীক্ষা ২০২৬</td>
+            <td class="px-3 py-2 text-sm">নবম শ্রেণি - ক</td>
+            <td class="px-3 py-2 text-sm">2026</td>
+            <td class="px-3 py-2 text-sm">১২ মার্চ ২০২৬</td>
+            <td class="px-3 py-2 text-sm"><span class="rounded-full bg-paper-muted px-2 py-0.5 text-xs font-semibold text-muted">🔒 বন্ধ</span></td>
+            <td class="px-3 py-2 text-sm">
+              <span class="text-xs text-muted" title="পরীক্ষা বন্ধ থাকায় সম্পাদনা করা যাবে না">সম্পাদনা · সিট প্ল্যান — লক করা</span>
+            </td>
+          </tr>
+          <tr>
+            <td class="px-3 py-2 text-sm font-medium">নির্বাচনী পরীক্ষা ২০২৫</td>
+            <td class="px-3 py-2 text-sm">দশম শ্রেণি - বিজ্ঞান</td>
+            <td class="px-3 py-2 text-sm">2025</td>
+            <td class="px-3 py-2 text-sm">০৩ নভেম্বর ২০২৫</td>
+            <td class="px-3 py-2 text-sm"><span class="rounded-full bg-paper-muted px-2 py-0.5 text-xs font-semibold text-muted">🔒 বন্ধ</span></td>
+            <td class="px-3 py-2 text-sm">
+              <span class="text-xs text-muted" title="পরীক্ষা বন্ধ থাকায় সম্পাদনা করা যাবে না">সম্পাদনা · সিট প্ল্যান — লক করা</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p class="mt-3 text-xs text-muted">দ্রষ্টব্য: পরীক্ষা একবার বন্ধ করা হলে তা স্থায়ীভাবে বন্ধ থাকবে — পুনরায় খোলার সুযোগ নেই।</p>
+  </section>
+
+  <!-- NEW ADDITION (map #192): school-wide exam calendar, aggregates every open exam's routine entries -->
+  <section class="rounded-2xl border border-line bg-paper p-5 shadow-card">
+    <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+      <div>
+        <h2 class="font-bold">পরীক্ষার ক্যালেন্ডার <span class="text-sm font-normal text-muted">· Exam Calendar</span> <span class="ml-1 rounded-full bg-sun-soft px-2 py-0.5 text-[10px] font-bold text-sun-deep align-middle">NEW</span></h2>
+        <p class="text-xs text-muted">সকল চলমান পরীক্ষার রুটিন এন্ট্রি একত্রে — school-wide, aggregated from every open exam's routine entries.</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <button type="button" class="rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted">‹ জুলাই</button>
+        <span class="text-sm font-bold">আগস্ট ২০২৬</span>
+        <button type="button" class="rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted">সেপ্টেম্বর ›</button>
+      </div>
+    </div>
+
+    <!-- legend -->
+    <div class="mb-3 flex flex-wrap items-center gap-3 text-xs">
+      <span class="flex items-center gap-1"><span class="size-2.5 rounded-full bg-brand-500"></span>অর্ধ-বার্ষিক পরীক্ষা ২০২৬</span>
+      <span class="flex items-center gap-1"><span class="size-2.5 rounded-full bg-sky"></span>নির্বাচনী পরীক্ষা ২০২৬</span>
+      <span class="flex items-center gap-1"><span class="size-2.5 rounded-full bg-mint"></span>প্রথম সাময়িক পরীক্ষা ২০২৬</span>
+    </div>
+
+    <div class="overflow-x-auto">
+      <div class="grid min-w-[640px] grid-cols-7 gap-px overflow-hidden rounded-md border border-line bg-line text-xs">
+        <div class="bg-paper-muted p-2 text-center font-semibold text-muted">রবি</div>
+        <div class="bg-paper-muted p-2 text-center font-semibold text-muted">সোম</div>
+        <div class="bg-paper-muted p-2 text-center font-semibold text-muted">মঙ্গল</div>
+        <div class="bg-paper-muted p-2 text-center font-semibold text-muted">বুধ</div>
+        <div class="bg-paper-muted p-2 text-center font-semibold text-muted">বৃহস্পতি</div>
+        <div class="bg-paper-muted p-2 text-center font-semibold text-muted">শুক্র</div>
+        <div class="bg-paper-muted p-2 text-center font-semibold text-muted">শনি</div>
+
+        <div class="min-h-20 bg-paper p-1.5 text-muted">২৬</div>
+        <div class="min-h-20 bg-paper p-1.5 text-muted">২৭</div>
+        <div class="min-h-20 bg-paper p-1.5 text-muted">২৮</div>
+        <div class="min-h-20 bg-paper p-1.5 text-muted">২৯</div>
+        <div class="min-h-20 bg-paper p-1.5 text-muted">৩০</div>
+        <div class="min-h-20 bg-paper p-1.5 text-muted">৩১</div>
+        <div class="min-h-20 bg-paper p-1.5">১</div>
+
+        <div class="min-h-20 bg-paper p-1.5">২</div>
+        <div class="min-h-20 bg-paper p-1.5">৩</div>
+        <div class="min-h-20 bg-paper p-1.5">৪</div>
+        <div class="min-h-20 bg-paper p-1.5">৫
+          <div class="mt-1 truncate rounded bg-mint-soft px-1 py-0.5 text-[10px] font-semibold text-mint-deep">গণিত (৯ম)</div>
+        </div>
+        <div class="min-h-20 bg-paper p-1.5">৬
+          <div class="mt-1 truncate rounded bg-mint-soft px-1 py-0.5 text-[10px] font-semibold text-mint-deep">ইংরেজি (৯ম)</div>
+        </div>
+        <div class="min-h-20 bg-paper p-1.5">৭</div>
+        <div class="min-h-20 bg-paper p-1.5">৮</div>
+
+        <div class="min-h-20 bg-brand-50 p-1.5 ring-1 ring-inset ring-brand-300">৯</div>
+        <div class="min-h-20 bg-brand-50 p-1.5 ring-1 ring-inset ring-brand-300 font-bold">১০
+          <div class="mt-1 truncate rounded bg-brand-100 px-1 py-0.5 text-[10px] font-semibold text-brand-700">বাংলা (৬ষ্ঠ)</div>
+        </div>
+        <div class="min-h-20 bg-brand-50 p-1.5 ring-1 ring-inset ring-brand-300">১১
+          <div class="mt-1 truncate rounded bg-brand-100 px-1 py-0.5 text-[10px] font-semibold text-brand-700">ইংরেজি (৬ষ্ঠ)</div>
+        </div>
+        <div class="min-h-20 bg-brand-50 p-1.5 ring-1 ring-inset ring-brand-300">১২
+          <div class="mt-1 truncate rounded bg-brand-100 px-1 py-0.5 text-[10px] font-semibold text-brand-700">গণিত (৬ষ্ঠ)</div>
+        </div>
+        <div class="min-h-20 bg-paper p-1.5">১৩</div>
+        <div class="min-h-20 bg-paper p-1.5">১৪</div>
+        <div class="min-h-20 bg-paper p-1.5">১৫</div>
+
+        <div class="min-h-20 bg-paper p-1.5">১৬</div>
+        <div class="min-h-20 bg-paper p-1.5">১৭</div>
+        <div class="min-h-20 bg-paper p-1.5">১৮
+          <div class="mt-1 truncate rounded bg-sky-soft px-1 py-0.5 text-[10px] font-semibold text-sky-deep">পদার্থ (১০ম-বিজ্ঞান)</div>
+        </div>
+        <div class="min-h-20 bg-paper p-1.5">১৯
+          <div class="mt-1 truncate rounded bg-sky-soft px-1 py-0.5 text-[10px] font-semibold text-sky-deep">রসায়ন (১০ম-বিজ্ঞান)</div>
+        </div>
+        <div class="min-h-20 bg-paper p-1.5">২০</div>
+        <div class="min-h-20 bg-paper p-1.5">২১</div>
+        <div class="min-h-20 bg-paper p-1.5">২২</div>
+      </div>
+    </div>
+    <p class="mt-3 text-xs text-muted">একটি এন্ট্রিতে ক্লিক করলে সংশ্লিষ্ট পরীক্ষার রুটিন পাতায় যাওয়া যাবে (mockup — non-interactive)।</p>
+  </section>
+
+</main>
+</body>
+</html>

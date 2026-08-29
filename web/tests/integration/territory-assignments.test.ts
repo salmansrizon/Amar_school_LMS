@@ -13,6 +13,26 @@ describe('Dealer & Government Official Territory assignment (issue #4)', () => {
   let division: string, district: string, upazila: string, union1: string
   let schoolAId: string, schoolBId: string
 
+  async function ensureGovOfficial() {
+    const { data: created, error } = await admin.rpc('create_vendor_user', {
+      user_email: 'gov-1@test.local',
+      user_password: PASSWORD,
+      user_full_name: 'Test Gov Official',
+      user_role: 'gov_official',
+    })
+    if (error) {
+      const { data: existing } = await admin
+        .from('profiles')
+        .select('id')
+        .eq('role', 'gov_official')
+        .eq('full_name', 'Test Gov Official')
+        .single()
+      if (!existing) throw new Error(`gov exists but profile not found: ${error.message}`)
+      return existing.id
+    }
+    return created as string
+  }
+
   beforeAll(async () => {
     admin = await signedIn('super@test.local')
     await admin.from('locations').delete().eq('name', 'T4-Division')
@@ -38,7 +58,7 @@ describe('Dealer & Government Official Territory assignment (issue #4)', () => {
       user_email: DEALER_EMAIL,
       user_password: PASSWORD,
       user_full_name: 'Test Dealer One',
-      user_role: 'dealer',
+      user_role: 'distributor',
     })
     if (error) {
       // Already created in a prior run — resolve the SAME account by its name,
@@ -46,7 +66,7 @@ describe('Dealer & Government Official Territory assignment (issue #4)', () => {
       const { data: existing } = await admin
         .from('profiles')
         .select('id')
-        .eq('role', 'dealer')
+        .eq('role', 'distributor')
         .eq('full_name', 'Test Dealer One')
         .single()
       if (!existing) throw new Error(`dealer exists but profile not found: ${error.message}`)
@@ -128,27 +148,21 @@ describe('Dealer & Government Official Territory assignment (issue #4)', () => {
   })
 
   it('tier is rejected on Government Official assignments', async () => {
-    const { data: gov, error: govErr } = await admin.rpc('create_vendor_user', {
-      user_email: 'gov-1@test.local',
-      user_password: PASSWORD,
-      user_full_name: 'Test Gov Official',
-      user_role: 'gov_official',
-    })
-    const govId = govErr
-      ? (
-          await admin
-            .from('profiles')
-            .select('id')
-            .eq('role', 'gov_official')
-            .eq('full_name', 'Test Gov Official')
-            .single()
-        ).data!.id
-      : (gov as string)
-
+    const govId = await ensureGovOfficial()
     const { error } = await admin.from('territory_assignments').insert({
       assignee_id: govId, location_id: division, tier: 'zilla',
     })
     expect(error).not.toBeNull()
+    await admin.from('territory_assignments').delete().eq('assignee_id', govId)
+  })
+
+  it('a Government Official can overlap a Distributor territory', async () => {
+    const govId = await ensureGovOfficial()
+    const { error } = await admin.from('territory_assignments').insert({
+      assignee_id: govId,
+      location_id: district,
+    })
+    expect(error).toBeNull()
     await admin.from('territory_assignments').delete().eq('assignee_id', govId)
   })
 })

@@ -40,7 +40,7 @@ export default async function GovOfficialDetailPage({ params }: { params: Promis
   ])
 
   return (
-    <main className="mx-auto w-full max-w-2xl flex-1 p-6">
+    <main className="w-full p-6">
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold">{official.full_name ?? official.id}</h1>
         <Link href="/super-admin/gov-officials" className="text-sm text-brand-600 hover:underline">
@@ -48,7 +48,7 @@ export default async function GovOfficialDetailPage({ params }: { params: Promis
         </Link>
       </div>
 
-      <section className="mb-6 rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="mb-6 rounded-lg border border-line bg-paper p-5">
         <h2 className="mb-3 font-bold">{t('sa.gov.profile', lang)}</h2>
         <GovProfileForm
           profileId={official.id}
@@ -58,18 +58,18 @@ export default async function GovOfficialDetailPage({ params }: { params: Promis
         />
       </section>
 
-      <section className="mb-6 rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="mb-6 rounded-lg border border-line bg-paper p-5">
         <h2 className="mb-3 font-bold">{t('sa.gov.territory', lang)}</h2>
         <AddAssignmentForm
           assigneeId={official.id}
-          isDealer={false}
+          isDistributor={false}
           locations={(locations ?? []) as LocationRow[]}
           schools={schools ?? []}
           lang={lang}
         />
       </section>
 
-      <section className="rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="rounded-lg border border-line bg-paper p-5">
         <AssignmentList assignments={(assignments ?? []) as AssignmentRow[]} assigneeId={official.id} lang={lang} />
       </section>
     </main>

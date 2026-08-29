@@ -49,7 +49,7 @@ export default async function AssetsPage({
   const today = new Date()
 
   return (
-    <main className="mx-auto w-full max-w-5xl flex-1 p-6">
+    <div>
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold">{t('assets.title', lang)}</h1>
         <Link href="/school" aria-label={t('common.back', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
@@ -57,7 +57,7 @@ export default async function AssetsPage({
 
       <AccountingTabs active="assets" lang={lang} />
 
-      <section className="mb-6 rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="mb-6 rounded-lg border border-line bg-paper p-5">
         <h2 className="mb-3 font-bold">{t('assets.categoriesTitle', lang)}</h2>
         <NewAssetCategoryForm lang={lang} />
         {!categories?.length ? (
@@ -73,7 +73,7 @@ export default async function AssetsPage({
         )}
       </section>
 
-      <section className="mb-6 rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="mb-6 rounded-lg border border-line bg-paper p-5">
         <h2 className="mb-3 font-bold">{t('assets.newTitle', lang)}</h2>
         {!categories?.length ? (
           <p className="text-sm text-muted">{t('assets.noCategories', lang)}</p>
@@ -82,7 +82,7 @@ export default async function AssetsPage({
         )}
       </section>
 
-      <section className="overflow-x-auto rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="overflow-x-auto rounded-lg border border-line bg-paper p-5">
         <Form className="mb-4 flex flex-wrap items-center gap-2" action="/school/fees/assets">
           <input
             name="q"
@@ -165,6 +165,6 @@ export default async function AssetsPage({
           </table>
         )}
       </section>
-    </main>
+    </div>
   )
 }

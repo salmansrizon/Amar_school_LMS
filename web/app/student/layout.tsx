@@ -1,0 +1,170 @@
+import { currentLang } from '@/lib/i18n-server'
+import { sidebarCollapsed } from '@/lib/ui-prefs-server'
+import { AppShell, type AppNavItem } from '@/components/app-shell'
+import { StrokeIcon } from '@/components/stroke-icon'
+import { t } from '@/lib/i18n'
+import { getStudentContext } from '@/lib/student/context'
+import { STUDENT_SEARCH } from '@/lib/school-search'
+
+// /student/* chrome (#441) — the shared AppShell (#285), same as every other
+// role group. Nav starts with Home only; each later ticket on map #434 adds the
+// one entry its own screen needs, so nothing is linked before it exists.
+export default async function StudentLayout({ children }: { children: React.ReactNode }) {
+  const lang = await currentLang()
+  const collapsed = await sidebarCollapsed()
+  const { student } = await getStudentContext()
+
+  const nav: AppNavItem[] = [
+    {
+      href: '/student',
+      label: t('student.nav.home', lang),
+      matchExact: true,
+      icon: (
+        <StrokeIcon className="size-5">
+          <path d="M3 10.5 12 3l9 7.5" />
+          <path d="M5 9.5V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9.5" />
+        </StrokeIcon>
+      ),
+    },
+    {
+      href: '/student/routine',
+      label: t('student.nav.routine', lang),
+      icon: (
+        <StrokeIcon className="size-5">
+          <rect x="3" y="4" width="18" height="17" rx="2" />
+          <path d="M3 10h18M8 2v4M16 2v4" />
+        </StrokeIcon>
+      ),
+    },
+    {
+      href: '/student/notices',
+      label: t('student.nav.notices', lang),
+      icon: (
+        <StrokeIcon className="size-5">
+          <path d="M4 4h16v13H8l-4 4V4Z" />
+          <path d="M8 9h8M8 13h5" />
+        </StrokeIcon>
+      ),
+    },
+    {
+      href: '/student/tasks',
+      label: t('student.nav.tasks', lang),
+      icon: (
+        <StrokeIcon className="size-5">
+          <path d="M9 11l3 3L22 4" />
+          <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+        </StrokeIcon>
+      ),
+    },
+    {
+      href: '/student/materials',
+      label: t('student.nav.materials', lang),
+      icon: (
+        <StrokeIcon className="size-5">
+          <path d="M4 5a2 2 0 0 1 2-2h9l5 5v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5Z" />
+          <path d="M15 3v5h5" />
+        </StrokeIcon>
+      ),
+    },
+    {
+      href: '/student/results',
+      label: t('student.nav.results', lang),
+      icon: (
+        <StrokeIcon className="size-5">
+          <path d="M12 3 3 8l9 5 9-5-9-5Z" />
+          <path d="M7 11v5c0 1.1 2.2 2 5 2s5-.9 5-2v-5" />
+        </StrokeIcon>
+      ),
+    },
+    {
+      href: '/student/exams',
+      label: t('student.nav.exams', lang),
+      icon: (
+        <StrokeIcon className="size-5">
+          <rect x="4" y="3" width="16" height="18" rx="2" />
+          <path d="M8 8h8M8 12h8M8 16h4" />
+        </StrokeIcon>
+      ),
+    },
+    {
+      href: '/student/attendance',
+      label: t('student.nav.attendance', lang),
+      icon: (
+        <StrokeIcon className="size-5">
+          <rect x="3" y="4" width="18" height="17" rx="2" />
+          <path d="M3 10h18M8 2v4M16 2v4M9 15l2 2 4-4" />
+        </StrokeIcon>
+      ),
+    },
+    {
+      href: '/student/leave',
+      label: t('student.nav.leave', lang),
+      icon: (
+        <StrokeIcon className="size-5">
+          <path d="M12 3v9l5 3" />
+          <circle cx="12" cy="12" r="9" />
+        </StrokeIcon>
+      ),
+    },
+    {
+      href: '/student/fees',
+      label: t('student.nav.fees', lang),
+      icon: (
+        <StrokeIcon className="size-5">
+          <rect x="2" y="6" width="20" height="12" rx="2" />
+          <circle cx="12" cy="12" r="2.5" />
+        </StrokeIcon>
+      ),
+    },
+    {
+      href: '/student/questions',
+      label: t('student.nav.questions', lang),
+      icon: (
+        <StrokeIcon className="size-5">
+          <circle cx="12" cy="12" r="9" />
+          <path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.7M12 17h.01" />
+        </StrokeIcon>
+      ),
+    },
+    {
+      href: '/student/profile',
+      label: t('student.nav.profile', lang),
+      icon: (
+        <StrokeIcon className="size-5">
+          <circle cx="12" cy="8" r="4" />
+          <path d="M4 21c0-4 3.6-6 8-6s8 2 8 6" />
+        </StrokeIcon>
+      ),
+    },
+  ]
+
+  return (
+    <AppShell
+      brand={{ title: t('app.name', lang), subtitle: t('home.student', lang), initial: 'E' }}
+      nav={nav}
+      profile={{ fullName: student.full_name, label: t('shell.profile', lang) }}
+      lang={lang}
+      initialCollapsed={collapsed}
+      notificationsHref="/student/notifications"
+      search={{
+        label: t('student.search', lang),
+        // Entries, not a renderer — see AppShellSearch. The dynamic record hits
+        // still come from globalRecordSearch's `student` branch inside the palette.
+        entries: STUDENT_SEARCH.map((e) => ({
+          label: t(e.titleKey, lang),
+          keywords: e.keywords,
+          href: e.href,
+          icon: (
+            <StrokeIcon className="size-4">
+              <circle cx="11" cy="11" r="7" />
+              <path d="m20 20-3.5-3.5" />
+            </StrokeIcon>
+          ),
+        })),
+      }}
+      contentContainer={false}
+    >
+      {children}
+    </AppShell>
+  )
+}

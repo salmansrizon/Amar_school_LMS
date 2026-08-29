@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>Prototype #207 — School Dashboard (Pattern B)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          ink: '#131313', 'ink-card': '#1c1c1c',
+          paper: '#ffffff', 'paper-muted': '#f4f4f6',
+          line: '#ececec', 'line-strong': '#d8d8d8', muted: '#767676',
+          brand: { 50: '#f1eefe', 100: '#e3dcfd', 300: '#b3a4f7', 500: '#6d4dfb', 600: '#5a37e8', 700: '#4826c4' },
+          mint: { DEFAULT: '#00d26a', deep: '#0a7a48', soft: '#e6f9ef' },
+          sun: { DEFAULT: '#ffc94a', deep: '#c98a00', soft: '#fff6e0' },
+          alert: { DEFAULT: '#ef4444', deep: '#dc2626', soft: '#fdeaea' },
+          sky: { DEFAULT: '#00b2ff', deep: '#0077b8', soft: '#e5f6ff' },
+        },
+        borderRadius: { sm: '8px', md: '14px', lg: '20px' },
+        boxShadow: { card: '0 12px 32px rgb(0 0 0 / 0.08)', modal: '0 24px 64px rgb(0 0 0 / 0.16)' },
+      }
+    }
+  }
+</script>
+<style>
+  body { font-family: 'Plus Jakarta Sans', 'Hind Siliguri', system-ui, sans-serif; }
+  .prototype-banner { position: sticky; top: 0; z-index: 50; }
+</style>
+</head>
+<body class="bg-paper-muted text-ink">
+
+<div class="prototype-banner bg-ink text-white text-xs font-semibold px-4 py-2 flex items-center justify-between">
+  <span>🧪 THROWAWAY PROTOTYPE — map #207 · ticket <a href="https://github.com/salmansrizon/Amar_school_LMS/issues/213" class="underline">#213 Dashboards</a> — School Owner dashboard, Pattern B (card-shell, content unchanged) — real content shown as-of app/school/page.tsx, no logic changed</span>
+</div>
+
+<div class="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
+
+  <div class="mb-6">
+    <p class="text-xs font-semibold uppercase tracking-[0.24em] text-brand-600">স্বাগতম · Welcome</p>
+    <h1 class="mt-1 text-2xl font-extrabold tracking-tight sm:text-3xl">স্কুল ড্যাশবোর্ড · School Dashboard</h1>
+    <p class="mt-1 text-sm text-muted">রহিমা বেগম · rahima@adarshamodel.edu.bd</p>
+  </div>
+
+  <!-- StatTile row — unchanged, already matches the Card spec (rounded-2xl border bg-paper shadow-card) -->
+  <div class="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+    <div class="rounded-2xl border border-line/70 bg-paper/92 p-5 shadow-card backdrop-blur">
+      <div class="flex items-start justify-between gap-2">
+        <div class="text-xs font-semibold uppercase tracking-wide text-muted">মোট শিক্ষার্থী · Total Students</div>
+        <span class="flex size-9 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600">👨‍🎓</span>
+      </div>
+      <div class="mt-3 flex items-baseline gap-2">
+        <span class="text-3xl font-extrabold tracking-tight tabular-nums text-brand-600">৪২৬</span>
+      </div>
+      <div class="mt-1 text-xs font-medium text-muted">সক্রিয় শিক্ষার্থী · Active students</div>
+    </div>
+
+    <div class="rounded-2xl border border-line/70 bg-paper/92 p-5 shadow-card backdrop-blur">
+      <div class="flex items-start justify-between gap-2">
+        <div class="text-xs font-semibold uppercase tracking-wide text-muted">মোট কর্মচারী · Total Employees</div>
+        <span class="flex size-9 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600">👥</span>
+      </div>
+      <div class="mt-3 flex items-baseline gap-2">
+        <span class="text-3xl font-extrabold tracking-tight tabular-nums text-ink">৩৮</span>
+      </div>
+      <div class="mt-1 text-xs font-medium text-muted">শিক্ষক ও স্টাফ · Teachers & staff</div>
+    </div>
+
+    <div class="rounded-2xl border border-line/70 bg-paper/92 p-5 shadow-card backdrop-blur">
+      <div class="flex items-start justify-between gap-2">
+        <div class="text-xs font-semibold uppercase tracking-wide text-muted">আজকের উপস্থিতি · Attendance Today</div>
+        <span class="flex size-9 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600">✅</span>
+      </div>
+      <div class="mt-3 flex items-baseline gap-2">
+        <span class="text-3xl font-extrabold tracking-tight tabular-nums text-ink">৯২%</span>
+        <span class="rounded-full px-2 py-0.5 text-xs font-semibold bg-mint-soft text-mint-deep">●</span>
+      </div>
+      <div class="mt-1 text-xs font-medium text-muted">৩৯২ · ২ আগস্ট</div>
+    </div>
+
+    <div class="rounded-2xl border border-line/70 bg-paper/92 p-5 shadow-card backdrop-blur">
+      <div class="flex items-start justify-between gap-2">
+        <div class="text-xs font-semibold uppercase tracking-wide text-muted">সাবস্ক্রিপশন · Subscription</div>
+        <span class="flex size-9 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600">🔑</span>
+      </div>
+      <div class="mt-3 flex items-baseline gap-2">
+        <span class="text-3xl font-extrabold tracking-tight tabular-nums text-brand-700">সক্রিয়</span>
+        <span class="rounded-full px-2 py-0.5 text-xs font-semibold bg-mint-soft text-mint-deep">●</span>
+      </div>
+      <div class="mt-1 text-xs font-medium text-muted">মেয়াদ শেষ · Expires 30 Sep 2026</div>
+    </div>
+  </div>
+
+  <!-- Activity checklist — wrapped as a Card (was a bespoke component, now uses the shared Card shell) -->
+  <div class="mt-6 rounded-2xl border border-line/70 bg-paper/92 shadow-card backdrop-blur p-5">
+    <h2 class="mb-3 text-sm font-bold uppercase tracking-wide text-muted">দৈনিক কার্যক্রম চেকলিস্ট · Daily Activity Checklist</h2>
+    <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
+      <label class="flex items-center gap-2 rounded-xl border border-line px-3 py-2 text-sm bg-mint-soft/40">
+        <input type="checkbox" checked class="accent-mint-deep"> উপস্থিতি নেওয়া হয়েছে
+      </label>
+      <label class="flex items-center gap-2 rounded-xl border border-line px-3 py-2 text-sm bg-mint-soft/40">
+        <input type="checkbox" checked class="accent-mint-deep"> ফি সংগ্রহ আপডেট
+      </label>
+      <label class="flex items-center gap-2 rounded-xl border border-line px-3 py-2 text-sm">
+        <input type="checkbox" class="accent-mint-deep"> নোটিশ প্রকাশ
+      </label>
+      <label class="flex items-center gap-2 rounded-xl border border-line px-3 py-2 text-sm">
+        <input type="checkbox" class="accent-mint-deep"> গ্যালারি আপডেট
+      </label>
+    </div>
+  </div>
+
+  <!-- Upcoming + Quick Actions — both now consistently wrapped in Cards -->
+  <div class="mt-6 grid gap-6 lg:grid-cols-3">
+    <section class="lg:col-span-2">
+      <div class="mb-3 flex items-center justify-between gap-2">
+        <h2 class="text-sm font-bold uppercase tracking-wide text-muted">আসন্ন কার্যক্রম · Upcoming</h2>
+        <a href="#" class="inline-flex items-center gap-1 text-xs font-semibold text-brand-600 hover:text-brand-700">সব দেখুন · View all →</a>
+      </div>
+      <div class="rounded-2xl border border-line/70 bg-paper/92 shadow-card backdrop-blur divide-y divide-line">
+        <div class="flex items-center justify-between px-5 py-3 text-sm">
+          <span class="font-medium">অর্ধবার্ষিক পরীক্ষা ২০২৬ শুরু</span>
+          <span class="text-muted">১০ ডিসেম্বর</span>
+        </div>
+        <div class="flex items-center justify-between px-5 py-3 text-sm">
+          <span class="font-medium">বিজয় দিবস (ছুটি)</span>
+          <span class="text-muted">১৬ ডিসেম্বর</span>
+        </div>
+        <div class="flex items-center justify-between px-5 py-3 text-sm">
+          <span class="font-medium">গণিত — ৩য় শ্রেণি, ২য় পিরিয়ড</span>
+          <span class="text-muted">আজ</span>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="mb-3 text-sm font-bold uppercase tracking-wide text-muted">দ্রুত কার্যক্রম · Quick Actions</h2>
+      <div class="flex flex-col gap-2">
+        <a href="#" class="flex min-h-11 items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold shadow-sm bg-brand-600 text-white hover:bg-brand-700">
+          <span class="flex size-8 shrink-0 items-center justify-center rounded-lg bg-white/20 text-white">➕</span>
+          নতুন ভর্তি · New Admission
+        </a>
+        <a href="#" class="flex min-h-11 items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold shadow-sm border border-line-strong bg-paper text-ink hover:border-brand-300">
+          <span class="flex size-8 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-600">✅</span>
+          উপস্থিতি নিন · Mark Attendance
+        </a>
+        <a href="#" class="flex min-h-11 items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold shadow-sm border border-line-strong bg-paper text-ink hover:border-brand-300">
+          <span class="flex size-8 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-600">💰</span>
+          ফি সংগ্রহ · Collect Fee
+        </a>
+      </div>
+    </section>
+  </div>
+
+</div>
+</body>
+</html>

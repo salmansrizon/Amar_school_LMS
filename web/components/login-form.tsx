@@ -4,12 +4,9 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { AuthCard, inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
-import { postLoginDestination } from '@/lib/auth/post-login'
-import { isSchoolMemberRole } from '@/lib/auth/routing'
-import { firstRelation } from '@/lib/supabase/relation'
+import { signInAction } from '@/lib/auth/session-actions'
 import { t } from '@/lib/i18n'
 import { useLang } from '@/lib/use-lang'
-import { createClient } from '@/lib/supabase/client'
 import type { SchoolBrand } from '@/lib/school-branding'
 
 // Login form. On a tenant subdomain it renders inside the school's branded
@@ -26,32 +23,18 @@ export function LoginForm({ brand }: { brand: SchoolBrand | null }) {
     setBusy(true)
     setError(false)
     setBlocked(false)
+    // Sign-in, the suspension check (#161) and the role routing all run in one
+    // server action now. The session is established server-side and the browser
+    // never touches it (#527).
     const form = new FormData(e.currentTarget)
-    const supabase = createClient()
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: String(form.get('email')),
-      password: String(form.get('password')),
-    })
-    if (error) {
-      setError(true)
+    const result = await signInAction(String(form.get('email')), String(form.get('password')))
+    if ('error' in result) {
+      if (result.error === 'blocked') setBlocked(true)
+      else setError(true)
       setBusy(false)
       return
     }
-    // Hard block: a deactivated school (issue #161) denies its owner/staff login.
-    // Sign back out so no session lingers, and show the suspension message.
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role, schools(deactivated_at)')
-      .eq('id', data.user.id)
-      .single()
-    const school = firstRelation(profile?.schools)
-    if (isSchoolMemberRole(profile?.role) && (school?.deactivated_at ?? null) !== null) {
-      await supabase.auth.signOut()
-      setBlocked(true)
-      setBusy(false)
-      return
-    }
-    router.replace(await postLoginDestination(supabase))
+    router.replace(result.destination)
   }
 
   return (

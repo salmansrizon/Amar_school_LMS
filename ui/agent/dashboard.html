@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>ড্যাশবোর্ড · Dashboard — Agent Portal</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../shared/design-system.css">
+<script src="../shared/app.js" defer></script>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="mark">A</span><span>Agent Portal</span></div>
+    <nav>
+      <a class="nav-item active" href="dashboard.html"><span data-i18n="bn">ড্যাশবোর্ড</span><span data-i18n="en">Dashboard</span></a>
+      <a class="nav-item" href="dashboard.html#today-tasks"><span data-i18n="bn">আমার টাস্ক</span><span data-i18n="en">My Tasks</span></a>
+      <a class="nav-item" href="dashboard.html#schools"><span data-i18n="bn">অ্যাসাইন করা স্কুল</span><span data-i18n="en">Assigned Schools</span></a>
+      <a class="nav-item" href="dashboard.html#training"><span data-i18n="bn">প্রশিক্ষণ</span><span data-i18n="en">Training</span></a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="title"><span data-i18n="bn">ড্যাশবোর্ড</span><span data-i18n="en">Dashboard</span></div>
+      <div class="actions">
+        <a class="btn btn-secondary btn-sm" href="../index.html" title="Home">🏠</a>
+        <a class="btn btn-secondary btn-sm" href="../sitemap.html" title="Sitemap">📋</a>
+        <div class="lang-switch">
+          <button data-lang-btn="bn" onclick="setLang('bn')">বাং</button>
+          <button data-lang-btn="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="theme-switch">
+          <button data-theme-btn="light" onclick="setTheme('light')">☀</button>
+          <button data-theme-btn="dark" onclick="setTheme('dark')">☾</button>
+          <button data-theme-btn="system" onclick="setTheme('system')">Auto</button>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="label"><span data-i18n="bn">অ্যাসাইন করা স্কুল</span><span data-i18n="en">Assigned Schools</span></div>
+          <div class="value">9</div>
+          <div class="delta text-secondary"><span data-i18n="bn">২টি জেলা জুড়ে</span><span data-i18n="en">across 2 districts</span></div>
+        </div>
+        <div class="kpi-card">
+          <div class="label"><span data-i18n="bn">আজকের টাস্ক</span><span data-i18n="en">Today's Tasks</span></div>
+          <div class="value">4</div>
+          <div class="delta text-secondary"><span data-i18n="bn">১টি বিলম্বিত</span><span data-i18n="en">1 overdue</span></div>
+        </div>
+        <div class="kpi-card">
+          <div class="label"><span data-i18n="bn">খোলা টিকেট</span><span data-i18n="en">Open Tickets</span></div>
+          <div class="value">3</div>
+          <div class="delta text-secondary"><span data-i18n="bn">১টি জরুরি</span><span data-i18n="en">1 critical</span></div>
+        </div>
+        <div class="kpi-card">
+          <div class="label"><span data-i18n="bn">কর্মক্ষমতা স্কোর</span><span data-i18n="en">Performance Score</span></div>
+          <div class="value">82 <span class="badge badge-info"><span data-i18n="bn">ভালো</span><span data-i18n="en">Good</span></span></div>
+          <div class="delta text-secondary"><span data-i18n="bn">* গণনার সূত্র এখনো চূড়ান্ত হয়নি — এটি একটি প্রাথমিক নমুনা মান</span><span data-i18n="en">* scoring formula TBD — this is a placeholder sample value, not a real metric</span></div>
+        </div>
+      </div>
+
+      <div id="today-tasks" class="card mb-4">
+        <h3 class="mt-0"><span data-i18n="bn">আজকের টাস্ক</span><span data-i18n="en">Today's Tasks</span></h3>
+        <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th><span data-i18n="bn">ধরন</span><span data-i18n="en">Type</span></th>
+              <th><span data-i18n="bn">স্কুল</span><span data-i18n="en">School</span></th>
+              <th><span data-i18n="bn">নির্ধারিত সময়</span><span data-i18n="en">Due Time</span></th>
+              <th><span data-i18n="bn">অবস্থা</span><span data-i18n="en">Status</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="badge badge-info"><span data-i18n="bn">ইমপ্লিমেন্টেশন</span><span data-i18n="en">Implementation</span></span></td>
+              <td><a href="task-detail.html"><span data-i18n="bn">কুমিল্লা মডেল স্কুল অ্যান্ড কলেজ</span><span data-i18n="en">Cumilla Model School & College</span></a></td>
+              <td><span data-i18n="bn">সকাল ১০:৩০</span><span data-i18n="en">10:30 AM</span></td>
+              <td><span class="badge badge-warning"><span data-i18n="bn">গৃহীত</span><span data-i18n="en">Accepted</span></span></td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-neutral"><span data-i18n="bn">প্রশিক্ষণ</span><span data-i18n="en">Training</span></span></td>
+              <td><a href="task-detail.html"><span data-i18n="bn">দেবিদ্বার উচ্চ বিদ্যালয়</span><span data-i18n="en">Debidwar High School</span></a></td>
+              <td><span data-i18n="bn">দুপুর ১২:০০</span><span data-i18n="en">12:00 PM</span></td>
+              <td><span class="badge badge-neutral"><span data-i18n="bn">নিয়োজিত</span><span data-i18n="en">Assigned</span></span></td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-danger"><span data-i18n="bn">সাপোর্ট</span><span data-i18n="en">Support</span></span></td>
+              <td><a href="task-detail.html"><span data-i18n="bn">বরুড়া গার্লস হাই স্কুল</span><span data-i18n="en">Barura Girls' High School</span></a></td>
+              <td><span data-i18n="bn">দুপুর ২:০০ (বিলম্বিত)</span><span data-i18n="en">2:00 PM (overdue)</span></td>
+              <td><span class="badge badge-info"><span data-i18n="bn">চলমান</span><span data-i18n="en">In Progress</span></span></td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-neutral"><span data-i18n="bn">হার্ডওয়্যার সেটআপ</span><span data-i18n="en">Hardware Setup</span></span></td>
+              <td><a href="task-detail.html"><span data-i18n="bn">সাচার উচ্চ বিদ্যালয়</span><span data-i18n="en">Sachar High School</span></a></td>
+              <td><span data-i18n="bn">বিকাল ৪:৩০</span><span data-i18n="en">4:30 PM</span></td>
+              <td><span class="badge badge-neutral"><span data-i18n="bn">নিয়োজিত</span><span data-i18n="en">Assigned</span></span></td>
+            </tr>
+          </tbody>
+        </table>
+        </div>
+      </div>
+
+      <div id="schools" class="card mb-4">
+        <h3 class="mt-0"><span data-i18n="bn">ভিজিট সময়সূচি</span><span data-i18n="en">Visit Schedule</span></h3>
+        <div class="timeline">
+          <div class="timeline-item">
+            <div class="dot"></div>
+            <div class="body">
+              <div class="head">
+                <span><span data-i18n="bn">২ আগস্ট — কুমিল্লা মডেল স্কুল অ্যান্ড কলেজ</span><span data-i18n="en">Aug 2 — Cumilla Model School & College</span></span>
+                <span class="when"><span data-i18n="bn">আজ</span><span data-i18n="en">Today</span></span>
+              </div>
+              <div class="note"><span data-i18n="bn">উদ্দেশ্য: সফটওয়্যার ইমপ্লিমেন্টেশন ফলোআপ</span><span data-i18n="en">Purpose: Software implementation follow-up</span></div>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="dot"></div>
+            <div class="body">
+              <div class="head">
+                <span><span data-i18n="bn">৩ আগস্ট — দেবিদ্বার উচ্চ বিদ্যালয়</span><span data-i18n="en">Aug 3 — Debidwar High School</span></span>
+                <span class="when"><span data-i18n="bn">আগামীকাল</span><span data-i18n="en">Tomorrow</span></span>
+              </div>
+              <div class="note"><span data-i18n="bn">উদ্দেশ্য: শিক্ষক প্রশিক্ষণ সেশন</span><span data-i18n="en">Purpose: Teacher training session</span></div>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="dot"></div>
+            <div class="body">
+              <div class="head">
+                <span><span data-i18n="bn">৫ আগস্ট — সাচার উচ্চ বিদ্যালয়</span><span data-i18n="en">Aug 5 — Sachar High School</span></span>
+                <span class="when"><span data-i18n="bn">৩ দিন পর</span><span data-i18n="en">In 3 days</span></span>
+              </div>
+              <div class="note"><span data-i18n="bn">উদ্দেশ্য: বায়োমেট্রিক হার্ডওয়্যার ইনস্টলেশন</span><span data-i18n="en">Purpose: Biometric hardware installation</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="tickets" class="card">
+        <h3 class="mt-0"><span data-i18n="bn">খোলা টিকেট (সাপোর্ট টাস্ক)</span><span data-i18n="en">Open Tickets (Support Tasks)</span></h3>
+        <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th><span data-i18n="bn">স্কুল</span><span data-i18n="en">School</span></th>
+              <th><span data-i18n="bn">উত্থাপনের তারিখ</span><span data-i18n="en">Raised Date</span></th>
+              <th><span data-i18n="bn">গুরুত্ব</span><span data-i18n="en">Severity</span></th>
+              <th><span data-i18n="bn">অবস্থা</span><span data-i18n="en">Status</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><a href="task-detail.html"><span data-i18n="bn">বরুড়া গার্লস হাই স্কুল</span><span data-i18n="en">Barura Girls' High School</span></a></td>
+              <td>০১ আগস্ট ২০২৬</td>
+              <td><span class="badge badge-danger"><span data-i18n="bn">জরুরি — কোম্পানিতে এসকেলেটেড</span><span data-i18n="en">Critical — Escalated to Company</span></span></td>
+              <td><span class="badge badge-info"><span data-i18n="bn">চলমান</span><span data-i18n="en">In Progress</span></span></td>
+            </tr>
+            <tr>
+              <td><a href="task-detail.html"><span data-i18n="bn">আদর্শ উচ্চ বিদ্যালয়, সাভার</span><span data-i18n="en">Adarsha High School, Savar</span></a></td>
+              <td>৩০ জুলাই ২০২৬</td>
+              <td><span class="badge badge-neutral"><span data-i18n="bn">সাধারণ</span><span data-i18n="en">Normal</span></span></td>
+              <td><span class="badge badge-warning"><span data-i18n="bn">গৃহীত</span><span data-i18n="en">Accepted</span></span></td>
+            </tr>
+            <tr>
+              <td><a href="task-detail.html"><span data-i18n="bn">সাচার উচ্চ বিদ্যালয়</span><span data-i18n="en">Sachar High School</span></a></td>
+              <td>২৮ জুলাই ২০২৬</td>
+              <td><span class="badge badge-neutral"><span data-i18n="bn">সাধারণ</span><span data-i18n="en">Normal</span></span></td>
+              <td><span class="badge badge-neutral"><span data-i18n="bn">নিয়োজিত</span><span data-i18n="en">Assigned</span></span></td>
+            </tr>
+          </tbody>
+        </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

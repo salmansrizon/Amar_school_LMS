@@ -13,6 +13,7 @@ begin
   return new;
 end $$;
 
+drop trigger if exists exam_touch on public.exams;
 create trigger exam_touch
   before update on public.exams
   for each row execute function public.touch_exam();

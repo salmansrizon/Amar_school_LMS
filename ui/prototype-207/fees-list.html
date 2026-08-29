@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ফি আদায় — Prototype 207</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          ink: '#131313',
+          'ink-card': '#1c1c1c',
+          paper: '#ffffff',
+          'paper-muted': '#f4f4f6',
+          line: '#ececec',
+          'line-strong': '#d8d8d8',
+          muted: '#767676',
+          brand: { 50: '#f1eefe', 100: '#e3dcfd', 300: '#b3a4f7', 500: '#6d4dfb', 600: '#5a37e8', 700: '#4826c4' },
+          mint: { DEFAULT: '#00d26a', deep: '#0a7a48', soft: '#e6f9ef' },
+          sun: { DEFAULT: '#ffc94a', deep: '#c98a00', soft: '#fff6e0' },
+          alert: { DEFAULT: '#ef4444', deep: '#dc2626', soft: '#fdeaea' },
+          sky: { DEFAULT: '#00b2ff', deep: '#0077b8', soft: '#e5f6ff' },
+        },
+        borderRadius: { sm: '8px', md: '14px', lg: '20px' },
+        boxShadow: { card: '0 12px 32px rgb(0 0 0 / 0.08)' },
+        fontFamily: { sans: ["'Plus Jakarta Sans'", "'Hind Siliguri'", 'system-ui', 'sans-serif'] },
+      },
+    },
+  }
+</script>
+<style>
+  body { background: #f4f4f6; color: #131313; font-family: 'Plus Jakarta Sans', 'Hind Siliguri', system-ui, sans-serif; }
+</style>
+</head>
+<body class="min-h-screen">
+
+<div class="sticky top-0 z-50 bg-ink text-white text-xs font-semibold px-4 py-2">
+  🧪 THROWAWAY PROTOTYPE — map #207 · ticket <a href="https://github.com/salmansrizon/Amar_school_LMS/issues/219" class="underline">#219 Fees</a> — Fees Collection: roster table + collection form + recent records become 3 stacked Pattern B Cards; the 7-tab Accounting bar and every roster column are kept, dense table stays inside overflow-x-auto.
+</div>
+
+<main class="mx-auto w-full max-w-4xl flex-1 p-6">
+
+  <div class="mb-4 flex items-center justify-between">
+    <h1 class="text-2xl font-extrabold">ফি আদায়</h1>
+    <a href="#" aria-label="ফিরে যান" class="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-5"><path d="m15 18-6-6 6-6" /></svg>
+    </a>
+  </div>
+
+  <!-- 7-tab Accounting sub-nav, unchanged -->
+  <nav class="mb-4 flex flex-nowrap gap-2 overflow-x-auto border-b border-line text-sm font-semibold">
+    <a href="#" class="shrink-0 whitespace-nowrap px-3 py-2 text-muted hover:text-ink">ফি কাঠামো</a>
+    <span class="shrink-0 whitespace-nowrap border-b-2 border-brand-500 px-3 py-2 text-brand-700">ফি আদায়</span>
+    <a href="#" class="shrink-0 whitespace-nowrap px-3 py-2 text-muted hover:text-ink">ভাউচার</a>
+    <a href="#" class="shrink-0 whitespace-nowrap px-3 py-2 text-muted hover:text-ink">সম্পদ</a>
+    <a href="#" class="shrink-0 whitespace-nowrap px-3 py-2 text-muted hover:text-ink">ব্যাংক ও নগদ</a>
+    <a href="#" class="shrink-0 whitespace-nowrap px-3 py-2 text-muted hover:text-ink">পরিচালকের মূলধন</a>
+    <a href="#" class="shrink-0 whitespace-nowrap px-3 py-2 text-muted hover:text-ink">সাধারণ খতিয়ান</a>
+  </nav>
+
+  <!-- Roster Card: title + filter controls in header, table unchanged -->
+  <section class="mb-6 rounded-2xl border border-line bg-paper p-5 shadow-card">
+    <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+      <h2 class="font-bold">শিক্ষার্থী তালিকা</h2>
+      <div class="flex flex-wrap items-center gap-2">
+        <select class="rounded-md border border-line bg-paper px-3 py-1.5 text-sm">
+          <option>অষ্টম শ্রেণি — ক</option>
+          <option>সকল শ্রেণি</option>
+        </select>
+        <select class="rounded-md border border-line bg-paper px-3 py-1.5 text-sm">
+          <option>০৬</option>
+          <option>০৭</option>
+          <option>০৮</option>
+        </select>
+        <input type="number" value="2026" class="w-24 rounded-md border border-line bg-paper px-3 py-1.5 text-sm" />
+        <button type="button" class="cursor-pointer rounded-full border border-line px-3 py-1 text-xs font-semibold hover:bg-paper-muted">ফিল্টার</button>
+      </div>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full border-collapse">
+        <thead>
+          <tr class="border-b border-line-strong">
+            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">রোল</th>
+            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">নাম</th>
+            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">শ্রেণি/শাখা</th>
+            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">মাস</th>
+            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">অবস্থা</th>
+            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">কার্যক্রম</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-line">
+            <td class="px-3 py-2 text-sm">০১</td>
+            <td class="px-3 py-2 text-sm font-medium">মোঃ রাকিবুল ইসলাম</td>
+            <td class="px-3 py-2 text-sm">অষ্টম / ক</td>
+            <td class="px-3 py-2 text-sm">৭/২০২৬</td>
+            <td class="px-3 py-2 text-sm"><span class="rounded-full px-2 py-0.5 text-xs font-semibold bg-mint-soft text-mint-deep">আদায়কৃত</span></td>
+            <td class="px-3 py-2 text-sm"><a href="#collect-form" class="rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted">সম্পাদনা</a></td>
+          </tr>
+          <tr class="border-b border-line">
+            <td class="px-3 py-2 text-sm">০২</td>
+            <td class="px-3 py-2 text-sm font-medium">ফাতেমা আক্তার</td>
+            <td class="px-3 py-2 text-sm">অষ্টম / ক</td>
+            <td class="px-3 py-2 text-sm">৭/২০২৬</td>
+            <td class="px-3 py-2 text-sm"><span class="rounded-full px-2 py-0.5 text-xs font-semibold bg-sun-soft text-sun-deep">অনাদায়ী</span></td>
+            <td class="px-3 py-2 text-sm"><a href="#collect-form" class="rounded-full bg-brand-500 px-3 py-1 text-xs font-semibold text-white hover:bg-brand-600">আদায় করুন</a></td>
+          </tr>
+          <tr class="border-b border-line">
+            <td class="px-3 py-2 text-sm">০৩</td>
+            <td class="px-3 py-2 text-sm font-medium">আব্দুল্লাহ আল মামুন</td>
+            <td class="px-3 py-2 text-sm">অষ্টম / ক</td>
+            <td class="px-3 py-2 text-sm">৭/২০২৬</td>
+            <td class="px-3 py-2 text-sm"><span class="rounded-full px-2 py-0.5 text-xs font-semibold bg-sun-soft text-sun-deep">অনাদায়ী</span></td>
+            <td class="px-3 py-2 text-sm"><a href="#collect-form" class="rounded-full bg-brand-500 px-3 py-1 text-xs font-semibold text-white hover:bg-brand-600">আদায় করুন</a></td>
+          </tr>
+          <tr class="border-b border-line">
+            <td class="px-3 py-2 text-sm">০৪</td>
+            <td class="px-3 py-2 text-sm font-medium">নুসরাত জাহান</td>
+            <td class="px-3 py-2 text-sm">অষ্টম / ক</td>
+            <td class="px-3 py-2 text-sm">৭/২০২৬</td>
+            <td class="px-3 py-2 text-sm"><span class="rounded-full px-2 py-0.5 text-xs font-semibold bg-mint-soft text-mint-deep">আদায়কৃত</span></td>
+            <td class="px-3 py-2 text-sm"><a href="#collect-form" class="rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted">সম্পাদনা</a></td>
+          </tr>
+          <tr>
+            <td class="px-3 py-2 text-sm">০৫</td>
+            <td class="px-3 py-2 text-sm font-medium">তানভীর আহমেদ</td>
+            <td class="px-3 py-2 text-sm">অষ্টম / ক</td>
+            <td class="px-3 py-2 text-sm">৭/২০২৬</td>
+            <td class="px-3 py-2 text-sm"><span class="rounded-full px-2 py-0.5 text-xs font-semibold bg-sun-soft text-sun-deep">অনাদায়ী</span></td>
+            <td class="px-3 py-2 text-sm"><a href="#collect-form" class="rounded-full bg-brand-500 px-3 py-1 text-xs font-semibold text-white hover:bg-brand-600">আদায় করুন</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Duplicate-record notice (unchanged), then Collection form Card -->
+  <div class="mb-4 rounded-lg border border-sun-deep/30 bg-sun-soft p-4">
+    <p class="text-xs text-sun-deep">এই মাসের জন্য ইতিমধ্যে একটি ফি রেকর্ড বিদ্যমান — সম্পাদনা করলে তা প্রতিস্থাপিত হবে।</p>
+  </div>
+
+  <section id="collect-form" class="mb-6 rounded-2xl border border-line bg-paper p-5 shadow-card">
+    <form class="grid gap-3 sm:grid-cols-4">
+      <h3 class="text-sm font-bold sm:col-span-4">আদায় করুন — মোঃ রাকিবুল ইসলাম (রোল ০১)</h3>
+      <p class="-mt-2 text-xs text-muted sm:col-span-4">অষ্টম / ক · ৭/২০২৬</p>
+
+      <div>
+        <label class="mb-1 block text-xs font-semibold text-muted">ফি এর পরিমাণ</label>
+        <input type="number" value="1200" class="w-full rounded-md border border-line bg-paper px-3 py-2 text-sm" />
+      </div>
+      <div>
+        <label class="mb-1 block text-xs font-semibold text-muted">জরিমানা</label>
+        <input type="number" value="0" class="w-full rounded-md border border-line bg-paper px-3 py-2 text-sm" />
+        <button type="button" class="mt-1 cursor-pointer text-xs font-semibold text-brand-600 hover:underline">গণনা করুন (অনুপস্থিতির ভিত্তিতে)</button>
+      </div>
+      <div>
+        <label class="mb-1 block text-xs font-semibold text-muted">ছাড়/বৃত্তি</label>
+        <input type="number" value="0" class="w-full rounded-md border border-line bg-paper px-3 py-2 text-sm" />
+      </div>
+      <div>
+        <label class="mb-1 block text-xs font-semibold text-muted">মোট প্রদেয়</label>
+        <input type="text" disabled value="৳1200.00" class="w-full rounded-md border border-line bg-paper-muted px-3 py-2 text-sm" />
+      </div>
+      <div>
+        <label class="mb-1 block text-xs font-semibold text-muted">পদ্ধতি</label>
+        <select class="w-full rounded-md border border-line bg-paper px-3 py-2 text-sm">
+          <option>নগদ</option>
+          <option>চেক</option>
+          <option>ব্যাংক</option>
+        </select>
+      </div>
+      <div>
+        <label class="mb-1 block text-xs font-semibold text-muted">গৃহীত পরিমাণ</label>
+        <input type="number" value="1200" class="w-full rounded-md border border-line bg-paper px-3 py-2 text-sm" />
+      </div>
+      <div>
+        <label class="mb-1 block text-xs font-semibold text-muted">বকেয়া</label>
+        <input type="text" disabled value="৳0.00" class="w-full rounded-md border border-line bg-paper-muted px-3 py-2 text-sm" />
+      </div>
+      <div class="sm:col-span-4">
+        <label class="mb-1 block text-xs font-semibold text-muted">মন্তব্য</label>
+        <input type="text" placeholder="ঐচ্ছিক মন্তব্য" class="w-full rounded-md border border-line bg-paper px-3 py-2 text-sm" />
+      </div>
+      <button type="submit" class="sm:col-span-4 h-11 rounded-full bg-brand-500 px-4 text-sm font-semibold text-white hover:bg-brand-600">আদায় করুন ও রশিদ প্রিন্ট করুন</button>
+    </form>
+  </section>
+
+  <!-- Recent records Card -->
+  <section class="overflow-x-auto rounded-2xl border border-line bg-paper p-5 shadow-card">
+    <h2 class="mb-3 font-bold">সাম্প্রতিক রেকর্ড</h2>
+    <table class="w-full text-sm">
+      <tbody class="divide-y divide-line">
+        <tr>
+          <td class="py-2 font-medium">মোঃ রাকিবুল ইসলাম</td>
+          <td class="py-2 text-muted">৭/২০২৬</td>
+          <td class="py-2">৳১২০০</td>
+          <td class="py-2 text-muted">বকেয়া: ৳০</td>
+          <td class="py-2 text-right"><a href="fees-receipt.html" class="rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted">রশিদ</a></td>
+        </tr>
+        <tr>
+          <td class="py-2 font-medium">নুসরাত জাহান</td>
+          <td class="py-2 text-muted">৭/২০২৬</td>
+          <td class="py-2">৳৯০০</td>
+          <td class="py-2 text-muted">বকেয়া: ৳৩০০</td>
+          <td class="py-2 text-right"><a href="fees-receipt.html" class="rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted">রশিদ</a></td>
+        </tr>
+        <tr>
+          <td class="py-2 font-medium">সুমাইয়া ইসলাম</td>
+          <td class="py-2 text-muted">৬/২০২৬</td>
+          <td class="py-2">৳১১০০</td>
+          <td class="py-2 text-muted">বকেয়া: ৳০</td>
+          <td class="py-2 text-right"><a href="fees-receipt.html" class="rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted">রশিদ</a></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+</main>
+</body>
+</html>

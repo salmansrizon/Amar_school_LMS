@@ -1,24 +1,38 @@
-import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
 import { t } from '@/lib/i18n'
+import { getSchoolContext } from '@/lib/school/context'
+import { safeReturnPath } from '@/lib/auth/return-path'
+import { DeniedState } from '@/components/ui/states'
 
-export default async function PermissionDeniedPage() {
+// #538: a refusal is a designed state. It says what was refused, where to go
+// instead, and who can lift it. The proxy passes the intended destination in
+// `from` (proxy.ts), which is why this page reads searchParams at all.
+export default async function PermissionDeniedPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ from?: string }>
+}) {
+  const { from } = await searchParams
   const lang = await currentLang()
+  const { supabase, schoolId } = await getSchoolContext()
+
+  // The Owner's own contact details are not readable by a Staff User, but the
+  // institute's are — and in a Bangladeshi school those are the Owner's phone in
+  // practice. A missing number renders no button rather than a dead one.
+  const { data: school } = await supabase
+    .from('schools')
+    .select('mobile, email')
+    .eq('id', schoolId)
+    .maybeSingle()
+  const contactHref = school?.mobile ? `tel:${school.mobile}` : school?.email ? `mailto:${school.email}` : null
+
   return (
-    <main className="flex flex-1 items-center justify-center p-6">
-      <div className="w-full max-w-md rounded-lg border border-line bg-paper p-8 text-center shadow-card">
-        <div className="mx-auto mb-3 flex size-12 items-center justify-center rounded-full bg-alert-soft text-2xl">
-          🚫
-        </div>
-        <h1 className="text-xl font-bold">{t('denied.title', lang)}</h1>
-        <p className="mt-2 text-sm text-muted">{t('denied.body', lang)}</p>
-        <Link
-          href="/school"
-          className="mt-5 inline-flex h-10 items-center rounded-full bg-brand-500 px-5 text-sm font-semibold text-white hover:bg-brand-600"
-        >
-          {t('denied.back', lang)}
-        </Link>
-      </div>
-    </main>
+    <DeniedState
+      destination={safeReturnPath(from)}
+      homeHref="/school"
+      contactHref={contactHref}
+      contactLabel={school?.mobile ? `${t('denied.contact', lang)} — ${school.mobile}` : null}
+      lang={lang}
+    />
   )
 }

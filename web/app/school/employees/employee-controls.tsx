@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { t, type Lang } from '@/lib/i18n'
-import { addOfficeTime, setCategoryGrace, setDefaultGrace, setOfficeTimeAssignment } from './actions'
+import { addOfficeTime, setCategoryGrace, setDefaultGrace, setEmployeeLogin, setOfficeTimeAssignment } from './actions'
 
 const input =
   'h-9 w-full rounded-sm border border-line-strong bg-paper px-2 text-sm outline-none focus:border-brand-500'
@@ -109,5 +109,54 @@ export function OfficeTimeToggle({
     >
       {officeTimeName}
     </button>
+  )
+}
+
+/** Links an Employee to one of the School's Staff User logins (#443). Owner-only
+ *  in practice: `profiles` RLS only lets a School Owner list their school's
+ *  logins, so a Staff User sees an empty picker and the page hides it. */
+export function LoginLinkPicker({
+  lang,
+  employeeId,
+  current,
+  logins,
+}: {
+  lang: Lang
+  employeeId: string
+  current: string | null
+  logins: { id: string; full_name: string | null }[]
+}) {
+  const [error, setError] = useState<string | null>(null)
+  const [pending, startTransition] = useTransition()
+
+  return (
+    <div>
+      <label className={label} htmlFor="employee_login">
+        {t('employees.loginLink', lang)}
+      </label>
+      <select
+        id="employee_login"
+        defaultValue={current ?? ''}
+        disabled={pending}
+        className={input}
+        onChange={(e) => {
+          const value = e.target.value || null
+          startTransition(async () => {
+            setError(null)
+            const result = await setEmployeeLogin(employeeId, value)
+            if (result.error) setError(result.error)
+          })
+        }}
+      >
+        <option value="">{t('employees.loginLinkNone', lang)}</option>
+        {logins.map((login) => (
+          <option key={login.id} value={login.id}>
+            {login.full_name ?? login.id}
+          </option>
+        ))}
+      </select>
+      <p className="mt-1 text-xs text-muted">{t('employees.loginLinkHint', lang)}</p>
+      {error && <p className="mt-1 text-xs text-alert-deep">{error}</p>}
+    </div>
   )
 }

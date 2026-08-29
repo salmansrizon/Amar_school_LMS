@@ -1,12 +1,20 @@
 import Link from 'next/link'
 import { StrokeIcon } from '@/components/stroke-icon'
 import { FOCUS_RING } from '@/lib/ui-tokens'
+import { railClass, type Tone } from '@/components/ui/page'
 
 // Reusable presentational primitives for the super-admin dashboard design
 // language (map #171, T1). Server-safe — no client state — so pages and server
 // components both render them. The business landing (T3) and schools manager
 // (T4) build entirely out of these, so spacing / radius / typography stay in one
 // place. Tokens (brand/ink/muted/line/paper) match components/school-shell.tsx.
+//
+// Re-laid onto the map #370 archetype (gate #372): hairline surfaces
+// (rounded-2xl/shadow-sm -> rounded-lg/border, no shadow), status rail on
+// KpiCard, and KPI_TONES moved off raw Tailwind emerald/amber/rose onto the
+// Family mint/sun/alert tokens everything else in the app uses for the same
+// meanings — same prop names (`tone="green"` etc. still works, every caller
+// across super-admin is unchanged), different, governed colours underneath.
 
 /** BDT money for display — grouped digits with the ৳ sign. The data layer keeps
  *  amounts as plain numbers (map #171 T2); formatting is the UI's job. */
@@ -38,10 +46,14 @@ export function PageHeader({
 
 const KPI_TONES = {
   brand: 'bg-brand-50 text-brand-600',
-  green: 'bg-emerald-50 text-emerald-600',
-  amber: 'bg-amber-50 text-amber-600',
-  rose: 'bg-rose-50 text-rose-600',
+  green: 'bg-mint-soft text-mint-deep',
+  amber: 'bg-sun-soft text-sun-deep',
+  rose: 'bg-alert-soft text-alert-deep',
 } as const
+
+// Same keys as KPI_TONES so callers pass one `tone` prop; this is the only
+// place the rail's four-colour vocabulary meets the KPI card's own naming.
+const KPI_RAIL: Record<KpiTone, Tone> = { brand: 'brand', green: 'mint', amber: 'sun', rose: 'alert' }
 
 export type KpiTone = keyof typeof KPI_TONES
 
@@ -65,12 +77,12 @@ export function KpiCard({
 }) {
   const deltaUp = delta !== undefined && delta >= 0
   return (
-    <div className="flex flex-col gap-3 rounded-2xl border border-line/70 bg-paper p-4 shadow-sm sm:p-5">
+    <div className={`flex flex-col gap-3 rounded-lg border border-line bg-paper p-4 sm:p-5 ${railClass(KPI_RAIL[tone])}`}>
       <div className="flex items-start justify-between gap-3">
         <span className="text-sm font-semibold text-muted">{label}</span>
         {icon && (
           <span
-            className={`flex size-9 shrink-0 items-center justify-center rounded-xl ${KPI_TONES[tone]}`}
+            className={`flex size-9 shrink-0 items-center justify-center rounded-md ${KPI_TONES[tone]}`}
             aria-hidden="true"
           >
             <StrokeIcon className="size-5">{icon}</StrokeIcon>
@@ -95,22 +107,26 @@ export function KpiCard({
 }
 
 /** A titled content panel with an optional right-aligned action. Everything on
- *  the landing / schools pages that isn't a KPI card lives inside one of these. */
+ *  the landing / schools pages that isn't a KPI card lives inside one of these.
+ *  `tone` adds the status rail down its left edge (e.g. a school's lifecycle
+ *  state on the schools manager). */
 export function SectionCard({
   title,
   action,
   bodyClassName = 'p-4 sm:p-5',
+  tone,
   children,
 }: {
   title?: string
   action?: React.ReactNode
   bodyClassName?: string
+  tone?: Tone
   children: React.ReactNode
 }) {
   return (
-    <section className="rounded-2xl border border-line/70 bg-paper shadow-sm">
+    <section className={`rounded-lg border border-line bg-paper ${tone ? railClass(tone) : ''}`}>
       {(title || action) && (
-        <div className="flex items-center justify-between gap-3 border-b border-line/70 px-4 py-3 sm:px-5">
+        <div className="flex items-center justify-between gap-3 border-b border-line px-4 py-3 sm:px-5">
           {title && <h2 className="truncate text-sm font-extrabold text-ink">{title}</h2>}
           {action && <div className="shrink-0">{action}</div>}
         </div>
@@ -135,7 +151,7 @@ export function QuickAction({
 }) {
   const styles =
     variant === 'solid'
-      ? 'bg-brand-600 text-white shadow-sm hover:bg-brand-700'
+      ? 'bg-brand-600 text-white hover:bg-brand-700'
       : 'border border-line-strong text-ink hover:bg-brand-50 hover:text-brand-600'
   return (
     <Link

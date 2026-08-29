@@ -41,6 +41,7 @@ begin
   return new;
 end $$;
 
+drop trigger if exists fee_structure_same_school on public.fee_structures;
 create trigger fee_structure_same_school
   before insert or update on public.fee_structures
   for each row execute function public.enforce_fee_structure_school();
@@ -52,6 +53,7 @@ begin
   return new;
 end $$;
 
+drop trigger if exists fee_structure_touch on public.fee_structures;
 create trigger fee_structure_touch
   before update on public.fee_structures
   for each row execute function public.touch_fee_structure();

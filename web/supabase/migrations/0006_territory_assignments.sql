@@ -33,6 +33,7 @@ begin
   return new;
 end $$;
 
+drop trigger if exists territory_assignee_role on public.territory_assignments;
 create trigger territory_assignee_role
   before insert or update on public.territory_assignments
   for each row execute function public.check_territory_assignee();

@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>মডিউল কনফিগারেশন · Module Configuration — Super Admin</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../shared/design-system.css">
+<script src="../shared/app.js" defer></script>
+<style>
+  .module-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: var(--space-4); }
+  .module-card { display: flex; flex-direction: column; gap: var(--space-2); }
+  .module-card .head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
+  .module-card .name { font-weight: 700; font-size: var(--text-sm); }
+  .module-card .desc { font-size: var(--text-xs); color: var(--text-secondary); }
+
+  /* Fake toggle switch */
+  .switch { position: relative; display: inline-block; width: 40px; height: 22px; flex-shrink: 0; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .switch .track {
+    position: absolute; inset: 0; cursor: pointer;
+    background: var(--border-strong); border-radius: var(--radius-full); transition: background .15s;
+  }
+  .switch .track::before {
+    content: ''; position: absolute; width: 16px; height: 16px; left: 3px; top: 3px;
+    background: var(--gray-0); border-radius: 50%; transition: transform .15s;
+  }
+  .switch input:checked + .track { background: var(--success-fg); }
+  .switch input:checked + .track::before { transform: translateX(18px); }
+
+  .submodules {
+    margin-top: var(--space-2); padding-top: var(--space-2);
+    border-top: 1px dashed var(--border-default);
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .submodules .sub-row {
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: var(--text-xs); color: var(--text-secondary);
+  }
+  .submodules .sub-row label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+  .submodules summary { cursor: pointer; font-size: var(--text-xs); color: var(--accent); font-weight: 600; list-style: none; }
+  .submodules summary::-webkit-details-marker { display: none; }
+  .submodules summary::before { content: '▸ '; }
+  details[open] .submodules summary::before { content: '▾ '; }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="mark">A</span><span>Super Admin</span></div>
+    <nav>
+      <a class="nav-item" href="schools-list.html"><span data-i18n="bn">স্কুলসমূহ</span><span data-i18n="en">Schools</span></a>
+      <a class="nav-item" href="dealers-list.html"><span data-i18n="bn">ডিলার</span><span data-i18n="en">Dealers</span></a>
+      <a class="nav-item" href="gov-officials-list.html"><span data-i18n="bn">সরকারি কর্মকর্তা</span><span data-i18n="en">Government Officials</span></a>
+      <a class="nav-item" href="codes-list.html"><span data-i18n="bn">সাবস্ক্রিপশন কোড</span><span data-i18n="en">Subscription Codes</span></a>
+      <a class="nav-item" href="locations-tree.html"><span data-i18n="bn">টেরিটরি ও লোকেশন</span><span data-i18n="en">Territory & Locations</span></a>
+      <a class="nav-item" href="vendor-accounting-ledger.html"><span data-i18n="bn">ভেন্ডর হিসাব</span><span data-i18n="en">Vendor Accounting</span></a>
+      <a class="nav-item" href="vendor-sms-compose.html"><span data-i18n="bn">ভেন্ডর এসএমএস</span><span data-i18n="en">Vendor SMS</span></a>
+      <a class="nav-item" href="central-holiday-calendar.html"><span data-i18n="bn">কেন্দ্রীয় ছুটির তালিকা</span><span data-i18n="en">Central Off-Day</span></a>
+      <a class="nav-item active" href="module-config.html"><span data-i18n="bn">মডিউল কনফিগারেশন</span><span data-i18n="en">Module Config</span></a>
+      <a class="nav-item" href="role-permissions.html"><span data-i18n="bn">রোল পারমিশন</span><span data-i18n="en">Role Permissions</span></a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="title"><span data-i18n="bn">মডিউল কনফিগারেশন</span><span data-i18n="en">Module Configuration</span></div>
+      <div class="actions">
+        <a class="btn btn-secondary btn-sm" href="../index.html" title="Home">🏠</a>
+        <a class="btn btn-secondary btn-sm" href="../sitemap.html" title="Sitemap">📋</a>
+        <div class="lang-switch">
+          <button data-lang-btn="bn" onclick="setLang('bn')">বাং</button>
+          <button data-lang-btn="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="theme-switch">
+          <button data-theme-btn="light" onclick="setTheme('light')">☀</button>
+          <button data-theme-btn="dark" onclick="setTheme('dark')">☾</button>
+          <button data-theme-btn="system" onclick="setTheme('system')">Auto</button>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+
+      <!-- SCHOOL PICKER -->
+      <div class="card mb-4">
+        <div class="toolbar" style="margin-bottom:0;">
+          <div class="field" style="min-width:320px;">
+            <label><span data-i18n="bn">স্কুল নির্বাচন করুন</span><span data-i18n="en">Select School</span></label>
+            <select>
+              <option selected><span data-i18n="bn">আদর্শ মডেল স্কুল (ডেমো)</span><span data-i18n="en">Adarsha Model School (Demo)</span> — EIIN 109876</option>
+              <option><span data-i18n="bn">নতুন দিন ট্রায়াল স্কুল</span><span data-i18n="en">Notun Din Trial School</span> — EIIN 118820</option>
+              <option><span data-i18n="bn">সেন্ট মেরি'স হাই স্কুল</span><span data-i18n="en">St. Mary's High School</span> — EIIN 102341</option>
+            </select>
+          </div>
+          <input class="search-input" type="text" placeholder="🔍 স্কুল খুঁজুন / Search school by name or EIIN">
+          <button class="btn btn-primary"><span data-i18n="bn">সংরক্ষণ করুন</span><span data-i18n="en">Save Changes</span></button>
+        </div>
+      </div>
+
+      <div class="card mb-4" style="background: var(--bg-surface-alt);">
+        <p class="mt-0" style="font-size: var(--text-sm); color: var(--text-secondary); margin-bottom:0;">
+          <span data-i18n="bn">এই টগলগুলো <code>school_module_configs</code> টেবিলকে প্রতিফলিত করে — সুপার অ্যাডমিন প্রতিটি স্কুলের জন্য আলাদাভাবে মডিউল চালু/বন্ধ করতে পারেন, যা প্যাকেজ/সাবস্ক্রিপশন সেটিংসের ওপরে অগ্রাধিকার পায়।</span>
+          <span data-i18n="en">These toggles reflect the <code>school_module_configs</code> table — Super Admin can override module availability per school, taking precedence over package/subscription defaults.</span>
+        </p>
+      </div>
+
+      <div class="module-grid">
+
+        <!-- Students -->
+        <div class="card module-card">
+          <div class="head">
+            <div>
+              <div class="name"><span data-i18n="bn">শিক্ষার্থী</span><span data-i18n="en">Students</span></div>
+              <div class="desc"><span data-i18n="bn">শিক্ষার্থী তথ্য ও ভর্তি ব্যবস্থাপনা</span><span data-i18n="en">Student records & admissions</span></div>
+            </div>
+            <label class="switch"><input type="checkbox" checked><span class="track"></span></label>
+          </div>
+        </div>
+
+        <!-- Employees -->
+        <div class="card module-card">
+          <div class="head">
+            <div>
+              <div class="name"><span data-i18n="bn">কর্মচারী</span><span data-i18n="en">Employees</span></div>
+              <div class="desc"><span data-i18n="bn">কর্মী তথ্য ও নিয়োগ ব্যবস্থাপনা</span><span data-i18n="en">Staff records & HR management</span></div>
+            </div>
+            <label class="switch"><input type="checkbox" checked><span class="track"></span></label>
+          </div>
+        </div>
+
+        <!-- Attendance -->
+        <div class="card module-card">
+          <div class="head">
+            <div>
+              <div class="name"><span data-i18n="bn">উপস্থিতি</span><span data-i18n="en">Attendance</span></div>
+              <div class="desc"><span data-i18n="bn">দৈনিক উপস্থিতি ট্র্যাকিং</span><span data-i18n="en">Daily attendance tracking</span></div>
+            </div>
+            <label class="switch"><input type="checkbox" checked><span class="track"></span></label>
+          </div>
+          <details class="submodules">
+            <summary><span data-i18n="bn">সাব-মডিউল</span><span data-i18n="en">Sub-modules</span> (2)</summary>
+            <div class="sub-row"><label><input type="checkbox" checked> <span data-i18n="bn">শিক্ষার্থী উপস্থিতি</span><span data-i18n="en">Student Attendance</span></label></div>
+            <div class="sub-row"><label><input type="checkbox" checked> <span data-i18n="bn">কর্মচারী উপস্থিতি</span><span data-i18n="en">Staff Attendance</span></label></div>
+          </details>
+        </div>
+
+        <!-- Examination -->
+        <div class="card module-card">
+          <div class="head">
+            <div>
+              <div class="name"><span data-i18n="bn">পরীক্ষা</span><span data-i18n="en">Examination</span></div>
+              <div class="desc"><span data-i18n="bn">পরীক্ষা সূচি, ফলাফল ও মার্কশিট</span><span data-i18n="en">Exam schedules, results & marksheets</span></div>
+            </div>
+            <label class="switch"><input type="checkbox" checked><span class="track"></span></label>
+          </div>
+          <details class="submodules">
+            <summary><span data-i18n="bn">সাব-মডিউল</span><span data-i18n="en">Sub-modules</span> (3)</summary>
+            <div class="sub-row"><label><input type="checkbox" checked> <span data-i18n="bn">পরীক্ষার সূচি</span><span data-i18n="en">Exam Schedule</span></label></div>
+            <div class="sub-row"><label><input type="checkbox" checked> <span data-i18n="bn">ফলাফল বই</span><span data-i18n="en">Result Book</span></label></div>
+            <div class="sub-row"><label><input type="checkbox"> <span data-i18n="bn">অ্যাডমিট কার্ড</span><span data-i18n="en">Admit Cards</span></label></div>
+          </details>
+        </div>
+
+        <!-- Fees -->
+        <div class="card module-card">
+          <div class="head">
+            <div>
+              <div class="name"><span data-i18n="bn">ফি</span><span data-i18n="en">Fees</span></div>
+              <div class="desc"><span data-i18n="bn">ফি কাঠামো ও আদায়</span><span data-i18n="en">Fee structures & collection</span></div>
+            </div>
+            <label class="switch"><input type="checkbox" checked><span class="track"></span></label>
+          </div>
+          <details class="submodules">
+            <summary><span data-i18n="bn">সাব-মডিউল</span><span data-i18n="en">Sub-modules</span> (3)</summary>
+            <div class="sub-row"><label><input type="checkbox" checked> <span data-i18n="bn">ফি কাঠামো</span><span data-i18n="en">Fee Structures</span></label></div>
+            <div class="sub-row"><label><input type="checkbox" checked> <span data-i18n="bn">অনুপস্থিতি জরিমানা</span><span data-i18n="en">Absent Fine</span></label></div>
+            <div class="sub-row"><label><input type="checkbox"> <span data-i18n="bn">অনলাইন পেমেন্ট গেটওয়ে</span><span data-i18n="en">Online Payment Gateway</span></label></div>
+          </details>
+        </div>
+
+        <!-- Accounting -->
+        <div class="card module-card">
+          <div class="head">
+            <div>
+              <div class="name"><span data-i18n="bn">হিসাব</span><span data-i18n="en">Accounting</span></div>
+              <div class="desc"><span data-i18n="bn">খরচ, আয় ও খতিয়ান</span><span data-i18n="en">Expenses, income & ledgers</span></div>
+            </div>
+            <label class="switch"><input type="checkbox" checked><span class="track"></span></label>
+          </div>
+        </div>
+
+        <!-- Payroll -->
+        <div class="card module-card">
+          <div class="head">
+            <div>
+              <div class="name"><span data-i18n="bn">বেতন</span><span data-i18n="en">Payroll</span></div>
+              <div class="desc"><span data-i18n="bn">কর্মচারী বেতন ব্যবস্থাপনা</span><span data-i18n="en">Staff salary management</span></div>
+            </div>
+            <label class="switch"><input type="checkbox"><span class="track"></span></label>
+          </div>
+        </div>
+
+        <!-- Library -->
+        <div class="card module-card">
+          <div class="head">
+            <div>
+              <div class="name"><span data-i18n="bn">গ্রন্থাগার</span><span data-i18n="en">Library</span></div>
+              <div class="desc"><span data-i18n="bn">বই ও ইস্যু ব্যবস্থাপনা</span><span data-i18n="en">Books & issue tracking</span></div>
+            </div>
+            <label class="switch"><input type="checkbox"><span class="track"></span></label>
+          </div>
+          <details class="submodules">
+            <summary><span data-i18n="bn">সাব-মডিউল</span><span data-i18n="en">Sub-modules</span> (2)</summary>
+            <div class="sub-row"><label><input type="checkbox"> <span data-i18n="bn">বই ক্যাটালগ</span><span data-i18n="en">Book Catalog</span></label></div>
+            <div class="sub-row"><label><input type="checkbox"> <span data-i18n="bn">ইস্যু ও ফেরত</span><span data-i18n="en">Issue & Return</span></label></div>
+          </details>
+        </div>
+
+        <!-- Hostel -->
+        <div class="card module-card">
+          <div class="head">
+            <div>
+              <div class="name"><span data-i18n="bn">হোস্টেল</span><span data-i18n="en">Hostel</span></div>
+              <div class="desc"><span data-i18n="bn">আবাসন ও সিট বরাদ্দ</span><span data-i18n="en">Boarding & seat allocation</span></div>
+            </div>
+            <label class="switch"><input type="checkbox"><span class="track"></span></label>
+          </div>
+        </div>
+
+        <!-- Transport -->
+        <div class="card module-card">
+          <div class="head">
+            <div>
+              <div class="name"><span data-i18n="bn">পরিবহন</span><span data-i18n="en">Transport</span></div>
+              <div class="desc"><span data-i18n="bn">যানবাহন ও রুট ব্যবস্থাপনা</span><span data-i18n="en">Vehicle & route management</span></div>
+            </div>
+            <label class="switch"><input type="checkbox"><span class="track"></span></label>
+          </div>
+        </div>
+
+        <!-- Inventory -->
+        <div class="card module-card">
+          <div class="head">
+            <div>
+              <div class="name"><span data-i18n="bn">ইনভেন্টরি</span><span data-i18n="en">Inventory</span></div>
+              <div class="desc"><span data-i18n="bn">সম্পদ ও মজুদ ব্যবস্থাপনা</span><span data-i18n="en">Asset & stock management</span></div>
+            </div>
+            <label class="switch"><input type="checkbox"><span class="track"></span></label>
+          </div>
+        </div>
+
+        <!-- SMS -->
+        <div class="card module-card">
+          <div class="head">
+            <div>
+              <div class="name"><span data-i18n="bn">এসএমএস</span><span data-i18n="en">SMS</span></div>
+              <div class="desc"><span data-i18n="bn">অভিভাবকদের বার্তা প্রেরণ</span><span data-i18n="en">Guardian notifications</span></div>
+            </div>
+            <label class="switch"><input type="checkbox" checked><span class="track"></span></label>
+          </div>
+        </div>
+
+        <!-- Notices -->
+        <div class="card module-card">
+          <div class="head">
+            <div>
+              <div class="name"><span data-i18n="bn">নোটিশ</span><span data-i18n="en">Notices</span></div>
+              <div class="desc"><span data-i18n="bn">নোটিশ বোর্ড ও ঘোষণা</span><span data-i18n="en">Notice board & announcements</span></div>
+            </div>
+            <label class="switch"><input type="checkbox" checked><span class="track"></span></label>
+          </div>
+        </div>
+
+        <!-- Gallery -->
+        <div class="card module-card">
+          <div class="head">
+            <div>
+              <div class="name"><span data-i18n="bn">গ্যালারি</span><span data-i18n="en">Gallery</span></div>
+              <div class="desc"><span data-i18n="bn">ফটো ও ইভেন্ট অ্যালবাম</span><span data-i18n="en">Photo & event albums</span></div>
+            </div>
+            <label class="switch"><input type="checkbox" checked><span class="track"></span></label>
+          </div>
+        </div>
+
+        <!-- Online Exam -->
+        <div class="card module-card">
+          <div class="head">
+            <div>
+              <div class="name"><span data-i18n="bn">অনলাইন পরীক্ষা</span><span data-i18n="en">Online Exam</span></div>
+              <div class="desc"><span data-i18n="bn">এমসিকিউ ও অনলাইন মূল্যায়ন</span><span data-i18n="en">MCQ & online assessments</span></div>
+            </div>
+            <label class="switch"><input type="checkbox"><span class="track"></span></label>
+          </div>
+        </div>
+
+        <!-- API -->
+        <div class="card module-card">
+          <div class="head">
+            <div>
+              <div class="name">API</div>
+              <div class="desc"><span data-i18n="bn">তৃতীয় পক্ষের ইন্টিগ্রেশন অ্যাক্সেস</span><span data-i18n="en">Third-party integration access</span></div>
+            </div>
+            <label class="switch"><input type="checkbox"><span class="track"></span></label>
+          </div>
+        </div>
+
+        <!-- Mobile App -->
+        <div class="card module-card">
+          <div class="head">
+            <div>
+              <div class="name"><span data-i18n="bn">মোবাইল অ্যাপ</span><span data-i18n="en">Mobile App</span></div>
+              <div class="desc"><span data-i18n="bn">অভিভাবক ও শিক্ষক অ্যাপ অ্যাক্সেস</span><span data-i18n="en">Guardian & teacher app access</span></div>
+            </div>
+            <label class="switch"><input type="checkbox" checked><span class="track"></span></label>
+          </div>
+        </div>
+
+        <!-- AI Features -->
+        <div class="card module-card">
+          <div class="head">
+            <div>
+              <div class="name"><span data-i18n="bn">এআই ফিচার</span><span data-i18n="en">AI Features</span></div>
+              <div class="desc"><span data-i18n="bn">স্বয়ংক্রিয় প্রতিবেদন ও পরামর্শ</span><span data-i18n="en">Automated insights & suggestions</span></div>
+            </div>
+            <label class="switch"><input type="checkbox"><span class="track"></span></label>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

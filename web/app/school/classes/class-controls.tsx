@@ -1,12 +1,16 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useMemo, useState, useTransition } from 'react'
 import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
 import { t, type Lang } from '@/lib/i18n'
 import { addClass, addSubject, removeItem } from './actions'
 import { selectClass } from '@/components/ui/field'
+import { ConfirmDialog } from '@/components/confirm-dialog'
+import { classCatalogueLabel, type ClassCatalogueRow } from '@/lib/class-catalogue'
+import { subjectSuggestionsForClass } from '@/lib/subject-catalogue'
+import { Combobox, ComboboxInputGroup, ComboboxInput, ComboboxTrigger, ComboboxPopup, ComboboxItem } from '@/components/ui/combobox'
 
-function useSubmit(action: (data: FormData) => Promise<{ error?: string }>) {
+function useSubmit(action: (data: FormData) => Promise<{ error?: string }>, onSuccess?: () => void) {
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
   const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -17,13 +21,21 @@ function useSubmit(action: (data: FormData) => Promise<{ error?: string }>) {
       setError(null)
       const result = await action(data)
       if (result.error) setError(result.error)
-      else form.reset()
+      else {
+        form.reset()
+        onSuccess?.()
+      }
     })
   }
   return { error, pending, onSubmit }
 }
 
-export function AddClassForm({ lang }: { lang: Lang }) {
+export interface TeacherOption {
+  id: string
+  full_name: string
+}
+
+export function AddClassForm({ lang, teachers }: { lang: Lang; teachers: TeacherOption[] }) {
   const { error, pending, onSubmit } = useSubmit(addClass)
   return (
     <form className="grid gap-3 sm:grid-cols-4" onSubmit={onSubmit}>
@@ -43,6 +55,26 @@ export function AddClassForm({ lang }: { lang: Lang }) {
         <label className={labelClass} htmlFor="class_group">{t('classes.groupDept', lang)}</label>
         <input id="class_group" name="group_department" className={inputClass} />
       </div>
+      <div className="sm:col-span-4">
+        <label className={labelClass} htmlFor="class_teacher">{t('classes.classTeacher', lang)}</label>
+        {/* Required once the school has any Employee to pick — mandatory as a
+            product rule (#435), but never a wall in front of a brand-new school
+            that has not entered its staff yet. */}
+        <select
+          id="class_teacher"
+          name="class_teacher_id"
+          required={teachers.length > 0}
+          defaultValue=""
+          className={selectClass()}
+        >
+          <option value="">{t('classes.classTeacherNone', lang)}</option>
+          {teachers.map((teacher) => (
+            <option key={teacher.id} value={teacher.id}>
+              {teacher.full_name}
+            </option>
+          ))}
+        </select>
+      </div>
       {error && <p className="text-sm text-alert-deep sm:col-span-4">{error}</p>}
       <button type="submit" disabled={pending} className={`${primaryBtnClass} sm:col-span-4`}>
         {t('classes.addClass', lang)}
@@ -56,28 +88,54 @@ export function AddSubjectForm({
   classes,
 }: {
   lang: Lang
-  classes: { id: string; name: string; section: string | null }[]
+  classes: ClassCatalogueRow[]
 }) {
-  const { error, pending, onSubmit } = useSubmit(addSubject)
+  const [classId, setClassId] = useState('')
+  // Bumped on a successful add to remount the Combobox — its typed text is
+  // Base UI's own internal state, not a plain DOM value, so the form's native
+  // `reset()` can't be relied on to clear it the way it clears the other
+  // fields; a key remount guarantees a fresh, empty field every time.
+  const [subjectFieldKey, setSubjectFieldKey] = useState(0)
+  const { error, pending, onSubmit } = useSubmit(addSubject, () => {
+    setClassId('')
+    setSubjectFieldKey((k) => k + 1)
+  })
+  const selectedClass = classes.find((c) => c.id === classId) ?? null
+  const suggestions = useMemo(() => subjectSuggestionsForClass(selectedClass), [selectedClass])
+
   return (
     <form className="grid gap-3 sm:grid-cols-3" onSubmit={onSubmit}>
       <div>
         <label className={labelClass} htmlFor="subject_class">{t('classes.class', lang)}</label>
-        <select id="subject_class" name="class_id" required className={selectClass({ size: 'md', fullWidth: true })} defaultValue="">
+        <select
+          id="subject_class"
+          name="class_id"
+          required
+          value={classId}
+          onChange={(e) => setClassId(e.target.value)}
+          className={selectClass({ size: 'md', fullWidth: true })}
+        >
           <option value="" disabled>
             {t('classes.selectClass', lang)}
           </option>
           {classes.map((c) => (
             <option key={c.id} value={c.id}>
-              {c.name}
-              {c.section ? ` — ${c.section}` : ''}
+              {classCatalogueLabel(c)}
             </option>
           ))}
         </select>
       </div>
       <div>
         <label className={labelClass} htmlFor="subject_name">{t('classes.name', lang)}</label>
-        <input id="subject_name" name="name" required className={inputClass} />
+        <Combobox key={subjectFieldKey} items={suggestions} name="name" required>
+          <ComboboxInputGroup>
+            <ComboboxInput id="subject_name" />
+            <ComboboxTrigger aria-label={t('classes.subjectSuggestions', lang)} />
+          </ComboboxInputGroup>
+          <ComboboxPopup empty={t('classes.subjectNoSuggestions', lang)}>
+            {(subject: string) => <ComboboxItem key={subject} value={subject}>{subject}</ComboboxItem>}
+          </ComboboxPopup>
+        </Combobox>
       </div>
       <div>
         <label className={labelClass} htmlFor="subject_code">{t('classes.code', lang)}</label>
@@ -116,28 +174,20 @@ export function DeleteButton({
   id: string
   lang: Lang
 }) {
-  const [error, setError] = useState<string | null>(null)
-  const [pending, startTransition] = useTransition()
+  // Deleting a class cascades to its subjects, and deleting a subject cascades
+  // to its marks, its student questions and its routine links — say so in the
+  // in-app dialog (#365, #548). "This will be deleted. Are you sure?" was true
+  // and useless.
+  const key = entity === 'classes' ? 'classes.deleteConfirm' : 'classes.deleteConfirmSubject'
   return (
-    <span className="inline-flex items-center gap-2">
-      {error && <span className="text-xs text-alert-deep">{error}</span>}
-      <button
-        type="button"
-        disabled={pending}
-        onClick={() => {
-          // Deleting a class cascades to its subjects — say so; keep it plain otherwise.
-          const key = entity === 'classes' ? 'classes.deleteConfirm' : 'classes.deleteConfirmSimple'
-          if (!window.confirm(t(key, lang))) return
-          startTransition(async () => {
-            setError(null)
-            const result = await removeItem(entity, id)
-            if (result.error) setError(result.error)
-          })
-        }}
-        className="cursor-pointer rounded-full border border-line px-3 py-1 text-xs font-semibold text-alert-deep hover:bg-alert-soft"
-      >
-        {t('common.delete', lang)}
-      </button>
-    </span>
+    <ConfirmDialog
+      triggerLabel={t('common.delete', lang)}
+      triggerClassName="cursor-pointer rounded-full border border-alert px-3 py-1 text-xs font-semibold text-alert-deep hover:bg-alert-soft"
+      title={t('common.delete', lang)}
+      body={t(key, lang)}
+      confirmLabel={t('common.delete', lang)}
+      cancelLabel={t('routine.cancel', lang)}
+      onConfirm={async () => await removeItem(entity, id)}
+    />
   )
 }

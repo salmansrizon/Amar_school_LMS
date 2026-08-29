@@ -7,6 +7,8 @@ import {
   exceedsCapacity,
   countRollsInRange,
   filterExams,
+  examBasicInfoComplete,
+  examHasClass,
   filterResultRoster,
   roomForRoll,
   sortRoutineEntries,
@@ -108,6 +110,34 @@ describe('countRollsInRange', () => {
     expect(countRollsInRange(rolls, { roll_start: 1, roll_end: 30 })).toBe(6)
     expect(countRollsInRange(rolls, { roll_start: 4, roll_end: 8 })).toBe(2)
     expect(countRollsInRange(rolls, { roll_start: 31, roll_end: 40 })).toBe(0)
+  })
+})
+
+describe('examBasicInfoComplete', () => {
+  it('needs both a class and a grading scheme', () => {
+    expect(examBasicInfoComplete({ class_id: 'c6a', grading_scheme_id: 'gs1' })).toBe(true)
+    expect(examBasicInfoComplete({ class_id: 'c6a', grading_scheme_id: null })).toBe(false)
+    expect(examBasicInfoComplete({ class_id: null, grading_scheme_id: 'gs1' })).toBe(false)
+    expect(examBasicInfoComplete({ class_id: null, grading_scheme_id: null })).toBe(false)
+  })
+
+  it('treats an empty string as unset, not configured', () => {
+    expect(examBasicInfoComplete({ class_id: '', grading_scheme_id: 'gs1' })).toBe(false)
+    expect(examBasicInfoComplete({ class_id: 'c6a', grading_scheme_id: '' })).toBe(false)
+  })
+})
+
+describe('examHasClass', () => {
+  it('ignores the grading scheme — co-curricular needs only the class', () => {
+    expect(examHasClass({ class_id: 'c6a' })).toBe(true)
+    expect(examHasClass({ class_id: null })).toBe(false)
+    expect(examHasClass({ class_id: '' })).toBe(false)
+  })
+
+  it('is satisfied in cases where Basic Info is still incomplete', () => {
+    const classOnly = { class_id: 'c6a', grading_scheme_id: null }
+    expect(examHasClass(classOnly)).toBe(true)
+    expect(examBasicInfoComplete(classOnly)).toBe(false)
   })
 })
 

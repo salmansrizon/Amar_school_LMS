@@ -72,7 +72,7 @@ export function SchoolManagement({
   }
 
   return (
-    <div className="mt-3 flex flex-col gap-3 border-t border-line pt-3">
+    <div className="flex flex-col gap-3">
       {/* Edit header info */}
       <details>
         <summary className="cursor-pointer text-xs font-semibold text-muted">

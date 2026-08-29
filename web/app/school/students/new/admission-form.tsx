@@ -3,12 +3,19 @@
 import { useMemo, useRef, useState, useTransition } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 import { t, type Lang } from '@/lib/i18n'
 import { compressImage, IMAGE_PRESETS } from '@/lib/image/compress'
-import { photoExtension, sectionsForClass } from '@/lib/students'
-import { admitStudent, studentPhotoPath, recordStudentPhoto } from '../actions'
+import {
+  photoExtension,
+  sectionsForClass,
+  classNamesFor,
+  nextRollNumber,
+  type ClassNameSectionRow,
+  type RollRow,
+} from '@/lib/students'
+import { admitStudent, studentPhotoUploadTicket, recordStudentPhoto } from '../actions'
 import { dateInputClass, selectClass } from '@/components/ui/field'
+import { uploadWithSignedToken } from '@/lib/storage/upload-client'
 
 const MAX_PHOTO_BYTES = 2 * 1024 * 1024 // mirrors the bucket's server-enforced cap
 
@@ -40,20 +47,41 @@ export function ProfileFields({
   lang,
   classes,
   defaults = {},
+  rolls = [],
+  rollIncrement = 1,
+  suggestRoll = false,
 }: {
   lang: Lang
-  classes: { name: string; section: string | null }[]
+  classes: ClassNameSectionRow[]
   defaults?: Record<string, string | boolean | number | null>
+  /** Existing rolls (issue #503), used only to prefill a *new* admission's Roll
+   *  Number field — the edit form already has a real roll in `defaults`. */
+  rolls?: RollRow[]
+  rollIncrement?: number
+  /** Only the admission form opts in — an edit-mode student's roll_number can
+   *  legitimately be null (e.g. right after a section-only transfer), and
+   *  `rolls`/`rollIncrement` are never fetched for that call site, so a
+   *  suggestion computed there would be a meaningless "1" every time. */
+  suggestRoll?: boolean
 }) {
   const d = (key: string) => String(defaults[key] ?? '')
-  const classNames = [...new Set(classes.map((c) => c.name))]
+  const classNames = classNamesFor(classes)
   const [className, setClassName] = useState(d('class_name'))
+  const [section, setSection] = useState(d('section'))
   const sections = useMemo(() => sectionsForClass(classes, className), [classes, className])
+  // Only className is required — an empty section is itself a valid scope
+  // (a class with no sections at all, e.g. most Primary classes per
+  // docs/012): nextRollNumber and assign_student_roll both treat "no
+  // section" as a stable group, not as "nothing selected yet".
+  const suggestedRoll = useMemo(
+    () => (suggestRoll && className ? nextRollNumber(rolls, className, section, rollIncrement) : null),
+    [suggestRoll, rolls, className, section, rollIncrement],
+  )
 
   return (
     <>
       <Card title={t('students.identity', lang)}>
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-grid sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
           <Field label={t('students.name', lang)}>
             <input name="full_name" required defaultValue={d('full_name')} className={fieldClass} />
           </Field>
@@ -74,7 +102,14 @@ export function ProfileFields({
             <select
               name="class_name"
               value={className}
-              onChange={(e) => setClassName(e.target.value)}
+              onChange={(e) => {
+                setClassName(e.target.value)
+                // A section from the old class won't be in the new class's
+                // options — clear it rather than leave stale state behind
+                // (the <select> below is now controlled, so it can no longer
+                // rely on the key-remount trick to reset itself).
+                setSection('')
+              }}
               className={selectClass({ size: 'md', fullWidth: true })}
             >
               <option value="">—</option>
@@ -86,8 +121,14 @@ export function ProfileFields({
             </select>
           </Field>
           <Field label={t('students.section', lang)}>
-            {/* key remounts on class change so a stale section can't linger */}
-            <select key={className} name="section" defaultValue={d('section')} className={selectClass({ size: 'md', fullWidth: true })}>
+            {/* Controlled — the class select's onChange clears this state
+                directly so a stale section can't linger past a class change. */}
+            <select
+              name="section"
+              value={section}
+              onChange={(e) => setSection(e.target.value)}
+              className={selectClass({ size: 'md', fullWidth: true })}
+            >
               <option value="">—</option>
               {sections.map((s) => (
                 <option key={s} value={s}>
@@ -95,6 +136,30 @@ export function ProfileFields({
                 </option>
               ))}
             </select>
+          </Field>
+          <Field label={t('students.roll', lang)}>
+            {/* key remounts on class/section change so a manual entry made for
+                the old class+section can't linger. In edit mode, d('roll_number')
+                is the *original* student record — it only stays the default
+                once className/section have moved away from that original
+                class+section (a genuine scope change), so a class edit forces
+                a conscious re-entry instead of silently reattaching the old
+                roll to a new class+section. The suggestion itself is a
+                *placeholder*, not a prefilled value: left blank, the field
+                submits null and assign_student_roll's advisory-locked
+                max()+increment safely serializes concurrent admissions —
+                submitting the guessed number as a real value would instead
+                race two simultaneous admissions for the same roll. */}
+            <input
+              key={JSON.stringify([className, section])}
+              type="number"
+              name="roll_number"
+              min={1}
+              defaultValue={className === d('class_name') && section === d('section') ? d('roll_number') : ''}
+              placeholder={suggestedRoll !== null ? String(suggestedRoll) : undefined}
+              className={fieldClass}
+            />
+            {suggestRoll && <p className="mt-1 text-xs text-muted">{t('students.rollAutoNote', lang)}</p>}
           </Field>
           <Field label={t('students.religion', lang)}>
             <input name="religion" defaultValue={d('religion')} className={fieldClass} />
@@ -106,7 +171,7 @@ export function ProfileFields({
       </Card>
 
       <Card title={t('students.address', lang)}>
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-grid sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
           <Field label={t('students.village', lang)}>
             <input name="village" defaultValue={d('village')} className={fieldClass} />
           </Field>
@@ -123,7 +188,7 @@ export function ProfileFields({
       </Card>
 
       <Card title={t('students.guardianInfo', lang)}>
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-grid sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
           <Field label={t('students.guardianName', lang)}>
             <input name="guardian_name" defaultValue={d('guardian_name')} className={fieldClass} />
           </Field>
@@ -162,7 +227,7 @@ export function ProfileFields({
       </Card>
 
       <Card title={t('students.previousInstitute', lang)}>
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-grid sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
           <Field label={t('students.previousInstituteName', lang)}>
             <input name="previous_institute" defaultValue={d('previous_institute')} className={fieldClass} />
           </Field>
@@ -192,13 +257,10 @@ export async function uploadStudentPhoto(
   // Compress before the size check so large phone photos fit the 2 MB bucket cap.
   const photo = await compressImage(file, IMAGE_PRESETS.studentPhoto)
   if (photo.size > MAX_PHOTO_BYTES) return t('students.photoTooBig', lang)
-  const { path, error: pathErr } = await studentPhotoPath(studentId, photo.type)
-  if (pathErr || !path) return pathErr ?? 'Upload failed'
-  const supabase = createClient()
-  const { error: upErr } = await supabase.storage
-    .from('student-photos')
-    .upload(path, photo, { upsert: true, contentType: photo.type })
-  if (upErr) return upErr.message
+  const { upload, error: pathErr } = await studentPhotoUploadTicket(studentId, photo.type)
+  if (pathErr || !upload) return pathErr ?? 'Upload failed'
+  const { error: upErr } = await uploadWithSignedToken('student-photos', upload, photo, photo.type)
+  if (upErr) return upErr
   const res = await recordStudentPhoto(studentId, photo.type)
   return res.error ?? null
 }
@@ -206,9 +268,13 @@ export async function uploadStudentPhoto(
 export function AdmissionForm({
   lang,
   classes,
+  rolls = [],
+  rollIncrement = 1,
 }: {
   lang: Lang
-  classes: { name: string; section: string | null }[]
+  classes: ClassNameSectionRow[]
+  rolls?: RollRow[]
+  rollIncrement?: number
 }) {
   const router = useRouter()
   const photoRef = useRef<HTMLInputElement>(null)
@@ -238,7 +304,7 @@ export function AdmissionForm({
         })
       }}
     >
-      <ProfileFields lang={lang} classes={classes} />
+      <ProfileFields lang={lang} classes={classes} rolls={rolls} rollIncrement={rollIncrement} suggestRoll />
 
       <Card title={t('students.photo', lang)}>
         <Field label={t('students.uploadPhoto', lang)}>
@@ -247,7 +313,6 @@ export function AdmissionForm({
         <p className="mt-1 text-xs text-muted">{t('students.photoHint', lang)}</p>
       </Card>
 
-      <p className="mb-4 text-xs text-muted">{t('students.rollAutoNote', lang)}</p>
       {error && <p className="mb-3 text-sm text-alert-deep">{error}</p>}
 
       <div className="flex items-center justify-between">

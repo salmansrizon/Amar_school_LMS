@@ -7,6 +7,8 @@ import { ROUTINE_DAYS, ROUTINE_PERIODS, dayLabel, indexSlots, type RoutineSlot }
 import { PrintPage, InstituteHeader, QrFooterRow } from '@/components/print/pieces'
 import { PrintButton } from '@/components/print/print-button'
 import { loadInstitutePrintHeader } from '@/lib/institute-print'
+import { classCatalogueLabel } from '@/lib/class-catalogue'
+import { PrintPreflight } from '@/components/print/preflight'
 
 // Printable weekly routine (ADR 0007: browser-native print, composed from the
 // shared pieces). Landscape-ish grid fits portrait A4 at this density.
@@ -20,18 +22,49 @@ export default async function RoutinePrintPage({
   const { supabase } = await getSchoolContext()
 
   const { class: classId } = await searchParams
-  if (!classId) notFound()
+
+  // #532: this used to notFound() here, and a UAT pass read that as the route
+  // being broken — a routine exists as a feature, so `/routine/print` returning
+  // "page not found" says the wrong thing. What is missing is a choice, not a
+  // page, so offer the choice.
+  if (!classId) {
+    const { data: classes } = await supabase
+      .from('classes')
+      .select('id, name, section, group_department')
+      .order('created_at')
+    return (
+      <PrintPreflight
+        title={t('print.pickClassTitle', lang)}
+        explanation={t('print.pickClassHelp', lang)}
+        backHref="/school/classes/routine"
+        backLabel={t('common.back', lang)}
+      >
+        <ul className="mt-4 flex flex-wrap gap-2">
+          {(classes ?? []).map((c) => (
+            <li key={c.id}>
+              <Link
+                href={`/school/classes/routine/print?class=${c.id}`}
+                className="inline-flex rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted"
+              >
+                {classCatalogueLabel(c)}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </PrintPreflight>
+    )
+  }
 
   const [institute, { data: cls }, { data: slots }, { data: subjects }, { data: teachers }, { data: rooms }] =
     await Promise.all([
       loadInstitutePrintHeader(supabase, lang),
-      supabase.from('classes').select('name, section').eq('id', classId).maybeSingle(),
+      supabase.from('classes').select('name, section, group_department').eq('id', classId).maybeSingle(),
       supabase
         .from('routine_slots')
         .select('day_of_week, period, subject_id, teacher_id, room_id')
         .eq('class_id', classId),
       supabase.from('subjects').select('id, name'),
-      supabase.from('employees').select('id, full_name'),
+      supabase.from('employee_card').select('id, full_name'),
       supabase.from('rooms').select('id, name'),
     ])
   if (!institute || !cls) notFound()
@@ -40,7 +73,7 @@ export default async function RoutinePrintPage({
   const subjectName = new Map((subjects ?? []).map((s) => [s.id, s.name]))
   const teacherName = new Map((teachers ?? []).map((e) => [e.id, e.full_name]))
   const roomName = new Map((rooms ?? []).map((r) => [r.id, r.name]))
-  const classLabel = `${cls.name}${cls.section ? ` - ${cls.section}` : ''}`
+  const classLabel = classCatalogueLabel(cls)
 
   return (
     <main className="mx-auto w-full max-w-4xl flex-1 p-6">
@@ -49,7 +82,7 @@ export default async function RoutinePrintPage({
         <PrintButton label={t('print.print', lang)} />
       </div>
 
-      <PrintPage>
+      <PrintPage orientation="landscape">
         <InstituteHeader institute={institute ?? undefined} docTitle={`${t('routine.docWord', lang)} — ${classLabel}`} />
 
         <table className="w-full table-fixed border-collapse text-xs">

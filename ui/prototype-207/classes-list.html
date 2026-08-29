@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>শ্রেণি ও পাঠ্যক্রম — Prototype 207</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          ink: '#131313',
+          'ink-card': '#1c1c1c',
+          paper: '#ffffff',
+          'paper-muted': '#f4f4f6',
+          line: '#ececec',
+          'line-strong': '#d8d8d8',
+          muted: '#767676',
+          brand: {
+            50: '#f1eefe',
+            100: '#e3dcfd',
+            300: '#b3a4f7',
+            500: '#6d4dfb',
+            600: '#5a37e8',
+            700: '#4826c4',
+          },
+          mint: { DEFAULT: '#00d26a', deep: '#0a7a48', soft: '#e6f9ef' },
+          sun: { DEFAULT: '#ffc94a', deep: '#c98a00', soft: '#fff6e0' },
+          alert: { DEFAULT: '#ef4444', deep: '#dc2626', soft: '#fdeaea' },
+          sky: { DEFAULT: '#00b2ff', deep: '#0077b8', soft: '#e5f6ff' },
+        },
+        borderRadius: { sm: '8px', md: '14px', lg: '20px' },
+        boxShadow: { card: '0 12px 32px rgb(0 0 0 / 0.08)' },
+        fontFamily: {
+          sans: ["'Plus Jakarta Sans'", "'Hind Siliguri'", 'system-ui', 'sans-serif'],
+        },
+      },
+    },
+  }
+</script>
+<style>
+  body { background: #f4f4f6; color: #131313; font-family: 'Plus Jakarta Sans', 'Hind Siliguri', system-ui, sans-serif; }
+</style>
+</head>
+<body class="min-h-screen">
+
+<div class="sticky top-0 z-50 bg-ink text-white text-xs font-semibold px-4 py-2">
+  🧪 THROWAWAY PROTOTYPE — map #207 · ticket <a href="https://github.com/salmansrizon/Amar_school_LMS/issues/216" class="underline">#216 Classes &amp; Curriculum</a> — Classes list: 3 sections (Classes / Rooms / Subjects), each its own Pattern B Card, tables unchanged, all columns kept.
+</div>
+
+<main class="mx-auto w-full max-w-5xl flex-1 p-6">
+
+  <div class="mb-4 flex items-center justify-between">
+    <h1 class="text-2xl font-extrabold">শ্রেণি ও পাঠ্যক্রম</h1>
+    <a href="#" aria-label="ফিরে যান" class="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-5"><path d="m15 18-6-6 6-6" /></svg>
+    </a>
+  </div>
+
+  <!-- Tabs (anchors) unchanged from real page -->
+  <nav class="mb-5 flex gap-1 border-b border-line text-sm font-semibold">
+    <a href="#classes" class="rounded-t-md px-4 py-2 text-ink border-b-2 border-brand-600">শ্রেণিসমূহ</a>
+    <a href="#rooms" class="rounded-t-md px-4 py-2 text-muted hover:bg-paper hover:text-ink">কক্ষসমূহ</a>
+    <a href="#subjects" class="rounded-t-md px-4 py-2 text-muted hover:bg-paper hover:text-ink">বিষয়সমূহ</a>
+  </nav>
+
+  <!-- Pattern B: List/table -> ONE Card per section, table unchanged, card header = title + primary action -->
+
+  <!-- Classes Card -->
+  <section id="classes" class="mb-6 rounded-2xl border border-line bg-paper p-5 shadow-card">
+    <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex flex-wrap items-center gap-2">
+        <h2 class="font-bold mr-2">শ্রেণি তালিকা</h2>
+        <input
+          placeholder="শ্রেণি খুঁজুন"
+          class="rounded-md border border-line bg-paper px-3 py-1.5 text-sm"
+        />
+        <select class="rounded-md border border-line bg-paper px-3 py-1.5 text-sm">
+          <option>সকল শিক্ষাস্তর</option>
+          <option>প্রাথমিক</option>
+          <option>মাধ্যমিক</option>
+          <option>উচ্চ মাধ্যমিক</option>
+        </select>
+        <button type="button" class="cursor-pointer rounded-full border border-line px-3 py-1 text-xs font-semibold hover:bg-paper-muted">ফিল্টার</button>
+      </div>
+      <button type="button" class="rounded-full bg-brand-500 px-4 py-1.5 text-xs font-semibold text-white hover:bg-brand-600">+ শ্রেণি যোগ করুন</button>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full border-collapse">
+        <thead>
+          <tr class="border-b border-line-strong">
+            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">শ্রেণি</th>
+            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">শাখা</th>
+            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">শিক্ষাস্তর</th>
+            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">গ্রুপ/বিভাগ</th>
+            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">শিক্ষার্থী সংখ্যা</th>
+            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">কার্যক্রম</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-line">
+            <td class="px-3 py-2 text-sm font-medium">ষষ্ঠ শ্রেণি</td>
+            <td class="px-3 py-2 text-sm">ক</td>
+            <td class="px-3 py-2 text-sm">মাধ্যমিক</td>
+            <td class="px-3 py-2 text-sm"><span class="text-muted">—</span></td>
+            <td class="px-3 py-2 text-sm">৫২</td>
+            <td class="px-3 py-2 text-sm">
+              <div class="flex flex-wrap items-center gap-2">
+                <a href="#" class="rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted">রুটিন</a>
+                <a href="#" class="rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted">সিলেবাস</a>
+                <a href="#" class="rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted">বিষয় বরাদ্দ</a>
+                <button type="button" class="rounded-full border border-alert/40 px-3 py-1 text-xs font-semibold text-alert-deep hover:bg-alert-soft">মুছুন</button>
+              </div>
+            </td>
+          </tr>
+          <tr class="border-b border-line">
+            <td class="px-3 py-2 text-sm font-medium">অষ্টম শ্রেণি</td>
+            <td class="px-3 py-2 text-sm">খ</td>
+            <td class="px-3 py-2 text-sm">মাধ্যমিক</td>
+            <td class="px-3 py-2 text-sm"><span class="text-muted">—</span></td>
+            <td class="px-3 py-2 text-sm">৪৮</td>
+            <td class="px-3 py-2 text-sm">
+              <div class="flex flex-wrap items-center gap-2">
+                <a href="#" class="rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted">রুটিন</a>
+                <a href="#" class="rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted">সিলেবাস</a>
+                <a href="#" class="rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted">বিষয় বরাদ্দ</a>
+                <button type="button" class="rounded-full border border-alert/40 px-3 py-1 text-xs font-semibold text-alert-deep hover:bg-alert-soft">মুছুন</button>
+              </div>
+            </td>
+          </tr>
+          <tr class="border-b border-line">
+            <td class="px-3 py-2 text-sm font-medium">দশম শ্রেণি</td>
+            <td class="px-3 py-2 text-sm">বিজ্ঞান</td>
+            <td class="px-3 py-2 text-sm">মাধ্যমিক</td>
+            <td class="px-3 py-2 text-sm">বিজ্ঞান</td>
+            <td class="px-3 py-2 text-sm">৬১</td>
+            <td class="px-3 py-2 text-sm">
+              <div class="flex flex-wrap items-center gap-2">
+                <a href="#" class="rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted">রুটিন</a>
+                <a href="#" class="rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted">সিলেবাস</a>
+                <a href="#" class="rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted">বিষয় বরাদ্দ</a>
+                <button type="button" class="rounded-full border border-alert/40 px-3 py-1 text-xs font-semibold text-alert-deep hover:bg-alert-soft">মুছুন</button>
+              </div>
+            </td>
+          </tr>
+          <tr class="border-b border-line">
+            <td class="px-3 py-2 text-sm font-medium">দশম শ্রেণি</td>
+            <td class="px-3 py-2 text-sm">মানবিক</td>
+            <td class="px-3 py-2 text-sm">মাধ্যমিক</td>
+            <td class="px-3 py-2 text-sm">মানবিক</td>
+            <td class="px-3 py-2 text-sm">৪৪</td>
+            <td class="px-3 py-2 text-sm">
+              <div class="flex flex-wrap items-center gap-2">
+                <a href="#" class="rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted">রুটিন</a>
+                <a href="#" class="rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted">সিলেবাস</a>
+                <a href="#" class="rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted">বিষয় বরাদ্দ</a>
+                <button type="button" class="rounded-full border border-alert/40 px-3 py-1 text-xs font-semibold text-alert-deep hover:bg-alert-soft">মুছুন</button>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td class="px-3 py-2 text-sm font-medium">দ্বাদশ শ্রেণি</td>
+            <td class="px-3 py-2 text-sm">ব্যবসায় শিক্ষা</td>
+            <td class="px-3 py-2 text-sm">উচ্চ মাধ্যমিক</td>
+            <td class="px-3 py-2 text-sm">ব্যবসায় শিক্ষা</td>
+            <td class="px-3 py-2 text-sm">৩৭</td>
+            <td class="px-3 py-2 text-sm">
+              <div class="flex flex-wrap items-center gap-2">
+                <a href="#" class="rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted">রুটিন</a>
+                <a href="#" class="rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted">সিলেবাস</a>
+                <a href="#" class="rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted">বিষয় বরাদ্দ</a>
+                <button type="button" class="rounded-full border border-alert/40 px-3 py-1 text-xs font-semibold text-alert-deep hover:bg-alert-soft">মুছুন</button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Rooms Card (moved-to-Venues notice, unchanged content) -->
+  <section id="rooms" class="mb-6 rounded-2xl border border-line bg-paper p-5 shadow-card">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <div>
+        <h2 class="font-bold">কক্ষ তালিকা</h2>
+        <p class="mt-1 text-sm text-muted">কক্ষ ব্যবস্থাপনা এখন প্রতিষ্ঠান সেটআপ → ভেন্যুতে সরানো হয়েছে।</p>
+      </div>
+      <a href="#" class="rounded-full bg-brand-500 px-4 py-1.5 text-xs font-semibold text-white hover:bg-brand-600">ভেন্যু পরিচালনা করুন</a>
+    </div>
+  </section>
+
+  <!-- Subjects Card -->
+  <section id="subjects" class="rounded-2xl border border-line bg-paper p-5 shadow-card">
+    <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+      <h2 class="font-bold">বিষয় তালিকা</h2>
+      <button type="button" class="rounded-full bg-brand-500 px-4 py-1.5 text-xs font-semibold text-white hover:bg-brand-600">+ বিষয় যোগ করুন</button>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full border-collapse">
+        <thead>
+          <tr class="border-b border-line-strong">
+            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">বিষয়</th>
+            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">শ্রেণি</th>
+            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">তত্ত্বীয়</th>
+            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">এমসিকিউ</th>
+            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">ব্যবহারিক</th>
+            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">একাধিক পত্র</th>
+            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">কার্যক্রম</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-line">
+            <td class="px-3 py-2 text-sm font-medium">বাংলা <span class="text-muted">(BAN101)</span></td>
+            <td class="px-3 py-2 text-sm">ষষ্ঠ শ্রেণি — ক</td>
+            <td class="px-3 py-2 text-sm">৭০</td>
+            <td class="px-3 py-2 text-sm">৩০</td>
+            <td class="px-3 py-2 text-sm"><span class="text-muted">—</span></td>
+            <td class="px-3 py-2 text-sm"><span class="rounded-full px-2 py-0.5 text-xs font-semibold bg-sky-soft text-sky-deep">২ পত্র</span></td>
+            <td class="px-3 py-2 text-sm"><button type="button" class="rounded-full border border-alert/40 px-3 py-1 text-xs font-semibold text-alert-deep hover:bg-alert-soft">মুছুন</button></td>
+          </tr>
+          <tr class="border-b border-line">
+            <td class="px-3 py-2 text-sm font-medium">ইংরেজি <span class="text-muted">(ENG101)</span></td>
+            <td class="px-3 py-2 text-sm">ষষ্ঠ শ্রেণি — ক</td>
+            <td class="px-3 py-2 text-sm">৭০</td>
+            <td class="px-3 py-2 text-sm">৩০</td>
+            <td class="px-3 py-2 text-sm"><span class="text-muted">—</span></td>
+            <td class="px-3 py-2 text-sm"><span class="rounded-full px-2 py-0.5 text-xs font-semibold bg-sky-soft text-sky-deep">২ পত্র</span></td>
+            <td class="px-3 py-2 text-sm"><button type="button" class="rounded-full border border-alert/40 px-3 py-1 text-xs font-semibold text-alert-deep hover:bg-alert-soft">মুছুন</button></td>
+          </tr>
+          <tr class="border-b border-line">
+            <td class="px-3 py-2 text-sm font-medium">গণিত <span class="text-muted">(MAT101)</span></td>
+            <td class="px-3 py-2 text-sm">অষ্টম শ্রেণি — খ</td>
+            <td class="px-3 py-2 text-sm">১০০</td>
+            <td class="px-3 py-2 text-sm"><span class="text-muted">—</span></td>
+            <td class="px-3 py-2 text-sm"><span class="text-muted">—</span></td>
+            <td class="px-3 py-2 text-sm"><span class="rounded-full px-2 py-0.5 text-xs font-semibold bg-paper-muted text-muted">একক পত্র</span></td>
+            <td class="px-3 py-2 text-sm"><button type="button" class="rounded-full border border-alert/40 px-3 py-1 text-xs font-semibold text-alert-deep hover:bg-alert-soft">মুছুন</button></td>
+          </tr>
+          <tr class="border-b border-line">
+            <td class="px-3 py-2 text-sm font-medium">উচ্চতর গণিত <span class="text-muted">(HMAT201)</span></td>
+            <td class="px-3 py-2 text-sm">দশম শ্রেণি — বিজ্ঞান</td>
+            <td class="px-3 py-2 text-sm">১০০</td>
+            <td class="px-3 py-2 text-sm">২৫</td>
+            <td class="px-3 py-2 text-sm"><span class="text-muted">—</span></td>
+            <td class="px-3 py-2 text-sm"><span class="rounded-full px-2 py-0.5 text-xs font-semibold bg-paper-muted text-muted">একক পত্র</span></td>
+            <td class="px-3 py-2 text-sm"><button type="button" class="rounded-full border border-alert/40 px-3 py-1 text-xs font-semibold text-alert-deep hover:bg-alert-soft">মুছুন</button></td>
+          </tr>
+          <tr class="border-b border-line">
+            <td class="px-3 py-2 text-sm font-medium">পদার্থবিজ্ঞান <span class="text-muted">(PHY201)</span></td>
+            <td class="px-3 py-2 text-sm">দশম শ্রেণি — বিজ্ঞান</td>
+            <td class="px-3 py-2 text-sm">৭৫</td>
+            <td class="px-3 py-2 text-sm">২৫</td>
+            <td class="px-3 py-2 text-sm">২৫</td>
+            <td class="px-3 py-2 text-sm"><span class="rounded-full px-2 py-0.5 text-xs font-semibold bg-sky-soft text-sky-deep">২ পত্র</span></td>
+            <td class="px-3 py-2 text-sm"><button type="button" class="rounded-full border border-alert/40 px-3 py-1 text-xs font-semibold text-alert-deep hover:bg-alert-soft">মুছুন</button></td>
+          </tr>
+          <tr>
+            <td class="px-3 py-2 text-sm font-medium">হিসাববিজ্ঞান <span class="text-muted">(ACC301)</span></td>
+            <td class="px-3 py-2 text-sm">দ্বাদশ শ্রেণি — ব্যবসায় শিক্ষা</td>
+            <td class="px-3 py-2 text-sm">১০০</td>
+            <td class="px-3 py-2 text-sm"><span class="text-muted">—</span></td>
+            <td class="px-3 py-2 text-sm"><span class="text-muted">—</span></td>
+            <td class="px-3 py-2 text-sm"><span class="rounded-full px-2 py-0.5 text-xs font-semibold bg-paper-muted text-muted">একক পত্র</span></td>
+            <td class="px-3 py-2 text-sm"><button type="button" class="rounded-full border border-alert/40 px-3 py-1 text-xs font-semibold text-alert-deep hover:bg-alert-soft">মুছুন</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+</main>
+</body>
+</html>

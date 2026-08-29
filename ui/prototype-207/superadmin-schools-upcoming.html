@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>মেয়াদোত্তীর্ণ হতে যাচ্ছে · Prototype 207</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          ink: '#131313', 'ink-card': '#1c1c1c', paper: '#ffffff', 'paper-muted': '#f4f4f6',
+          line: '#ececec', 'line-strong': '#d8d8d8', muted: '#767676',
+          brand: { 50: '#f1eefe', 100: '#e3dcfd', 300: '#b3a4f7', 500: '#6d4dfb', 600: '#5a37e8', 700: '#4826c4' },
+          mint: { DEFAULT: '#00d26a', deep: '#0a7a48', soft: '#e6f9ef' },
+          sun: { DEFAULT: '#ffc94a', deep: '#c98a00', soft: '#fff6e0' },
+          alert: { DEFAULT: '#ef4444', deep: '#dc2626', soft: '#fdeaea' },
+          sky: { DEFAULT: '#00b2ff', deep: '#0077b8', soft: '#e5f6ff' },
+        },
+        borderRadius: { sm: '8px', md: '14px', lg: '20px' },
+        boxShadow: { card: '0 12px 32px rgb(0 0 0 / 0.08)' },
+        fontFamily: { sans: ["Plus Jakarta Sans", "Hind Siliguri", "system-ui", "sans-serif"] },
+      },
+    },
+  }
+</script>
+<style>body { font-family: 'Plus Jakarta Sans', 'Hind Siliguri', system-ui, sans-serif; background: #f4f4f6; color: #131313; }</style>
+</head>
+<body>
+<div class="sticky top-0 z-50 bg-ink text-white text-xs font-semibold px-4 py-2">
+  🧪 THROWAWAY PROTOTYPE — map #207 · ticket <a href="https://github.com/salmansrizon/Amar_school_LMS/issues/221" class="underline">#221 Super-admin</a> — List archetype: soonest-expiry table in one Card (was a bare divide-y list)
+</div>
+
+<main class="mx-auto w-full max-w-4xl px-4 py-6 sm:px-6 lg:px-8">
+  <div class="mb-4 flex items-center justify-between">
+    <h1 class="text-2xl font-extrabold">মেয়াদোত্তীর্ণ হতে যাচ্ছে <span class="text-base font-medium text-muted">· Upcoming Expiry</span></h1>
+    <a href="superadmin-schools-list.html" class="text-sm font-semibold text-brand-600 hover:underline">← স্কুল তালিকা</a>
+  </div>
+
+  <section class="rounded-2xl border border-line bg-paper p-5 shadow-card">
+    <div class="overflow-x-auto">
+      <table class="w-full border-collapse">
+        <thead>
+          <tr class="border-b border-line-strong">
+            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">স্কুলের নাম</th>
+            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">মেয়াদ শেষের তারিখ</th>
+            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">অবস্থা</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-line">
+            <td class="px-3 py-2 text-sm"><a href="superadmin-school-detail.html" class="font-medium text-brand-700 hover:underline">নিউ মডেল হাই স্কুল</a></td>
+            <td class="px-3 py-2 text-sm text-muted">২০২৬-০৭-০১</td>
+            <td class="px-3 py-2 text-sm"><span class="rounded-full bg-alert-soft px-2 py-0.5 text-xs font-semibold text-alert-deep">মেয়াদ শেষ</span></td>
+          </tr>
+          <tr class="border-b border-line">
+            <td class="px-3 py-2 text-sm"><a href="superadmin-school-detail.html" class="font-medium text-brand-700 hover:underline">গ্রিন ভ্যালি স্কুল অ্যান্ড কলেজ</a></td>
+            <td class="px-3 py-2 text-sm text-muted">২০২৬-০৮-১২</td>
+            <td class="px-3 py-2 text-sm"><span class="rounded-full bg-sky-soft px-2 py-0.5 text-xs font-semibold text-sky-deep">৩ দিন বাকি</span></td>
+          </tr>
+          <tr class="border-b border-line">
+            <td class="px-3 py-2 text-sm"><a href="superadmin-school-detail.html" class="font-medium text-brand-700 hover:underline">শাহজালাল বালিকা বিদ্যালয়</a></td>
+            <td class="px-3 py-2 text-sm text-muted">২০২৬-০৮-১৭</td>
+            <td class="px-3 py-2 text-sm"><span class="rounded-full bg-sky-soft px-2 py-0.5 text-xs font-semibold text-sky-deep">৭ দিন বাকি</span></td>
+          </tr>
+          <tr>
+            <td class="px-3 py-2 text-sm"><a href="superadmin-school-detail.html" class="font-medium text-brand-700 hover:underline">আদর্শ উচ্চ বিদ্যালয়</a></td>
+            <td class="px-3 py-2 text-sm text-muted">২০২৬-১১-০৩</td>
+            <td class="px-3 py-2 text-sm"><span class="rounded-full bg-paper-muted px-2 py-0.5 text-xs font-semibold text-muted">৯৩ দিন বাকি</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+</body>
+</html>

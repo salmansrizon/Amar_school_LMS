@@ -1,4 +1,3 @@
-import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import type { ReactNode } from 'react'
 import { currentLang } from '@/lib/i18n-server'
@@ -24,10 +23,13 @@ import {
   GraduatingSection,
   PromotionTable,
   ResultControlsBar,
-  type ClassOption,
   type CombinationOption,
   type PromotionStudentRow,
 } from './promotion-controls'
+import { BackLink } from '@/components/back-link'
+import { resolveBackHref } from '@/lib/back-nav'
+import type { ClassCatalogueRow } from '@/lib/class-catalogue'
+import { selectAllRows } from '@/lib/supabase/select-all'
 
 // Layout per ui/school-owner/promotion-transfer.html: result-source + rank-
 // basis toolbar over the Promote-selected table, with the Graduating Batch /
@@ -47,10 +49,11 @@ export default async function PromotionPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>
-  searchParams: Promise<{ source?: string; basis?: string }>
+  searchParams: Promise<{ source?: string; basis?: string; from?: string | string[] }>
 }) {
   const { id } = await params
-  const { source: sourceParam = 'exam', basis: basisParam } = await searchParams
+  const { source: sourceParam = 'exam', basis: basisParam, from } = await searchParams
+  const backHref = resolveBackHref(from, `/school/exams/${id}`)
   const basis: RankBasis = basisParam === 'mark' ? 'mark' : 'grade'
   const lang: Lang = await currentLang()
   const { supabase } = await getSchoolContext()
@@ -68,18 +71,18 @@ export default async function PromotionPage({
       <h1 className="text-2xl font-extrabold">
         {t('promotion.title', lang)} — {examLabel}
       </h1>
-      <Link href={`/school/exams/${exam.id}`} aria-label={t('examSetup.title', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
+      <BackLink href={backHref} label={t('common.back', lang)} />
     </div>
   )
 
   if (!exam.class_id) {
     return (
-      <main className="mx-auto w-full max-w-4xl flex-1 p-6">
+      <div>
         {header}
-        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted shadow-card">
+        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted">
           {t('promotion.noClassSet', lang)}
         </p>
-      </main>
+      </div>
     )
   }
 
@@ -89,7 +92,7 @@ export default async function PromotionPage({
     .eq('id', exam.class_id)
     .maybeSingle()
   const [{ data: allClasses }, { data: allSubjects }, { data: combos }] = await Promise.all([
-    supabase.from('classes').select('id, name, section').order('created_at'),
+    supabase.from('classes').select('id, name, section, group_department').order('created_at'),
     supabase.from('subjects').select('id, name, class_id, theory_marks, mcq_marks, practical_marks').order('name'),
     supabase
       .from('exam_combinations')
@@ -129,7 +132,7 @@ export default async function PromotionPage({
   const roster = students ?? []
 
   const bodyWrap = (content: ReactNode) => (
-    <main className="mx-auto w-full max-w-4xl flex-1 p-6">
+    <div>
       {header}
       <ResultControlsBar
         combinations={eligibleCombos.map((c) => ({ id: c.id, name: c.name }) satisfies CombinationOption)}
@@ -138,7 +141,7 @@ export default async function PromotionPage({
         lang={lang}
       />
       {content}
-    </main>
+    </div>
   )
 
   if (!subjects.length) return bodyWrap(<p className="text-sm text-muted">{t('markEntry.noSubjects', lang)}</p>)
@@ -159,11 +162,20 @@ export default async function PromotionPage({
   if (!selectedCombo) {
     scheme = exam.grading_scheme_id ? await loadGradingScheme(supabase, exam.grading_scheme_id) : null
     if (scheme) {
-      const { data: marksRows } = await supabase
-        .from('exam_marks')
-        .select('student_id, subject_id, obtained_marks')
-        .eq('exam_id', exam.id)
-      const marksMap = new Map((marksRows ?? []).map((m) => [`${m.student_id}:${m.subject_id}`, Number(m.obtained_marks)]))
+      // Paged (#546): a missing mark is read as 0 four lines below, so truncation
+      // does not lose a row here, it fails a child.
+      const { rows: marksRows } = await selectAllRows<{
+        student_id: string
+        subject_id: string
+        obtained_marks: number
+      }>((from, to) =>
+        supabase
+          .from('exam_marks')
+          .select('student_id, subject_id, obtained_marks')
+          .eq('exam_id', exam.id)
+          .range(from, to),
+      )
+      const marksMap = new Map(marksRows.map((m) => [`${m.student_id}:${m.subject_id}`, Number(m.obtained_marks)]))
       for (const s of roster) {
         const marks: SubjectMark[] = subjects.map((sub) => ({
           subjectId: sub.id,
@@ -181,12 +193,22 @@ export default async function PromotionPage({
     const memberExamIds = members.map((m) => m.exam_id)
 
     if (scheme && memberExamIds.length) {
-      const { data: marksRows } = await supabase
-        .from('exam_marks')
-        .select('exam_id, student_id, subject_id, obtained_marks')
-        .in('exam_id', memberExamIds)
+      // A combination spans several exams, so this one is the most likely of the
+      // three to pass 1000 rows.
+      const { rows: marksRows } = await selectAllRows<{
+        exam_id: string
+        student_id: string
+        subject_id: string
+        obtained_marks: number
+      }>((from, to) =>
+        supabase
+          .from('exam_marks')
+          .select('exam_id, student_id, subject_id, obtained_marks')
+          .in('exam_id', memberExamIds)
+          .range(from, to),
+      )
       const marksMap = new Map(
-        (marksRows ?? []).map((m) => [`${m.exam_id}:${m.student_id}:${m.subject_id}`, Number(m.obtained_marks)]),
+        marksRows.map((m) => [`${m.exam_id}:${m.student_id}:${m.subject_id}`, Number(m.obtained_marks)]),
       )
 
       if (selectedCombo.strategy === 'sum') {
@@ -267,11 +289,11 @@ export default async function PromotionPage({
         isFinalClass={cls?.is_final_class ?? false}
         lang={lang}
       />
-      <section className="mb-4 rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="mb-4 rounded-lg border border-line bg-paper p-5">
         <PromotionTable
           examId={exam.id}
           rows={rows}
-          classes={(allClasses ?? []) as ClassOption[]}
+          classes={(allClasses ?? []) as ClassCatalogueRow[]}
           currentClassName={cls?.name ?? null}
           lang={lang}
         />

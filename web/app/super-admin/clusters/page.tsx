@@ -1,9 +1,11 @@
 import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
 import { t } from '@/lib/i18n'
-import { LOCATION_LABEL, type LocationRow } from '@/lib/locations'
+import { LOCATION_LABEL } from '@/lib/locations'
+import { fetchAllLocations } from '@/lib/locations-server'
 import { getSuperAdminContext } from '@/lib/super-admin/context'
 import {
+  AssignDistributorForm,
   AssignSchoolForm,
   CreateClusterForm,
   RemoveSchoolButton,
@@ -12,16 +14,24 @@ import {
 
 // Clusters management (map #158, ticket #167) over the existing clusters table:
 // list clusters with their school membership, create/rename, and assign schools.
-// Under the Territory & Locations section.
+// Under the Territory & Locations section. Distributor assignment (0119) added
+// so a Cluster can be handed to one Distributor without over-reaching to
+// sibling Clusters under the same Location (see 0119's own header comment).
 export default async function ClustersPage() {
   const lang = await currentLang()
   const { supabase } = await getSuperAdminContext()
 
-  const [{ data: clusters }, { data: schools }, { data: locations }] = await Promise.all([
-    supabase.from('clusters').select('id, name, location_id, locations(name, type)').order('name'),
-    supabase.from('schools').select('id, name, cluster_id').order('name'),
-    supabase.from('locations').select('id, name, type, parent_id').order('name'),
-  ])
+  const [{ data: clusters }, { data: schools }, locations, { data: distributors }, { data: assignments }] =
+    await Promise.all([
+      supabase.from('clusters').select('id, name, location_id, locations(name, type)').order('name'),
+      supabase.from('schools').select('id, name, cluster_id').order('name'),
+      fetchAllLocations(supabase),
+      supabase.from('profiles').select('id, full_name').eq('role', 'distributor').order('full_name'),
+      supabase
+        .from('territory_assignments')
+        .select('id, cluster_id, assignee_id, profiles(full_name)')
+        .not('cluster_id', 'is', null),
+    ])
 
   const membersByCluster = new Map<string, { id: string; name: string }[]>()
   const unassigned: { id: string; name: string }[] = []
@@ -35,8 +45,14 @@ export default async function ClustersPage() {
     }
   }
 
+  const assignmentByCluster = new Map(
+    (assignments as { id: string; cluster_id: string; assignee_id: string; profiles: { full_name: string | null } | null }[] | null ?? []).map(
+      (a) => [a.cluster_id, { id: a.id, assigneeId: a.assignee_id, name: a.profiles?.full_name ?? 'Distributor' }],
+    ),
+  )
+
   return (
-    <main className="mx-auto w-full max-w-2xl flex-1 p-6">
+    <main className="w-full p-6">
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold">{t('sa.clusters.title', lang)}</h1>
         <Link href="/super-admin/locations" className="text-sm text-brand-600 hover:underline">
@@ -44,9 +60,9 @@ export default async function ClustersPage() {
         </Link>
       </div>
 
-      <section className="mb-6 rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="mb-6 rounded-lg border border-line bg-paper p-5">
         <h2 className="mb-3 font-bold">{t('sa.clusters.create', lang)}</h2>
-        <CreateClusterForm locations={(locations ?? []) as LocationRow[]} lang={lang} />
+        <CreateClusterForm locations={locations} lang={lang} />
       </section>
 
       {!clusters?.length ? (
@@ -57,7 +73,7 @@ export default async function ClustersPage() {
             const loc = c.locations as unknown as { name: string; type: keyof typeof LOCATION_LABEL } | null
             const members = membersByCluster.get(c.id) ?? []
             return (
-              <section key={c.id} className="rounded-lg border border-line bg-paper p-5 shadow-card">
+              <section key={c.id} className="rounded-lg border border-line bg-paper p-5">
                 <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                   <RenameClusterForm clusterId={c.id} name={c.name} lang={lang} />
                   {loc && (
@@ -84,6 +100,18 @@ export default async function ClustersPage() {
                 </div>
 
                 <AssignSchoolForm clusterId={c.id} unassigned={unassigned} lang={lang} />
+
+                <div className="mt-3 border-t border-line pt-3">
+                  <span className="mb-1 block text-xs font-semibold text-muted">
+                    {t('sa.clusters.distributor', lang)}
+                  </span>
+                  <AssignDistributorForm
+                    clusterId={c.id}
+                    distributors={(distributors ?? []) as { id: string; full_name: string | null }[]}
+                    current={assignmentByCluster.get(c.id) ?? null}
+                    lang={lang}
+                  />
+                </div>
               </section>
             )
           })}

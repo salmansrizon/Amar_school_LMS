@@ -3,11 +3,13 @@ import { notFound } from 'next/navigation'
 import { averageRating, isEntryLocked } from '@/lib/behaviour'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang, type MessageKey } from '@/lib/i18n'
+import { genderLabel, guardianRelationLabel } from '@/lib/students/stored-labels'
 import { getSchoolContext } from '@/lib/school/context'
 import { classSectionLabel } from '@/lib/students'
 import { AddEntryForm, EditableEntry } from './behaviour-controls'
 import { ArchiveToggle, PhotoControl, ProfileEditor } from './profile-controls'
 import { StudentSubjects, type AssignedSubject } from './subject-controls'
+import { StudentLoginPanel, type StudentLoginStatus } from './login-controls'
 import { PrintTrigger } from '@/components/print/print-trigger'
 
 // Layout per ui/school-owner/student-detail.html: status + roll header with
@@ -27,9 +29,9 @@ function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
 
 function InfoCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="mb-4 rounded-lg border border-line bg-paper p-5 shadow-card">
+    <section className="mb-4 rounded-lg border border-line bg-paper p-5">
       <h3 className="mb-3 font-bold">{title}</h3>
-      <dl className="grid gap-3 sm:grid-cols-2">{children}</dl>
+      <dl className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">{children}</dl>
     </section>
   )
 }
@@ -41,12 +43,16 @@ export default async function StudentDetailPage({
 }) {
   const { id } = await params
   const lang: Lang = await currentLang()
-  const { supabase } = await getSchoolContext()
+  const { supabase, role } = await getSchoolContext()
 
   const { data: student } = await supabase.from('students').select('*').eq('id', id).single()
   if (!student) notFound()
 
-  const [{ data: entries }, { data: classes }, { data: subjects }, { data: assignments }] =
+  // Login status is owner-only (#442) — issuing and resetting a child's password
+  // is not a Staff-User act, and the RPCs reject them regardless.
+  const isOwner = role === 'school_owner'
+
+  const [{ data: entries }, { data: classes }, { data: subjects }, { data: assignments }, loginRes] =
     await Promise.all([
       supabase
         .from('behaviour_log_entries')
@@ -56,6 +62,13 @@ export default async function StudentDetailPage({
       supabase.from('classes').select('name, section').order('created_at'),
       supabase.from('subjects').select('id, name').order('name'),
       supabase.from('student_subjects').select('subject_id, is_optional').eq('student_id', id),
+      isOwner
+        ? supabase
+            .from('student_login_info')
+            .select('email, last_sign_in_at')
+            .eq('student_id', id)
+            .maybeSingle()
+        : Promise.resolve({ data: null }),
     ])
 
   const subjectName = new Map((subjects ?? []).map((s) => [s.id, s.name]))
@@ -80,7 +93,7 @@ export default async function StudentDetailPage({
   )
 
   return (
-    <main className="mx-auto w-full max-w-4xl flex-1 p-6">
+    <div>
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold">{student.full_name}</h1>
         <Link href="/school/students" aria-label={t('students.listTitle', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
@@ -124,7 +137,7 @@ export default async function StudentDetailPage({
       </div>
 
       <div className="mb-6 grid gap-4 sm:grid-cols-[10rem_1fr]">
-        <div className="rounded-lg border border-line bg-paper p-4 shadow-card self-start">
+        <div className="rounded-lg border border-line bg-paper p-4 self-start">
           <PhotoControl lang={lang} studentId={id} hasPhoto={student.photo_path !== null} />
         </div>
 
@@ -139,15 +152,10 @@ export default async function StudentDetailPage({
             />
             <InfoRow
               label={t('students.gender', lang)}
-              value={
-                student.gender === 'male'
-                  ? t('students.male', lang)
-                  : student.gender === 'female'
-                    ? t('students.female', lang)
-                    : student.gender
-              }
+              value={genderLabel(student.gender, lang)}
             />
             <InfoRow label={t('students.bloodGroup', lang)} value={student.blood_group} />
+            <InfoRow label={t('students.studentNo', lang)} value={student.student_no} />
             <InfoRow
               label={t('students.classSection', lang)}
               value={classSectionLabel(student.class_name, student.section)}
@@ -168,19 +176,13 @@ export default async function StudentDetailPage({
             <InfoRow label={t('students.guardianName', lang)} value={student.guardian_name} />
             <InfoRow
               label={t('students.relation', lang)}
-              value={
-                student.guardian_relation === 'father'
-                  ? t('students.father', lang)
-                  : student.guardian_relation === 'mother'
-                    ? t('students.mother', lang)
-                    : student.guardian_relation
-              }
+              value={guardianRelationLabel(student.guardian_relation, lang)}
             />
             <InfoRow label={t('students.guardianMobile', lang)} value={student.guardian_mobile} />
             <InfoRow label={t('students.guardianNid', lang)} value={student.guardian_nid} />
           </InfoCard>
 
-          <section className="mb-4 rounded-lg border border-line bg-paper p-5 shadow-card">
+          <section className="mb-4 rounded-lg border border-line bg-paper p-5">
             <h3 className="mb-3 font-bold">{t('students.benefitFlags', lang)}</h3>
             <div className="flex flex-wrap gap-2">
               {flag(
@@ -203,7 +205,16 @@ export default async function StudentDetailPage({
         </ProfileEditor>
       </div>
 
-      <section className="mb-6 rounded-lg border border-line bg-paper p-5 shadow-card">
+      {isOwner && (
+        <StudentLoginPanel
+          lang={lang}
+          studentId={id}
+          status={(loginRes.data as StudentLoginStatus | null) ?? null}
+          hasGuardianPhone={Boolean(student.guardian_phone)}
+        />
+      )}
+
+      <section className="mb-6 rounded-lg border border-line bg-paper p-5">
         <h2 className="mb-3 font-bold">{t('subjects.title', lang)}</h2>
         <StudentSubjects
           studentId={student.id}
@@ -213,7 +224,7 @@ export default async function StudentDetailPage({
         />
       </section>
 
-      <section className="mb-6 rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="mb-6 rounded-lg border border-line bg-paper p-5">
         <div className="mb-3 flex items-center justify-between">
           <h2 className="font-bold">{t('behaviour.title', lang)}</h2>
           {avg !== null && (
@@ -225,7 +236,7 @@ export default async function StudentDetailPage({
         <AddEntryForm studentId={student.id} lang={lang} />
       </section>
 
-      <section className="rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="rounded-lg border border-line bg-paper p-5">
         <p className="mb-3 text-xs text-muted">{t('behaviour.lockedHint', lang)}</p>
         {!entries?.length && <p className="text-sm text-muted">{t('behaviour.none', lang)}</p>}
         <ul className="divide-y divide-line">
@@ -241,6 +252,6 @@ export default async function StudentDetailPage({
           ))}
         </ul>
       </section>
-    </main>
+    </div>
   )
 }

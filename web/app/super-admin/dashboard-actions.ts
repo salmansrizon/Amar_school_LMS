@@ -27,15 +27,11 @@ export async function recordSmsPurchase(
   if (!Number.isInteger(qty) || qty <= 0) return { error: 'quantity must be a positive whole number' }
   if (!Number.isFinite(amount) || amount < 0) return { error: 'invalid amount' }
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  const { error } = await supabase.from('sms_pool_ledger').insert({
-    delta: qty,
-    reason: 'buy',
-    amount,
+  // The master SMS pool now lives on the company_sms wallet (#268).
+  const { error } = await supabase.rpc('sms_pool_purchase', {
+    segs: qty,
+    amount_taka: amount,
     note,
-    created_by: user?.id ?? null,
   })
   if (error) return { error: 'purchase failed' }
   revalidatePath('/super-admin')

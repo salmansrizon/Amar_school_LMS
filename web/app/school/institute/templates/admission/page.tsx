@@ -23,7 +23,7 @@ export default async function BlankAdmissionPage() {
         <PrintButton label={t('print.print', lang)} />
       </div>
 
-      <PrintPage>
+      <PrintPage fill>
         <InstituteHeader institute={institute ?? undefined} docTitle={t('institute.templateAdmission', lang)} />
         <InfoGrid
           rows={[

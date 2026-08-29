@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>কর্মচারী বাল্ক ইমপোর্ট · Bulk Import Employees — Amar School Management</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../shared/design-system.css">
+<script src="../shared/app.js" defer></script>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="mark">A</span><span>Amar School</span></div>
+    <nav>
+      <a class="nav-item" href="../school-owner/dashboard.html"><span data-i18n="bn">ড্যাশবোর্ড</span><span data-i18n="en">Dashboard</span></a>
+      <a class="nav-item" href="../school-owner/students-list.html"><span data-i18n="bn">শিক্ষার্থী</span><span data-i18n="en">Students</span></a>
+      <a class="nav-item active" href="../school-owner/employees-list.html"><span data-i18n="bn">কর্মচারী</span><span data-i18n="en">Employees</span></a>
+      <a class="nav-item" href="../school-owner/attendance-student-mark.html"><span data-i18n="bn">উপস্থিতি</span><span data-i18n="en">Attendance</span></a>
+      <a class="nav-item" href="../school-owner/classes-list.html"><span data-i18n="bn">শ্রেণি ও পাঠ্যক্রম</span><span data-i18n="en">Class & Curriculum</span></a>
+      <a class="nav-item" href="../school-owner/exams-list.html"><span data-i18n="bn">পরীক্ষা ও ফলাফল</span><span data-i18n="en">Exams & Results</span></a>
+      <a class="nav-item" href="../school-owner/fee-collection.html"><span data-i18n="bn">হিসাব ও ফি</span><span data-i18n="en">Accounting & Fees</span></a>
+      <a class="nav-item" href="../school-owner/sms-compose.html"><span data-i18n="bn">এসএমএস</span><span data-i18n="en">SMS</span></a>
+      <a class="nav-item" href="../school-owner/notices-list.html"><span data-i18n="bn">প্রকাশনা</span><span data-i18n="en">Publishing</span></a>
+      <a class="nav-item" href="../school-owner/feedback-inbox.html"><span data-i18n="bn">মতামত</span><span data-i18n="en">Feedback</span></a>
+      <a class="nav-item" href="../school-owner/staff-permissions.html"><span data-i18n="bn">স্টাফ অনুমতি</span><span data-i18n="en">Staff Permissions</span></a>
+      <a class="nav-item" href="../school-owner/institute-profile.html"><span data-i18n="bn">প্রতিষ্ঠান সেটআপ</span><span data-i18n="en">Institute Setup</span></a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="title"><span data-i18n="bn">কর্মচারী বাল্ক ইমপোর্ট</span><span data-i18n="en">Bulk Import Employees</span></div>
+      <div class="actions">
+        <a class="btn btn-secondary btn-sm" href="../index.html" title="Home">🏠</a>
+        <a class="btn btn-secondary btn-sm" href="../sitemap.html" title="Sitemap">📋</a>
+        <div class="lang-switch">
+          <button data-lang-btn="bn" onclick="setLang('bn')">বাং</button>
+          <button data-lang-btn="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="theme-switch">
+          <button data-theme-btn="light" onclick="setTheme('light')">☀</button>
+          <button data-theme-btn="dark" onclick="setTheme('dark')">☾</button>
+          <button data-theme-btn="system" onclick="setTheme('system')">Auto</button>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+
+      <div class="crumbs" style="display:flex; margin-bottom:var(--space-4);">
+        <a href="../school-owner/employees-list.html"><span data-i18n="bn">কর্মচারী</span><span data-i18n="en">Employees</span></a>
+        <span class="sep">/</span>
+        <span class="current"><span data-i18n="bn">বাল্ক ইমপোর্ট</span><span data-i18n="en">Bulk Import</span></span>
+      </div>
+
+      <div class="card mb-4">
+        <h3 class="mt-0"><span data-i18n="bn">ধাপ ১: নমুনা টেমপ্লেট ডাউনলোড করুন</span><span data-i18n="en">Step 1: Download Sample Template</span></h3>
+        <p class="text-secondary"><span data-i18n="bn">কর্মচারীর তথ্য আপলোড করার আগে নিচের নমুনা CSV টেমপ্লেট ডাউনলোড করুন এবং একই ফরম্যাটে আপনার ডেটা প্রস্তুত করুন।</span><span data-i18n="en">Before uploading employee data, download the sample CSV template below and prepare your data in the exact same format.</span></p>
+        <a class="btn btn-secondary" href="#"><span data-i18n="bn">⬇ নমুনা CSV ডাউনলোড করুন</span><span data-i18n="en">⬇ Download Sample CSV</span></a>
+      </div>
+
+      <div class="card mb-4">
+        <h3 class="mt-0"><span data-i18n="bn">ধাপ ২: ফাইল আপলোড করুন</span><span data-i18n="en">Step 2: Upload File</span></h3>
+        <div class="form-grid">
+          <div class="field field-full">
+            <label><span data-i18n="bn">CSV ফাইল নির্বাচন করুন</span><span data-i18n="en">Select CSV File</span></label>
+            <input type="file" accept=".csv">
+          </div>
+        </div>
+        <div class="locked-note" style="margin-top:var(--space-2);">
+          <span data-i18n="bn">⚠ ফাইলটি অবশ্যই নমুনা টেমপ্লেটের কলাম ও ফরম্যাটের সাথে হুবহু মিলতে হবে, অন্যথায় আপলোড প্রত্যাখ্যাত হবে।</span>
+          <span data-i18n="en">⚠ The file must exactly match the sample template's columns and format, or the upload will be rejected.</span>
+        </div>
+      </div>
+
+      <div class="card mb-4">
+        <h3 class="mt-0"><span data-i18n="bn">ধাপ ৩: প্রিভিউ ও যাচাই</span><span data-i18n="en">Step 3: Preview & Validate</span></h3>
+        <p class="text-secondary"><span data-i18n="bn">কমিট করার আগে পার্স করা সারিগুলো যাচাই করুন। ত্রুটিযুক্ত সারি সংশোধন না করা পর্যন্ত ইমপোর্ট সম্পন্ন করা যাবে না।</span><span data-i18n="en">Review the parsed rows before committing. Rows with errors must be fixed before the import can be committed.</span></p>
+        <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th></th>
+              <th><span data-i18n="bn">নাম</span><span data-i18n="en">Name</span></th>
+              <th><span data-i18n="bn">পদবি</span><span data-i18n="en">Designation</span></th>
+              <th><span data-i18n="bn">ফোন</span><span data-i18n="en">Phone</span></th>
+              <th><span data-i18n="bn">যোগদানের তারিখ</span><span data-i18n="en">Joining Date</span></th>
+              <th><span data-i18n="bn">অবস্থা</span><span data-i18n="en">Status</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>✅</td>
+              <td><span data-i18n="bn">মোঃ কামরুল হাসান</span><span data-i18n="en">Md. Kamrul Hasan</span></td>
+              <td><span data-i18n="bn">সহকারী শিক্ষক</span><span data-i18n="en">Assistant Teacher</span></td>
+              <td>01712345001</td>
+              <td>2019-02-15</td>
+              <td><span class="badge badge-success"><span data-i18n="bn">সঠিক</span><span data-i18n="en">Valid</span></span></td>
+            </tr>
+            <tr>
+              <td>✅</td>
+              <td><span data-i18n="bn">ফারজানা আক্তার</span><span data-i18n="en">Farzana Akter</span></td>
+              <td><span data-i18n="bn">সহকারী প্রধান শিক্ষক</span><span data-i18n="en">Assistant Head Teacher</span></td>
+              <td>01812345002</td>
+              <td>2016-08-01</td>
+              <td><span class="badge badge-success"><span data-i18n="bn">সঠিক</span><span data-i18n="en">Valid</span></span></td>
+            </tr>
+            <tr>
+              <td>❌</td>
+              <td><span data-i18n="bn">শাহরিয়ার কবির</span><span data-i18n="en">Shahriar Kabir</span></td>
+              <td><span data-i18n="bn">অফিস সহকারী</span><span data-i18n="en">Office Assistant</span></td>
+              <td>01912345003</td>
+              <td style="color:var(--danger-fg); font-weight:600;">15-02-2021</td>
+              <td>
+                <span class="badge badge-danger"><span data-i18n="bn">ত্রুটি</span><span data-i18n="en">Error</span></span>
+                <div style="font-size:var(--text-xs); color:var(--danger-fg); margin-top:2px;">
+                  <span data-i18n="bn">'যোগদানের তারিখ' কলামে ভুল ফরম্যাট</span><span data-i18n="en">Invalid date format in column 'Joining Date'</span>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>✅</td>
+              <td><span data-i18n="bn">নাজমুল হক</span><span data-i18n="en">Nazmul Haque</span></td>
+              <td><span data-i18n="bn">নিরাপত্তা প্রহরী</span><span data-i18n="en">Security Guard</span></td>
+              <td>01612345004</td>
+              <td>2021-11-20</td>
+              <td><span class="badge badge-success"><span data-i18n="bn">সঠিক</span><span data-i18n="en">Valid</span></span></td>
+            </tr>
+          </tbody>
+        </table>
+        </div>
+        <div class="flex justify-between items-center" style="margin-top:var(--space-4);">
+          <div class="text-secondary" style="font-size:var(--text-sm);">
+            <span data-i18n="bn">৪টি সারির মধ্যে ৩টি সঠিক, ১টি ত্রুটিযুক্ত</span><span data-i18n="en">3 of 4 rows valid, 1 with errors</span>
+          </div>
+          <button class="btn btn-primary" disabled title="Fix validation errors to enable">
+            <span data-i18n="bn">ইমপোর্ট কমিট করুন</span><span data-i18n="en">Commit Import</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

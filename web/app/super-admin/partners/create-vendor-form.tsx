@@ -22,8 +22,8 @@ export function CreateVendorForm({ lang }: { lang: Lang }) {
 
   return (
     <form onSubmit={onSubmit} className="grid gap-3 sm:grid-cols-2">
-      {/* Dealers only — Government Officials are created on their own page (#164). */}
-      <input type="hidden" name="role" value="dealer" />
+      {/* Distributors only — Government Officials are created on their own page (#164). */}
+      <input type="hidden" name="role" value="distributor" />
       <div>
         <label className={labelClass} htmlFor="v_full_name">{t('staff.fullName', lang)}</label>
         <input id="v_full_name" name="full_name" required className={inputClass} />

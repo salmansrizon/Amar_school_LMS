@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>সাপোর্ট টিকেট তৈরি করুন · Raise Support Ticket — Amar School Management</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../shared/design-system.css">
+<script src="../shared/app.js" defer></script>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="mark">A</span><span>Amar School</span></div>
+    <nav>
+      <a class="nav-item" href="../school-owner/dashboard.html"><span data-i18n="bn">ড্যাশবোর্ড</span><span data-i18n="en">Dashboard</span></a>
+      <a class="nav-item" href="../school-owner/students-list.html"><span data-i18n="bn">শিক্ষার্থী</span><span data-i18n="en">Students</span></a>
+      <a class="nav-item" href="../school-owner/employees-list.html"><span data-i18n="bn">কর্মচারী</span><span data-i18n="en">Employees</span></a>
+      <a class="nav-item" href="../school-owner/attendance-student-mark.html"><span data-i18n="bn">উপস্থিতি</span><span data-i18n="en">Attendance</span></a>
+      <a class="nav-item" href="../school-owner/classes-list.html"><span data-i18n="bn">শ্রেণি ও পাঠ্যক্রম</span><span data-i18n="en">Class & Curriculum</span></a>
+      <a class="nav-item" href="../school-owner/exams-list.html"><span data-i18n="bn">পরীক্ষা ও ফলাফল</span><span data-i18n="en">Exams & Results</span></a>
+      <a class="nav-item" href="../school-owner/fee-collection.html"><span data-i18n="bn">হিসাব ও ফি</span><span data-i18n="en">Accounting & Fees</span></a>
+      <a class="nav-item" href="../school-owner/sms-compose.html"><span data-i18n="bn">এসএমএস</span><span data-i18n="en">SMS</span></a>
+      <a class="nav-item" href="../school-owner/notices-list.html"><span data-i18n="bn">প্রকাশনা</span><span data-i18n="en">Publishing</span></a>
+      <a class="nav-item active" href="../school-owner/support-ticket-raise.html"><span data-i18n="bn">সাপোর্ট</span><span data-i18n="en">Support</span></a>
+      <a class="nav-item" href="../school-owner/feedback-inbox.html"><span data-i18n="bn">মতামত</span><span data-i18n="en">Feedback</span></a>
+      <a class="nav-item" href="../school-owner/staff-permissions.html"><span data-i18n="bn">স্টাফ অনুমতি</span><span data-i18n="en">Staff Permissions</span></a>
+      <a class="nav-item" href="../school-owner/institute-profile.html"><span data-i18n="bn">প্রতিষ্ঠান সেটআপ</span><span data-i18n="en">Institute Setup</span></a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="title"><span data-i18n="bn">সাপোর্ট টিকেট তৈরি করুন</span><span data-i18n="en">Raise Support Ticket</span></div>
+      <div class="actions">
+        <a class="btn btn-secondary btn-sm" href="../index.html" title="Home">🏠</a>
+        <a class="btn btn-secondary btn-sm" href="../sitemap.html" title="Sitemap">📋</a>
+        <div class="lang-switch">
+          <button data-lang-btn="bn" onclick="setLang('bn')">বাং</button>
+          <button data-lang-btn="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="theme-switch">
+          <button data-theme-btn="light" onclick="setTheme('light')">☀</button>
+          <button data-theme-btn="dark" onclick="setTheme('dark')">☾</button>
+          <button data-theme-btn="system" onclick="setTheme('system')">Auto</button>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+
+      <div class="card mb-4">
+        <h3 class="mt-0"><span data-i18n="bn">নতুন সমস্যা রিপোর্ট করুন</span><span data-i18n="en">Report a New Issue</span></h3>
+        <form class="form-grid">
+          <div class="field field-full">
+            <label><span data-i18n="bn">বিষয়</span><span data-i18n="en">Subject</span></label>
+            <input type="text" placeholder="বায়োমেট্রিক ডিভাইস সিঙ্ক হচ্ছে না · Biometric device not syncing">
+          </div>
+          <div class="field">
+            <label><span data-i18n="bn">ধরন / বিভাগ</span><span data-i18n="en">Category / Type</span></label>
+            <select>
+              <option><span data-i18n="bn">হার্ডওয়্যার</span><span data-i18n="en">Hardware</span></option>
+              <option><span data-i18n="bn">সফটওয়্যার / বাগ</span><span data-i18n="en">Software / Bug</span></option>
+              <option><span data-i18n="bn">বিলিং</span><span data-i18n="en">Billing</span></option>
+              <option><span data-i18n="bn">প্রশিক্ষণ অনুরোধ</span><span data-i18n="en">Training Request</span></option>
+              <option><span data-i18n="bn">ডেটা মাইগ্রেশন</span><span data-i18n="en">Data Migration</span></option>
+              <option><span data-i18n="bn">অন্যান্য</span><span data-i18n="en">Other</span></option>
+            </select>
+          </div>
+          <div class="field">
+            <label><span data-i18n="bn">গুরুত্ব</span><span data-i18n="en">Severity</span></label>
+            <select id="severity-select">
+              <option value="normal"><span data-i18n="bn">সাধারণ</span><span data-i18n="en">Normal</span></option>
+              <option value="critical"><span data-i18n="bn">জরুরি</span><span data-i18n="en">Critical</span></option>
+            </select>
+          </div>
+          <div class="field field-full">
+            <label><span data-i18n="bn">বিবরণ</span><span data-i18n="en">Description</span></label>
+            <textarea rows="5" placeholder="সমস্যাটি বিস্তারিতভাবে বর্ণনা করুন... · Describe the issue in detail..."></textarea>
+          </div>
+          <div class="field field-full">
+            <label><span data-i18n="bn">সংযুক্তি (ছবি/ডকুমেন্ট)</span><span data-i18n="en">Attachment (photo/document)</span></label>
+            <input type="file">
+          </div>
+          <div class="field-full locked-note">
+            <span data-i18n="bn">দ্রষ্টব্য: "জরুরি" হিসেবে চিহ্নিত টিকেট সরাসরি কোম্পানিতে এসকেলেট হবে; "সাধারণ" টিকেট আপনার ডিস্ট্রিবিউটরের কাছে যাবে, যিনি একজন এজেন্ট নিয়োগ করবেন।</span>
+            <span data-i18n="en">Note: tickets marked "Critical" are escalated directly to the company; "Normal" tickets go to your Distributor, who will assign an Agent.</span>
+          </div>
+          <div class="field-full">
+            <button class="btn btn-primary" type="button"><span data-i18n="bn">টিকেট জমা দিন</span><span data-i18n="en">Submit Ticket</span></button>
+          </div>
+        </form>
+      </div>
+
+      <div class="card">
+        <h3 class="mt-0"><span data-i18n="bn">আমার সাম্প্রতিক টিকেট</span><span data-i18n="en">My Recent Tickets</span></h3>
+        <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th><span data-i18n="bn">বিষয়</span><span data-i18n="en">Subject</span></th>
+              <th><span data-i18n="bn">অবস্থা</span><span data-i18n="en">Status</span></th>
+              <th><span data-i18n="bn">উত্থাপনের তারিখ</span><span data-i18n="en">Raised Date</span></th>
+              <th><span data-i18n="bn">নিয়োজিত এজেন্ট</span><span data-i18n="en">Assigned Agent</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span data-i18n="bn">বায়োমেট্রিক ডিভাইস সিঙ্ক ত্রুটি</span><span data-i18n="en">Biometric Device Sync Error</span></td>
+              <td><span class="badge badge-info"><span data-i18n="bn">চলমান</span><span data-i18n="en">In Progress</span></span></td>
+              <td>০১ আগস্ট ২০২৬</td>
+              <td><span data-i18n="bn">রফিক আহমেদ</span><span data-i18n="en">Rafiq Ahmed</span></td>
+            </tr>
+            <tr>
+              <td><span data-i18n="bn">এসএমএস ব্যালেন্স যোগ হচ্ছে না</span><span data-i18n="en">SMS balance not updating</span></td>
+              <td><span class="badge badge-warning"><span data-i18n="bn">নিয়োজিত</span><span data-i18n="en">Assigned</span></span></td>
+              <td>২৯ জুলাই ২০২৬</td>
+              <td><span data-i18n="bn">নাসরিন সুলতানা</span><span data-i18n="en">Nasrin Sultana</span></td>
+            </tr>
+            <tr>
+              <td><span data-i18n="bn">শিক্ষক প্রশিক্ষণ অনুরোধ</span><span data-i18n="en">Teacher training request</span></td>
+              <td><span class="badge badge-neutral"><span data-i18n="bn">অ্যাসাইনমেন্টের অপেক্ষায়</span><span data-i18n="en">Awaiting Assignment</span></span></td>
+              <td>২৫ জুলাই ২০২৬</td>
+              <td><span data-i18n="bn">—</span><span data-i18n="en">—</span></td>
+            </tr>
+            <tr>
+              <td><span data-i18n="bn">রেজাল্ট শীট প্রিন্ট সমস্যা</span><span data-i18n="en">Result sheet print issue</span></td>
+              <td><span class="badge badge-success"><span data-i18n="bn">সমাধান হয়েছে</span><span data-i18n="en">Resolved</span></span></td>
+              <td>১৮ জুলাই ২০২৬</td>
+              <td><span data-i18n="bn">রফিক আহমেদ</span><span data-i18n="en">Rafiq Ahmed</span></td>
+            </tr>
+          </tbody>
+        </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

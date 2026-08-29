@@ -1,0 +1,1933 @@
+- generic [ref=f1e7]:
+  - generic [ref=f1e8]:
+    - generic [ref=f1e9]:
+      - link "logo":
+        - /url: "#/"
+        - img "logo" [ref=f1e10] [cursor=pointer]
+    - text: arrow_upward
+    - generic [ref=f1e14]:
+      - table [ref=f1e16]:
+        - rowgroup [ref=f1e17]:
+          - row [ref=f1e18]:
+            - cell "Institute ID 15424" [ref=f1e19]
+            - cell "Current Year 2026" [ref=f1e20]
+      - generic [ref=f1e24]:
+        - generic [ref=f1e25]: Search
+        - textbox [ref=f1e28]
+      - list [ref=f1e35]:
+        - listitem [ref=f1e36]:
+          - link "dashboard Student Information keyboard_arrow_down" [ref=f1e37] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=f1e38]: dashboard
+            - generic [ref=f1e39]: Student Information
+            - generic [ref=f1e40]: keyboard_arrow_down
+          - list:
+            - listitem [ref=f1e41]:
+              - link "Registration keyboard_arrow_down" [ref=f1e42] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e44]: Registration
+                - generic [ref=f1e45]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e46]:
+                  - link "more_horiz Registration Form" [ref=f1e47] [cursor=pointer]:
+                    - /url: "#/studentInformation/Registration/RegistrationForm"
+                    - generic [ref=f1e48]: more_horiz
+                    - generic [ref=f1e49]: Registration Form
+                  - list
+                - listitem [ref=f1e50]:
+                  - link "more_horiz Excel Form" [ref=f1e51] [cursor=pointer]:
+                    - /url: "#/studentInformation/Registration/ExcelForm"
+                    - generic [ref=f1e52]: more_horiz
+                    - generic [ref=f1e53]: Excel Form
+                  - list
+            - listitem [ref=f1e54]:
+              - link "Update keyboard_arrow_down" [ref=f1e55] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e57]: Update
+                - generic [ref=f1e58]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e59]:
+                  - link "more_horiz Student Profile" [ref=f1e60] [cursor=pointer]:
+                    - /url: "#/studentInformation/Update/StudentProfile"
+                    - generic [ref=f1e61]: more_horiz
+                    - generic [ref=f1e62]: Student Profile
+                  - list
+                - listitem [ref=f1e63]:
+                  - link "more_horiz Basic Info" [ref=f1e64] [cursor=pointer]:
+                    - /url: "#/studentInformation/Update/BasicInfo"
+                    - generic [ref=f1e65]: more_horiz
+                    - generic [ref=f1e66]: Basic Info
+                  - list
+                - listitem [ref=f1e67]:
+                  - link "more_horiz Class Info" [ref=f1e68] [cursor=pointer]:
+                    - /url: "#/studentInformation/Update/ClassInfo"
+                    - generic [ref=f1e69]: more_horiz
+                    - generic [ref=f1e70]: Class Info
+                  - list
+                - listitem [ref=f1e71]:
+                  - link "more_horiz Profile Status" [ref=f1e72] [cursor=pointer]:
+                    - /url: "#/studentInformation/Update/ProfileStatus"
+                    - generic [ref=f1e73]: more_horiz
+                    - generic [ref=f1e74]: Profile Status
+                  - list
+            - listitem [ref=f1e75]:
+              - link "Migration keyboard_arrow_down" [ref=f1e76] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e78]: Migration
+                - generic [ref=f1e79]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e80]:
+                  - link "more_horiz With Merit Position" [ref=f1e81] [cursor=pointer]:
+                    - /url: "#/studentInformation/Migration/WithMeritPosition"
+                    - generic [ref=f1e82]: more_horiz
+                    - generic [ref=f1e83]: With Merit Position
+                  - list
+                - listitem [ref=f1e84]:
+                  - link "more_horiz Without Merit Position" [ref=f1e85] [cursor=pointer]:
+                    - /url: "#/studentInformation/Migration/WithoutMeritPosition"
+                    - generic [ref=f1e86]: more_horiz
+                    - generic [ref=f1e87]: Without Merit Position
+                  - list
+                - listitem [ref=f1e88]:
+                  - link "more_horiz Migration Pushback" [ref=f1e89] [cursor=pointer]:
+                    - /url: "#/studentInformation/Migration/MigrationPushBack"
+                    - generic [ref=f1e90]: more_horiz
+                    - generic [ref=f1e91]: Migration Pushback
+                  - list
+            - listitem [ref=f1e92]:
+              - text: Reports
+              - list
+            - listitem [ref=f1e93]:
+              - link "Summary keyboard_arrow_down" [ref=f1e94] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e96]: Summary
+                - generic [ref=f1e97]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e98]:
+                  - link "more_horiz Student List" [ref=f1e99] [cursor=pointer]:
+                    - /url: "#/studentInformation/Summary/StudentList"
+                    - generic [ref=f1e100]: more_horiz
+                    - generic [ref=f1e101]: Student List
+                  - list
+            - listitem [ref=f1e102]:
+              - link "Details keyboard_arrow_down" [ref=f1e103] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e105]: Details
+                - generic [ref=f1e106]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e107]:
+                  - link "more_horiz Student List" [ref=f1e108] [cursor=pointer]:
+                    - /url: "#/studentInformation/Details/StudentList"
+                    - generic [ref=f1e109]: more_horiz
+                    - generic [ref=f1e110]: Student List
+                  - list
+                - listitem [ref=f1e111]:
+                  - link "more_horiz Taught List" [ref=f1e112] [cursor=pointer]:
+                    - /url: "#/studentInformation/Details/TaughtList"
+                    - generic [ref=f1e113]: more_horiz
+                    - generic [ref=f1e114]: Taught List
+                  - list
+                - listitem [ref=f1e115]:
+                  - link "more_horiz Migrated List" [ref=f1e116] [cursor=pointer]:
+                    - /url: "#/studentInformation/Details/MigratedList"
+                    - generic [ref=f1e117]: more_horiz
+                    - generic [ref=f1e118]: Migrated List
+                  - list
+                - listitem [ref=f1e119]:
+                  - link "more_horiz At A Glance" [ref=f1e120] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e121]: more_horiz
+                    - generic [ref=f1e122]: At A Glance
+                  - list
+                - listitem [ref=f1e123]:
+                  - link "more_horiz Quick Search" [ref=f1e124] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e125]: more_horiz
+                    - generic [ref=f1e126]: Quick Search
+                  - list
+        - listitem [ref=f1e127]:
+          - link "recent_actors Teacher Information keyboard_arrow_down" [ref=f1e128] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=f1e129]: recent_actors
+            - generic [ref=f1e130]: Teacher Information
+            - generic [ref=f1e131]: keyboard_arrow_down
+          - list:
+            - listitem [ref=f1e132]:
+              - link "Registration keyboard_arrow_down" [ref=f1e133] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e135]: Registration
+                - generic [ref=f1e136]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e137]:
+                  - link "more_horiz Registration Form" [ref=f1e138] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e139]: more_horiz
+                    - generic [ref=f1e140]: Registration Form
+                  - list
+                - listitem [ref=f1e141]:
+                  - link "more_horiz Excel Form" [ref=f1e142] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e143]: more_horiz
+                    - generic [ref=f1e144]: Excel Form
+                  - list
+            - listitem [ref=f1e145]:
+              - link "Assign keyboard_arrow_down" [ref=f1e146] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e148]: Assign
+                - generic [ref=f1e149]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e150]:
+                  - link "more_horiz Shift Assign" [ref=f1e151] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e152]: more_horiz
+                    - generic [ref=f1e153]: Shift Assign
+                  - list
+                - listitem [ref=f1e154]:
+                  - link "more_horiz Class Teacher" [ref=f1e155] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e156]: more_horiz
+                    - generic [ref=f1e157]: Class Teacher
+                  - list
+                - listitem [ref=f1e158]:
+                  - link "more_horiz Subject Teacher" [ref=f1e159] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e160]: more_horiz
+                    - generic [ref=f1e161]: Subject Teacher
+                  - list
+            - listitem [ref=f1e162]:
+              - link "Update Profile keyboard_arrow_down" [ref=f1e163] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e165]: Update Profile
+                - generic [ref=f1e166]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e167]:
+                  - link "more_horiz Teacher Profile" [ref=f1e168] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e169]: more_horiz
+                    - generic [ref=f1e170]: Teacher Profile
+                  - list
+                - listitem [ref=f1e171]:
+                  - link "more_horiz Basic Info" [ref=f1e172] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e173]: more_horiz
+                    - generic [ref=f1e174]: Basic Info
+                  - list
+                - listitem [ref=f1e175]:
+                  - link "more_horiz Status" [ref=f1e176] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e177]: more_horiz
+                    - generic [ref=f1e178]: Status
+                  - list
+            - listitem [ref=f1e179]:
+              - text: Reports
+              - list
+            - listitem [ref=f1e180]:
+              - link "Details keyboard_arrow_down" [ref=f1e181] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e183]: Details
+                - generic [ref=f1e184]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e185]:
+                  - link "more_horiz Teacher List" [ref=f1e186] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e187]: more_horiz
+                    - generic [ref=f1e188]: Teacher List
+                  - list
+        - listitem [ref=f1e189]:
+          - link "check_circle_outline Student Attendance keyboard_arrow_down" [ref=f1e190] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=f1e191]: check_circle_outline
+            - generic [ref=f1e192]: Student Attendance
+            - generic [ref=f1e193]: keyboard_arrow_down
+          - list:
+            - listitem [ref=f1e194]:
+              - link "Settings keyboard_arrow_down" [ref=f1e195] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e197]: Settings
+                - generic [ref=f1e198]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e199]:
+                  - link "more_horiz Device ID Mapping" [ref=f1e200] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e201]: more_horiz
+                    - generic [ref=f1e202]: Device ID Mapping
+                  - list
+                - listitem [ref=f1e203]:
+                  - link "more_horiz Time Config" [ref=f1e204] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e205]: more_horiz
+                    - generic [ref=f1e206]: Time Config
+                  - list
+                - listitem [ref=f1e207]:
+                  - link "more_horiz SMS Template" [ref=f1e208] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e209]: more_horiz
+                    - generic [ref=f1e210]: SMS Template
+                  - list
+            - listitem [ref=f1e211]:
+              - link "Attendence Device keyboard_arrow_down" [ref=f1e212] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e214]: Attendence Device
+                - generic [ref=f1e215]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e216]:
+                  - link "more_horiz Upload File" [ref=f1e217] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e218]: more_horiz
+                    - generic [ref=f1e219]: Upload File
+                  - list
+                - listitem [ref=f1e220]:
+                  - link "more_horiz File Data Process" [ref=f1e221] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e222]: more_horiz
+                    - generic [ref=f1e223]: File Data Process
+                  - list
+                - listitem [ref=f1e224]:
+                  - link "more_horiz Device Data Process" [ref=f1e225] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e226]: more_horiz
+                    - generic [ref=f1e227]: Device Data Process
+                  - list
+            - listitem [ref=f1e228]:
+              - link "Take Attendance keyboard_arrow_down" [ref=f1e229] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e231]: Take Attendance
+                - generic [ref=f1e232]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e233]:
+                  - link "more_horiz Section Attendance" [ref=f1e234] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e235]: more_horiz
+                    - generic [ref=f1e236]: Section Attendance
+                  - list
+                - listitem [ref=f1e237]:
+                  - link "more_horiz Exam Attendance" [ref=f1e238] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e239]: more_horiz
+                    - generic [ref=f1e240]: Exam Attendance
+                  - list
+            - listitem [ref=f1e241]:
+              - link "Update keyboard_arrow_down" [ref=f1e242] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e244]: Update
+                - generic [ref=f1e245]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e246]:
+                  - link "more_horiz Device ID Mapping" [ref=f1e247] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e248]: more_horiz
+                    - generic [ref=f1e249]: Device ID Mapping
+                  - list
+                - listitem [ref=f1e250]:
+                  - link "more_horiz Time Config" [ref=f1e251] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e252]: more_horiz
+                    - generic [ref=f1e253]: Time Config
+                  - list
+                - listitem [ref=f1e254]:
+                  - link "more_horiz Section Attendance" [ref=f1e255] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e256]: more_horiz
+                    - generic [ref=f1e257]: Section Attendance
+                  - list
+                - listitem [ref=f1e258]:
+                  - link "more_horiz Exam Attendance" [ref=f1e259] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e260]: more_horiz
+                    - generic [ref=f1e261]: Exam Attendance
+                  - list
+            - listitem [ref=f1e262]:
+              - link "Leave keyboard_arrow_down" [ref=f1e263] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e265]: Leave
+                - generic [ref=f1e266]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e267]:
+                  - link "more_horiz Leave Application" [ref=f1e268] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e269]: more_horiz
+                    - generic [ref=f1e270]: Leave Application
+                  - list
+            - listitem [ref=f1e271]:
+              - link "Delete keyboard_arrow_down" [ref=f1e272] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e274]: Delete
+                - generic [ref=f1e275]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e276]:
+                  - link "more_horiz Section Attendance" [ref=f1e277] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e278]: more_horiz
+                    - generic [ref=f1e279]: Section Attendance
+                  - list
+            - listitem [ref=f1e280]:
+              - text: Reports
+              - list
+            - listitem [ref=f1e281]:
+              - link "Blank Sheet keyboard_arrow_down" [ref=f1e282] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e284]: Blank Sheet
+                - generic [ref=f1e285]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e286]:
+                  - link "more_horiz Section Attendance" [ref=f1e287] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e288]: more_horiz
+                    - generic [ref=f1e289]: Section Attendance
+                  - list
+            - listitem [ref=f1e290]:
+              - link "Details Info keyboard_arrow_down" [ref=f1e291] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e293]: Details Info
+                - generic [ref=f1e294]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e295]:
+                  - link "more_horiz Attendance Sheet" [ref=f1e296] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e297]: more_horiz
+                    - generic [ref=f1e298]: Attendance Sheet
+                  - list
+                - listitem [ref=f1e299]:
+                  - link "more_horiz Attendance Status" [ref=f1e300] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e301]: more_horiz
+                    - generic [ref=f1e302]: Attendance Status
+                  - list
+                - listitem [ref=f1e303]:
+                  - link "more_horiz Attendance Info" [ref=f1e304] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e305]: more_horiz
+                    - generic [ref=f1e306]: Attendance Info
+                  - list
+                - listitem [ref=f1e307]:
+                  - link "more_horiz Exam Attendance" [ref=f1e308] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e309]: more_horiz
+                    - generic [ref=f1e310]: Exam Attendance
+                  - list
+            - listitem [ref=f1e311]:
+              - link "Device Report keyboard_arrow_down" [ref=f1e312] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e314]: Device Report
+                - generic [ref=f1e315]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e316]:
+                  - link "more_horiz Device Data Log" [ref=f1e317] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e318]: more_horiz
+                    - generic [ref=f1e319]: Device Data Log
+                  - list
+                - listitem [ref=f1e320]:
+                  - link "more_horiz Device Mapping" [ref=f1e321] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e322]: more_horiz
+                    - generic [ref=f1e323]: Device Mapping
+                  - list
+        - listitem [ref=f1e324]:
+          - link "check_circle_outline Teacher Attendance keyboard_arrow_down" [ref=f1e325] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=f1e326]: check_circle_outline
+            - generic [ref=f1e327]: Teacher Attendance
+            - generic [ref=f1e328]: keyboard_arrow_down
+          - list:
+            - listitem [ref=f1e329]:
+              - link "Settings keyboard_arrow_down" [ref=f1e330] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e332]: Settings
+                - generic [ref=f1e333]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e334]:
+                  - link "more_horiz Device ID Mapping" [ref=f1e335] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e336]: more_horiz
+                    - generic [ref=f1e337]: Device ID Mapping
+                  - list
+                - listitem [ref=f1e338]:
+                  - link "more_horiz Time Config" [ref=f1e339] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e340]: more_horiz
+                    - generic [ref=f1e341]: Time Config
+                  - list
+                - listitem [ref=f1e342]:
+                  - link "more_horiz Time Process" [ref=f1e343] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e344]: more_horiz
+                    - generic [ref=f1e345]: Time Process
+                  - list
+            - listitem [ref=f1e346]:
+              - link "Attendence Device keyboard_arrow_down" [ref=f1e347] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e349]: Attendence Device
+                - generic [ref=f1e350]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e351]:
+                  - link "more_horiz Upload" [ref=f1e352] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e353]: more_horiz
+                    - generic [ref=f1e354]: Upload
+                  - list
+                - listitem [ref=f1e355]:
+                  - link "more_horiz Process" [ref=f1e356] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e357]: more_horiz
+                    - generic [ref=f1e358]: Process
+                  - list
+                - listitem [ref=f1e359]:
+                  - link "more_horiz Auto Process" [ref=f1e360] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e361]: more_horiz
+                    - generic [ref=f1e362]: Auto Process
+                  - list
+            - listitem [ref=f1e363]:
+              - link "Take Attendance keyboard_arrow_down" [ref=f1e364] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e366]: Take Attendance
+                - generic [ref=f1e367]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e368]:
+                  - link "more_horiz Daily Attendance" [ref=f1e369] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e370]: more_horiz
+                    - generic [ref=f1e371]: Daily Attendance
+                  - list
+            - listitem [ref=f1e372]:
+              - link "Update keyboard_arrow_down" [ref=f1e373] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e375]: Update
+                - generic [ref=f1e376]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e377]:
+                  - link "more_horiz Device ID Mapping" [ref=f1e378] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e379]: more_horiz
+                    - generic [ref=f1e380]: Device ID Mapping
+                  - list
+                - listitem [ref=f1e381]:
+                  - link "more_horiz Time Config" [ref=f1e382] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e383]: more_horiz
+                    - generic [ref=f1e384]: Time Config
+                  - list
+                - listitem [ref=f1e385]:
+                  - link "more_horiz Time Process" [ref=f1e386] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e387]: more_horiz
+                    - generic [ref=f1e388]: Time Process
+                  - list
+                - listitem [ref=f1e389]:
+                  - link "more_horiz Daily Attendance" [ref=f1e390] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e391]: more_horiz
+                    - generic [ref=f1e392]: Daily Attendance
+                  - list
+            - listitem [ref=f1e393]:
+              - link "Leave keyboard_arrow_down" [ref=f1e394] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e396]: Leave
+                - generic [ref=f1e397]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e398]:
+                  - link "more_horiz Leave Application" [ref=f1e399] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e400]: more_horiz
+                    - generic [ref=f1e401]: Leave Application
+                  - list
+            - listitem [ref=f1e402]:
+              - link "Delete keyboard_arrow_down" [ref=f1e403] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e405]: Delete
+                - generic [ref=f1e406]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e407]:
+                  - link "more_horiz Daily Attendance" [ref=f1e408] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e409]: more_horiz
+                    - generic [ref=f1e410]: Daily Attendance
+                  - list
+                - listitem [ref=f1e411]:
+                  - link "more_horiz Time Config" [ref=f1e412] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e413]: more_horiz
+                    - generic [ref=f1e414]: Time Config
+                  - list
+            - listitem [ref=f1e415]:
+              - text: Reports
+              - list
+            - listitem [ref=f1e416]:
+              - link "more_horiz Blank Sheet" [ref=f1e417] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e418]: more_horiz
+                - generic [ref=f1e419]: Blank Sheet
+              - list
+            - listitem [ref=f1e420]:
+              - link "more_horiz Attendance Preview" [ref=f1e421] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e422]: more_horiz
+                - generic [ref=f1e423]: Attendance Preview
+              - list
+            - listitem [ref=f1e424]:
+              - link "more_horiz Attendance Status" [ref=f1e425] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e426]: more_horiz
+                - generic [ref=f1e427]: Attendance Status
+              - list
+            - listitem [ref=f1e428]:
+              - link "more_horiz Attendance Record" [ref=f1e429] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e430]: more_horiz
+                - generic [ref=f1e431]: Attendance Record
+              - list
+            - listitem [ref=f1e432]:
+              - link "more_horiz Leave Info" [ref=f1e433] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e434]: more_horiz
+                - generic [ref=f1e435]: Leave Info
+              - list
+            - listitem [ref=f1e436]:
+              - link "Device Report keyboard_arrow_down" [ref=f1e437] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e439]: Device Report
+                - generic [ref=f1e440]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e441]:
+                  - link "more_horiz Device Data Log" [ref=f1e442] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e443]: more_horiz
+                    - generic [ref=f1e444]: Device Data Log
+                  - list
+                - listitem [ref=f1e445]:
+                  - link "more_horiz Device Mapping" [ref=f1e446] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e447]: more_horiz
+                    - generic [ref=f1e448]: Device Mapping
+                  - list
+        - listitem [ref=f1e449]:
+          - link "receipt Semester Exam keyboard_arrow_down" [ref=f1e450] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=f1e451]: receipt
+            - generic [ref=f1e452]: Semester Exam
+            - generic [ref=f1e453]: keyboard_arrow_down
+          - list:
+            - listitem [ref=f1e454]:
+              - link "Settings keyboard_arrow_down" [ref=f1e455] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e457]: Settings
+                - generic [ref=f1e458]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e459]:
+                  - link "more_horiz Exam StartUp" [ref=f1e460] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e461]: more_horiz
+                    - generic [ref=f1e462]: Exam StartUp
+                  - list
+                - listitem [ref=f1e463]:
+                  - link "more_horiz Mark Config" [ref=f1e464] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e465]: more_horiz
+                    - generic [ref=f1e466]: Mark Config
+                  - list
+                - listitem [ref=f1e467]:
+                  - link "more_horiz Mark Sheet Config" [ref=f1e468] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e469]: more_horiz
+                    - generic [ref=f1e470]: Mark Sheet Config
+                  - list
+                - listitem [ref=f1e471]:
+                  - link "more_horiz Remarks Config" [ref=f1e472] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e473]: more_horiz
+                    - generic [ref=f1e474]: Remarks Config
+                  - list
+                - listitem [ref=f1e475]:
+                  - link "more_horiz Date Config" [ref=f1e476] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e477]: more_horiz
+                    - generic [ref=f1e478]: Date Config
+                  - list
+            - listitem [ref=f1e479]:
+              - link "Mark Input keyboard_arrow_down" [ref=f1e480] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e482]: Mark Input
+                - generic [ref=f1e483]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e484]:
+                  - link "more_horiz Section Wise" [ref=f1e485] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e486]: more_horiz
+                    - generic [ref=f1e487]: Section Wise
+                  - list
+                - listitem [ref=f1e488]:
+                  - link "more_horiz Subject Wise" [ref=f1e489] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e490]: more_horiz
+                    - generic [ref=f1e491]: Subject Wise
+                  - list
+            - listitem [ref=f1e492]:
+              - link "Mark Update keyboard_arrow_down" [ref=f1e493] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e495]: Mark Update
+                - generic [ref=f1e496]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e497]:
+                  - link "more_horiz Section Wise" [ref=f1e498] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e499]: more_horiz
+                    - generic [ref=f1e500]: Section Wise
+                  - list
+                - listitem [ref=f1e501]:
+                  - link "more_horiz Subject Wise" [ref=f1e502] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e503]: more_horiz
+                    - generic [ref=f1e504]: Subject Wise
+                  - list
+            - listitem [ref=f1e505]:
+              - link "Mark Delete keyboard_arrow_down" [ref=f1e506] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e508]: Mark Delete
+                - generic [ref=f1e509]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e510]:
+                  - link "more_horiz Section Wise" [ref=f1e511] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e512]: more_horiz
+                    - generic [ref=f1e513]: Section Wise
+                  - list
+            - listitem [ref=f1e514]:
+              - link "Mark Process keyboard_arrow_down" [ref=f1e515] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e517]: Mark Process
+                - generic [ref=f1e518]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e519]:
+                  - link "more_horiz Class Wise" [ref=f1e520] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e521]: more_horiz
+                    - generic [ref=f1e522]: Class Wise
+                  - list
+            - listitem [ref=f1e523]:
+              - link "Result Process keyboard_arrow_down" [ref=f1e524] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e526]: Result Process
+                - generic [ref=f1e527]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e528]:
+                  - link "more_horiz General Exam" [ref=f1e529] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e530]: more_horiz
+                    - generic [ref=f1e531]: General Exam
+                  - list
+                - listitem [ref=f1e532]:
+                  - link "more_horiz Grand Final" [ref=f1e533] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e534]: more_horiz
+                    - generic [ref=f1e535]: Grand Final
+                  - list
+                - listitem [ref=f1e536]:
+                  - link "more_horiz Merit Position" [ref=f1e537] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e538]: more_horiz
+                    - generic [ref=f1e539]: Merit Position
+                  - list
+                - listitem [ref=f1e540]:
+                  - link "more_horiz Set Remarks" [ref=f1e541] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e542]: more_horiz
+                    - generic [ref=f1e543]: Set Remarks
+                  - list
+                - listitem [ref=f1e544]:
+                  - link "more_horiz Attendance Count" [ref=f1e545] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e546]: more_horiz
+                    - generic [ref=f1e547]: Attendance Count
+                  - list
+            - listitem [ref=f1e548]:
+              - text: Reports
+              - list
+            - listitem [ref=f1e549]:
+              - link "Blank Sheet keyboard_arrow_down" [ref=f1e550] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e552]: Blank Sheet
+                - generic [ref=f1e553]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e554]:
+                  - link "more_horiz Mark Input" [ref=f1e555] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e556]: more_horiz
+                    - generic [ref=f1e557]: Mark Input
+                  - list
+                - listitem [ref=f1e558]:
+                  - link "more_horiz Exam Attendance" [ref=f1e559] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e560]: more_horiz
+                    - generic [ref=f1e561]: Exam Attendance
+                  - list
+            - listitem [ref=f1e562]:
+              - link "Summary keyboard_arrow_down" [ref=f1e563] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e565]: Summary
+                - generic [ref=f1e566]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e567]:
+                  - link "more_horiz Unassigned Marks" [ref=f1e568] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e569]: more_horiz
+                    - generic [ref=f1e570]: Unassigned Marks
+                  - list
+                - listitem [ref=f1e571]:
+                  - link "more_horiz Result Info" [ref=f1e572] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e573]: more_horiz
+                    - generic [ref=f1e574]: Result Info
+                  - list
+                - listitem [ref=f1e575]:
+                  - link "more_horiz Grading Info" [ref=f1e576] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e577]: more_horiz
+                    - generic [ref=f1e578]: Grading Info
+                  - list
+                - listitem [ref=f1e579]:
+                  - link "more_horiz Pass-Fail Info" [ref=f1e580] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e581]: more_horiz
+                    - generic [ref=f1e582]: Pass-Fail Info
+                  - list
+            - listitem [ref=f1e583]:
+              - link "Details keyboard_arrow_down" [ref=f1e584] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e586]: Details
+                - generic [ref=f1e587]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e588]:
+                  - link "more_horiz Mark Sheet" [ref=f1e589] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e590]: more_horiz
+                    - generic [ref=f1e591]: Mark Sheet
+                  - list
+                - listitem [ref=f1e592]:
+                  - link "more_horiz Exam Result" [ref=f1e593] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e594]: more_horiz
+                    - generic [ref=f1e595]: Exam Result
+                  - list
+                - listitem [ref=f1e596]:
+                  - link "more_horiz Merit List" [ref=f1e597] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e598]: more_horiz
+                    - generic [ref=f1e599]: Merit List
+                  - list
+                - listitem [ref=f1e600]:
+                  - link "more_horiz Fail List" [ref=f1e601] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e602]: more_horiz
+                    - generic [ref=f1e603]: Fail List
+                  - list
+            - listitem [ref=f1e604]:
+              - link "Tabulation Sheet keyboard_arrow_down" [ref=f1e605] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e607]: Tabulation Sheet
+                - generic [ref=f1e608]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e609]:
+                  - link "more_horiz General Exam" [ref=f1e610] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e611]: more_horiz
+                    - generic [ref=f1e612]: General Exam
+                  - list
+                - listitem [ref=f1e613]:
+                  - link "more_horiz Grand Final" [ref=f1e614] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e615]: more_horiz
+                    - generic [ref=f1e616]: Grand Final
+                  - list
+        - listitem [ref=f1e617]:
+          - link "assignment Class Test keyboard_arrow_down" [ref=f1e618] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=f1e619]: assignment
+            - generic [ref=f1e620]: Class Test
+            - generic [ref=f1e621]: keyboard_arrow_down
+          - list:
+            - listitem [ref=f1e622]:
+              - link "Settings keyboard_arrow_down" [ref=f1e623] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e625]: Settings
+                - generic [ref=f1e626]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e627]:
+                  - link "more_horiz Create" [ref=f1e628] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e629]: more_horiz
+                    - generic [ref=f1e630]: Create
+                  - list
+                - listitem [ref=f1e631]:
+                  - link "more_horiz Assign" [ref=f1e632] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e633]: more_horiz
+                    - generic [ref=f1e634]: Assign
+                  - list
+            - listitem [ref=f1e635]:
+              - link "Mark Input keyboard_arrow_down" [ref=f1e636] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e638]: Mark Input
+                - generic [ref=f1e639]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e640]:
+                  - link "more_horiz Section Wise" [ref=f1e641] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e642]: more_horiz
+                    - generic [ref=f1e643]: Section Wise
+                  - list
+            - listitem [ref=f1e644]:
+              - link "Mark Update keyboard_arrow_down" [ref=f1e645] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e647]: Mark Update
+                - generic [ref=f1e648]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e649]:
+                  - link "more_horiz Section Wise" [ref=f1e650] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e651]: more_horiz
+                    - generic [ref=f1e652]: Section Wise
+                  - list
+            - listitem [ref=f1e653]:
+              - link "Mark Delete keyboard_arrow_down" [ref=f1e654] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e656]: Mark Delete
+                - generic [ref=f1e657]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e658]:
+                  - link "more_horiz Section Wise" [ref=f1e659] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e660]: more_horiz
+                    - generic [ref=f1e661]: Section Wise
+                  - list
+            - listitem [ref=f1e662]:
+              - text: Reports
+              - list
+            - listitem [ref=f1e663]:
+              - link "Mark List keyboard_arrow_down" [ref=f1e664] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e666]: Mark List
+                - generic [ref=f1e667]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e668]:
+                  - link "more_horiz Section Wise" [ref=f1e669] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e670]: more_horiz
+                    - generic [ref=f1e671]: Section Wise
+                  - list
+                - listitem [ref=f1e672]:
+                  - link "more_horiz Subject Wise" [ref=f1e673] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e674]: more_horiz
+                    - generic [ref=f1e675]: Subject Wise
+                  - list
+            - listitem [ref=f1e676]:
+              - link "Mark Sheet keyboard_arrow_down" [ref=f1e677] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e679]: Mark Sheet
+                - generic [ref=f1e680]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e681]:
+                  - link "more_horiz Section Wise" [ref=f1e682] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e683]: more_horiz
+                    - generic [ref=f1e684]: Section Wise
+                  - list
+        - listitem [ref=f1e685]:
+          - link "date_range Routine Management keyboard_arrow_down" [ref=f1e686] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=f1e687]: date_range
+            - generic [ref=f1e688]: Routine Management
+            - generic [ref=f1e689]: keyboard_arrow_down
+          - list:
+            - listitem [ref=f1e690]:
+              - link "Settings keyboard_arrow_down" [ref=f1e691] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e693]: Settings
+                - generic [ref=f1e694]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e695]:
+                  - link "more_horiz Class Routine" [ref=f1e696] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e697]: more_horiz
+                    - generic [ref=f1e698]: Class Routine
+                  - list
+                - listitem [ref=f1e699]:
+                  - link "more_horiz Exam Routine" [ref=f1e700] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e701]: more_horiz
+                    - generic [ref=f1e702]: Exam Routine
+                  - list
+            - listitem [ref=f1e703]:
+              - link "Create keyboard_arrow_down" [ref=f1e704] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e706]: Create
+                - generic [ref=f1e707]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e708]:
+                  - link "more_horiz Class Routine" [ref=f1e709] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e710]: more_horiz
+                    - generic [ref=f1e711]: Class Routine
+                  - list
+                - listitem [ref=f1e712]:
+                  - link "more_horiz Exam Routine" [ref=f1e713] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e714]: more_horiz
+                    - generic [ref=f1e715]: Exam Routine
+                  - list
+                - listitem [ref=f1e716]:
+                  - link "more_horiz Online Class Routine" [ref=f1e717] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e718]: more_horiz
+                    - generic [ref=f1e719]: Online Class Routine
+                  - list
+            - listitem [ref=f1e720]:
+              - text: Reports
+              - list
+            - listitem [ref=f1e721]:
+              - link "Student keyboard_arrow_down" [ref=f1e722] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e724]: Student
+                - generic [ref=f1e725]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e726]:
+                  - link "more_horiz Class Routine" [ref=f1e727] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e728]: more_horiz
+                    - generic [ref=f1e729]: Class Routine
+                  - list
+                - listitem [ref=f1e730]:
+                  - link "more_horiz Exam Routine" [ref=f1e731] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e732]: more_horiz
+                    - generic [ref=f1e733]: Exam Routine
+                  - list
+            - listitem [ref=f1e734]:
+              - link "Teacher keyboard_arrow_down" [ref=f1e735] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e737]: Teacher
+                - generic [ref=f1e738]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e739]:
+                  - link "more_horiz Daily Routine" [ref=f1e740] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e741]: more_horiz
+                    - generic [ref=f1e742]: Daily Routine
+                  - list
+        - listitem [ref=f1e743]:
+          - link "monetization_on Fees Management keyboard_arrow_down" [ref=f1e744] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=f1e745]: monetization_on
+            - generic [ref=f1e746]: Fees Management
+            - generic [ref=f1e747]: keyboard_arrow_down
+          - list:
+            - listitem [ref=f1e748]:
+              - link "Settings keyboard_arrow_down" [ref=f1e749] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e751]: Settings
+                - generic [ref=f1e752]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e753]:
+                  - link "more_horiz Fees StartUp" [ref=f1e754] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e755]: more_horiz
+                    - generic [ref=f1e756]: Fees StartUp
+                  - list
+                - listitem [ref=f1e757]:
+                  - link "more_horiz Fees Mapping" [ref=f1e758] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e759]: more_horiz
+                    - generic [ref=f1e760]: Fees Mapping
+                  - list
+                - listitem [ref=f1e761]:
+                  - link "more_horiz Amount Config" [ref=f1e762] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e763]: more_horiz
+                    - generic [ref=f1e764]: Amount Config
+                  - list
+                - listitem [ref=f1e765]:
+                  - link "more_horiz Date Config" [ref=f1e766] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e767]: more_horiz
+                    - generic [ref=f1e768]: Date Config
+                  - list
+                - listitem [ref=f1e769]:
+                  - link "more_horiz Waiver Config" [ref=f1e770] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e771]: more_horiz
+                    - generic [ref=f1e772]: Waiver Config
+                  - list
+                - listitem [ref=f1e773]:
+                  - link "more_horiz Fee Remove" [ref=f1e774] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e775]: more_horiz
+                    - generic [ref=f1e776]: Fee Remove
+                  - list
+                - listitem [ref=f1e777]:
+                  - link "more_horiz Sub-Head Remove" [ref=f1e778] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e779]: more_horiz
+                    - generic [ref=f1e780]: Sub-Head Remove
+                  - list
+            - listitem [ref=f1e781]:
+              - link "Payslip Create keyboard_arrow_down" [ref=f1e782] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e784]: Payslip Create
+                - generic [ref=f1e785]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e786]:
+                  - link "more_horiz Specific Fee" [ref=f1e787] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e788]: more_horiz
+                    - generic [ref=f1e789]: Specific Fee
+                  - list
+                - listitem [ref=f1e790]:
+                  - link "more_horiz All Fee" [ref=f1e791] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e792]: more_horiz
+                    - generic [ref=f1e793]: All Fee
+                  - list
+            - listitem [ref=f1e794]:
+              - link "Fee Collect keyboard_arrow_down" [ref=f1e795] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e797]: Fee Collect
+                - generic [ref=f1e798]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e799]:
+                  - link "more_horiz Payslip Collection" [ref=f1e800] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e801]: more_horiz
+                    - generic [ref=f1e802]: Payslip Collection
+                  - list
+                - listitem [ref=f1e803]:
+                  - link "more_horiz Quick Collection" [ref=f1e804] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e805]: more_horiz
+                    - generic [ref=f1e806]: Quick Collection
+                  - list
+                - listitem [ref=f1e807]:
+                  - link "more_horiz Digital Fees Collection" [ref=f1e808] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e809]: more_horiz
+                    - generic [ref=f1e810]: Digital Fees Collection
+                  - list
+                - listitem [ref=f1e811]:
+                  - link "more_horiz Payment History" [ref=f1e812] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e813]: more_horiz
+                    - generic [ref=f1e814]: Payment History
+                  - list
+            - listitem [ref=f1e815]:
+              - link "Delete keyboard_arrow_down" [ref=f1e816] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e818]: Delete
+                - generic [ref=f1e819]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e820]:
+                  - link "more_horiz Collected Fees" [ref=f1e821] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e822]: more_horiz
+                    - generic [ref=f1e823]: Collected Fees
+                  - list
+            - listitem [ref=f1e824]:
+              - text: Reports
+              - list
+            - listitem [ref=f1e825]:
+              - link "Summary keyboard_arrow_down" [ref=f1e826] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e828]: Summary
+                - generic [ref=f1e829]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e830]:
+                  - link "more_horiz Payment Ratio" [ref=f1e831] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e832]: more_horiz
+                    - generic [ref=f1e833]: Payment Ratio
+                  - list
+                - listitem [ref=f1e834]:
+                  - link "more_horiz Head Wise Collection" [ref=f1e835] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e836]: more_horiz
+                    - generic [ref=f1e837]: Head Wise Collection
+                  - list
+            - listitem [ref=f1e838]:
+              - link "Details keyboard_arrow_down" [ref=f1e839] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e841]: Details
+                - generic [ref=f1e842]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e843]:
+                  - link "more_horiz Payment Info" [ref=f1e844] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e845]: more_horiz
+                    - generic [ref=f1e846]: Payment Info
+                  - list
+                - listitem [ref=f1e847]:
+                  - link "more_horiz Paid Info" [ref=f1e848] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e849]: more_horiz
+                    - generic [ref=f1e850]: Paid Info
+                  - list
+                - listitem [ref=f1e851]:
+                  - link "more_horiz Unpaid Info" [ref=f1e852] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e853]: more_horiz
+                    - generic [ref=f1e854]: Unpaid Info
+                  - list
+                - listitem [ref=f1e855]:
+                  - link "more_horiz Head Wise Payment" [ref=f1e856] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e857]: more_horiz
+                    - generic [ref=f1e858]: Head Wise Payment
+                  - list
+                - listitem [ref=f1e859]:
+                  - link "more_horiz Head Wise Due" [ref=f1e860] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e861]: more_horiz
+                    - generic [ref=f1e862]: Head Wise Due
+                  - list
+                - listitem [ref=f1e863]:
+                  - link "more_horiz Paid Fees" [ref=f1e864] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e865]: more_horiz
+                    - generic [ref=f1e866]: Paid Fees
+                  - list
+                - listitem [ref=f1e867]:
+                  - link "more_horiz Unpaid Payslip" [ref=f1e868] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e869]: more_horiz
+                    - generic [ref=f1e870]: Unpaid Payslip
+                  - list
+                - listitem [ref=f1e871]:
+                  - link "more_horiz Waiver Details" [ref=f1e872] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e873]: more_horiz
+                    - generic [ref=f1e874]: Waiver Details
+                  - list
+                - listitem [ref=f1e875]:
+                  - link "more_horiz Paid Due Summary" [ref=f1e876] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e877]: more_horiz
+                    - generic [ref=f1e878]: Paid Due Summary
+                  - list
+                - listitem [ref=f1e879]:
+                  - link "attach_money Digital Collection" [ref=f1e880] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e881]: attach_money
+                    - generic [ref=f1e882]: Digital Collection
+                  - list
+        - listitem [ref=f1e883]:
+          - link "store Inventory keyboard_arrow_down" [ref=f1e884] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=f1e885]: store
+            - generic [ref=f1e886]: Inventory
+            - generic [ref=f1e887]: keyboard_arrow_down
+          - list:
+            - listitem [ref=f1e888]:
+              - link "Settings keyboard_arrow_down" [ref=f1e889] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e891]: Settings
+                - generic [ref=f1e892]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e893]:
+                  - link "more_horiz Create" [ref=f1e894] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e895]: more_horiz
+                    - generic [ref=f1e896]: Create
+                  - list
+                - listitem [ref=f1e897]:
+                  - link "more_horiz Supplier Info" [ref=f1e898] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e899]: more_horiz
+                    - generic [ref=f1e900]: Supplier Info
+                  - list
+                - listitem [ref=f1e901]:
+                  - link "more_horiz Mapping" [ref=f1e902] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e903]: more_horiz
+                    - generic [ref=f1e904]: Mapping
+                  - list
+            - listitem [ref=f1e905]:
+              - link "Transaction keyboard_arrow_down" [ref=f1e906] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e908]: Transaction
+                - generic [ref=f1e909]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e910]:
+                  - link "more_horiz Purchase" [ref=f1e911] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e912]: more_horiz
+                    - generic [ref=f1e913]: Purchase
+                  - list
+                - listitem [ref=f1e914]:
+                  - link "more_horiz Sales" [ref=f1e915] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e916]: more_horiz
+                    - generic [ref=f1e917]: Sales
+                  - list
+                - listitem [ref=f1e918]:
+                  - link "more_horiz Collect Due" [ref=f1e919] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e920]: more_horiz
+                    - generic [ref=f1e921]: Collect Due
+                  - list
+                - listitem [ref=f1e922]:
+                  - link "more_horiz Pay Due" [ref=f1e923] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e924]: more_horiz
+                    - generic [ref=f1e925]: Pay Due
+                  - list
+            - listitem [ref=f1e926]:
+              - link "Delete keyboard_arrow_down" [ref=f1e927] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e929]: Delete
+                - generic [ref=f1e930]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e931]:
+                  - link "more_horiz Purchase Invoice" [ref=f1e932] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e933]: more_horiz
+                    - generic [ref=f1e934]: Purchase Invoice
+                  - list
+                - listitem [ref=f1e935]:
+                  - link "more_horiz Sales Invoice" [ref=f1e936] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e937]: more_horiz
+                    - generic [ref=f1e938]: Sales Invoice
+                  - list
+            - listitem [ref=f1e939]:
+              - text: Reports
+              - list
+            - listitem [ref=f1e940]:
+              - link "Summary keyboard_arrow_down" [ref=f1e941] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e943]: Summary
+                - generic [ref=f1e944]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e945]:
+                  - link "more_horiz Purchase" [ref=f1e946] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e947]: more_horiz
+                    - generic [ref=f1e948]: Purchase
+                  - list
+                - listitem [ref=f1e949]:
+                  - link "more_horiz Sales" [ref=f1e950] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e951]: more_horiz
+                    - generic [ref=f1e952]: Sales
+                  - list
+                - listitem [ref=f1e953]:
+                  - link "more_horiz Item Wise" [ref=f1e954] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e955]: more_horiz
+                    - generic [ref=f1e956]: Item Wise
+                  - list
+                - listitem [ref=f1e957]:
+                  - link "more_horiz Supplier Payment" [ref=f1e958] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e959]: more_horiz
+                    - generic [ref=f1e960]: Supplier Payment
+                  - list
+                - listitem [ref=f1e961]:
+                  - link "more_horiz Stock List" [ref=f1e962] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e963]: more_horiz
+                    - generic [ref=f1e964]: Stock List
+                  - list
+            - listitem [ref=f1e965]:
+              - link "Details keyboard_arrow_down" [ref=f1e966] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e968]: Details
+                - generic [ref=f1e969]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e970]:
+                  - link "more_horiz Purchase" [ref=f1e971] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e972]: more_horiz
+                    - generic [ref=f1e973]: Purchase
+                  - list
+                - listitem [ref=f1e974]:
+                  - link "more_horiz Sales" [ref=f1e975] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e976]: more_horiz
+                    - generic [ref=f1e977]: Sales
+                  - list
+                - listitem [ref=f1e978]:
+                  - link "more_horiz Supplier Payment" [ref=f1e979] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e980]: more_horiz
+                    - generic [ref=f1e981]: Supplier Payment
+                  - list
+                - listitem [ref=f1e982]:
+                  - link "more_horiz Student Due" [ref=f1e983] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e984]: more_horiz
+                    - generic [ref=f1e985]: Student Due
+                  - list
+        - listitem [ref=f1e986]:
+          - link "local_atm Accounts Management keyboard_arrow_down" [ref=f1e987] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=f1e988]: local_atm
+            - generic [ref=f1e989]: Accounts Management
+            - generic [ref=f1e990]: keyboard_arrow_down
+          - list:
+            - listitem [ref=f1e991]:
+              - link "Settings keyboard_arrow_down" [ref=f1e992] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e994]: Settings
+                - generic [ref=f1e995]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e996]:
+                  - link "more_horiz Create Ledger" [ref=f1e997] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e998]: more_horiz
+                    - generic [ref=f1e999]: Create Ledger
+                  - list
+                - listitem [ref=f1e1000]:
+                  - link "more_horiz Create Fund" [ref=f1e1001] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e1002]: more_horiz
+                    - generic [ref=f1e1003]: Create Fund
+                  - list
+            - listitem [ref=f1e1004]:
+              - link "Voucher Entry keyboard_arrow_down" [ref=f1e1005] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e1007]: Voucher Entry
+                - generic [ref=f1e1008]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e1009]:
+                  - link "more_horiz Payment" [ref=f1e1010] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e1011]: more_horiz
+                    - generic [ref=f1e1012]: Payment
+                  - list
+                - listitem [ref=f1e1013]:
+                  - link "more_horiz Receipt" [ref=f1e1014] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e1015]: more_horiz
+                    - generic [ref=f1e1016]: Receipt
+                  - list
+                - listitem [ref=f1e1017]:
+                  - link "more_horiz Contra" [ref=f1e1018] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e1019]: more_horiz
+                    - generic [ref=f1e1020]: Contra
+                  - list
+                - listitem [ref=f1e1021]:
+                  - link "more_horiz Journal" [ref=f1e1022] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e1023]: more_horiz
+                    - generic [ref=f1e1024]: Journal
+                  - list
+                - listitem [ref=f1e1025]:
+                  - link "more_horiz Fund Transfer" [ref=f1e1026] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e1027]: more_horiz
+                    - generic [ref=f1e1028]: Fund Transfer
+                  - list
+            - listitem [ref=f1e1029]:
+              - link "Delete keyboard_arrow_down" [ref=f1e1030] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e1032]: Delete
+                - generic [ref=f1e1033]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e1034]:
+                  - link "more_horiz Voucher" [ref=f1e1035] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e1036]: more_horiz
+                    - generic [ref=f1e1037]: Voucher
+                  - list
+            - listitem [ref=f1e1038]:
+              - text: Reports
+              - list
+            - listitem [ref=f1e1039]:
+              - link "Core Reports keyboard_arrow_down" [ref=f1e1040] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e1042]: Core Reports
+                - generic [ref=f1e1043]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e1044]:
+                  - link "more_horiz Balance Sheet" [ref=f1e1045] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e1046]: more_horiz
+                    - generic [ref=f1e1047]: Balance Sheet
+                  - list
+                - listitem [ref=f1e1048]:
+                  - link "more_horiz Trial Balance" [ref=f1e1049] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e1050]: more_horiz
+                    - generic [ref=f1e1051]: Trial Balance
+                  - list
+                - listitem [ref=f1e1052]:
+                  - link "more_horiz Income Statement" [ref=f1e1053] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e1054]: more_horiz
+                    - generic [ref=f1e1055]: Income Statement
+                  - list
+                - listitem [ref=f1e1056]:
+                  - link "more_horiz Cash Summary" [ref=f1e1057] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e1058]: more_horiz
+                    - generic [ref=f1e1059]: Cash Summary
+                  - list
+                - listitem [ref=f1e1060]:
+                  - link "more_horiz Cash Flow Statement" [ref=f1e1061] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e1062]: more_horiz
+                    - generic [ref=f1e1063]: Cash Flow Statement
+                  - list
+                - listitem [ref=f1e1064]:
+                  - link "more_horiz Book of Accounts" [ref=f1e1065] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e1066]: more_horiz
+                    - generic [ref=f1e1067]: Book of Accounts
+                  - list
+                - listitem [ref=f1e1068]:
+                  - link "more_horiz Chart of Accounts" [ref=f1e1069] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e1070]: more_horiz
+                    - generic [ref=f1e1071]: Chart of Accounts
+                  - list
+            - listitem [ref=f1e1072]:
+              - link "Transaction Reports keyboard_arrow_down" [ref=f1e1073] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e1075]: Transaction Reports
+                - generic [ref=f1e1076]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e1077]:
+                  - link "more_horiz Voucher Wise" [ref=f1e1078] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e1079]: more_horiz
+                    - generic [ref=f1e1080]: Voucher Wise
+                  - list
+                - listitem [ref=f1e1081]:
+                  - link "more_horiz User Wise" [ref=f1e1082] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e1083]: more_horiz
+                    - generic [ref=f1e1084]: User Wise
+                  - list
+                - listitem [ref=f1e1085]:
+                  - link "more_horiz Ledger Wise" [ref=f1e1086] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e1087]: more_horiz
+                    - generic [ref=f1e1088]: Ledger Wise
+                  - list
+                - listitem [ref=f1e1089]:
+                  - link "more_horiz Account Journal" [ref=f1e1090] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e1091]: more_horiz
+                    - generic [ref=f1e1092]: Account Journal
+                  - list
+                - listitem [ref=f1e1093]:
+                  - link "more_horiz Fund Wise" [ref=f1e1094] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e1095]: more_horiz
+                    - generic [ref=f1e1096]: Fund Wise
+                  - list
+                - listitem [ref=f1e1097]:
+                  - link "more_horiz Fund Tran. Summary" [ref=f1e1098] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e1099]: more_horiz
+                    - generic [ref=f1e1100]: Fund Tran. Summary
+                  - list
+                - listitem [ref=f1e1101]:
+                  - link "more_horiz Fund Tran. Monthly" [ref=f1e1102] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e1103]: more_horiz
+                    - generic [ref=f1e1104]: Fund Tran. Monthly
+                  - list
+        - listitem [ref=f1e1105]:
+          - link "view_compact Layout & Certificates keyboard_arrow_down" [ref=f1e1106] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=f1e1107]: view_compact
+            - generic [ref=f1e1108]: Layout & Certificates
+            - generic [ref=f1e1109]: keyboard_arrow_down
+          - list:
+            - listitem [ref=f1e1110]:
+              - link "Settings keyboard_arrow_down" [ref=f1e1111] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e1113]: Settings
+                - generic [ref=f1e1114]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e1115]:
+                  - link "more_horiz Template Format" [ref=f1e1116] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e1117]: more_horiz
+                    - generic [ref=f1e1118]: Template Format
+                  - list
+                - listitem [ref=f1e1119]:
+                  - link "more_horiz Admit Card Instruction" [ref=f1e1120] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e1121]: more_horiz
+                    - generic [ref=f1e1122]: Admit Card Instruction
+                  - list
+            - listitem [ref=f1e1123]:
+              - link "Download keyboard_arrow_down" [ref=f1e1124] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e1126]: Download
+                - generic [ref=f1e1127]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e1128]:
+                  - link "more_horiz ID Card" [ref=f1e1129] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e1130]: more_horiz
+                    - generic [ref=f1e1131]: ID Card
+                  - list
+                - listitem [ref=f1e1132]:
+                  - link "more_horiz Envelope Tag" [ref=f1e1133] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e1134]: more_horiz
+                    - generic [ref=f1e1135]: Envelope Tag
+                  - list
+                - listitem [ref=f1e1136]:
+                  - link "more_horiz Exam Essentials" [ref=f1e1137] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e1138]: more_horiz
+                    - generic [ref=f1e1139]: Exam Essentials
+                  - list
+                - listitem [ref=f1e1140]:
+                  - link "more_horiz Testimonial" [ref=f1e1141] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e1142]: more_horiz
+                    - generic [ref=f1e1143]: Testimonial
+                  - list
+                - listitem [ref=f1e1144]:
+                  - link "more_horiz Transfer Certificate" [ref=f1e1145] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e1146]: more_horiz
+                    - generic [ref=f1e1147]: Transfer Certificate
+                  - list
+        - listitem [ref=f1e1148]:
+          - link "contact_mail SMS & Notification keyboard_arrow_down" [ref=f1e1149] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=f1e1150]: contact_mail
+            - generic [ref=f1e1151]: SMS & Notification
+            - generic [ref=f1e1152]: keyboard_arrow_down
+          - list:
+            - listitem [ref=f1e1153]:
+              - link "Create keyboard_arrow_down" [ref=f1e1154] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e1156]: Create
+                - generic [ref=f1e1157]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e1158]:
+                  - link "more_horiz SMS Template" [ref=f1e1159] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e1160]: more_horiz
+                    - generic [ref=f1e1161]: SMS Template
+                  - list
+                - listitem [ref=f1e1162]:
+                  - link "more_horiz Phone Book" [ref=f1e1163] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e1164]: more_horiz
+                    - generic [ref=f1e1165]: Phone Book
+                  - list
+                - listitem [ref=f1e1166]:
+                  - link "more_horiz Notice" [ref=f1e1167] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e1168]: more_horiz
+                    - generic [ref=f1e1169]: Notice
+                  - list
+            - listitem [ref=f1e1170]:
+              - link "Send keyboard_arrow_down" [ref=f1e1171] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e1173]: Send
+                - generic [ref=f1e1174]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e1175]:
+                  - link "more_horiz Person Wise" [ref=f1e1176] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e1177]: more_horiz
+                    - generic [ref=f1e1178]: Person Wise
+                  - list
+                - listitem [ref=f1e1179]:
+                  - link "more_horiz Institute Wise" [ref=f1e1180] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e1181]: more_horiz
+                    - generic [ref=f1e1182]: Institute Wise
+                  - list
+                - listitem [ref=f1e1183]:
+                  - link "more_horiz Notification Wise" [ref=f1e1184] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e1185]: more_horiz
+                    - generic [ref=f1e1186]: Notification Wise
+                  - list
+            - listitem [ref=f1e1187]:
+              - link "Recharge keyboard_arrow_down" [ref=f1e1188] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e1190]: Recharge
+                - generic [ref=f1e1191]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e1192]:
+                  - link "more_horiz SMS" [ref=f1e1193] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e1194]: more_horiz
+                    - generic [ref=f1e1195]: SMS
+                  - list
+            - listitem [ref=f1e1196]:
+              - text: Reports
+              - list
+            - listitem [ref=f1e1197]:
+              - link "Summary keyboard_arrow_down" [ref=f1e1198] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e1200]: Summary
+                - generic [ref=f1e1201]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e1202]:
+                  - link "more_horiz Send SMS" [ref=f1e1203] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e1204]: more_horiz
+                    - generic [ref=f1e1205]: Send SMS
+                  - list
+                - listitem [ref=f1e1206]:
+                  - link "more_horiz Purchase History" [ref=f1e1207] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e1208]: more_horiz
+                    - generic [ref=f1e1209]: Purchase History
+                  - list
+            - listitem [ref=f1e1210]:
+              - link "Details keyboard_arrow_down" [ref=f1e1211] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e1213]: Details
+                - generic [ref=f1e1214]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e1215]:
+                  - link "more_horiz To Parent" [ref=f1e1216] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e1217]: more_horiz
+                    - generic [ref=f1e1218]: To Parent
+                  - list
+                - listitem [ref=f1e1219]:
+                  - link "more_horiz To Teacher" [ref=f1e1220] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e1221]: more_horiz
+                    - generic [ref=f1e1222]: To Teacher
+                  - list
+                - listitem [ref=f1e1223]:
+                  - link "more_horiz To Anyone" [ref=f1e1224] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e1225]: more_horiz
+                    - generic [ref=f1e1226]: To Anyone
+                  - list
+        - listitem [ref=f1e1227]:
+          - link "settings Core Settings keyboard_arrow_down" [ref=f1e1228] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=f1e1229]: settings
+            - generic [ref=f1e1230]: Core Settings
+            - generic [ref=f1e1231]: keyboard_arrow_down
+          - list:
+            - listitem [ref=f1e1232]:
+              - link "Institute Settings keyboard_arrow_down" [ref=f1e1233] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e1235]: Institute Settings
+                - generic [ref=f1e1236]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e1237]:
+                  - link "more_horiz Basic Config" [ref=f1e1238] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e1239]: more_horiz
+                    - generic [ref=f1e1240]: Basic Config
+                  - list
+                - listitem [ref=f1e1241]:
+                  - link "more_horiz StartUp" [ref=f1e1242] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e1243]: more_horiz
+                    - generic [ref=f1e1244]: StartUp
+                  - list
+                - listitem [ref=f1e1245]:
+                  - link "more_horiz Class Config" [ref=f1e1246] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e1247]: more_horiz
+                    - generic [ref=f1e1248]: Class Config
+                  - list
+                - listitem [ref=f1e1249]:
+                  - link "more_horiz Signature" [ref=f1e1250] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e1251]: more_horiz
+                    - generic [ref=f1e1252]: Signature
+                  - list
+            - listitem [ref=f1e1253]:
+              - link "Subject Settings keyboard_arrow_down" [ref=f1e1254] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e1256]: Subject Settings
+                - generic [ref=f1e1257]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e1258]:
+                  - link "more_horiz Subject Config" [ref=f1e1259] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e1260]: more_horiz
+                    - generic [ref=f1e1261]: Subject Config
+                  - list
+                - listitem [ref=f1e1262]:
+                  - link "more_horiz 4th Subject Config" [ref=f1e1263] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e1264]: more_horiz
+                    - generic [ref=f1e1265]: 4th Subject Config
+                  - list
+            - listitem [ref=f1e1266]:
+              - link "User Settings keyboard_arrow_down" [ref=f1e1267] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e1269]: User Settings
+                - generic [ref=f1e1270]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e1271]:
+                  - link "more_horiz User Assign" [ref=f1e1272] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e1273]: more_horiz
+                    - generic [ref=f1e1274]: User Assign
+                  - list
+            - listitem [ref=f1e1275]:
+              - link "Portal Setting keyboard_arrow_down" [ref=f1e1276] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e1278]: Portal Setting
+                - generic [ref=f1e1279]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e1280]:
+                  - link "more_horiz New Connect" [ref=f1e1281] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e1282]: more_horiz
+                    - generic [ref=f1e1283]: New Connect
+                  - list
+                - listitem [ref=f1e1284]:
+                  - link "more_horiz Connected List" [ref=f1e1285] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e1286]: more_horiz
+                    - generic [ref=f1e1287]: Connected List
+                  - list
+        - listitem [ref=f1e1288]:
+          - link "live_help Support Center keyboard_arrow_down" [ref=f1e1289] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=f1e1290]: live_help
+            - generic [ref=f1e1291]: Support Center
+            - generic [ref=f1e1292]: keyboard_arrow_down
+          - list:
+            - listitem [ref=f1e1293]:
+              - link "Support Token keyboard_arrow_down" [ref=f1e1294] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e1296]: Support Token
+                - generic [ref=f1e1297]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e1298]:
+                  - link "more_horiz Submit Token" [ref=f1e1299] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e1300]: more_horiz
+                    - generic [ref=f1e1301]: Submit Token
+                  - list
+            - listitem [ref=f1e1302]:
+              - text: Reports
+              - list
+            - listitem [ref=f1e1303]:
+              - link "Details keyboard_arrow_down" [ref=f1e1304] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=f1e1306]: Details
+                - generic [ref=f1e1307]: keyboard_arrow_down
+              - list:
+                - listitem [ref=f1e1308]:
+                  - link "more_horiz Token Status" [ref=f1e1309] [cursor=pointer]:
+                    - /url: "#"
+                    - generic [ref=f1e1310]: more_horiz
+                    - generic [ref=f1e1311]: Token Status
+                  - list
+  - generic [ref=f1e1312]:
+    - generic [ref=f1e1315]:
+      - list [ref=f1e1317]:
+        - listitem [ref=f1e1318] [cursor=pointer]:
+          - link "Home" [ref=f1e1319]:
+            - /url: "#/"
+        - listitem [ref=f1e1322] [cursor=pointer]:
+          - link "Dashboard" [ref=f1e1323]:
+            - /url: "#/eduman/Dashboard"
+        - listitem [ref=f1e1326] [cursor=pointer]:
+          - link "Support Token" [ref=f1e1327]:
+            - /url: "#/SupportCenter/SupportToken/SubmitToken"
+        - listitem [ref=f1e1330] [cursor=pointer]:
+          - generic [ref=f1e1331]: Refresh
+      - list [ref=f1e1335]:
+        - listitem [ref=f1e1336] [cursor=pointer]
+    - generic [ref=f1e1432]:
+      - generic [ref=f1e1434] [cursor=pointer]:
+        - generic [ref=f1e1435]:
+          - generic [ref=f1e1436]: 
+          - heading "অফিস নোটিশ" [level=4] [ref=f1e1438]
+        - generic [ref=f1e1439]:
+          - generic [ref=f1e1440]: 1/1
+          - generic [ref=f1e1441]:
+            - generic [ref=f1e1442]: See in Details
+            - generic [ref=f1e1443]: 
+      - text:  chevron_left chevron_right
+    - generic [ref=f1e1341]:
+      - generic [ref=f1e1343]:
+        - generic [ref=f1e1344]:
+          - generic [ref=f1e1349]:
+            - heading "Eduman International School & Collage" [level=1] [ref=f1e1350]
+            - paragraph [ref=f1e1351]: House-55, Road-16, Sector-14, Uttara, Dhaka
+          - generic [ref=f1e1353]:
+            - generic [ref=f1e1355]:
+              - generic [ref=f1e1356]: 
+              - heading "INSTITUTE ID" [level=3] [ref=f1e1357]
+              - heading "15424" [level=2] [ref=f1e1358]
+            - generic [ref=f1e1360]:
+              - generic [ref=f1e1361]: 
+              - heading "ACADEMIC YEAR" [level=3] [ref=f1e1362]
+              - heading "2026" [level=2] [ref=f1e1363]
+            - generic [ref=f1e1365]:
+              - generic [ref=f1e1366]: 
+              - heading "SMS BALANCE" [level=3] [ref=f1e1367]
+              - heading "50" [level=2] [ref=f1e1368]
+            - generic [ref=f1e1370]:
+              - generic [ref=f1e1371]: 
+              - heading "MAKSING BALANCE" [level=3] [ref=f1e1372]
+              - heading "0" [level=2] [ref=f1e1373]
+          - generic [ref=f1e1377]:
+            - generic [ref=f1e1379]:
+              - heading "MD Sohanur Rahaman" [level=2] [ref=f1e1380]
+              - paragraph [ref=f1e1381]: "Designation : Admin"
+              - paragraph [ref=f1e1382]: "Mobile : 01322918988"
+              - paragraph [ref=f1e1383]: "Email :"
+              - paragraph [ref=f1e1384]: "Login ID : 01322918988"
+            - generic [ref=f1e1386]:
+              - text: HR ID
+              - heading "800258" [level=1] [ref=f1e1387]
+          - generic [ref=f1e1389]:
+            - link [ref=f1e1391] [cursor=pointer]:
+              - /url: https://www.teachers.gov.bd/
+            - link [ref=f1e1393] [cursor=pointer]:
+              - /url: https://www.edumanbd.com
+        - generic [ref=f1e1394]:
+          - generic [ref=f1e1395]:
+            - heading "Customer Support" [level=4] [ref=f1e1396]
+            - generic [ref=f1e1398]: "01701269548"
+            - generic [ref=f1e1401]:
+              - generic [ref=f1e1402]: Support Time
+              - heading "9.00 AM - 5.00 PM" [level=3] [ref=f1e1403]
+              - text: (Without Friday & Govt. Holiday)
+              - heading "View Support Policy" [level=3] [ref=f1e1404]
+            - link [ref=f1e1406] [cursor=pointer]:
+              - /url: "#/Help/Token/ProblemSubmit"
+              - button "Submit Token" [ref=f1e1407]
+          - link [ref=f1e1409] [cursor=pointer]:
+            - /url: https://guide.edumanbd.com
+      - generic [ref=f1e1413]:
+        - generic [ref=f1e1414]: Powerd by Leadswin Limited
+        - list [ref=f1e1416]:
+          - link "" [ref=f1e1417] [cursor=pointer]:
+            - /url: https://www.edumanbd.com/#/landingPage
+            - listitem [ref=f1e1418]:
+              - generic [ref=f1e1419]: 
+          - link "" [ref=f1e1420] [cursor=pointer]:
+            - /url: https://www.facebook.com/myeduman
+            - listitem [ref=f1e1421]:
+              - generic [ref=f1e1422]: 
+          - link "" [ref=f1e1423] [cursor=pointer]:
+            - /url: https://www.linkedin.com/company/myeduman/
+            - listitem [ref=f1e1424]:
+              - generic [ref=f1e1425]: 
+          - link "" [ref=f1e1426] [cursor=pointer]:
+            - /url: https://www.youtube.com/channel/UCge76d7vVyvvwgzbqI1VERQ
+            - listitem [ref=f1e1427]:
+              - generic [ref=f1e1428]: 
+          - link "" [ref=f1e1429] [cursor=pointer]:
+            - /url: https://www.instagram.com/myeduman/
+            - listitem [ref=f1e1430]:
+              - generic [ref=f1e1431]: 

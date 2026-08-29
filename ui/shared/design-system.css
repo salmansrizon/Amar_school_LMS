@@ -3,7 +3,7 @@
   Themed after the Family Design System (see "Design System/" folder):
   - Type: Plus Jakarta Sans (Latin) with Hind Siliguri fallback for Bangla glyphs.
   - Neutrals: Ink (#131313) on Paper (#ffffff) over Paper Muted (#f5f4f1).
-  - Brand/action color: Action Blue (#2f7eff). Status/semantic meaning is ALWAYS
+  - Brand/action color: Action Violet (#6d4dfb). Status/semantic meaning is ALWAYS
     conveyed with --success/--warning/--danger/--info (mint/yellow/red/sky), never brand hue.
   - Radius scale: 8 / 14 / 20 / full(999) — friendly rounded, pills for buttons & badges.
   - Shadows: card 0 12px 32px .08, modal 0 24px 64px .16.
@@ -16,17 +16,17 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Hind+Siliguri:wght@300;400;500;600;700&display=swap');
 
 :root {
-  /* Brand (Action Blue) — chrome, links, primary actions, active nav ONLY */
-  --brand-50:  #eef5ff;
-  --brand-100: #dbeaff;
-  --brand-200: #b6d5ff;
-  --brand-300: #8abcff;
-  --brand-400: #5c9dff;
-  --brand-500: #2f7eff;
-  --brand-600: #1e6bf0;
-  --brand-700: #1a58c8;
-  --brand-800: #1847a0;
-  --brand-900: #163a80;
+  /* Brand (Action Violet, EdumeBD) — chrome, links, primary actions, active nav ONLY */
+  --brand-50:  #f1eefe;
+  --brand-100: #e3dcfd;
+  --brand-200: #cabbfa;
+  --brand-300: #b3a4f7;
+  --brand-400: #8e73f4;
+  --brand-500: #6d4dfb;
+  --brand-600: #5a37e8;
+  --brand-700: #4826c4;
+  --brand-800: #3a1fa0;
+  --brand-900: #2e1980;
 
   /* Semantic status — NEVER use brand hue for these meanings */
   --success-bg: #e6f9ef;   --success-fg: #0a7a48;  --success-border: #8fe6bd;
@@ -105,7 +105,7 @@
     --text-secondary: var(--gray-500);
     --border-default: #2b2b2b;
     --border-strong:  var(--gray-700);
-    --accent-soft:    rgba(47, 126, 255, 0.16);
+    --accent-soft:    rgba(109, 77, 251, 0.16);
     --accent-soft-fg: var(--brand-300);
 
     --success-bg: rgba(0,210,106,0.14);  --success-fg: #00d26a; --success-border: rgba(0,210,106,0.35);
@@ -124,7 +124,7 @@
   --text-secondary: var(--gray-500);
   --border-default: #2b2b2b;
   --border-strong:  var(--gray-700);
-  --accent-soft:    rgba(47, 126, 255, 0.16);
+  --accent-soft:    rgba(109, 77, 251, 0.16);
   --accent-soft-fg: var(--brand-300);
 
   --success-bg: rgba(0,210,106,0.14);  --success-fg: #00d26a; --success-border: rgba(0,210,106,0.35);
@@ -328,6 +328,69 @@ table.data-table tbody tr:last-child td { border-bottom: none; }
 .badge-info    { background: var(--info-bg);    color: var(--info-fg);    border-color: var(--info-border); }
 .badge-neutral { background: var(--bg-surface-alt); color: var(--text-secondary); border-color: var(--border-default); }
 .badge-extended { background: var(--accent-soft); color: var(--accent-soft-fg); border-color: var(--brand-300); }
+
+/* ---------- Kanban board (CRM pipeline, task boards) ---------- */
+
+.kanban-board { display: flex; gap: var(--space-4); overflow-x: auto; padding-bottom: var(--space-2); }
+.kanban-col {
+  flex: 0 0 260px;
+  background: var(--bg-surface-alt);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3);
+  display: flex; flex-direction: column; gap: var(--space-3);
+}
+.kanban-col-head { display: flex; align-items: center; justify-content: space-between; font-size: var(--text-xs); font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-secondary); }
+.kanban-col-count { background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: var(--radius-full); padding: 1px 7px; font-size: var(--text-xs); }
+.kanban-cards { display: flex; flex-direction: column; gap: var(--space-2); min-height: 40px; }
+.kanban-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  box-shadow: var(--shadow-sm);
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+.kanban-card:hover { border-color: var(--border-strong); }
+.kanban-card .title { font-weight: 600; margin-bottom: var(--space-1); }
+.kanban-card .meta { display: flex; align-items: center; justify-content: space-between; margin-top: var(--space-2); font-size: var(--text-xs); color: var(--text-secondary); }
+
+/* ---------- Stepper (onboarding / multi-stage progress) ---------- */
+
+.stepper { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-bottom: var(--space-4); }
+.step {
+  display: flex; align-items: center; gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-default);
+  background: var(--bg-surface);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+.step .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border-strong); flex-shrink: 0; }
+.step.done { background: var(--success-bg); border-color: var(--success-border); color: var(--success-fg); }
+.step.done .dot { background: var(--success-fg); }
+.step.active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-soft-fg); }
+.step.active .dot { background: var(--accent); }
+
+.progress-bar { width: 100%; height: 8px; border-radius: var(--radius-full); background: var(--bg-surface-alt); overflow: hidden; }
+.progress-bar .fill { height: 100%; background: var(--accent); border-radius: var(--radius-full); }
+
+/* ---------- Timeline (stage-history / audit trail) ---------- */
+
+.timeline { display: flex; flex-direction: column; gap: 0; }
+.timeline-item { display: flex; gap: var(--space-3); padding-bottom: var(--space-4); position: relative; }
+.timeline-item::before {
+  content: ''; position: absolute; left: 5px; top: 18px; bottom: 0; width: 1px; background: var(--border-default);
+}
+.timeline-item:last-child::before { display: none; }
+.timeline-item .dot { width: 11px; height: 11px; border-radius: 50%; background: var(--accent); flex-shrink: 0; margin-top: 4px; }
+.timeline-item .body { flex: 1; }
+.timeline-item .head { display: flex; align-items: center; justify-content: space-between; font-size: var(--text-sm); font-weight: 600; }
+.timeline-item .when { font-size: var(--text-xs); color: var(--text-secondary); }
+.timeline-item .note { font-size: var(--text-sm); color: var(--text-secondary); margin-top: 2px; }
 
 /* ---------- Forms ---------- */
 

@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import { smsGateway } from '@/lib/sms/gateway'
 import { cronClient, cronTargetDate, isCronAuthorized, reconcileSecret } from '@/lib/cron/job'
 import { buildReminderMessage, REMINDER_TITLE } from '@/lib/super-admin/expiry-reminder'
+import { systemEventEngine } from '@/lib/engines/events/engine'
+import { registerNotificationConsumers } from '@/lib/engines/notification/consumers'
 
 // Daily subscription-expiry reminder sweep (map #158, ticket #163). The push
 // side of expiry: nobody may log in to trigger it lazily, so a Vercel cron hits
@@ -17,6 +19,8 @@ export async function GET(request: Request) {
   const target = cronTargetDate(request)
   const supabase = cronClient()
   const secret = reconcileSecret()
+  registerNotificationConsumers()
+  const events = systemEventEngine()
 
   const { data, error } = await supabase.rpc('subscription_reminder_candidates', {
     job_secret: secret,
@@ -51,6 +55,27 @@ export async function GET(request: Request) {
       continue
     }
     if (!recorded) continue
+
+    // Newly claimed → publish the domain event. Its notification consumer drops
+    // the owner an in-app inbox notice (per-event recipient resolution, #267).
+    // Best-effort: a notification failure must not abort the sweep or the SMS.
+    if (c.owner_id) {
+      try {
+        await events.publish({
+          type: 'SubscriptionExpiringSoon',
+          schoolId: c.school_id,
+          payload: {
+            schoolId: c.school_id,
+            ownerId: c.owner_id,
+            schoolName: c.school_name,
+            expiresOn: c.expires_on,
+          },
+          actorId: null,
+        })
+      } catch {
+        // swallow — the durable reminder (activity row) is already committed
+      }
+    }
 
     // SMS is best-effort: the durable reminder channel is the owner activity-feed
     // notice (committed above), so a transient gateway failure is only counted,

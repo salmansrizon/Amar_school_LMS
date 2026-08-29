@@ -1,0 +1,87 @@
+import Link from 'next/link'
+import { getSuperAdminContext } from '@/lib/super-admin/context'
+import { formatTaka } from '@/lib/money'
+import { trialBalance } from '@/lib/super-admin/ledger-view'
+
+type Labelled = { code: string; name?: { en?: string; bn?: string } | null; type: string; normal_side: string }
+
+// Central GL trial balance (#271 / general-ledger 0085). Aggregates gl_lines per
+// account into debit/credit totals — the vendor accounting ledger view.
+export default async function AccountingPage() {
+  const { supabase } = await getSuperAdminContext()
+
+  // #530: this used to select gl_lines unbounded and fold them in the app.
+  // PostgREST caps an unbounded select at 1000 rows, so it summed 1,000 of 46,521
+  // lines and rendered the difference of that arbitrary prefix as a ledger
+  // imbalance — ৳2,800.00, which a UAT pass reasonably read as a financial
+  // blocker. A trial balance over a paginated fetch is always wrong, and wrong in
+  // a way that looks exactly like fraud. The aggregate is 15 rows and belongs in
+  // the database, where nothing can silently truncate it.
+  const [{ data: accounts }, { data: rows }] = await Promise.all([
+    supabase.from('gl_accounts').select('code, name, type, normal_side').order('code'),
+    supabase.from('gl_trial_balance').select('account_code, debit, credit'),
+  ])
+
+  const { perAccount: totals, totalDebit: sumDebit, totalCredit: sumCredit, balanced } =
+    trialBalance(rows ?? [])
+
+  const name = (a: Labelled) => a.name?.en ?? a.code
+
+  return (
+    <main className="w-full p-6">
+      <div className="mb-4 flex items-center justify-between">
+        <h1 className="text-2xl font-extrabold">Accounting Ledger</h1>
+        <Link href="/super-admin" className="text-sm text-brand-600 hover:underline">
+          ← Dashboard
+        </Link>
+      </div>
+
+      <section className="rounded-lg border border-line bg-paper p-5">
+        <h2 className="mb-3 font-bold">Trial Balance</h2>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm">
+            <thead>
+              <tr className="border-b border-line text-xs uppercase text-muted">
+                <th className="py-2 pr-4">Account</th>
+                <th className="py-2 pr-4">Type</th>
+                <th className="py-2 pr-4 text-right">Debit</th>
+                <th className="py-2 pr-4 text-right">Credit</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-line">
+              {accounts?.map((a) => {
+                const t = totals.get(a.code) ?? { debit: 0, credit: 0 }
+                return (
+                  <tr key={a.code}>
+                    <td className="py-2 pr-4">
+                      <div className="font-medium">{name(a as Labelled)}</div>
+                      <div className="font-mono text-xs text-muted">{a.code}</div>
+                    </td>
+                    <td className="py-2 pr-4 text-muted">{a.type}</td>
+                    <td className="py-2 pr-4 text-right">{t.debit ? formatTaka(t.debit) : '—'}</td>
+                    <td className="py-2 pr-4 text-right">{t.credit ? formatTaka(t.credit) : '—'}</td>
+                  </tr>
+                )
+              })}
+            </tbody>
+            <tfoot>
+              <tr className="border-t-2 border-line-strong font-bold">
+                <td className="py-2 pr-4" colSpan={2}>
+                  Total
+                </td>
+                <td className="py-2 pr-4 text-right">{formatTaka(sumDebit)}</td>
+                <td className="py-2 pr-4 text-right">{formatTaka(sumCredit)}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+        {!balanced && (
+          <p role="alert" className="mt-3 text-sm font-semibold text-alert-deep">
+            ⚠ Ledger out of balance by {formatTaka(Math.abs(sumDebit - sumCredit))}. Settlement and payment
+            are refused until this is reconciled.
+          </p>
+        )}
+      </section>
+    </main>
+  )
+}

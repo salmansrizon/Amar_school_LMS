@@ -3,14 +3,28 @@ import { notFound } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
+import { BackLink } from '@/components/back-link'
+import { resolveBackHref, selfOrigin, withOrigin } from '@/lib/back-nav'
 
 // Admit card roster picker (issue #48, PRD §5.5) — same shape as printables/
 // page.tsx's mark-sheet/progress-report roster, one entry point per student
 // plus a link into the shared batch print-all page (../print-all) preset to
 // the admit-card doc type.
 
-export default async function AdmitCardsPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function AdmitCardsPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>
+  searchParams: Promise<{ from?: string | string[] }>
+}) {
   const { id } = await params
+  const { from } = await searchParams
+  const backHref = resolveBackHref(from, `/school/exams/${id}`)
+  // Links from here go a level deeper, so they carry *this* page's
+  // address — origin included — otherwise Back from the leaf lands here
+  // and the next Back falls through to Basic Info (map #373).
+  const deeper = selfOrigin(`/school/exams/${id}/admit-cards`, from)
   const lang: Lang = await currentLang()
   const { supabase } = await getSchoolContext()
 
@@ -29,24 +43,24 @@ export default async function AdmitCardsPage({ params }: { params: Promise<{ id:
       </h1>
       <div className="flex items-center gap-4">
         <Link
-          href={`/school/exams/${exam.id}/print-all?doc=admit-card`}
+          href={withOrigin(`/school/exams/${exam.id}/print-all?doc=admit-card`, deeper)}
           className="text-sm text-brand-600 hover:underline"
         >
           {t('printAll.title', lang)}
         </Link>
-        <Link href={`/school/exams/${exam.id}`} aria-label={t('examSetup.title', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
+        <BackLink href={backHref} label={t('common.back', lang)} />
       </div>
     </div>
   )
 
   if (!exam.class_id) {
     return (
-      <main className="mx-auto w-full max-w-3xl flex-1 p-6">
+      <div>
         {header}
-        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted shadow-card">
+        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted">
           {t('markEntry.noClassSet', lang)}
         </p>
-      </main>
+      </div>
     )
   }
 
@@ -62,19 +76,19 @@ export default async function AdmitCardsPage({ params }: { params: Promise<{ id:
 
   if (!students?.length) {
     return (
-      <main className="mx-auto w-full max-w-3xl flex-1 p-6">
+      <div>
         {header}
-        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted shadow-card">
+        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted">
           {t('markEntry.noStudents', lang)}
         </p>
-      </main>
+      </div>
     )
   }
 
   return (
-    <main className="mx-auto w-full max-w-3xl flex-1 p-6">
+    <div>
       {header}
-      <section className="rounded-lg border border-line bg-paper p-4 shadow-card">
+      <section className="rounded-lg border border-line bg-paper p-4">
         <table className="w-full border-collapse text-sm">
           <thead>
             <tr className="border-b border-line-strong text-left text-xs uppercase tracking-wide text-muted">
@@ -89,7 +103,7 @@ export default async function AdmitCardsPage({ params }: { params: Promise<{ id:
                 <td className="py-2 pr-2">{s.roll_number ?? '—'}</td>
                 <td className="py-2 pr-2">{s.full_name}</td>
                 <td className="py-2">
-                  <Link href={`/school/exams/${exam.id}/admit-cards/${s.id}`} className="text-brand-600 hover:underline">
+                  <Link href={withOrigin(`/school/exams/${exam.id}/admit-cards/${s.id}`, deeper)} className="text-brand-600 hover:underline">
                     {t('admitCard.docWord', lang)}
                   </Link>
                 </td>
@@ -98,6 +112,6 @@ export default async function AdmitCardsPage({ params }: { params: Promise<{ id:
           </tbody>
         </table>
       </section>
-    </main>
+    </div>
   )
 }

@@ -1,2 +1,10 @@
 .DS_Store
 node_modules/
+# Pulled env dumps — contain live tokens (VERCEL_OIDC_TOKEN, RECONCILE_SECRET).
+env.download
+
+# Playwright MCP scratch: console logs, page snapshots, screenshots.
+.playwright-mcp/
+# Screenshots dropped at the root by browser tooling. Committed docs images
+# live under docs/, which this does not touch.
+/*.png

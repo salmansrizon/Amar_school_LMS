@@ -6,6 +6,8 @@ import { getSchoolContext } from '@/lib/school/context'
 import { AccountingTabs } from './accounting-tabs'
 import { FeeForm, type CollectStudent, type ExistingFeeRecord } from './fee-form'
 import { selectClass } from '@/components/ui/field'
+import { railClass } from '@/components/ui/page'
+import { classCatalogueLabel } from '@/lib/class-catalogue'
 
 // Layout per ui/school-owner/fee-collection.html: toolbar (search + Class +
 // Month filters) over a roster table (Roll | Name | Class/Section | Month |
@@ -34,7 +36,7 @@ export default async function FeesPage({
   const { supabase } = await getSchoolContext()
 
   const [{ data: classes }, { data: recentRecords }] = await Promise.all([
-    supabase.from('classes').select('id, name, section').order('created_at'),
+    supabase.from('classes').select('id, name, section, group_department').order('created_at'),
     supabase
       .from('fee_collection_records')
       .select(
@@ -102,7 +104,7 @@ export default async function FeesPage({
   const selectedExisting = selectedStudent ? (recordMap.get(selectedStudent) ?? null) : null
 
   return (
-    <main className="mx-auto w-full max-w-4xl flex-1 p-6">
+    <div>
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold">{t('fees.tabCollection', lang)}</h1>
         <Link href="/school" aria-label={t('common.back', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
@@ -115,8 +117,7 @@ export default async function FeesPage({
           <option value="">{t('fees.allClasses', lang)}</option>
           {classes?.map((c) => (
             <option key={c.id} value={c.id}>
-              {c.name}
-              {c.section ? ` - ${c.section}` : ''}
+              {classCatalogueLabel(c)}
             </option>
           ))}
         </select>
@@ -143,7 +144,7 @@ export default async function FeesPage({
         </button>
       </Form>
 
-      <section className="mb-6 overflow-x-auto rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="mb-6 overflow-x-auto rounded-lg border border-line bg-paper p-5">
         {!cls ? (
           <p className="text-sm text-muted">{t('fees.pickClassPrompt', lang)}</p>
         ) : !roster.length ? (
@@ -164,9 +165,18 @@ export default async function FeesPage({
               {roster.map((s) => {
                 const collected = recordMap.has(s.id)
                 const href = `/school/fees?class=${selectedClass}&month=${month}&year=${year}&student=${s.id}#collect-form`
+                // The collection form renders above this table, so on a tall
+                // roster the row you just clicked is the only thing still in
+                // view. Without a mark, collecting looks like it did nothing
+                // (#531).
+                const isSelected = s.id === selectedStudent
                 return (
-                  <tr key={s.id} className="border-b border-line">
-                    <td className={tdClass}>{s.roll_number ?? '—'}</td>
+                  <tr
+                    key={s.id}
+                    aria-current={isSelected ? 'true' : undefined}
+                    className={`border-b border-line ${isSelected ? 'bg-brand-50' : ''}`}
+                  >
+                    <td className={`${tdClass} ${railClass(collected ? 'mint' : 'sun')}`}>{s.roll_number ?? '—'}</td>
                     <td className={`${tdClass} font-medium`}>{s.full_name}</td>
                     <td className={tdClass}>{[s.class_name, s.section].filter(Boolean).join(' / ')}</td>
                     <td className={tdClass}>
@@ -208,7 +218,7 @@ export default async function FeesPage({
               <p className="text-xs text-sun-deep">{t('fees.duplicateNote', lang)}</p>
             </div>
           )}
-          <section id="collect-form" className="mb-6 rounded-lg border border-line bg-paper p-5 shadow-card">
+          <section id="collect-form" className="mb-6 rounded-lg border border-line bg-paper p-5">
             <FeeForm
               student={selectedRow}
               month={month}
@@ -222,7 +232,7 @@ export default async function FeesPage({
         </>
       )}
 
-      <section className="overflow-x-auto rounded-lg border border-line bg-paper p-5 shadow-card">
+      <section className="overflow-x-auto rounded-lg border border-line bg-paper p-5">
         <h2 className="mb-3 font-bold">{t('fees.records', lang)}</h2>
         {!recentRecords?.length && <p className="text-sm text-muted">{t('fees.none', lang)}</p>}
         <table className="w-full text-sm">
@@ -252,6 +262,6 @@ export default async function FeesPage({
           </tbody>
         </table>
       </section>
-    </main>
+    </div>
   )
 }

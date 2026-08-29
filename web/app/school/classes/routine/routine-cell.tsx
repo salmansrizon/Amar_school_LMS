@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { t, type Lang } from '@/lib/i18n'
 import { setSlot, publishRoutine } from './actions'
 import { selectClass } from '@/components/ui/field'
+import { classCatalogueLabel, type ClassCatalogueRow } from '@/lib/class-catalogue'
 
 export interface Option {
   id: string
@@ -203,7 +204,7 @@ export function ClassPicker({
   basePath = '/school/classes/routine',
   pickLabelKey = 'routine.pickClass',
 }: {
-  classes: { id: string; name: string; section: string | null }[]
+  classes: ClassCatalogueRow[]
   selected: string
   lang: Lang
   basePath?: string
@@ -222,8 +223,7 @@ export function ClassPicker({
       </option>
       {classes.map((c) => (
         <option key={c.id} value={c.id}>
-          {c.name}
-          {c.section ? ` - ${c.section}` : ''}
+          {classCatalogueLabel(c)}
         </option>
       ))}
     </select>

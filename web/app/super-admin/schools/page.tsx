@@ -8,6 +8,9 @@ import { PageHeader, SectionCard, formatTaka } from '@/components/super-admin/da
 import { SchoolSubscriptionControls } from './subscription-controls'
 import { SchoolManagement } from './school-management'
 import { CreateSchoolForm } from './create-school-form'
+import { EntityAvatar } from '@/components/entity-avatar'
+import { Pager, paginate } from '@/components/pager'
+import type { Tone } from '@/components/ui/page'
 
 // Super-admin schools manager (map #171 T4): the per-school ledger + control
 // centre, restyled to the T1 design language. The fetch→shape→classify work
@@ -20,7 +23,7 @@ const STATUS_STYLE: Record<LifecycleStatus, string> = {
   trial: 'bg-sky-soft text-sky-deep',
   active: 'bg-mint-soft text-mint-deep',
   expired: 'bg-alert-soft text-alert-deep',
-  blocked: 'bg-amber-50 text-amber-600',
+  blocked: 'bg-sun-soft text-sun-deep',
 }
 const STATUS_KEY: Record<LifecycleStatus, MessageKey> = {
   trial: 'schools.trial',
@@ -28,14 +31,22 @@ const STATUS_KEY: Record<LifecycleStatus, MessageKey> = {
   expired: 'schools.expired',
   blocked: 'sa.school.paused',
 }
+const STATUS_RAIL: Record<LifecycleStatus, Tone> = {
+  trial: 'sky',
+  active: 'mint',
+  expired: 'alert',
+  blocked: 'sun',
+}
 
-export default async function SchoolsPage() {
+export default async function SchoolsPage({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
   const lang = await currentLang()
+  const { page: pageParam } = await searchParams
   const { supabase } = await getSuperAdminContext()
   const schools = await loadSchoolsManager(supabase)
+  const { page, totalPages, total, items } = paginate(schools, pageParam, 10)
 
   return (
-    <main className="mx-auto w-full max-w-4xl px-4 py-6 sm:px-6 lg:px-8">
+    <main className="w-full px-4 py-6 sm:px-6 lg:px-8">
       <PageHeader
         title={t('schools.title', lang)}
         actions={
@@ -52,68 +63,78 @@ export default async function SchoolsPage() {
       </section>
 
       <div className="mt-4 flex flex-col gap-4">
-        {schools.map((s) => (
-          <SectionCard
-            key={s.id}
-            title={s.name}
-            action={
-              <span className="flex flex-wrap items-center justify-end gap-2 text-sm">
-                <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${STATUS_STYLE[s.status]}`}>
-                  {t(STATUS_KEY[s.status], lang)}
-                </span>
-                {s.subscriptionExpiresAt && (
-                  <span className="text-muted">
-                    {t('schools.expiry', lang)}: {s.subscriptionExpiresAt}
-                  </span>
-                )}
-                <Link
-                  href={`/super-admin/schools/${s.id}`}
-                  className="rounded-full border border-line-strong px-3 py-0.5 text-xs font-semibold hover:bg-paper-muted"
-                >
-                  {t('sa.school.viewDetail', lang)}
-                </Link>
+        {items.map((s) => (
+          <SectionCard key={s.id} tone={STATUS_RAIL[s.status]}>
+            <div className="mb-3 flex flex-wrap items-center gap-3">
+              <EntityAvatar name={s.name} id={s.id} />
+              <h2 className="min-w-0 flex-1 truncate text-sm font-extrabold text-ink">{s.name}</h2>
+              <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${STATUS_STYLE[s.status]}`}>
+                {t(STATUS_KEY[s.status], lang)}
               </span>
-            }
-          >
-            {s.subdomain && (
-              <p className="mb-3 text-sm text-muted">
-                {t('schools.subdomain', lang)}: <span className="font-mono">{s.subdomain}</span>
-              </p>
-            )}
+              <Link
+                href={`/super-admin/schools/${s.id}`}
+                className="rounded-full border border-line-strong px-3 py-0.5 text-xs font-semibold hover:bg-paper-muted"
+              >
+                {t('sa.school.viewDetail', lang)}
+              </Link>
+            </div>
 
-            {/* Payment ledger (T2): months paid · total ৳ · last-paid */}
-            <dl className="mb-3 grid grid-cols-3 gap-2">
-              <Stat label={t('sa.school.monthsPaid', lang)} value={String(s.monthsPaid)} />
-              <Stat label={t('sa.school.totalPaid', lang)} value={formatTaka(s.totalPaid)} />
-              <Stat label={t('sa.school.lastPaid', lang)} value={s.lastPaid === null ? '—' : formatTaka(s.lastPaid)} />
+            {/* Compact summary — the only thing shown at rest (docs/ui.md) */}
+            <dl className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <Stat label={t('schools.subdomain', lang)} value={s.subdomain ?? '—'} mono />
+              <Stat label={t('sa.school.students', lang)} value={String(s.studentCount)} />
+              <Stat label={t('schools.expiry', lang)} value={s.subscriptionExpiresAt ?? '—'} />
+              <Stat
+                label={t('sa.school.subscription', lang)}
+                value={s.monthsPaid > 0 ? `${s.monthsPaid} ${t('sa.school.months', lang)}` : '—'}
+              />
             </dl>
 
-            <SchoolSubscriptionControls
-              schoolId={s.id}
-              expiry={s.subscriptionExpiresAt}
-              status={s.status === 'blocked' ? 'expired' : s.status}
-              lang={lang}
-            />
-            <SchoolManagement
-              schoolId={s.id}
-              subdomain={s.subdomain}
-              hasOwner={s.hasOwner}
-              header={s.header}
-              codes={s.claimCodes}
-              lang={lang}
-            />
+            {/* Config, credits, subscription & codes — folded behind one বিস্তারিত expand */}
+            <details className="group mt-3 rounded-xl border border-line/70">
+              <summary className="flex cursor-pointer list-none items-center justify-between px-3 py-2 text-sm font-semibold text-ink">
+                {t('sa.school.more', lang)}
+                <span className="text-muted transition group-open:rotate-180" aria-hidden="true">
+                  ▾
+                </span>
+              </summary>
+              <div className="flex flex-col gap-3 border-t border-line/70 px-3 py-3">
+                {/* Payment ledger (T2): total ৳ · last-paid (months paid shown at rest) */}
+                <dl className="grid grid-cols-2 gap-2">
+                  <Stat label={t('sa.school.totalPaid', lang)} value={formatTaka(s.totalPaid)} />
+                  <Stat label={t('sa.school.lastPaid', lang)} value={s.lastPaid === null ? '—' : formatTaka(s.lastPaid)} />
+                </dl>
+
+                <SchoolSubscriptionControls
+                  schoolId={s.id}
+                  expiry={s.subscriptionExpiresAt}
+                  status={s.status === 'blocked' ? 'expired' : s.status}
+                  lang={lang}
+                />
+                <SchoolManagement
+                  schoolId={s.id}
+                  subdomain={s.subdomain}
+                  hasOwner={s.hasOwner}
+                  header={s.header}
+                  codes={s.claimCodes}
+                  lang={lang}
+                />
+              </div>
+            </details>
           </SectionCard>
         ))}
       </div>
+
+      <Pager page={page} totalPages={totalPages} total={total} lang={lang} />
     </main>
   )
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function Stat({ label, value, mono = false }: { label: string; value: string; mono?: boolean }) {
   return (
-    <div className="rounded-xl border border-line/70 bg-paper-muted px-3 py-2">
+    <div className="rounded-md border border-line bg-paper-muted px-3 py-2">
       <dt className="text-[11px] font-semibold text-muted">{label}</dt>
-      <dd className="text-base font-extrabold text-ink">{value}</dd>
+      <dd className={`truncate text-base font-extrabold text-ink${mono ? ' font-mono' : ''}`}>{value}</dd>
     </div>
   )
 }

@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { currentActor } from '@/lib/school/actor'
 import { galleryImageExtension, validateTargetSelection } from '@/lib/publishing'
 import type { Importance, PublicationKind, TargetType } from '@/lib/publishing'
+import { createSignedUpload, type SignedUpload } from '@/lib/storage/signed-upload'
 
 // The image bytes are uploaded client-side straight to the private
 // 'publications' bucket (avoids the Next server-action body limit, mirrors
@@ -15,14 +16,14 @@ import type { Importance, PublicationKind, TargetType } from '@/lib/publishing'
 const LIST_PAGE = '/school/notices'
 
 /** The deterministic object path a client must upload the optional image to. */
-export async function publicationImageUploadPath(
+export async function publicationImageUploadTicket(
   mimeType: string,
-): Promise<{ path?: string; error?: string }> {
+): Promise<{ upload?: SignedUpload; error?: string }> {
   const me = await currentActor()
   if ('error' in me) return { error: me.error }
   const ext = galleryImageExtension(mimeType)
   if (!ext) return { error: 'Only JPEG, PNG or WebP images are allowed' }
-  return { path: `${me.schoolId}/${crypto.randomUUID()}.${ext}` }
+  return createSignedUpload('publications', `${me.schoolId}/${crypto.randomUUID()}.${ext}`)
 }
 
 export async function createPublication(input: {

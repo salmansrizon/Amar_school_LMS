@@ -31,11 +31,11 @@ export default async function NoticeDetailPage({ params }: { params: Promise<{ i
   const locale = lang === 'bn' ? 'bn-BD' : 'en-GB'
 
   return (
-    <main className="mx-auto w-full max-w-3xl flex-1 p-6">
+    <div>
       <p className="mb-4">
         <Link href="/school/notices" aria-label={t('notices.tabList', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
       </p>
-      <div className="rounded-lg border border-line bg-paper p-6 shadow-card">
+      <div className="rounded-lg border border-line bg-paper p-6">
         <div className="mb-3 flex flex-wrap items-center gap-2">
           <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${kindBadgeClass(row.kind)}`}>
             {kindLabel(row.kind, lang)}
@@ -58,7 +58,7 @@ export default async function NoticeDetailPage({ params }: { params: Promise<{ i
           )}{' '}
           · {new Date(row.created_at).toLocaleDateString(locale)}
         </p>
-        {row.content && <p className="mb-4 whitespace-pre-wrap text-sm">{row.content}</p>}
+        {row.content && <p className="mb-4 max-w-prose whitespace-pre-wrap text-sm">{row.content}</p>}
         {row.image_path && (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -81,6 +81,6 @@ export default async function NoticeDetailPage({ params }: { params: Promise<{ i
         )}
         <DeletePublicationButton id={row.id} lang={lang} />
       </div>
-    </main>
+    </div>
   )
 }

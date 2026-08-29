@@ -95,6 +95,17 @@ export async function smsCanSend(
   return data !== false
 }
 
+/** Segments the company still holds at the gateway.
+ *
+ *  Only needed to explain a refusal: `sms_can_send` returns one boolean for two
+ *  different failures (#529), and the school can act on only one of them. Telling
+ *  an owner with 8,000 credits that her credit is exhausted sends her to the
+ *  wrong place — and to a top-up screen that will not help. */
+export async function smsPoolBalance(supabase: SupabaseClient): Promise<number> {
+  const { data } = await supabase.rpc('sms_pool_balance')
+  return typeof data === 'number' ? data : 0
+}
+
 /** Debit the segments that actually went out (no-op for 0). */
 export async function smsRecordDebit(
   supabase: SupabaseClient,

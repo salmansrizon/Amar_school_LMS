@@ -74,6 +74,7 @@ begin
   return new;
 end $$;
 
+drop trigger if exists voucher_category_same_school on public.vouchers;
 create trigger voucher_category_same_school
   before insert or update on public.vouchers
   for each row execute function public.enforce_voucher_category_school();
@@ -105,6 +106,7 @@ begin
   return new;
 end $$;
 
+drop trigger if exists voucher_auto_number on public.vouchers;
 create trigger voucher_auto_number
   before insert on public.vouchers
   for each row execute function public.assign_voucher_no();
@@ -132,6 +134,7 @@ begin
   return new;
 end $$;
 
+drop trigger if exists voucher_attachment_cap on public.vouchers;
 create trigger voucher_attachment_cap
   before insert or update on public.vouchers
   for each row execute function public.enforce_attachment_cap();
@@ -191,10 +194,12 @@ begin
   return new;
 end $$;
 
+drop trigger if exists asset_category_same_school on public.assets;
 create trigger asset_category_same_school
   before insert or update on public.assets
   for each row execute function public.enforce_asset_category_school();
 
+drop trigger if exists asset_attachment_cap on public.assets;
 create trigger asset_attachment_cap
   before insert or update on public.assets
   for each row execute function public.enforce_attachment_cap();
@@ -282,6 +287,7 @@ begin
   return new;
 end $$;
 
+drop trigger if exists bank_cash_transaction_apply on public.bank_cash_transactions;
 create trigger bank_cash_transaction_apply
   before insert on public.bank_cash_transactions
   for each row execute function public.apply_bank_cash_transaction();
@@ -352,6 +358,7 @@ begin
   return new;
 end $$;
 
+drop trigger if exists director_capital_transaction_apply on public.director_capital_transactions;
 create trigger director_capital_transaction_apply
   before insert on public.director_capital_transactions
   for each row execute function public.apply_director_capital_transaction();

@@ -1,12 +1,13 @@
 import { cookies } from 'next/headers'
 import { currentLang } from '@/lib/i18n-server'
-import { sidebarCollapsed } from '@/lib/ui-prefs-server'
+import { sidebarCollapsed, themePreference } from '@/lib/ui-prefs-server'
 import { t } from '@/lib/i18n'
 import { SchoolShell } from '@/components/school-shell'
 import { SubscriptionGate } from '@/components/subscription-gate'
 import { SubscriptionBanner, SUB_REMINDER_COOKIE } from '@/components/subscription-banner'
 import { getSchoolContext } from '@/lib/school/context'
 import { loadSchoolSmsCredit } from '@/lib/sms/credit'
+import { loadEnabledFeatures } from '@/lib/engines/feature/engine'
 import { daysUntilExpiry, shouldShowReminder } from '@/lib/subscription'
 
 // Persistent chrome for every /school/* page (sidebar + topbar per the reference
@@ -21,9 +22,14 @@ import { daysUntilExpiry, shouldShowReminder } from '@/lib/subscription'
 export default async function SchoolLayout({ children }: { children: React.ReactNode }) {
   const lang = await currentLang()
   const collapsed = await sidebarCollapsed()
+  const theme = await themePreference()
   const ctx = await getSchoolContext()
   const status = ctx.subscriptionStatus
   const smsCredit = await loadSchoolSmsCredit(ctx.supabase, ctx.schoolId)
+  // Feature-engine nav gating (#271): hide modules disabled for this school.
+  const enabledFeatures = ctx.schoolId
+    ? Array.from(await loadEnabledFeatures(ctx.supabase, ctx.schoolId))
+    : undefined
 
   const shellProps = {
     role: ctx.role,
@@ -31,8 +37,10 @@ export default async function SchoolLayout({ children }: { children: React.React
     schoolName: ctx.schoolName ?? t('home.school', lang),
     fullName: ctx.fullName,
     lang,
+    theme,
     initialCollapsed: collapsed,
     smsCredit,
+    enabledFeatures,
   }
 
   if (status === 'expired') {

@@ -1,15 +1,21 @@
 import { describe, it, expect } from 'vitest'
 import {
+  PASSWORD_MASK,
+  studentLoginSmsBody,
   classSectionLabel,
   matchesStudentQuery,
-  filterStudents,
   behaviourAverages,
   photoExtension,
   sectionsForClass,
+  classNamesFor,
   subjectsForClass,
+  nextRollNumber,
+  parseRollNumber,
+  rollScopeChanged,
   behaviourSmsBody,
   type StudentListRow,
   type SubjectOption,
+  type RollRow,
 } from '@/lib/students'
 
 const row = (over: Partial<StudentListRow> = {}): StudentListRow => ({
@@ -56,20 +62,7 @@ describe('matchesStudentQuery', () => {
   })
 })
 
-describe('filterStudents', () => {
-  const students = [
-    row({ id: 'a', class_name: 'Class 8', section: 'A' }),
-    row({ id: 'b', full_name: 'Tamim Iqbal', class_name: 'Class 8', section: 'B' }),
-    row({ id: 'c', full_name: 'Sadia Islam', class_name: 'Class 7', section: 'B' }),
-  ]
-
-  it('combines query and class/section filters', () => {
-    expect(filterStudents(students, '', 'Class 8', '').map((s) => s.id)).toEqual(['a', 'b'])
-    expect(filterStudents(students, '', '', 'B').map((s) => s.id)).toEqual(['b', 'c'])
-    expect(filterStudents(students, 'tamim', 'Class 8', 'B').map((s) => s.id)).toEqual(['b'])
-    expect(filterStudents(students, 'tamim', 'Class 7', '')).toHaveLength(0)
-  })
-})
+// filterStudents' cases moved with it to tests/unit/school-roster.test.ts.
 
 describe('behaviourAverages', () => {
   it('averages per student to one decimal, skipping null ratings', () => {
@@ -109,6 +102,97 @@ describe('sectionsForClass', () => {
 
   it('lists all sections when no class is chosen', () => {
     expect(sectionsForClass(classes, '')).toEqual(['A', 'B'])
+  })
+})
+
+describe('classNamesFor', () => {
+  it('lists distinct class names, first-occurrence order preserved', () => {
+    const classes = [
+      { name: 'Class 8', section: 'A' },
+      { name: 'Class 8', section: 'B' },
+      { name: 'Class 9', section: 'A' },
+    ]
+    expect(classNamesFor(classes)).toEqual(['Class 8', 'Class 9'])
+  })
+
+  it('returns nothing for an empty catalogue', () => {
+    expect(classNamesFor([])).toEqual([])
+  })
+})
+
+describe('nextRollNumber', () => {
+  const rolls: RollRow[] = [
+    { class_name: 'Class 8', section: 'A', roll_number: 5 },
+    { class_name: 'Class 8', section: 'A', roll_number: 3 },
+    { class_name: 'Class 8', section: 'B', roll_number: 1 },
+    { class_name: 'Class 9', section: 'A', roll_number: 9 },
+  ]
+
+  it('is the highest roll in the class+section plus the increment', () => {
+    expect(nextRollNumber(rolls, 'Class 8', 'A', 1)).toBe(6)
+  })
+
+  it('does not let a different section leak into the count', () => {
+    // Section A is up to roll 5; Section B has only roll 1 and should not
+    // see Section A's rolls (docs/012's core section-scoping requirement).
+    expect(nextRollNumber(rolls, 'Class 8', 'B', 1)).toBe(2)
+  })
+
+  it('starts a fresh combination at the increment', () => {
+    expect(nextRollNumber(rolls, 'Class 10', 'A', 1)).toBe(1)
+    expect(nextRollNumber(rolls, 'Class 10', 'A', 2)).toBe(2)
+  })
+
+  it('applies a configurable increment on top of the last roll', () => {
+    expect(nextRollNumber(rolls, 'Class 9', 'A', 2)).toBe(11)
+  })
+
+  it('treats a null section the same as an empty-string section', () => {
+    const withNullSection: RollRow[] = [{ class_name: 'Class 7', section: null, roll_number: 4 }]
+    expect(nextRollNumber(withNullSection, 'Class 7', '', 1)).toBe(5)
+  })
+
+  it('floors the increment at 1', () => {
+    expect(nextRollNumber(rolls, 'Class 10', 'A', 0)).toBe(1)
+  })
+})
+
+describe('parseRollNumber', () => {
+  it('treats a blank field as "no override"', () => {
+    expect(parseRollNumber('')).toEqual({ value: null })
+    expect(parseRollNumber('   ')).toEqual({ value: null })
+  })
+
+  it('accepts a positive whole number', () => {
+    expect(parseRollNumber('7')).toEqual({ value: 7 })
+  })
+
+  it('rejects zero, negatives and decimals with a user-facing error', () => {
+    expect(parseRollNumber('0').error).toBeTruthy()
+    expect(parseRollNumber('-1').error).toBeTruthy()
+    expect(parseRollNumber('5.5').error).toBeTruthy()
+    expect(parseRollNumber('abc').error).toBeTruthy()
+  })
+})
+
+describe('rollScopeChanged', () => {
+  it('is false when class and section are unchanged', () => {
+    expect(rollScopeChanged({ class_name: 'Class 8', section: 'A' }, { class_name: 'Class 8', section: 'A' })).toBe(
+      false,
+    )
+  })
+
+  it('is true when class or section changed', () => {
+    expect(rollScopeChanged({ class_name: 'Class 8', section: 'A' }, { class_name: 'Class 9', section: 'A' })).toBe(
+      true,
+    )
+    expect(rollScopeChanged({ class_name: 'Class 8', section: 'A' }, { class_name: 'Class 8', section: 'B' })).toBe(
+      true,
+    )
+  })
+
+  it('defaults to false when the current row could not be read', () => {
+    expect(rollScopeChanged(null, { class_name: 'Class 8', section: 'A' })).toBe(false)
   })
 })
 
@@ -164,5 +248,22 @@ describe('behaviourSmsBody', () => {
     const longNote = 'x'.repeat(300)
     const body = behaviourSmsBody('Student', longNote, 5)
     expect(body.length).toBeLessThan(300)
+  })
+})
+
+describe('studentLoginSmsBody (#442)', () => {
+  it('carries the name, the username and the password', () => {
+    const body = studentLoginSmsBody('Rahim Uddin', 's0007@greenwood.students.invalid', 'a1b2c3d4e5f6')
+    expect(body).toContain('Rahim Uddin')
+    expect(body).toContain('s0007@greenwood.students.invalid')
+    expect(body).toContain('a1b2c3d4e5f6')
+  })
+
+  it('builds a stored copy with no password in it', () => {
+    // The Send Log is readable by any staff member with the SMS screen, so the
+    // logged copy must never be the one that went out.
+    const stored = studentLoginSmsBody('Rahim Uddin', 's0007@greenwood.students.invalid', PASSWORD_MASK)
+    expect(stored).not.toContain('a1b2c3d4e5f6')
+    expect(stored).toContain(PASSWORD_MASK)
   })
 })

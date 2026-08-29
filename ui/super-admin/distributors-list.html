@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>ডিস্ট্রিবিউটর · Distributors — Super Admin</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../shared/design-system.css">
+<script src="../shared/app.js" defer></script>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="mark">A</span><span>Super Admin</span></div>
+    <nav>
+      <a class="nav-item" href="schools-list.html"><span data-i18n="bn">স্কুলসমূহ</span><span data-i18n="en">Schools</span></a>
+      <a class="nav-item" href="dealers-list.html"><span data-i18n="bn">ডিলার</span><span data-i18n="en">Dealers</span></a>
+      <a class="nav-item active" href="distributors-list.html"><span data-i18n="bn">ডিস্ট্রিবিউটর</span><span data-i18n="en">Distributors</span></a>
+      <a class="nav-item" href="gov-officials-list.html"><span data-i18n="bn">সরকারি কর্মকর্তা</span><span data-i18n="en">Government Officials</span></a>
+      <a class="nav-item" href="codes-list.html"><span data-i18n="bn">সাবস্ক্রিপশন কোড</span><span data-i18n="en">Subscription Codes</span></a>
+      <a class="nav-item" href="locations-tree.html"><span data-i18n="bn">টেরিটরি ও লোকেশন</span><span data-i18n="en">Territory & Locations</span></a>
+      <a class="nav-item" href="vendor-accounting-ledger.html"><span data-i18n="bn">ভেন্ডর হিসাব</span><span data-i18n="en">Vendor Accounting</span></a>
+      <a class="nav-item" href="vendor-sms-compose.html"><span data-i18n="bn">ভেন্ডর এসএমএস</span><span data-i18n="en">Vendor SMS</span></a>
+      <a class="nav-item" href="central-holiday-calendar.html"><span data-i18n="bn">কেন্দ্রীয় ছুটির তালিকা</span><span data-i18n="en">Central Off-Day</span></a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="title"><span data-i18n="bn">ডিস্ট্রিবিউটর</span><span data-i18n="en">Distributors</span></div>
+      <div class="actions">
+        <a class="btn btn-secondary btn-sm" href="../index.html" title="Home">🏠</a>
+        <a class="btn btn-secondary btn-sm" href="../sitemap.html" title="Sitemap">📋</a>
+        <div class="lang-switch">
+          <button data-lang-btn="bn" onclick="setLang('bn')">বাং</button>
+          <button data-lang-btn="en" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="theme-switch">
+          <button data-theme-btn="light" onclick="setTheme('light')">☀</button>
+          <button data-theme-btn="dark" onclick="setTheme('dark')">☾</button>
+          <button data-theme-btn="system" onclick="setTheme('system')">Auto</button>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+
+      <div class="toolbar">
+        <input class="search-input" type="text" placeholder="ডিস্ট্রিবিউটরের নাম বা মোবাইল দিয়ে খুঁজুন · Search by Distributor name or mobile">
+        <div class="flex gap-2">
+          <select class="search-input" style="min-width:160px;">
+            <option><span data-i18n="bn">সকল অবস্থা</span><span data-i18n="en">All statuses</span></option>
+            <option><span data-i18n="bn">অপেক্ষমাণ</span><span data-i18n="en">Pending</span></option>
+            <option><span data-i18n="bn">পর্যালোচনাধীন</span><span data-i18n="en">Under Review</span></option>
+            <option><span data-i18n="bn">অনুমোদিত</span><span data-i18n="en">Approved</span></option>
+            <option><span data-i18n="bn">স্থগিত</span><span data-i18n="en">Suspended</span></option>
+            <option><span data-i18n="bn">ব্লকড</span><span data-i18n="en">Blocked</span></option>
+          </select>
+          <a class="btn btn-primary" href="#"><span data-i18n="bn">+ নতুন ডিস্ট্রিবিউটর</span><span data-i18n="en">+ Add Distributor</span></a>
+        </div>
+      </div>
+
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th><span data-i18n="bn">ডিস্ট্রিবিউটরের নাম</span><span data-i18n="en">Distributor Name</span></th>
+            <th><span data-i18n="bn">মোবাইল</span><span data-i18n="en">Mobile</span></th>
+            <th><span data-i18n="bn">ট্রেড লাইসেন্স নং</span><span data-i18n="en">Trade License No.</span></th>
+            <th><span data-i18n="bn">টেরিটরি সংখ্যা</span><span data-i18n="en">Territory Count</span></th>
+            <th><span data-i18n="bn">অবস্থা</span><span data-i18n="en">Status</span></th>
+            <th><span data-i18n="bn">কার্যক্রম</span><span data-i18n="en">Actions</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><a href="distributor-detail.html">Sylhet Edu Ventures</a></td>
+            <td>01711-990011</td>
+            <td>TRAD/SYL/00812</td>
+            <td>3</td>
+            <td><span class="badge badge-success"><span data-i18n="bn">অনুমোদিত</span><span data-i18n="en">Approved</span></span></td>
+            <td><a class="btn btn-secondary btn-sm" href="distributor-detail.html"><span data-i18n="bn">দেখুন</span><span data-i18n="en">View</span></a></td>
+          </tr>
+          <tr>
+            <td><a href="distributor-detail.html">Padma Learning Partners</a></td>
+            <td>01822-334455</td>
+            <td>TRAD/RAJ/01120</td>
+            <td>1</td>
+            <td><span class="badge badge-info"><span data-i18n="bn">পর্যালোচনাধীন</span><span data-i18n="en">Under Review</span></span></td>
+            <td><a class="btn btn-secondary btn-sm" href="distributor-detail.html"><span data-i18n="bn">দেখুন</span><span data-i18n="en">View</span></a></td>
+          </tr>
+          <tr>
+            <td><a href="distributor-detail.html">Meghna Regional Distribution</a></td>
+            <td>01933-445566</td>
+            <td>TRAD/CTG/00457</td>
+            <td>2</td>
+            <td><span class="badge badge-warning"><span data-i18n="bn">অপেক্ষমাণ</span><span data-i18n="en">Pending</span></span></td>
+            <td><a class="btn btn-secondary btn-sm" href="distributor-detail.html"><span data-i18n="bn">দেখুন</span><span data-i18n="en">View</span></a></td>
+          </tr>
+          <tr>
+            <td><a href="distributor-detail.html">Barind Digital Schools</a></td>
+            <td>01644-778899</td>
+            <td>TRAD/RAJ/00299</td>
+            <td>4</td>
+            <td><span class="badge badge-danger"><span data-i18n="bn">স্থগিত</span><span data-i18n="en">Suspended</span></span></td>
+            <td><a class="btn btn-secondary btn-sm" href="distributor-detail.html"><span data-i18n="bn">দেখুন</span><span data-i18n="en">View</span></a></td>
+          </tr>
+          <tr>
+            <td><a href="distributor-detail.html">Chalan Beel Traders</a></td>
+            <td>01555-112233</td>
+            <td>TRAD/PAB/00164</td>
+            <td>0</td>
+            <td><span class="badge badge-danger"><span data-i18n="bn">ব্লকড</span><span data-i18n="en">Blocked</span></span></td>
+            <td><a class="btn btn-secondary btn-sm" href="distributor-detail.html"><span data-i18n="bn">দেখুন</span><span data-i18n="en">View</span></a></td>
+          </tr>
+        </tbody>
+      </table>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

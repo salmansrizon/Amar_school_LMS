@@ -2,7 +2,6 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
 import { t, type Lang } from '@/lib/i18n'
 import { compressImage, IMAGE_PRESETS } from '@/lib/image/compress'
@@ -14,8 +13,10 @@ import {
   type PublicationKind,
   type TargetType,
 } from '@/lib/publishing'
-import { createPublication, publicationImageUploadPath } from '../actions'
+import { createPublication, publicationImageUploadTicket } from '../actions'
 import { selectClass } from '@/components/ui/field'
+import { removeUploadedObject } from '@/lib/storage/remove-object'
+import { uploadWithSignedToken } from '@/lib/storage/upload-client'
 
 const textareaClass =
   'w-full rounded-sm border border-line-strong bg-paper px-3 py-2 text-sm outline-none focus:border-brand-500'
@@ -50,7 +51,6 @@ export function CreateNoticeForm({
     }
     startTransition(async () => {
       setError(null)
-      const supabase = createClient()
       let imagePath: string | null = null
       if (imageFile) {
         // Compress before the size check so large images fit the 2 MB bucket cap.
@@ -59,19 +59,17 @@ export function CreateNoticeForm({
           setError(t('notices.imageTooBig', lang))
           return
         }
-        const { path, error: pathErr } = await publicationImageUploadPath(image.type)
-        if (pathErr || !path) {
+        const { upload, error: pathErr } = await publicationImageUploadTicket(image.type)
+        if (pathErr || !upload) {
           setError(pathErr ?? 'Upload failed')
           return
         }
-        const { error: upErr } = await supabase.storage
-          .from('publications')
-          .upload(path, image, { contentType: image.type })
+        const { error: upErr } = await uploadWithSignedToken('publications', upload, image, image.type)
         if (upErr) {
-          setError(upErr.message)
+          setError(upErr)
           return
         }
-        imagePath = path
+        imagePath = upload.path
       }
       const res = await createPublication({
         kind,
@@ -88,7 +86,7 @@ export function CreateNoticeForm({
         // The row insert failed after the image was already uploaded — clean
         // up the now-orphaned object rather than leaving it unreferenced
         // (mirrors the gallery upload flow's cleanup-on-failure).
-        if (imagePath) await supabase.storage.from('publications').remove([imagePath])
+        if (imagePath) await removeUploadedObject('publications', imagePath)
         setError(res.error)
         return
       }
