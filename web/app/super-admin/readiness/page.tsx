@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { getSuperAdminContext } from '@/lib/super-admin/context'
 import { LegalProfileForm } from './legal-profile-form'
+import { TenderEvidenceForm, TenderProfileForm } from './tender-forms'
 
 type Status = 'pending' | 'proposed' | 'blocked' | 'baseline' | 'ready' | 'approved' | 'retired' | 'expired'
 
@@ -15,7 +16,7 @@ export default async function ReadinessPage() {
     supabase.from('vendor_legal_profile').select('status, legal_entity_name, tin, bin, registered_address, adviser_evidence').maybeSingle(),
     supabase.from('launch_package_config').select('status, billing_period, pricing_model, payment_mode, languages, support_channel, support_response_hours, included_modules, deferred_capabilities').maybeSingle(),
     supabase.from('tax_treatment_config').select('supply_type, customer_type, status, rate_bp, inclusive').order('supply_type'),
-    supabase.from('government_tender_profiles').select('id, procuring_entity, tender_reference, status, government_tender_evidence(status)'),
+    supabase.from('government_tender_profiles').select('id, procuring_entity, tender_reference, status, government_tender_evidence(id, evidence_area, buyer_requirement, amar_evidence, accountable_owner, status)'),
   ])
 
   return (
@@ -54,7 +55,8 @@ export default async function ReadinessPage() {
 
       <section className="mt-4 rounded-lg border border-line bg-paper p-5">
         <div className="flex items-center justify-between"><h2 className="font-bold">Tender evidence</h2><span className="text-xs text-muted">No buyer-specific claim without a named tender</span></div>
-        <div className="mt-3 space-y-3">{(tenders ?? []).map((tender) => { const items = (tender.government_tender_evidence ?? []) as { status: string }[]; const ready = items.filter((item) => item.status === 'ready' || item.status === 'approved').length; return <div key={tender.id} className="rounded-md border border-line p-3 text-sm"><div className="flex items-center justify-between"><span className="font-semibold">{tender.procuring_entity} / {tender.tender_reference}</span><Badge status={tender.status} /></div><p className="mt-1 text-xs text-muted">{ready} / {items.length} evidence items ready</p></div> })}{!tenders?.length && <p className="text-sm text-muted">No government buyer or tender selected.</p>}</div>
+        <TenderProfileForm />
+        <div className="mt-3 space-y-3">{(tenders ?? []).map((tender) => { const items = (tender.government_tender_evidence ?? []) as { id: string; evidence_area: string; buyer_requirement: string | null; amar_evidence: string | null; accountable_owner: string | null; status: string }[]; const ready = items.filter((item) => item.status === 'ready' || item.status === 'approved').length; return <div key={tender.id} className="rounded-md border border-line p-3 text-sm"><div className="flex items-center justify-between"><span className="font-semibold">{tender.procuring_entity} / {tender.tender_reference}</span><Badge status={tender.status} /></div><p className="mt-1 text-xs text-muted">{ready} / {items.length} evidence items ready</p><div className="mt-3 space-y-2">{items.map((item) => <TenderEvidenceForm key={item.id} item={item} />)}</div></div> })}{!tenders?.length && <p className="text-sm text-muted">No government buyer or tender selected.</p>}</div>
       </section>
     </main>
   )
