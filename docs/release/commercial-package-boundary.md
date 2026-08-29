@@ -12,7 +12,9 @@ already usable without promising unresolved gateway, tax, or tender features.
 - Manual invoice/payment recording with the provider-neutral payment lifecycle
   available for integration, but no live gateway claim.
 - Bangla-first and English UI, browser print flows, audit events, and support
-  through an agreed service channel.
+  through one agreed service channel.
+- Monthly hybrid pricing: a base school fee plus active-student count.
+- Manual payment only, with no provider, gateway, or certification promise.
 
 ## Explicitly Deferred
 
@@ -25,7 +27,7 @@ already usable without promising unresolved gateway, tax, or tender features.
 
 ## Approval Record
 
-This proposal becomes the first package only after the owner records the target
-customer, included roles/modules, payment mode, support promise, languages,
-price basis, and deferred features in map #554. Until then its status is
-PROPOSED, not a product or tender claim.
+The owner has confirmed the included roles/modules, monthly hybrid price basis,
+manual payment mode, Bangla/English languages, and the deferred features.
+Support channel and response target remain to be recorded. Status is
+PROPOSED, not a product or tender claim, until that operational record exists.

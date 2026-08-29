@@ -8,12 +8,12 @@ security, or tender certificate.
 
 | Map decision | Current status | Required before release |
 |---|---|---|
-| Legal and tax operating profile | BLOCKED | Owner supplies the legal entity, TIN/BIN status, revenue classifications, pricing basis, invoice fields, and written adviser confirmation. |
-| Government buyer and tender profile | BLOCKED | Owner names the first procuring entity/tender family and supplies its eligibility, SLA, hosting, security, support, training, acceptance, warranty, and exit requirements. |
+| Legal and tax operating profile | BLOCKED | Bangladesh company selected; legal name, TIN/BIN status, registered address, revenue classifications, and written adviser confirmation remain pending. |
+| Government buyer and tender profile | BLOCKED | No buyer or tender has been selected; make no buyer-specific claims until its document and obligations are supplied. |
 | Security and tenant-isolation gate | BASELINE READY | Run the required negative-access, export/print, stale-session, webhook, secret, rate-limit, and penetration-test evidence against the release candidate. |
 | Reliability and operations evidence bar | BASELINE READY | Attach backup restore, RTO/RPO, outage/retry, monitoring, incident-response, retention, portability, and deployment rehearsal evidence for the selected buyer. |
-| First commercial package | BLOCKED | Owner selects the launch roles, modules, payment mode, support promise, languages, and explicitly deferred capabilities. |
-| VAT invoice and adjustment model | BLOCKED | Resolve the legal/tax profile first, then approve tax treatment, effective dating, invoice/register fields, refunds, credit/debit notes, and reconciliation rules. |
+| First commercial package | PROPOSED | Scope, monthly hybrid pricing, manual payment, Bangla/English, and deferred capabilities confirmed; support channel and response target remain to be recorded. |
+| VAT invoice and adjustment model | BLOCKED | Tax Treatment `pending` is confirmed; resolve the legal/tax profile before approving rates, effective dating, invoice/register fields, refunds, credit/debit notes, or reconciliation rules. |
 | Component, integration, E2E, and UAT matrix | BASELINE READY | Execute the included-scope matrix on a clean tenant in Bangla and English across desktop and mobile; no Blocker or Major may remain. |
 
 ## Evidence Index

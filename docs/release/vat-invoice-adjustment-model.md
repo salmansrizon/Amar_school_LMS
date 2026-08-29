@@ -19,6 +19,12 @@ original line references, taxable/tax reversal amounts, provider refund ID when
 present, reconciliation status, and the balancing GL entries. Partial and full
 adjustments must never edit the original financial document.
 
+## Tax-Neutral Boundary
+
+`pending` is an explicit unresolved tax-treatment state. It is stored as
+configuration only: the application does not calculate VAT, infer exemptions,
+issue NBR-compliance claims, or treat pending as zero-rated.
+
 ## Approval Gate
 
 Before implementation is marked approved, record the legal entity, TIN/BIN or

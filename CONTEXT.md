@@ -155,3 +155,24 @@ _Avoid_: Profile edit, self-service update (a Student never edits a school recor
 **Response Performance**:
 How quickly a School answers its Students, measured over Student Questions: how many are accountable to each person, answered, unanswered, median hours to reply, slowest reply, and the oldest question still waiting. An **answered** Question is accounted to whoever replied; an **unanswered** one to the **Class Teacher of the asking Student's Class**, because an unanswered Question has no replier and "who should have answered this" is the question being asked. A Question therefore moves between people the moment it is answered, and a row means "what is on this person as things now stand" rather than "what their Class asked". A School Owner sees the per-person table; a teacher sees their own row plus the school-wide aggregate, which is enough to know where they stand without publishing a league table to the people on it. Deliberately passive: it reports, it does not escalate.
 _Avoid_: SLA, KPI, score (imply a target that nobody has set)
+
+**Launch Package**:
+The explicitly sellable first-version scope: School Owner and Staff, student
+portal, students, employees, classes, attendance, exams, fees, notices,
+questions, institute setup, SMS composition, reports, Bangla/English, manual
+payments, audit logs, and browser print flows. It uses monthly hybrid pricing
+(base school fee plus active-student count), manual payment only, and one
+agreed support channel. It does not imply gateway, VAT, tender, residency,
+training, warranty, or certification commitments.
+
+**Tax Treatment `pending`**:
+An explicit unresolved tax configuration state. It stores that a supply's tax
+rule still needs legal/adviser evidence; it never calculates VAT, infers an
+exemption, issues an NBR-compliance claim, or substitutes for an approved tax
+document model.
+
+**Procurement Readiness**:
+Evidence that a named government buyer's tender requirements can be met. It is
+separate from product capability, e-GP registration, government acceptance, or
+any product certification. Without a named buyer and tender document, the
+system makes no buyer-specific claim.
