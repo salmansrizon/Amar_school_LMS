@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { getSuperAdminContext } from '@/lib/super-admin/context'
+import { LegalProfileForm } from './legal-profile-form'
 
 type Status = 'pending' | 'proposed' | 'blocked' | 'baseline' | 'ready' | 'approved' | 'retired' | 'expired'
 
@@ -11,7 +12,7 @@ function Badge({ status }: { status: Status | string }) {
 export default async function ReadinessPage() {
   const { supabase } = await getSuperAdminContext()
   const [{ data: legal }, { data: launch }, { data: taxes }, { data: tenders }] = await Promise.all([
-    supabase.from('vendor_legal_profile').select('status, legal_entity_name, tin, bin, registered_address').maybeSingle(),
+    supabase.from('vendor_legal_profile').select('status, legal_entity_name, tin, bin, registered_address, adviser_evidence').maybeSingle(),
     supabase.from('launch_package_config').select('status, billing_period, pricing_model, payment_mode, languages, support_channel, support_response_hours, included_modules, deferred_capabilities').maybeSingle(),
     supabase.from('tax_treatment_config').select('supply_type, customer_type, status, rate_bp, inclusive').order('supply_type'),
     supabase.from('government_tender_profiles').select('id, procuring_entity, tender_reference, status, government_tender_evidence(status)'),
@@ -35,6 +36,7 @@ export default async function ReadinessPage() {
             <dt className="text-muted">TIN / BIN</dt><dd>{legal?.tin ?? 'Pending'} / {legal?.bin ?? 'Pending'}</dd>
             <dt className="text-muted">Address</dt><dd>{legal?.registered_address ?? 'Pending external input'}</dd>
           </dl>
+          <LegalProfileForm legal={legal} />
         </section>
 
         <section className="rounded-lg border border-line bg-paper p-5">
