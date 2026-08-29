@@ -32,7 +32,7 @@ const BOUNDED = /\.(range|limit|single|maybeSingle)\(|head:\s*true|count:\s*'exa
  *  without one becomes a place to hide things. */
 const BOUNDED_BY_SCOPE: [file: string, reason: string][] = [
   ['app/school/attendance/employee/page.tsx', 'one date: at most one row per employee'],
-  ['app/school/attendance/mark/page.tsx', 'one class and one date'],
+  ['lib/school/roster-source.ts', 'one class roster (.in) on one date — the register model'],
   ['app/school/attendance/student-log/[studentId]/page.tsx', 'one student, one date range'],
   ['app/student/attendance/page.tsx', 'the signed-in student, one term'],
   ['app/distributor/invoices/[id]/page.tsx', 'the payments of one invoice'],

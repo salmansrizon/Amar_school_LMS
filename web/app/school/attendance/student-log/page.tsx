@@ -3,8 +3,7 @@ import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
-import { filterRoster } from '@/lib/attendance-manual'
-import { resolveClassSection } from '@/lib/class-catalogue'
+import { schoolRoster } from '@/lib/school/roster-source'
 import { AttendanceTabs } from '../attendance-tabs'
 import { ClassSectionSelect } from '@/components/ui/class-section-select'
 
@@ -26,25 +25,10 @@ export default async function StudentLogPage({
   const lang: Lang = await currentLang()
   const { supabase } = await getSchoolContext()
 
-  const [{ data: students }, { data: classes }] = await Promise.all([
-    supabase
-      .from('students')
-      .select('id, full_name, class_name, section, roll_number')
-      .order('full_name'),
-    supabase.from('classes').select('id, name, section, group_department').order('created_at'),
-  ])
-  const roster = students ?? []
-  const { combos, className, section } = resolveClassSection(classes ?? [], classSection)
-
-  // filterRoster owns the sort (roll number, then name for unrolled students);
-  // it drops class_name/section from its return shape, so those are recovered
-  // from the roster already in hand rather than re-querying.
-  const byId = new Map(roster.map((s) => [s.id, s]))
-  const visible = filterRoster(roster, className, section).map((s) => ({
-    ...s,
-    class_name: byId.get(s.id)?.class_name ?? null,
-    section: byId.get(s.id)?.section ?? null,
-  }))
+  // The roster model owns the fetch, the class filter and the register sort.
+  // This page used to rebuild class_name/section from a second Map because the
+  // old helper dropped them from its return shape; `rosterFor` keeps the row.
+  const { combos, className, section, students: visible } = await schoolRoster(supabase, { classSection })
 
   const viewLogHref = (studentId: string) => {
     const params = new URLSearchParams()

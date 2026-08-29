@@ -26,7 +26,10 @@ test.describe('@crud @school students-deep', () => {
 
     // Read (list): the new student is findable by search.
     await page.goto(`/school/students?q=${encodeURIComponent(name)}`)
-    await expect(page.getByText(name).first()).toBeVisible()
+    // Scoped to the table: #540 added a phone card list beside it, which is in
+    // the DOM and hidden at this width, so an unscoped `.first()` resolves to
+    // the hidden card and fails on visibility.
+    await expect(page.locator('table').getByText(name).first()).toBeVisible()
 
     // Read (detail): navigate straight to the row (id via the owner client).
     const sid = (

@@ -32,19 +32,10 @@ export function matchesStudentQuery(s: StudentListRow, query: string): boolean {
   )
 }
 
-export function filterStudents(
-  students: StudentListRow[],
-  query: string,
-  className: string,
-  section: string,
-): StudentListRow[] {
-  return students.filter(
-    (s) =>
-      matchesStudentQuery(s, query) &&
-      (!className || s.class_name === className) &&
-      (!section || s.section === section),
-  )
-}
+// filterStudents moved to lib/school/roster.ts, split into `rosterFor` (class
+// and section) and `searchRoster` (the free-text box). The page that called it
+// also had to decide what an empty result MEANT, and got that wrong; the model
+// answers both questions in one place now.
 
 /** Per-student average rating from a flat (student_id, rating) list, 1 decimal. */
 export function behaviourAverages(

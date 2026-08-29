@@ -1760,6 +1760,15 @@ const dict = {
   'students.none': { bn: 'এখনো কোনো শিক্ষার্থী নেই', en: 'No students yet' },
   // 0160/#525: an Employee with no class attachment reads no students at all.
   // Without these the screen says "No students yet" in a school of hundreds.
+  // #538, review follow-up: a filter that matches nothing is not an empty
+  // school. Telling an Owner "no students yet" because their search missed is a
+  // false statement about their own school.
+  'students.noMatch': { bn: 'এই খোঁজে কোনো শিক্ষার্থী মেলেনি', en: 'No student matches this search' },
+  'students.noMatchHelp': {
+    bn: 'স্কুলে শিক্ষার্থী আছে — এই শ্রেণি বা খোঁজার শব্দে কেউ পড়েনি।',
+    en: 'The school has students — none of them fall under this class or search term.',
+  },
+  'students.clearFilters': { bn: 'ফিল্টার মুছুন', en: 'Clear filters' },
   'students.noClassAssigned': {
     bn: 'আপনাকে এখনো কোনো শ্রেণিতে যুক্ত করা হয়নি',
     en: 'You have not been assigned to a class yet',

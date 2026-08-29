@@ -2,9 +2,8 @@ import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
-import { classScopeFor } from '@/lib/school/class-scope'
-import { filterStudents, behaviourAverages } from '@/lib/students'
-import { resolveClassSection } from '@/lib/class-catalogue'
+import { schoolRoster } from '@/lib/school/roster-source'
+import { behaviourAverages } from '@/lib/students'
 import { Badge } from '@/components/ui/badge'
 import {
   Table,
@@ -43,26 +42,13 @@ export default async function StudentsPage({
   const lang: Lang = await currentLang()
   const { supabase, role } = await getSchoolContext()
 
-  const [{ data: students }, { data: ratings }, { data: classes }] = await Promise.all([
-    supabase
-      .from('students')
-      .select('id, full_name, roll_number, class_name, section, guardian_name, archived_at')
-      .is('archived_at', null)
-      .order('class_name')
-      .order('roll_number'),
+  const [roster, { data: ratings }] = await Promise.all([
+    schoolRoster(supabase, { classSection, q }),
     // ponytail: whole-table scan capped at 10k rows, mirrors the classes page.
     supabase.from('behaviour_log_entries').select('student_id, rating').limit(10000),
-    supabase.from('classes').select('id, name, section, group_department').order('created_at'),
   ])
-
-  const { combos, className: klass, section } = resolveClassSection(classes ?? [], classSection)
-  const visible = filterStudents(students ?? [], q, klass, section)
+  const visible = roster.students
   const avgs = behaviourAverages(ratings ?? [])
-
-  // 0160 narrows this list to the caller's class attachment, so an Employee with
-  // no attachment gets nothing back. "No students yet" would be a lie in a school
-  // of hundreds — ask why the list is empty only when it actually is.
-  const scope = students?.length ? 'attached' : await classScopeFor(supabase)
 
   return (
     <>
@@ -97,22 +83,32 @@ export default async function StudentsPage({
 
       <Toolbar
         filters={
-          <StudentFilters q={q} classSection={classSection} combos={combos} lang={lang} />
+          <StudentFilters q={q} classSection={classSection} combos={roster.combos} lang={lang} />
         }
       />
 
       <Card padded={!visible.length}>
         {/* #538: an empty list says which kind of empty it is and offers the one
-            action that changes it. An unassigned Employee is not sent to the
-            admission form — she cannot admit anyone (ADR 0021), and her way out
-            is an Owner assigning her a class, which is not a button she has. She
-            gets the explanation and a way off the dead end. */}
-        {!visible.length ? (
-          scope === 'none' ? (
+            action that changes it. Three kinds, and the model decides which
+            (lib/school/roster.ts) — this page only renders the answer.
+            An unassigned Employee is not sent to the admission form: she cannot
+            admit anyone (ADR 0021), and her way out is an Owner assigning her a
+            class, which is not a button she has. A filter that matched nothing
+            is not sent there either — the school HAS students, and offering to
+            admit another is the conflation #538 exists to forbid. */}
+        {roster.empty ? (
+          roster.empty === 'unassigned' ? (
             <EmptyState
               title={t('students.noClassAssigned', lang)}
               body={t('students.noClassAssignedHelp', lang)}
               action={{ href: '/school', label: t('denied.back', lang) }}
+              lang={lang}
+            />
+          ) : roster.empty === 'no-match' ? (
+            <EmptyState
+              title={t('students.noMatch', lang)}
+              body={t('students.noMatchHelp', lang)}
+              action={{ href: '/school/students', label: t('students.clearFilters', lang) }}
               lang={lang}
             />
           ) : (

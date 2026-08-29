@@ -4,7 +4,6 @@ import {
   studentLoginSmsBody,
   classSectionLabel,
   matchesStudentQuery,
-  filterStudents,
   behaviourAverages,
   photoExtension,
   sectionsForClass,
@@ -63,20 +62,7 @@ describe('matchesStudentQuery', () => {
   })
 })
 
-describe('filterStudents', () => {
-  const students = [
-    row({ id: 'a', class_name: 'Class 8', section: 'A' }),
-    row({ id: 'b', full_name: 'Tamim Iqbal', class_name: 'Class 8', section: 'B' }),
-    row({ id: 'c', full_name: 'Sadia Islam', class_name: 'Class 7', section: 'B' }),
-  ]
-
-  it('combines query and class/section filters', () => {
-    expect(filterStudents(students, '', 'Class 8', '').map((s) => s.id)).toEqual(['a', 'b'])
-    expect(filterStudents(students, '', '', 'B').map((s) => s.id)).toEqual(['b', 'c'])
-    expect(filterStudents(students, 'tamim', 'Class 8', 'B').map((s) => s.id)).toEqual(['b'])
-    expect(filterStudents(students, 'tamim', 'Class 7', '')).toHaveLength(0)
-  })
-})
+// filterStudents' cases moved with it to tests/unit/school-roster.test.ts.
 
 describe('behaviourAverages', () => {
   it('averages per student to one decimal, skipping null ratings', () => {

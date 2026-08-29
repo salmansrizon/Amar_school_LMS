@@ -3,13 +3,12 @@ import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
+import { schoolRoster } from '@/lib/school/roster-source'
 import {
-  filterRoster,
   monthGrid,
   registerDayStatus,
   type OffDay,
 } from '@/lib/attendance-manual'
-import { resolveClassSection } from '@/lib/class-catalogue'
 import { PrintPage, InstituteHeader, PaginatedSheet } from '@/components/print/pieces'
 import { PrintButton } from '@/components/print/print-button'
 import { AttendanceTabs } from '../attendance-tabs'
@@ -59,14 +58,10 @@ export default async function AttendanceBookPage({
   const daysInMonth = new Date(Date.UTC(year, month + 1, 0)).getUTCDate()
   const monthEnd = `${monthPrefix}-${String(daysInMonth).padStart(2, '0')}`
 
-  const [institute, { data: students }, { data: classes }] = await Promise.all([
+  const [institute, { combos, className, section, students: visible }] = await Promise.all([
     loadInstitutePrintHeader(supabase, lang),
-    supabase.from('students').select('id, full_name, class_name, section, roll_number').order('full_name'),
-    supabase.from('classes').select('id, name, section, group_department').order('created_at'),
+    schoolRoster(supabase, { classSection }),
   ])
-  const roster = students ?? []
-  const { combos, className, section } = resolveClassSection(classes ?? [], classSection)
-  const visible = filterRoster(roster, className, section)
   const visibleIds = visible.map((s) => s.id)
 
   const [{ data: offDaysRaw }, { data: recordsRaw }, { data: leavesRaw }] = await Promise.all([

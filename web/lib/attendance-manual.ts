@@ -10,27 +10,9 @@ export interface RosterStudent {
   roll_number?: number | null
 }
 
-/**
- * Roster rows for the mark-attendance screen, filtered by class/section and
- * ordered by Roll number (matching attendance-student-mark.html) with
- * un-rolled students falling back to a name sort at the end. The OfficeTime filter
- * left with issue #100.
- */
-export function filterRoster(
-  students: RosterStudent[],
-  className: string,
-  section: string,
-): { id: string; full_name: string; roll_number: number | null }[] {
-  return students
-    .filter((s) => (!className || s.class_name === className) && (!section || s.section === section))
-    .map((s) => ({ id: s.id, full_name: s.full_name, roll_number: s.roll_number ?? null }))
-    .sort((a, b) => {
-      if (a.roll_number != null && b.roll_number != null) return a.roll_number - b.roll_number
-      if (a.roll_number != null) return -1
-      if (b.roll_number != null) return 1
-      return a.full_name.localeCompare(b.full_name)
-    })
-}
+// filterRoster moved to lib/school/roster.ts as `rosterFor` (#550 review):
+// the fetch, the class filter and the register sort are one model now, and the
+// pages that used this helper had each rebuilt the rest of the row around it.
 
 export type LeaveStatus = 'pending' | 'approved' | 'rejected'
 
@@ -230,22 +212,6 @@ export function attendancePercent(presentCount: number, absentWorkingDays: numbe
   return Math.round((presentCount / total) * 100)
 }
 
-/** A manual mark, from either table that records one (0170). */
-export interface AttendanceMark {
-  marked_by: string | null
-  marked_at: string | null
-}
+// latestMark and AttendanceMark moved to lib/school/roster.ts: they answer a
+// question about the register, which is now a model rather than a page.
 
-/** The most recent manual mark for a date, or null if nobody has taken it.
- *
- *  A day is marked across two tables — present students in attendance_records,
- *  absent ones in attendance_absence_notes — so neither one alone answers "has
- *  this register been taken". Null here is what lets the screen say "not taken
- *  yet" instead of showing a roster that looks like everyone was present (#540).
- *
- *  Rows written by the RFID job carry no marked_at (nobody marked them), and
- *  those are skipped rather than treated as the latest: the question this
- *  answers is who last took the register by hand. */
-export function latestMark(marks: readonly AttendanceMark[]): AttendanceMark | null {
-  return marks.filter((m) => m.marked_at).sort((a, b) => (a.marked_at! < b.marked_at! ? 1 : -1))[0] ?? null
-}
