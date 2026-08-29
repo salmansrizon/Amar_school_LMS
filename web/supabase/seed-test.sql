@@ -201,3 +201,37 @@ begin
   values (cls, school_a, now())
   on conflict (class_id) do update set published_at = coalesce(class_routines.published_at, now());
 end $$;
+
+-- Two exams the back-navigation spec (map #373) reads, both in Seed Class / A.
+-- They were hand-made on the shared project and existed in no seed file, so a
+-- fresh environment could not run e2e/crud/school.exams.back-nav.spec.ts at all
+-- — and one of them, 'SP2 Exam Six', belonged to the seat-plan suite, which
+-- deletes it. That worked only while migration 0171's bug made an open exam
+-- undeletable; fixing the bug took the fixture with it.
+--
+-- Gate state is the point of the pair: Verify has a class AND a grading scheme,
+-- so all six row actions are live; Gate has a class and NO scheme, so Marks
+-- Entry and Documents are disabled while Seat Plan and Routine are not.
+do $$
+declare
+  school_a uuid := '3d5b6aaf-e348-4c5a-b12c-1cf457716f51';
+  cls uuid;
+  scheme uuid;
+begin
+  select id into cls from public.classes where school_id = school_a and name = 'Seed Class' limit 1;
+  if cls is null then return; end if;
+
+  select id into scheme from public.grading_schemes where school_id = school_a limit 1;
+  if scheme is null then
+    insert into public.grading_schemes (school_id, name, scheme_type)
+    values (school_a, 'Seed Grading Scheme', 'letter') returning id into scheme;
+  end if;
+
+  insert into public.exams (school_id, name, exam_year, class_id, grading_scheme_id, status)
+  select school_a, 'ZZ Map366 Verify Exam', 2026, cls, scheme, 'open'
+  where not exists (select 1 from public.exams where school_id = school_a and name = 'ZZ Map366 Verify Exam');
+
+  insert into public.exams (school_id, name, exam_year, class_id, status)
+  select school_a, 'ZZ Map366 Gate Exam', 2026, cls, 'open'
+  where not exists (select 1 from public.exams where school_id = school_a and name = 'ZZ Map366 Gate Exam');
+end $$;
