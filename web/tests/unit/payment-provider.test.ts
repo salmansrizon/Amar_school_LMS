@@ -16,6 +16,7 @@ const fake: PaymentProvider = {
       status: 'succeeded' as const,
       payload: {},
       payloadSha256: await sha256Hex('{}'),
+      authentication: { authenticated: true, method: 'fake' },
     }
   },
 }

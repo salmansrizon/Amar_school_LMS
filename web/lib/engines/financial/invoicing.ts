@@ -137,6 +137,7 @@ export class PaymentLifecycle {
       p_event_type: event.eventType,
       p_payload: event.payload,
       p_payload_sha256: event.payloadSha256,
+      p_authentication: event.authentication,
       job_secret: this.jobSecret ?? null,
     })
     if (error) throw new Error(`payment_provider_event_record failed: ${error.message}`)
@@ -166,5 +167,16 @@ export class PaymentLifecycle {
       job_secret: this.jobSecret ?? null,
     })
     if (processedError) throw new Error(`payment_provider_event_mark_processed failed: ${processedError.message}`)
+  }
+
+  async fallbackToManual(intentId: string, method: string, reference?: string): Promise<string> {
+    const { data, error } = await this.client.rpc('payment_intent_manual_fallback', {
+      p_intent_id: intentId,
+      p_method: method,
+      p_reference: reference ?? null,
+      job_secret: this.jobSecret ?? null,
+    })
+    if (error) throw new Error(`payment_intent_manual_fallback failed: ${error.message}`)
+    return data as string
   }
 }

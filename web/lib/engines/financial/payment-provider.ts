@@ -33,6 +33,7 @@ export interface VerifiedProviderEvent {
   status: 'succeeded' | 'failed' | 'pending'
   payload: Record<string, unknown>
   payloadSha256: string
+  authentication: Record<string, unknown>
 }
 
 export async function sha256Hex(value: string): Promise<string> {

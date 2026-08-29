@@ -34,6 +34,7 @@ describe('payment provider lifecycle', () => {
           status: eventStatus,
           payload: { redacted: true },
           payloadSha256: await sha256Hex('{}'),
+          authentication: { authenticated: true, provider_validated: true, method: 'fake' },
         }
       },
     }
@@ -99,5 +100,25 @@ describe('payment provider lifecycle', () => {
     })
     await lifecycle.handleEvent(provider.name, { rawBody: '{}', headers: {} })
     expect((await superClient.from('payment_intents').select('status').eq('id', intent.intentId).single()).data!.status).toBe('failed')
+    expect(await lifecycle.fallbackToManual(intent.intentId, 'bank', `manual-${intent.intentId}`)).toBe('paid')
+  })
+
+  it('supports a verified partial payment without over-collecting', async () => {
+    eventStatus = 'succeeded'
+    const invoiceId = await createInvoice(superClient, { schoolId, lines: [{ description: 'Partial path', unitAmount: 200 }] })
+    const registry = new PaymentProviderRegistry()
+    registry.register(provider)
+    const lifecycle = new PaymentLifecycle(superClient, registry)
+    const intent = await lifecycle.create({
+      invoiceId,
+      amount: 100,
+      provider: provider.name,
+      idempotencyKey: `partial-${invoiceId}`,
+      currency: 'BDT',
+      returnUrl: 'https://example.invalid/return',
+    })
+    await lifecycle.handleEvent(provider.name, { rawBody: '{}', headers: {} })
+    expect((await superClient.from('payment_intents').select('status').eq('id', intent.intentId).single()).data!.status).toBe('succeeded')
+    expect((await superClient.from('invoices').select('status').eq('id', invoiceId).single()).data!.status).toBe('issued')
   })
 })
