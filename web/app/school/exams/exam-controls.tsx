@@ -173,6 +173,14 @@ export function ExamsListClient({
   const [status, setStatus] = useState(initialStatus)
   const classById = new Map(classes.map((c) => [c.id, c]))
   const filtered = useMemo(() => filterExams(exams, query, classId, status), [exams, query, classId, status])
+  // #550: every matching exam used to render at once — 570 rows and 934 controls
+  // under 44px on a phone, because each row carries six actions. Show a page at
+  // a time. The cap resets when the filters change, so "show more" never leaks
+  // a previous filter's depth into a new result.
+  const PAGE_SIZE = 25
+  const [visible, setVisible] = useState(PAGE_SIZE)
+  useEffect(() => setVisible(PAGE_SIZE), [query, classId, status])
+  const shown = filtered.slice(0, visible)
 
   // Bring the row that launched the destination back into view. A row anchor,
   // not a pixel offset (§5): it survives the list re-rendering or an exam
@@ -227,7 +235,7 @@ export function ExamsListClient({
         <p className="text-sm text-muted">{t('exams.none', lang)}</p>
       ) : (
         <ul className="divide-y divide-line">
-          {filtered.map((exam) => (
+          {shown.map((exam) => (
             <li key={exam.id} className="py-3">
               <ExamListRow
                 exam={exam}
@@ -238,6 +246,20 @@ export function ExamsListClient({
             </li>
           ))}
         </ul>
+      )}
+      {filtered.length > shown.length && (
+        <div className="mt-3 flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setVisible((n) => n + PAGE_SIZE)}
+            className="inline-flex h-11 cursor-pointer items-center rounded-full border border-line-strong px-4 text-xs font-semibold hover:bg-paper-muted sm:h-9"
+          >
+            {t('exams.showMore', lang)}
+          </button>
+          <span className="text-xs text-muted">
+            {shown.length} / {filtered.length}
+          </span>
+        </div>
       )}
     </>
   )
@@ -319,6 +341,10 @@ function ExamListRow({
           <ExamAction href={action('/cocurricular')} label={t('exams.cocurricular', lang)} reason={needsClass} />
           <ExamAction href={action('/seat-plan')} label={t('exams.generateSeatPlan', lang)} reason={needsClass} />
           <ExamAction href={action('/routine')} label={t('exams.makeRoutine', lang)} reason={needsClass} />
+          {/* Delete is NOT here. docs/010_exam_module.md §1 fixes six actions on
+              this row, in this order, and an e2e test asserts it — a destructive
+              control does not belong among six navigations anyway. It lives on
+              Basic Info next to Close (#551). */}
           {complete ? (
             <ExamDocumentsModal
               examId={exam.id}

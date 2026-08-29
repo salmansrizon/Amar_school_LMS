@@ -494,6 +494,13 @@ const dict = {
   'locations.title': { bn: 'টেরিটরি ও লোকেশন', en: 'Territory & Locations' },
   'locations.tree': { bn: 'লোকেশন ট্রি', en: 'Location tree' },
   'locations.empty': { bn: 'এখনো কোনো লোকেশন নেই — একটি বিভাগ দিয়ে শুরু করুন', en: 'No locations yet — start with a Division' },
+  // #550: the tree is collapsed now, so it has to answer "where is Amtali"
+  // itself — a collapsed branch has nothing to Ctrl+F through.
+  'locations.searchPlaceholder': { bn: 'লোকেশন খুঁজুন', en: 'Search locations' },
+  'locations.clearSearch': { bn: 'সার্চ মুছুন', en: 'Clear search' },
+  'locations.noMatch': { bn: 'এই নামে কোনো লোকেশন নেই', en: 'No location by that name' },
+  'locations.showInTree': { bn: 'ট্রিতে দেখুন', en: 'Show in tree' },
+  'locations.total': { bn: 'মোট লোকেশন', en: 'Total locations' },
   'locations.clusters': { bn: 'ক্লাস্টার', en: 'Clusters' },
   'locations.clusterName': { bn: 'ক্লাস্টারের নাম', en: 'Cluster name' },
   'locations.confirmDelete': {
@@ -903,6 +910,21 @@ const dict = {
   'exams.none': { bn: 'এখনো কোনো পরীক্ষা নেই', en: 'No exams yet' },
   'exams.open': { bn: 'চলমান', en: 'Open' },
   'exams.closed': { bn: 'বন্ধ', en: 'Closed' },
+  // #551: an exam created by mistake used to be permanent for every school
+  // role — there was no delete anywhere in the product.
+  'exams.delete': { bn: 'মুছে ফেলুন', en: 'Delete' },
+  'exams.showMore': { bn: 'আরও দেখুন', en: 'Show more' },
+  'exams.deleteTitle': { bn: 'পরীক্ষা মুছে ফেলবেন?', en: 'Delete this exam?' },
+  'exams.deleteBody': {
+    bn: 'পরীক্ষার রুটিন, আসন বিন্যাস, নম্বর ও সহপাঠ্যক্রমিক নম্বর — সবকিছু একসাথে মুছে যাবে। বন্ধ করা পরীক্ষা মোছা যায় না।',
+    en: 'Its routine, seat plan, marks and co-curricular marks go with it. A closed exam cannot be deleted.',
+  },
+  'exams.deleteConfirm': { bn: 'হ্যাঁ, মুছে ফেলুন', en: 'Yes, delete' },
+  'exams.deleteClosed': {
+    bn: 'বন্ধ করা পরীক্ষা মোছা যায় না — ফলাফল ইতিমধ্যে প্রকাশিত।',
+    en: 'A closed exam cannot be deleted — its results are already out.',
+  },
+  'exams.deleteMissing': { bn: 'পরীক্ষাটি পাওয়া যায়নি।', en: 'Exam not found.' },
   'exams.close': { bn: 'পরীক্ষা বন্ধ করুন', en: 'Close exam' },
   'exams.closeConfirm': {
     bn: 'পরীক্ষা বন্ধ করলে আর কখনো খোলা যাবে না — সব সম্পাদনা স্থায়ীভাবে বন্ধ হবে। নিশ্চিত?',
