@@ -78,11 +78,29 @@ describe('Subscription billing (#269)', () => {
     expect(qd.total).toBe(subtotal - discount)
   })
 
-  it('bills a subscription invoice on subscription income', async () => {
+  it('issues a subscription invoice into deferred revenue', async () => {
     const inv = await billSubscription(superClient, { schoolId: schoolA, students: 100 })
     const row = (await superClient.from('invoices').select('income_account, total_amount').eq('id', inv).single()).data!
     expect(row.income_account).toBe('4000')
     expect(Number(row.total_amount)).toBe(subtotal)
+
+    const entry = (await superClient.from('gl_entries').select('id').eq('ref', `invoice-defer:${inv}`).single()).data!
+    const lines = (await superClient.from('gl_lines').select('account_code, debit, credit').eq('entry_id', entry.id)).data!
+    expect(Number(lines.find((line) => line.account_code === '4000')?.debit)).toBe(subtotal)
+    expect(Number(lines.find((line) => line.account_code === '2200')?.credit)).toBe(subtotal)
+
+    const period = new Date().toISOString().slice(0, 10)
+    const first = await superClient.rpc('vendor_revenue_release', { p_period: period })
+    expect(first.error).toBeNull()
+    expect(first.data).toBeGreaterThanOrEqual(1)
+    const second = await superClient.rpc('vendor_revenue_release', { p_period: period })
+    expect(second.error).toBeNull()
+    expect(second.data).toBe(0)
+
+    const release = (await superClient.from('gl_entries').select('id').eq('ref', `revenue-release:${inv}:${period.slice(0, 7)}-01`).single()).data!
+    const releaseLines = (await superClient.from('gl_lines').select('account_code, debit, credit').eq('entry_id', release.id)).data!
+    expect(Number(releaseLines.find((line) => line.account_code === '2200')?.debit)).toBe(subtotal)
+    expect(Number(releaseLines.find((line) => line.account_code === '4000')?.credit)).toBe(subtotal)
   })
 
   it('accrues distributor commission by renewal year', async () => {
