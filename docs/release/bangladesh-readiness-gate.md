@@ -25,6 +25,12 @@ security, or tender certificate.
 - [Security header tests](../../web/tests/unit/security-headers.test.ts)
 - [Authorization negative tests](../../web/tests/integration/negative-access.test.ts)
 - [Payment lifecycle integration tests](../../web/tests/integration/payment-provider-lifecycle.test.ts)
+- [Security and tenant-isolation gate](./security-tenant-isolation-gate.md)
+- [Reliability and operations evidence](./reliability-operations-evidence.md)
+- [Commercial package boundary](./commercial-package-boundary.md)
+- [VAT invoice and adjustment model](./vat-invoice-adjustment-model.md)
+- [Government tender evidence template](./government-tender-evidence-template.md)
+- [Map 554 release matrix](../testing/map-554-release-matrix.md)
 
 ## Release Rule
 
