@@ -1,0 +1,41 @@
+# Bangladesh Readiness Gate
+
+This is the release gate for the commercial and government-readiness map. It
+records evidence and unresolved decisions; it is not a legal, tax, payment,
+security, or tender certificate.
+
+## Decision Status
+
+| Map decision | Current status | Required before release |
+|---|---|---|
+| Legal and tax operating profile | BLOCKED | Owner supplies the legal entity, TIN/BIN status, revenue classifications, pricing basis, invoice fields, and written adviser confirmation. |
+| Government buyer and tender profile | BLOCKED | Owner names the first procuring entity/tender family and supplies its eligibility, SLA, hosting, security, support, training, acceptance, warranty, and exit requirements. |
+| Security and tenant-isolation gate | BASELINE READY | Run the required negative-access, export/print, stale-session, webhook, secret, rate-limit, and penetration-test evidence against the release candidate. |
+| Reliability and operations evidence bar | BASELINE READY | Attach backup restore, RTO/RPO, outage/retry, monitoring, incident-response, retention, portability, and deployment rehearsal evidence for the selected buyer. |
+| First commercial package | BLOCKED | Owner selects the launch roles, modules, payment mode, support promise, languages, and explicitly deferred capabilities. |
+| VAT invoice and adjustment model | BLOCKED | Resolve the legal/tax profile first, then approve tax treatment, effective dating, invoice/register fields, refunds, credit/debit notes, and reconciliation rules. |
+| Component, integration, E2E, and UAT matrix | BASELINE READY | Execute the included-scope matrix on a clean tenant in Bangla and English across desktop and mobile; no Blocker or Major may remain. |
+
+## Evidence Index
+
+- [UAT checklist](../testing/uat-checklist.md)
+- [UAT execution plan](../testing/uat-plan.md)
+- [Staging UAT report](../testing/staging-owner-superadmin-uat-report.md)
+- [Provider-neutral payment lifecycle ADR](../adr/0023-provider-neutral-payment-lifecycle.md)
+- [Security header tests](../../web/tests/unit/security-headers.test.ts)
+- [Authorization negative tests](../../web/tests/integration/negative-access.test.ts)
+- [Payment lifecycle integration tests](../../web/tests/integration/payment-provider-lifecycle.test.ts)
+
+## Release Rule
+
+The product may claim only compliance-readiness while any decision is BLOCKED.
+Live payment launch additionally requires provider onboarding and a real
+provider adapter; government submission additionally requires a buyer-specific
+tender pack. A passing application test suite does not replace either gate.
+
+## Required Sign-off Record
+
+Before changing a BLOCKED row to APPROVED, record the decision owner, source
+document or contract, effective date, scope, and review date in the relevant
+map ticket and link the evidence here. Do not encode an unresolved legal or
+tender assumption as a default in application code.
