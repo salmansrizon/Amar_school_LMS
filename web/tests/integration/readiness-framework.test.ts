@@ -49,4 +49,20 @@ describe('Readiness decision framework (#554)', () => {
     expect(row).toEqual({ status: 'pending', amount: 1000 })
     expect((await superClient.from('gl_entries').select('id').eq('ref', `invoice-adjustment:${adjustment.data}`)).data).toEqual([])
   })
+
+  it('keeps legal profile pending and launch scope explicit', async () => {
+    const legal = (await superClient.from('vendor_legal_profile').select('status, legal_entity_name').single()).data!
+    expect(legal).toEqual({ status: 'pending', legal_entity_name: null })
+    const packageConfig = (await superClient
+      .from('launch_package_config')
+      .select('status, billing_period, pricing_model, payment_mode, languages, support_response_hours, deferred_capabilities')
+      .single()).data!
+    expect(packageConfig).toMatchObject({
+      status: 'proposed', billing_period: 'monthly', pricing_model: 'hybrid', payment_mode: 'manual',
+      languages: ['bn', 'en'], support_response_hours: 24,
+    })
+    expect(packageConfig.deferred_capabilities).toContain('vat')
+    expect((await owner.from('vendor_legal_profile').select('singleton')).data).toEqual([])
+    expect((await owner.from('launch_package_config').select('singleton')).data).toEqual([])
+  })
 })
