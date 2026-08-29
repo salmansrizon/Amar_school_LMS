@@ -2,7 +2,7 @@
 // RPCs; issuing and confirming both post into the GL (0085) and emit
 // InvoiceGenerated / InvoicePaid. Amounts are integer minor units (poisha).
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { PaymentProviderRegistry, type PaymentIntentRequest, type VerifiedProviderEvent } from './payment-provider'
+import { PaymentProviderRegistry, sha256Hex, type PaymentIntentRequest, type VerifiedProviderEvent } from './payment-provider'
 
 export interface InvoiceLineInput {
   description: string
@@ -129,6 +129,7 @@ export class PaymentLifecycle {
     input: { rawBody: string; headers: Readonly<Record<string, string>> },
   ): Promise<void> {
     const event: VerifiedProviderEvent = await this.providers.get(providerName).verifyEvent(input)
+    if (event.payloadSha256 !== await sha256Hex(input.rawBody)) throw new Error('provider event payload hash mismatch')
     const { data: eventId, error } = await this.client.rpc('payment_provider_event_record', {
       p_intent_id: event.intentId,
       p_provider: providerName,
@@ -151,6 +152,13 @@ export class PaymentLifecycle {
         job_secret: this.jobSecret ?? null,
       })
       if (succeedError) throw new Error(`payment_intent_succeed failed: ${succeedError.message}`)
+    } else if (event.intentId) {
+      const { error: statusError } = await this.client.rpc('payment_intent_transition', {
+        p_intent_id: event.intentId,
+        p_status: event.status,
+        job_secret: this.jobSecret ?? null,
+      })
+      if (statusError) throw new Error(`payment_intent_transition failed: ${statusError.message}`)
     }
 
     const { error: processedError } = await this.client.rpc('payment_provider_event_mark_processed', {

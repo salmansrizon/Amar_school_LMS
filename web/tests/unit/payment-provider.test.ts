@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { PaymentProviderRegistry, type PaymentProvider } from '@/lib/engines/financial/payment-provider'
+import { PaymentProviderRegistry, sha256Hex, type PaymentProvider } from '@/lib/engines/financial/payment-provider'
 
 const fake: PaymentProvider = {
   name: 'fake',
@@ -15,7 +15,7 @@ const fake: PaymentProvider = {
       amount: 100,
       status: 'succeeded' as const,
       payload: {},
-      payloadSha256: 'hash',
+      payloadSha256: await sha256Hex('{}'),
     }
   },
 }
