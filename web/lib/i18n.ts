@@ -590,6 +590,7 @@ const dict = {
   'sa.nav.coupons': { bn: 'কুপন', en: 'Coupons' },
   'sa.nav.settlements': { bn: 'সেটেলমেন্ট', en: 'Settlements' },
   'sa.nav.accounting': { bn: 'হিসাব খতিয়ান', en: 'Accounting' },
+  'sa.nav.readiness': { bn: 'প্রস্তুতি', en: 'Readiness' },
   'sa.nav.jobMonitor': { bn: 'জব মনিটর', en: 'Job Monitor' },
   'sa.nav.agents': { bn: 'এজেন্ট', en: 'Agents' },
   'sa.nav.agreements': { bn: 'চুক্তি', en: 'Agreements' },

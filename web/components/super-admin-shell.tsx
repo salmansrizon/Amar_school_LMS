@@ -150,6 +150,7 @@ const NAV: { href: string; labelKey: MessageKey; icon: React.ReactNode }[] = [
   { href: '/super-admin/coupons', labelKey: 'sa.nav.coupons', icon: Icons.coupon },
   { href: '/super-admin/settlements', labelKey: 'sa.nav.settlements', icon: Icons.settlement },
   { href: '/super-admin/accounting', labelKey: 'sa.nav.accounting', icon: Icons.ledger },
+  { href: '/super-admin/readiness', labelKey: 'sa.nav.readiness', icon: Icons.auditLog },
   { href: '/super-admin/role-permissions', labelKey: 'sa.nav.rolePermissions', icon: Icons.roles },
   { href: '/super-admin/audit-log', labelKey: 'sa.nav.auditLog', icon: Icons.auditLog },
   { href: '/super-admin/attendance-job-monitor', labelKey: 'sa.nav.jobMonitor', icon: Icons.monitor },
