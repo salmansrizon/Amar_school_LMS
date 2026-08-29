@@ -13,6 +13,7 @@ import { signedIn, PASSWORD } from '../helpers/auth'
 //   teacher-e2e (class teacher of ZZ525-A) | only ZZ525-A
 //   subject-teacher (employee, unattached to these) | neither
 const TAG = 'ZZ525'
+const SUBJECT_CLASS = 'Scope Subject Attachment'
 
 describe('Class attachment narrows a Grant (#525, migration 0160)', () => {
   let owner: SupabaseClient
@@ -25,6 +26,7 @@ describe('Class attachment narrows a Grant (#525, migration 0160)', () => {
   async function cleanup() {
     await owner.from('students').delete().like('full_name', `${TAG} %`)
     await owner.from('classes').delete().like('name', `${TAG}%`)
+    await owner.from('classes').delete().eq('name', SUBJECT_CLASS)
   }
 
   beforeAll(async () => {
@@ -59,6 +61,32 @@ describe('Class attachment narrows a Grant (#525, migration 0160)', () => {
     if (studentErr) throw new Error(studentErr.message)
     studentInA = students!.find((s) => s.class_name === `${TAG}-A`)!.id
     studentInB = students!.find((s) => s.class_name === `${TAG}-B`)!.id
+
+    // app_class_scope reports an Employee's attachment anywhere in the school,
+    // not only among the tagged classes above. Keep that distinction explicit:
+    // this teacher is attached elsewhere but has no students in this fixture.
+    const subjectProfile = (await unattached.auth.getUser()).data.user!.id
+    const { data: subjectEmployee } = await owner
+      .from('employees')
+      .select('id')
+      .eq('profile_id', subjectProfile)
+      .is('archived_at', null)
+      .single()
+    const { data: subjectClass, error: subjectClassError } = await owner
+      .from('classes')
+      .insert({ name: SUBJECT_CLASS, section: 'A' })
+      .select('id, school_id')
+      .single()
+    if (subjectClassError) throw new Error(subjectClassError.message)
+    const { error: subjectSlotError } = await owner.from('routine_slots').insert({
+      school_id: subjectClass.school_id,
+      class_id: subjectClass.id,
+      day_of_week: 6,
+      period: 11,
+      subject_id: (await owner.from('subjects').select('id').limit(1).single()).data!.id,
+      teacher_id: subjectEmployee!.id,
+    })
+    if (subjectSlotError) throw new Error(subjectSlotError.message)
   })
 
   afterAll(cleanup)
@@ -143,7 +171,7 @@ describe('Class attachment narrows a Grant (#525, migration 0160)', () => {
     const scopes = await Promise.all(
       [owner, officeStaff, classTeacher, unattached].map((c) => c.rpc('app_class_scope').then((r) => r.data)),
     )
-    expect(scopes).toEqual(['school-wide', 'school-wide', 'attached', 'none'])
+    expect(scopes).toEqual(['school-wide', 'school-wide', 'attached', 'attached'])
   })
 
   // The reason app_class_scope has to be a definer function: employees and
