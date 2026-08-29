@@ -13,10 +13,12 @@ export async function buySmsPackage(formData: FormData): Promise<{ error?: strin
   const { role, schoolId } = await getSchoolContext()
   if (role !== 'school_owner') return { error: 'Only the school owner can buy SMS packages.' }
   const packageId = String(formData.get('package_id') ?? '')
+  const idempotencyKey = String(formData.get('idempotency_key') ?? '')
   if (!packageId) return { error: 'Pick a package.' }
+  if (!idempotencyKey) return { error: 'Purchase request is missing its retry key.' }
 
   try {
-    await purchaseSmsPackage(cronClient(), { schoolId, packageId }, reconcileSecret())
+    await purchaseSmsPackage(cronClient(), { schoolId, packageId, idempotencyKey }, reconcileSecret())
   } catch (e) {
     return { error: e instanceof Error ? e.message : 'Purchase failed.' }
   }

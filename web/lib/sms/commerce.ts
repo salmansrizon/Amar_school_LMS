@@ -3,8 +3,6 @@
 // income invoice, allocates the segments to the school's SMS wallet, and accrues
 // distributor commission on the sale. Route pricing lives in sms_rate_config.
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { createInvoice } from '@/lib/engines/financial/invoicing'
-import { accrueCommission } from '@/lib/engines/financial/commission'
 
 export interface SmsPackage {
   id: string
@@ -32,42 +30,16 @@ export async function listSmsPackages(client: SupabaseClient): Promise<SmsPackag
  * distributor — accrue their commission. Returns the invoice id. */
 export async function purchaseSmsPackage(
   client: SupabaseClient,
-  input: { schoolId: string; packageId: string; distributorId?: string },
+  input: { schoolId: string; packageId: string; idempotencyKey: string; distributorId?: string },
   jobSecret?: string,
 ): Promise<string> {
-  const { data: pkg, error } = await client
-    .from('sms_packages')
-    .select('id, name, segments, price')
-    .eq('id', input.packageId)
-    .single()
-  if (error || !pkg) throw new Error('unknown SMS package')
-
-  const invoiceId = await createInvoice(
-    client,
-    {
-      schoolId: input.schoolId,
-      incomeAccount: '4100', // SMS income
-      lines: [{ description: `SMS package: ${(pkg.name as Record<string, string>).en ?? 'SMS'}`, unitAmount: Number(pkg.price) }],
-      memo: 'SMS package purchase',
-    },
-    jobSecret,
-  )
-
-  const { error: topErr } = await client.rpc('sms_topup', {
-    sid: input.schoolId,
-    segs: pkg.segments,
-    amount_taka: Number(pkg.price) / 100,
-    note: 'package purchase',
+  const { data: invoiceId, error } = await client.rpc('sms_package_purchase', {
+    p_school_id: input.schoolId,
+    p_package_id: input.packageId,
+    p_idempotency_key: input.idempotencyKey,
+    p_distributor_id: input.distributorId ?? null,
     job_secret: jobSecret ?? null,
   })
-  if (topErr) throw new Error(`sms allocation failed: ${topErr.message}`)
-
-  if (input.distributorId) {
-    await accrueCommission(
-      client,
-      { distributorId: input.distributorId, stream: 'sms', sourceType: 'sms_package', sourceId: invoiceId, baseAmount: Number(pkg.price) },
-      jobSecret,
-    )
-  }
-  return invoiceId
+  if (error) throw new Error(`sms_package_purchase failed: ${error.message}`)
+  return invoiceId as string
 }

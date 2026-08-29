@@ -53,12 +53,21 @@ describe('SMS Commerce (#268)', () => {
     const packages = await listSmsPackages(superClient)
     expect(packages.some((p) => p.id === packageId)).toBe(true)
 
-    const invoiceId = await purchaseSmsPackage(superClient, { schoolId: schoolA, packageId })
+    const idempotencyKey = `sms-test-${crypto.randomUUID()}`
+    const invoiceId = await purchaseSmsPackage(superClient, { schoolId: schoolA, packageId, idempotencyKey })
     const inv = (await superClient.from('invoices').select('income_account, total_amount').eq('id', invoiceId).single()).data!
     expect(inv.income_account).toBe('4100')
     expect(Number(inv.total_amount)).toBe(20000)
     const after = (await owner.rpc('sms_balance_for', { sid: schoolA })).data as number
     expect(after).toBe(before + 100)
+
+    const retryInvoiceId = await purchaseSmsPackage(superClient, { schoolId: schoolA, packageId, idempotencyKey })
+    expect(retryInvoiceId).toBe(invoiceId)
+    expect((await owner.rpc('sms_balance_for', { sid: schoolA })).data as number).toBe(after)
+
+    await superClient.from('sms_packages').update({ active: false }).eq('id', packageId)
+    expect(await purchaseSmsPackage(superClient, { schoolId: schoolA, packageId, idempotencyKey })).toBe(invoiceId)
+    await superClient.from('sms_packages').update({ active: true }).eq('id', packageId)
   })
 
   it('exposes route rate config', async () => {
