@@ -6,6 +6,14 @@ import { t, type Lang } from '@/lib/i18n'
 import { assignCard, removeCard, setAutomaticAttendance } from './actions'
 import { selectClass } from '@/components/ui/field'
 
+// The live "assign a card" flow (issue #10): writes rfid_cards.card_number,
+// per-school unique, wired to ingest_attendance_events/reconcile_attendance.
+//
+// students.rfid_card_number / employees.rfid_card_number (ticket #564,
+// migration 0173) are a second, currently-unwired column pair prepping for a
+// future attendance-machine sync — deliberately not exposed here or
+// anywhere else in the UI yet, so this screen stays the one place staff
+// assign a card. See 0173's own comments for why.
 export function AssignCardForm({
   students,
   employees,

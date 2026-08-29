@@ -156,6 +156,9 @@ export default async function StudentDetailPage({
             />
             <InfoRow label={t('students.bloodGroup', lang)} value={student.blood_group} />
             <InfoRow label={t('students.studentNo', lang)} value={student.student_no} />
+            {/* Read-only — unique_id is server-assigned and immutable (#564),
+                never editable via ProfileFields. */}
+            <InfoRow label={t('students.uniqueId', lang)} value={student.unique_id} />
             <InfoRow
               label={t('students.classSection', lang)}
               value={classSectionLabel(student.class_name, student.section)}

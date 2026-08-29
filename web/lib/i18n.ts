@@ -842,6 +842,10 @@ const dict = {
   'employees.officeTimes': { bn: 'অফিস সময়', en: 'Office Times' },
   'employees.createTitle': { bn: 'নতুন কর্মচারী তৈরি করুন', en: 'Create New Employee' },
   'employees.identity': { bn: 'পরিচিতি', en: 'Identity' },
+  // Attendance-machine data-model prep (ticket #564) — unique_id is
+  // server-assigned, shown read-only. See the matching students.uniqueId
+  // comment for why rfid_card_number has no UI yet.
+  'employees.uniqueId': { bn: 'মেশিন আইডি', en: 'Machine ID' },
   'employees.mobile': { bn: 'মোবাইল', en: 'Mobile' },
   'employees.dob': { bn: 'জন্ম তারিখ', en: 'Date of Birth' },
   'employees.joiningDate': { bn: 'যোগদানের তারিখ', en: 'Joining Date' },
@@ -1903,6 +1907,14 @@ const dict = {
   'students.lastClassSection': { bn: 'শেষ শ্রেণি/শাখা', en: 'Last Class/Section' },
   'students.archivedOn': { bn: 'আর্কাইভের তারিখ', en: 'Archived On' },
   'students.transfer': { bn: 'শ্রেণি/শাখা স্থানান্তর', en: 'Transfer Class/Section' },
+  // Attendance-machine data-model prep (ticket #564) — unique_id is
+  // server-assigned, shown read-only. rfid_card_number also exists on the
+  // row (same ticket) but has no UI yet: web/school/attendance/card-controls.tsx
+  // already has a live "assign a card" flow via the separate rfid_cards
+  // table, and a second manual-entry field for the same fact would only
+  // invite two screens to disagree about one person's card. Wiring it — or
+  // deciding it should mirror rfid_cards instead — is future work.
+  'students.uniqueId': { bn: 'মেশিন আইডি', en: 'Machine ID' },
   // Student login management, owner side (map #434, #442).
   'students.studentNo': { bn: 'শিক্ষার্থী নম্বর', en: 'Student Number' },
   'students.login': { bn: 'শিক্ষার্থী লগইন', en: 'Student login' },

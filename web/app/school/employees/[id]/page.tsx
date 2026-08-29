@@ -131,6 +131,9 @@ export default async function EmployeeDetailPage({
             label={t('employees.joiningDate', lang)}
             value={employee.joining_date ? new Date(employee.joining_date).toLocaleDateString(locale) : null}
           />
+          {/* Read-only — unique_id is server-assigned and immutable (#564),
+              never editable via ProfileFields. */}
+          <InfoRow label={t('employees.uniqueId', lang)} value={employee.unique_id} />
         </InfoCard>
 
         <InfoCard title={t('employees.bankInfo', lang)}>
