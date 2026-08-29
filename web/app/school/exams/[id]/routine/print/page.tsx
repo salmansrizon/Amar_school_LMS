@@ -68,6 +68,8 @@ export default async function ExamRoutinePrintPage({
         title={`${t('print.nothingYet', lang)} — ${examLabel}`}
         explanation={t('print.examRoutineEmpty', lang)}
         action={{ href: `/school/exams/${id}/routine`, label: t('print.buildExamRoutine', lang) }}
+        backHref={backHref}
+        backLabel={t('common.back', lang)}
       />
     )
   }

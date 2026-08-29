@@ -36,6 +36,8 @@ export default async function RoutinePrintPage({
       <PrintPreflight
         title={t('print.pickClassTitle', lang)}
         explanation={t('print.pickClassHelp', lang)}
+        backHref="/school/classes/routine"
+        backLabel={t('common.back', lang)}
       >
         <ul className="mt-4 flex flex-wrap gap-2">
           {(classes ?? []).map((c) => (
