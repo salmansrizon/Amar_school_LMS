@@ -1344,6 +1344,13 @@ const dict = {
     bn: 'মুছে ফেলা হবে — শ্রেণি মুছলে এর বিষয়গুলোও মুছে যাবে। নিশ্চিত?',
     en: 'This will be deleted — deleting a class also deletes its subjects. Are you sure?',
   },
+  // #548: deleting a subject takes its marks, its student questions and its
+  // routine links with it. That has been true of marks since 0031; the dialog
+  // said none of it.
+  'classes.deleteConfirmSubject': {
+    bn: 'বিষয়টি মুছে ফেলা হবে — এর নম্বর, শিক্ষার্থীদের প্রশ্ন ও রুটিনের সংযোগও মুছে যাবে। নিশ্চিত?',
+    en: 'This subject will be deleted — its marks, student questions and routine links go with it. Are you sure?',
+  },
   'classes.deleteConfirmSimple': {
     bn: 'মুছে ফেলা হবে। নিশ্চিত?',
     en: 'This will be deleted. Are you sure?',

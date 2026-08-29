@@ -174,8 +174,11 @@ export function DeleteButton({
   id: string
   lang: Lang
 }) {
-  // Deleting a class cascades to its subjects — say so in the in-app dialog (#365).
-  const key = entity === 'classes' ? 'classes.deleteConfirm' : 'classes.deleteConfirmSimple'
+  // Deleting a class cascades to its subjects, and deleting a subject cascades
+  // to its marks, its student questions and its routine links — say so in the
+  // in-app dialog (#365, #548). "This will be deleted. Are you sure?" was true
+  // and useless.
+  const key = entity === 'classes' ? 'classes.deleteConfirm' : 'classes.deleteConfirmSubject'
   return (
     <ConfirmDialog
       triggerLabel={t('common.delete', lang)}
