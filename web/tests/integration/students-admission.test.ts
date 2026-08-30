@@ -37,6 +37,13 @@ describe('Students I (issue #27)', () => {
         is_freedom_fighter_child: true,
         previous_institute: 'ST1 Primary',
         sibling_info: 'ST1 Sibling, roll 12',
+        // Leading zero on purpose (issue #565) — text, not numeric, so it
+        // must round-trip exactly rather than being coerced to 54321. A
+        // value this test file hasn't used anywhere else (unlike full_name,
+        // rfid_card_number isn't scoped by cleanup()'s 'ST1 %' pattern, so a
+        // reused literal can collide with any other row on this shared
+        // project that happens to carry the same card number).
+        rfid_card_number: 'ST1-CARD-00054321',
       })
       .select('id, roll_number, is_freedom_fighter_child')
       .single()
@@ -49,13 +56,14 @@ describe('Students I (issue #27)', () => {
   it('admission stores the full profile and auto-assigns roll 1', async () => {
     const { data } = await ownerA
       .from('students')
-      .select('roll_number, guardian_name, is_freedom_fighter_child, village')
+      .select('roll_number, guardian_name, is_freedom_fighter_child, village, rfid_card_number')
       .eq('id', studentId)
       .single()
     expect(data?.roll_number).toBe(1)
     expect(data?.guardian_name).toBe('ST1 Guardian')
     expect(data?.is_freedom_fighter_child).toBe(true)
     expect(data?.village).toBe('Basail')
+    expect(data?.rfid_card_number).toBe('ST1-CARD-00054321')
   })
 
   it('the next admission in the same class gets the next roll', async () => {

@@ -40,9 +40,16 @@ describe('Employees I — full profile, archive, restore (issue #28)', () => {
         qualification: 'M.A., B.Ed.',
         department: 'Bangla Dept.',
         subject_taught: 'Bangla 1st & 2nd Paper',
+        // Leading zero on purpose (issue #565) — text, not numeric, so it
+        // must round-trip exactly rather than being coerced to 700123.
+        // Namespaced like MARK — rfid_card_number isn't scoped by this
+        // file's own cleanup(), so a plain-looking literal could collide
+        // with any other row on this shared project carrying the same card
+        // number (bit a sibling test this way once already).
+        rfid_card_number: `${MARK} 00700123`,
       })
       .select(
-        'id, school_id, mobile, bank_name, qualification, department, subject_taught, archived_at',
+        'id, school_id, mobile, bank_name, qualification, department, subject_taught, rfid_card_number, archived_at',
       )
       .single()
     expect(error).toBeNull()
@@ -52,6 +59,7 @@ describe('Employees I — full profile, archive, restore (issue #28)', () => {
     expect(data!.qualification).toBe('M.A., B.Ed.')
     expect(data!.department).toBe('Bangla Dept.')
     expect(data!.subject_taught).toBe('Bangla 1st & 2nd Paper')
+    expect(data!.rfid_card_number).toBe(`${MARK} 00700123`)
     expect(data!.archived_at).toBeNull()
     employeeId = data!.id
   })

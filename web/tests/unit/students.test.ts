@@ -12,6 +12,7 @@ import {
   nextRollNumber,
   parseRollNumber,
   rollScopeChanged,
+  friendlyStudentError,
   behaviourSmsBody,
   type StudentListRow,
   type SubjectOption,
@@ -193,6 +194,26 @@ describe('rollScopeChanged', () => {
 
   it('defaults to false when the current row could not be read', () => {
     expect(rollScopeChanged(null, { class_name: 'Class 8', section: 'A' })).toBe(false)
+  })
+})
+
+describe('friendlyStudentError', () => {
+  it('replaces a duplicate rfid_card_number violation with a legible message', () => {
+    const error = {
+      code: '23505',
+      message: 'duplicate key value violates unique constraint "students_rfid_card_number_key"',
+    }
+    expect(friendlyStudentError(error)).toBe('That RFID card number is already used by someone else at this school')
+  })
+
+  it('passes through any other error unchanged', () => {
+    const notFound = { code: '23503', message: 'foreign key violation' }
+    expect(friendlyStudentError(notFound)).toBe('foreign key violation')
+
+    // A 23505 on a different constraint (e.g. students_roll_unique) must not
+    // be swallowed into the rfid_card_number message.
+    const otherUnique = { code: '23505', message: 'duplicate key value violates unique constraint "students_roll_unique"' }
+    expect(friendlyStudentError(otherUnique)).toBe(otherUnique.message)
   })
 })
 

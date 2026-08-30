@@ -843,9 +843,15 @@ const dict = {
   'employees.createTitle': { bn: 'নতুন কর্মচারী তৈরি করুন', en: 'Create New Employee' },
   'employees.identity': { bn: 'পরিচিতি', en: 'Identity' },
   // Attendance-machine data-model prep (ticket #564) — unique_id is
-  // server-assigned, shown read-only. See the matching students.uniqueId
-  // comment for why rfid_card_number has no UI yet.
+  // server-assigned, shown read-only.
   'employees.uniqueId': { bn: 'মেশিন আইডি', en: 'Machine ID' },
+  // rfid_card_number field (ticket #565) — see the matching students.* keys
+  // for why this is separate from the Attendance module's card assignment.
+  'employees.rfidCardNumber': { bn: 'আরএফআইডি কার্ড নম্বর', en: 'RFID Card Number' },
+  'employees.rfidCardNumberHint': {
+    bn: 'উপস্থিতি মডিউলের কার্ড বরাদ্দের সাথে সম্পর্কিত নয় — সেটি পরিচালনা করুন উপস্থিতি → RFID কার্ড থেকে।',
+    en: 'Separate from card assignment in the Attendance module — manage that via Attendance → RFID cards.',
+  },
   'employees.mobile': { bn: 'মোবাইল', en: 'Mobile' },
   'employees.dob': { bn: 'জন্ম তারিখ', en: 'Date of Birth' },
   'employees.joiningDate': { bn: 'যোগদানের তারিখ', en: 'Joining Date' },
@@ -1908,13 +1914,18 @@ const dict = {
   'students.archivedOn': { bn: 'আর্কাইভের তারিখ', en: 'Archived On' },
   'students.transfer': { bn: 'শ্রেণি/শাখা স্থানান্তর', en: 'Transfer Class/Section' },
   // Attendance-machine data-model prep (ticket #564) — unique_id is
-  // server-assigned, shown read-only. rfid_card_number also exists on the
-  // row (same ticket) but has no UI yet: web/school/attendance/card-controls.tsx
-  // already has a live "assign a card" flow via the separate rfid_cards
-  // table, and a second manual-entry field for the same fact would only
-  // invite two screens to disagree about one person's card. Wiring it — or
-  // deciding it should mirror rfid_cards instead — is future work.
+  // server-assigned, shown read-only.
   'students.uniqueId': { bn: 'মেশিন আইডি', en: 'Machine ID' },
+  // rfid_card_number field (ticket #565) — plain editable text, no format
+  // constraint (leading zeros preserved). The hint points at the Attendance
+  // module's own card-assignment screen (web/school/attendance/card-controls.tsx,
+  // a separate rfid_cards table) so the two don't read as unrelated features
+  // that happen to share a name — see #565 for why both exist.
+  'students.rfidCardNumber': { bn: 'আরএফআইডি কার্ড নম্বর', en: 'RFID Card Number' },
+  'students.rfidCardNumberHint': {
+    bn: 'উপস্থিতি মডিউলের কার্ড বরাদ্দের সাথে সম্পর্কিত নয় — সেটি পরিচালনা করুন উপস্থিতি → RFID কার্ড থেকে।',
+    en: 'Separate from card assignment in the Attendance module — manage that via Attendance → RFID cards.',
+  },
   // Student login management, owner side (map #434, #442).
   'students.studentNo': { bn: 'শিক্ষার্থী নম্বর', en: 'Student Number' },
   'students.login': { bn: 'শিক্ষার্থী লগইন', en: 'Student login' },

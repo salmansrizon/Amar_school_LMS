@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { friendlyEmployeeError } from '@/lib/employees'
 
 // RLS scopes all writes to the caller's School.
 
@@ -32,6 +33,11 @@ function profileFields(formData: FormData) {
     qualification: text(formData, 'qualification'),
     department: text(formData, 'department'),
     subject_taught: text(formData, 'subject_taught'),
+    // Attendance-machine data-model prep (#564/#565) — plain text via the
+    // same text() helper as every other optional field here, so a blank
+    // submission is null, not '' (the partial unique index on
+    // (school_id, rfid_card_number) is keyed off "is not null").
+    rfid_card_number: text(formData, 'rfid_card_number'),
   }
 }
 
@@ -48,7 +54,7 @@ export async function createEmployee(
     .insert({ full_name: name, grace_override_minutes: override, ...profileFields(formData) })
     .select('id')
     .single()
-  if (error) return { error: error.message }
+  if (error) return { error: friendlyEmployeeError(error) }
   revalidatePath(PAGE)
   return { id: data.id }
 }
@@ -66,7 +72,7 @@ export async function updateEmployee(formData: FormData): Promise<{ error?: stri
     .update({ full_name: name, grace_override_minutes: override, ...profileFields(formData) })
     .eq('id', id)
     .select('id')
-  if (error) return { error: error.message }
+  if (error) return { error: friendlyEmployeeError(error) }
   if (!data?.length) return { error: 'Employee not found' }
   revalidatePath(PAGE)
   revalidatePath(`${PAGE}/${id}`)

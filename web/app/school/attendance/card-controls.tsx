@@ -10,10 +10,13 @@ import { selectClass } from '@/components/ui/field'
 // per-school unique, wired to ingest_attendance_events/reconcile_attendance.
 //
 // students.rfid_card_number / employees.rfid_card_number (ticket #564,
-// migration 0173) are a second, currently-unwired column pair prepping for a
-// future attendance-machine sync — deliberately not exposed here or
-// anywhere else in the UI yet, so this screen stays the one place staff
-// assign a card. See 0173's own comments for why.
+// migration 0173) are a second, independent field pair on the profile forms
+// themselves (issue #565), prepping for a future attendance-machine sync.
+// The two are deliberately NOT kept in sync — #565's own ticket weighed that
+// and chose a hint pointing each screen at the other over reconciling them
+// now. This screen's card_number is still the one that actually feeds
+// ingest_attendance_events/reconcile_attendance; the profile-form field does
+// nothing yet.
 export function AssignCardForm({
   students,
   employees,

@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { currentActor } from '@/lib/school/actor'
 import { sendStudentSms } from '@/lib/sms/student-sms'
-import { photoExtension, behaviourSmsBody, parseRollNumber, rollScopeChanged } from '@/lib/students'
+import { photoExtension, behaviourSmsBody, parseRollNumber, rollScopeChanged, friendlyStudentError } from '@/lib/students'
 import { createSignedUpload, type SignedUpload } from '@/lib/storage/signed-upload'
 
 // RLS scopes everything to the caller's School; the 3-day lock trigger is the
@@ -50,6 +50,11 @@ function profileFields(formData: FormData) {
     previous_institute: text(formData, 'previous_institute'),
     previous_class: text(formData, 'previous_class'),
     sibling_info: text(formData, 'sibling_info'),
+    // Attendance-machine data-model prep (#564/#565) — plain text via the
+    // same text() helper as every other optional field here, so a blank
+    // submission is null, not '' (the partial unique index on
+    // (school_id, rfid_card_number) is keyed off "is not null").
+    rfid_card_number: text(formData, 'rfid_card_number'),
   }
 }
 
@@ -70,7 +75,7 @@ export async function admitStudent(
     .insert({ full_name: name, roll_number: roll.value, ...profileFields(formData) })
     .select('id')
     .single()
-  if (error) return { error: error.message }
+  if (error) return { error: friendlyStudentError(error) }
   revalidatePath(LIST)
   return { id: data.id }
 }
@@ -105,7 +110,7 @@ export async function updateStudent(formData: FormData): Promise<{ error?: strin
     })
     .eq('id', id)
     .select('id')
-  if (error) return { error: error.message }
+  if (error) return { error: friendlyStudentError(error) }
   if (!data?.length) return { error: 'Student not found' }
   revalidatePath(LIST)
   revalidatePath(`${LIST}/${id}`)

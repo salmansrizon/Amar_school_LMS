@@ -125,6 +125,10 @@ describe('unique_id + rfid_card_number (ticket #564)', () => {
         .insert({ full_name: `${MARK} CardDup2`, rfid_card_number: 'CARD-564-2' })
       expect(error).not.toBeNull()
       expect(error!.code).toBe('23505')
+      // The exact substring lib/students.ts's friendlyStudentError (issue
+      // #565) matches on — this is what actually proves that check works
+      // against real Postgres output, not just a hand-authored mock string.
+      expect(error!.message).toContain('students_rfid_card_number_key')
     })
 
     it('students: null card numbers never collide with each other', async () => {
@@ -143,6 +147,9 @@ describe('unique_id + rfid_card_number (ticket #564)', () => {
         .insert({ full_name: `${MARK} EmpCard2`, rfid_card_number: 'CARD-564-E1' })
       expect(error).not.toBeNull()
       expect(error!.code).toBe('23505')
+      // The exact substring lib/employees.ts's friendlyEmployeeError (issue
+      // #565) matches on.
+      expect(error!.message).toContain('employees_rfid_card_number_key')
     })
 
     it('employees: a different school may reuse the same card number', async () => {

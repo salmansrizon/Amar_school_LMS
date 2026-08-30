@@ -1,6 +1,8 @@
 // Students I/II helpers (issues #27, #46): list filtering, profile display,
 // subject assignment and behaviour SMS bits, kept pure for unit testing.
 
+import { pgConstraintMessage } from '@/lib/crud/pg-error'
+
 export interface StudentListRow {
   id: string
   full_name: string
@@ -131,6 +133,22 @@ export function rollScopeChanged(
 ): boolean {
   if (!current) return false
   return current.class_name !== next.class_name || current.section !== next.section
+}
+
+/** Turns the one DB constraint an operator can plausibly hit while filling in
+ *  the profile form — a duplicate RFID Card Number within the school (issue
+ *  #565's students_rfid_card_number_key) — into a message that says what to
+ *  fix, instead of the raw Postgres constraint-violation text `error.message`
+ *  would otherwise surface verbatim. A plain code-keyed lookup (this table's
+ *  other unique constraint, students_roll_unique, can also 23505 from the
+ *  same insert/update) would give the wrong message to a roll conflict, so
+ *  this matches the constraint name itself via pgConstraintMessage. */
+export function friendlyStudentError(error: { code: string; message: string }): string {
+  return pgConstraintMessage(
+    error,
+    'students_rfid_card_number_key',
+    'That RFID card number is already used by someone else at this school',
+  )
 }
 
 const PHOTO_EXT: Record<string, string> = {

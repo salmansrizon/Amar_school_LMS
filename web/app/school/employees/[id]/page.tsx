@@ -134,6 +134,7 @@ export default async function EmployeeDetailPage({
           {/* Read-only — unique_id is server-assigned and immutable (#564),
               never editable via ProfileFields. */}
           <InfoRow label={t('employees.uniqueId', lang)} value={employee.unique_id} />
+          <InfoRow label={t('employees.rfidCardNumber', lang)} value={employee.rfid_card_number} />
         </InfoCard>
 
         <InfoCard title={t('employees.bankInfo', lang)}>

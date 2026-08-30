@@ -166,14 +166,17 @@ create trigger employee_unique_id_immutable
 --    formats vary by reader vendor, matching rfid_cards.card_number's own
 --    lack of one.
 --
---    Deliberately no UI yet, on either side (this column, or the pointer
---    added to card-controls.tsx): web/app/school/attendance/card-controls.tsx
---    already has a live "assign a card" flow into rfid_cards, and wiring a
---    second, independent manual-entry field for the same real-world fact
---    would let the two silently disagree about one person's card with
---    nothing to reconcile them. Whether this column ends up mirroring
---    rfid_cards, or rfid_cards is retired in its favor, is a call for the
---    future sync-architecture ticket, not this one.
+--    Update, issue #565: this column now has a UI (admission-form.tsx's and
+--    create-form.tsx's ProfileFields, plus a read-only InfoRow on both detail
+--    pages) — deliberately NOT kept in sync with
+--    web/app/school/attendance/card-controls.tsx's separate "assign a card"
+--    flow into rfid_cards, which stays the one path that actually feeds
+--    ingest_attendance_events/reconcile_attendance. #565 weighed the
+--    two-independent-fields risk this comment used to warn about and chose a
+--    UI hint pointing each screen at the other over reconciling them now.
+--    Whether this column ends up mirroring rfid_cards, or rfid_cards is
+--    retired in its favor, remains a call for the future sync-architecture
+--    ticket.
 create unique index if not exists students_rfid_card_number_key
   on public.students (school_id, rfid_card_number) where rfid_card_number is not null;
 

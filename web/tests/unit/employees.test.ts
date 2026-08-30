@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { matchesEmployeeQuery, filterEmployees, employeeOfficeTimeNames } from '@/lib/employees'
+import { matchesEmployeeQuery, filterEmployees, employeeOfficeTimeNames, friendlyEmployeeError } from '@/lib/employees'
 
 describe('matchesEmployeeQuery', () => {
   it('matches case-insensitively on name', () => {
@@ -47,5 +47,25 @@ describe('employeeOfficeTimeNames', () => {
 
   it('returns null when no officeTimes are assigned', () => {
     expect(employeeOfficeTimeNames('e3', assignments, officeTimes)).toBeNull()
+  })
+})
+
+describe('friendlyEmployeeError', () => {
+  it('replaces a duplicate rfid_card_number violation with a legible message', () => {
+    const error = {
+      code: '23505',
+      message: 'duplicate key value violates unique constraint "employees_rfid_card_number_key"',
+    }
+    expect(friendlyEmployeeError(error)).toBe('That RFID card number is already used by someone else at this school')
+  })
+
+  it('passes through any other error unchanged', () => {
+    const notFound = { code: '23503', message: 'foreign key violation' }
+    expect(friendlyEmployeeError(notFound)).toBe('foreign key violation')
+
+    // A 23505 on a different constraint (e.g. a future unique column) must
+    // not be swallowed into the rfid_card_number message.
+    const otherUnique = { code: '23505', message: 'duplicate key value violates unique constraint "employees_pkey"' }
+    expect(friendlyEmployeeError(otherUnique)).toBe(otherUnique.message)
   })
 })
