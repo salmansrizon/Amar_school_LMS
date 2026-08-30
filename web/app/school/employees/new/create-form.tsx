@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { t, type Lang } from '@/lib/i18n'
 import { createEmployee } from '../actions'
 import { dateInputClass } from '@/components/ui/field'
+import { reachSentences } from '@/lib/school/teacher-reach'
 
 export const fieldClass =
   'w-full rounded-md border border-line bg-paper px-3 py-2 text-sm focus:border-brand-500 focus:outline-none'
@@ -133,11 +134,77 @@ export function ProfileFields({
   )
 }
 
-export function CreateEmployeeForm({ lang }: { lang: Lang }) {
+export interface ClassOption {
+  id: string
+  label: string
+  taken: boolean
+}
+
+/** Login + Class (issue #566): both optional, same submit — folds in what
+ *  used to be the separate "Add a teacher" flow (#533). Lives here, not in
+ *  the shared ProfileFields, because ProfileFields is also reused by the
+ *  employee *edit* screen, which already has its own login-management UI
+ *  (LoginLinkPicker, employee-controls.tsx) — a second one on the same
+ *  screen would be confusing, not convenient. So these two sections are
+ *  create-only. */
+function LoginAndClassFields({
+  lang,
+  classes,
+  classId,
+  onClassChange,
+}: {
+  lang: Lang
+  classes: ClassOption[]
+  classId: string
+  onClassChange: (id: string) => void
+}) {
+  return (
+    <>
+      <Card title={t('teacher.stepLogin', lang)}>
+        <p className="mb-3 text-xs text-muted">{t('teacher.stepLoginHelp', lang)}</p>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Field label={t('login.email', lang)}>
+            <input id="email" name="email" type="email" className={fieldClass} autoComplete="off" />
+          </Field>
+          <Field label={t('login.password', lang)}>
+            <input id="password" name="password" type="password" minLength={8} className={fieldClass} autoComplete="new-password" />
+          </Field>
+        </div>
+      </Card>
+
+      <Card title={t('teacher.stepClass', lang)}>
+        <p className="mb-3 text-xs text-muted">{t('teacher.stepClassHelp', lang)}</p>
+        <select
+          name="class_id"
+          value={classId}
+          onChange={(e) => onClassChange(e.target.value)}
+          className={fieldClass}
+        >
+          <option value="">{t('teacher.noClassYet', lang)}</option>
+          {classes.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.label}
+              {c.taken ? ` — ${t('teacher.classAlreadyHasTeacher', lang)}` : ''}
+            </option>
+          ))}
+        </select>
+      </Card>
+    </>
+  )
+}
+
+export function CreateEmployeeForm({ lang, classes }: { lang: Lang; classes: ClassOption[] }) {
   const router = useRouter()
   const formRef = useRef<HTMLFormElement>(null)
+  const [classId, setClassId] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
+
+  const chosen = classes.find((c) => c.id === classId) ?? null
+  // Derived from the choice, not from a permissions screen: ADR 0021 makes a Class
+  // Teacher's reach follow from the assignment itself, so the Owner can be shown
+  // the consequence before confirming rather than after logging in as them.
+  const preview = reachSentences({ classTeacherOf: chosen ? [chosen.label] : [], teaches: [] }, lang)
 
   return (
     <form
@@ -148,8 +215,23 @@ export function CreateEmployeeForm({ lang }: { lang: Lang }) {
         startTransition(async () => {
           setError(null)
           const result = await createEmployee(data)
-          if (result.error || !result.id) {
-            setError(result.error ?? 'Save failed')
+          // A partial failure (e.g. the employee record was made but the login
+          // step failed) still reports the employee it made, so the Owner is
+          // never told to start over on a record that already exists — the one
+          // behavior from #533's old two-form design worth carrying forward.
+          // The error rides along as a query param, not just component state:
+          // router.push unmounts this form, so state alone would be silently
+          // dropped and the Owner would land on the record with no explanation.
+          if (result.error) {
+            if (result.id) {
+              router.push(`/school/employees/${result.id}?error=${encodeURIComponent(result.error)}`)
+              return
+            }
+            setError(result.error)
+            return
+          }
+          if (!result.id) {
+            setError('Save failed')
             return
           }
           router.push(`/school/employees/${result.id}`)
@@ -157,6 +239,15 @@ export function CreateEmployeeForm({ lang }: { lang: Lang }) {
       }}
     >
       <ProfileFields lang={lang} />
+      <LoginAndClassFields lang={lang} classes={classes} classId={classId} onClassChange={setClassId} />
+
+      <Card title={t('teacher.previewTitle', lang)}>
+        <ul className="grid gap-1 text-sm text-muted">
+          {preview.map((line) => (
+            <li key={line}>{line}</li>
+          ))}
+        </ul>
+      </Card>
 
       {error && <p className="mb-3 text-sm text-alert-deep">{error}</p>}
 

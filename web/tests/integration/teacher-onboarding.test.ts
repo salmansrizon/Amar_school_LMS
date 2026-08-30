@@ -2,14 +2,17 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { signedIn, PASSWORD } from '../helpers/auth'
 
-// Seam: ticket #533. The four steps createTeacher composes — employee record,
-// staff login, the link between them, class assignment — run here in the same
-// order against the real database, and then the resulting teacher signs in and is
-// asked what she can see.
+// Seam: ticket #533, orchestration moved into createEmployee itself by #566
+// (the standalone "Add a teacher" flow #533 built is gone; login and class
+// are now optional sections on the one Add Employee form). The four steps —
+// employee record, staff login, the link between them, class assignment —
+// run here directly against the real database in the same order
+// createEmployee now composes them in, and then the resulting teacher signs
+// in and is asked what they can see.
 //
-// This is the assertion the UAT pass could not make. It created an employee,
-// stopped, and reported Class Teacher behaviour as untestable because the
-// employee had no login.
+// This is the assertion the UAT pass that motivated #533 could not make. It
+// created an employee, stopped, and reported Class Teacher behaviour as
+// untestable because the employee had no login.
 //
 // A FIXED email, created-or-found, following staff-permissions.test.ts: there is
 // no way to delete an auth user from here, so a fresh address per run would leak

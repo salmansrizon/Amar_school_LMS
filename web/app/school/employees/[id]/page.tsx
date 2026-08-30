@@ -33,10 +33,13 @@ function InfoCard({ title, children }: { title: string; children: React.ReactNod
 
 export default async function EmployeeDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>
+  searchParams: Promise<{ error?: string }>
 }) {
   const { id } = await params
+  const { error: createError } = await searchParams
   const lang: Lang = await currentLang()
   const { supabase, schoolId, role } = await getSchoolContext()
 
@@ -93,6 +96,14 @@ export default async function EmployeeDetailPage({
         <h1 className="text-2xl font-extrabold">{employee.full_name}</h1>
         <Link href="/school/employees" aria-label={t('employees.title', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
       </div>
+
+      {/* Carries a partial-creation failure (issue #566) across the redirect
+          from the create form: the employee record exists, but a later step
+          (login, or class assignment) didn't finish, and the Owner needs to
+          see what to fix rather than land here with no explanation. */}
+      {createError && (
+        <p className="mb-4 rounded-md bg-alert-soft px-3 py-2 text-sm text-alert-deep">{createError}</p>
+      )}
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <span

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { matchesEmployeeQuery, filterEmployees, employeeOfficeTimeNames, friendlyEmployeeError } from '@/lib/employees'
+import { matchesEmployeeQuery, filterEmployees, employeeOfficeTimeNames, friendlyEmployeeError, validateOptionalLogin } from '@/lib/employees'
 
 describe('matchesEmployeeQuery', () => {
   it('matches case-insensitively on name', () => {
@@ -67,5 +67,27 @@ describe('friendlyEmployeeError', () => {
     // not be swallowed into the rfid_card_number message.
     const otherUnique = { code: '23505', message: 'duplicate key value violates unique constraint "employees_pkey"' }
     expect(friendlyEmployeeError(otherUnique)).toBe(otherUnique.message)
+  })
+})
+
+describe('validateOptionalLogin', () => {
+  it('allows both blank — no login wanted', () => {
+    expect(validateOptionalLogin('', '')).toEqual({})
+  })
+
+  it('allows both present and a valid-length password', () => {
+    expect(validateOptionalLogin('teacher@school.test', 'longenough')).toEqual({})
+  })
+
+  it('rejects an email with no password', () => {
+    expect(validateOptionalLogin('teacher@school.test', '').error).toMatch(/both an email and a password/)
+  })
+
+  it('rejects a password with no email', () => {
+    expect(validateOptionalLogin('', 'longenough').error).toMatch(/both an email and a password/)
+  })
+
+  it('rejects a password shorter than 8 characters', () => {
+    expect(validateOptionalLogin('teacher@school.test', 'short').error).toBe('Password must be at least 8 characters')
   })
 })

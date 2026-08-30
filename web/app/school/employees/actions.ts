@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
-import { friendlyEmployeeError } from '@/lib/employees'
+import { friendlyEmployeeError, validateOptionalLogin } from '@/lib/employees'
 
 // RLS scopes all writes to the caller's School.
 
@@ -41,6 +41,26 @@ function profileFields(formData: FormData) {
   }
 }
 
+/** Creates the HR record and, if the submitter filled them in, a login
+ *  (linked to the record) and/or a class-teacher assignment — all optional,
+ *  all in this one call (issue #566, folding in what used to be the
+ *  separate "Add a teacher" flow, #533).
+ *
+ *  Email/password are both-or-neither: one without the other is a malformed
+ *  submission (missing a password, or a typo'd email that got a password
+ *  meant for it), not "no login wanted" — silently dropping just the one
+ *  half would be a worse surprise than rejecting the submit outright.
+ *
+ *  Not transactional past the employee insert, because the remaining pieces
+ *  span auth and public schemas. Ordered, and error-reported, so a failure
+ *  leaves the least-bad state and names what to fix rather than making the
+ *  Owner guess: the HR record goes first and is harmless alone; login before
+ *  class, since a class assignment without a working login would be the
+ *  more confusing half to debug; a later step's failure still returns the
+ *  created id so the Owner is never told to start over on a record that
+ *  already exists (#533's resilience property, preserved through the
+ *  merge — this is the one behavior from the old two-form design worth
+ *  keeping, not just an implementation detail dropped in the process). */
 export async function createEmployee(
   formData: FormData,
 ): Promise<{ id?: string; error?: string }> {
@@ -48,6 +68,12 @@ export async function createEmployee(
   if (!name) return { error: 'Name is required' }
   const override = optionalMinutes(formData.get('grace_override'))
   if (Number.isNaN(override)) return { error: 'Grace must be a non-negative integer' }
+
+  const email = String(formData.get('email') ?? '').trim()
+  const password = String(formData.get('password') ?? '')
+  const loginCheck = validateOptionalLogin(email, password)
+  if (loginCheck.error) return { error: loginCheck.error }
+
   const supabase = await createClient()
   const { data, error } = await supabase
     .from('employees')
@@ -55,8 +81,37 @@ export async function createEmployee(
     .select('id')
     .single()
   if (error) return { error: friendlyEmployeeError(error) }
+  const employeeId = data.id as string
+
+  if (email && password) {
+    const { data: profileId, error: loginError } = await supabase.rpc('create_staff_user', {
+      staff_email: email,
+      staff_password: password,
+      staff_full_name: name,
+    })
+    if (loginError) {
+      return { id: employeeId, error: `Employee created, but the login failed: ${loginError.message}` }
+    }
+    const linked = await setEmployeeLogin(employeeId, profileId as string)
+    if (linked.error) {
+      return { id: employeeId, error: `Login created, but linking it failed: ${linked.error}` }
+    }
+  }
+
+  const classId = String(formData.get('class_id') ?? '').trim()
+  if (classId) {
+    const { error: classError } = await supabase
+      .from('classes')
+      .update({ class_teacher_id: employeeId })
+      .eq('id', classId)
+    if (classError) {
+      return { id: employeeId, error: `Employee created, but the class assignment failed: ${classError.message}` }
+    }
+    revalidatePath('/school/classes')
+  }
+
   revalidatePath(PAGE)
-  return { id: data.id }
+  return { id: employeeId }
 }
 
 export async function updateEmployee(formData: FormData): Promise<{ error?: string }> {
@@ -188,67 +243,4 @@ export async function setEmployeeLogin(
   if (!data?.length) return { error: 'Employee not found' }
   revalidatePath(`${PAGE}/${employeeId}`)
   return {}
-}
-
-/** Create a teacher in one step: HR record, login, the link between them, and the
- *  class assignment (#533).
- *
- *  Every piece already existed — createEmployee, create_staff_user,
- *  setEmployeeLogin, and classes.class_teacher_id — across four separate screens.
- *  Nothing here is new capability; what was missing is that all four had to be
- *  remembered in order. A UAT pass created a teacher, stopped after the HR record,
- *  and could not test Class Teacher behaviour at all because the employee had no
- *  login. The failure is silent and student-facing: questions sit unanswered and
- *  the portal looks broken to a child.
- *
- *  No permission grant is set, and that is not an omission. ADR 0021 makes a Class
- *  Teacher's reach follow from the assignment itself — "the attachment alone is
- *  sufficient and no Grant is required" — so a grants step here would be a second
- *  chance to get it wrong.
- *
- *  Not transactional, because the pieces span auth and public schemas. Ordered so
- *  a failure leaves the least-bad state: the HR record is created first and is
- *  harmless alone, and the class assignment is last so a half-finished teacher is
- *  never attached to children. */
-export async function createTeacher(
-  formData: FormData,
-): Promise<{ employeeId?: string; error?: string }> {
-  const email = String(formData.get('email') ?? '').trim()
-  const password = String(formData.get('password') ?? '')
-  const classId = String(formData.get('class_id') ?? '').trim()
-
-  if (!email) return { error: 'Email is required' }
-  if (password.length < 8) return { error: 'Password must be at least 8 characters' }
-
-  const created = await createEmployee(formData)
-  if (created.error || !created.id) return { error: created.error ?? 'Could not create the employee record' }
-
-  const supabase = await createClient()
-  const { data: profileId, error: loginError } = await supabase.rpc('create_staff_user', {
-    staff_email: email,
-    staff_password: password,
-    staff_full_name: String(formData.get('full_name') ?? '').trim(),
-  })
-  if (loginError) {
-    // Name the half that succeeded. The employee exists and is reachable; telling
-    // the Owner only "failed" would have them create a second one.
-    return { employeeId: created.id, error: `Staff record created, but the login failed: ${loginError.message}` }
-  }
-
-  const linked = await setEmployeeLogin(created.id, profileId as string)
-  if (linked.error) return { employeeId: created.id, error: `Login created, but linking it failed: ${linked.error}` }
-
-  if (classId) {
-    const { error: classError } = await supabase
-      .from('classes')
-      .update({ class_teacher_id: created.id })
-      .eq('id', classId)
-    if (classError) {
-      return { employeeId: created.id, error: `Teacher created, but the class assignment failed: ${classError.message}` }
-    }
-  }
-
-  revalidatePath(PAGE)
-  revalidatePath('/school/classes')
-  return { employeeId: created.id }
 }

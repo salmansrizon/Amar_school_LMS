@@ -57,3 +57,19 @@ export function friendlyEmployeeError(error: { code: string; message: string }):
     'That RFID card number is already used by someone else at this school',
   )
 }
+
+/** Validates the optional Login section on the Add Employee form (issue
+ *  #566, folding in what used to be the separate "Add a teacher" flow,
+ *  #533). Email and password are both-or-neither: one without the other is
+ *  a malformed submission — a forgotten password field, or an email typo'd
+ *  into the wrong box — not "no login wanted", so it's rejected rather than
+ *  silently creating the employee with half a login request dropped.
+ *  Returns `{}` (nothing to stop the submit for) when both are blank, both
+ *  are present and valid, or the caller isn't asking for a login. */
+export function validateOptionalLogin(email: string, password: string): { error?: string } {
+  if (Boolean(email) !== Boolean(password)) {
+    return { error: 'Provide both an email and a password to create a login, or leave both blank' }
+  }
+  if (email && password.length < 8) return { error: 'Password must be at least 8 characters' }
+  return {}
+}

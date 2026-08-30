@@ -1824,22 +1824,24 @@ const dict = {
   'students.guardianInfo': { bn: 'অভিভাবক তথ্য', en: 'Guardian Info' },
   'students.guardianName': { bn: 'অভিভাবকের নাম', en: 'Guardian Name' },
   // #533: what a teacher will be able to reach, shown before the Owner confirms.
-  'teacher.createTitle': { bn: 'নতুন শিক্ষক যুক্ত করুন', en: 'Add a teacher' },
-  'teacher.stepIdentity': { bn: '১. পরিচয়', en: '1. Identity' },
-  'teacher.stepLogin': { bn: '২. লগইন', en: '2. Login' },
+  // Login + Class sections on the Add Employee form (issue #566) — both
+  // optional, same submit, folding in what used to be the separate "Add a
+  // teacher" flow (#533, now deleted). Unnumbered card titles: these sit
+  // alongside ProfileFields' own Identity/Bank/Category cards, not in a
+  // standalone 3-step wizard anymore.
+  'teacher.stepLogin': { bn: 'লগইন', en: 'Login' },
   'teacher.stepLoginHelp': {
-    bn: 'লগইন ছাড়া শিক্ষক পোর্টালে ঢুকতে পারবেন না এবং শিক্ষার্থীদের প্রশ্নের উত্তর দিতে পারবেন না।',
-    en: 'Without a login the teacher cannot open the portal or answer a student’s question.',
+    bn: 'ঐচ্ছিক — লগইন ছাড়া কর্মচারী পোর্টালে ঢুকতে বা শিক্ষার্থীদের প্রশ্নের উত্তর দিতে পারবেন না। এড়িয়ে যেতে দুটো ফাঁকা রাখুন।',
+    en: 'Optional — without a login this person cannot open the portal or answer a student’s question. Leave both fields blank to skip.',
   },
-  'teacher.stepClass': { bn: '৩. শ্রেণি', en: '3. Class' },
+  'teacher.stepClass': { bn: 'শ্রেণি', en: 'Class' },
   'teacher.stepClassHelp': {
     bn: 'শ্রেণি শিক্ষক হিসেবে যুক্ত করলে আলাদা কোনো অনুমতি দিতে হয় না — দায়িত্বই অ্যাক্সেস নির্ধারণ করে।',
     en: 'Assigning a class teacher needs no separate permission — the assignment itself decides the access.',
   },
   'teacher.noClassYet': { bn: 'এখন কোনো শ্রেণি নয়', en: 'No class for now' },
   'teacher.classAlreadyHasTeacher': { bn: 'ইতিমধ্যে শিক্ষক আছেন', en: 'already has a teacher' },
-  'teacher.previewTitle': { bn: 'এই শিক্ষক যা দেখতে পাবেন', en: 'What this teacher will see' },
-  'teacher.createSubmit': { bn: 'শিক্ষক তৈরি করুন', en: 'Create teacher' },
+  'teacher.previewTitle': { bn: 'এই কর্মচারী যা দেখতে পাবেন', en: 'What this employee will see' },
   'teacher.reachClassTeacher': { bn: 'শ্রেণি শিক্ষক', en: 'Class teacher of' },
   'teacher.reachClassTeacherDetail': {
     bn: 'এই শ্রেণির শিক্ষার্থী, উপস্থিতি, প্রশ্ন, ছুটি ও নোটিশ দেখতে ও পরিচালনা করতে পারবেন।',
