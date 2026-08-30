@@ -1,5 +1,12 @@
 import { describe, it, expect } from 'vitest'
-import { matchesEmployeeQuery, filterEmployees, employeeOfficeTimeNames, friendlyEmployeeError, validateOptionalLogin } from '@/lib/employees'
+import {
+  matchesEmployeeQuery,
+  filterEmployees,
+  employeeOfficeTimeNames,
+  friendlyEmployeeError,
+  validateOptionalLogin,
+  validateEmployeeCategory,
+} from '@/lib/employees'
 
 describe('matchesEmployeeQuery', () => {
   it('matches case-insensitively on name', () => {
@@ -89,5 +96,35 @@ describe('validateOptionalLogin', () => {
 
   it('rejects a password shorter than 8 characters', () => {
     expect(validateOptionalLogin('teacher@school.test', 'short').error).toBe('Password must be at least 8 characters')
+  })
+})
+
+describe('validateEmployeeCategory', () => {
+  it('allows blank — category stays optional', () => {
+    expect(validateEmployeeCategory(null)).toEqual({})
+    expect(validateEmployeeCategory('')).toEqual({})
+  })
+
+  it('allows each of the four fixed values', () => {
+    expect(validateEmployeeCategory('Teacher')).toEqual({})
+    expect(validateEmployeeCategory('Office Staff')).toEqual({})
+    expect(validateEmployeeCategory('Management')).toEqual({})
+    expect(validateEmployeeCategory('Security')).toEqual({})
+  })
+
+  it('rejects anything outside the fixed list', () => {
+    expect(validateEmployeeCategory('Guard').error).toBe(
+      'Category must be Teacher, Office Staff, Management, or Security',
+    )
+  })
+
+  it('allows a legacy value that matches the employee’s own pre-existing category', () => {
+    expect(validateEmployeeCategory('Head Teacher', 'Head Teacher')).toEqual({})
+  })
+
+  it('still rejects a legacy value changed to something else non-standard', () => {
+    expect(validateEmployeeCategory('Guard', 'Head Teacher').error).toBe(
+      'Category must be Teacher, Office Staff, Management, or Security',
+    )
   })
 })

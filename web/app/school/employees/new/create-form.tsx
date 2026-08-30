@@ -3,10 +3,18 @@
 import { useRef, useState, useTransition } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { t, type Lang } from '@/lib/i18n'
+import { t, type Lang, type MessageKey } from '@/lib/i18n'
 import { createEmployee } from '../actions'
 import { dateInputClass } from '@/components/ui/field'
 import { reachSentences } from '@/lib/school/teacher-reach'
+import { EMPLOYEE_CATEGORIES, isKnownEmployeeCategory } from '@/lib/employees'
+
+const categoryLabelKey: Record<(typeof EMPLOYEE_CATEGORIES)[number], MessageKey> = {
+  Teacher: 'employees.categoryTeacher',
+  'Office Staff': 'employees.categoryOfficeStaff',
+  Management: 'employees.categoryManagement',
+  Security: 'employees.categorySecurity',
+}
 
 export const fieldClass =
   'w-full rounded-md border border-line bg-paper px-3 py-2 text-sm focus:border-brand-500 focus:outline-none'
@@ -89,17 +97,24 @@ export function ProfileFields({
       <Card title={t('employees.categoryQualification', lang)}>
         <div className="grid gap-3 sm:grid-cols-2">
           <Field label={t('employees.category', lang)}>
-            <input
-              name="category"
-              defaultValue={d('category')}
-              className={fieldClass}
-              list="employee-categories"
-            />
-            <datalist id="employee-categories">
-              <option value={t('employees.categoryTeacher', lang)} />
-              <option value={t('employees.categoryOfficeStaff', lang)} />
-              <option value={t('employees.categorySecurity', lang)} />
-            </datalist>
+            <select name="category" defaultValue={d('category')} className={fieldClass}>
+              <option value="">{t('employees.categoryUnset', lang)}</option>
+              {EMPLOYEE_CATEGORIES.map((c) => (
+                <option key={c} value={c}>
+                  {t(categoryLabelKey[c], lang)}
+                </option>
+              ))}
+              {/* A category that predates the fixed list (issue #567) — the
+                  seed data itself has "Head Teacher" — stays selectable and
+                  selected, so opening the edit form doesn't blank or change
+                  it just because it isn't one of the four. Never appears on
+                  the create form: `defaults` is empty there. */}
+              {d('category') && !isKnownEmployeeCategory(d('category')) && (
+                <option value={d('category')}>
+                  {d('category')} — {t('employees.categoryLegacy', lang)}
+                </option>
+              )}
+            </select>
           </Field>
           <Field label={t('employees.qualification', lang)}>
             <input name="qualification" defaultValue={d('qualification')} className={fieldClass} />

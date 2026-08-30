@@ -862,7 +862,13 @@ const dict = {
   'employees.categoryQualification': { bn: 'বিভাগ ও যোগ্যতা', en: 'Category & Qualification' },
   'employees.categoryTeacher': { bn: 'শিক্ষক', en: 'Teacher' },
   'employees.categoryOfficeStaff': { bn: 'অফিস স্টাফ', en: 'Office Staff' },
+  'employees.categoryManagement': { bn: 'ব্যবস্থাপনা', en: 'Management' },
   'employees.categorySecurity': { bn: 'নিরাপত্তা কর্মী', en: 'Security' },
+  'employees.categoryUnset': { bn: '— নির্বাচন করুন —', en: '— Select —' },
+  // Suffix appended to a category the fixed list doesn't include (issue
+  // #567) — a value that predates the lock-down, kept selectable so editing
+  // the record doesn't silently change or blank it.
+  'employees.categoryLegacy': { bn: 'বিদ্যমান মান', en: 'existing value' },
   'employees.qualification': { bn: 'যোগ্যতা', en: 'Qualification' },
   'employees.department': { bn: 'ডিপার্টমেন্ট', en: 'Department' },
   'employees.subjectOfficeTime': { bn: 'বিষয় ও অফিস সময়', en: 'Subject & Office Time' },

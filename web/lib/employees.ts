@@ -73,3 +73,37 @@ export function validateOptionalLogin(email: string, password: string): { error?
   if (email && password.length < 8) return { error: 'Password must be at least 8 characters' }
   return {}
 }
+
+/** The fixed set an Employee's `category` is locked to (issue #567) — the
+ *  canonical English strings, matched against whatever's actually stored
+ *  (seed data, and every cross-referencing table: category_grace_minutes,
+ *  SMS recipient filters, satisfaction-rating breakdowns) regardless of the
+ *  UI's current language. Both entry forms render a `<select>` restricted
+ *  to these; this list is what the server checks a submission against so a
+ *  direct POST can't smuggle an arbitrary string past the dropdown. */
+export const EMPLOYEE_CATEGORIES = ['Teacher', 'Office Staff', 'Management', 'Security'] as const
+
+/** Whether `category` is one of the fixed four — shared by the validator
+ *  below and the edit form's "is this a legacy value?" check, so the
+ *  membership test and its `as readonly string[]` cast exist in one place. */
+export function isKnownEmployeeCategory(category: string): boolean {
+  return (EMPLOYEE_CATEGORIES as readonly string[]).includes(category)
+}
+
+/** Validates the `category` field against the fixed list (issue #567).
+ *  Blank/null is always fine — the field stays optional, unchanged from
+ *  before this ticket. A value outside the fixed four is only accepted when
+ *  it equals `existing` (the employee's own value already in the database):
+ *  real rows can predate this ticket (the seed data itself has a "Head
+ *  Teacher") or have been typed in before the field was locked down, and
+ *  re-saving an edit without touching Category must not fail just because
+ *  the fixed list doesn't happen to include whatever's already there. */
+export function validateEmployeeCategory(
+  category: string | null,
+  existing: string | null = null,
+): { error?: string } {
+  if (!category) return {}
+  if (isKnownEmployeeCategory(category)) return {}
+  if (category === existing) return {}
+  return { error: 'Category must be Teacher, Office Staff, Management, or Security' }
+}

@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
-import { friendlyEmployeeError, validateOptionalLogin } from '@/lib/employees'
+import { friendlyEmployeeError, validateOptionalLogin, validateEmployeeCategory } from '@/lib/employees'
 
 // RLS scopes all writes to the caller's School.
 
@@ -74,10 +74,16 @@ export async function createEmployee(
   const loginCheck = validateOptionalLogin(email, password)
   if (loginCheck.error) return { error: loginCheck.error }
 
+  const fields = profileFields(formData)
+  // No `existing` value on create — there's no prior row to grandfather in,
+  // so a category has to be one of the fixed four or blank (issue #567).
+  const categoryCheck = validateEmployeeCategory(fields.category)
+  if (categoryCheck.error) return { error: categoryCheck.error }
+
   const supabase = await createClient()
   const { data, error } = await supabase
     .from('employees')
-    .insert({ full_name: name, grace_override_minutes: override, ...profileFields(formData) })
+    .insert({ full_name: name, grace_override_minutes: override, ...fields })
     .select('id')
     .single()
   if (error) return { error: friendlyEmployeeError(error) }
@@ -122,9 +128,19 @@ export async function updateEmployee(formData: FormData): Promise<{ error?: stri
   const override = optionalMinutes(formData.get('grace_override'))
   if (Number.isNaN(override)) return { error: 'Grace must be a non-negative integer' }
   const supabase = await createClient()
+
+  const fields = profileFields(formData)
+  // A legacy category (predates issue #567's fixed list, or was typed in
+  // before the field was locked down — the seed data itself has "Head
+  // Teacher") stays valid as long as the submission didn't change it: fetched
+  // here so re-saving an edit without touching Category never fails.
+  const { data: current } = await supabase.from('employees').select('category').eq('id', id).single()
+  const categoryCheck = validateEmployeeCategory(fields.category, current?.category ?? null)
+  if (categoryCheck.error) return { error: categoryCheck.error }
+
   const { data, error } = await supabase
     .from('employees')
-    .update({ full_name: name, grace_override_minutes: override, ...profileFields(formData) })
+    .update({ full_name: name, grace_override_minutes: override, ...fields })
     .eq('id', id)
     .select('id')
   if (error) return { error: friendlyEmployeeError(error) }
