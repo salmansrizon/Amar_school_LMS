@@ -864,6 +864,23 @@ const dict = {
   'employees.categoryOfficeStaff': { bn: 'অফিস স্টাফ', en: 'Office Staff' },
   'employees.categoryManagement': { bn: 'ব্যবস্থাপনা', en: 'Management' },
   'employees.categorySecurity': { bn: 'নিরাপত্তা কর্মী', en: 'Security' },
+  // Sixteen roles added on top of the original four (issue #567 expansion).
+  'employees.categoryHeadTeacher': { bn: 'প্রধান শিক্ষক', en: 'Head Teacher' },
+  'employees.categoryPrincipal': { bn: 'অধ্যক্ষ', en: 'Principal' },
+  'employees.categoryVicePrincipal': { bn: 'উপাধ্যক্ষ', en: 'Vice Principal' },
+  'employees.categoryRegistrar': { bn: 'রেজিস্ট্রার', en: 'Registrar' },
+  'employees.categoryOfficeClerk': { bn: 'অফিস করণিক', en: 'Office Clerk' },
+  'employees.categoryAccountant': { bn: 'হিসাবরক্ষক', en: 'Accountant' },
+  'employees.categoryProfessor': { bn: 'অধ্যাপক', en: 'Professor' },
+  'employees.categoryLecturer': { bn: 'প্রভাষক', en: 'Lecturer' },
+  'employees.categoryLibrarian': { bn: 'গ্রন্থাগারিক', en: 'Librarian' },
+  'employees.categoryNurse': { bn: 'নার্স', en: 'Nurse' },
+  'employees.categoryMedicalStaff': { bn: 'চিকিৎসা কর্মী', en: 'Medical Staff' },
+  'employees.categoryItTechnician': { bn: 'আইটি টেকনিশিয়ান', en: 'IT Technician' },
+  'employees.categoryJanitor': { bn: 'হাউজ কিপার', en: 'Janitor' },
+  'employees.categoryCleaner': { bn: 'পরিষ্কারক', en: 'Cleaner' },
+  'employees.categorySecurityGuard': { bn: 'নিরাপত্তা প্রহরী', en: 'Security Guard' },
+  'employees.categoryTransportStaff': { bn: 'পরিবহন কর্মী', en: 'Transport Staff' },
   'employees.categoryUnset': { bn: '— নির্বাচন করুন —', en: '— Select —' },
   // Suffix appended to a category the fixed list doesn't include (issue
   // #567) — a value that predates the lock-down, kept selectable so editing

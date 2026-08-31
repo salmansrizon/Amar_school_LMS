@@ -14,6 +14,22 @@ const categoryLabelKey: Record<(typeof EMPLOYEE_CATEGORIES)[number], MessageKey>
   'Office Staff': 'employees.categoryOfficeStaff',
   Management: 'employees.categoryManagement',
   Security: 'employees.categorySecurity',
+  'Head Teacher': 'employees.categoryHeadTeacher',
+  Principal: 'employees.categoryPrincipal',
+  'Vice Principal': 'employees.categoryVicePrincipal',
+  Registrar: 'employees.categoryRegistrar',
+  'Office Clerk': 'employees.categoryOfficeClerk',
+  Accountant: 'employees.categoryAccountant',
+  Professor: 'employees.categoryProfessor',
+  Lecturer: 'employees.categoryLecturer',
+  Librarian: 'employees.categoryLibrarian',
+  Nurse: 'employees.categoryNurse',
+  'Medical Staff': 'employees.categoryMedicalStaff',
+  'IT Technician': 'employees.categoryItTechnician',
+  Janitor: 'employees.categoryJanitor',
+  Cleaner: 'employees.categoryCleaner',
+  'Security Guard': 'employees.categorySecurityGuard',
+  'Transport Staff': 'employees.categoryTransportStaff',
 }
 
 export const fieldClass =

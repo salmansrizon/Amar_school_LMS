@@ -6,6 +6,7 @@ import {
   friendlyEmployeeError,
   validateOptionalLogin,
   validateEmployeeCategory,
+  EMPLOYEE_CATEGORIES,
 } from '@/lib/employees'
 
 describe('matchesEmployeeQuery', () => {
@@ -105,26 +106,29 @@ describe('validateEmployeeCategory', () => {
     expect(validateEmployeeCategory('')).toEqual({})
   })
 
-  it('allows each of the four fixed values', () => {
-    expect(validateEmployeeCategory('Teacher')).toEqual({})
-    expect(validateEmployeeCategory('Office Staff')).toEqual({})
-    expect(validateEmployeeCategory('Management')).toEqual({})
-    expect(validateEmployeeCategory('Security')).toEqual({})
+  it('allows each of the twenty fixed values (issue #567 expansion)', () => {
+    for (const category of EMPLOYEE_CATEGORIES) {
+      expect(validateEmployeeCategory(category)).toEqual({})
+    }
+    expect(EMPLOYEE_CATEGORIES).toHaveLength(20)
   })
 
   it('rejects anything outside the fixed list', () => {
     expect(validateEmployeeCategory('Guard').error).toBe(
-      'Category must be Teacher, Office Staff, Management, or Security',
+      `Category must be one of: ${EMPLOYEE_CATEGORIES.join(', ')}`,
     )
   })
 
   it('allows a legacy value that matches the employee’s own pre-existing category', () => {
-    expect(validateEmployeeCategory('Head Teacher', 'Head Teacher')).toEqual({})
+    // "admin" is a real category value on this staging DB, from before the
+    // field was locked down — genuinely outside the fixed list, unlike
+    // "Head Teacher" which the #567 expansion folded into the list proper.
+    expect(validateEmployeeCategory('admin', 'admin')).toEqual({})
   })
 
   it('still rejects a legacy value changed to something else non-standard', () => {
-    expect(validateEmployeeCategory('Guard', 'Head Teacher').error).toBe(
-      'Category must be Teacher, Office Staff, Management, or Security',
+    expect(validateEmployeeCategory('Guard', 'admin').error).toBe(
+      `Category must be one of: ${EMPLOYEE_CATEGORIES.join(', ')}`,
     )
   })
 })

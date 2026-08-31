@@ -81,9 +81,30 @@ export function validateOptionalLogin(email: string, password: string): { error?
  *  UI's current language. Both entry forms render a `<select>` restricted
  *  to these; this list is what the server checks a submission against so a
  *  direct POST can't smuggle an arbitrary string past the dropdown. */
-export const EMPLOYEE_CATEGORIES = ['Teacher', 'Office Staff', 'Management', 'Security'] as const
+export const EMPLOYEE_CATEGORIES = [
+  'Teacher',
+  'Office Staff',
+  'Management',
+  'Security',
+  'Head Teacher',
+  'Principal',
+  'Vice Principal',
+  'Registrar',
+  'Office Clerk',
+  'Accountant',
+  'Professor',
+  'Lecturer',
+  'Librarian',
+  'Nurse',
+  'Medical Staff',
+  'IT Technician',
+  'Janitor',
+  'Cleaner',
+  'Security Guard',
+  'Transport Staff',
+] as const
 
-/** Whether `category` is one of the fixed four — shared by the validator
+/** Whether `category` is one of the fixed list — shared by the validator
  *  below and the edit form's "is this a legacy value?" check, so the
  *  membership test and its `as readonly string[]` cast exist in one place. */
 export function isKnownEmployeeCategory(category: string): boolean {
@@ -92,12 +113,13 @@ export function isKnownEmployeeCategory(category: string): boolean {
 
 /** Validates the `category` field against the fixed list (issue #567).
  *  Blank/null is always fine — the field stays optional, unchanged from
- *  before this ticket. A value outside the fixed four is only accepted when
+ *  before this ticket. A value outside the fixed list is only accepted when
  *  it equals `existing` (the employee's own value already in the database):
- *  real rows can predate this ticket (the seed data itself has a "Head
- *  Teacher") or have been typed in before the field was locked down, and
- *  re-saving an edit without touching Category must not fail just because
- *  the fixed list doesn't happen to include whatever's already there. */
+ *  real rows can predate this ticket or its later expansion (this staging
+ *  DB has employees with `category` = "admin"/"staff"/"teacher", all
+ *  lowercase, from before the field was locked down), and re-saving an
+ *  edit without touching Category must not fail just because the fixed
+ *  list doesn't happen to include whatever's already there. */
 export function validateEmployeeCategory(
   category: string | null,
   existing: string | null = null,
@@ -105,5 +127,5 @@ export function validateEmployeeCategory(
   if (!category) return {}
   if (isKnownEmployeeCategory(category)) return {}
   if (category === existing) return {}
-  return { error: 'Category must be Teacher, Office Staff, Management, or Security' }
+  return { error: `Category must be one of: ${EMPLOYEE_CATEGORIES.join(', ')}` }
 }
