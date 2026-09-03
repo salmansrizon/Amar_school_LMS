@@ -2,6 +2,12 @@
 node_modules/
 # Pulled env dumps — contain live tokens (VERCEL_OIDC_TOKEN, RECONCILE_SECRET).
 env.download
+# Now also carries SUPABASE_DB_URL (live DB password) — never commit this.
+env.local
+
+# Scratch Node scaffold for running SQL directly against Supabase
+# (Wave 1, #584) — node_modules + a runner script, not project code.
+.db-runner/
 
 # Playwright MCP scratch: console logs, page snapshots, screenshots.
 .playwright-mcp/
