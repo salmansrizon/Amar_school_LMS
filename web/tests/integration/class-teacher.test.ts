@@ -2,8 +2,9 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { signedIn, PASSWORD } from '../helpers/auth'
 
-// Seam: the Class Teacher link (#443, decision on #435) — classes.class_teacher_id
-// → employees.id with a same-school composite FK, and employees.profile_id as
+// Seam: the Class Teacher link (#443, decision on #435) —
+// class_offerings.class_teacher_id (renamed from classes, #571/#584) →
+// employees.id with a same-school composite FK, and employees.profile_id as
 // the bridge from the HR record to an actual login.
 
 describe('Class Teacher (#443)', () => {
@@ -15,9 +16,9 @@ describe('Class Teacher (#443)', () => {
   let staffProfileId: string
 
   async function cleanup() {
-    await ownerA.from('classes').delete().like('name', 'CT1 %')
+    await ownerA.from('class_offerings').delete().like('name', 'CT1 %')
     await ownerA.from('employees').delete().like('full_name', 'CT1 %')
-    await ownerB.from('classes').delete().like('name', 'CT1 %')
+    await ownerB.from('class_offerings').delete().like('name', 'CT1 %')
     await ownerB.from('employees').delete().like('full_name', 'CT1 %')
   }
 
@@ -37,7 +38,7 @@ describe('Class Teacher (#443)', () => {
     employeeId = employee.id
 
     const { data: klass, error: classError } = await ownerA
-      .from('classes')
+      .from('class_offerings')
       .insert({ name: 'CT1 Class', section: 'A', class_teacher_id: employeeId })
       .select('id')
       .single()
@@ -49,7 +50,7 @@ describe('Class Teacher (#443)', () => {
 
   it('a class carries its class teacher', async () => {
     const { data } = await ownerA
-      .from('classes')
+      .from('class_offerings')
       .select('class_teacher_id')
       .eq('id', classId)
       .single()
@@ -68,7 +69,7 @@ describe('Class Teacher (#443)', () => {
     // is what stops this — an app-level check alone could be bypassed by posting
     // the foreign UUID straight at PostgREST.
     const { error } = await ownerA
-      .from('classes')
+      .from('class_offerings')
       .update({ class_teacher_id: theirs!.id })
       .eq('id', classId)
     expect(error).not.toBeNull()
@@ -98,7 +99,7 @@ describe('Class Teacher (#443)', () => {
     expect(myEmployeeId).toBe(employeeId)
 
     const { data: mine } = await staff
-      .from('classes')
+      .from('class_offerings')
       .select('name, section')
       .eq('class_teacher_id', myEmployeeId)
     expect(mine).toEqual([{ name: 'CT1 Class', section: 'A' }])
@@ -111,7 +112,7 @@ describe('Class Teacher (#443)', () => {
     await ownerA.from('employees').delete().eq('id', employeeId)
 
     const { data } = await ownerA
-      .from('classes')
+      .from('class_offerings')
       .select('id, class_teacher_id')
       .eq('id', classId)
       .maybeSingle()

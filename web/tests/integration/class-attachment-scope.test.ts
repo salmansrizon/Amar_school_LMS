@@ -24,7 +24,7 @@ describe('Class attachment narrows a Grant (#525, migration 0160)', () => {
 
   async function cleanup() {
     await owner.from('students').delete().like('full_name', `${TAG} %`)
-    await owner.from('classes').delete().like('name', `${TAG}%`)
+    await owner.from('class_offerings').delete().like('name', `${TAG}%`)
   }
 
   beforeAll(async () => {
@@ -43,12 +43,21 @@ describe('Class attachment narrows a Grant (#525, migration 0160)', () => {
       .single()
 
     // A is hers; B is not. Same school, so only the attachment separates them.
-    const { error: classErr } = await owner.from('classes').insert([
-      { name: `${TAG}-A`, section: 'A', class_teacher_id: employee!.id },
-      { name: `${TAG}-B`, section: 'A' },
-    ])
+    const { data: offerings, error: classErr } = await owner
+      .from('class_offerings')
+      .insert([
+        { name: `${TAG}-A`, section: 'A', class_teacher_id: employee!.id },
+        { name: `${TAG}-B`, section: 'A' },
+      ])
+      .select('id, name')
     if (classErr) throw new Error(classErr.message)
+    const offeringA = offerings!.find((o) => o.name === `${TAG}-A`)!.id
+    const offeringB = offerings!.find((o) => o.name === `${TAG}-B`)!.id
 
+    // class_name/section still ride along on the students row itself (they
+    // back student_in_class(), unrelated to capacity) — but which class a
+    // Class/Subject Teacher may act on is now decided by current_enrollment_id,
+    // not this text, so each student is also admitted into its Offering below.
     const { data: students, error: studentErr } = await owner
       .from('students')
       .insert([
@@ -59,6 +68,21 @@ describe('Class attachment narrows a Grant (#525, migration 0160)', () => {
     if (studentErr) throw new Error(studentErr.message)
     studentInA = students!.find((s) => s.class_name === `${TAG}-A`)!.id
     studentInB = students!.find((s) => s.class_name === `${TAG}-B`)!.id
+
+    const { error: admitAErr } = await owner.rpc('admit_student_enrollment', {
+      p_student_id: studentInA,
+      p_class_offering_id: offeringA,
+      p_roll_number: null,
+      p_note: null,
+    })
+    if (admitAErr) throw new Error(admitAErr.message)
+    const { error: admitBErr } = await owner.rpc('admit_student_enrollment', {
+      p_student_id: studentInB,
+      p_class_offering_id: offeringB,
+      p_roll_number: null,
+      p_note: null,
+    })
+    if (admitBErr) throw new Error(admitBErr.message)
   })
 
   afterAll(cleanup)
@@ -112,16 +136,19 @@ describe('Class attachment narrows a Grant (#525, migration 0160)', () => {
   // every class picker needs it — but a teaching assignment is not authority to
   // delete the school's classes.
   it('a Class Teacher reads the class catalogue but cannot write it', async () => {
-    const { data: readable } = await classTeacher.from('classes').select('name').like('name', `${TAG}%`)
+    const { data: readable } = await classTeacher.from('class_offerings').select('name').like('name', `${TAG}%`)
     expect((readable ?? []).length).toBe(2)
 
-    await classTeacher.from('classes').delete().eq('name', `${TAG}-B`)
-    const { data: still } = await owner.from('classes').select('name').eq('name', `${TAG}-B`)
+    await classTeacher.from('class_offerings').delete().eq('name', `${TAG}-B`)
+    const { data: still } = await owner.from('class_offerings').select('name').eq('name', `${TAG}-B`)
     expect((still ?? []).length).toBe(1)
   })
 
   it('office staff holding the classes grant can still write the catalogue', async () => {
-    const { error } = await officeStaff.from('classes').update({ group_department: 'Science' }).eq('name', `${TAG}-B`)
+    const { error } = await officeStaff
+      .from('class_offerings')
+      .update({ group_department: 'Science' })
+      .eq('name', `${TAG}-B`)
     expect(error).toBeNull()
   })
 

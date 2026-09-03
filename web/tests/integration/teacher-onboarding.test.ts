@@ -28,9 +28,9 @@ describe('A teacher created in one step can actually teach (#533)', () => {
   let profileId: string
 
   async function cleanup() {
-    await owner.from('classes').update({ class_teacher_id: null }).eq('name', `${TAG} Class`)
+    await owner.from('class_offerings').update({ class_teacher_id: null }).eq('name', `${TAG} Class`)
     await owner.from('students').delete().like('full_name', `${TAG} %`)
-    await owner.from('classes').delete().like('name', `${TAG}%`)
+    await owner.from('class_offerings').delete().like('name', `${TAG}%`)
     await owner.from('employees').delete().like('full_name', `${TAG} %`)
   }
 
@@ -69,16 +69,44 @@ describe('A teacher created in one step can actually teach (#533)', () => {
 
     // Step 4 — the class, plus a child in it and one in another class.
     const { data: klass } = await owner
-      .from('classes')
+      .from('class_offerings')
       .insert({ name: `${TAG} Class`, section: 'A', class_teacher_id: employeeId })
       .select('id')
       .single()
     classId = klass!.id
-    await owner.from('classes').insert({ name: `${TAG} Other`, section: 'A' })
-    await owner.from('students').insert([
-      { full_name: `${TAG} Mine`, class_name: `${TAG} Class`, section: 'A' },
-      { full_name: `${TAG} NotMine`, class_name: `${TAG} Other`, section: 'A' },
-    ])
+    const { data: otherKlass } = await owner
+      .from('class_offerings')
+      .insert({ name: `${TAG} Other`, section: 'A' })
+      .select('id')
+      .single()
+
+    const { data: students } = await owner
+      .from('students')
+      .insert([
+        { full_name: `${TAG} Mine`, class_name: `${TAG} Class`, section: 'A' },
+        { full_name: `${TAG} NotMine`, class_name: `${TAG} Other`, section: 'A' },
+      ])
+      .select('id, class_name')
+    const mineId = students!.find((s) => s.class_name === `${TAG} Class`)!.id
+    const notMineId = students!.find((s) => s.class_name === `${TAG} Other`)!.id
+
+    // Which class a Class Teacher may see now runs through current_enrollment_id
+    // (#569/#585), not class_name/section text — admit both children into their
+    // Offerings so the visibility assertions below exercise the real path.
+    const { error: admitMineErr } = await owner.rpc('admit_student_enrollment', {
+      p_student_id: mineId,
+      p_class_offering_id: classId,
+      p_roll_number: null,
+      p_note: null,
+    })
+    if (admitMineErr) throw new Error(admitMineErr.message)
+    const { error: admitNotMineErr } = await owner.rpc('admit_student_enrollment', {
+      p_student_id: notMineId,
+      p_class_offering_id: otherKlass!.id,
+      p_roll_number: null,
+      p_note: null,
+    })
+    if (admitNotMineErr) throw new Error(admitNotMineErr.message)
 
     teacher = await signedIn(EMAIL, PASSWORD)
   })
@@ -96,7 +124,7 @@ describe('A teacher created in one step can actually teach (#533)', () => {
   })
 
   it('the class knows its teacher', async () => {
-    const { data } = await owner.from('classes').select('class_teacher_id').eq('id', classId).single()
+    const { data } = await owner.from('class_offerings').select('class_teacher_id').eq('id', classId).single()
     expect(data!.class_teacher_id).toBe(employeeId)
   })
 
