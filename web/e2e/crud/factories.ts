@@ -62,14 +62,14 @@ export async function createClass(
 ): Promise<Made & { name: string; section: string }> {
   const name = opts.name ?? `E2E Class ${stamp()}`
   const section = opts.section ?? 'A'
-  const { data, error } = await owner.from('classes').insert({ name, section }).select('id').single()
+  const { data, error } = await owner.from('class_offerings').insert({ name, section }).select('id').single()
   if (error) throw new Error(`createClass failed: ${error.message}`)
   const id = data!.id as string
   return {
     id,
     name,
     section,
-    cleanup: register(async () => void (await owner.from('classes').delete().eq('id', id))),
+    cleanup: register(async () => void (await owner.from('class_offerings').delete().eq('id', id))),
   }
 }
 

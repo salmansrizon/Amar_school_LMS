@@ -27,7 +27,7 @@ describe('Student exam results (#449)', () => {
     studentId = self.id
     schoolId = self.school_id
 
-    classId = (await owner.from('classes').select('id').eq('name', 'Seed Class').eq('section', 'A').single())
+    classId = (await owner.from('class_offerings').select('id').eq('name', 'Seed Class').eq('section', 'A').single())
       .data!.id
 
     await owner.from('exams').delete().like('name', `${P}%`)

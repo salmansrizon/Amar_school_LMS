@@ -25,7 +25,7 @@ describe('Exams V — result roster, roll-range/promoted filter, exam-center (is
   async function cleanup(client: SupabaseClient) {
     await client.from('exams').delete().like('name', 'PA Test%')
     await client.from('grading_schemes').delete().like('name', 'PA Test%')
-    await client.from('classes').delete().like('name', 'PA Test%')
+    await client.from('class_offerings').delete().like('name', 'PA Test%')
     await client.from('rooms').delete().like('name', 'PA Test%')
     await client.from('students').delete().like('full_name', 'PA Test%')
   }
@@ -42,7 +42,7 @@ describe('Exams V — result roster, roll-range/promoted filter, exam-center (is
     ).data!.id
 
     classId = (
-      await ownerA.from('classes').insert({ name: 'PA Test Class', section: 'A' }).select('id').single()
+      await ownerA.from('class_offerings').insert({ name: 'PA Test Class', section: 'A' }).select('id').single()
     ).data!.id
     subjectId = (
       await ownerA

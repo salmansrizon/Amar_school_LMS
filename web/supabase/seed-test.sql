@@ -98,10 +98,10 @@ begin
   values (uid_student, 'student', school_a, 'Seed Student A')
   on conflict (id) do nothing;
 
-  insert into public.classes (school_id, name, section)
+  insert into public.class_offerings (school_id, name, section)
   select school_a, 'Seed Class', 'A'
    where not exists (
-     select 1 from public.classes
+     select 1 from public.class_offerings
       where school_id = school_a and name = 'Seed Class' and section = 'A');
 
   insert into public.students (school_id, full_name, class_name, section, student_no,
@@ -132,7 +132,7 @@ begin
   select id into school_a from public.schools where name = 'Test School A';
   if school_a is null then return; end if;
 
-  select id into cls from public.classes
+  select id into cls from public.class_offerings
    where school_id = school_a and name = 'Seed Class' and section = 'A';
 
   insert into auth.users (instance_id, id, aud, role, email, encrypted_password,
@@ -178,7 +178,7 @@ begin
   values (emp_subject, school_a, 'Seed Subject Teacher', 'Teacher')
   on conflict (id) do nothing;
 
-  update public.classes set class_teacher_id = emp_teacher where id = cls;
+  update public.class_offerings set class_teacher_id = emp_teacher where id = cls;
 
   select id into subj from public.subjects where school_id = school_a limit 1;
   if subj is null then
@@ -188,11 +188,11 @@ begin
 
   -- Sunday–Thursday, three periods. The teacher-conflict constraint forbids one
   -- teacher in two rooms at one period, so the two alternate.
-  insert into public.routine_slots (school_id, class_id, day_of_week, period, subject_id, teacher_id)
+  insert into public.routine_slots (school_id, class_offering_id, day_of_week, period, subject_id, teacher_id)
   select school_a, cls, d.day, p.period, subj,
          case when p.period % 2 = 0 then emp_subject else emp_teacher end
     from generate_series(0, 4) as d(day), generate_series(1, 3) as p(period)
-  on conflict (class_id, day_of_week, period) do nothing;
+  on conflict (class_offering_id, day_of_week, period) do nothing;
   -- A routine is invisible to Students until it is PUBLISHED — student_routine
   -- joins class_routines on published_at is not null. Slots alone leave every
   -- student-facing routine screen empty, which is correct product behaviour and
@@ -218,7 +218,7 @@ declare
   cls uuid;
   scheme uuid;
 begin
-  select id into cls from public.classes where school_id = school_a and name = 'Seed Class' limit 1;
+  select id into cls from public.class_offerings where school_id = school_a and name = 'Seed Class' limit 1;
   if cls is null then return; end if;
 
   select id into scheme from public.grading_schemes where school_id = school_a limit 1;

@@ -14,7 +14,7 @@ export default async function CreateNoticePage() {
   const { supabase } = await getSchoolContext()
 
   const [{ data: classes }] = await Promise.all([
-    supabase.from('classes').select('name, section').order('name'),
+    supabase.from('class_offerings').select('name, section').order('name'),
   ])
   const classNames = classNamesFor(classes ?? [])
   const sections = sectionsForClass(classes ?? [], '')

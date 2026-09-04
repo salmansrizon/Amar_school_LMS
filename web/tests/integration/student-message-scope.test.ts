@@ -82,7 +82,7 @@ describe('Question and correction scope (#508, ADR 0018)', () => {
     // routine_slots — (class, day, period) and (school, day, period, teacher) —
     // are satisfied by it.
     const cls = await owner
-      .from('classes')
+      .from('class_offerings')
       .select('id')
       .eq('name', 'Seed Class')
       .eq('section', 'A')
@@ -97,13 +97,13 @@ describe('Question and correction scope (#508, ADR 0018)', () => {
     const slot = await owner.from('routine_slots').upsert(
       {
         school_id: schoolId,
-        class_id: cls.data.id,
+        class_offering_id: cls.data.id,
         day_of_week: 6,
         period: 12,
         subject_id: taughtSubjectId,
         teacher_id: SEED_SUBJECT_EMPLOYEE,
       },
-      { onConflict: 'class_id,day_of_week,period' },
+      { onConflict: 'class_offering_id,day_of_week,period' },
     )
     if (slot.error) throw new Error(slot.error.message)
 

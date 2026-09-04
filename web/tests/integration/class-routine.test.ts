@@ -20,7 +20,7 @@ describe('Class & Curriculum II (issue #45)', () => {
 
   async function cleanup(client: SupabaseClient) {
     // Class delete cascades to routine_slots / class_routines / class_syllabi.
-    await client.from('classes').delete().like('name', 'RT Test%')
+    await client.from('class_offerings').delete().like('name', 'RT Test%')
     await client.from('employees').delete().like('full_name', 'RT Test%')
     await client.from('rooms').delete().like('name', 'RT Test%')
   }
@@ -37,7 +37,7 @@ describe('Class & Curriculum II (issue #45)', () => {
     ).data!.id
 
     const { data: cls, error } = await ownerA
-      .from('classes')
+      .from('class_offerings')
       .insert([
         { name: 'RT Test Class', section: 'A' },
         { name: 'RT Test Class', section: 'B' },
@@ -74,7 +74,7 @@ describe('Class & Curriculum II (issue #45)', () => {
     const { data, error } = await ownerA
       .from('routine_slots')
       .insert({
-        class_id: classId,
+        class_offering_id: classId,
         day_of_week: 0,
         period: 1,
         subject_id: subjectId,
@@ -91,14 +91,14 @@ describe('Class & Curriculum II (issue #45)', () => {
     const { error } = await ownerA
       .from('routine_slots')
       .upsert(
-        { class_id: classId, day_of_week: 0, period: 1, subject_id: subjectId },
-        { onConflict: 'class_id,day_of_week,period' },
+        { class_offering_id: classId, day_of_week: 0, period: 1, subject_id: subjectId },
+        { onConflict: 'class_offering_id,day_of_week,period' },
       )
     expect(error).toBeNull()
     const { data } = await ownerA
       .from('routine_slots')
       .select('id')
-      .eq('class_id', classId)
+      .eq('class_offering_id', classId)
       .eq('day_of_week', 0)
       .eq('period', 1)
     expect(data).toHaveLength(1)
@@ -106,7 +106,7 @@ describe('Class & Curriculum II (issue #45)', () => {
 
   it('a teacher cannot be in two places in the same day/period (conflict index)', async () => {
     const { error } = await ownerA.from('routine_slots').insert({
-      class_id: otherClassId,
+      class_offering_id: otherClassId,
       day_of_week: 0,
       period: 1,
       teacher_id: teacherId,
@@ -118,7 +118,7 @@ describe('Class & Curriculum II (issue #45)', () => {
 
   it('a room cannot host two classes in the same day/period (conflict index)', async () => {
     const { error } = await ownerA.from('routine_slots').insert({
-      class_id: otherClassId,
+      class_offering_id: otherClassId,
       day_of_week: 0,
       period: 1,
       room_id: roomId,
@@ -130,7 +130,7 @@ describe('Class & Curriculum II (issue #45)', () => {
 
   it('the same teacher and room are fine in a different period', async () => {
     const { error } = await ownerA.from('routine_slots').insert({
-      class_id: otherClassId,
+      class_offering_id: otherClassId,
       day_of_week: 0,
       period: 2,
       teacher_id: teacherId,
@@ -141,7 +141,7 @@ describe('Class & Curriculum II (issue #45)', () => {
 
   it("a slot cannot be created for another school's class (tenancy trigger)", async () => {
     const { error } = await ownerB.from('routine_slots').insert({
-      class_id: classId, // school A's class; ownerB's school_id defaults in
+      class_offering_id: classId, // school A's class; ownerB's school_id defaults in
       day_of_week: 1,
       period: 1,
     })
@@ -151,7 +151,7 @@ describe('Class & Curriculum II (issue #45)', () => {
 
   it("a slot cannot reference another school's teacher (tenancy trigger)", async () => {
     const { error } = await ownerA.from('routine_slots').insert({
-      class_id: classId,
+      class_offering_id: classId,
       day_of_week: 1,
       period: 1,
       teacher_id: foreignTeacherId,
@@ -163,16 +163,16 @@ describe('Class & Curriculum II (issue #45)', () => {
   it('slot day and period are range-checked', async () => {
     const { error: badDay } = await ownerA
       .from('routine_slots')
-      .insert({ class_id: classId, day_of_week: 7, period: 1 })
+      .insert({ class_offering_id: classId, day_of_week: 7, period: 1 })
     expect(badDay).not.toBeNull()
     const { error: badPeriod } = await ownerA
       .from('routine_slots')
-      .insert({ class_id: classId, day_of_week: 1, period: 13 })
+      .insert({ class_offering_id: classId, day_of_week: 1, period: 13 })
     expect(badPeriod).not.toBeNull()
   })
 
   it("RLS: another school's owner sees none of the slots", async () => {
-    const { data } = await ownerB.from('routine_slots').select('id').eq('class_id', classId)
+    const { data } = await ownerB.from('routine_slots').select('id').eq('class_offering_id', classId)
     expect(data).toHaveLength(0)
   })
 

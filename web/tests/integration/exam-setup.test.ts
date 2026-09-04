@@ -26,7 +26,7 @@ describe('Exams II — setup, routine, seat plan (issue #47)', () => {
 
   async function cleanup(client: SupabaseClient) {
     await client.from('exams').delete().like('name', 'ES Test%')
-    await client.from('classes').delete().like('name', 'ES Test%')
+    await client.from('class_offerings').delete().like('name', 'ES Test%')
     await client.from('employees').delete().like('full_name', 'ES Test%')
     await client.from('rooms').delete().like('name', 'ES Test%')
     await client.from('students').delete().like('full_name', 'ES Test%')
@@ -44,7 +44,7 @@ describe('Exams II — setup, routine, seat plan (issue #47)', () => {
     ).data!.id
 
     classId = (
-      await ownerA.from('classes').insert({ name: 'ES Test Class', section: 'A' }).select('id').single()
+      await ownerA.from('class_offerings').insert({ name: 'ES Test Class', section: 'A' }).select('id').single()
     ).data!.id
     subjectId = (
       await ownerA
@@ -121,14 +121,14 @@ describe('Exams II — setup, routine, seat plan (issue #47)', () => {
 
   it("an exam cannot reference another school's class (tenancy trigger)", async () => {
     const { data: foreignClass } = await ownerB
-      .from('classes')
+      .from('class_offerings')
       .insert({ name: 'ES Test Foreign Class' })
       .select('id')
       .single()
     const { error } = await ownerA.from('exams').update({ class_id: foreignClass!.id }).eq('id', examId)
     expect(error).not.toBeNull()
     expect(error!.message).toContain('class does not belong to this school')
-    await ownerB.from('classes').delete().eq('id', foreignClass!.id)
+    await ownerB.from('class_offerings').delete().eq('id', foreignClass!.id)
   })
 
   it('subject-teacher assignment: assigns a teacher to a subject for the exam', async () => {

@@ -94,7 +94,7 @@ describe('Student portal RLS (#441)', () => {
     const { data: schools } = await student.from('schools').select('name')
     expect(schools).toEqual([{ name: 'Test School A' }])
 
-    const { data: classes } = await student.from('classes').select('name, section')
+    const { data: classes } = await student.from('class_offerings').select('name, section')
     expect(classes).toEqual([{ name: 'Seed Class', section: 'A' }])
   })
 

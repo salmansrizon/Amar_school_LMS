@@ -60,7 +60,7 @@ describe('Student exam schedule (#450)', () => {
       await owner.from('students').update({ roll_number: 1 }).eq('id', self.id)
     }
 
-    classId = (await owner.from('classes').select('id').eq('name', 'Seed Class').eq('section', 'A').single())
+    classId = (await owner.from('class_offerings').select('id').eq('name', 'Seed Class').eq('section', 'A').single())
       .data!.id
 
     await cleanupExamsAndRooms()

@@ -74,7 +74,7 @@ export default async function StudentLogDetailPage({
   const [{ data: student }, institute, { data: classes }] = await Promise.all([
     supabase.from('students').select('id, full_name, class_name, section, roll_number').eq('id', studentId).maybeSingle(),
     loadInstitutePrintHeader(supabase, lang),
-    supabase.from('classes').select('id, name, section, group_department').order('created_at'),
+    supabase.from('class_offerings').select('id, name, section, group_department').order('created_at'),
   ])
   if (!student) notFound()
   const classCombos = classCatalogueOptions(classes ?? [])

@@ -24,7 +24,7 @@ describe('Exams III — marks entry, combinations, promotion (issue #32)', () =>
   async function cleanup(client: SupabaseClient) {
     await client.from('exam_combinations').delete().like('name', 'EM Test%')
     await client.from('exams').delete().like('name', 'EM Test%')
-    await client.from('classes').delete().like('name', 'EM Test%')
+    await client.from('class_offerings').delete().like('name', 'EM Test%')
     await client.from('students').delete().like('full_name', 'EM Test%')
   }
 
@@ -35,7 +35,7 @@ describe('Exams III — marks entry, combinations, promotion (issue #32)', () =>
     await cleanup(ownerB)
 
     classId = (
-      await ownerA.from('classes').insert({ name: 'EM Test Class', section: 'A' }).select('id').single()
+      await ownerA.from('class_offerings').insert({ name: 'EM Test Class', section: 'A' }).select('id').single()
     ).data!.id
     subjectId = (
       await ownerA

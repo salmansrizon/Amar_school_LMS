@@ -33,7 +33,7 @@ describe('deleting an open exam is not deleting a closed one (0171)', () => {
     expect((await owner.auth.getUser()).data.user).not.toBeNull()
     const { error } = await admin.from('exams').delete().like('name', `${TAG}%`)
     if (error) throw new Error(`cleanup failed: ${error.message}`)
-    classId = (await owner.from('classes').select('id').eq('name', 'Seed Class').eq('section', 'A').single()).data!.id
+    classId = (await owner.from('class_offerings').select('id').eq('name', 'Seed Class').eq('section', 'A').single()).data!.id
   })
 
   afterAll(async () => {

@@ -24,7 +24,7 @@ describe('Student routine (#444)', () => {
     student = await signedIn('s9001@test-a.students.invalid')
 
     const { data: klass } = await owner
-      .from('classes')
+      .from('class_offerings')
       .select('id')
       .eq('name', 'Seed Class')
       .eq('section', 'A')
@@ -33,7 +33,7 @@ describe('Student routine (#444)', () => {
 
     // Plain delete-then-insert: there is no unique key to upsert against, and a
     // silent upsert failure is how the first cut of this fixture broke.
-    await owner.from('routine_slots').delete().eq('class_id', classId)
+    await owner.from('routine_slots').delete().eq('class_offering_id', classId)
     await owner.from('class_routines').delete().eq('class_id', classId)
     await owner.from('subjects').delete().eq('name', 'RT1 Physics')
     await owner.from('employees').delete().eq('full_name', 'RT1 Karim Sir')
@@ -56,7 +56,7 @@ describe('Student routine (#444)', () => {
 
     // Draft to begin with: a routine row exists, publish marker does not.
     const slot = await owner.from('routine_slots').insert({
-      class_id: classId,
+      class_offering_id: classId,
       day_of_week: 2,
       period: 3,
       subject_id: subjectId,
@@ -66,7 +66,7 @@ describe('Student routine (#444)', () => {
   })
 
   afterAll(async () => {
-    await owner.from('routine_slots').delete().eq('class_id', classId)
+    await owner.from('routine_slots').delete().eq('class_offering_id', classId)
     await owner.from('class_routines').delete().eq('class_id', classId)
     await owner.from('subjects').delete().eq('name', 'RT1 Physics')
     await owner.from('employees').delete().eq('full_name', 'RT1 Karim Sir')
@@ -115,7 +115,7 @@ describe('Student routine (#444)', () => {
 
   it('another school’s Student sees none of it', async () => {
     const ownerB = await signedIn('owner-b@test.local')
-    const { data } = await ownerB.from('classes').select('id').eq('name', 'Seed Class')
+    const { data } = await ownerB.from('class_offerings').select('id').eq('name', 'Seed Class')
     expect(data ?? []).toEqual([])
   })
 })

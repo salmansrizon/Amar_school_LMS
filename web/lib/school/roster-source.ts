@@ -56,10 +56,18 @@ export async function schoolRoster(
 ): Promise<RosterView> {
   const [{ data: students }, { data: classes }] = await Promise.all([
     supabase.from('students').select(ROSTER_COLUMNS).is('archived_at', null).order('full_name'),
-    supabase.from('classes').select('id, name, section, group_department').order('created_at'),
+    supabase.from('class_offerings').select('id, name, section, group_department').order('created_at'),
   ])
 
   const readable = (students ?? []) as RosterStudent[]
+  // Still narrowed by class_name/section text, deliberately (map #568/#582,
+  // Wave 4a): the offering id the picker submits is resolved back down to a
+  // text pair here rather than used as a join key. Moving this onto
+  // student_enrollments.class_offering_id is Wave 4a's "Part B" and is blocked
+  // on Wave 6's backfill — every pre-existing Student has a null
+  // current_enrollment_id, so an enrollment join today returns zero rows for
+  // Owners and office staff, who are the only roles this path still works for.
+  // Not an oversight; do not "fix" it before the backfill lands.
   const { combos, className, section } = classSelection((classes ?? []) as ClassCatalogueRow[], classSection)
   const matched = searchRoster(rosterFor(readable, className, section), q)
 

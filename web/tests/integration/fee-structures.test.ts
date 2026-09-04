@@ -21,19 +21,19 @@ describe('Accounting I: fee structures (issue #34)', () => {
     ownerA = await signedIn('owner-a@test.local')
     ownerB = await signedIn('owner-b@test.local')
 
-    await ownerA.from('classes').delete().eq('name', 'FS Test Class')
-    await ownerB.from('classes').delete().eq('name', 'FS Test Foreign Class')
+    await ownerA.from('class_offerings').delete().eq('name', 'FS Test Class')
+    await ownerB.from('class_offerings').delete().eq('name', 'FS Test Foreign Class')
 
     classId = (
       await ownerA
-        .from('classes')
+        .from('class_offerings')
         .insert({ name: 'FS Test Class', section: 'A' })
         .select('id')
         .single()
     ).data!.id
     foreignClassId = (
       await ownerB
-        .from('classes')
+        .from('class_offerings')
         .insert({ name: 'FS Test Foreign Class' })
         .select('id')
         .single()
@@ -44,8 +44,8 @@ describe('Accounting I: fee structures (issue #34)', () => {
 
   afterAll(async () => {
     await ownerA.from('fee_structures').delete().eq('class_id', classId)
-    await ownerA.from('classes').delete().eq('id', classId)
-    await ownerB.from('classes').delete().eq('id', foreignClassId)
+    await ownerA.from('class_offerings').delete().eq('id', classId)
+    await ownerB.from('class_offerings').delete().eq('id', foreignClassId)
   })
 
   it('a fee structure is created scoped to the owner school', async () => {
@@ -108,7 +108,7 @@ describe('Accounting I: fee structures (issue #34)', () => {
 
   it('copy-between-class/year: upserting onto a second class creates an independent row', async () => {
     const { data: secondClass } = await ownerA
-      .from('classes')
+      .from('class_offerings')
       .insert({ name: 'FS Test Class', section: 'B' })
       .select('id')
       .single()
@@ -129,7 +129,7 @@ describe('Accounting I: fee structures (issue #34)', () => {
     expect(Number(original!.amount)).toBe(1200) // source untouched by the copy
 
     await ownerA.from('fee_structures').delete().eq('class_id', secondClass!.id)
-    await ownerA.from('classes').delete().eq('id', secondClass!.id)
+    await ownerA.from('class_offerings').delete().eq('id', secondClass!.id)
   })
 })
 

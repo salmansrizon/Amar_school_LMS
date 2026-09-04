@@ -19,7 +19,7 @@ describe('a subject deletes with its questions (#548)', () => {
     student = await signedIn('s9001@test-a.students.invalid')
     // A real session, or "the row is gone" passes for the wrong reason (#542).
     expect((await owner.auth.getUser()).data.user).not.toBeNull()
-    classId = (await owner.from('classes').select('id').eq('name', 'Seed Class').single()).data!.id
+    classId = (await owner.from('class_offerings').select('id').eq('name', 'Seed Class').single()).data!.id
     const self = (await student.from('student_self').select('id, school_id').single()).data!
     studentId = self.id
     schoolId = self.school_id

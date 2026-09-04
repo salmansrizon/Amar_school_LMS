@@ -29,7 +29,7 @@ const DENIED = [
 ] as const
 
 /** Read by several screens, so deliberately open to any school member. */
-const SHARED = ['students', 'classes', 'subjects'] as const
+const SHARED = ['students', 'class_offerings', 'subjects'] as const
 
 describe('Permission Grant is enforced by RLS (#GHSA-f3w3-vrhc-983v)', () => {
   let owner: SupabaseClient

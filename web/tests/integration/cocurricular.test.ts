@@ -21,7 +21,7 @@ describe('Co-curricular checklist (issue #33)', () => {
   async function cleanup(client: SupabaseClient) {
     await client.from('cocurricular_items').delete().like('label', 'CC Test%')
     await client.from('exams').delete().like('name', 'CC Test%')
-    await client.from('classes').delete().like('name', 'CC Test%')
+    await client.from('class_offerings').delete().like('name', 'CC Test%')
     await client.from('students').delete().like('full_name', 'CC Test%')
   }
 
@@ -32,7 +32,7 @@ describe('Co-curricular checklist (issue #33)', () => {
     await cleanup(ownerB)
 
     classId = (
-      await ownerA.from('classes').insert({ name: 'CC Test Class', section: 'A' }).select('id').single()
+      await ownerA.from('class_offerings').insert({ name: 'CC Test Class', section: 'A' }).select('id').single()
     ).data!.id
     studentId = (
       await ownerA

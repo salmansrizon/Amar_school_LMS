@@ -44,13 +44,13 @@ describe('Seat plan v2 (issue #95)', () => {
   /** Insert if absent, reuse if a previous run left it behind. */
   async function ensureClass(client: SupabaseClient, name: string): Promise<string> {
     const { data: existing } = await client
-      .from('classes')
+      .from('class_offerings')
       .select('id')
       .eq('name', name)
       .maybeSingle()
     if (existing) return existing.id
     const { data, error } = await client
-      .from('classes')
+      .from('class_offerings')
       .insert({ name, section: 'A' })
       .select('id')
       .single()

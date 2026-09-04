@@ -16,11 +16,11 @@ describe('Class & Curriculum I (issue #26)', () => {
     ownerA = await signedIn('owner-a@test.local')
     ownerB = await signedIn('owner-b@test.local')
     // Idempotent re-runs: class delete cascades to its subjects.
-    await ownerA.from('classes').delete().eq('name', 'CC Test Class')
+    await ownerA.from('class_offerings').delete().eq('name', 'CC Test Class')
     await ownerA.from('subjects').delete().like('name', 'CC %')
     await ownerA.from('rooms').delete().eq('name', 'CC Test Room')
     const { data, error } = await ownerA
-      .from('classes')
+      .from('class_offerings')
       .insert({ name: 'CC Test Class', section: 'A', education_level: 'Secondary' })
       .select('id')
       .single()
@@ -29,14 +29,14 @@ describe('Class & Curriculum I (issue #26)', () => {
   })
 
   afterAll(async () => {
-    await ownerA.from('classes').delete().eq('id', classId)
+    await ownerA.from('class_offerings').delete().eq('id', classId)
     await ownerA.from('subjects').delete().like('name', 'CC %')
     await ownerA.from('rooms').delete().eq('name', 'CC Test Room')
   })
 
   it('a class is created scoped to the owner school', async () => {
     const { data } = await ownerA
-      .from('classes')
+      .from('class_offerings')
       .select('id, name, section')
       .eq('id', classId)
       .single()
@@ -45,19 +45,19 @@ describe('Class & Curriculum I (issue #26)', () => {
   })
 
   it('the same class name + section cannot exist twice', async () => {
-    const { error } = await ownerA.from('classes').insert({ name: 'CC Test Class', section: 'A' })
+    const { error } = await ownerA.from('class_offerings').insert({ name: 'CC Test Class', section: 'A' })
     expect(error).not.toBeNull()
     expect(error!.code).toBe('23505')
   })
 
   it('the same class name may repeat with a different section', async () => {
     const { data, error } = await ownerA
-      .from('classes')
+      .from('class_offerings')
       .insert({ name: 'CC Test Class', section: 'B', group_department: 'Science' })
       .select('id')
       .single()
     expect(error).toBeNull()
-    await ownerA.from('classes').delete().eq('id', data!.id)
+    await ownerA.from('class_offerings').delete().eq('id', data!.id)
   })
 
   // Rooms live inside a building since issue #93 (migration 0057); every
@@ -143,7 +143,7 @@ describe('Class & Curriculum I (issue #26)', () => {
   })
 
   it("RLS: another school's owner sees none of it", async () => {
-    const { data: classes } = await ownerB.from('classes').select('id').eq('id', classId)
+    const { data: classes } = await ownerB.from('class_offerings').select('id').eq('id', classId)
     expect(classes).toHaveLength(0)
     const { data: subjects } = await ownerB.from('subjects').select('id').eq('class_id', classId)
     expect(subjects).toHaveLength(0)
@@ -151,14 +151,14 @@ describe('Class & Curriculum I (issue #26)', () => {
 
   it('deleting a class cascades to its subjects', async () => {
     const { data: cls } = await ownerA
-      .from('classes')
+      .from('class_offerings')
       .insert({ name: 'CC Test Class', section: 'C' })
       .select('id')
       .single()
     await ownerA
       .from('subjects')
       .insert({ class_id: cls!.id, name: 'CC Temp', theory_marks: 100 })
-    await ownerA.from('classes').delete().eq('id', cls!.id)
+    await ownerA.from('class_offerings').delete().eq('id', cls!.id)
     const { data: left } = await ownerA.from('subjects').select('id').eq('class_id', cls!.id)
     expect(left).toHaveLength(0)
   })

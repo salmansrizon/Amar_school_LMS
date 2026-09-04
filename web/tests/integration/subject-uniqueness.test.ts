@@ -13,7 +13,7 @@ describe('A subject is unique within its class (#535)', () => {
 
   async function cleanup() {
     await owner.from('subjects').delete().like('name', `${TAG}%`)
-    await owner.from('classes').delete().like('name', `${TAG}%`)
+    await owner.from('class_offerings').delete().like('name', `${TAG}%`)
   }
 
   beforeAll(async () => {
@@ -58,7 +58,7 @@ describe('A subject is unique within its class (#535)', () => {
 
   it('still allows the same name scoped to a different class', async () => {
     const { data: klass } = await owner
-      .from('classes')
+      .from('class_offerings')
       .insert({ name: `${TAG} Class`, section: 'A' })
       .select('id')
       .single()

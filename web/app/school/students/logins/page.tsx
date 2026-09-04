@@ -26,7 +26,7 @@ export default async function StudentLoginsPage({
   if (role !== 'school_owner') redirect('/school/students')
 
   const { data: classes } = await supabase
-    .from('classes')
+    .from('class_offerings')
     .select('id, name, section, group_department')
     .order('created_at')
   const { combos, className, section } = resolveClassSection(classes ?? [], classSection)

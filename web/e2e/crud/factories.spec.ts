@@ -17,7 +17,7 @@ test.describe('@crud deep-crud factories', () => {
     const student = await createStudent(owner, { className: klass.name, section: klass.section })
 
     // Readable back through RLS (owner sees own school's rows).
-    expect((await owner.from('classes').select('id').eq('id', klass.id).maybeSingle()).data?.id).toBe(klass.id)
+    expect((await owner.from('class_offerings').select('id').eq('id', klass.id).maybeSingle()).data?.id).toBe(klass.id)
     expect((await owner.from('students').select('id').eq('id', student.id).maybeSingle()).data?.id).toBe(student.id)
 
     await student.cleanup()
@@ -25,6 +25,6 @@ test.describe('@crud deep-crud factories', () => {
 
     // Gone after cleanup.
     expect((await owner.from('students').select('id').eq('id', student.id).maybeSingle()).data).toBeNull()
-    expect((await owner.from('classes').select('id').eq('id', klass.id).maybeSingle()).data).toBeNull()
+    expect((await owner.from('class_offerings').select('id').eq('id', klass.id).maybeSingle()).data).toBeNull()
   })
 })
