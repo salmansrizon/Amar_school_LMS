@@ -5,8 +5,10 @@ import { createClient } from '@/lib/supabase/server'
 
 // RLS scopes every write to the caller's School; the same-school tenancy
 // trigger on student_subjects is the authority on cross-school references.
-// Students are matched to a class by name+section (the legacy free-text
-// shape — see migration 0022's note on why class linkage isn't a hard FK yet).
+// Students are matched to a class via student_enrollments.class_offering_id
+// (map #568/#582's Wave 3, issue #586) — not the old class_name/section
+// free-text match (migration 0022's note on why class linkage wasn't a hard
+// FK on `students` predates the Enrollment model and no longer applies here).
 
 const PAGE = '/school/students/subject-assignment'
 
@@ -18,23 +20,21 @@ export async function bulkAssignSubjects(
   if (!subjectIds.length) return { error: 'Pick at least one subject' }
 
   const supabase = await createClient()
-  const { data: cls } = await supabase
-    .from('classes')
-    .select('id, name, section')
-    .eq('id', classId)
-    .maybeSingle()
+  const { data: cls } = await supabase.from('class_offerings').select('id').eq('id', classId).maybeSingle()
   if (!cls) return { error: 'Class not found' }
 
-  let query = supabase.from('students').select('id').eq('class_name', cls.name)
-  query = cls.section ? query.eq('section', cls.section) : query.is('section', null)
-  const { data: students, error: studentsError } = await query
-  if (studentsError) return { error: studentsError.message }
-  if (!students?.length) return { error: 'No students in this class' }
+  const { data: enrollments, error: enrollmentsError } = await supabase
+    .from('student_enrollments')
+    .select('student_id')
+    .eq('class_offering_id', classId)
+    .is('closed_at', null)
+  if (enrollmentsError) return { error: enrollmentsError.message }
+  if (!enrollments?.length) return { error: 'No students in this class' }
 
   const optional = new Set(optionalSubjectIds)
-  const rows = students.flatMap((s) =>
+  const rows = enrollments.flatMap((e) =>
     subjectIds.map((subjectId) => ({
-      student_id: s.id,
+      student_id: e.student_id,
       subject_id: subjectId,
       is_optional: optional.has(subjectId),
     })),

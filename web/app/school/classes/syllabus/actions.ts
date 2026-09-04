@@ -21,7 +21,7 @@ async function ownPath(classId: string): Promise<{ path?: string; error?: string
   const actor = await currentActor()
   if ('error' in actor) return { error: actor.error }
   // RLS-scoped: a class the caller can't see returns nothing.
-  const { data: cls } = await actor.supabase.from('classes').select('id').eq('id', classId).maybeSingle()
+  const { data: cls } = await actor.supabase.from('class_offerings').select('id').eq('id', classId).maybeSingle()
   if (!cls) return { error: 'Class not found' }
   return { path: pathFor(actor.schoolId, classId) }
 }

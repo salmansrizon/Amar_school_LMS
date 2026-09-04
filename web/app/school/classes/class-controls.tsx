@@ -170,7 +170,7 @@ export function DeleteButton({
   id,
   lang,
 }: {
-  entity: 'classes' | 'subjects'
+  entity: 'class_offerings' | 'subjects'
   id: string
   lang: Lang
 }) {
@@ -178,7 +178,7 @@ export function DeleteButton({
   // to its marks, its student questions and its routine links — say so in the
   // in-app dialog (#365, #548). "This will be deleted. Are you sure?" was true
   // and useless.
-  const key = entity === 'classes' ? 'classes.deleteConfirm' : 'classes.deleteConfirmSubject'
+  const key = entity === 'class_offerings' ? 'classes.deleteConfirm' : 'classes.deleteConfirmSubject'
   return (
     <ConfirmDialog
       triggerLabel={t('common.delete', lang)}

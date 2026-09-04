@@ -1,37 +1,38 @@
 'use client'
 
-import { useMemo, useState, useTransition } from 'react'
+import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { t, type Lang } from '@/lib/i18n'
-import { sectionsForClass, classNamesFor, type ClassNameSectionRow } from '@/lib/students'
+import { classCatalogueOptions, type ClassCatalogueRow } from '@/lib/class-catalogue'
 import { fieldClass, fieldLabelClass } from '../../new/admission-form'
 import { transferStudent } from '../../actions'
 import { selectClass } from '@/components/ui/field'
 
+/** Class Offering picker (map #568/#582, issue #586) — the id-based analog
+ *  of the old class-then-section text cascade. Submits class_offering_id,
+ *  routed through set_student_enrollment (actions.ts's transferStudent).
+ *
+ *  Deliberately starts empty rather than pre-filled with the student's
+ *  current Offering, unlike the old class/section version: a transition now
+ *  always closes one Enrollment and opens another, so submitting the
+ *  unchanged pre-fill would be a real (and silently roll-shifting) move
+ *  rather than the no-op it used to be. The page header above already states
+ *  where the student currently is, so nothing is lost by making the
+ *  destination a deliberate choice. */
 export function TransferForm({
   lang,
   studentId,
-  classes,
-  currentClass,
-  currentSection,
+  classOfferings,
 }: {
   lang: Lang
   studentId: string
-  classes: ClassNameSectionRow[]
-  currentClass: string | null
-  currentSection: string | null
+  classOfferings: ClassCatalogueRow[]
 }) {
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
-  // Pre-filled with the student's current class/section (mirrors the mockup).
-  // OfficeTime left the student side with issue #100: class + section carry the
-  // grouping now.
-  // pre-filling avoids relying on that and keeps the form honest about what
-  // will actually be submitted.
-  const [toClass, setToClass] = useState(currentClass ?? '')
-  const classNames = classNamesFor(classes)
-  const sections = useMemo(() => sectionsForClass(classes, toClass), [classes, toClass])
+  const [toOffering, setToOffering] = useState('')
+  const options = classCatalogueOptions(classOfferings)
 
   return (
     <form
@@ -48,42 +49,25 @@ export function TransferForm({
             return
           }
           form.reset()
-          setToClass('')
+          setToOffering('')
           router.refresh()
         })
       }}
     >
       <div className="grid gap-3 sm:grid-cols-3">
-        <div>
+        <div className="sm:col-span-2">
           <label className={fieldLabelClass}>{t('students.newClass', lang)}</label>
           <select
-            name="to_class"
+            name="class_offering_id"
             required
-            value={toClass}
-            onChange={(e) => setToClass(e.target.value)}
+            value={toOffering}
+            onChange={(e) => setToOffering(e.target.value)}
             className={selectClass({ size: 'md', fullWidth: true })}
           >
             <option value="">—</option>
-            {classNames.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className={fieldLabelClass}>{t('students.newSection', lang)}</label>
-          {/* key remounts on class change so a stale section can't linger */}
-          <select
-            key={toClass}
-            name="to_section"
-            defaultValue={toClass === currentClass ? (currentSection ?? '') : ''}
-            className={selectClass({ size: 'md', fullWidth: true })}
-          >
-            <option value="">—</option>
-            {sections.map((s) => (
-              <option key={s} value={s}>
-                {s}
+            {options.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
               </option>
             ))}
           </select>

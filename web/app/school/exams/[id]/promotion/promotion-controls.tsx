@@ -203,7 +203,7 @@ export function PromotionTable({
             if (!items.length) return
             startTransition(async () => {
               setError(null)
-              const result = await promoteStudents(examId, targetClass?.name ?? '', targetClass?.section ?? null, items)
+              const result = await promoteStudents(examId, toClassId, items)
               if (result.error) setError(result.error)
               router.refresh()
             })

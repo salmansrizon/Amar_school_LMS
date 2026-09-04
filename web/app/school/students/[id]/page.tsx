@@ -59,7 +59,7 @@ export default async function StudentDetailPage({
         .select('id, note, rating, remind_date, created_at')
         .eq('student_id', id)
         .order('created_at', { ascending: false }),
-      supabase.from('classes').select('name, section').order('created_at'),
+      supabase.from('class_offerings').select('name, section').order('created_at'),
       supabase.from('subjects').select('id, name').order('name'),
       supabase.from('student_subjects').select('subject_id, is_optional').eq('student_id', id),
       isOwner

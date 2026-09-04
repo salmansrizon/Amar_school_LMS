@@ -34,14 +34,14 @@ export default async function MyClassesPage() {
     )
   }
 
-  const [{ data: classes }, { data: students }, { data: tasks }] = await Promise.all([
+  const [{ data: classes }, { data: enrollments }, { data: tasks }] = await Promise.all([
     supabase
-      .from('classes')
+      .from('class_offerings')
       .select('id, name, section, group_department')
       .eq('class_teacher_id', myEmployeeId)
       .order('name'),
     // ponytail: whole-table scan capped at 10k rows, same as the classes page.
-    supabase.from('students').select('class_name, section').limit(10000),
+    supabase.from('student_enrollments').select('class_offering_id').is('closed_at', null).limit(10000),
     supabase
       .from('publications')
       .select('id, title, due_at, target_class_name, target_section')
@@ -50,7 +50,7 @@ export default async function MyClassesPage() {
       .limit(200),
   ])
 
-  const counts = studentCounts(students ?? [])
+  const counts = studentCounts(enrollments ?? [])
 
   return (
     <>
@@ -66,7 +66,7 @@ export default async function MyClassesPage() {
                   <span className="font-medium">{classCatalogueLabel(c)}</span>
                   <span className="flex items-center gap-4 text-sm text-muted">
                     <span>
-                      {t('classes.students', lang)}: {countFor(counts, c.name, c.section)}
+                      {t('classes.students', lang)}: {countFor(counts, c.id)}
                     </span>
                     <Link
                       href={`/school/classes/routine?class=${c.id}`}

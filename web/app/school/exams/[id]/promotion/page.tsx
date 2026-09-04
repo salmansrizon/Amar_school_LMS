@@ -87,12 +87,12 @@ export default async function PromotionPage({
   }
 
   const { data: cls } = await supabase
-    .from('classes')
+    .from('class_offerings')
     .select('name, section, is_final_class')
     .eq('id', exam.class_id)
     .maybeSingle()
   const [{ data: allClasses }, { data: allSubjects }, { data: combos }] = await Promise.all([
-    supabase.from('classes').select('id, name, section, group_department').order('created_at'),
+    supabase.from('class_offerings').select('id, name, section, group_department').order('created_at'),
     supabase.from('subjects').select('id, name, class_id, theory_marks, mcq_marks, practical_marks').order('name'),
     supabase
       .from('exam_combinations')
@@ -121,15 +121,23 @@ export default async function PromotionPage({
   const selectedCombo = sourceParam !== 'exam' ? eligibleCombos.find((c) => c.id === sourceParam) : undefined
   const effectiveSource = selectedCombo?.id ?? 'exam'
 
-  let studentsQuery = supabase
-    .from('students')
-    .select('id, full_name, roll_number')
-    .eq('class_name', cls?.name ?? '')
-    .is('archived_at', null)
-    .order('roll_number', { ascending: true, nullsFirst: false })
-  studentsQuery = cls?.section ? studentsQuery.eq('section', cls.section) : studentsQuery.is('section', null)
-  const { data: students } = await studentsQuery
-  const roster = students ?? []
+  // Roster derived from the Class Offering's own current Enrollments (map
+  // #568/#582's Wave 3, issue #586) — not students.class_name/section text
+  // matching. roll_number is student_enrollments' own (authoritative), not
+  // students.roll_number.
+  const { data: enrollments } = await supabase
+    .from('student_enrollments')
+    .select('student_id, roll_number')
+    .eq('class_offering_id', exam.class_id)
+    .is('closed_at', null)
+  const rollByStudent = new Map((enrollments ?? []).map((e) => [e.student_id, e.roll_number]))
+  const enrolledIds = [...rollByStudent.keys()]
+  const { data: enrolledStudents } = enrolledIds.length
+    ? await supabase.from('students').select('id, full_name').in('id', enrolledIds).is('archived_at', null)
+    : { data: [] as { id: string; full_name: string }[] }
+  const roster = (enrolledStudents ?? [])
+    .map((s) => ({ id: s.id, full_name: s.full_name, roll_number: rollByStudent.get(s.id) ?? null }))
+    .sort((a, b) => (a.roll_number ?? Number.POSITIVE_INFINITY) - (b.roll_number ?? Number.POSITIVE_INFINITY))
 
   const bodyWrap = (content: ReactNode) => (
     <div>

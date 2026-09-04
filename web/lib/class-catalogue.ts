@@ -1,11 +1,13 @@
 // Shared Class Catalogue primitive (map #421): every screen that lets an
-// admin pick a Class reads the same `classes` table shape ({id, name,
-// section}) and needs the same value/label convention. A Class appears here
-// the moment it's created, whether or not any Student is enrolled in it yet —
-// this replaced an earlier roster-derived module (map #398) that only
-// surfaced combinations with an actual enrolled Student. The option value is
-// the row's own id, so there's no need for a composite-key encoding: Class
-// Resolution just looks the id back up in the same options list.
+// admin pick a Class reads the same `class_offerings` table shape (renamed
+// from `classes`, issue #571/#584 — {id, name, section}) and needs the same
+// value/label convention. A Class Offering appears here the moment it's
+// created, whether or not any Student is enrolled in it yet — this replaced
+// an earlier roster-derived module (map #398) that only surfaced
+// combinations with an actual enrolled Student. The option value is the
+// row's own id — now a real class_offering_id (map #568/#582) — so there's
+// no need for a composite-key encoding: Class Resolution just looks the id
+// back up in the same options list.
 
 export interface ClassCatalogueRow {
   id: string

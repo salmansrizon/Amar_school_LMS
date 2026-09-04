@@ -16,11 +16,11 @@ export default async function NewAdmissionPage() {
   const lang: Lang = await currentLang()
   const { supabase, schoolId } = await getSchoolContext()
 
-  const [{ data: classes }, { data: students }, { data: school }] = await Promise.all([
-    supabase.from('classes').select('name, section').order('created_at'),
+  const [{ data: classOfferings }, { data: enrollments }, { data: school }] = await Promise.all([
+    supabase.from('class_offerings').select('id, name, section, group_department').order('created_at'),
     // Same bounded whole-table read as the Class & Curriculum counts (ponytail:
     // fine up to 10k rows) — feeds the Roll Number field's next-roll suggestion.
-    supabase.from('students').select('class_name, section, roll_number').limit(10000),
+    supabase.from('student_enrollments').select('class_offering_id, roll_number').limit(10000),
     supabase.from('schools').select('roll_number_increment').eq('id', schoolId).maybeSingle(),
   ])
 
@@ -33,8 +33,8 @@ export default async function NewAdmissionPage() {
       />
       <AdmissionForm
         lang={lang}
-        classes={classes ?? []}
-        rolls={students ?? []}
+        classOfferings={classOfferings ?? []}
+        enrollmentRolls={enrollments ?? []}
         rollIncrement={school?.roll_number_increment ?? 1}
       />
     </>

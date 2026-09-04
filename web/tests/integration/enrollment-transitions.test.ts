@@ -390,6 +390,86 @@ describe('Enrollment transition primitives (#573/#572/#574, map #568/#582)', () 
     })
   })
 
+  // Roll numbering on Enrollments (issue #586, migration 0181) — the port of
+  // assign_student_roll/students_roll_unique. The backstop constrains CURRENT
+  // placements only: `students` held one row per Student, so a roll vacated by
+  // a promotion or transfer had always been reusable, and an index copied
+  // across without a closed_at filter would have quietly outlawed that.
+  describe('roll numbers are scoped to a Class Offering, and freed when an Enrollment closes', () => {
+    it('auto-assigns the next roll within the Offering', async () => {
+      const first = await newStudent('Roll1')
+      const second = await newStudent('Roll2')
+      for (const id of [first, second]) {
+        const { error } = await owner.rpc('admit_student_enrollment', {
+          p_student_id: id,
+          p_class_offering_id: offeringC,
+          p_roll_number: null,
+          p_note: null,
+        })
+        if (error) throw new Error(error.message)
+      }
+
+      const { data: rolls } = await owner
+        .from('student_enrollments')
+        .select('roll_number')
+        .eq('class_offering_id', offeringC)
+        .is('closed_at', null)
+        .order('roll_number')
+      expect(rolls!.map((r) => r.roll_number)).toEqual([1, 2])
+    })
+
+    it('refuses two OPEN enrollments sharing a roll in one Offering', async () => {
+      const first = await newStudent('Dup1')
+      const second = await newStudent('Dup2')
+      const { error: firstErr } = await owner.rpc('admit_student_enrollment', {
+        p_student_id: first,
+        p_class_offering_id: offeringD,
+        p_roll_number: 7,
+        p_note: null,
+      })
+      if (firstErr) throw new Error(firstErr.message)
+
+      const { error } = await owner.rpc('admit_student_enrollment', {
+        p_student_id: second,
+        p_class_offering_id: offeringD,
+        p_roll_number: 7,
+        p_note: null,
+      })
+      expect(error).not.toBeNull()
+      expect(error!.message).toMatch(/student_enrollments_roll_unique|duplicate key/)
+    })
+
+    // The case a history-spanning unique index would have broken: promoting a
+    // class out of an Offering and then admitting into it again at the same
+    // rolls is ordinary, and used to work because the old model simply
+    // overwrote students.roll_number.
+    it('frees a roll once the Enrollment holding it is closed', async () => {
+      const leaver = await newStudent('Freed1')
+      const { error: admitErr } = await owner.rpc('admit_student_enrollment', {
+        p_student_id: leaver,
+        p_class_offering_id: offeringB,
+        p_roll_number: 3,
+        p_note: null,
+      })
+      if (admitErr) throw new Error(admitErr.message)
+
+      const { error: closeErr } = await owner.rpc('close_student_enrollment', {
+        p_student_id: leaver,
+        p_note: 'left',
+      })
+      if (closeErr) throw new Error(closeErr.message)
+
+      const arrival = await newStudent('Freed2')
+      const { error } = await owner.rpc('admit_student_enrollment', {
+        p_student_id: arrival,
+        p_class_offering_id: offeringB,
+        p_roll_number: 3,
+        p_note: null,
+      })
+      expect(error).toBeNull()
+    })
+  })
+
   // Caught by this wave's own code review: admit_student_enrollment never
   // checked the target Offering's school, unlike set_student_enrollment and
   // close_student_enrollment (both gated through staff_capacity_for_class_offering).

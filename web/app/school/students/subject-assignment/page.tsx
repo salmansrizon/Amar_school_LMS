@@ -20,7 +20,7 @@ export default async function SubjectAssignmentPage({
 
   const { class: selectedClass = '' } = await searchParams
   const { data: classes } = await supabase
-    .from('classes')
+    .from('class_offerings')
     .select('id, name, section')
     .order('created_at')
 
@@ -59,26 +59,16 @@ export default async function SubjectAssignmentPage({
 
 async function AssignmentPanel({ classId, lang }: { classId: string; lang: Lang }) {
   const { supabase } = await getSchoolContext()
-  const { data: cls } = await supabase
-    .from('classes')
-    .select('id, name, section')
-    .eq('id', classId)
-    .maybeSingle()
+  const { data: cls } = await supabase.from('class_offerings').select('id').eq('id', classId).maybeSingle()
   if (!cls) return <p className="text-sm text-alert-deep">{t('subjects.classNotFound', lang)}</p>
 
   const [{ data: subjects }, studentCountRes] = await Promise.all([
     supabase.from('subjects').select('id, name, class_id'),
-    cls.section
-      ? supabase
-          .from('students')
-          .select('id', { count: 'exact', head: true })
-          .eq('class_name', cls.name)
-          .eq('section', cls.section)
-      : supabase
-          .from('students')
-          .select('id', { count: 'exact', head: true })
-          .eq('class_name', cls.name)
-          .is('section', null),
+    supabase
+      .from('student_enrollments')
+      .select('student_id', { count: 'exact', head: true })
+      .eq('class_offering_id', classId)
+      .is('closed_at', null),
   ])
 
   const available = subjectsForClass(subjects ?? [], classId)

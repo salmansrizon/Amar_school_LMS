@@ -103,6 +103,28 @@ export function nextRollNumber(
   return maxRoll + Math.max(1, increment)
 }
 
+/** Enrollment-scoped roll numbering (map #568/#582, issue #586): the same
+ *  suggestion as nextRollNumber, keyed by class_offering_id instead of
+ *  class_name+section text — mirrors assign_enrollment_roll's own
+ *  max()+increment (0181_enrollment_roll_uniqueness.sql) so the placeholder
+ *  stays in sync with what the trigger would actually assign, same caveat as
+ *  nextRollNumber: this is a UI hint only, kept in sync by hand. */
+export interface EnrollmentRollRow {
+  class_offering_id: string
+  roll_number: number | null
+}
+
+export function nextRollNumberForOffering(
+  rolls: EnrollmentRollRow[],
+  classOfferingId: string,
+  increment: number,
+): number {
+  const maxRoll = rolls
+    .filter((r) => r.class_offering_id === classOfferingId)
+    .reduce((max, r) => (r.roll_number !== null && r.roll_number > max ? r.roll_number : max), 0)
+  return maxRoll + Math.max(1, increment)
+}
+
 /** Validates a Roll Number field's raw text: blank is a valid "don't
  *  override" signal (→ null, same as never having typed anything), anything
  *  else must be a positive whole number. The `min={1}` on the field's native

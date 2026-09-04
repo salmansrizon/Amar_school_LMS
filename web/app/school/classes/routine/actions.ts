@@ -44,7 +44,7 @@ export async function setSlot(formData: FormData): Promise<{ error?: string }> {
     const { error } = await supabase
       .from('routine_slots')
       .delete()
-      .eq('class_id', classId)
+      .eq('class_offering_id', classId)
       .eq('day_of_week', day)
       .eq('period', period)
     if (error) return { error: error.message }
@@ -54,14 +54,14 @@ export async function setSlot(formData: FormData): Promise<{ error?: string }> {
 
   const { error } = await supabase.from('routine_slots').upsert(
     {
-      class_id: classId,
+      class_offering_id: classId,
       day_of_week: day,
       period,
       subject_id: subjectId,
       teacher_id: teacherId,
       room_id: roomId,
     },
-    { onConflict: 'class_id,day_of_week,period' },
+    { onConflict: 'class_offering_id,day_of_week,period' },
   )
   if (error) return { error: conflictMessage(error.message) }
   revalidatePath(PAGE)
@@ -73,7 +73,7 @@ export async function publishRoutine(classId: string): Promise<{ error?: string 
   // class_routines has no tenancy trigger, so verify the class is the caller's
   // own (RLS-scoped read) before upserting — otherwise a foreign class UUID
   // would plant a ghost row that blocks the real school from publishing.
-  const { data: cls } = await supabase.from('classes').select('id').eq('id', classId).maybeSingle()
+  const { data: cls } = await supabase.from('class_offerings').select('id').eq('id', classId).maybeSingle()
   if (!cls) return { error: 'Class not found' }
   const { error } = await supabase
     .from('class_routines')

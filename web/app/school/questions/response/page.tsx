@@ -40,15 +40,14 @@ export default async function ResponsePerformancePage({
   const { supabase, role } = await getSchoolContext()
   const isOwner = role === 'school_owner'
 
-  const [{ data: messages }, { data: classes }, { data: employees }, { data: repliers }, { data: myEmployeeId }, summary, schoolWide] =
+  const [{ data: messages }, { data: employees }, { data: repliers }, { data: myEmployeeId }, summary, schoolWide] =
     await Promise.all([
       // Scoped by 0152: a teacher's rows are her own classes', the Owner's are
       // the school's.
       supabase
         .from('student_message_inbox')
-        .select('id, subject, created_at, replied_at, replied_by, status, class_name, section')
+        .select('id, subject, created_at, replied_at, replied_by, status, student_id')
         .limit(2000),
-      supabase.from('classes').select('name, section, class_teacher_id'),
       // employee_card, not employees: the base table needs the Employees grant
       // (0136) and a name is all we want.
       supabase.from('employee_card').select('id, full_name'),
@@ -72,7 +71,10 @@ export default async function ResponsePerformancePage({
   // An answered question is accounted to whoever replied; an unanswered one to
   // the Class Teacher of the asking student's class, because an unanswered
   // question has no replier and "who should have answered this" is the question
-  // being asked. ADR 0019.
+  // being asked. ADR 0019. Resolved via the Enrollment model (map #568/#582's
+  // Wave 3, issue #586) — students.current_enrollment_id ->
+  // student_enrollments.class_offering_id -> class_offerings.class_teacher_id —
+  // not the old class_name/section text pair.
   const teacherById = new Map((employees ?? []).map((e) => [e.id, e.full_name]))
   const employeeByProfile = new Map(
     ((repliers ?? []) as { profile_id: string; employee_id: string }[]).map((r) => [
@@ -80,9 +82,24 @@ export default async function ResponsePerformancePage({
       r.employee_id,
     ]),
   )
-  const teacherByClass = new Map(
-    (classes ?? []).map((c) => [`${c.name}|${c.section ?? ''}`, c.class_teacher_id as string | null]),
+
+  // Built from the Offering side, not by feeding this page's (up-to-2000)
+  // message list back in as an `.in(...)` filter — that produced a request URL
+  // tens of kilobytes long, which a gateway rejects outright, and attribution
+  // would silently come back empty for every row. Offerings are a handful per
+  // school and enrollments get the same bounded whole-table read the Classes
+  // and My Classes pages already use. RLS still narrows the enrollment rows to
+  // the caller's own reach, which is the same set their messages come from.
+  const [{ data: offerings }, { data: openEnrollments }] = await Promise.all([
+    supabase.from('class_offerings').select('id, class_teacher_id'),
+    supabase.from('student_enrollments').select('student_id, class_offering_id').is('closed_at', null).limit(10000),
+  ])
+  const teacherByOffering = new Map((offerings ?? []).map((o) => [o.id, o.class_teacher_id]))
+  const teacherByStudent = new Map(
+    (openEnrollments ?? []).map((e) => [e.student_id, teacherByOffering.get(e.class_offering_id) ?? null]),
   )
+
+  const teacherForStudent = (studentId: string): string | null => teacherByStudent.get(studentId) ?? null
 
   // A reply records a login. A login with no Employee record behind it is the
   // School Owner — every other actor who may reply holds a class attachment,
@@ -92,7 +109,7 @@ export default async function ResponsePerformancePage({
     profileId ? (employeeByProfile.get(profileId) ?? OWNER_BUCKET) : null
 
   const rows: MessageForStats[] = (messages ?? []).map((m) => {
-    const teacherId = teacherByClass.get(`${m.class_name}|${m.section ?? ''}`) ?? null
+    const teacherId = teacherForStudent(m.student_id)
     const repliedById = repliedBy(m.replied_by)
     return {
       id: m.id,

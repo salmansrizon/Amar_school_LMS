@@ -89,9 +89,9 @@ export default async function SchoolHome() {
       .order('start_date', { ascending: true })
       .limit(6),
     supabase.from('off_days').select('day, label').gte('day', today).order('day', { ascending: true }).limit(6),
-    supabase.from('routine_slots').select('class_id, period, subject_id').eq('day_of_week', todayDow).order('period').limit(8),
+    supabase.from('routine_slots').select('class_offering_id, period, subject_id').eq('day_of_week', todayDow).order('period').limit(8),
     supabase.from('subjects').select('id, name'),
-    supabase.from('classes').select('id, name'),
+    supabase.from('class_offerings').select('id, name'),
     supabase
       .from('daily_checklists')
       .select('ticks')
@@ -133,7 +133,7 @@ export default async function SchoolHome() {
       holidays: (upcomingHolidays ?? []).map((h) => ({ day: h.day, title: h.label || t('upcoming.holidayDefault', lang) })),
       classesToday: (todaySlots ?? []).map((s) => ({
         title: subjectName.get(s.subject_id) ?? t('upcoming.class', lang),
-        detail: [className.get(s.class_id), `${t('routine.period', lang)} ${s.period}`].filter(Boolean).join(' · '),
+        detail: [className.get(s.class_offering_id), `${t('routine.period', lang)} ${s.period}`].filter(Boolean).join(' · '),
       })),
     },
     today,
@@ -152,7 +152,7 @@ export default async function SchoolHome() {
   const myClassCount = myEmployeeId
     ? (
         await supabase
-          .from('classes')
+          .from('class_offerings')
           .select('id', { count: 'exact', head: true })
           .eq('class_teacher_id', myEmployeeId)
       ).count

@@ -19,7 +19,7 @@ export default async function SyllabusPage() {
   const { supabase } = await getSchoolContext()
 
   const [{ data: classes }, { data: syllabi }] = await Promise.all([
-    supabase.from('classes').select('id, name, section, group_department').order('created_at'),
+    supabase.from('class_offerings').select('id, name, section, group_department').order('created_at'),
     supabase.from('class_syllabi').select('class_id, file_name, uploaded_at, file_size'),
   ])
 

@@ -19,7 +19,7 @@ export default async function NewEmployeePage() {
   const { supabase } = await getSchoolContext()
 
   const { data: classes } = await supabase
-    .from('classes')
+    .from('class_offerings')
     .select('id, name, section, group_department, class_teacher_id')
     .order('created_at')
 

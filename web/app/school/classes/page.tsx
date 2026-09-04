@@ -25,21 +25,21 @@ export default async function ClassesPage({
   const lang: Lang = await currentLang()
   const { supabase } = await getSchoolContext()
 
-  const [{ data: classes }, { data: subjects }, { data: students }, { data: teachers }] =
+  const [{ data: classes }, { data: subjects }, { data: enrollments }, { data: teachers }] =
     await Promise.all([
       supabase
-        .from('classes')
+        .from('class_offerings')
         .select('id, name, section, education_level, group_department, class_teacher_id')
         .order('created_at'),
       supabase
         .from('subjects')
         .select(
-          'id, name, code, theory_marks, mcq_marks, practical_marks, paper_count, classes(name, section)',
+          'id, name, code, theory_marks, mcq_marks, practical_marks, paper_count, class_offerings(name, section)',
         )
         .order('created_at'),
       // ponytail: whole-table scan capped at 10k rows; switch to a count RPC
       // if a school ever outgrows it.
-      supabase.from('students').select('class_name, section').limit(10000),
+      supabase.from('student_enrollments').select('class_offering_id').is('closed_at', null).limit(10000),
       // Class teachers are Employees (#435). Archived staff are not offerable.
       // employee_card, not employees: 0136 gates the base table on the Employees
       // grant, and this picker belongs to Classes. A name is all it wants.
@@ -57,7 +57,7 @@ export default async function ClassesPage({
       (!query || c.name.toLowerCase().includes(query)) &&
       (!level || c.education_level === level),
   )
-  const counts = studentCounts(students ?? [])
+  const counts = studentCounts(enrollments ?? [])
   const dash = <span className="text-muted">—</span>
 
   return (
@@ -146,7 +146,7 @@ export default async function ClassesPage({
                         current={c.class_teacher_id}
                       />
                     </td>
-                    <td className={tdClass}>{countFor(counts, c.name, c.section)}</td>
+                    <td className={tdClass}>{countFor(counts, c.id)}</td>
                     <td className={tdClass}>
                       <div className="flex flex-wrap items-center gap-2">
                         <Link
@@ -167,7 +167,7 @@ export default async function ClassesPage({
                         >
                           {t('classes.subjects', lang)}
                         </Link>
-                        <DeleteButton entity="classes" id={c.id} lang={lang} />
+                        <DeleteButton entity="class_offerings" id={c.id} lang={lang} />
                       </div>
                     </td>
                   </tr>
@@ -222,7 +222,7 @@ export default async function ClassesPage({
               </thead>
               <tbody>
                 {subjects.map((s) => {
-                  const cls = s.classes as unknown as { name: string; section: string | null } | null
+                  const cls = s.class_offerings as unknown as { name: string; section: string | null } | null
                   return (
                     <tr key={s.id} className="border-b border-line">
                       <td className={`${tdClass} font-medium`}>

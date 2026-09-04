@@ -20,7 +20,7 @@ export default async function RoutinePage({
 
   const { class: selectedClass = '' } = await searchParams
   const { data: classes } = await supabase
-    .from('classes')
+    .from('class_offerings')
     .select('id, name, section, group_department')
     .order('created_at')
 
@@ -88,7 +88,7 @@ async function RoutineGrid({ classId, lang }: { classId: string; lang: Lang }) {
       supabase
         .from('routine_slots')
         .select('day_of_week, period, subject_id, teacher_id, room_id')
-        .eq('class_id', classId),
+        .eq('class_offering_id', classId),
       supabase.from('subjects').select('id, name').order('name'),
       supabase.from('employee_card').select('id, full_name').order('full_name'),
       supabase.from('rooms').select('id, name').eq('is_active', true).order('name'),

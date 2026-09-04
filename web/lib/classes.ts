@@ -1,26 +1,20 @@
-// Students are recorded with free-text class_name/section (MVP shape); the
-// class list joins on trimmed exact match to show a per-class head count.
+// Per-Class-Offering student head counts (map #568/#582, issue #586) — a
+// real join on student_enrollments.class_offering_id (closed_at is null,
+// i.e. the currently-enrolled count), not the old free-text class_name/
+// section matching (issue #26's MVP shape, superseded).
 
-type StudentRow = { class_name: string | null; section: string | null }
-
-function key(name: string, section: string | null): string {
-  return `${name.trim()}|${(section ?? '').trim()}`
+export interface EnrollmentCountRow {
+  class_offering_id: string
 }
 
-export function studentCounts(students: readonly StudentRow[]): Map<string, number> {
+export function studentCounts(enrollments: readonly EnrollmentCountRow[]): Map<string, number> {
   const counts = new Map<string, number>()
-  for (const s of students) {
-    if (!s.class_name?.trim()) continue
-    const k = key(s.class_name, s.section)
-    counts.set(k, (counts.get(k) ?? 0) + 1)
+  for (const e of enrollments) {
+    counts.set(e.class_offering_id, (counts.get(e.class_offering_id) ?? 0) + 1)
   }
   return counts
 }
 
-export function countFor(
-  counts: Map<string, number>,
-  name: string,
-  section: string | null,
-): number {
-  return counts.get(key(name, section)) ?? 0
+export function countFor(counts: Map<string, number>, classOfferingId: string): number {
+  return counts.get(classOfferingId) ?? 0
 }

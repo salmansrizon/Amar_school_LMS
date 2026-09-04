@@ -107,7 +107,7 @@ export async function createEmployee(
   const classId = String(formData.get('class_id') ?? '').trim()
   if (classId) {
     const { error: classError } = await supabase
-      .from('classes')
+      .from('class_offerings')
       .update({ class_teacher_id: employeeId })
       .eq('id', classId)
     if (classError) {

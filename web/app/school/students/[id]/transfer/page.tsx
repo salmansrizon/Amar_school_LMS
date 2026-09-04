@@ -29,13 +29,13 @@ export default async function StudentTransferPage({
     .single()
   if (!student) notFound()
 
-  const [{ data: transfers }, { data: classes }] = await Promise.all([
+  const [{ data: transfers }, { data: classOfferings }] = await Promise.all([
     supabase
       .from('student_transfers')
       .select('id, from_class, from_section, to_class, to_section, note, transferred_at')
       .eq('student_id', id)
       .order('transferred_at', { ascending: false }),
-    supabase.from('classes').select('name, section').order('created_at'),
+    supabase.from('class_offerings').select('id, name, section, group_department').order('created_at'),
   ])
 
   const locale = lang === 'bn' ? 'bn-BD' : 'en-GB'
@@ -59,13 +59,7 @@ export default async function StudentTransferPage({
       </p>
 
       <section className="mb-6 rounded-lg border border-line bg-paper p-5">
-        <TransferForm
-          lang={lang}
-          studentId={id}
-          classes={classes ?? []}
-          currentClass={student.class_name}
-          currentSection={student.section}
-        />
+        <TransferForm lang={lang} studentId={id} classOfferings={classOfferings ?? []} />
       </section>
 
       <section className="rounded-lg border border-line bg-paper p-5">
