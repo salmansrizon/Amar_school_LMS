@@ -36,7 +36,7 @@ export default async function FeesPage({
   const { supabase } = await getSchoolContext()
 
   const [{ data: classes }, { data: recentRecords }] = await Promise.all([
-    supabase.from('classes').select('id, name, section, group_department').order('created_at'),
+    supabase.from('class_offerings').select('id, name, section, group_department').order('created_at'),
     supabase
       .from('fee_collection_records')
       .select(

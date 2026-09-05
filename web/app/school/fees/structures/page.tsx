@@ -37,10 +37,10 @@ export default async function FeeStructuresPage({
   const { supabase } = await getSchoolContext()
 
   const [{ data: classes }, { data: allStructures }] = await Promise.all([
-    supabase.from('classes').select('id, name, section, group_department').order('created_at'),
+    supabase.from('class_offerings').select('id, name, section, group_department').order('created_at'),
     supabase
       .from('fee_structures')
-      .select('id, academic_year, fee_type, amount, fine_per_absent_day, class_id, classes(name, section)')
+      .select('id, academic_year, fee_type, amount, fine_per_absent_day, class_id, class_offerings(name, section)')
       .order('academic_year', { ascending: false }),
   ])
 
@@ -52,7 +52,7 @@ export default async function FeeStructuresPage({
   const query = q.trim().toLowerCase()
   const structures = query
     ? (allStructures ?? []).filter((s) =>
-        classLabel(s.classes as unknown as { name: string; section: string | null } | null)
+        classLabel(s.class_offerings as unknown as { name: string; section: string | null } | null)
           .toLowerCase()
           .includes(query),
       )
@@ -110,7 +110,7 @@ export default async function FeeStructuresPage({
             </thead>
             <tbody>
               {structures.map((s) => {
-                const cls = s.classes as unknown as { name: string; section: string | null } | null
+                const cls = s.class_offerings as unknown as { name: string; section: string | null } | null
                 return (
                   <tr key={s.id} className="border-b border-line align-top">
                     <td className={`${tdClass} font-medium`}>{classLabel(cls)}</td>
