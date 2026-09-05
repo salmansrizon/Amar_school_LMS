@@ -64,7 +64,7 @@ export default async function AdmitCardsPage({
     )
   }
 
-  const { data: cls } = await supabase.from('classes').select('name, section').eq('id', exam.class_id).maybeSingle()
+  const { data: cls } = await supabase.from('class_offerings').select('name, section').eq('id', exam.class_id).maybeSingle()
   let studentsQuery = supabase
     .from('students')
     .select('id, full_name, roll_number')

@@ -103,7 +103,7 @@ export default async function ExamAttendanceSheetPage({
       .eq('exam_id', id),
     supabase.from('rooms').select('id, name, buildings(name)'),
     exam.class_id
-      ? supabase.from('classes').select('name, section').eq('id', exam.class_id).maybeSingle()
+      ? supabase.from('class_offerings').select('name, section').eq('id', exam.class_id).maybeSingle()
       : Promise.resolve({ data: null }),
   ])
 

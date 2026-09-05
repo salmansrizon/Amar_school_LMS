@@ -59,7 +59,7 @@ export default async function MarksEntryPage({
     )
   }
 
-  const { data: cls } = await supabase.from('classes').select('name, section').eq('id', exam.class_id).maybeSingle()
+  const { data: cls } = await supabase.from('class_offerings').select('name, section').eq('id', exam.class_id).maybeSingle()
   const { data: allSubjects } = await supabase
     .from('subjects')
     .select('id, name, class_id, theory_marks, mcq_marks, practical_marks')

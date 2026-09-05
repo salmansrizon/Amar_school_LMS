@@ -31,7 +31,7 @@ export default async function ExamCombinationsPage() {
       .from('exam_combinations')
       .select('id, name, class_id, strategy, grading_scheme_id')
       .order('created_at', { ascending: false }),
-    supabase.from('classes').select('id, name, section, group_department').order('created_at'),
+    supabase.from('class_offerings').select('id, name, section, group_department').order('created_at'),
     supabase.from('grading_schemes').select('id, name').order('name'),
     supabase.from('exams').select('id, name, exam_year').order('created_at', { ascending: false }),
   ])

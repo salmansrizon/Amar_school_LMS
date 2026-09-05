@@ -74,7 +74,7 @@ export default async function AdmitCardPage({
   let cls: { name: string; section: string | null } | null = null
   let examCenter: string | null = null
   if (exam.class_id) {
-    const { data: clsRow } = await supabase.from('classes').select('name, section').eq('id', exam.class_id).maybeSingle()
+    const { data: clsRow } = await supabase.from('class_offerings').select('name, section').eq('id', exam.class_id).maybeSingle()
     cls = clsRow ?? null
   }
   if (student.roll_number !== null) {

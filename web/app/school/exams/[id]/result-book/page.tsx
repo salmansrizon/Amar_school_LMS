@@ -55,7 +55,7 @@ export default async function ResultBookPage({
 
   const classIds = [...new Set((exams ?? []).map((e) => e.class_id).filter((v): v is string => v !== null))]
   const { data: classRows } = classIds.length
-    ? await supabase.from('classes').select('id, name, section').in('id', classIds)
+    ? await supabase.from('class_offerings').select('id, name, section').in('id', classIds)
     : { data: [] as { id: string; name: string; section: string | null }[] }
   const classById = new Map((classRows ?? []).map((c) => [c.id, c]))
 

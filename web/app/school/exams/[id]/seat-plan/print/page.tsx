@@ -70,7 +70,7 @@ export default async function SeatPlanPrintPage({
         : Promise.resolve({ data: [] as { id: string; exam_id: string; room_id: string; roll_start: number; roll_end: number }[] }),
       supabase.from('rooms').select('id, name, capacity, buildings(name)'),
       supabase.from('exams').select('id, name, exam_year, class_id'),
-      supabase.from('classes').select('id, name, section'),
+      supabase.from('class_offerings').select('id, name, section'),
       supabase.from('exam_routine_entries').select('exam_id, subject_id, exam_date'),
       supabase.from('subjects').select('id, name'),
     ])

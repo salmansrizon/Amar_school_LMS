@@ -163,7 +163,7 @@ export default async function PrintAllPage({
       </main>
     )
   }
-  const { data: cls } = await supabase.from('classes').select('name, section').eq('id', exam.class_id).maybeSingle()
+  const { data: cls } = await supabase.from('class_offerings').select('name, section').eq('id', exam.class_id).maybeSingle()
   const classSection = classSectionLabel(cls?.name, cls?.section) ?? '—'
 
   // Admit cards need no grading scheme — plain roster + roll-range filter,

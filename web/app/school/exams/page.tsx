@@ -35,7 +35,7 @@ export default async function ExamsPage({
       // against an unbounded read (#546), not a paging scheme. If a school ever
       // reaches 500 exams, the filters move to the server (#550).
       .limit(500),
-    supabase.from('classes').select('id, name, section, group_department').order('created_at'),
+    supabase.from('class_offerings').select('id, name, section, group_department').order('created_at'),
   ])
 
   return (

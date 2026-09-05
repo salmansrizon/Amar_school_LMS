@@ -174,7 +174,7 @@ export async function loadExamRosterResults(
 
   if (exam.class_id) {
     const { data: clsRow } = await supabase
-      .from('classes')
+      .from('class_offerings')
       .select('name, section')
       .eq('id', exam.class_id)
       .maybeSingle()

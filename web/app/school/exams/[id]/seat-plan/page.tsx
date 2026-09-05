@@ -72,7 +72,7 @@ export default async function SeatPlanPage({
 
   let rolls: number[] = []
   if (exam.class_id) {
-    const { data: cls } = await supabase.from('classes').select('name, section').eq('id', exam.class_id).maybeSingle()
+    const { data: cls } = await supabase.from('class_offerings').select('name, section').eq('id', exam.class_id).maybeSingle()
     if (cls) {
       let query = supabase
         .from('students')
