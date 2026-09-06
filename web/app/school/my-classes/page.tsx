@@ -4,7 +4,7 @@ import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
 import { classCatalogueLabel } from '@/lib/class-catalogue'
-import { countFor, studentCounts } from '@/lib/classes'
+import { countFor, homeworkTargetsOffering, studentCounts } from '@/lib/classes'
 import { Card, PageHeader } from '@/components/ui/page'
 
 // The Class Teacher's own view (#443): the classes they are responsible for.
@@ -48,7 +48,7 @@ export default async function MyClassesPage() {
     supabase.from('student_enrollments').select('class_offering_id').is('closed_at', null).limit(10000),
     supabase
       .from('publications')
-      .select('id, title, due_at, target_class_name, target_section')
+      .select('id, title, due_at, target_type, target_class_name, target_section')
       .eq('kind', 'homework')
       .order('created_at', { ascending: false })
       .limit(200),
@@ -81,14 +81,10 @@ export default async function MyClassesPage() {
                   </span>
                 </div>
                 {(() => {
-                  // Homework aimed at this class — a class-only target (no
-                  // section) counts for every section, matching how the student
-                  // side resolves the same targeting.
-                  const mine = (tasks ?? []).filter(
-                    (task) =>
-                      task.target_class_name === c.name &&
-                      (!task.target_section || task.target_section === (c.section ?? '')),
-                  )
+                  // Homework aimed at this class: target_type='all' always
+                  // counts, and a class-only target (no section) counts for
+                  // every section — same rule Notices' own targeting uses.
+                  const mine = (tasks ?? []).filter((task) => homeworkTargetsOffering(task, c))
                   if (!mine.length) return null
                   return (
                     <ul className="mt-2 flex flex-wrap gap-2">

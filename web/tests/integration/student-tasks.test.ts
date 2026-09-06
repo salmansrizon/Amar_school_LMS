@@ -106,6 +106,35 @@ describe('Student tasks (#446)', () => {
     await student.from('student_task_completions').delete().eq('publication_id', taskId)
   })
 
+  it("task_completion_roster resolves via the Student's current Enrollment, not legacy class_name/section text (issue #587)", async () => {
+    // task_completion_roster carries its own inline copy of the targeting rule
+    // (it must resolve every Student, not just auth.uid(), so it cannot call
+    // student_matches_target()) — proven separately here so the two can't
+    // silently diverge back onto the text bridge one at a time.
+    const { data: before } = await owner
+      .from('students')
+      .select('class_name, section')
+      .eq('id', studentId)
+      .single()
+
+    try {
+      await owner.from('students').update({ class_name: 'TK1 Bogus Class', section: 'Z' }).eq('id', studentId)
+
+      const { data: roster } = await owner
+        .from('task_completion_roster')
+        .select('student_id')
+        .eq('publication_id', taskId)
+      // taskId targets "Seed Class"/"A" — the Student's real current
+      // Enrollment, unaffected by her now-wrong class_name/section text.
+      expect(roster?.some((r) => r.student_id === studentId)).toBe(true)
+    } finally {
+      await owner
+        .from('students')
+        .update({ class_name: before!.class_name, section: before!.section })
+        .eq('id', studentId)
+    }
+  })
+
   it('another school’s owner sees none of the roster', async () => {
     const ownerB = await signedIn('owner-b@test.local')
     const { data } = await ownerB

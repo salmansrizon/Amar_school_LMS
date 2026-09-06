@@ -16,6 +16,7 @@ describe('Class Teacher (#443)', () => {
   let staffProfileId: string
 
   async function cleanup() {
+    await ownerA.from('students').delete().like('full_name', 'CT1 %')
     await ownerA.from('class_offerings').delete().like('name', 'CT1 %')
     await ownerA.from('employees').delete().like('full_name', 'CT1 %')
     await ownerB.from('class_offerings').delete().like('name', 'CT1 %')
@@ -103,6 +104,50 @@ describe('Class Teacher (#443)', () => {
       .select('name, section')
       .eq('class_teacher_id', myEmployeeId)
     expect(mine).toEqual([{ name: 'CT1 Class', section: 'A' }])
+  })
+
+  it('a Class Teacher with an enrolled Student sees exactly her own roster (map #582 §0 regression)', async () => {
+    // The regression this test exists to catch (#587's own Wave 4a planning
+    // pass, tracked on map #582 since Wave 2): staff_class_capacity_for_student
+    // resolves via students -> student_enrollments on current_enrollment_id.
+    // Before Wave 6 backfilled that column, EVERY Class/Subject Teacher saw
+    // zero students, app-wide -- a capacity function pointed at the right
+    // model, but with nothing in it yet. This proves the whole chain now
+    // resolves end to end: admit a real Student into CT1 Class via the same
+    // transition primitive the app uses, then read as the linked teacher.
+    const { data: created, error: insertError } = await ownerA
+      .from('students')
+      .insert({ full_name: 'CT1 Roster Student' })
+      .select('id')
+      .single()
+    if (insertError) throw new Error(insertError.message)
+    const studentId = created!.id
+
+    const { error: admitError } = await ownerA.rpc('admit_student_enrollment', {
+      p_student_id: studentId,
+      p_class_offering_id: classId,
+      p_roll_number: null,
+      p_note: null,
+    })
+    if (admitError) throw new Error(admitError.message)
+
+    const { data: mine } = await staff.from('students').select('id, full_name').eq('id', studentId)
+    expect(mine).toHaveLength(1)
+    expect(mine![0].full_name).toBe('CT1 Roster Student')
+
+    // And the roster model itself (lib/school/roster-source.ts) resolves the
+    // same Student's class via her current Enrollment, not a legacy text
+    // bridge she never had a students.class_name for in the first place
+    // (admit_student_enrollment never sets it).
+    const { data: enrolled } = await staff
+      .from('students')
+      .select('id, current_enrollment_id, student_enrollments!students_current_enrollment_id_fkey(class_offering_id)')
+      .eq('id', studentId)
+      .single()
+    expect(enrolled?.current_enrollment_id).not.toBeNull()
+    const embed = enrolled!.student_enrollments as unknown as { class_offering_id: string }[] | { class_offering_id: string }
+    const offeringId = Array.isArray(embed) ? embed[0]?.class_offering_id : embed?.class_offering_id
+    expect(offeringId).toBe(classId)
   })
 
   it('clears the class teacher rather than deleting the class when the Employee goes', async () => {

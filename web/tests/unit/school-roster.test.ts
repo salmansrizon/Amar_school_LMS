@@ -17,6 +17,7 @@ const student = (over: Partial<RosterStudent> & { id: string; full_name: string 
   class_name: 'Six',
   section: 'A',
   guardian_name: null,
+  class_offering_id: 'off-six-a',
   ...over,
 })
 
@@ -49,36 +50,38 @@ describe('rosterFor', () => {
     student({ id: 'c', full_name: 'Chameli', roll_number: 2 }),
     student({ id: 'a', full_name: 'Ayesha', roll_number: null }),
     student({ id: 'b', full_name: 'Babul', roll_number: 1 }),
-    student({ id: 'd', full_name: 'Delwar', roll_number: 1, class_name: 'Seven' }),
+    student({ id: 'd', full_name: 'Delwar', roll_number: 1, class_name: 'Seven', class_offering_id: 'off-seven-a' }),
   ]
 
   it('reads like a register: by roll, then the un-rolled by name', () => {
     // b and d both hold roll 1 — legal, because a roll is unique within a class
     // and these are two classes. The sort is stable, so they keep their input
     // order rather than swapping between renders.
-    expect(rosterFor(roster, '', '').map((s) => s.id)).toEqual(['b', 'd', 'c', 'a'])
+    expect(rosterFor(roster, '').map((s) => s.id)).toEqual(['b', 'd', 'c', 'a'])
   })
 
-  it('narrows to one class and section', () => {
-    expect(rosterFor(roster, 'Seven', 'A').map((s) => s.id)).toEqual(['d'])
+  it('narrows to one Class Offering', () => {
+    expect(rosterFor(roster, 'off-seven-a').map((s) => s.id)).toEqual(['d'])
   })
 
   it('an empty class filter means the whole readable roster, not none', () => {
-    expect(rosterFor(roster, '', '')).toHaveLength(4)
+    expect(rosterFor(roster, '')).toHaveLength(4)
   })
 
-  it('a student with no class at all still appears in the unfiltered roster', () => {
-    // Ported with the function: 33 students on the shared project carry a null
-    // class_name, and dropping them from "All classes" would hide real children.
-    const unplaced = student({ id: 'e', full_name: 'Nusrat', class_name: null, section: null })
-    expect(rosterFor([...roster, unplaced], '', '').map((s) => s.id)).toEqual(['b', 'd', 'c', 'a', 'e'])
-    // Ayesha has a class but no roll, so she sorts last inside it.
-    expect(rosterFor([...roster, unplaced], 'Six', 'A').map((s) => s.id)).toEqual(['b', 'c', 'a'])
+  it('a student with no current Enrollment at all still appears in the unfiltered roster', () => {
+    // Ported with the function: 33 students on the shared project carry no
+    // current_enrollment_id, and dropping them from "All classes" would hide
+    // real children.
+    const unplaced = student({ id: 'e', full_name: 'Nusrat', class_name: null, section: null, class_offering_id: null })
+    expect(rosterFor([...roster, unplaced], '').map((s) => s.id)).toEqual(['b', 'd', 'c', 'a', 'e'])
+    // Ayesha has a class but no roll, so she sorts last inside it. Unplaced
+    // Nusrat never matches a specific Offering filter.
+    expect(rosterFor([...roster, unplaced], 'off-six-a').map((s) => s.id)).toEqual(['b', 'c', 'a'])
   })
 
   it('does not mutate its input', () => {
     const before = roster.map((s) => s.id)
-    rosterFor(roster, '', '')
+    rosterFor(roster, '')
     expect(roster.map((s) => s.id)).toEqual(before)
   })
 })

@@ -149,6 +149,16 @@ describe('Question and correction scope (#508, ADR 0018)', () => {
     await superAdmin.from('student_profile_change_requests').delete().like('note', `${P}%`)
     await owner.from('subjects').delete().like('name', `${P}%`)
     await owner.from('publications').delete().like('title', `${P}%`)
+    // linkEmployeeToLogin (beforeAll) points SEED_SUBJECT_EMPLOYEE's profile_id
+    // at subject-teacher@test.local so THIS file's own capacity checks can sign
+    // in as it — but the seed ships this employee with no login on purpose (it
+    // exists to test the no-login case elsewhere), and other suites
+    // (class-attachment-scope.test.ts) sign in as this same shared login
+    // expecting NO employees row at all (app_current_school_id() null -> scope
+    // 'none'). Leaving the link in place after this file finishes silently and
+    // permanently turned that into 'attached' on the shared live DB — found by
+    // #587's own regression run, not a flake, a real missing reset.
+    await owner.from('employees').update({ profile_id: null }).eq('id', SEED_SUBJECT_EMPLOYEE)
   })
 
   // -------------------------------------------------------------- reading

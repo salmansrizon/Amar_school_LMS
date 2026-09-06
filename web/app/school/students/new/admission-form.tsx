@@ -11,7 +11,6 @@ import {
   classNamesFor,
   nextRollNumber,
   nextRollNumberForOffering,
-  type ClassNameSectionRow,
   type RollRow,
   type EnrollmentRollRow,
 } from '@/lib/students'
@@ -66,8 +65,13 @@ export function ProfileFields({
   suggestRoll = false,
 }: {
   lang: Lang
-  /** Edit mode: the legacy text-based class/section cascade. */
-  classes?: ClassNameSectionRow[]
+  /** Edit mode: the legacy text-based class/section cascade — same
+   *  Class Catalogue rows as `classOfferings`, just submitted as a
+   *  class_name/section text pair instead of an id (map #568/#582, Wave 4a
+   *  Part B: classNamesFor/sectionsForClass now derive from
+   *  classCatalogueOptions() too, so both modes read the one canonical
+   *  source). */
+  classes?: ClassCatalogueRow[]
   /** Admission mode: the id-based Class Offering picker. */
   classOfferings?: ClassCatalogueRow[]
   defaults?: Record<string, string | boolean | number | null>
@@ -90,11 +94,15 @@ export function ProfileFields({
     () => (classOfferings ? classCatalogueOptions(classOfferings) : []),
     [classOfferings],
   )
-  const classNames = classNamesFor(classes ?? [])
+  // Edit mode's own catalogue options, computed once and shared by both
+  // classNamesFor and sectionsForClass below — not two independent
+  // class_offerings-shaped derivations.
+  const classCatalogue = useMemo(() => (classes ? classCatalogueOptions(classes) : []), [classes])
+  const classNames = classNamesFor(classCatalogue)
   const [className, setClassName] = useState(d('class_name'))
   const [section, setSection] = useState(d('section'))
   const [classOfferingId, setClassOfferingId] = useState('')
-  const sections = useMemo(() => sectionsForClass(classes ?? [], className), [classes, className])
+  const sections = useMemo(() => sectionsForClass(classCatalogue, className), [classCatalogue, className])
   // Only className is required — an empty section is itself a valid scope
   // (a class with no sections at all, e.g. most Primary classes per
   // docs/012): nextRollNumber and assign_student_roll both treat "no

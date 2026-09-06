@@ -1,4 +1,3 @@
-import { classCatalogueOptions, resolveClassCatalogueSelection, type ClassCatalogueOption, type ClassCatalogueRow } from '@/lib/class-catalogue'
 import type { ClassScope } from '@/lib/school/class-scope'
 
 // The School-side roster, as a model rather than as a query repeated on every
@@ -15,7 +14,16 @@ import type { ClassScope } from '@/lib/school/class-scope'
 // This file is the model. `roster-source.ts` is the adapter that fills it from
 // Supabase. A page renders what comes back and decides nothing.
 
-/** One student, as every roster screen needs them. */
+/** One student, as every roster screen needs them.
+ *
+ *  `roll_number`/`class_name`/`section`/`class_offering_id` come from the
+ *  Student's CURRENT Enrollment (map #568/#582, Wave 4a Part B) — null for a
+ *  Student with no current placement (`current_enrollment_id is null`),
+ *  which is a valid, visible state (#569), not an error. This replaced the
+ *  legacy `students.class_name`/`section` text bridge, which only ever
+ *  agreed with the Enrollment by construction (kept in sync by
+ *  admit/transfer/promote) and could drift via `updateStudent`'s
+ *  deliberately-unsynced profile-edit path (#587's own carry-forward note). */
 export interface RosterStudent {
   id: string
   full_name: string
@@ -23,6 +31,9 @@ export interface RosterStudent {
   class_name: string | null
   section: string | null
   guardian_name: string | null
+  /** The Offering this Student's current Enrollment points at, or null when
+   *  unplaced. What `rosterFor` actually filters on — never the text pair. */
+  class_offering_id: string | null
 }
 
 /**
@@ -51,11 +62,15 @@ export function rosterEmptyReason(args: {
   return args.scope === 'none' ? 'unassigned' : 'no-students'
 }
 
-/** Filter to a class/section and order the way a register is read: by roll,
- *  then by name for the students who have no roll yet. */
-export function rosterFor(students: readonly RosterStudent[], className: string, section: string): RosterStudent[] {
+/** Filter to one Class Offering (by id — empty means "All classes") and order
+ *  the way a register is read: by roll, then by name for the students who
+ *  have no roll yet. An unplaced Student (`class_offering_id` null) never
+ *  matches a specific filter, but always appears under "All classes" —
+ *  the same contract the old text filter had, just keyed on the Offering id
+ *  instead of a `class_name`/`section` pair. */
+export function rosterFor(students: readonly RosterStudent[], classOfferingId: string): RosterStudent[] {
   return students
-    .filter((s) => (!className || s.class_name === className) && (!section || s.section === section))
+    .filter((s) => !classOfferingId || s.class_offering_id === classOfferingId)
     .toSorted((a, b) => {
       if (a.roll_number != null && b.roll_number != null) return a.roll_number - b.roll_number
       if (a.roll_number != null) return -1
@@ -75,15 +90,10 @@ export function searchRoster(students: readonly RosterStudent[], q: string): Ros
   )
 }
 
-/** The class picker plus the decoded selection behind it. */
-export function classSelection(classes: readonly ClassCatalogueRow[], classSectionId: string): {
-  combos: ClassCatalogueOption[]
-  className: string
-  section: string
-} {
-  const combos = classCatalogueOptions(classes as ClassCatalogueRow[])
-  return { combos, ...resolveClassCatalogueSelection(combos, classSectionId) }
-}
+// The class picker plus the decoded selection behind it used to be duplicated
+// here as `classSelection` — byte-for-byte identical to `resolveClassSection`
+// in `class-catalogue.ts`. `roster-source.ts` now calls that one directly
+// (map #568/#582, Wave 4a Part B): one canonical helper, not two.
 
 // ---------------------------------------------------------------- register
 

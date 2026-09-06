@@ -1,9 +1,9 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import type { ClassCatalogueOption, ClassCatalogueRow } from '@/lib/class-catalogue'
+import { resolveClassSection, type ClassCatalogueOption, type ClassCatalogueRow } from '@/lib/class-catalogue'
+import { firstRelation } from '@/lib/supabase/relation'
 import { classScopeFor } from '@/lib/school/class-scope'
 import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
 import {
-  classSelection,
   latestMark,
   markedByOf,
   registerRows,
@@ -27,8 +27,49 @@ import {
 
 /** The select list every roster screen shares. Archived students are excluded
  *  by every caller: a student who has left is not on a register, not in a fee
- *  roster, and not in the list an Owner manages. */
-const ROSTER_COLUMNS = 'id, full_name, roll_number, class_name, section, guardian_name'
+ *  roster, and not in the list an Owner manages.
+ *
+ *  `roll_number`/`class_offering_id` (and its `name`/`section`) come from the
+ *  Student's CURRENT Enrollment, not the legacy `students.class_name`/
+ *  `section`/`roll_number` bridge (map #568/#582, Wave 4a Part B — blocked on
+ *  Wave 6's backfill, which has now landed, #591). A left embed, not `!inner`:
+ *  an unplaced Student (`current_enrollment_id is null`) must still come back
+ *  with a null `student_enrollments`, not be dropped — the same "all Students
+ *  visible under All classes" contract the text bridge always had (#569's "no
+ *  current Enrollment is a valid state"). `current_enrollment_id` can only
+ *  ever point at an OPEN Enrollment by construction (`set_student_enrollment`
+ *  closes the old one and repoints it atomically in the same transaction), so
+ *  there is no separate `closed_at` to filter here. */
+const ROSTER_COLUMNS = `id, full_name, guardian_name,
+  student_enrollments!students_current_enrollment_id_fkey(roll_number, class_offering_id,
+    class_offerings(name, section))`
+
+interface EnrollmentEmbed {
+  roll_number: number | null
+  class_offering_id: string | null
+  class_offerings: { name: string; section: string | null }[]
+}
+
+interface StudentRow {
+  id: string
+  full_name: string
+  guardian_name: string | null
+  student_enrollments: EnrollmentEmbed[]
+}
+
+function toRosterStudent(row: StudentRow): RosterStudent {
+  const enrollment = firstRelation(row.student_enrollments)
+  const offering = enrollment ? firstRelation(enrollment.class_offerings) : null
+  return {
+    id: row.id,
+    full_name: row.full_name,
+    guardian_name: row.guardian_name,
+    roll_number: enrollment?.roll_number ?? null,
+    class_offering_id: enrollment?.class_offering_id ?? null,
+    class_name: offering?.name ?? null,
+    section: offering?.section ?? null,
+  }
+}
 
 export interface RosterView {
   combos: ClassCatalogueOption[]
@@ -60,12 +101,10 @@ export async function schoolRoster(
   }: { classSection?: string; q?: string; shiftSelection?: readonly string[] } = {},
 ): Promise<RosterView> {
   // Shift (issue #579, Wave 5/#590): only narrows which classes appear as
-  // picker OPTIONS below — the roster itself still resolves via
-  // rosterFor's class_name/section text match (see the comment on that
-  // just below), entirely independent of this list, so filtering it here
-  // is safe on its own even though the roster match beside it is not yet
-  // enrollment-based. Caller passes its own getSchoolContext().shiftSelection
-  // — already resolved once per request, no re-fetch needed here.
+  // picker OPTIONS below — orthogonal to the roster's own filter, which is
+  // now the Enrollment's class_offering_id (see ROSTER_COLUMNS). Caller
+  // passes its own getSchoolContext().shiftSelection — already resolved once
+  // per request, no re-fetch needed here.
   const [{ data: students }, { data: classes }] = await Promise.all([
     supabase.from('students').select(ROSTER_COLUMNS).is('archived_at', null).order('full_name'),
     applyGlobalShiftFilterToOfferings(
@@ -74,17 +113,21 @@ export async function schoolRoster(
     ),
   ])
 
-  const readable = (students ?? []) as RosterStudent[]
-  // Still narrowed by class_name/section text, deliberately (map #568/#582,
-  // Wave 4a): the offering id the picker submits is resolved back down to a
-  // text pair here rather than used as a join key. Moving this onto
-  // student_enrollments.class_offering_id is Wave 4a's "Part B" and is blocked
-  // on Wave 6's backfill — every pre-existing Student has a null
-  // current_enrollment_id, so an enrollment join today returns zero rows for
-  // Owners and office staff, who are the only roles this path still works for.
-  // Not an oversight; do not "fix" it before the backfill lands.
-  const { combos, className, section } = classSelection((classes ?? []) as ClassCatalogueRow[], classSection)
-  const matched = searchRoster(rosterFor(readable, className, section), q)
+  const readable = ((students ?? []) as StudentRow[]).map(toRosterStudent)
+  // classSection IS the picked Class Offering's id already (classCatalogueOptions'
+  // own `value`) — rosterFor filters on it directly, no text round-trip.
+  // combos/className/section stay purely for display (picker options, print
+  // headings) via the one canonical helper (class-catalogue.ts), not a second
+  // one duplicating it (map #568/#582, Wave 4a Part B).
+  const { combos, className, section } = resolveClassSection((classes ?? []) as ClassCatalogueRow[], classSection)
+  // An id that doesn't match any current Offering (deleted, mistyped, a stale
+  // bookmark/printout) must degrade to "All classes", same as an absent
+  // filter — resolveClassCatalogueSelection's own documented contract, which
+  // filtering on the raw classSection directly would silently break (caught
+  // by code review): a non-matching id would filter to zero students instead
+  // of falling back, even though the picker still reads as "All" selected.
+  const resolvedOfferingId = combos.some((c) => c.value === classSection) ? classSection : ''
+  const matched = searchRoster(rosterFor(readable, resolvedOfferingId), q)
 
   // 0160 narrows this read to the caller's class attachment, so an Employee with
   // no attachment gets nothing back. Ask why only when the answer matters — the

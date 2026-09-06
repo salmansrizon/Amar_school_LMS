@@ -26,6 +26,7 @@ describe('Class attachment narrows a Grant (#525, migration 0160)', () => {
   async function cleanup() {
     await owner.from('students').delete().like('full_name', `${TAG} %`)
     await owner.from('class_offerings').delete().like('name', `${TAG}%`)
+    await owner.from('employees').delete().like('full_name', `${TAG} %`)
   }
 
   beforeAll(async () => {
@@ -42,6 +43,29 @@ describe('Class attachment narrows a Grant (#525, migration 0160)', () => {
       .eq('profile_id', teacherProfile)
       .is('archived_at', null)
       .single()
+
+    // A dedicated, genuinely zero-attachment Employee for `unattached`, not
+    // whatever happens to already hold subject-teacher@test.local's profile:
+    // that login is shared with other suites (student-message-scope.test.ts
+    // links it to the seed's own Subject Teacher, who legitimately IS attached
+    // to Seed Class A's routine — real, permanent seed data, not a fixture
+    // leak). This test needs an employee attached to NEITHER of its own
+    // classes NOR anywhere else, so it creates and owns one, rather than
+    // depending on which OTHER suite last touched this shared login (a real
+    // cross-file fragility this exact assertion was silently depending on).
+    // Defensive, not redundant with `cleanup()` above (which only deletes BY
+    // NAME): app_current_employee_id() has no LIMIT 1/ORDER BY, so if ANY
+    // other employees row were left holding this same shared login's profile
+    // — a crashed prior run of this file, or another suite's own link — it
+    // would silently coexist with the one below instead of erring loudly.
+    // Clearing every holder of this profile first makes the insert
+    // idempotent regardless of what an earlier interrupted run left behind.
+    const unattachedProfile = (await unattached.auth.getUser()).data.user!.id
+    await owner.from('employees').update({ profile_id: null }).eq('profile_id', unattachedProfile)
+    const { error: unattachedEmpErr } = await owner
+      .from('employees')
+      .insert({ full_name: `${TAG} Unattached`, profile_id: unattachedProfile })
+    if (unattachedEmpErr) throw new Error(unattachedEmpErr.message)
 
     // A is hers; B is not. Same school, so only the attachment separates them.
     const { data: offerings, error: classErr } = await owner

@@ -4,9 +4,8 @@ import { notFound } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
-import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
 import { dateRangeDays, studentLogDayStatus, type OffDay, type StudentLogDayStatus } from '@/lib/attendance-manual'
-import { classCatalogueOptions, findClassCatalogueId } from '@/lib/class-catalogue'
+import { firstRelation } from '@/lib/supabase/relation'
 import { dateInputClass } from '@/components/ui/field'
 import { PrintPage, InstituteHeader, PaginatedSheet, Badge } from '@/components/print/pieces'
 import { PrintButton } from '@/components/print/print-button'
@@ -57,12 +56,11 @@ export default async function StudentLogDetailPage({
   searchParams,
 }: {
   params: Promise<{ studentId: string }>
-  searchParams: Promise<{ class?: string; section?: string; view?: string; month?: string; from?: string; to?: string }>
+  searchParams: Promise<{ classSection?: string; view?: string; month?: string; from?: string; to?: string }>
 }) {
   const { studentId } = await params
   const {
-    class: className = '',
-    section = '',
+    classSection = '',
     view: viewParam,
     month: monthParam = currentMonthParam(),
     from: fromParam = '',
@@ -70,18 +68,32 @@ export default async function StudentLogDetailPage({
   } = await searchParams
   const view: ViewMode = viewParam === 'today' || viewParam === 'custom' ? viewParam : 'month'
   const lang: Lang = await currentLang()
-  const { supabase, shiftSelection } = await getSchoolContext()
+  const { supabase } = await getSchoolContext()
 
-  const [{ data: student }, institute, { data: classes }] = await Promise.all([
-    supabase.from('students').select('id, full_name, class_name, section, roll_number').eq('id', studentId).maybeSingle(),
+  const [{ data: studentRow }, institute] = await Promise.all([
+    supabase
+      .from('students')
+      .select(
+        'id, full_name, student_enrollments!students_current_enrollment_id_fkey(roll_number, class_offerings(name, section))',
+      )
+      .eq('id', studentId)
+      .maybeSingle(),
     loadInstitutePrintHeader(supabase, lang),
-    applyGlobalShiftFilterToOfferings(
-      supabase.from('class_offerings').select('id, name, section, group_department, shift').order('created_at'),
-      shiftSelection,
-    ),
   ])
-  if (!student) notFound()
-  const classCombos = classCatalogueOptions(classes ?? [])
+  if (!studentRow) notFound()
+  // Same current-Enrollment source the finder list (schoolRoster) reads —
+  // caught by code review: this page used to read the legacy students.
+  // class_name/section/roll_number columns directly while its sibling finder
+  // already moved onto the Enrollment, a real divergence risk via
+  // updateStudent's deliberately-unsynced profile-edit path.
+  const enrollment = firstRelation(studentRow.student_enrollments)
+  const offering = enrollment ? firstRelation(enrollment.class_offerings) : null
+  const student = {
+    full_name: studentRow.full_name,
+    roll_number: enrollment?.roll_number ?? null,
+    class_name: offering?.name ?? null,
+    section: offering?.section ?? null,
+  }
 
   const today = todayIso()
   const [yearStr, monthStr] = monthParam.split('-')
@@ -148,19 +160,15 @@ export default async function StudentLogDetailPage({
     .filter((row): row is { iso: string; status: StudentLogDayStatus } => row.status !== null)
     .reverse() // newest first
 
-  const backHref = (() => {
-    // The finder reads one Class Catalogue id via its `classSection` param
-    // (map #421); this page keeps its own `class`/`section` text params for
-    // its month/custom-range forms below, so the two are translated only at
-    // this one boundary.
-    const id = findClassCatalogueId(classCombos, className, section)
-    return `/school/attendance/student-log${id ? `?classSection=${encodeURIComponent(id)}` : ''}`
-  })()
+  // classSection now carries the finder's own Class Catalogue id straight
+  // through (map #568/#582, Wave 4a Part B) — no more decoding it into a
+  // class/section text pair just to re-encode it, and no class_offerings
+  // fetch on this page just to run that round-trip.
+  const backHref = `/school/attendance/student-log${classSection ? `?classSection=${encodeURIComponent(classSection)}` : ''}`
 
   const modeHref = (mode: ViewMode) => {
     const p = new URLSearchParams()
-    if (className) p.set('class', className)
-    if (section) p.set('section', section)
+    if (classSection) p.set('classSection', classSection)
     p.set('view', mode)
     return `/school/attendance/student-log/${studentId}?${p.toString()}`
   }
@@ -203,8 +211,7 @@ export default async function StudentLogDetailPage({
         <div className="flex flex-wrap items-center gap-2">
           {view === 'month' && (
             <Form action={`/school/attendance/student-log/${studentId}`} className="flex items-center gap-2">
-              <input type="hidden" name="class" value={className} />
-              <input type="hidden" name="section" value={section} />
+              <input type="hidden" name="classSection" value={classSection} />
               <input type="hidden" name="view" value="month" />
               <input type="month" name="month" defaultValue={monthParam} className={dateInputClass()} />
               <button type="submit" className="cursor-pointer rounded-full border border-line px-3 py-1 text-xs font-semibold hover:bg-paper-muted">
@@ -215,8 +222,7 @@ export default async function StudentLogDetailPage({
 
           {view === 'custom' && (
             <Form action={`/school/attendance/student-log/${studentId}`} className="flex flex-wrap items-center gap-2">
-              <input type="hidden" name="class" value={className} />
-              <input type="hidden" name="section" value={section} />
+              <input type="hidden" name="classSection" value={classSection} />
               <input type="hidden" name="view" value="custom" />
               <input type="date" name="from" defaultValue={fromParam} max={today} className={dateInputClass()} />
               <span className="text-sm text-muted">–</span>

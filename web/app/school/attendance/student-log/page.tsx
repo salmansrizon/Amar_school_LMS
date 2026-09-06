@@ -26,20 +26,17 @@ export default async function StudentLogPage({
   const { supabase, shiftSelection } = await getSchoolContext()
 
   // The roster model owns the fetch, the class filter and the register sort.
-  // This page used to rebuild class_name/section from a second Map because the
-  // old helper dropped them from its return shape; `rosterFor` keeps the row.
-  const { combos, className, section, students: visible } = await schoolRoster(supabase, {
+  const { combos, students: visible } = await schoolRoster(supabase, {
     classSection,
     shiftSelection,
   })
 
-  const viewLogHref = (studentId: string) => {
-    const params = new URLSearchParams()
-    if (className) params.set('class', className)
-    if (section) params.set('section', section)
-    const query = params.toString()
-    return `/school/attendance/student-log/${studentId}${query ? `?${query}` : ''}`
-  }
+  // Forwards the already-picked Class Offering id straight through (map
+  // #568/#582, Wave 4a Part B) — no more encode/decode round-trip through a
+  // class/section text pair, and the detail page no longer needs its own
+  // class_offerings fetch just to rebuild this id via findClassCatalogueId.
+  const viewLogHref = (studentId: string) =>
+    `/school/attendance/student-log/${studentId}${classSection ? `?classSection=${encodeURIComponent(classSection)}` : ''}`
 
   return (
     <div>

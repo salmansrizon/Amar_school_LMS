@@ -6,7 +6,7 @@ import { t, type Lang } from '@/lib/i18n'
 import { ProfileFields, uploadStudentPhoto } from '../new/admission-form'
 import { archiveStudent, restoreStudent, updateStudent } from '../actions'
 import { ConfirmDialog } from '@/components/confirm-dialog'
-import type { ClassNameSectionRow } from '@/lib/students'
+import type { ClassCatalogueRow } from '@/lib/class-catalogue'
 
 // 44px on a phone, the compact pill on a pointer device (#540). These two are
 // the Upload Photo / Replace Photo and Archive / Restore controls the UAT pass
@@ -26,7 +26,7 @@ export function ProfileEditor({
 }: {
   lang: Lang
   student: Record<string, string | boolean | number | null> & { id: string; full_name: string }
-  classes: ClassNameSectionRow[]
+  classes: ClassCatalogueRow[]
   children: React.ReactNode // read-mode profile sections (server-rendered)
 }) {
   const router = useRouter()

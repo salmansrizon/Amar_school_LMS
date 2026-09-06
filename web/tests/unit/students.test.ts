@@ -10,6 +10,7 @@ import {
   classNamesFor,
   subjectsForClass,
   nextRollNumber,
+  nextRollNumberForOffering,
   parseRollNumber,
   rollScopeChanged,
   friendlyStudentError,
@@ -17,7 +18,9 @@ import {
   type StudentListRow,
   type SubjectOption,
   type RollRow,
+  type EnrollmentRollRow,
 } from '@/lib/students'
+import { classCatalogueOptions } from '@/lib/class-catalogue'
 
 const row = (over: Partial<StudentListRow> = {}): StudentListRow => ({
   id: 'x',
@@ -88,36 +91,65 @@ describe('behaviourAverages', () => {
   })
 })
 
+// Both derive from classCatalogueOptions()'s own output now (map #568/#582,
+// Wave 4a Part B) — a plain row needs an `id` to become an option at all, so
+// fixtures here are shaped like class_offerings rows, not the bare
+// {name, section} pairs these two used to accept directly.
 describe('sectionsForClass', () => {
-  const classes = [
-    { name: 'Class 8', section: 'A' },
-    { name: 'Class 8', section: 'B' },
-    { name: 'Class 9', section: 'A' },
-    { name: 'Class 9', section: null },
-  ]
+  const options = classCatalogueOptions([
+    { id: '1', name: 'Class 8', section: 'A' },
+    { id: '2', name: 'Class 8', section: 'B' },
+    { id: '3', name: 'Class 9', section: 'A' },
+    { id: '4', name: 'Class 9', section: null },
+  ])
 
   it('lists only the selected class’s sections, deduped', () => {
-    expect(sectionsForClass(classes, 'Class 8')).toEqual(['A', 'B'])
-    expect(sectionsForClass(classes, 'Class 9')).toEqual(['A'])
+    expect(sectionsForClass(options, 'Class 8')).toEqual(['A', 'B'])
+    expect(sectionsForClass(options, 'Class 9')).toEqual(['A'])
   })
 
   it('lists all sections when no class is chosen', () => {
-    expect(sectionsForClass(classes, '')).toEqual(['A', 'B'])
+    expect(sectionsForClass(options, '')).toEqual(['A', 'B'])
   })
 })
 
 describe('classNamesFor', () => {
-  it('lists distinct class names, first-occurrence order preserved', () => {
-    const classes = [
-      { name: 'Class 8', section: 'A' },
-      { name: 'Class 8', section: 'B' },
-      { name: 'Class 9', section: 'A' },
-    ]
-    expect(classNamesFor(classes)).toEqual(['Class 8', 'Class 9'])
+  it('lists distinct class names, catalogue (alphabetical) order', () => {
+    const options = classCatalogueOptions([
+      { id: '1', name: 'Class 8', section: 'A' },
+      { id: '2', name: 'Class 8', section: 'B' },
+      { id: '3', name: 'Class 9', section: 'A' },
+    ])
+    expect(classNamesFor(options)).toEqual(['Class 8', 'Class 9'])
   })
 
   it('returns nothing for an empty catalogue', () => {
     expect(classNamesFor([])).toEqual([])
+  })
+})
+
+describe('nextRollNumberForOffering', () => {
+  const rolls: EnrollmentRollRow[] = [
+    { class_offering_id: 'off-a', roll_number: 5 },
+    { class_offering_id: 'off-a', roll_number: 3 },
+    { class_offering_id: 'off-b', roll_number: 1 },
+  ]
+
+  it('is the highest roll in the Offering plus the increment', () => {
+    expect(nextRollNumberForOffering(rolls, 'off-a', 1)).toBe(6)
+  })
+
+  it('does not let a different Offering leak into the count', () => {
+    expect(nextRollNumberForOffering(rolls, 'off-b', 1)).toBe(2)
+  })
+
+  it('starts a fresh Offering at the increment', () => {
+    expect(nextRollNumberForOffering(rolls, 'off-c', 1)).toBe(1)
+    expect(nextRollNumberForOffering(rolls, 'off-c', 2)).toBe(2)
+  })
+
+  it('floors the increment at 1', () => {
+    expect(nextRollNumberForOffering(rolls, 'off-c', 0)).toBe(1)
   })
 })
 

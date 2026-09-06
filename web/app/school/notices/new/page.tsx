@@ -6,6 +6,7 @@ import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
 import { NoticeTabs } from '../notice-tabs'
 import { CreateNoticeForm } from './create-form'
 import { classNamesFor, sectionsForClass } from '@/lib/students'
+import { classCatalogueOptions } from '@/lib/class-catalogue'
 
 // Layout per ui/school-owner/notice-create.html: Type/Importance/Title, a
 // Target Audience selector that reveals Class/Section pickers when
@@ -16,12 +17,15 @@ export default async function CreateNoticePage() {
 
   const [{ data: classes }] = await Promise.all([
     applyGlobalShiftFilterToOfferings(
-      supabase.from('class_offerings').select('name, section').order('name'),
+      supabase.from('class_offerings').select('id, name, section').order('name'),
       shiftSelection,
     ),
   ])
-  const classNames = classNamesFor(classes ?? [])
-  const sections = sectionsForClass(classes ?? [], '')
+  // One catalogue derivation, shared by both — not two independent
+  // class_offerings-shaped queries (map #568/#582, Wave 4a Part B).
+  const catalogue = classCatalogueOptions(classes ?? [])
+  const classNames = classNamesFor(catalogue)
+  const sections = sectionsForClass(catalogue, '')
 
   return (
     <div>

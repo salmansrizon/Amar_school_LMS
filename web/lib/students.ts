@@ -2,6 +2,7 @@
 // subject assignment and behaviour SMS bits, kept pure for unit testing.
 
 import { pgConstraintMessage } from '@/lib/crud/pg-error'
+import type { ClassCatalogueOption } from '@/lib/class-catalogue'
 
 export interface StudentListRow {
   id: string
@@ -56,22 +57,28 @@ export function behaviourAverages(
   return out
 }
 
-/** Sections that exist for the selected class (all sections when unset). */
-export interface ClassNameSectionRow {
-  name: string
-  section: string | null
+/** Sections that exist for the selected class (all sections when unset).
+ *
+ *  Derived from `classCatalogueOptions()`'s own output (map #568/#582, Wave
+ *  4a Part B) — one source, not a second independent `class_offerings`
+ *  query duplicating the picker's own. A sectionless Offering's `section` is
+ *  `''` in an option (class-catalogue.ts's own convention); `.filter(Boolean)`
+ *  drops those here deliberately — a class with no sections at all has
+ *  nothing to list in a Section dropdown, same as before. */
+export function sectionsForClass(options: ClassCatalogueOption[], className: string): string[] {
+  const pool = className ? options.filter((o) => o.className === className) : options
+  return [...new Set(pool.map((o) => o.section).filter(Boolean))]
 }
 
-export function sectionsForClass(classes: ClassNameSectionRow[], className: string): string[] {
-  const pool = className ? classes.filter((c) => c.name === className) : classes
-  return [...new Set(pool.map((c) => c.section).filter(Boolean))] as string[]
-}
-
-/** Distinct class names from a Class Catalogue fetch, first-occurrence order
- *  preserved — the class-name half of Admission/Transfer's class-then-section
- *  cascade; sectionsForClass is the section half. */
-export function classNamesFor(classes: { name: string }[]): string[] {
-  return [...new Set(classes.map((c) => c.name))]
+/** Distinct class names from `classCatalogueOptions()`'s output — the
+ *  class-name half of Admission/Transfer's class-then-section cascade;
+ *  `sectionsForClass` is the section half. `classCatalogueOptions` sorts
+ *  (className, then section), so this now lists alphabetically rather than
+ *  in first-occurrence/fetch order — a deliberate side effect of deriving
+ *  from the one canonical source, not a second independent query, and it
+ *  now matches Admission's own Offering picker's order. */
+export function classNamesFor(options: ClassCatalogueOption[]): string[] {
+  return [...new Set(options.map((o) => o.className))]
 }
 
 /** Roll numbering (issue #503): rolls are scoped per class+section, so the

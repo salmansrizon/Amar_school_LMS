@@ -90,6 +90,66 @@ describe('Student notices (#445)', () => {
     }
   })
 
+  it('a section-only target (no class chosen) reaches every class in that section', async () => {
+    // caught by code review on #587's own targeting rewrite: a bare
+    // `co.name = p_class` (no null guard) would have silently matched nobody
+    // for this input, which validateTargetSelection and the create-form both
+    // permit (Class select's empty '—' option is not required).
+    const sectionOnly = await post({
+      title: `${P}Section only, no class`,
+      target_type: 'specific',
+      target_class_name: null,
+      target_section: 'A',
+    })
+    const { data } = await student.from('publications').select('id').eq('id', sectionOnly)
+    expect(data).toHaveLength(1)
+    await owner.from('publications').delete().eq('id', sectionOnly)
+  })
+
+  it("resolves via the Student's current Enrollment, not the legacy class_name/section text (map #568/#582, Wave 4a Part B, issue #587)", async () => {
+    // Proves the mechanism, not just a coincidence: deliberately makes the
+    // legacy text DISAGREE with the real Enrollment, in both directions, and
+    // confirms targeting follows the Enrollment either way. Restores the
+    // original text afterwards — other tests/files share this seeded Student.
+    const { data: before } = await owner
+      .from('students')
+      .select('class_name, section')
+      .eq('id', studentId)
+      .single()
+
+    try {
+      await owner.from('students').update({ class_name: 'SN1 Bogus Class', section: 'Z' }).eq('id', studentId)
+
+      // The text now says "SN1 Bogus Class / Z" — a target matching the
+      // Student's REAL current Enrollment ("Seed Class" / "A") must still reach
+      // her; the old text-bridge resolution would have missed this.
+      const stillMatches = await post({
+        title: `${P}Enrollment not text (positive)`,
+        target_type: 'specific',
+        target_class_name: 'Seed Class',
+        target_section: 'A',
+      })
+      const { data: seenReal } = await student.from('publications').select('id').eq('id', stillMatches)
+      expect(seenReal).toHaveLength(1)
+
+      // And a target matching the now-WRONG text ("SN1 Bogus Class / Z") must
+      // NOT reach her — the legacy columns are not consulted at all any more.
+      const onlyMatchesText = await post({
+        title: `${P}Enrollment not text (negative)`,
+        target_type: 'specific',
+        target_class_name: 'SN1 Bogus Class',
+        target_section: 'Z',
+      })
+      const { data: seenBogus } = await student.from('publications').select('id').eq('id', onlyMatchesText)
+      expect(seenBogus ?? []).toEqual([])
+    } finally {
+      await owner
+        .from('students')
+        .update({ class_name: before!.class_name, section: before!.section })
+        .eq('id', studentId)
+    }
+  })
+
   it('records a read receipt, and refuses to record one for anybody else', async () => {
     const mine = await student
       .from('student_publication_reads')
