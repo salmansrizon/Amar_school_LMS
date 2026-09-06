@@ -86,6 +86,6 @@ Both share one root cause: **integration suites share one live database with two
 - `attendance_records` has **no INSERT policy** for school members; the reconcile job writes it as definer, so fixtures cannot forge a row.
 - `reconcile_attendance` filters on `schools.automatic_attendance_enabled`. A suite left it `false` and broke three unrelated suites.
 - Print **themes** are admit-card only; mark sheets take `?template=1|2|3`.
-- `publications.target_shift_id` is dead (`0060` removed student Shift). Never filter on it.
+- `publications.target_shift_id` is dead (`0060` removed student Shift). Never filter on it. **Confirmed twice more since**: map #582's Wave 0 audit (#583) re-verified this via migration history (`0060` dropped the column; a later reference in `0139` is comment-only, never re-added) and a live-schema query (0 rows) — this line was right the first time.
 - Deriving which screen owns a table? **Follow `@/lib` imports transitively** — scanning only `app/` mis-assigned four tables in PR #506.
 - `absent_working_days_in_range` is the single definition of a working day, shared with the absent-fine formula and the absence-SMS rules. Never recompute it.

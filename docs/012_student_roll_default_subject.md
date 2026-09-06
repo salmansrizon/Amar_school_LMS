@@ -1,6 +1,19 @@
 Student Entry & Roll Number
 ==========================
 
+**Re-validated against the Student Enrollment model (map #568/#582, Wave 7).**
+Every requirement below still holds exactly as written — "Section" here now
+means "Class Offering" (a real id, not the class-name/section text pair this
+doc was written against), and the Roll Number itself moved from `students`
+onto `student_enrollments`, scoped to the currently-open Enrollments of one
+Class Offering rather than the whole history of one class+section text pair
+(so a Roll Number is free to be reused once its prior holder is promoted/
+transferred/left, which this doc's original text never had to consider). The
+increment/manual-override/independent-per-section behavior described below
+is unchanged; `assign_enrollment_roll` (migration 0181) implements it,
+succeeding `assign_student_roll`, which this doc originally specified
+against.
+
 The Section should be treated separately when assigning student roll numbers.
 
 For example, if Section A currently has students up to Roll 5, adding a new student to Section B should start from Roll 1, not Roll 6.

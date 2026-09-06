@@ -901,3 +901,38 @@ The decision itself is not re-issued here. Exit gate
   cost more review time than the real defects cost to fix.
 - Suspect a total before you suspect a ledger. Two of these findings are one page-level `LIMIT`
   and one mislabelled column.
+
+## Corrections annex (2026-09-07 — map #582, Wave 7)
+
+This entire report predates map [#582](https://github.com/salmansrizon/Amar_school_LMS/issues/582)
+— the Class Offering / Student Enrollment / Shift redesign (issues #569-#581). Every "class",
+"class/section", and student-placement observation above describes the pre-redesign model
+(`classes` table, `students.class_name`/`section` as the sole placement record, no Shift
+concept at all). None of it is wrong as a historical record — same rule as the first annex:
+trust the observation, not because it still describes today's screens, but because it
+accurately describes what this pass actually saw *then*.
+
+**A fresh, targeted live walkthrough (this session, real browser against the real running
+app — not vitest) exercised the redesign's own core paths directly**, since a full re-run of
+this report's ~30 scenarios was judged disproportionate to what map #582 actually changed:
+
+| Path | Result |
+|---|---|
+| Institute Shift Configuration (enable Shift, choose Morning + Day) | Pass |
+| Class Offering creation, with Shift | Pass — row shows the Shift correctly |
+| Class Offering creation, without Shift (still valid) | Pass |
+| Global Shift Selection narrowing (uncheck a Shift) and widening back | Pass |
+| Admission into a Shift-configured Class Offering | Pass — profile shows the correct Class Offering label, roll number 1 |
+| Transfer to a different (No-Shift) Class Offering | Pass — profile updates; confirmed at the database level, not just visually |
+| Leaving (Archive) | Pass — confirmed `archived_at` set at the database level |
+
+**Promotion was not separately click-tested.** It shares the exact same underlying primitive
+as Transfer (`set_student_enrollment`, per #574's resolution — "Promotion, Repeat, and
+Transfer are all callers of this one primitive, not separate mechanisms"), already exercised
+above; a fresh Exam with pending students would have been needed to click through the
+Promotion screen itself, which this pass judged not worth fabricating given the mechanism is
+identical. Flagging the gap rather than silently claiming full coverage.
+
+All fixtures created during this walkthrough (throwaway Students, Class Offerings) were
+deleted afterward, and School A's Shift configuration was reverted to No-Shift, its baseline
+state before this pass.

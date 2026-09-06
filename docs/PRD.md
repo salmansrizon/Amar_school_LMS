@@ -37,20 +37,20 @@ One login page; visible modules and routes are determined by role (ADR 0003). St
 ## 5. Functional Requirements — School Product
 
 ### 5.1 Students (`C_STUDENTS`)
-- Admission/edit with full profile: identity, address (Village/Union/Upazila/District), guardian info, photo, benefits flags (Freedom Fighter Child, Indigenous), previous-institute info for transfers, sibling info, auto-roll numbering.
+- Admission/edit with full profile: identity, address (Village/Union/Upazila/District), guardian info, photo, benefits flags (Freedom Fighter Child, Indigenous), previous-institute info for transfers, sibling info, auto-roll numbering (now scoped to the Student's Enrollment in one Class Offering, not the Student row directly — map #568/#582's #573).
 - Assign compulsory/optional subjects per class or per student, with bulk "assign all."
 - Behaviour log: incident notes + numeric rating + remind date; **entries become read-only 3 days after creation** (anchored to creation timestamp, not the free-text incident date — preserve this rule); rolling average rating view; send SMS from a behaviour record.
-- Soft-archive ("Old Students") with restore; class/shift transfer with transfer history report.
+- Soft-archive ("Old Students") with restore; class transfer with transfer history report (rebuilt on the Student Enrollment model — map #568/#582 — history is now every past Enrollment, not a separate transfer-log table; the legacy per-Student Shift this line originally described was removed years before that redesign, migration 0060).
 - Printable admission/ID templates.
 
 ### 5.2 Employees (`C_EMPLOYEE`)
 - Full staff/teacher profile (identity, bank info, category, qualification, subject taught, shift, department).
-- Office-time configuration globally per shift/category and per-individual override, including a "considerable" grace-minutes window; the effective grace for any attendance check is the **max across every applicable configured value** (global/category default, per-shift value, per-individual override) — e.g. multi-shift workers get the larger grace value (preserve this rule).
+- Office-time configuration globally per Office Time category and per-individual override (`office_times`/`employee_office_times` — an Employee's working-hours window, renamed from `shifts`/`employee_shifts` well before map #568/#582's later, unrelated per-Class-Offering "Shift"), including a "considerable" grace-minutes window; the effective grace for any attendance check is the **max across every applicable configured value** (global/category default, per-Office-Time value, per-individual override) — e.g. an Employee on multiple Office Times gets the larger grace value (preserve this rule).
 - Soft-archive ("Old Employee") with restore.
 
 ### 5.3 Attendance (`C_ATTENDANCE`, `C_CARD`)
 - Student attendance: mark present/absent per class/shift/section/date, bulk all-present/all-absent, absence-cause capture, attendance book (monthly register, blank + filled print).
-- Employee attendance: 6-state status code system (on-time/late entry × on-time/early exit combinations), per-shift office-time grace window, considerable-cause override.
+- Employee attendance: 6-state status code system (on-time/late entry × on-time/early exit combinations), per-Office-Time grace window, considerable-cause override.
 - Leave management (student and employee) feeding into attendance-day exclusion.
 - Off-day/holiday calendar (yearly, with "significant" labeling), pullable from a central vendor-maintained list (see §6.5).
 - RFID/biometric attendance: assign card numbers to students/employees; ingest attendance logs via the dual-path design in ADR 0001 (device push or bridge-agent upload) rather than the legacy Excel-file import. Reconciliation collapses same-day Attendance Events per person to one finalized record: earliest tap = entry, latest tap = exit, any taps between are discarded as noise.
@@ -136,7 +136,7 @@ One login page; visible modules and routes are determined by role (ADR 0003). St
 - Send SMS to Schools/contacts with area-filtered mobile-list building (Excel upload/download), gateway balance/credit checking before send (tracked as an internal asset-category quantity), API key/sender ID configuration.
 
 ### 6.9 Attendance Auto-Processing
-- A background job converts raw RFID card-tap events into finalized attendance records across all Schools, honoring each School's own shift/office-time/consider-minutes/punch-mode settings. Rebuilt as a proper server-side job/queue (replacing the legacy single-hardcoded-server-IP polling script) — see Architecture doc.
+- A background job converts raw RFID card-tap events into finalized attendance records across all Schools, honoring each School's own Office-Time/consider-minutes/punch-mode settings (an Employee concept, distinct from map #568/#582's later per-Class-Offering Shift — see Architecture doc). Rebuilt as a proper server-side job/queue (replacing the legacy single-hardcoded-server-IP polling script) — see Architecture doc.
 
 ## 7. Cross-Cutting Requirements
 

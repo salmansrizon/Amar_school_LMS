@@ -1,5 +1,20 @@
 # Handoff — map #524 (UAT release readiness), next session: documentation
 
+## Wave 7 note (map #582, 2026-09-07): the "orphaned `class_name` TEXT" line below is resolved
+
+Line 51's "'39 duplicate class combos' | Orphaned `class_name` TEXT, not
+duplication" flagged `students.class_name`/`section` as orphaned/stale text.
+Map #582's redesign (issues #569-#581) settled its disposition: **kept, not
+retired** — a deliberate synced denormalized copy of the Student's current
+`student_enrollments` placement (Wave 3, #586), not dead columns. `admitStudent`/
+`sync_student_legacy_placement` keep it in sync on every admission/transfer/
+promotion; `updateStudent`'s direct profile-edit path is the one write path
+that can let it drift, by design (never itemized for retirement). Wave 4a
+Part B (#587) moved the core roster/notices reads (Attendance, Students list,
+Student Log, Notices/homework targeting) onto the Enrollment directly; the
+remaining ~13 legacy-text-bridge sites are tracked in that ticket's own
+resolution, not here.
+
 Written at the end of a long execution session. Everything below is state a fresh
 agent cannot reconstruct from the repo alone. Anything that *is* in the repo is
 referenced, not repeated.

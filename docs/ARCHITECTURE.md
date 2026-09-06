@@ -44,7 +44,7 @@ A `profiles` table (keyed to `auth.users.id`) carries role, school/territory sco
 
 Legacy `C_SUPER_AutoTask` polled a hardcoded production server IP and processed queued RFID events into attendance records. In the rebuild this becomes a proper queued job (e.g. Supabase Edge Function on a schedule, or a Vercel cron route) that:
 1. Reads unprocessed rows from `attendance_events`.
-2. Resolves student vs. employee, entry vs. exit, per that School's shift/office-time/consider-minutes/punch-mode configuration.
+2. Resolves student vs. employee, entry vs. exit, per that School's office-time/consider-minutes/punch-mode configuration (`office_times`/`employee_office_times` — renamed from `shifts`/`employee_shifts` well before map #568/#582; unrelated to that map's later, distinct "Shift" — a per-Class-Offering dimension, `class_offerings.shift`, for a School running the same Class more than once a day, not an Employee's working-hours window).
 3. Writes/updates the finalized attendance record.
 
 No hardcoded server affinity — any deployment can run the job.
