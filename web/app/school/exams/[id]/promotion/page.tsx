@@ -94,7 +94,7 @@ export default async function PromotionPage({
     .maybeSingle()
   const [{ data: allClasses }, { data: allSubjects }, { data: combos }] = await Promise.all([
     applyGlobalShiftFilterToOfferings(
-      supabase.from('class_offerings').select('id, name, section, group_department').order('created_at'),
+      supabase.from('class_offerings').select('id, name, section, group_department, shift').order('created_at'),
       shiftSelection,
     ),
     supabase.from('subjects').select('id, name, class_id, theory_marks, mcq_marks, practical_marks').order('name'),

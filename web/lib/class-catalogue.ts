@@ -14,6 +14,11 @@ export interface ClassCatalogueRow {
   name: string
   section: string | null
   group_department?: string | null
+  /** Shift (issue #578, Wave 5/#590) — optional, reserved by #571's own
+   *  resolution before Shift existed. Absent on rows fetched by a caller
+   *  that never selected the column; null on a No-Shift School's rows, or
+   *  one predating Shift's introduction. Both render identically (omitted). */
+  shift?: string | null
 }
 
 export interface ClassCatalogueOption {
@@ -24,21 +29,28 @@ export interface ClassCatalogueOption {
 }
 
 /**
- * The `{class} - {section} ({group})` label convention used everywhere a
- * Class Catalogue row is displayed — the one place this formatting lives.
- * The group suffix disambiguates rows that otherwise share the same class
- * name and section but differ by group/department (e.g. Science vs.
- * Humanities); it's omitted when the row has no group set.
+ * The `{class} ({group}) - {shift} - {section}` label convention used
+ * everywhere a Class Catalogue row is displayed — the one place this
+ * formatting lives (#571's resolution, locked before Shift existed to
+ * reserve this exact segment order and position). Each optional segment
+ * contributes its own leading ` - ` (or `(...)` for group) or nothing at
+ * all — never a dangling separator:
+ *   - `Nine (Science) - Day - A` — all four present
+ *   - `Eight - Morning - A` — no group
+ *   - `Nine (Science) - A` — group present, shift absent
+ *   - `Eight - A` — no group, no shift
  */
 export function classCatalogueLabel(row: {
   name: string
   section: string | null
   group_department?: string | null
+  shift?: string | null
 }): string {
   return (
     row.name +
-    (row.section ? ` - ${row.section}` : '') +
-    (row.group_department ? ` (${row.group_department})` : '')
+    (row.group_department ? ` (${row.group_department})` : '') +
+    (row.shift ? ` - ${row.shift}` : '') +
+    (row.section ? ` - ${row.section}` : '')
   )
 }
 

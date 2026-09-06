@@ -21,7 +21,7 @@ export default async function SubjectAssignmentPage({
 
   const { class: selectedClass = '' } = await searchParams
   const { data: classes } = await applyGlobalShiftFilterToOfferings(
-    supabase.from('class_offerings').select('id, name, section').order('created_at'),
+    supabase.from('class_offerings').select('id, name, section, shift').order('created_at'),
     shiftSelection,
   )
 

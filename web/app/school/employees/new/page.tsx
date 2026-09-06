@@ -22,7 +22,7 @@ export default async function NewEmployeePage() {
   const { data: classes } = await applyGlobalShiftFilterToOfferings(
     supabase
       .from('class_offerings')
-      .select('id, name, section, group_department, class_teacher_id')
+      .select('id, name, section, group_department, class_teacher_id, shift')
       .order('created_at'),
     shiftSelection,
   )

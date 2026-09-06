@@ -38,7 +38,7 @@ export default async function FeesPage({
 
   const [{ data: classes }, { data: recentRecords }] = await Promise.all([
     applyGlobalShiftFilterToOfferings(
-      supabase.from('class_offerings').select('id, name, section, group_department').order('created_at'),
+      supabase.from('class_offerings').select('id, name, section, group_department, shift').order('created_at'),
       shiftSelection,
     ),
     supabase

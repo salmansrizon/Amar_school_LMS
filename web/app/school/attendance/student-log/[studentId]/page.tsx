@@ -76,7 +76,7 @@ export default async function StudentLogDetailPage({
     supabase.from('students').select('id, full_name, class_name, section, roll_number').eq('id', studentId).maybeSingle(),
     loadInstitutePrintHeader(supabase, lang),
     applyGlobalShiftFilterToOfferings(
-      supabase.from('class_offerings').select('id, name, section, group_department').order('created_at'),
+      supabase.from('class_offerings').select('id, name, section, group_department, shift').order('created_at'),
       shiftSelection,
     ),
   ])

@@ -21,7 +21,7 @@ export default async function SyllabusPage() {
 
   const [{ data: classes }, { data: syllabi }] = await Promise.all([
     applyGlobalShiftFilterToOfferings(
-      supabase.from('class_offerings').select('id, name, section, group_department').order('created_at'),
+      supabase.from('class_offerings').select('id, name, section, group_department, shift').order('created_at'),
       shiftSelection,
     ),
     supabase.from('class_syllabi').select('class_id, file_name, uploaded_at, file_size'),

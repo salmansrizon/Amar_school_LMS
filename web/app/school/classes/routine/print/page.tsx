@@ -30,7 +30,7 @@ export default async function RoutinePrintPage({
   // page, so offer the choice.
   if (!classId) {
     const { data: classes } = await applyGlobalShiftFilterToOfferings(
-      supabase.from('class_offerings').select('id, name, section, group_department').order('created_at'),
+      supabase.from('class_offerings').select('id, name, section, group_department, shift').order('created_at'),
       shiftSelection,
     )
     return (
@@ -59,7 +59,7 @@ export default async function RoutinePrintPage({
   const [institute, { data: cls }, { data: slots }, { data: subjects }, { data: teachers }, { data: rooms }] =
     await Promise.all([
       loadInstitutePrintHeader(supabase, lang),
-      supabase.from('class_offerings').select('name, section, group_department').eq('id', classId).maybeSingle(),
+      supabase.from('class_offerings').select('name, section, group_department, shift').eq('id', classId).maybeSingle(),
       supabase
         .from('routine_slots')
         .select('day_of_week, period, subject_id, teacher_id, room_id')

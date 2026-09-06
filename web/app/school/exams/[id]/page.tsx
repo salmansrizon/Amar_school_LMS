@@ -53,7 +53,7 @@ export default async function ExamSetupPage({
 
   const [{ data: classes }, { data: schemes }, { data: allSubjects }, { data: assignments }, { data: teachers }] =
     await Promise.all([
-      supabase.from('class_offerings').select('id, name, section, group_department').order('created_at'),
+      supabase.from('class_offerings').select('id, name, section, group_department, shift').order('created_at'),
       supabase.from('grading_schemes').select('id, name').order('name'),
       supabase.from('subjects').select('id, name, class_id, theory_marks, mcq_marks, practical_marks').order('name'),
       supabase.from('exam_subject_teachers').select('subject_id, teacher_id').eq('exam_id', id),

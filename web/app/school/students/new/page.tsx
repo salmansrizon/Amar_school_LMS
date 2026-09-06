@@ -19,7 +19,7 @@ export default async function NewAdmissionPage() {
 
   const [{ data: classOfferings }, { data: enrollments }, { data: school }] = await Promise.all([
     applyGlobalShiftFilterToOfferings(
-      supabase.from('class_offerings').select('id, name, section, group_department').order('created_at'),
+      supabase.from('class_offerings').select('id, name, section, group_department, shift').order('created_at'),
       shiftSelection,
     ),
     // Same bounded whole-table read as the Class & Curriculum counts (ponytail:

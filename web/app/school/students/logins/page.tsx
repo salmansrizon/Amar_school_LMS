@@ -27,7 +27,7 @@ export default async function StudentLoginsPage({
   if (role !== 'school_owner') redirect('/school/students')
 
   const { data: classes } = await applyGlobalShiftFilterToOfferings(
-    supabase.from('class_offerings').select('id, name, section, group_department').order('created_at'),
+    supabase.from('class_offerings').select('id, name, section, group_department, shift').order('created_at'),
     shiftSelection,
   )
   const { combos, className, section } = resolveClassSection(classes ?? [], classSection)

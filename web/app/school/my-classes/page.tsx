@@ -39,7 +39,7 @@ export default async function MyClassesPage() {
     applyGlobalShiftFilterToOfferings(
       supabase
         .from('class_offerings')
-        .select('id, name, section, group_department')
+        .select('id, name, section, group_department, shift')
         .eq('class_teacher_id', myEmployeeId)
         .order('name'),
       shiftSelection,

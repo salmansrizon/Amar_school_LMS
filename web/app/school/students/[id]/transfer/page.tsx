@@ -37,7 +37,7 @@ export default async function StudentTransferPage({
       .eq('student_id', id)
       .order('transferred_at', { ascending: false }),
     applyGlobalShiftFilterToOfferings(
-      supabase.from('class_offerings').select('id, name, section, group_department').order('created_at'),
+      supabase.from('class_offerings').select('id, name, section, group_department, shift').order('created_at'),
       shiftSelection,
     ),
   ])
