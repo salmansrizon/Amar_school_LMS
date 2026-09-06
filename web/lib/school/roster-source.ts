@@ -69,7 +69,7 @@ export async function schoolRoster(
   const [{ data: students }, { data: classes }] = await Promise.all([
     supabase.from('students').select(ROSTER_COLUMNS).is('archived_at', null).order('full_name'),
     applyGlobalShiftFilterToOfferings(
-      supabase.from('class_offerings').select('id, name, section, group_department').order('created_at'),
+      supabase.from('class_offerings').select('id, name, section, group_department, shift').order('created_at'),
       shiftSelection,
     ),
   ])
