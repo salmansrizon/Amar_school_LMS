@@ -29,3 +29,15 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - after compleating 3 issues run /improve-codebase-architecture  to review the code quality and architecture and try to implement priority fixes from the report 
 - after compleating any issue check the dependency within the map if no dependency then close it 
 - don't close the wayfinder map just close their sub issues
+
+## Subagent Usage
+
+Use subagents only when they provide meaningful value. Handle implementation directly whenever possible.
+
+When a subagent is needed:
+
+For simple exploration, code searches, mechanical checks, basic reviews, and other low-complexity tasks, use Haiku.
+For complex investigation, architecture, security, difficult debugging, or tasks requiring substantial reasoning, use the default/main model.
+Do not spawn multiple subagents when one subagent or the main agent can handle the work efficiently.
+
+Choose the subagent model based on the complexity of the subagent's specific task, not the overall task complexity.
