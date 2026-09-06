@@ -1,6 +1,7 @@
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
+import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
 import { PageHeader } from '@/components/ui/page'
 import { AdmissionForm } from './admission-form'
 
@@ -14,10 +15,13 @@ import { AdmissionForm } from './admission-form'
 
 export default async function NewAdmissionPage() {
   const lang: Lang = await currentLang()
-  const { supabase, schoolId } = await getSchoolContext()
+  const { supabase, schoolId, shiftSelection } = await getSchoolContext()
 
   const [{ data: classOfferings }, { data: enrollments }, { data: school }] = await Promise.all([
-    supabase.from('class_offerings').select('id, name, section, group_department').order('created_at'),
+    applyGlobalShiftFilterToOfferings(
+      supabase.from('class_offerings').select('id, name, section, group_department').order('created_at'),
+      shiftSelection,
+    ),
     // Same bounded whole-table read as the Class & Curriculum counts (ponytail:
     // fine up to 10k rows) — feeds the Roll Number field's next-roll suggestion.
     supabase.from('student_enrollments').select('class_offering_id, roll_number').limit(10000),

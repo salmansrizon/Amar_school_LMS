@@ -2,8 +2,10 @@ import { cookies } from 'next/headers'
 import {
   SIDEBAR_COOKIE,
   THEME_COOKIE,
+  SHIFT_SELECTION_COOKIE,
   parseSidebarCollapsed,
   parseThemePreference,
+  parseShiftSelection,
   type ThemePreference,
 } from '@/lib/ui-prefs'
 
@@ -18,4 +20,13 @@ export async function sidebarCollapsed(): Promise<boolean> {
 export async function themePreference(): Promise<ThemePreference> {
   const store = await cookies()
   return parseThemePreference(store.get(THEME_COOKIE)?.value)
+}
+
+/** The effective Global Shift Selection (issue #577), reconciled against
+ *  this School's currently configured Shifts. Callers must pass their own
+ *  already-fetched `schools.configured_shifts` — this module has no notion
+ *  of "current school" on its own. */
+export async function globalShiftSelection(configuredShifts: readonly string[]): Promise<string[]> {
+  const store = await cookies()
+  return parseShiftSelection(store.get(SHIFT_SELECTION_COOKIE)?.value, configuredShifts)
 }

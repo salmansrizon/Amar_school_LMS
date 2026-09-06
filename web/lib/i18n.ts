@@ -74,6 +74,9 @@ const dict = {
   'shell.search': { bn: 'খুঁজুন...', en: 'Search...' },
   'shell.addStudent': { bn: 'শিক্ষার্থী যোগ করুন', en: 'Add Student' },
   'shell.notifications': { bn: 'বিজ্ঞপ্তি', en: 'Notifications' },
+  // Global Shift Selection (issue #577, Wave 5/#590) — topbar trigger, absent
+  // entirely for a No-Shift institute.
+  'shell.shiftSelection': { bn: 'শিফট নির্বাচন', en: 'Shift Selection' },
   'shell.nav': { bn: 'প্রধান নেভিগেশন', en: 'Main navigation' },
   'shell.help': { bn: 'সহায়তা', en: 'Help' },
   'shell.chat': { bn: 'চ্যাট', en: 'Chat' },
@@ -840,6 +843,10 @@ const dict = {
   'employees.none': { bn: 'এখনো কোনো কর্মচারী নেই', en: 'No employees yet' },
   'employees.effective': { bn: 'কার্যকর গ্রেস', en: 'Effective grace' },
   'employees.officeTimes': { bn: 'অফিস সময়', en: 'Office Times' },
+  // Employee multi-shift assignment (issue #580, Wave 5/#590) — a permanent
+  // fact about the Employee, worded to be unmistakably distinct from Global
+  // Shift Selection's view-preference control elsewhere in the chrome.
+  'employees.academicShifts': { bn: 'এই কর্মচারী যে শিফটে কাজ করেন', en: 'Shifts this Employee works' },
   'employees.createTitle': { bn: 'নতুন কর্মচারী তৈরি করুন', en: 'Create New Employee' },
   'employees.identity': { bn: 'পরিচিতি', en: 'Identity' },
   // Attendance-machine data-model prep (ticket #564) — unique_id is
@@ -1345,6 +1352,8 @@ const dict = {
   'classes.section': { bn: 'শাখা', en: 'Section' },
   'classes.educationLevel': { bn: 'শিক্ষাস্তর', en: 'Education Level' },
   'classes.groupDept': { bn: 'গ্রুপ/বিভাগ', en: 'Group/Department' },
+  // Shift (issue #578, Wave 5/#590) — optional per Class Offering.
+  'classes.shift': { bn: 'শিফট', en: 'Shift' },
   'classes.students': { bn: 'শিক্ষার্থী সংখ্যা', en: 'Students' },
   'classes.actions': { bn: 'কার্যক্রম', en: 'Actions' },
   'classes.search': { bn: 'শ্রেণি খুঁজুন', en: 'Search classes' },
@@ -2372,6 +2381,24 @@ const dict = {
   'institute.errRollIncrementInvalid': {
     bn: 'রোল বৃদ্ধির হার অবশ্যই ১ বা তার বেশি পূর্ণসংখ্যা হতে হবে',
     en: 'Roll increment must be a whole number of 1 or more',
+  },
+  // Shift Configuration (issue #576, Wave 5/#590) — which of the four fixed
+  // Shifts this School uses. Empty = No Shift.
+  'institute.shiftConfiguration': { bn: 'শিফট কনফিগারেশন', en: 'Shift Configuration' },
+  'institute.shiftConfigurationHint': {
+    bn: 'এই প্রতিষ্ঠান কি শিফট ভিত্তিক পরিচালিত হয়? হ্যাঁ হলে, ব্যবহৃত শিফটগুলো নির্বাচন করুন।',
+    en: 'Does this institute operate in Shifts? If so, select which ones are in use.',
+  },
+  'institute.noShift': { bn: 'শিফট নেই', en: 'No Shift' },
+  'institute.hasShift': { bn: 'শিফট আছে', en: 'Has Shift' },
+  'institute.shiftMorning': { bn: 'সকাল', en: 'Morning' },
+  'institute.shiftDay': { bn: 'দিবা', en: 'Day' },
+  'institute.shiftEvening': { bn: 'বিকাল', en: 'Evening' },
+  'institute.shiftNight': { bn: 'রাত', en: 'Night' },
+  'institute.errConfiguredShiftsInvalid': { bn: 'অবৈধ শিফট', en: 'Invalid Shift' },
+  'institute.errConfiguredShiftsEmpty': {
+    bn: 'অন্তত একটি শিফট নির্বাচন করুন, অথবা "শিফট নেই" বেছে নিন',
+    en: 'Select at least one Shift, or choose "No Shift"',
   },
   'institute.checklistToday': { bn: 'আজকের চেকলিস্ট', en: "Today's Checklist" },
   'institute.cancel': { bn: 'বাতিল', en: 'Cancel' },

@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
+import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
 import { classSectionLabel } from '@/lib/students'
 import { TransferForm } from './transfer-form'
 
@@ -20,7 +21,7 @@ export default async function StudentTransferPage({
 }) {
   const { id } = await params
   const lang: Lang = await currentLang()
-  const { supabase } = await getSchoolContext()
+  const { supabase, shiftSelection } = await getSchoolContext()
 
   const { data: student } = await supabase
     .from('students')
@@ -35,7 +36,10 @@ export default async function StudentTransferPage({
       .select('id, from_class, from_section, to_class, to_section, note, transferred_at')
       .eq('student_id', id)
       .order('transferred_at', { ascending: false }),
-    supabase.from('class_offerings').select('id, name, section, group_department').order('created_at'),
+    applyGlobalShiftFilterToOfferings(
+      supabase.from('class_offerings').select('id, name, section, group_department').order('created_at'),
+      shiftSelection,
+    ),
   ])
 
   const locale = lang === 'bn' ? 'bn-BD' : 'en-GB'

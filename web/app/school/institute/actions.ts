@@ -30,6 +30,9 @@ export async function updateInstituteProfile(formData: FormData): Promise<{ erro
     mobile: optStr(formData, 'mobile'),
     email: optStr(formData, 'email'),
     roll_number_increment: Number(formData.get('roll_number_increment') ?? 1),
+    // A checkbox list can't submit duplicates by construction, but dedupe
+    // anyway (#576's resolution) since nothing downstream should have to.
+    configured_shifts: [...new Set(formData.getAll('configured_shifts').map(String))],
   }
   const err = validateInstituteProfile(input)
   if (err) return { error: err }
@@ -57,6 +60,7 @@ export async function updateInstituteProfile(formData: FormData): Promise<{ erro
       mobile: input.mobile ?? null,
       email: input.email ?? null,
       roll_number_increment: input.roll_number_increment,
+      configured_shifts: input.configured_shifts,
     })
     .eq('id', schoolId)
   if (error) return { error: error.message }

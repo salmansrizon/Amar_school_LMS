@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { isKnownAcademicShift } from '@/lib/institute'
 
 // RLS ("school members manage …" scoped to app_current_school_id()) is the
 // authority on every write here — these actions only validate + shape input.
@@ -21,11 +22,20 @@ function optStr(fd: FormData, key: string): string | null {
  *  issue #586). academic_year defaults to the School's active_academic_year
  *  (issue #570) when set — a School with no active year yet (pre-Wave-6)
  *  simply creates one with a null academic_year, same as this column's own
- *  nullable-until-backfilled state. There is no Shift field here yet — Wave 5
- *  wires that onto this same form once the static Shift concept lands. */
+ *  nullable-until-backfilled state. Shift (issue #578, Wave 5/#590) is
+ *  optional and stays null for a No-Shift School, or a School that leaves it
+ *  unset — `class_offerings.shift` is nullable permanently, not just until
+ *  some later backfill. The submitted value is re-validated against the
+ *  fixed vocabulary server-side (never just trusted from the picker) — the
+ *  picker's own *narrower* choice-filtering (configured ∩ Global Selection,
+ *  #578 Q7-8) is a UX restriction, not a security boundary, so a value
+ *  outside the current picker but still in the fixed vocabulary is accepted,
+ *  matching #578's explicit resolution of that exact case. */
 export async function addClass(formData: FormData): Promise<{ error?: string }> {
   const name = str(formData, 'name')
   if (!name) return { error: 'Name is required' }
+  const shift = optStr(formData, 'shift')
+  if (shift && !isKnownAcademicShift(shift)) return { error: 'Invalid Shift' }
   const supabase = await createClient()
   // Scoped to the caller's own School explicitly: an unfiltered maybeSingle()
   // returns nothing (and silently drops academic_year) for any caller who can
@@ -43,6 +53,7 @@ export async function addClass(formData: FormData): Promise<{ error?: string }> 
     group_department: optStr(formData, 'group_department'),
     class_teacher_id: optStr(formData, 'class_teacher_id'),
     academic_year: school?.active_academic_year ?? null,
+    shift,
   })
   if (error) {
     if (error.code === '23505') return { error: 'This class + section already exists' }

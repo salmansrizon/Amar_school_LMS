@@ -2,6 +2,8 @@
 // validation, daily-checklist reporting, and logistics-index search — kept
 // pure for unit testing.
 
+import type { MessageKey } from '@/lib/i18n'
+
 export type EducationLevel = 'primary' | 'secondary' | 'higher_secondary' | 'madrasah'
 
 export const EDUCATION_LEVELS: { key: EducationLevel; label: { bn: string; en: string } }[] = [
@@ -12,6 +14,36 @@ export const EDUCATION_LEVELS: { key: EducationLevel; label: { bn: string; en: s
 ]
 
 const EDUCATION_LEVEL_KEYS: ReadonlySet<string> = new Set(EDUCATION_LEVELS.map((l) => l.key))
+
+/** The fixed set a School's `configured_shifts` is drawn from (issue #576,
+ *  map #568/#582) — four static, code-owned values, not tenant-extensible
+ *  data (no School ever adds a fifth). Mirrors EMPLOYEE_CATEGORIES's shape
+ *  (web/lib/employees.ts) exactly: a plain array plus a pure membership
+ *  check, `schools.configured_shifts` CHECK-constrained to the same four
+ *  strings at the DB layer (migration 0176) so this list and that constraint
+ *  can never drift apart. Every downstream Shift feature (Global Shift
+ *  Selection, Class Offering's `shift` column, Employee multi-shift
+ *  assignment) derives its choices from `schools.configured_shifts`, never
+ *  from this constant directly — this is only the outer bound. */
+export const ACADEMIC_SHIFTS = ['Morning', 'Day', 'Evening', 'Night'] as const
+export type AcademicShift = (typeof ACADEMIC_SHIFTS)[number]
+
+export function isKnownAcademicShift(value: string): value is AcademicShift {
+  return (ACADEMIC_SHIFTS as readonly string[]).includes(value)
+}
+
+/** One source for every UI that renders a Shift's display label — was
+ *  independently redeclared per consumer (Institute Profile, Class
+ *  Offerings, Employee assignment, Global Shift Selection), which let a
+ *  future 5th shift or a relabeled key silently drift out of sync in
+ *  whichever copy got missed. Centralized here instead, alongside
+ *  ACADEMIC_SHIFTS itself. */
+export const ACADEMIC_SHIFT_LABEL_KEY: Record<AcademicShift, MessageKey> = {
+  Morning: 'institute.shiftMorning',
+  Day: 'institute.shiftDay',
+  Evening: 'institute.shiftEvening',
+  Night: 'institute.shiftNight',
+}
 
 export interface InstituteProfileInput {
   name: string
@@ -28,6 +60,9 @@ export interface InstituteProfileInput {
   // Roll numbering (issue #503): how much each auto-assigned roll steps by,
   // within assign_student_roll's class+section scope.
   roll_number_increment: number
+  // Shift Configuration (issue #576, Wave 5/#590): which of the four fixed
+  // Shifts this School uses. Empty = No Shift, no separate boolean.
+  configured_shifts: string[]
 }
 
 export type InstituteProfileError =
@@ -37,6 +72,7 @@ export type InstituteProfileError =
   | 'educationLevelInvalid'
   | 'emailInvalid'
   | 'rollIncrementInvalid'
+  | 'configuredShiftsInvalid'
 
 /** Business rules: a name is always required; an MPO-enlisted institute must
  *  record its MPO code (else the flag is meaningless data-entry noise); a
@@ -45,7 +81,11 @@ export type InstituteProfileError =
  *  Address and mobile stay free text — they print exactly as typed (map #91
  *  grilling decision 5) — but a malformed email would print on every
  *  document, so that one is shape-checked. Roll increment mirrors the DB's
- *  `roll_number_increment > 0` check — a positive whole number. */
+ *  `roll_number_increment > 0` check — a positive whole number.
+ *  `configured_shifts` is checked the same way as `education_levels`: a
+ *  fixed vocabulary, checkbox UI, no free text — duplicates are tolerated
+ *  here (a checkbox list can't produce them by construction) and are only
+ *  ever normalized away, never rejected, matching #576's resolution. */
 export function validateInstituteProfile(input: InstituteProfileInput): InstituteProfileError | null {
   if (!input.name.trim()) return 'nameRequired'
   if (input.mpo_enlisted && !input.mpo_code?.trim()) return 'mpoCodeRequired'
@@ -54,6 +94,7 @@ export function validateInstituteProfile(input: InstituteProfileInput): Institut
   if (input.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.email.trim())) return 'emailInvalid'
   if (!Number.isInteger(input.roll_number_increment) || input.roll_number_increment < 1)
     return 'rollIncrementInvalid'
+  if (input.configured_shifts.some((s) => !isKnownAcademicShift(s))) return 'configuredShiftsInvalid'
   return null
 }
 

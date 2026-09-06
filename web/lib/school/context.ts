@@ -1,6 +1,7 @@
 import { cache } from 'react'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { globalShiftSelection } from '@/lib/ui-prefs-server'
 import type { Role } from '@/lib/auth/routing'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
@@ -22,6 +23,12 @@ export interface SchoolContext {
   /** trial | active | expired, computed on read by school_subscription_status. */
   subscriptionStatus: string | null
   grants: readonly string[]
+  /** Shift (issue #576/#577, Wave 5/#590) — read here, not re-fetched per
+   *  page, since every /school/* page already shares this one cached
+   *  schools-row query. configuredShifts empty means No Shift; shiftSelection
+   *  is already reconciled against it (#577's parseShiftSelection). */
+  configuredShifts: readonly string[]
+  shiftSelection: readonly string[]
 }
 
 export const getSchoolContext = cache(async (): Promise<SchoolContext> => {
@@ -43,12 +50,17 @@ export const getSchoolContext = cache(async (): Promise<SchoolContext> => {
   // not in a waterfall. Status lives here (inside the cached seam) so the layout
   // gate (#169) and any page share the single round-trip.
   const [{ data: school }, grantsRes, { data: status }] = await Promise.all([
-    supabase.from('schools').select('name, subscription_expires_at').eq('id', profile.school_id).maybeSingle(),
+    supabase
+      .from('schools')
+      .select('name, subscription_expires_at, configured_shifts')
+      .eq('id', profile.school_id)
+      .maybeSingle(),
     role === 'staff_user'
       ? supabase.from('staff_permissions').select('screen_key').eq('staff_user_id', user.id)
       : Promise.resolve({ data: [] as { screen_key: string }[] }),
     supabase.rpc('school_subscription_status', { sid: profile.school_id }),
   ])
+  const configuredShifts = school?.configured_shifts ?? []
 
   return {
     supabase,
@@ -61,5 +73,7 @@ export const getSchoolContext = cache(async (): Promise<SchoolContext> => {
     subscriptionExpiresAt: school?.subscription_expires_at ?? null,
     subscriptionStatus: (status as string | null) ?? null,
     grants: (grantsRes.data ?? []).map((p) => p.screen_key),
+    configuredShifts,
+    shiftSelection: await globalShiftSelection(configuredShifts),
   }
 })

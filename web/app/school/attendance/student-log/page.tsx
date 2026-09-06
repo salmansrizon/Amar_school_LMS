@@ -23,12 +23,15 @@ export default async function StudentLogPage({
 }) {
   const { classSection = '' } = await searchParams
   const lang: Lang = await currentLang()
-  const { supabase } = await getSchoolContext()
+  const { supabase, shiftSelection } = await getSchoolContext()
 
   // The roster model owns the fetch, the class filter and the register sort.
   // This page used to rebuild class_name/section from a second Map because the
   // old helper dropped them from its return shape; `rosterFor` keeps the row.
-  const { combos, className, section, students: visible } = await schoolRoster(supabase, { classSection })
+  const { combos, className, section, students: visible } = await schoolRoster(supabase, {
+    classSection,
+    shiftSelection,
+  })
 
   const viewLogHref = (studentId: string) => {
     const params = new URLSearchParams()

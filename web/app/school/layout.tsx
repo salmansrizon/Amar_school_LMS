@@ -41,6 +41,8 @@ export default async function SchoolLayout({ children }: { children: React.React
     initialCollapsed: collapsed,
     smsCredit,
     enabledFeatures,
+    configuredShifts: ctx.configuredShifts,
+    shiftSelection: ctx.shiftSelection,
   }
 
   if (status === 'expired') {

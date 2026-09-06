@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
+import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
 import { NoticeTabs } from '../notice-tabs'
 import { CreateNoticeForm } from './create-form'
 import { classNamesFor, sectionsForClass } from '@/lib/students'
@@ -11,10 +12,13 @@ import { classNamesFor, sectionsForClass } from '@/lib/students'
 // "Specific" is chosen, Content, and optional Image/Link.
 export default async function CreateNoticePage() {
   const lang: Lang = await currentLang()
-  const { supabase } = await getSchoolContext()
+  const { supabase, shiftSelection } = await getSchoolContext()
 
   const [{ data: classes }] = await Promise.all([
-    supabase.from('class_offerings').select('name, section').order('name'),
+    applyGlobalShiftFilterToOfferings(
+      supabase.from('class_offerings').select('name, section').order('name'),
+      shiftSelection,
+    ),
   ])
   const classNames = classNamesFor(classes ?? [])
   const sections = sectionsForClass(classes ?? [], '')

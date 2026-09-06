@@ -57,3 +57,40 @@ export function themeCookieAssignment(preference: ThemePreference): string {
 export function themeAttribute(preference: ThemePreference): 'light' | 'dark' | undefined {
   return preference === 'system' ? undefined : preference
 }
+
+// Global Shift Selection (issue #577, Wave 5/#590) — a per-user, per-request
+// view preference: which of the institute's currently configured Shifts this
+// user is working with right now. Never a source of truth for anything —
+// RLS and authorization never read this cookie; it only narrows what a
+// read-time list query returns (#579), reconciled fresh on every read
+// against `schools.configured_shifts`, never persisted as a business record.
+
+export const SHIFT_SELECTION_COOKIE = 'asm-shift-selection'
+
+/** The full `document.cookie` assignment string that persists the Shift
+ *  selection — comma-joined ACADEMIC_SHIFTS values, no re-encoding. */
+export function shiftSelectionCookieAssignment(shifts: readonly string[]): string {
+  return `${SHIFT_SELECTION_COOKIE}=${shifts.join(',')};path=/;max-age=${PREF_MAX_AGE};samesite=lax`
+}
+
+/**
+ * Reconciles the raw cookie value against the institute's currently
+ * configured Shifts (issue #577's resolution table):
+ * - missing, empty, or fully-invalid → every configured Shift (safe default)
+ * - partially-invalid → keeps only the still-valid values; a selection with
+ *   at least one surviving value never falls back to "all" just because
+ *   another value in it became invalid
+ * - `configuredShifts` itself empty (No Shift institute) → always `[]`,
+ *   there's nothing to select regardless of what the cookie says
+ */
+export function parseShiftSelection(
+  cookieValue: string | undefined,
+  configuredShifts: readonly string[],
+): string[] {
+  if (configuredShifts.length === 0) return []
+
+  const requested = cookieValue ? cookieValue.split(',').filter(Boolean) : []
+  const valid = requested.filter((s) => configuredShifts.includes(s))
+
+  return valid.length > 0 ? valid : [...configuredShifts]
+}

@@ -3,10 +3,13 @@ import {
   SIDEBAR_COOKIE,
   PREF_MAX_AGE,
   THEME_COOKIE,
+  SHIFT_SELECTION_COOKIE,
   parseSidebarCollapsed,
   parseThemePreference,
+  parseShiftSelection,
   sidebarCookieAssignment,
   themeCookieAssignment,
+  shiftSelectionCookieAssignment,
   themeAttribute,
 } from '@/lib/ui-prefs'
 
@@ -76,5 +79,56 @@ describe('themeAttribute', () => {
 
   it('stamps nothing for system, leaving prefers-color-scheme in charge', () => {
     expect(themeAttribute('system')).toBeUndefined()
+  })
+})
+
+// Global Shift Selection (issue #577, Wave 5/#590) — every case from the
+// resolution table, verified one by one rather than assumed to hold.
+describe('parseShiftSelection (issue #577)', () => {
+  it('falls back to every configured Shift when the cookie is missing', () => {
+    expect(parseShiftSelection(undefined, ['Morning', 'Day'])).toEqual(['Morning', 'Day'])
+  })
+
+  it('falls back to every configured Shift when the cookie is empty', () => {
+    expect(parseShiftSelection('', ['Morning', 'Day'])).toEqual(['Morning', 'Day'])
+  })
+
+  it('falls back to every configured Shift when the whole selection is invalid', () => {
+    expect(parseShiftSelection('Evening', ['Morning', 'Day'])).toEqual(['Morning', 'Day'])
+  })
+
+  it('keeps only the still-valid values on a partially-invalid selection, without falling back', () => {
+    expect(parseShiftSelection('Morning,Evening', ['Morning', 'Day'])).toEqual(['Morning'])
+  })
+
+  it('returns empty for a No-Shift institute regardless of the cookie', () => {
+    expect(parseShiftSelection('Morning', [])).toEqual([])
+    expect(parseShiftSelection(undefined, [])).toEqual([])
+  })
+
+  it('preserves a narrowed selection when the configuration widens', () => {
+    expect(parseShiftSelection('Morning', ['Morning', 'Day', 'Evening'])).toEqual(['Morning'])
+  })
+
+  it('partially repairs a selection when the configuration narrows, without falling back', () => {
+    expect(parseShiftSelection('Morning,Evening', ['Morning', 'Day'])).toEqual(['Morning'])
+  })
+
+  it('fully repairs (falls back) when narrowing invalidates the whole selection', () => {
+    expect(parseShiftSelection('Morning,Evening', ['Day'])).toEqual(['Day'])
+  })
+})
+
+describe('shiftSelectionCookieAssignment', () => {
+  it('writes a year-long, path-wide, comma-joined cookie', () => {
+    expect(shiftSelectionCookieAssignment(['Morning', 'Day'])).toBe(
+      `${SHIFT_SELECTION_COOKIE}=Morning,Day;path=/;max-age=${PREF_MAX_AGE};samesite=lax`,
+    )
+  })
+
+  it('writes an empty value for an empty selection', () => {
+    expect(shiftSelectionCookieAssignment([])).toBe(
+      `${SHIFT_SELECTION_COOKIE}=;path=/;max-age=${PREF_MAX_AGE};samesite=lax`,
+    )
   })
 })

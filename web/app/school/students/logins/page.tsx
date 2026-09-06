@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
+import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
 import { resolveClassSection } from '@/lib/class-catalogue'
 import { Card, PageHeader } from '@/components/ui/page'
 import { classLoginCandidates } from '../login-actions'
@@ -20,15 +21,15 @@ export default async function StudentLoginsPage({
 }) {
   const { classSection = '' } = await searchParams
   const lang: Lang = await currentLang()
-  const { supabase, role } = await getSchoolContext()
+  const { supabase, role, shiftSelection } = await getSchoolContext()
   // Issuing a child's password is an owner act, not a Staff-User one — the RPCs
   // reject Staff anyway, this just avoids showing them a screen that cannot work.
   if (role !== 'school_owner') redirect('/school/students')
 
-  const { data: classes } = await supabase
-    .from('class_offerings')
-    .select('id, name, section, group_department')
-    .order('created_at')
+  const { data: classes } = await applyGlobalShiftFilterToOfferings(
+    supabase.from('class_offerings').select('id, name, section, group_department').order('created_at'),
+    shiftSelection,
+  )
   const { combos, className, section } = resolveClassSection(classes ?? [], classSection)
   const { students } = className
     ? await classLoginCandidates(className, section)

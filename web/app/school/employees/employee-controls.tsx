@@ -2,7 +2,14 @@
 
 import { useState, useTransition } from 'react'
 import { t, type Lang } from '@/lib/i18n'
-import { addOfficeTime, setCategoryGrace, setDefaultGrace, setEmployeeLogin, setOfficeTimeAssignment } from './actions'
+import {
+  addOfficeTime,
+  setCategoryGrace,
+  setDefaultGrace,
+  setEmployeeLogin,
+  setOfficeTimeAssignment,
+  setShiftAssignment,
+} from './actions'
 
 const input =
   'h-9 w-full rounded-sm border border-line-strong bg-paper px-2 text-sm outline-none focus:border-brand-500'
@@ -108,6 +115,55 @@ export function OfficeTimeToggle({
       } ${pending ? 'opacity-60' : ''} ${failed ? 'ring-1 ring-alert' : ''}`}
     >
       {officeTimeName}
+    </button>
+  )
+}
+
+/** An Employee's permanent academic Shift assignment (issue #580, Wave
+ *  5/#590) — structurally identical to OfficeTimeToggle (one independently-
+ *  wired pill per option, optimistic-immediate save, no batch submit), kept
+ *  as its own component rather than a shared generic one because #580's
+ *  binding requirement is that this reads unambiguously as *permanent*
+ *  assignment, distinct from Global Shift Selection's view-preference
+ *  toggle elsewhere in the chrome — a shared component would invite the two
+ *  to drift toward looking like the same kind of control. */
+export function ShiftToggle({
+  employeeId,
+  shift,
+  label: shiftLabel,
+  assigned,
+}: {
+  employeeId: string
+  shift: string
+  label: string
+  assigned: boolean
+}) {
+  const [on, setOn] = useState(assigned)
+  const [failed, setFailed] = useState(false)
+  const [pending, startTransition] = useTransition()
+
+  return (
+    <button
+      type="button"
+      disabled={pending}
+      aria-pressed={on}
+      onClick={() =>
+        startTransition(async () => {
+          const next = !on
+          setOn(next)
+          setFailed(false)
+          const { error } = await setShiftAssignment(employeeId, shift, next)
+          if (error) {
+            setOn(!next)
+            setFailed(true)
+          }
+        })
+      }
+      className={`cursor-pointer rounded-full px-3 py-0.5 text-xs font-semibold transition-colors ${
+        on ? 'bg-mint-soft text-mint-deep' : 'bg-paper-muted text-muted'
+      } ${pending ? 'opacity-60' : ''} ${failed ? 'ring-1 ring-alert' : ''}`}
+    >
+      {shiftLabel}
     </button>
   )
 }

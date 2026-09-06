@@ -48,7 +48,7 @@ export default async function AttendanceBookPage({
   } = await searchParams
   const mode = modeParam === 'blank' ? 'blank' : 'filled'
   const lang: Lang = await currentLang()
-  const { supabase } = await getSchoolContext()
+  const { supabase, shiftSelection } = await getSchoolContext()
 
   const [yearStr, monthStr] = monthParam.split('-')
   const year = Number(yearStr) || new Date().getUTCFullYear()
@@ -60,7 +60,7 @@ export default async function AttendanceBookPage({
 
   const [institute, { combos, className, section, students: visible }] = await Promise.all([
     loadInstitutePrintHeader(supabase, lang),
-    schoolRoster(supabase, { classSection }),
+    schoolRoster(supabase, { classSection, shiftSelection }),
   ])
   const visibleIds = visible.map((s) => s.id)
 

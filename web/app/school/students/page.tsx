@@ -40,10 +40,10 @@ export default async function StudentsPage({
 }) {
   const { q = '', classSection = '' } = await searchParams
   const lang: Lang = await currentLang()
-  const { supabase, role } = await getSchoolContext()
+  const { supabase, role, shiftSelection } = await getSchoolContext()
 
   const [roster, { data: ratings }] = await Promise.all([
-    schoolRoster(supabase, { classSection, q }),
+    schoolRoster(supabase, { classSection, q, shiftSelection }),
     // ponytail: whole-table scan capped at 10k rows, mirrors the classes page.
     supabase.from('behaviour_log_entries').select('student_id, rating').limit(10000),
   ])

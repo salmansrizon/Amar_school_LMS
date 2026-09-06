@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
+import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
 import { ROUTINE_DAYS, ROUTINE_PERIODS, dayLabel, indexSlots, type RoutineSlot } from '@/lib/routine'
 import { PrintPage, InstituteHeader, QrFooterRow } from '@/components/print/pieces'
 import { PrintButton } from '@/components/print/print-button'
@@ -19,7 +20,7 @@ export default async function RoutinePrintPage({
   searchParams: Promise<{ class?: string }>
 }) {
   const lang: Lang = await currentLang()
-  const { supabase } = await getSchoolContext()
+  const { supabase, shiftSelection } = await getSchoolContext()
 
   const { class: classId } = await searchParams
 
@@ -28,10 +29,10 @@ export default async function RoutinePrintPage({
   // "page not found" says the wrong thing. What is missing is a choice, not a
   // page, so offer the choice.
   if (!classId) {
-    const { data: classes } = await supabase
-      .from('class_offerings')
-      .select('id, name, section, group_department')
-      .order('created_at')
+    const { data: classes } = await applyGlobalShiftFilterToOfferings(
+      supabase.from('class_offerings').select('id, name, section, group_department').order('created_at'),
+      shiftSelection,
+    )
     return (
       <PrintPreflight
         title={t('print.pickClassTitle', lang)}

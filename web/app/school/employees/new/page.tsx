@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
+import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
 import { classCatalogueLabel } from '@/lib/class-catalogue'
 import { CreateEmployeeForm } from './create-form'
 
@@ -16,12 +17,15 @@ import { CreateEmployeeForm } from './create-form'
 // page used to build.
 export default async function NewEmployeePage() {
   const lang: Lang = await currentLang()
-  const { supabase } = await getSchoolContext()
+  const { supabase, shiftSelection } = await getSchoolContext()
 
-  const { data: classes } = await supabase
-    .from('class_offerings')
-    .select('id, name, section, group_department, class_teacher_id')
-    .order('created_at')
+  const { data: classes } = await applyGlobalShiftFilterToOfferings(
+    supabase
+      .from('class_offerings')
+      .select('id, name, section, group_department, class_teacher_id')
+      .order('created_at'),
+    shiftSelection,
+  )
 
   const classOptions = (classes ?? []).map((c) => ({
     id: c.id,

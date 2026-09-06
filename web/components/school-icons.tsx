@@ -17,6 +17,7 @@ type IconName =
   | 'chevronRight'
   | 'chevronLeft'
   | 'user'
+  | 'layers'
 
 const PATHS: Record<string, React.ReactNode> = {
   dashboard: (
@@ -137,6 +138,14 @@ const PATHS: Record<string, React.ReactNode> = {
     <>
       <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
       <circle cx="12" cy="7" r="4" />
+    </>
+  ),
+  // Global Shift Selection's topbar trigger (issue #577, Wave 5/#590).
+  layers: (
+    <>
+      <path d="m12 2 9 5-9 5-9-5z" />
+      <path d="m3 12 9 5 9-5" />
+      <path d="m3 17 9 5 9-5" />
     </>
   ),
 }

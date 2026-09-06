@@ -6,6 +6,7 @@ import { AppShell, type AppNavItem } from '@/components/app-shell'
 import { Icon } from '@/components/school-icons'
 import { SearchPalette, type PaletteEntry } from '@/components/search-palette'
 import { NotificationBell } from '@/components/notification-bell'
+import { ShiftSelector } from '@/components/shift-selector'
 import { SCHOOL_SEARCH } from '@/lib/school-search'
 import { t, type Lang } from '@/lib/i18n'
 import { FOCUS_RING, ICON_BUTTON } from '@/lib/ui-tokens'
@@ -83,6 +84,8 @@ export function SchoolShell({
   banner,
   smsCredit = null,
   enabledFeatures,
+  configuredShifts = [],
+  shiftSelection = [],
   children,
 }: {
   role: Role
@@ -95,6 +98,10 @@ export function SchoolShell({
   banner?: React.ReactNode
   smsCredit?: SchoolSmsCredit | null
   enabledFeatures?: readonly string[]
+  /** Global Shift Selection (issue #577, Wave 5/#590) — configuredShifts empty
+   *  means a No-Shift institute, so the selector doesn't render at all. */
+  configuredShifts?: readonly string[]
+  shiftSelection?: readonly string[]
   children: React.ReactNode
 }) {
   const nav = buildSchoolNav(role, grants, lang, enabledFeatures)
@@ -121,7 +128,7 @@ export function SchoolShell({
     </Link>
   ) : undefined
 
-  const topbarExtras = smsCredit ? (
+  const smsBadge = smsCredit ? (
     <Link
       href="/school/sms"
       title={t('sms.balance', lang)}
@@ -131,6 +138,18 @@ export function SchoolShell({
       <span>{smsCredit.balance}</span>
     </Link>
   ) : undefined
+
+  const topbarExtras = (
+    <>
+      {smsBadge}
+      <ShiftSelector
+        lang={lang}
+        buttonClass={ICON_BUTTON}
+        configuredShifts={configuredShifts}
+        initialSelection={shiftSelection}
+      />
+    </>
+  )
 
   return (
     <AppShell

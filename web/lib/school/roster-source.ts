@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { ClassCatalogueOption, ClassCatalogueRow } from '@/lib/class-catalogue'
 import { classScopeFor } from '@/lib/school/class-scope'
+import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
 import {
   classSelection,
   latestMark,
@@ -52,11 +53,25 @@ export interface RosterView {
  */
 export async function schoolRoster(
   supabase: SupabaseClient,
-  { classSection = '', q = '' }: { classSection?: string; q?: string } = {},
+  {
+    classSection = '',
+    q = '',
+    shiftSelection = [],
+  }: { classSection?: string; q?: string; shiftSelection?: readonly string[] } = {},
 ): Promise<RosterView> {
+  // Shift (issue #579, Wave 5/#590): only narrows which classes appear as
+  // picker OPTIONS below — the roster itself still resolves via
+  // rosterFor's class_name/section text match (see the comment on that
+  // just below), entirely independent of this list, so filtering it here
+  // is safe on its own even though the roster match beside it is not yet
+  // enrollment-based. Caller passes its own getSchoolContext().shiftSelection
+  // — already resolved once per request, no re-fetch needed here.
   const [{ data: students }, { data: classes }] = await Promise.all([
     supabase.from('students').select(ROSTER_COLUMNS).is('archived_at', null).order('full_name'),
-    supabase.from('class_offerings').select('id, name, section, group_department').order('created_at'),
+    applyGlobalShiftFilterToOfferings(
+      supabase.from('class_offerings').select('id, name, section, group_department').order('created_at'),
+      shiftSelection,
+    ),
   ])
 
   const readable = (students ?? []) as RosterStudent[]
@@ -103,9 +118,14 @@ export interface RegisterView extends RosterView {
  */
 export async function studentRegister(
   supabase: SupabaseClient,
-  { classSection = '', date, viewerId }: { classSection?: string; date: string; viewerId: string },
+  {
+    classSection = '',
+    date,
+    viewerId,
+    shiftSelection = [],
+  }: { classSection?: string; date: string; viewerId: string; shiftSelection?: readonly string[] },
 ): Promise<RegisterView> {
-  const view = await schoolRoster(supabase, { classSection })
+  const view = await schoolRoster(supabase, { classSection, shiftSelection })
   const ids = view.students.map((s) => s.id)
   if (!ids.length) return { ...view, rows: [], markedBy: null }
 

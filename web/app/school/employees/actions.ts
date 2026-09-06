@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { friendlyEmployeeError, validateOptionalLogin, validateEmployeeCategory } from '@/lib/employees'
+import { isKnownAcademicShift } from '@/lib/institute'
 
 // RLS scopes all writes to the caller's School.
 
@@ -206,6 +207,27 @@ export async function setOfficeTimeAssignment(
         .delete()
         .eq('employee_id', employeeId)
         .eq('office_time_id', officeTimeId)
+  if (error) return { error: error.message }
+  revalidatePath(PAGE)
+  return {}
+}
+
+/** An Employee's permanent academic Shift assignment (issue #580, Wave
+ *  5/#590) — structurally identical to setOfficeTimeAssignment, hitting
+ *  employee_academic_shifts instead. Re-validates the fixed vocabulary
+ *  server-side (choices at the UI layer are narrowed to configured_shifts,
+ *  #580's Q2, but that narrowing is a picker restriction, not a security
+ *  boundary — same reasoning as addClass's shift field). */
+export async function setShiftAssignment(
+  employeeId: string,
+  shift: string,
+  assigned: boolean,
+): Promise<{ error?: string }> {
+  if (!isKnownAcademicShift(shift)) return { error: 'Invalid Shift' }
+  const supabase = await createClient()
+  const { error } = assigned
+    ? await supabase.from('employee_academic_shifts').insert({ employee_id: employeeId, shift })
+    : await supabase.from('employee_academic_shifts').delete().eq('employee_id', employeeId).eq('shift', shift)
   if (error) return { error: error.message }
   revalidatePath(PAGE)
   return {}

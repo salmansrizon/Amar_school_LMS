@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest'
 import {
   EDUCATION_LEVELS,
+  ACADEMIC_SHIFTS,
+  isKnownAcademicShift,
   validateInstituteProfile,
   completedCount,
   checklistStatus,
@@ -36,6 +38,7 @@ const profile = (over: Partial<InstituteProfileInput> = {}): InstituteProfileInp
   center_code: null,
   education_levels: ['primary', 'secondary'],
   roll_number_increment: 1,
+  configured_shifts: [],
   ...over,
 })
 
@@ -106,6 +109,22 @@ describe('validateInstituteProfile', () => {
       'educationLevelInvalid',
     )
   })
+
+  // Shift Configuration (issue #576, Wave 5/#590): empty is valid (No Shift),
+  // no separate boolean to contradict it.
+  it('accepts an empty configured_shifts (No Shift)', () => {
+    expect(validateInstituteProfile(profile({ configured_shifts: [] }))).toBeNull()
+  })
+
+  it('accepts configured_shifts drawn from the fixed set', () => {
+    expect(validateInstituteProfile(profile({ configured_shifts: ['Morning', 'Day'] }))).toBeNull()
+  })
+
+  it('rejects a configured_shifts value outside the fixed set', () => {
+    expect(validateInstituteProfile(profile({ configured_shifts: ['Morning', 'Noon'] }))).toBe(
+      'configuredShiftsInvalid',
+    )
+  })
 })
 
 describe('EDUCATION_LEVELS', () => {
@@ -116,6 +135,22 @@ describe('EDUCATION_LEVELS', () => {
       'higher_secondary',
       'madrasah',
     ])
+  })
+})
+
+describe('ACADEMIC_SHIFTS / isKnownAcademicShift', () => {
+  it('has exactly the four fixed Shifts', () => {
+    expect(ACADEMIC_SHIFTS).toEqual(['Morning', 'Day', 'Evening', 'Night'])
+  })
+
+  it('recognizes a value from the fixed set', () => {
+    expect(isKnownAcademicShift('Morning')).toBe(true)
+    expect(isKnownAcademicShift('Night')).toBe(true)
+  })
+
+  it('rejects a value outside the fixed set', () => {
+    expect(isKnownAcademicShift('Noon')).toBe(false)
+    expect(isKnownAcademicShift('')).toBe(false)
   })
 })
 

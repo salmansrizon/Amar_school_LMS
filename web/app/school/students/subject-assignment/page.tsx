@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
+import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
 import { subjectsForClass } from '@/lib/students'
 import { ClassPicker } from '../../classes/routine/routine-cell'
 import { BulkAssignForm } from './bulk-assign-form'
@@ -16,13 +17,13 @@ export default async function SubjectAssignmentPage({
   searchParams: Promise<{ class?: string }>
 }) {
   const lang: Lang = await currentLang()
-  const { supabase } = await getSchoolContext()
+  const { supabase, shiftSelection } = await getSchoolContext()
 
   const { class: selectedClass = '' } = await searchParams
-  const { data: classes } = await supabase
-    .from('class_offerings')
-    .select('id, name, section')
-    .order('created_at')
+  const { data: classes } = await applyGlobalShiftFilterToOfferings(
+    supabase.from('class_offerings').select('id, name, section').order('created_at'),
+    shiftSelection,
+  )
 
   return (
     <div>

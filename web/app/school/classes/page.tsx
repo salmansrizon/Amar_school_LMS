@@ -4,6 +4,8 @@ import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { countFor, studentCounts } from '@/lib/classes'
+import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
+import { isKnownAcademicShift, ACADEMIC_SHIFT_LABEL_KEY, type AcademicShift } from '@/lib/institute'
 import { AddClassForm, AddSubjectForm, DeleteButton } from './class-controls'
 import { ClassTeacherPicker } from './class-teacher-picker'
 import { AddDetails } from '@/components/add-details'
@@ -23,32 +25,39 @@ export default async function ClassesPage({
 }) {
   const { q = '', level = '' } = await searchParams
   const lang: Lang = await currentLang()
-  const { supabase } = await getSchoolContext()
+  const { supabase, configuredShifts, shiftSelection } = await getSchoolContext()
 
-  const [{ data: classes }, { data: subjects }, { data: enrollments }, { data: teachers }] =
-    await Promise.all([
+  // Choices for the create form are the current Global Shift Selection —
+  // parseShiftSelection already guarantees every element is a member of
+  // configured_shifts (#577), so no separate intersection is needed.
+  const shiftChoices = shiftSelection.filter(isKnownAcademicShift)
+
+  const [{ data: classes }, { data: subjects }, { data: enrollments }, { data: teachers }] = await Promise.all([
+    applyGlobalShiftFilterToOfferings(
       supabase
         .from('class_offerings')
-        .select('id, name, section, education_level, group_department, class_teacher_id')
+        .select('id, name, section, education_level, group_department, class_teacher_id, shift')
         .order('created_at'),
-      supabase
-        .from('subjects')
-        .select(
-          'id, name, code, theory_marks, mcq_marks, practical_marks, paper_count, class_offerings(name, section)',
-        )
-        .order('created_at'),
-      // ponytail: whole-table scan capped at 10k rows; switch to a count RPC
-      // if a school ever outgrows it.
-      supabase.from('student_enrollments').select('class_offering_id').is('closed_at', null).limit(10000),
-      // Class teachers are Employees (#435). Archived staff are not offerable.
-      // employee_card, not employees: 0136 gates the base table on the Employees
-      // grant, and this picker belongs to Classes. A name is all it wants.
-      supabase
-        .from('employee_card')
-        .select('id, full_name')
-        .is('archived_at', null)
-        .order('full_name'),
-    ])
+      shiftSelection,
+    ),
+    supabase
+      .from('subjects')
+      .select(
+        'id, name, code, theory_marks, mcq_marks, practical_marks, paper_count, class_offerings(name, section)',
+      )
+      .order('created_at'),
+    // ponytail: whole-table scan capped at 10k rows; switch to a count RPC
+    // if a school ever outgrows it.
+    supabase.from('student_enrollments').select('class_offering_id').is('closed_at', null).limit(10000),
+    // Class teachers are Employees (#435). Archived staff are not offerable.
+    // employee_card, not employees: 0136 gates the base table on the Employees
+    // grant, and this picker belongs to Classes. A name is all it wants.
+    supabase
+      .from('employee_card')
+      .select('id, full_name')
+      .is('archived_at', null)
+      .order('full_name'),
+  ])
 
   const levels = [...new Set((classes ?? []).map((c) => c.education_level).filter(Boolean))] as string[]
   const query = q.trim().toLowerCase()
@@ -112,7 +121,7 @@ export default async function ClassesPage({
             </button>
           </Form>
           <AddDetails label={t('classes.addClass', lang)}>
-            <AddClassForm lang={lang} teachers={teachers ?? []} />
+            <AddClassForm lang={lang} teachers={teachers ?? []} shiftChoices={shiftChoices} />
           </AddDetails>
         </div>
         {!visibleClasses.length ? (
@@ -126,6 +135,7 @@ export default async function ClassesPage({
                   <th className={thClass}>{t('classes.section', lang)}</th>
                   <th className={thClass}>{t('classes.educationLevel', lang)}</th>
                   <th className={thClass}>{t('classes.groupDept', lang)}</th>
+                  {configuredShifts.length > 0 && <th className={thClass}>{t('classes.shift', lang)}</th>}
                   <th className={thClass}>{t('classes.classTeacher', lang)}</th>
                   <th className={thClass}>{t('classes.students', lang)}</th>
                   <th className={thClass}>{t('classes.actions', lang)}</th>
@@ -138,6 +148,11 @@ export default async function ClassesPage({
                     <td className={tdClass}>{c.section ?? dash}</td>
                     <td className={tdClass}>{c.education_level ?? dash}</td>
                     <td className={tdClass}>{c.group_department ?? dash}</td>
+                    {configuredShifts.length > 0 && (
+                      <td className={tdClass}>
+                        {c.shift ? t(ACADEMIC_SHIFT_LABEL_KEY[c.shift as AcademicShift], lang) : dash}
+                      </td>
+                    )}
                     <td className={tdClass}>
                       <ClassTeacherPicker
                         lang={lang}

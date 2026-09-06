@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
+import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
 import { dateRangeDays, studentLogDayStatus, type OffDay, type StudentLogDayStatus } from '@/lib/attendance-manual'
 import { classCatalogueOptions, findClassCatalogueId } from '@/lib/class-catalogue'
 import { dateInputClass } from '@/components/ui/field'
@@ -69,12 +70,15 @@ export default async function StudentLogDetailPage({
   } = await searchParams
   const view: ViewMode = viewParam === 'today' || viewParam === 'custom' ? viewParam : 'month'
   const lang: Lang = await currentLang()
-  const { supabase } = await getSchoolContext()
+  const { supabase, shiftSelection } = await getSchoolContext()
 
   const [{ data: student }, institute, { data: classes }] = await Promise.all([
     supabase.from('students').select('id, full_name, class_name, section, roll_number').eq('id', studentId).maybeSingle(),
     loadInstitutePrintHeader(supabase, lang),
-    supabase.from('class_offerings').select('id, name, section, group_department').order('created_at'),
+    applyGlobalShiftFilterToOfferings(
+      supabase.from('class_offerings').select('id, name, section, group_department').order('created_at'),
+      shiftSelection,
+    ),
   ])
   if (!student) notFound()
   const classCombos = classCatalogueOptions(classes ?? [])

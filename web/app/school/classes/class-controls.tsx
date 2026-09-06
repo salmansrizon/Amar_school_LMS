@@ -3,6 +3,7 @@
 import { useMemo, useState, useTransition } from 'react'
 import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
 import { t, type Lang } from '@/lib/i18n'
+import { ACADEMIC_SHIFT_LABEL_KEY, type AcademicShift } from '@/lib/institute'
 import { addClass, addSubject, removeItem } from './actions'
 import { selectClass } from '@/components/ui/field'
 import { ConfirmDialog } from '@/components/confirm-dialog'
@@ -35,7 +36,21 @@ export interface TeacherOption {
   full_name: string
 }
 
-export function AddClassForm({ lang, teachers }: { lang: Lang; teachers: TeacherOption[] }) {
+export function AddClassForm({
+  lang,
+  teachers,
+  shiftChoices = [],
+}: {
+  lang: Lang
+  teachers: TeacherOption[]
+  /** Shift is a class-level dimension (issue #578) — choices are
+   *  `configured_shifts ∩ effectiveGlobalShiftSelection` (already
+   *  intersected by the caller), never the raw ACADEMIC_SHIFTS vocabulary.
+   *  Empty means either a No-Shift School, or every configured Shift is
+   *  currently deselected from Global Shift Selection — either way, no
+   *  field is rendered, matching #578's "not presented at all" rule. */
+  shiftChoices?: readonly AcademicShift[]
+}) {
   const { error, pending, onSubmit } = useSubmit(addClass)
   return (
     <form className="grid gap-3 sm:grid-cols-4" onSubmit={onSubmit}>
@@ -55,6 +70,19 @@ export function AddClassForm({ lang, teachers }: { lang: Lang; teachers: Teacher
         <label className={labelClass} htmlFor="class_group">{t('classes.groupDept', lang)}</label>
         <input id="class_group" name="group_department" className={inputClass} />
       </div>
+      {shiftChoices.length > 0 && (
+        <div>
+          <label className={labelClass} htmlFor="class_shift">{t('classes.shift', lang)}</label>
+          <select id="class_shift" name="shift" defaultValue="" className={selectClass()}>
+            <option value="">{t('institute.selectOne', lang)}</option>
+            {shiftChoices.map((shift) => (
+              <option key={shift} value={shift}>
+                {t(ACADEMIC_SHIFT_LABEL_KEY[shift], lang)}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
       <div className="sm:col-span-4">
         <label className={labelClass} htmlFor="class_teacher">{t('classes.classTeacher', lang)}</label>
         {/* Required once the school has any Employee to pick — mandatory as a

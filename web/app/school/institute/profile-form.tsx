@@ -4,7 +4,7 @@ import { useMemo, useRef, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
 import { t, type Lang } from '@/lib/i18n'
-import { EDUCATION_LEVELS } from '@/lib/institute'
+import { EDUCATION_LEVELS, ACADEMIC_SHIFTS, ACADEMIC_SHIFT_LABEL_KEY } from '@/lib/institute'
 import { logoImageExtension, LOGO_MAX_BYTES } from '@/lib/institute-print'
 import type { LocationRow } from '@/lib/locations'
 import { PRINT_THEMES, DEFAULT_THEME_KEY } from '@/lib/print-themes'
@@ -35,7 +35,9 @@ type SchoolRow = {
   email: string | null
   logo_path: string | null
   roll_number_increment: number
+  configured_shifts: string[]
 } | null
+
 
 /** Walk parent_id up from `id` to the root, returning [division, district, upazila, union]
  *  ids at whichever levels are actually set (shorter than 4 when the chain stops early). */
@@ -69,6 +71,9 @@ export function ProfileForm({
   const [error, setError] = useState<string | null>(null)
   const [saved, setSaved] = useState(false)
   const [pending, startTransition] = useTransition()
+  const [shiftMode, setShiftMode] = useState<'none' | 'has'>(
+    (school?.configured_shifts.length ?? 0) > 0 ? 'has' : 'none',
+  )
 
   const initialChain = useMemo(() => ancestorChain(locations, school?.location_id ?? null), [locations, school])
   const [divisionId, setDivisionId] = useState(initialChain[0] ?? '')
@@ -95,6 +100,7 @@ export function ProfileForm({
     emailInvalid: 'institute.errEmailInvalid',
     logoBadType: 'institute.errLogoBadType',
     rollIncrementInvalid: 'institute.errRollIncrementInvalid',
+    configuredShiftsInvalid: 'institute.errConfiguredShiftsInvalid',
   } as const
   const errorMessage = (code: string) =>
     code in ERROR_KEYS ? t(ERROR_KEYS[code as keyof typeof ERROR_KEYS], lang) : code
@@ -103,6 +109,10 @@ export function ProfileForm({
     e.preventDefault()
     const data = new FormData(e.currentTarget)
     data.set('location_id', finalLocationId)
+    if (shiftMode === 'has' && data.getAll('configured_shifts').length === 0) {
+      setError(t('institute.errConfiguredShiftsEmpty', lang))
+      return
+    }
     startTransition(async () => {
       setError(null)
       setSaved(false)
@@ -359,7 +369,51 @@ export function ProfileForm({
               </label>
             ))}
           </div>
-          {error && <p className="mt-3 text-sm text-alert-deep">{error}</p>}
+        </div>
+
+        {/* Shift Configuration (issue #576, Wave 5/#590): empty
+            configured_shifts means No Shift — there's no separate boolean,
+            the radio here is purely a rendering choice over that one array. */}
+        <div className="mb-4 rounded-lg border border-line bg-paper p-5 shadow-card">
+          <h3 className="mb-1 font-bold">{t('institute.shiftConfiguration', lang)}</h3>
+          <p className="mb-3 text-xs text-muted">{t('institute.shiftConfigurationHint', lang)}</p>
+          <div className="mb-3 flex gap-4">
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="radio"
+                checked={shiftMode === 'none'}
+                onChange={() => setShiftMode('none')}
+              />
+              {t('institute.noShift', lang)}
+            </label>
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="radio"
+                checked={shiftMode === 'has'}
+                onChange={() => setShiftMode('has')}
+              />
+              {t('institute.hasShift', lang)}
+            </label>
+          </div>
+          {shiftMode === 'has' && (
+            <div className="flex flex-wrap gap-4">
+              {ACADEMIC_SHIFTS.map((shift) => (
+                <label key={shift} className="flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    name="configured_shifts"
+                    value={shift}
+                    defaultChecked={school.configured_shifts.includes(shift)}
+                  />
+                  {t(ACADEMIC_SHIFT_LABEL_KEY[shift], lang)}
+                </label>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="mb-4 rounded-lg border border-line bg-paper p-5 shadow-card">
+          {error && <p className="text-sm text-alert-deep">{error}</p>}
           {saved && !error && <p className="mt-3 text-sm text-mint-deep">{t('institute.saved', lang)}</p>}
           {isOwner && (
             <button type="submit" disabled={pending} className={`${primaryBtnClass} mt-4 w-auto px-6`}>

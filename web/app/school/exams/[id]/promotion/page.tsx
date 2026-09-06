@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
+import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
 import { subjectsForClass } from '@/lib/students'
 import { subjectFullMarks } from '@/lib/exam-setup'
 import { evaluateSubject, evaluateOverallResult, subjectPercent, type GradingScheme, type OverallResult, type SubjectMark } from '@/lib/grading'
@@ -56,7 +57,7 @@ export default async function PromotionPage({
   const backHref = resolveBackHref(from, `/school/exams/${id}`)
   const basis: RankBasis = basisParam === 'mark' ? 'mark' : 'grade'
   const lang: Lang = await currentLang()
-  const { supabase } = await getSchoolContext()
+  const { supabase, shiftSelection } = await getSchoolContext()
 
   const { data: exam } = await supabase
     .from('exams')
@@ -92,7 +93,10 @@ export default async function PromotionPage({
     .eq('id', exam.class_id)
     .maybeSingle()
   const [{ data: allClasses }, { data: allSubjects }, { data: combos }] = await Promise.all([
-    supabase.from('class_offerings').select('id, name, section, group_department').order('created_at'),
+    applyGlobalShiftFilterToOfferings(
+      supabase.from('class_offerings').select('id, name, section, group_department').order('created_at'),
+      shiftSelection,
+    ),
     supabase.from('subjects').select('id, name, class_id, theory_marks, mcq_marks, practical_marks').order('name'),
     supabase
       .from('exam_combinations')

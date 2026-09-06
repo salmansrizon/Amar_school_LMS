@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { signedIn, PASSWORD } from '../helpers/auth'
+import { applyGlobalShiftFilterToStudents } from '@/lib/school/shift-filter'
 
 // Seam: migration 0160 / ADR 0021 — a class attachment narrows a Grant.
 //
@@ -46,8 +47,8 @@ describe('Class attachment narrows a Grant (#525, migration 0160)', () => {
     const { data: offerings, error: classErr } = await owner
       .from('class_offerings')
       .insert([
-        { name: `${TAG}-A`, section: 'A', class_teacher_id: employee!.id },
-        { name: `${TAG}-B`, section: 'A' },
+        { name: `${TAG}-A`, section: 'A', class_teacher_id: employee!.id, shift: 'Morning' },
+        { name: `${TAG}-B`, section: 'A', shift: 'Evening' },
       ])
       .select('id, name')
     if (classErr) throw new Error(classErr.message)
@@ -180,5 +181,44 @@ describe('Class attachment narrows a Grant (#525, migration 0160)', () => {
   it('a Class Teacher cannot read the tables her own attachment lives in', async () => {
     const { data: employees } = await classTeacher.from('employees').select('id').limit(1)
     expect(employees ?? []).toEqual([])
+  })
+
+  // Global Shift Filtering (issue #579, Wave 5/#590) authorization-
+  // independence (#581 item 5): confirmed structurally in #578 that RLS
+  // cannot read the asm-shift-selection cookie at all (it lives entirely
+  // outside the database), so this proves it holds in practice rather than
+  // re-deriving why. The invariant under test is narrower than "always
+  // returns Child A": a shift filter can legitimately narrow her down to
+  // zero (if her own class's shift isn't in the selection, same as any
+  // other shift-filtered screen) — what it must NEVER do is let Child B
+  // through, for any selection, including one built specifically from
+  // Offering B's own shift ('Evening'). That would be shift filtering
+  // acting as an authorization bypass, which #578 ruled out structurally;
+  // this is the empirical check that it actually holds.
+  async function namesForFiltered(selection: string[]): Promise<string[]> {
+    const query = await applyGlobalShiftFilterToStudents(
+      classTeacher,
+      classTeacher.from('students').select('full_name').like('full_name', `${TAG} %`),
+      selection,
+    )
+    const { data, error } = await query
+    if (error) throw new Error(error.message)
+    return (data ?? []).map((r: { full_name: string }) => r.full_name)
+  }
+
+  it('...with an empty selection (no-op), still only her own class', async () => {
+    expect(await namesForFiltered([])).toEqual([`${TAG} Child A`])
+  })
+  it('...with a selection matching her own class, still only her own class', async () => {
+    expect(await namesForFiltered(['Morning'])).toEqual([`${TAG} Child A`])
+  })
+  it("...with a selection matching the OTHER class's own shift, Child B still never appears", async () => {
+    // Correctly narrows her OWN class out too (Morning isn't selected) —
+    // the point isn't that she still sees Child A, it's that Evening being
+    // selected never admits Child B.
+    expect(await namesForFiltered(['Evening'])).toEqual([])
+  })
+  it('...with a selection matching neither class, still empty, never Child B', async () => {
+    expect(await namesForFiltered(['Day'])).toEqual([])
   })
 })

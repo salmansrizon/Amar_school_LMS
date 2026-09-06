@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
+import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
 import { classCatalogueLabel } from '@/lib/class-catalogue'
 import { countFor, studentCounts } from '@/lib/classes'
 import { Card, PageHeader } from '@/components/ui/page'
@@ -16,7 +17,7 @@ import { Card, PageHeader } from '@/components/ui/page'
 
 export default async function MyClassesPage() {
   const lang: Lang = await currentLang()
-  const { supabase } = await getSchoolContext()
+  const { supabase, shiftSelection } = await getSchoolContext()
 
   // Asked as a scalar, not by reading `employees`: that table is gated on the
   // Employees screen grant (0136), which a Class Teacher rarely holds, and a
@@ -35,11 +36,14 @@ export default async function MyClassesPage() {
   }
 
   const [{ data: classes }, { data: enrollments }, { data: tasks }] = await Promise.all([
-    supabase
-      .from('class_offerings')
-      .select('id, name, section, group_department')
-      .eq('class_teacher_id', myEmployeeId)
-      .order('name'),
+    applyGlobalShiftFilterToOfferings(
+      supabase
+        .from('class_offerings')
+        .select('id, name, section, group_department')
+        .eq('class_teacher_id', myEmployeeId)
+        .order('name'),
+      shiftSelection,
+    ),
     // ponytail: whole-table scan capped at 10k rows, same as the classes page.
     supabase.from('student_enrollments').select('class_offering_id').is('closed_at', null).limit(10000),
     supabase

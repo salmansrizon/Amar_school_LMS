@@ -3,7 +3,8 @@ import { notFound } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
-import { LoginLinkPicker, OfficeTimeToggle } from '../employee-controls'
+import { LoginLinkPicker, OfficeTimeToggle, ShiftToggle } from '../employee-controls'
+import { isKnownAcademicShift, ACADEMIC_SHIFT_LABEL_KEY } from '@/lib/institute'
 import { ArchiveToggle, ProfileEditor } from './profile-controls'
 import { railClass } from '@/components/ui/page'
 
@@ -41,7 +42,7 @@ export default async function EmployeeDetailPage({
   const { id } = await params
   const { error: createError } = await searchParams
   const lang: Lang = await currentLang()
-  const { supabase, schoolId, role } = await getSchoolContext()
+  const { supabase, schoolId, role, configuredShifts: rawConfiguredShifts } = await getSchoolContext()
 
   const { data: employee } = await supabase.from('employees').select('*').eq('id', id).single()
   if (!employee) notFound()
@@ -53,6 +54,7 @@ export default async function EmployeeDetailPage({
     { data: categories },
     { data: effective },
     { data: logins },
+    { data: shiftAssignments },
   ] = await Promise.all([
     supabase.from('schools').select('default_grace_minutes').eq('id', schoolId).single(),
     supabase.from('office_times').select('id, name, grace_minutes').order('name'),
@@ -68,11 +70,14 @@ export default async function EmployeeDetailPage({
           .eq('role', 'staff_user')
           .order('full_name')
       : Promise.resolve({ data: [] as { id: string; full_name: string | null }[] }),
+    supabase.from('employee_academic_shifts').select('employee_id, shift').eq('employee_id', id),
   ])
 
   const archived = employee.archived_at !== null
   const locale = lang === 'bn' ? 'bn-BD' : 'en-GB'
   const assignedOfficeTimeIds = new Set((assignments ?? []).map((a) => a.office_time_id))
+  const assignedShifts = new Set((shiftAssignments ?? []).map((a) => a.shift))
+  const configuredShifts = rawConfiguredShifts.filter(isKnownAcademicShift)
   const categoryGrace = categories?.find((c) => c.category === employee.category)?.grace_minutes ?? null
   // null unless at least one assigned officeTime has grace configured — an
   // assigned-but-unconfigured officeTime must read "—", the same as the other
@@ -179,6 +184,23 @@ export default async function EmployeeDetailPage({
             ))}
           </div>
         </section>
+
+        {configuredShifts.length > 0 && (
+          <section className="mb-4 rounded-lg border border-line bg-paper p-5">
+            <h3 className="mb-3 font-bold">{t('employees.academicShifts', lang)}</h3>
+            <div className="flex flex-wrap items-center gap-2">
+              {configuredShifts.map((shift) => (
+                <ShiftToggle
+                  key={shift}
+                  employeeId={id}
+                  shift={shift}
+                  label={t(ACADEMIC_SHIFT_LABEL_KEY[shift], lang)}
+                  assigned={assignedShifts.has(shift)}
+                />
+              ))}
+            </div>
+          </section>
+        )}
       </ProfileEditor>
 
       <section className="rounded-lg border border-line bg-paper p-5">

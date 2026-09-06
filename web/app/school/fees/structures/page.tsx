@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
+import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
 import { AccountingTabs } from '../accounting-tabs'
 import { FeeStructureForm, CopyFeeStructureForm } from './structure-controls'
 import { classCatalogueLabel, type ClassCatalogueRow } from '@/lib/class-catalogue'
@@ -34,10 +35,13 @@ export default async function FeeStructuresPage({
 }) {
   const { q = '' } = await searchParams
   const lang: Lang = await currentLang()
-  const { supabase } = await getSchoolContext()
+  const { supabase, shiftSelection } = await getSchoolContext()
 
   const [{ data: classes }, { data: allStructures }] = await Promise.all([
-    supabase.from('class_offerings').select('id, name, section, group_department').order('created_at'),
+    applyGlobalShiftFilterToOfferings(
+      supabase.from('class_offerings').select('id, name, section, group_department').order('created_at'),
+      shiftSelection,
+    ),
     supabase
       .from('fee_structures')
       .select('id, academic_year, fee_type, amount, fine_per_absent_day, class_id, class_offerings(name, section)')

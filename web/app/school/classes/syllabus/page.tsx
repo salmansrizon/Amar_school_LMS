@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
+import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
 import { formatBytes } from '@/lib/routine'
 import { SyllabusRow } from './syllabus-controls'
 import { classCatalogueLabel } from '@/lib/class-catalogue'
@@ -16,10 +17,13 @@ const thClass = 'px-3 py-2 text-left text-xs font-semibold uppercase tracking-wi
 
 export default async function SyllabusPage() {
   const lang: Lang = await currentLang()
-  const { supabase } = await getSchoolContext()
+  const { supabase, shiftSelection } = await getSchoolContext()
 
   const [{ data: classes }, { data: syllabi }] = await Promise.all([
-    supabase.from('class_offerings').select('id, name, section, group_department').order('created_at'),
+    applyGlobalShiftFilterToOfferings(
+      supabase.from('class_offerings').select('id, name, section, group_department').order('created_at'),
+      shiftSelection,
+    ),
     supabase.from('class_syllabi').select('class_id, file_name, uploaded_at, file_size'),
   ])
 
