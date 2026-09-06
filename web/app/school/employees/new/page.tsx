@@ -4,6 +4,7 @@ import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
 import { classCatalogueLabel } from '@/lib/class-catalogue'
+import { isKnownAcademicShift } from '@/lib/institute'
 import { CreateEmployeeForm } from './create-form'
 
 // Layout per ui/school-owner/employee-create-form.html: carded sections
@@ -17,7 +18,7 @@ import { CreateEmployeeForm } from './create-form'
 // page used to build.
 export default async function NewEmployeePage() {
   const lang: Lang = await currentLang()
-  const { supabase, shiftSelection } = await getSchoolContext()
+  const { supabase, shiftSelection, configuredShifts } = await getSchoolContext()
 
   const { data: classes } = await applyGlobalShiftFilterToOfferings(
     supabase
@@ -42,7 +43,13 @@ export default async function NewEmployeePage() {
         <h1 className="text-2xl font-extrabold">{t('employees.createTitle', lang)}</h1>
         <Link href="/school/employees" aria-label={t('employees.title', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
       </div>
-      <CreateEmployeeForm lang={lang} classes={classOptions} />
+      <CreateEmployeeForm
+        lang={lang}
+        classes={classOptions}
+        // #580: assignment-time choices come from configured_shifts, never
+        // the Owner's own Global Shift Selection.
+        shiftChoices={configuredShifts.filter(isKnownAcademicShift)}
+      />
     </div>
   )
 }

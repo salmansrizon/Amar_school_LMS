@@ -8,6 +8,7 @@ import { createEmployee } from '../actions'
 import { dateInputClass } from '@/components/ui/field'
 import { reachSentences } from '@/lib/school/teacher-reach'
 import { EMPLOYEE_CATEGORIES, isKnownEmployeeCategory } from '@/lib/employees'
+import { ACADEMIC_SHIFT_LABEL_KEY, type AcademicShift } from '@/lib/institute'
 
 const categoryLabelKey: Record<(typeof EMPLOYEE_CATEGORIES)[number], MessageKey> = {
   Teacher: 'employees.categoryTeacher',
@@ -54,14 +55,42 @@ export function Field({ label, children }: { label: string; children: React.Reac
   )
 }
 
+/** Shifts this new Employee works (issue #580, Wave 5/#590) — checkboxes,
+ *  not the edit page's per-click-saving ShiftToggle pills: there is no
+ *  employee_id yet to attach employee_academic_shifts rows to, so the
+ *  selection rides along with the rest of the form's single submit
+ *  (createEmployee applies it right after the employee row is inserted,
+ *  the same deferred-until-id-exists pattern already used here for Class
+ *  assignment). Absent entirely for a No-Shift School, same as everywhere
+ *  else this vocabulary appears. */
+function ShiftFields({ lang, shiftChoices }: { lang: Lang; shiftChoices: readonly AcademicShift[] }) {
+  if (shiftChoices.length === 0) return null
+  return (
+    <Card title={t('employees.academicShifts', lang)}>
+      <div className="flex flex-wrap gap-4">
+        {shiftChoices.map((shift) => (
+          <label key={shift} className="flex items-center gap-2 text-sm">
+            <input type="checkbox" name="shifts" value={shift} />
+            {t(ACADEMIC_SHIFT_LABEL_KEY[shift], lang)}
+          </label>
+        ))}
+      </div>
+    </Card>
+  )
+}
+
 /** Shared profile-section fields (Identity/Bank/Category/Subject/Grace) —
  *  reused by the edit form on the detail page. */
 export function ProfileFields({
   lang,
   defaults = {},
+  shiftChoices,
 }: {
   lang: Lang
   defaults?: Record<string, string | number | null>
+  /** Only passed by the create form (issue #580) — the edit page keeps its
+   *  own separately-positioned ShiftToggle section instead. */
+  shiftChoices?: readonly AcademicShift[]
 }) {
   const d = (key: string) => String(defaults[key] ?? '')
   return (
@@ -95,6 +124,8 @@ export function ProfileFields({
           </Field>
         </div>
       </Card>
+
+      {shiftChoices && <ShiftFields lang={lang} shiftChoices={shiftChoices} />}
 
       <Card title={t('employees.bankInfo', lang)}>
         <div className="grid gap-3 sm:grid-cols-2">
@@ -224,7 +255,15 @@ function LoginAndClassFields({
   )
 }
 
-export function CreateEmployeeForm({ lang, classes }: { lang: Lang; classes: ClassOption[] }) {
+export function CreateEmployeeForm({
+  lang,
+  classes,
+  shiftChoices = [],
+}: {
+  lang: Lang
+  classes: ClassOption[]
+  shiftChoices?: readonly AcademicShift[]
+}) {
   const router = useRouter()
   const formRef = useRef<HTMLFormElement>(null)
   const [classId, setClassId] = useState('')
@@ -269,7 +308,7 @@ export function CreateEmployeeForm({ lang, classes }: { lang: Lang; classes: Cla
         })
       }}
     >
-      <ProfileFields lang={lang} />
+      <ProfileFields lang={lang} shiftChoices={shiftChoices} />
       <LoginAndClassFields lang={lang} classes={classes} classId={classId} onClassChange={setClassId} />
 
       <Card title={t('teacher.previewTitle', lang)}>

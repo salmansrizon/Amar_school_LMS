@@ -153,6 +153,23 @@ export default async function EmployeeDetailPage({
           <InfoRow label={t('employees.rfidCardNumber', lang)} value={employee.rfid_card_number} />
         </InfoCard>
 
+        {configuredShifts.length > 0 && (
+          <section className="mb-4 rounded-lg border border-line bg-paper p-5">
+            <h3 className="mb-3 font-bold">{t('employees.academicShifts', lang)}</h3>
+            <div className="flex flex-wrap items-center gap-2">
+              {configuredShifts.map((shift) => (
+                <ShiftToggle
+                  key={shift}
+                  employeeId={id}
+                  shift={shift}
+                  label={t(ACADEMIC_SHIFT_LABEL_KEY[shift], lang)}
+                  assigned={assignedShifts.has(shift)}
+                />
+              ))}
+            </div>
+          </section>
+        )}
+
         <InfoCard title={t('employees.bankInfo', lang)}>
           <InfoRow label={t('employees.bankName', lang)} value={employee.bank_name} />
           <InfoRow label={t('employees.bankBranch', lang)} value={employee.bank_branch} />
@@ -184,23 +201,6 @@ export default async function EmployeeDetailPage({
             ))}
           </div>
         </section>
-
-        {configuredShifts.length > 0 && (
-          <section className="mb-4 rounded-lg border border-line bg-paper p-5">
-            <h3 className="mb-3 font-bold">{t('employees.academicShifts', lang)}</h3>
-            <div className="flex flex-wrap items-center gap-2">
-              {configuredShifts.map((shift) => (
-                <ShiftToggle
-                  key={shift}
-                  employeeId={id}
-                  shift={shift}
-                  label={t(ACADEMIC_SHIFT_LABEL_KEY[shift], lang)}
-                  assigned={assignedShifts.has(shift)}
-                />
-              ))}
-            </div>
-          </section>
-        )}
       </ProfileEditor>
 
       <section className="rounded-lg border border-line bg-paper p-5">

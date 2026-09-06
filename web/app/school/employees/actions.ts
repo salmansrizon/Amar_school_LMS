@@ -117,6 +117,20 @@ export async function createEmployee(
     revalidatePath('/school/classes')
   }
 
+  // Shifts this Employee works (issue #580, Wave 5/#590) — deferred until
+  // now, the same "employee_id has to exist first" reason class_id's
+  // assignment is deferred above. Re-validated server-side even though the
+  // checkbox list already only offers configured_shifts values.
+  const shifts = formData.getAll('shifts').map(String).filter(isKnownAcademicShift)
+  if (shifts.length > 0) {
+    const { error: shiftError } = await supabase
+      .from('employee_academic_shifts')
+      .insert(shifts.map((shift) => ({ employee_id: employeeId, shift })))
+    if (shiftError) {
+      return { id: employeeId, error: `Employee created, but the Shift assignment failed: ${shiftError.message}` }
+    }
+  }
+
   revalidatePath(PAGE)
   return { id: employeeId }
 }
