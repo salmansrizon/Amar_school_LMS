@@ -137,12 +137,11 @@ describe('Exams III — marks entry, combinations, promotion (issue #32)', () =>
     expect(data).toHaveLength(0)
   })
 
-  it('transfer_student promotion: an explicit p_new_roll sets the roll directly on a class change', async () => {
-    const { error } = await ownerA.rpc('transfer_student', {
+  it('sync_student_legacy_placement: an explicit p_new_roll sets the roll directly on a class change', async () => {
+    const { error } = await ownerA.rpc('sync_student_legacy_placement', {
       p_student_id: studentId,
       p_to_class: 'EM Test Class Promoted',
       p_to_section: 'B',
-      p_note: 'Promotion',
       p_new_roll: 7,
     })
     expect(error).toBeNull()
@@ -157,12 +156,11 @@ describe('Exams III — marks entry, combinations, promotion (issue #32)', () =>
       .eq('id', studentId)
   })
 
-  it('transfer_student without p_new_roll keeps existing behavior (roll reset to null on class change)', async () => {
-    const { error } = await ownerA.rpc('transfer_student', {
+  it('sync_student_legacy_placement without p_new_roll keeps existing behavior (roll reset to null on class change)', async () => {
+    const { error } = await ownerA.rpc('sync_student_legacy_placement', {
       p_student_id: studentId,
       p_to_class: 'EM Test Class Other',
       p_to_section: null,
-      p_note: null,
     })
     expect(error).toBeNull()
     const { data } = await ownerA.from('students').select('class_name, roll_number').eq('id', studentId).single()

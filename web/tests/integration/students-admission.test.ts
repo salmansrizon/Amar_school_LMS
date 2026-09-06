@@ -5,8 +5,8 @@ import { signedIn } from '../helpers/auth'
 // Seam: Students I schema (issue #27, PRD §5.1 first half) — full admission
 // profile columns, assign_student_roll trigger (auto-roll per
 // School+class+section, stepped by schools.roll_number_increment — issue
-// #503), soft-archive via archived_at, student_transfers history, all
-// RLS-scoped.
+// #503), soft-archive via archived_at, student_enrollments history (Wave 6,
+// issue #591 — student_transfers retired), all RLS-scoped.
 
 describe('Students I (issue #27)', () => {
   let ownerA: SupabaseClient
@@ -184,20 +184,18 @@ describe('Students I (issue #27)', () => {
     expect(active?.archived_at).toBeNull()
   })
 
-  it('transfer_student RPC records history and moves the student atomically', async () => {
-    const { error } = await ownerA.rpc('transfer_student', {
+  // student_transfers is retired (Wave 6, issue #591): its history-log job
+  // moved entirely onto student_enrollments.note (set by
+  // set_student_enrollment), and sync_student_legacy_placement replaces
+  // transfer_student(...) for the legacy-column-sync half only — no history
+  // row to assert here any more, just the students update.
+  it('sync_student_legacy_placement moves the student atomically', async () => {
+    const { error } = await ownerA.rpc('sync_student_legacy_placement', {
       p_student_id: studentId,
       p_to_class: 'ST1 Other Class',
       p_to_section: 'B',
-      p_note: 'guardian request',
     })
     expect(error).toBeNull()
-    const { data: history } = await ownerA
-      .from('student_transfers')
-      .select('to_class, note')
-      .eq('student_id', studentId)
-    expect(history).toHaveLength(1)
-    expect(history![0].to_class).toBe('ST1 Other Class')
     const { data: student } = await ownerA
       .from('students')
       .select('class_name, section, roll_number')
@@ -208,7 +206,7 @@ describe('Students I (issue #27)', () => {
     expect(student?.roll_number).toBeNull() // reset on class change
   })
 
-  it('transfer_student resets the roll on a section-only move (roll is section-scoped)', async () => {
+  it('sync_student_legacy_placement resets the roll on a section-only move (roll is section-scoped)', async () => {
     const { data: created } = await ownerA
       .from('students')
       .insert({ full_name: 'ST1 SectionMove', class_name: 'ST1 Other Class', section: 'B' })
@@ -216,11 +214,10 @@ describe('Students I (issue #27)', () => {
       .single()
     expect(created?.roll_number).not.toBeNull()
 
-    const { error } = await ownerA.rpc('transfer_student', {
+    const { error } = await ownerA.rpc('sync_student_legacy_placement', {
       p_student_id: created!.id,
       p_to_class: 'ST1 Other Class', // same class
       p_to_section: 'C', // section-only change
-      p_note: 'section move',
     })
     expect(error).toBeNull()
     const { data: moved } = await ownerA
@@ -232,33 +229,23 @@ describe('Students I (issue #27)', () => {
     expect(moved?.roll_number).toBeNull()
   })
 
-  it('transfer_student rejects a student from another school', async () => {
-    const { error } = await ownerB.rpc('transfer_student', {
+  it('sync_student_legacy_placement rejects a student from another school', async () => {
+    const { error } = await ownerB.rpc('sync_student_legacy_placement', {
       p_student_id: studentId,
       p_to_class: 'Hijack',
       p_to_section: null,
-      p_note: null,
     })
     expect(error).not.toBeNull()
     expect(error!.message).toContain('student not accessible')
   })
 
-  it("RLS: another school's owner sees neither student nor transfers", async () => {
+  it("RLS: another school's owner sees neither student nor its Enrollments", async () => {
     const { data: students } = await ownerB.from('students').select('id').eq('id', studentId)
     expect(students).toHaveLength(0)
-    const { data: transfers } = await ownerB
-      .from('student_transfers')
+    const { data: enrollments } = await ownerB
+      .from('student_enrollments')
       .select('id')
       .eq('student_id', studentId)
-    expect(transfers).toHaveLength(0)
-  })
-
-  it("another school's owner cannot plant a transfer row for the student (tenancy trigger)", async () => {
-    const { error } = await ownerB.from('student_transfers').insert({
-      student_id: studentId,
-      to_class: 'Hijack',
-    })
-    expect(error).not.toBeNull()
-    expect(error!.message).toContain('student does not belong to this school')
+    expect(enrollments).toHaveLength(0)
   })
 })

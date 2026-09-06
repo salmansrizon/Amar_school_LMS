@@ -25,7 +25,8 @@ const DENIED = [
   'behaviour_log_entries',
   'sms_log',
   'gallery_albums',
-  'student_transfers',
+  // student_transfers retired (Wave 6, issue #591) — dropped, not replaced
+  // in this grant map; student_enrollments isn't screen-gated the same way.
 ] as const
 
 /** Read by several screens, so deliberately open to any school member. */

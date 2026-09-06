@@ -253,22 +253,22 @@ export async function restoreStudent(id: string): Promise<{ error?: string }> {
  *  #586): the id-based Class Offering picker submits `class_offering_id`.
  *  set_student_enrollment (#573/#585) is the real placement change and the
  *  real authorization gate — it must run FIRST, before anything else touches
- *  the legacy columns, because the old transfer_student RPC (still called
- *  below) performs NO capacity check at all. Calling transfer_student first
- *  would let an unauthorized actor still mutate students.class_name/section
- *  even when the actual Enrollment change is correctly refused.
+ *  the legacy columns, because sync_student_legacy_placement (still called
+ *  below) performs NO capacity check at all. Calling it first would let an
+ *  unauthorized actor still mutate students.class_name/section even when the
+ *  actual Enrollment change is correctly refused.
  *
- *  student_transfers' retirement in favor of student_enrollments' own history
- *  is explicitly undecided (flagged in this wave's plan, not resolved here),
- *  so transfer_student is kept as a second call purely to preserve its
- *  history log and keep students.class_name/section/roll_number in sync —
- *  same transitional-bridge reasoning as admitStudent's own denormalized
- *  sync. p_new_roll is set to whatever set_student_enrollment/
+ *  student_transfers is retired (Wave 6, issue #591): the history now lives
+ *  solely on student_enrollments.note (set by the call above), so the second
+ *  call is sync_student_legacy_placement — transfer_student(...) minus its
+ *  history-log insert — kept purely to keep students.class_name/section/
+ *  roll_number in sync, same transitional-bridge reasoning as admitStudent's
+ *  own denormalized sync. p_new_roll is set to whatever set_student_enrollment/
  *  assign_enrollment_roll actually assigned, so the legacy roll_number
  *  column never disagrees with student_enrollments' own. Individually-safe
  *  two-step write: the Enrollment change is what's authoritative and already
  *  committed by the time this second call runs; a failure here only leaves
- *  the legacy columns/history stale, not the placement itself. */
+ *  the legacy columns stale, not the placement itself. */
 export async function transferStudent(formData: FormData): Promise<{ error?: string }> {
   const id = String(formData.get('id') ?? '').trim()
   if (!id) return { error: 'Student is required' }
@@ -299,14 +299,13 @@ export async function transferStudent(formData: FormData): Promise<{ error?: str
     .eq('id', enrollmentId)
     .maybeSingle()
 
-  const { error } = await supabase.rpc('transfer_student', {
+  const { error } = await supabase.rpc('sync_student_legacy_placement', {
     p_student_id: id,
     p_to_class: offering.name,
     p_to_section: offering.section,
-    p_note: note,
     p_new_roll: enrollment?.roll_number ?? null,
   })
-  if (error) return { error: `Transferred, but the history/legacy record failed to sync: ${error.message}` }
+  if (error) return { error: `Transferred, but the legacy record failed to sync: ${error.message}` }
 
   revalidatePath(LIST)
   revalidatePath(`${LIST}/${id}`)

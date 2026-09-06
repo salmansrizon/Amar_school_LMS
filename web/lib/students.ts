@@ -143,8 +143,9 @@ export function parseRollNumber(raw: string): { value: number | null; error?: st
 /** Whether a profile edit's class+section differs from the student's current
  *  row — a "scope change" (issue #503/#504). Rolls are section-scoped, and
  *  assign_student_roll only fires `before insert`, so the plain profile-edit
- *  path (unlike the dedicated transfer_student RPC, which already resets the
- *  roll on any scope change — 0120 migration) has to apply this same rule
+ *  path (unlike the dedicated sync_student_legacy_placement RPC, which
+ *  already resets the roll on any scope change — 0120/0186 migrations) has
+ *  to apply this same rule
  *  itself before deciding whether a blank Roll Number field may keep the
  *  student's existing roll. `current: null` (the row couldn't be read) reads
  *  as "no change" — the safer default, since a genuinely missing student is

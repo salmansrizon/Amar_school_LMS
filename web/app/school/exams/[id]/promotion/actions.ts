@@ -10,13 +10,14 @@ import { archiveStudent } from '@/app/school/students/actions'
 // one giant transaction across students, the same shape #46's "bulk assign
 // all" and this file's own pre-existing per-student loop already used
 // (preserved deliberately, per #574's own confirmed decision not to
-// introduce a bulk RPC). transfer_student is still called second, per
-// student, purely to keep student_transfers' history log and
-// students.class_name/section/roll_number in sync — same transitional-bridge
-// reasoning as transferStudent's own two-RPC shape (actions.ts under
-// app/school/students), and for the identical reason: transfer_student has
-// no capacity check of its own, so it must never be the one that decides
-// whether a promotion is authorized.
+// introduce a bulk RPC). sync_student_legacy_placement is still called
+// second, per student (student_transfers is retired, Wave 6/#591 — the
+// history now lives solely on student_enrollments.note, set by the call
+// above), purely to keep students.class_name/section/roll_number in sync —
+// same transitional-bridge reasoning as transferStudent's own two-RPC shape
+// (actions.ts under app/school/students), and for the identical reason:
+// sync_student_legacy_placement has no capacity check of its own, so it must
+// never be the one that decides whether a promotion is authorized.
 //
 // "Repeat" stays exactly as before this wave: a repeated (failed) Student
 // gets NO RPC call at all and keeps their current Enrollment untouched. This
@@ -84,16 +85,15 @@ export async function promoteStudents(
       .eq('id', enrollmentId)
       .maybeSingle()
 
-    const { error } = await supabase.rpc('transfer_student', {
+    const { error } = await supabase.rpc('sync_student_legacy_placement', {
       p_student_id: item.studentId,
       p_to_class: offering.name,
       p_to_section: offering.section,
-      p_note: 'Promotion',
       p_new_roll: enrollment?.roll_number ?? item.newRoll,
     })
     if (error) {
       failedCount += 1
-      lastError = `Promoted, but the history/legacy record failed to sync: ${error.message}`
+      lastError = `Promoted, but the legacy record failed to sync: ${error.message}`
     }
   }
   revalidatePath(pagePath(examId))
