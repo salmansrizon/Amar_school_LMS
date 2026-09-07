@@ -61,7 +61,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
  *  PostgREST syntax (Supabase-js sends an empty list literal that the
  *  server rejects) rather than "match nothing," which is what an empty
  *  result set here actually means. */
-const NO_MATCH_SENTINEL = '00000000-0000-0000-0000-000000000000'
+export const NO_MATCH_SENTINEL = '00000000-0000-0000-0000-000000000000'
 
 interface OrFilterable<Self> {
   or(filters: string): Self

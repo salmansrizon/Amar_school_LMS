@@ -31,6 +31,7 @@ import {
 import { rankResults, type RankBasis, type RankableResult } from '@/lib/exam-results'
 import { loadGradingScheme } from '@/lib/grading-scheme-loader'
 import { selectAllRows } from '@/lib/supabase/select-all'
+import { NO_MATCH_SENTINEL } from '@/lib/school/shift-filter'
 
 type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>
 
@@ -199,8 +200,11 @@ export async function loadExamRosterResults(
     // one: PostgREST can't both exclude non-matching parent rows and keep
     // the query simple in one embedded-resource filter. Fetched alongside
     // the grading scheme, not after — it depends on exam.class_id alone,
-    // not on scheme, so there is no reason to pay for it serially.
-    const willBuildRoster = subjects.length > 0 && !!cls
+    // not on scheme, so there is no reason to pay for it serially. Gated on
+    // grading_scheme_id too (not just subjects/cls) so an exam that isn't
+    // Exam-Basic-Info-complete yet doesn't pay for an enrollment fetch whose
+    // result the `scheme &&` guard below would just discard.
+    const willBuildRoster = !!exam.grading_scheme_id && subjects.length > 0 && !!cls
     const [gradingScheme, { data: enrolled }] = await Promise.all([
       exam.grading_scheme_id ? loadGradingScheme(supabase, exam.grading_scheme_id) : Promise.resolve(null),
       willBuildRoster
@@ -209,13 +213,12 @@ export async function loadExamRosterResults(
     ])
     scheme = gradingScheme
     const enrolledIds = (enrolled ?? []).map((e) => e.student_id)
-    const NO_MATCH = '00000000-0000-0000-0000-000000000000'
 
     if (scheme && subjects.length && cls) {
       const rosterQuery = supabase
         .from('students')
         .select('id, full_name, roll_number, guardian_name')
-        .in('id', enrolledIds.length ? enrolledIds : [NO_MATCH])
+        .in('id', enrolledIds.length ? enrolledIds : [NO_MATCH_SENTINEL])
         .is('archived_at', null)
         .order('roll_number', { ascending: true, nullsFirst: false })
 
