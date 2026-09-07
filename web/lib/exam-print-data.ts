@@ -188,16 +188,36 @@ export async function loadExamRosterResults(
     subjectOptions = subjects.map((s) => ({ id: s.id, name: s.name }))
     const optionalMap = new Map((optionalRows ?? []).map((o) => [`${o.student_id}:${o.subject_id}`, o.is_optional]))
 
-    scheme = exam.grading_scheme_id ? await loadGradingScheme(supabase, exam.grading_scheme_id) : null
+    // Scoped via the current Enrollment (issue #593, found by code review
+    // against that ticket's own widened class_offerings uniqueness): a
+    // class_name/section text match used to be unambiguous because at most
+    // one Offering could ever hold that pair. Once two Offerings can share
+    // a name+section (a Morning and a Day "Nine - A"), a text match here
+    // would print BOTH shifts' students on the same exam's roster/mark
+    // sheet/report card. Two-step resolution (not an embedded-filter join)
+    // for the same reason applyGlobalShiftFilterToStudents already uses
+    // one: PostgREST can't both exclude non-matching parent rows and keep
+    // the query simple in one embedded-resource filter. Fetched alongside
+    // the grading scheme, not after — it depends on exam.class_id alone,
+    // not on scheme, so there is no reason to pay for it serially.
+    const willBuildRoster = subjects.length > 0 && !!cls
+    const [gradingScheme, { data: enrolled }] = await Promise.all([
+      exam.grading_scheme_id ? loadGradingScheme(supabase, exam.grading_scheme_id) : Promise.resolve(null),
+      willBuildRoster
+        ? supabase.from('student_enrollments').select('student_id').eq('class_offering_id', exam.class_id).is('closed_at', null)
+        : Promise.resolve({ data: [] as { student_id: string }[] }),
+    ])
+    scheme = gradingScheme
+    const enrolledIds = (enrolled ?? []).map((e) => e.student_id)
+    const NO_MATCH = '00000000-0000-0000-0000-000000000000'
 
     if (scheme && subjects.length && cls) {
-      let rosterQuery = supabase
+      const rosterQuery = supabase
         .from('students')
         .select('id, full_name, roll_number, guardian_name')
-        .eq('class_name', cls.name)
+        .in('id', enrolledIds.length ? enrolledIds : [NO_MATCH])
         .is('archived_at', null)
         .order('roll_number', { ascending: true, nullsFirst: false })
-      rosterQuery = cls.section ? rosterQuery.eq('section', cls.section) : rosterQuery.is('section', null)
 
       // Paged, not unbounded (#546). A missing mark does not render as missing —
       // assembleRosterRows below reads an absent entry as 0 — so a silently

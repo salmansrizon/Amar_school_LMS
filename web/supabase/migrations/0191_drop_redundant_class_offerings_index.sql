@@ -1,0 +1,21 @@
+-- 0191_drop_redundant_class_offerings_index.sql
+-- Issue #593 -- found running this ticket's own regression tests against
+-- 0190, not during grilling or the earlier investigation: a SECOND,
+-- independent duplicate-guard on class_offerings survived undetected
+-- because it is a bare `create unique index` (migration 0155, renamed by
+-- 0174's classes->class_offerings rename), never a table CONSTRAINT --
+-- `pg_constraint` queries during this ticket's whole investigation never
+-- surfaced it. `class_offerings_school_name_section_unique` enforces
+-- (school_id, name, coalesce(section,'')) -- the exact same (school_id,
+-- name, section) collision 0190's class_offerings_identity_unique already
+-- covers as a strict prefix, with none of the Shift/Academic Year/Group
+-- Department widening. Left in place, it silently re-blocked the exact
+-- coexistence 0190 was written to allow -- caught immediately by this
+-- ticket's own new regression tests failing with this index's name in the
+-- 23505 message, not by inspection.
+--
+-- Confirmed before dropping: referenced nowhere except two historical
+-- migrations' own comments (0174's rename, 0183's Wave 6 backfill assertion
+-- of the invariant it enforced AT THE TIME, before this widening) -- no
+-- onConflict clause, no FK, nothing depends on it by name.
+drop index if exists public.class_offerings_school_name_section_unique;

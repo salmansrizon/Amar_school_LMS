@@ -63,6 +63,16 @@ describe('Exams V — result roster, roll-range/promoted filter, exam-center (is
       await ownerA.from('rooms').insert({ building_id: mainBuildingId, name: 'PA Test Room', capacity: 30 }).select('id').single()
     ).data!.id
 
+    // Enrolled via admit_student_enrollment, not just the legacy class_name/
+    // section text: loadExamRosterResults (issue #593) resolves the roster
+    // via student_enrollments.class_offering_id now, so a Student needs a
+    // real current Enrollment in classId to appear on this exam's roster at
+    // all — the same requirement Wave 6's own backfill and every
+    // Enrollment-scoped consumer since has had. roll_number stays set on
+    // `students` too (admit_student_enrollment doesn't sync it, only the
+    // app's own admitStudent action does) — loadExamRosterResults still
+    // reads roll_number from `students` directly, unchanged; only which
+    // Students it selects moved onto the Enrollment.
     passStudentId = (
       await ownerA
         .from('students')
@@ -77,6 +87,18 @@ describe('Exams V — result roster, roll-range/promoted filter, exam-center (is
         .select('id')
         .single()
     ).data!.id
+    await ownerA.rpc('admit_student_enrollment', {
+      p_student_id: passStudentId,
+      p_class_offering_id: classId,
+      p_roll_number: 1,
+      p_note: null,
+    })
+    await ownerA.rpc('admit_student_enrollment', {
+      p_student_id: failStudentId,
+      p_class_offering_id: classId,
+      p_roll_number: 2,
+      p_note: null,
+    })
 
     examId = (
       await ownerA

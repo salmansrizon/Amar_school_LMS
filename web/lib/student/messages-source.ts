@@ -44,7 +44,7 @@ export async function askQuestion(formData: FormData): Promise<{ error?: string 
   // Tell the Class Teacher. A class with no teacher assigned, or a teacher with
   // no login, simply has nobody to notify — the question still lands, and the
   // School Owner reads every question in the school (#435).
-  await notifyClassTeacher(supabase, ctx.student.school_id, ctx.student.class_name, ctx.student.section, subject.trim())
+  await notifyClassTeacher(supabase, ctx.student.school_id, subject.trim())
 
   revalidatePath('/student/questions')
   if (publicationId) revalidatePath(`/student/notices/${publicationId}`)
@@ -54,15 +54,13 @@ export async function askQuestion(formData: FormData): Promise<{ error?: string 
 async function notifyClassTeacher(
   supabase: Awaited<ReturnType<typeof createClient>>,
   schoolId: string,
-  className: string | null,
-  section: string | null,
   subject: string,
 ): Promise<void> {
-  const { data } = await supabase.rpc('class_teacher_profile_for', {
-    p_school: schoolId,
-    p_class: className,
-    p_section: section,
-  })
+  // Resolves via the calling Student's own current Enrollment (issue #593),
+  // not the (name, section) text this used to take — the RPC takes no
+  // parameters, deliberately (see 0189's own comment): it can only ever
+  // answer for whoever is authenticated right now.
+  const { data } = await supabase.rpc('class_teacher_profile_for')
   const recipient = data as string | null
   if (!recipient) return
   await pushInApp(supabase, {
