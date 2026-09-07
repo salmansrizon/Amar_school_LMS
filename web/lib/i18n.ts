@@ -2341,6 +2341,21 @@ const dict = {
     bn: 'শুধুমাত্র স্কুল মালিক প্রতিষ্ঠান প্রোফাইল সম্পাদনা করতে পারবেন।',
     en: 'Only the School Owner can edit the institute profile.',
   },
+  // Start Academic Year (issue #570, #594) — a distinct, forward-only named
+  // action, deliberately not part of the Profile tab's bulk-save form.
+  'institute.academicYearTitle': { bn: 'শিক্ষাবর্ষ', en: 'Academic Year' },
+  'institute.academicYearCurrentLabel': { bn: 'বর্তমান শিক্ষাবর্ষ', en: 'Current Academic Year' },
+  'institute.academicYearNewLabel': { bn: 'নতুন শিক্ষাবর্ষ', en: 'New Academic Year' },
+  'institute.academicYearStart': { bn: 'শিক্ষাবর্ষ শুরু করুন', en: 'Start Academic Year' },
+  'institute.academicYearConfirmTitle': { bn: 'নতুন শিক্ষাবর্ষ শুরু করবেন?', en: 'Start a new Academic Year?' },
+  'institute.academicYearConfirmBody': {
+    bn: 'প্রতিষ্ঠানের সক্রিয় শিক্ষাবর্ষ পরিবর্তন হবে:',
+    en: "This will move the School's active Academic Year:",
+  },
+  'institute.academicYearCannotUndo': {
+    bn: 'এই পদক্ষেপ এই স্ক্রিন থেকে পূর্বাবস্থায় ফেরানো যাবে না।',
+    en: 'This cannot be undone from this screen.',
+  },
   'institute.errNameRequired': { bn: 'প্রতিষ্ঠানের নাম আবশ্যক', en: 'Institute name is required' },
   'institute.errMpoCodeRequired': {
     bn: 'তালিকাভুক্ত হলে এমপিও কোড আবশ্যক',

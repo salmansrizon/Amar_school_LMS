@@ -5,6 +5,7 @@ import { getSchoolContext } from '@/lib/school/context'
 import type { LocationRow } from '@/lib/locations'
 import { InstituteTabs } from './tabs'
 import { ProfileForm } from './profile-form'
+import { AcademicYearCard } from './academic-year-card'
 
 // Institute Profile (issue #39, PRD §5.11) per ui/school-owner/institute-profile.html.
 // Address hierarchy + Cluster assignment reuse the existing schools.location_id /
@@ -19,7 +20,7 @@ export default async function InstituteProfilePage() {
     supabase
       .from('schools')
       .select(
-        'id, name, institute_code, eiin_no, mpo_enlisted, mpo_code, center_code, education_levels, location_id, cluster_id, address_line, mobile, email, logo_path, roll_number_increment, configured_shifts',
+        'id, name, institute_code, eiin_no, mpo_enlisted, mpo_code, center_code, education_levels, location_id, cluster_id, address_line, mobile, email, logo_path, roll_number_increment, configured_shifts, active_academic_year',
       )
       .maybeSingle(),
     supabase.from('locations').select('id, name, type, parent_id').order('name'),
@@ -48,6 +49,8 @@ export default async function InstituteProfilePage() {
         clusters={clusters ?? []}
         admitCardTheme={admitCardTheme?.palette_key ?? null}
       />
+
+      <AcademicYearCard lang={lang} isOwner={role === 'school_owner'} currentYear={school?.active_academic_year ?? null} />
     </div>
   )
 }

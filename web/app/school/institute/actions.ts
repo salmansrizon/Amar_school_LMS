@@ -131,3 +131,21 @@ export async function removeSchoolLogo(): Promise<{ error?: string }> {
   revalidatePath(PAGE)
   return {}
 }
+
+/** The "Start Academic Year N" named domain action (issue #570, #594) —
+ *  owner-only server-action wrapper around the start_academic_year RPC, which
+ *  is the sole sanctioned writer of active_academic_year (enforced by its own
+ *  transition-only trigger, 0194). This action only surfaces the RPC's error
+ *  as a clean string; the RPC itself re-checks School Owner authorization,
+ *  forward-only, and the 2000-2100 bound — currentOwner() here is the same
+ *  belt-and-suspenders pattern every other institute action already uses. */
+export async function startAcademicYear(year: number): Promise<{ error?: string; year?: number }> {
+  const actor = await currentOwner()
+  if ('error' in actor) return { error: actor.error }
+  const { supabase } = actor
+
+  const { data, error } = await supabase.rpc('start_academic_year', { p_year: year })
+  if (error) return { error: error.message }
+  revalidatePath(PAGE)
+  return { year: data as number }
+}
