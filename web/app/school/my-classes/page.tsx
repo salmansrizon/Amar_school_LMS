@@ -39,16 +39,22 @@ export default async function MyClassesPage() {
     applyGlobalShiftFilterToOfferings(
       supabase
         .from('class_offerings')
-        .select('id, name, section, group_department, shift')
+        .select('id, name, section, group_department, shift, academic_year')
         .eq('class_teacher_id', myEmployeeId)
         .order('name'),
       shiftSelection,
     ),
     // ponytail: whole-table scan capped at 10k rows, same as the classes page.
     supabase.from('student_enrollments').select('class_offering_id').is('closed_at', null).limit(10000),
+    // Offering-aware since map #598 Wave 4 (#605) -- target_scope and its
+    // companion columns, alongside the legacy target_type/target_class_name/
+    // target_section triple homeworkTargetsOffering still falls back to for
+    // a not-yet-migrated (target_scope null) row.
     supabase
       .from('publications')
-      .select('id, title, due_at, target_type, target_class_name, target_section')
+      .select(
+        'id, title, due_at, target_scope, target_type, class_offering_id, target_class_name, target_academic_year, target_shift, target_group_department, target_section',
+      )
       .eq('kind', 'homework')
       .order('created_at', { ascending: false })
       .limit(200),

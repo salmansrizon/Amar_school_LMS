@@ -1,4 +1,4 @@
-import type { CandidateOffering, PublicationTarget } from '@/lib/publishing'
+import type { CandidateOffering, LegacyPublicationTarget, PublicationTarget } from '@/lib/publishing'
 
 // Shared parity table (issue #595, map #598 Wave 1, #602) -- asserted against
 // BOTH the TS predicate (tests/unit/publishing-targeting.test.ts) and its SQL
@@ -137,5 +137,67 @@ export const PUBLICATION_TARGET_SCENARIOS: TargetingScenario[] = [
     target: { scope: 'broadcast', classOfferingId: null, className: 'Eleven', academicYear: 2026, shift: null, groupDepartment: null, section: 'A' },
     offering: offeringNoShiftNoGroupNoSection,
     expected: false,
+  },
+]
+
+// Legacy (target_scope IS NULL) parity table -- caught by code review as a
+// real gap (map #598 Wave 4/#605): the primary predicate above is proven
+// identical across TS/SQL by PUBLICATION_TARGET_SCENARIOS, but
+// targetMatchesOfferingLegacy (lib/publishing.ts) and its SQL mirror,
+// publication_target_matches_offering_legacy (migration 0196), had no such
+// proof -- exactly the "trust the two copies stay in sync by inspection"
+// risk the primary predicate's own parity table exists to close. Asserted
+// against both tests/unit/publishing-targeting.test.ts (TS) and
+// tests/integration/publishing-targeting.test.ts (SQL, via
+// publication_target_matches_offering_legacy directly).
+export interface LegacyTargetingScenario {
+  description: string
+  target: LegacyPublicationTarget
+  offering: { name: string; section: string | null }
+  expected: boolean
+}
+
+export const LEGACY_TARGET_SCENARIOS: LegacyTargetingScenario[] = [
+  {
+    description: "target_type='all' matches regardless of class/section",
+    target: { targetType: 'all', targetClassName: 'Ten', targetSection: 'Z' },
+    offering: { name: 'Nine', section: 'A' },
+    expected: true,
+  },
+  {
+    description: 'a specific target with no section reaches every section of that class',
+    target: { targetType: 'specific', targetClassName: 'Nine', targetSection: null },
+    offering: { name: 'Nine', section: 'B' },
+    expected: true,
+  },
+  {
+    description: 'a specific target with a section narrows to that section only',
+    target: { targetType: 'specific', targetClassName: 'Nine', targetSection: 'A' },
+    offering: { name: 'Nine', section: 'B' },
+    expected: false,
+  },
+  {
+    description: 'a specific target for a different class never matches',
+    target: { targetType: 'specific', targetClassName: 'Ten', targetSection: null },
+    offering: { name: 'Nine', section: 'A' },
+    expected: false,
+  },
+  {
+    description: 'a section-only target (no class chosen) reaches every class in that section',
+    target: { targetType: 'specific', targetClassName: null, targetSection: 'A' },
+    offering: { name: 'Nine', section: 'A' },
+    expected: true,
+  },
+  {
+    description: 'a section-only target does not match a different section',
+    target: { targetType: 'specific', targetClassName: null, targetSection: 'A' },
+    offering: { name: 'Ten', section: 'B' },
+    expected: false,
+  },
+  {
+    description: 'a specific target with a section against an Offering with no Section (empty-string normalization)',
+    target: { targetType: 'specific', targetClassName: 'Nine', targetSection: '' },
+    offering: { name: 'Nine', section: null },
+    expected: true,
   },
 ]

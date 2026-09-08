@@ -152,13 +152,113 @@ export interface CandidateOffering {
  *  exactly; a null field always matches (Any). */
 export function targetMatchesOffering(target: PublicationTarget, offering: CandidateOffering): boolean {
   if (target.scope === 'all') return true
-  if (target.scope === 'offering') return target.classOfferingId === offering.id
+  if (target.scope === 'offering') {
+    // Explicit non-null guard, kept structurally symmetric with the SQL
+    // mirror (publication_target_matches_offering, 0195) even though
+    // CandidateOffering.id is typed non-nullable today: the SQL side needed
+    // this exact guard because its own candidate id (a LEFT JOINed
+    // class_offerings.id) genuinely can be null at runtime, a real bug
+    // caught by code review (map #598 Wave 3/#604). TypeScript's type
+    // system prevents the equivalent from happening here today, but a
+    // future caller passing untyped/JSON data could still defeat that --
+    // this line costs nothing and keeps the two implementations reading
+    // the same way for anyone comparing them.
+    return offering.id != null && target.classOfferingId === offering.id
+  }
   return (
     target.className === offering.name &&
     target.academicYear === offering.academicYear &&
     (target.shift === null || target.shift === offering.shift) &&
     (target.groupDepartment === null || target.groupDepartment === offering.groupDepartment) &&
     (target.section === null || target.section === offering.section)
+  )
+}
+
+// The pre-#595 (name, section)-text targeting rule (map #598 Wave 4/#605) --
+// the TS mirror of the SQL publication_target_matches_offering_legacy
+// (0196), for a `target_scope IS NULL` (not-yet-migrated) row. Kept as its
+// own function rather than inlined, for the identical reason the SQL side
+// extracted it: every transitional-window TS consumer shares this one copy,
+// not a hand-copy each.
+export interface LegacyPublicationTarget {
+  targetType: string
+  targetClassName: string | null
+  targetSection: string | null
+}
+
+export function targetMatchesOfferingLegacy(
+  target: LegacyPublicationTarget,
+  offering: { name: string; section: string | null },
+): boolean {
+  if (target.targetType === 'all') return true
+  return (
+    (target.targetClassName === null || target.targetClassName === offering.name) &&
+    (target.targetSection === null || target.targetSection === (offering.section ?? ''))
+  )
+}
+
+/** A Class Offering's own identifying fields, in the exact snake_case shape
+ *  a real `class_offerings` query returns -- the boundary type real callers
+ *  (My Classes, #605) actually have on hand, as opposed to CandidateOffering
+ *  (the pure predicate's own camelCase shape, matched against the shared
+ *  parity scenario table since Wave 1/#602). */
+export interface OfferingRow {
+  id: string
+  name: string
+  academic_year: number | null
+  shift: string | null
+  group_department: string | null
+  section: string | null
+}
+
+function toCandidateOffering(row: OfferingRow): CandidateOffering {
+  return {
+    id: row.id,
+    name: row.name,
+    academicYear: row.academic_year,
+    shift: row.shift,
+    groupDepartment: row.group_department,
+    section: row.section,
+  }
+}
+
+/** A publication's own target columns, in the exact snake_case shape a real
+ *  `publications` query returns. The TS mirror of the SQL dispatch
+ *  publication_target_matches_offering_any (0196): delegates to the shared
+ *  predicate when target_scope is populated, falls back to the legacy rule
+ *  when it is still null -- one dispatch, shared by every TS consumer
+ *  (homeworkTargetsOffering today; SMS, Wave 5/#606, next), not a hand-copy
+ *  each. Retired in Wave 7 (#608) once every row has target_scope. */
+export interface PublicationTargetRow {
+  target_scope: TargetScope | null
+  target_type: string
+  class_offering_id: string | null
+  target_class_name: string | null
+  target_academic_year: number | null
+  target_shift: string | null
+  target_group_department: string | null
+  target_section: string | null
+}
+
+export function targetRowMatchesOffering(row: PublicationTargetRow, offering: OfferingRow): boolean {
+  const candidate = toCandidateOffering(offering)
+  if (row.target_scope !== null) {
+    return targetMatchesOffering(
+      {
+        scope: row.target_scope,
+        classOfferingId: row.class_offering_id,
+        className: row.target_class_name,
+        academicYear: row.target_academic_year,
+        shift: row.target_shift,
+        groupDepartment: row.target_group_department,
+        section: row.target_section,
+      },
+      candidate,
+    )
+  }
+  return targetMatchesOfferingLegacy(
+    { targetType: row.target_type, targetClassName: row.target_class_name, targetSection: row.target_section },
+    candidate,
   )
 }
 

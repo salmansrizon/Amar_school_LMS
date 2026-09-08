@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll } from 'vitest'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { signedIn } from '../helpers/auth'
-import { PUBLICATION_TARGET_SCENARIOS } from '@/lib/publishing-targeting-scenarios'
+import { LEGACY_TARGET_SCENARIOS, PUBLICATION_TARGET_SCENARIOS } from '@/lib/publishing-targeting-scenarios'
 
 // issue #595, map #598 Wave 1 (#602). Three concerns:
 //  1. publication_target_matches_offering (SQL) agrees with targetMatchesOffering
@@ -35,6 +35,32 @@ describe('publication_target_matches_offering (#595, #602)', () => {
         p_offering_academic_year: scenario.offering.academicYear,
         p_offering_shift: scenario.offering.shift,
         p_offering_group_department: scenario.offering.groupDepartment,
+        p_offering_section: scenario.offering.section,
+      })
+      expect(error).toBeNull()
+      expect(data).toBe(scenario.expected)
+    })
+  }
+})
+
+// map #598 Wave 4 (#605) -- the legacy (target_scope IS NULL) predicate's own
+// parity proof, added after code review found the primary predicate had one
+// but this one didn't. TS half proven against the same table in
+// tests/unit/publishing-targeting.test.ts.
+describe('publication_target_matches_offering_legacy (#595, #605)', () => {
+  let owner: SupabaseClient
+
+  beforeAll(async () => {
+    owner = await signedIn('owner-a@test.local')
+  })
+
+  for (const scenario of LEGACY_TARGET_SCENARIOS) {
+    it(`SQL agrees with TS: ${scenario.description}`, async () => {
+      const { data, error } = await owner.rpc('publication_target_matches_offering_legacy', {
+        p_target_type: scenario.target.targetType,
+        p_target_class_name: scenario.target.targetClassName,
+        p_target_section: scenario.target.targetSection,
+        p_offering_name: scenario.offering.name,
         p_offering_section: scenario.offering.section,
       })
       expect(error).toBeNull()

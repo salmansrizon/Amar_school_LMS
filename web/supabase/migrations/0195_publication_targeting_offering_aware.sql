@@ -190,21 +190,36 @@ from candidate_matches cm
 where p.id = cm.publication_id and cm.match_count = 1;
 
 -- Safety net: if this migration ever runs against a database where a
--- 'specific' row does NOT resolve to exactly one Offering (zero matches, an
--- ambiguous multi-match per above, OR a legacy section-only target --
--- target_class_name null, target_section set, a shape 0188's own function
--- explicitly supported as "everyone in section A regardless of class name"
--- -- which this migration's join cannot match at all, since it requires
--- target_class_name to join on, AND which the new target_scope='broadcast'
--- shape has no representation for anyway, since #600 requires a Class name
--- for every broadcast target) and was not the one explicitly handled above,
--- fail loudly rather than silently leaving it target_scope = null
--- indistinguishable from "not yet looked at". Caught by code review as a
--- real, if narrow, gap in this migration's own generality claim -- not
--- reachable by either of the two rows actually on this database (verified),
--- so documented rather than solved: closing it properly means deciding what
--- a class-name-less broadcast even means, a real semantic question for
--- whoever hits it, not a mechanical fix.
+-- 'specific' row does NOT resolve to exactly one Offering and was not the
+-- one explicitly handled above, fail loudly rather than silently leaving it
+-- target_scope = null indistinguishable from "not yet looked at". Known,
+-- documented (not mechanically fixed) gaps in this migration's own join,
+-- both caught by code review, neither reachable by either of the two rows
+-- actually on this database (verified):
+--   - A legacy section-only target -- target_class_name null, target_section
+--     set, a shape 0188's own function explicitly supported as "everyone in
+--     section A regardless of class name" -- cannot match at all, since the
+--     join requires target_class_name to join on, and the new
+--     target_scope='broadcast' shape has no representation for it anyway
+--     (#600 requires a Class name for every broadcast target).
+--   - The SYMMETRIC case: a legacy target_section-null row ("every section
+--     of this class name") against a school where every real Offering for
+--     that name has an actual, non-empty section. The join's
+--     `coalesce(co.section,'') = coalesce(p2.target_section,'')` requires
+--     BOTH sides to normalize to the same literal value, so a null
+--     target_section (coalescing to '') never matches a real section value
+--     -- unlike every predicate elsewhere in this whole map (including this
+--     same table's own publication_target_matches_offering_legacy, a few
+--     lines below), which correctly treats a null target_section as "any
+--     section", this join does not. Closing it properly means resolving
+--     against >1 Offering deliberately (one per section, all legitimately
+--     matching) and picking any one's academic_year -- more than a
+--     mechanical join fix, so documented here rather than attempted as an
+--     unplanned addition to a later wave's own unrelated ticket.
+-- Closing either properly means deciding what a class-name-less broadcast
+-- even means, or extending the match-picking logic to handle deliberate
+-- multi-Offering matches -- real design questions for whoever hits them,
+-- not mechanical fixes.
 do $$
 declare
   v_unresolved int;
