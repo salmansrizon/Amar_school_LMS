@@ -84,12 +84,27 @@ export function validateTargetSelection(
   return null
 }
 
-// Offering-aware targeting (issue #595, map #598 Wave 1, #602) — the shared
-// resolution primitive every consumer (Student RLS via student_matches_target,
-// task_completion_roster, homeworkTargetsOffering, SMS) calls instead of each
-// re-implementing its own class_name/section text match. This TS function and
-// its SQL mirror (publication_target_matches_offering, migration 0195) must
-// stay in lockstep -- see tests/unit/publishing-targeting.test.ts and
+// Offering-aware targeting (issue #595, map #598) -- the shared resolution
+// primitive every consumer is MEANT to call instead of each re-implementing
+// its own class_name/section text match (map #598's central lesson from
+// #593). Adoption so far: Student RLS via student_matches_target (Wave 2,
+// #603) delegates to this. task_completion_roster (Wave 3, #604) and SMS
+// (Wave 5, #606) do not yet -- until their own waves land, they still run
+// their pre-existing independent logic. Caught by code review: do not
+// describe this as already-universal adoption in future edits here: an
+// 'offering'-scoped publication is a live, insertable state as of Wave 1
+// (#602), and task_completion_roster's own untouched inline predicate
+// resolves an empty target_class_name/target_section (exactly what an
+// 'offering'-scoped row has, per #602's CHECK) as "matches every student" --
+// a real roster-visibility bug for any homework using the new scope before
+// #604 lands, not just stale documentation. #607 (Wave 6, the compose UI
+// that would actually let a School create such a row) is blocked by #604 in
+// the map's dependency graph specifically to prevent this landing out of
+// order.
+//
+// This TS function and its SQL mirror (publication_target_matches_offering,
+// migration 0195) must stay in lockstep -- see
+// tests/unit/publishing-targeting.test.ts and
 // tests/integration/publishing-targeting.test.ts, which both assert against
 // the same PUBLICATION_TARGET_SCENARIOS table (lib/publishing-targeting-scenarios.ts).
 //

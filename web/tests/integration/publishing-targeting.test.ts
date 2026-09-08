@@ -76,10 +76,15 @@ describe('publications_target_scope_valid (#595, #602)', () => {
     expect(error!.code).toBe('23514')
   })
 
-  it("rejects scope='offering' without class_offering_id", async () => {
+  it("allows scope='offering' with a null class_offering_id -- the deliberate post-deletion state (#603), not a violation", async () => {
+    // Not required at the DB layer (that's an application-layer compose-time
+    // concern, #607) precisely because ON DELETE SET NULL must be able to
+    // produce this exact row shape when a targeted Offering is deleted
+    // (#599) -- a CHECK that rejected it would turn every such deletion into
+    // a foreign-key failure. Proven end-to-end in student-matches-target.test.ts.
     const { error } = await owner.from('publications').insert({ ...base, target_type: 'specific', target_scope: 'offering' })
-    expect(error).not.toBeNull()
-    expect(error!.code).toBe('23514')
+    expect(error).toBeNull()
+    await cleanup()
   })
 
   it("rejects scope='offering' with predicate fields also set", async () => {

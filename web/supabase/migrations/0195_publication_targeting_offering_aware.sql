@@ -56,6 +56,14 @@ alter table public.publications
   add column target_shift text check (target_shift is null or target_shift in ('Morning', 'Day', 'Evening', 'Night')),
   add column target_group_department text;
 
+-- Partial (most rows will never populate this -- only target_scope='offering'
+-- ones do), matching this codebase's own sparse-FK-index convention
+-- elsewhere. Caught by code review: without this, every class_offerings
+-- deletion's ON DELETE SET NULL, and any future "publications targeting
+-- this Offering" query, sequential-scans the whole publications table.
+create index publications_class_offering_idx on public.publications (class_offering_id)
+  where class_offering_id is not null;
+
 -- class_offering_id must belong to the row's own School -- same shape as
 -- enforce_student_enrollment_school (0180) and this table's own prior
 -- enforce_publication_shift_school (dropped by 0060 when the old
@@ -78,21 +86,53 @@ create trigger publication_offering_same_school
   before insert or update of class_offering_id on public.publications
   for each row execute function public.enforce_publication_offering_school();
 
--- Per-scope invariant, gated `target_scope is null or (...)` so a
--- not-yet-migrated row (target_scope still null) is exempt -- tightened to
--- NOT NULL only in Wave 7's contract phase, once nothing writes the old
--- shape anymore.
+-- Per-scope invariant, one CHECK per scope rather than one large OR'd
+-- expression -- caught by code review: a single monolithic CHECK reports
+-- every violation under the same generic constraint name/SQLSTATE 23514
+-- with no branch-level identification, and a future edit to one branch's
+-- nullability rule risks a misplaced paren silently changing enforcement
+-- for the other, unrelated branches sharing the same expression. Three
+-- named constraints isolate that blast radius to whichever one is touched,
+-- and each violation now names which scope's invariant actually failed.
+--
+-- No explicit "target_scope is null or (...)" gate needed: Postgres CHECK
+-- constraints pass when the expression evaluates to NULL, not just TRUE --
+-- `target_scope <> 'x'` is already NULL (never FALSE) whenever target_scope
+-- itself is NULL, so a not-yet-migrated row satisfies all three constraints
+-- automatically. Tightened to NOT NULL only in Wave 7's contract phase
+-- (#608), once nothing writes the old shape anymore.
+--
+-- 'offering' deliberately does NOT require class_offering_id is not null.
+-- Caught end-to-end by Wave 2's own RLS test (#603), not by inspection:
+-- class_offering_id's own ON DELETE SET NULL (#599's resolution -- deleting
+-- a targeted Offering nulls the reference, keeps the publication
+-- history-safe) fires as an UPDATE against this same CHECK. Requiring
+-- "not null" here would make that exact, deliberately-designed state
+-- illegal, turning a normal Offering deletion into a foreign-key failure
+-- the moment anything had ever targeted it. Presence of the id at CREATE
+-- time is an application-layer concern (the compose UI, Wave 6/#607), not a
+-- DB invariant -- the DB only needs to guarantee the predicate columns stay
+-- empty for an 'offering'-scoped row, whether or not the id survived.
 alter table public.publications
-  add constraint publications_target_scope_valid check (
-    target_scope is null
-    or (target_scope = 'all' and class_offering_id is null and target_class_name is null
+  add constraint publications_target_scope_all_valid check (
+    target_scope <> 'all' or (
+      class_offering_id is null and target_class_name is null
       and target_academic_year is null and target_shift is null
-      and target_group_department is null and target_section is null)
-    or (target_scope = 'offering' and class_offering_id is not null and target_class_name is null
-      and target_academic_year is null and target_shift is null
-      and target_group_department is null and target_section is null)
-    or (target_scope = 'broadcast' and class_offering_id is null
-      and target_class_name is not null and target_academic_year is not null)
+      and target_group_department is null and target_section is null
+    )
+  ),
+  add constraint publications_target_scope_offering_valid check (
+    target_scope <> 'offering' or (
+      target_class_name is null and target_academic_year is null
+      and target_shift is null and target_group_department is null
+      and target_section is null
+    )
+  ),
+  add constraint publications_target_scope_broadcast_valid check (
+    target_scope <> 'broadcast' or (
+      class_offering_id is null and target_class_name is not null
+      and target_academic_year is not null
+    )
   );
 
 -- ---------------------------------------------------------------------------
@@ -150,10 +190,21 @@ from candidate_matches cm
 where p.id = cm.publication_id and cm.match_count = 1;
 
 -- Safety net: if this migration ever runs against a database where a
--- 'specific' row does NOT resolve to exactly one Offering (zero matches, or
--- an ambiguous multi-match per above) and was not the one explicitly
--- handled above, fail loudly rather than silently leaving it target_scope =
--- null indistinguishable from "not yet looked at".
+-- 'specific' row does NOT resolve to exactly one Offering (zero matches, an
+-- ambiguous multi-match per above, OR a legacy section-only target --
+-- target_class_name null, target_section set, a shape 0188's own function
+-- explicitly supported as "everyone in section A regardless of class name"
+-- -- which this migration's join cannot match at all, since it requires
+-- target_class_name to join on, AND which the new target_scope='broadcast'
+-- shape has no representation for anyway, since #600 requires a Class name
+-- for every broadcast target) and was not the one explicitly handled above,
+-- fail loudly rather than silently leaving it target_scope = null
+-- indistinguishable from "not yet looked at". Caught by code review as a
+-- real, if narrow, gap in this migration's own generality claim -- not
+-- reachable by either of the two rows actually on this database (verified),
+-- so documented rather than solved: closing it properly means deciding what
+-- a class-name-less broadcast even means, a real semantic question for
+-- whoever hits it, not a mechanical fix.
 do $$
 declare
   v_unresolved int;
