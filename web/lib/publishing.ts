@@ -84,6 +84,71 @@ export function validateTargetSelection(
   return null
 }
 
+// Offering-aware targeting (issue #595, map #598 Wave 1, #602) — the shared
+// resolution primitive every consumer (Student RLS via student_matches_target,
+// task_completion_roster, homeworkTargetsOffering, SMS) calls instead of each
+// re-implementing its own class_name/section text match. This TS function and
+// its SQL mirror (publication_target_matches_offering, migration 0195) must
+// stay in lockstep -- see tests/unit/publishing-targeting.test.ts and
+// tests/integration/publishing-targeting.test.ts, which both assert against
+// the same PUBLICATION_TARGET_SCENARIOS table (lib/publishing-targeting-scenarios.ts).
+//
+// A `null` predicate field (shift/groupDepartment/section) means "Any" --
+// this table's own existing, already-documented convention for
+// target_class_name/target_section, extended rather than replaced (#600's
+// resolution). Academic Year is never "Any" for a broadcast target -- it is
+// always a specific pinned value (#599's resolution: a target never spans
+// Academic Years).
+export type TargetScope = 'all' | 'offering' | 'broadcast'
+
+export interface PublicationTarget {
+  scope: TargetScope
+  /** Set only when scope === 'offering'. */
+  classOfferingId: string | null
+  /** Set only when scope === 'broadcast'. The Class identity is text --
+   *  `class_offerings.name` -- there is no stable Class-definition id in
+   *  this schema (#600's resolution, investigated not assumed). */
+  className: string | null
+  /** Set only when scope === 'broadcast'. Never null for a broadcast target. */
+  academicYear: number | null
+  /** null = Any. Only meaningful when scope === 'broadcast'. */
+  shift: string | null
+  /** null = Any. Only meaningful when scope === 'broadcast'. */
+  groupDepartment: string | null
+  /** null = Any. Only meaningful when scope === 'broadcast'. */
+  section: string | null
+}
+
+/** The candidate Class Offering's own fields -- never the target's. Kept
+ *  separate from PublicationTarget so a caller can't accidentally compare a
+ *  target against itself. */
+export interface CandidateOffering {
+  id: string
+  name: string
+  academicYear: number | null
+  shift: string | null
+  groupDepartment: string | null
+  section: string | null
+}
+
+/** Whether `target` reaches `offering` -- live, not a frozen snapshot: call
+ *  this fresh every time recipients are resolved, never cache the result
+ *  (#599's resolution). For 'offering' scope, only the id is compared -- the
+ *  Offering's own current name/year/shift/group are irrelevant once an exact
+ *  pick was made. For 'broadcast', every non-null predicate field must match
+ *  exactly; a null field always matches (Any). */
+export function targetMatchesOffering(target: PublicationTarget, offering: CandidateOffering): boolean {
+  if (target.scope === 'all') return true
+  if (target.scope === 'offering') return target.classOfferingId === offering.id
+  return (
+    target.className === offering.name &&
+    target.academicYear === offering.academicYear &&
+    (target.shift === null || target.shift === offering.shift) &&
+    (target.groupDepartment === null || target.groupDepartment === offering.groupDepartment) &&
+    (target.section === null || target.section === offering.section)
+  )
+}
+
 // Gallery albums (PRD §5.8 + §7): per-album configurable image-count and
 // per-image size caps, enforced server-side (a DB trigger — see migration
 // 0041), not just here. These helpers are UI-facing display/pre-check only.
