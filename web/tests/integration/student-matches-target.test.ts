@@ -212,4 +212,66 @@ describe('student_matches_target() / Student RLS on publications (#595, #603)', 
     expect(await canRead(studentMorningEmail, pub!.id)).toBe(true)
     expect(await canRead(studentDayEmail, pub!.id)).toBe(true)
   })
+
+  it("an UNENROLLED Student (no current Enrollment at all) can still read a school-wide (target_scope='all') publication -- #569's own 'unplaced is a valid, visible state' guarantee, preserved by 0188 and now this rewrite", async () => {
+    // Deliberately no admit_student_enrollment call -- current_enrollment_id
+    // stays null. Caught by code review: the first draft of
+    // student_matches_target's rewrite INNER JOINed through
+    // student_enrollments/class_offerings, which silently excluded exactly
+    // this Student for every scope including 'all', reverting a guarantee
+    // 0188 explicitly preserved. Fixed to LEFT JOIN + check students.school_id
+    // directly -- this test is what would have caught it.
+    const { data: unplaced, error: unplacedErr } = await owner
+      .from('students')
+      .insert({ full_name: `${TAG} Unplaced Student`, student_no: `w603-unplaced-${Date.now()}` })
+      .select('id')
+      .single()
+    if (unplacedErr) throw new Error(unplacedErr.message)
+    const { data: email, error: loginErr } = await owner.rpc('create_student_login', {
+      p_student_id: unplaced!.id,
+      p_password: PASSWORD,
+    })
+    if (loginErr) throw new Error(loginErr.message)
+
+    const { data: check } = await owner.from('students').select('current_enrollment_id').eq('id', unplaced!.id).single()
+    expect(check!.current_enrollment_id).toBeNull()
+
+    const { data: pub, error } = await owner
+      .from('publications')
+      .insert({ kind: 'notice', title: `${TAG} All Students Notice For Unplaced`, target_type: 'all' })
+      .select('id')
+      .single()
+    if (error) throw new Error(error.message)
+
+    expect(await canRead(email as string, pub!.id)).toBe(true)
+  })
+
+  it('an UNENROLLED Student cannot read an exact-Offering or broadcast target -- they have no Offering to match against', async () => {
+    const { data: unplaced, error: unplacedErr } = await owner
+      .from('students')
+      .insert({ full_name: `${TAG} Unplaced Student Two`, student_no: `w603-unplaced2-${Date.now()}` })
+      .select('id')
+      .single()
+    if (unplacedErr) throw new Error(unplacedErr.message)
+    const { data: email, error: loginErr } = await owner.rpc('create_student_login', {
+      p_student_id: unplaced!.id,
+      p_password: PASSWORD,
+    })
+    if (loginErr) throw new Error(loginErr.message)
+
+    const { data: pub, error } = await owner
+      .from('publications')
+      .insert({
+        kind: 'notice',
+        title: `${TAG} Exact Offering Notice For Unplaced`,
+        target_type: 'specific',
+        target_scope: 'offering',
+        class_offering_id: offeringMorningId,
+      })
+      .select('id')
+      .single()
+    if (error) throw new Error(error.message)
+
+    expect(await canRead(email as string, pub!.id)).toBe(false)
+  })
 })

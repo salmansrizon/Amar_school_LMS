@@ -20,6 +20,24 @@
 -- who needs to ask about a different Student (same reasoning as
 -- class_teacher_profile_for, 0189).
 --
+-- CORRECTED during code review, before every caller was updated: the first
+-- draft joined students -> student_enrollments -> class_offerings via INNER
+-- JOIN and checked co.school_id = p_school. Every prior version of the
+-- RLS policy/student_material wrapped their own call in `target_type = 'all'
+-- OR student_matches_target(...)` specifically so an unenrolled Student
+-- (current_enrollment_id null) still received school-wide publications --
+-- 0188's own comment states this explicitly as a preserved guarantee. This
+-- migration is the first to fold the 'all' case INTO the function itself
+-- (matching the new shared predicate's own design), but an INNER JOIN
+-- produces zero candidate rows for an unenrolled Student before the
+-- predicate is ever evaluated, silently breaking that guarantee for every
+-- scope including 'all' -- a real regression, caught by code review, not by
+-- inspection. Fixed to LEFT JOIN (matching task_completion_roster's own,
+-- already-correct pattern, 0197) and to check me.school_id directly rather
+-- than co.school_id, since an unenrolled Student has no Offering to check
+-- against at all -- students.school_id is always present regardless of
+-- Enrollment status, and matches co.school_id by construction for an
+-- enrolled Student anyway (enforce_student_enrollment_school, 0180).
 -- The legacy (target_scope is null) fallback below and task_completion_
 -- roster's OWN inline predicate (0188) were about to become two independent
 -- hand-copies of the identical (name, section)-text rule -- caught by code
@@ -62,13 +80,64 @@ comment on function public.publication_target_matches_offering_legacy(
   'Retired in Wave 7 (#608) once every row has target_scope populated and '
   'nothing calls this anymore.';
 
--- Dual-path body, matching Wave 1's own transitional design (0195): when
--- target_scope is populated, delegate entirely to the shared predicate --
--- one authoritative rule, not a second copy of it here. When target_scope
--- is still null (a row no not-yet-migrated writer has touched since Wave 1
--- landed), fall back to the legacy rule above, so nothing currently working
--- stops working. Wave 7 (#608) removes this fallback once every writer
--- populates target_scope directly.
+-- The dual-path dispatch itself (target_scope populated -> shared predicate;
+-- still null -> legacy predicate) is needed by every consumer during the
+-- transitional window, not just this one -- caught by code review as about
+-- to become a second hand-copy of the SAME dispatch logic once
+-- task_completion_roster (Wave 3, #604) needed it too, one level up from
+-- the exact duplication publication_target_matches_offering_legacy was just
+-- extracted to prevent. Extracted once here so every transitional-window
+-- consumer (this function, task_completion_roster) shares the one dispatch,
+-- not a hand-copy each -- when Wave 7 (#608) removes the fallback, there is
+-- exactly one place to simplify, not N.
+create function public.publication_target_matches_offering_any(
+  p_target_scope text,
+  p_target_type text,
+  p_class_offering_id uuid,
+  p_target_class_name text,
+  p_target_academic_year int,
+  p_target_shift text,
+  p_target_group_department text,
+  p_target_section text,
+  p_offering_id uuid,
+  p_offering_name text,
+  p_offering_academic_year int,
+  p_offering_shift text,
+  p_offering_group_department text,
+  p_offering_section text
+) returns boolean
+language sql immutable as $$
+  select case
+    when p_target_scope is not null then public.publication_target_matches_offering(
+      p_target_scope, p_class_offering_id, p_target_class_name, p_target_academic_year,
+      p_target_shift, p_target_group_department, p_target_section,
+      p_offering_id, p_offering_name, p_offering_academic_year,
+      p_offering_shift, p_offering_group_department, p_offering_section
+    )
+    else public.publication_target_matches_offering_legacy(
+      p_target_type, p_target_class_name, p_target_section, p_offering_name, p_offering_section
+    )
+  end
+$$;
+
+revoke execute on function public.publication_target_matches_offering_any(
+  text, text, uuid, text, int, text, text, text, uuid, text, int, text, text, text
+) from anon, public;
+grant execute on function public.publication_target_matches_offering_any(
+  text, text, uuid, text, int, text, text, text, uuid, text, int, text, text, text
+) to authenticated;
+
+comment on function public.publication_target_matches_offering_any(
+  text, text, uuid, text, int, text, text, text, uuid, text, int, text, text, text
+) is
+  'The transitional-window dispatch (map #598 Wave 2/#603): delegates to '
+  'publication_target_matches_offering when target_scope is populated, '
+  'falls back to publication_target_matches_offering_legacy when it is '
+  'still null. Shared by student_matches_target and task_completion_roster '
+  '(Wave 3/#604) rather than each hand-copying the same if/else -- retired '
+  'in Wave 7 (#608), at which point every caller collapses back onto '
+  'publication_target_matches_offering directly.';
+
 create function public.student_matches_target(
   p_target_scope text,
   p_target_type text,
@@ -84,20 +153,15 @@ language sql stable security definer set search_path = public as $$
   select exists (
     select 1
     from students me
-    join student_enrollments se on se.id = me.current_enrollment_id
-    join class_offerings co on co.id = se.class_offering_id
+    left join student_enrollments se on se.id = me.current_enrollment_id
+    left join class_offerings co on co.id = se.class_offering_id
     where me.profile_id = auth.uid()
       and me.archived_at is null
-      and co.school_id = p_school
-      and (
-        (p_target_scope is not null and public.publication_target_matches_offering(
-          p_target_scope, p_class_offering_id, p_target_class_name, p_target_academic_year,
-          p_target_shift, p_target_group_department, p_target_section,
-          co.id, co.name, co.academic_year, co.shift, co.group_department, co.section
-        ))
-        or (p_target_scope is null and public.publication_target_matches_offering_legacy(
-          p_target_type, p_target_class_name, p_target_section, co.name, co.section
-        ))
+      and me.school_id = p_school
+      and public.publication_target_matches_offering_any(
+        p_target_scope, p_target_type, p_class_offering_id, p_target_class_name, p_target_academic_year,
+        p_target_shift, p_target_group_department, p_target_section,
+        co.id, co.name, co.academic_year, co.shift, co.group_department, co.section
       )
   )
 $$;
@@ -126,19 +190,35 @@ comment on function public.student_matches_target(
 -- Both live callers of the old signature, updated. (Verified by grep, not
 -- assumed, per #593's own lesson -- exactly two exist: this policy and
 -- student_material's publications branch below.)
-
+--
+-- `target_type = 'all' or target_scope = 'all' or student_matches_target(...)`,
+-- not a bare unconditional call -- caught by code review: the version this
+-- replaces (0139/0192) short-circuited the function entirely for the (very
+-- likely majority, in any real School) 'all'-scope rows; folding that case
+-- INTO student_matches_target (a stable security definer function, which
+-- Postgres cannot inline into the calling policy/view) means every row pays
+-- for a full subquery -- SECURITY DEFINER context switch plus a three-table
+-- join chain -- even school-wide notices that need none of it. This
+-- codebase already hit exactly this class of regression once before and
+-- fixed it (0166, gl_lines: a per-row function call caused a real 15s
+-- timeout) -- restoring the cheap outer check here avoids repeating it.
 drop policy if exists "student reads targeted publications" on public.publications;
 create policy "student reads targeted publications" on public.publications
   for select using (
     school_id = public.app_current_student_school_id()
-    and public.student_matches_target(
-      target_scope, target_type, school_id, class_offering_id, target_class_name,
-      target_academic_year, target_shift, target_group_department, target_section
+    and (
+      target_type = 'all'
+      or target_scope = 'all'
+      or public.student_matches_target(
+        target_scope, target_type, school_id, class_offering_id, target_class_name,
+        target_academic_year, target_shift, target_group_department, target_section
+      )
     )
   );
 
 -- student_material: only its publications branch calls student_matches_target
 -- (the syllabus branch already resolves via Enrollment directly, since 0192).
+-- Same short-circuit restored as above, same reason.
 -- security_invoker=off, security_barrier=true reapplied explicitly -- omitting
 -- either on a CREATE OR REPLACE VIEW silently resets it to the default, which
 -- is exactly what caused a real cross-tenant leak on task_completion_roster
@@ -159,9 +239,13 @@ create or replace view public.student_material
      left join profiles author on author.id = p.created_by
   where p.kind = any (array['lesson_plan'::text, 'daily_lesson'::text, 'exam_prep'::text])
     and p.school_id = app_current_student_school_id()
-    and public.student_matches_target(
-      p.target_scope, p.target_type, p.school_id, p.class_offering_id, p.target_class_name,
-      p.target_academic_year, p.target_shift, p.target_group_department, p.target_section
+    and (
+      p.target_type = 'all'
+      or p.target_scope = 'all'
+      or public.student_matches_target(
+        p.target_scope, p.target_type, p.school_id, p.class_offering_id, p.target_class_name,
+        p.target_academic_year, p.target_shift, p.target_group_department, p.target_section
+      )
     )
   union all
   select cs.class_id as id,

@@ -248,9 +248,22 @@ language sql immutable as $$
   -- guards against elsewhere (set_student_enrollment's own capacity check).
   -- Caught here by the shared parity test disagreeing with the TS mirror
   -- (JS `===` has no such propagation), not by inspection.
+  --
+  -- 'offering' branch requires p_offering_id IS NOT NULL explicitly, on top
+  -- of the is-not-distinct-from comparison -- caught by code review (Wave 3,
+  -- #604): both sides of this one comparison can independently be NULL
+  -- (p_target_class_offering_id after the deliberate ON DELETE SET NULL,
+  -- #599; p_offering_id for any Student/candidate with no current
+  -- Enrollment, #569's own valid "unplaced" state), and `NULL IS NOT
+  -- DISTINCT FROM NULL` is TRUE -- silently matching a deleted-Offering
+  -- target to an unenrolled Student, who was never eligible for it. No
+  -- equivalent risk in the 'broadcast' branch: p_target_class_name is
+  -- always non-null there (the CHECK constraint requires it), so only the
+  -- offering side can ever be null, which the existing comparison already
+  -- resolves to false correctly.
   select case p_target_scope
     when 'all' then true
-    when 'offering' then p_target_class_offering_id is not distinct from p_offering_id
+    when 'offering' then p_offering_id is not null and p_target_class_offering_id is not distinct from p_offering_id
     when 'broadcast' then
       p_target_class_name is not distinct from p_offering_name
       and p_target_academic_year is not distinct from p_offering_academic_year
