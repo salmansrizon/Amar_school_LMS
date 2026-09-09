@@ -1,4 +1,5 @@
 import type { Lang } from '@/lib/i18n'
+import { classCatalogueLabel } from '@/lib/class-catalogue'
 
 // Publishing (issue #37, PRD §5.8): notices, homework, lesson plans, daily
 // lessons and exam-prep suggestions share one table (`publications`, kind
@@ -49,17 +50,53 @@ export interface PublicationRow {
   title: string
   importance: Importance
   target_type?: TargetType
+  target_scope?: TargetScope | null
   target_class_name?: string | null
   target_section?: string | null
 }
 
-/** "All Students" for an all-target row, else "Class 6 / A" (missing parts
- *  dropped). OfficeTime left publication targeting with issue #100. */
+/** A publication row's own target columns, in the shape a `publications`
+ *  query returns, as far as the "Target Audience" label needs them. */
+export interface TargetDisplayRow {
+  /** The authoritative discriminator since map #598. null = a not-yet-migrated
+   *  legacy row -- fall back to the target_type/text pair. */
+  target_scope?: TargetScope | null
+  target_type: TargetType
+  target_class_name: string | null
+  target_academic_year?: number | null
+  target_shift?: string | null
+  target_group_department?: string | null
+  target_section: string | null
+}
+
+/** The "Target Audience" label for the notices list/detail (issue #100),
+ *  covering all three of map #598's scopes:
+ *   - `all` (or a legacy `target_type='all'` row)  -> "All Students".
+ *   - `offering`  -> the picked Class Offering's Class Catalogue label; when
+ *     the Offering was since deleted (`class_offering_id` nulled by ON DELETE
+ *     SET NULL, #599) the caller passes `offering = null` and we say so.
+ *   - `broadcast` -> Class name plus every non-Any dimension, ' / '-joined
+ *     (the Year is implicit -- always the active Academic Year pinned at
+ *     compose time, #599 -- so it is not spelled out).
+ *   - a legacy row (`target_scope` null, not yet backfilled) keeps the old
+ *     `class / section` join. Removed in Wave 7 (#608). */
 export function targetAudienceLabel(
-  row: { target_type: TargetType; target_class_name: string | null; target_section: string | null },
+  row: TargetDisplayRow,
   lang: Lang,
+  offering?: { name: string; section: string | null; group_department?: string | null; shift?: string | null } | null,
 ): string {
-  if (row.target_type === 'all') return lang === 'bn' ? 'সকল শিক্ষার্থী' : 'All Students'
+  const allStudents = lang === 'bn' ? 'সকল শিক্ষার্থী' : 'All Students'
+  const scope = row.target_scope ?? null
+  if (scope === 'all' || (scope === null && row.target_type === 'all')) return allStudents
+  if (scope === 'offering') {
+    if (offering) return classCatalogueLabel(offering)
+    return lang === 'bn' ? 'অপসারিত ক্লাস অফারিং' : 'Removed class offering'
+  }
+  if (scope === 'broadcast') {
+    return [row.target_class_name, row.target_shift, row.target_group_department, row.target_section]
+      .filter(Boolean)
+      .join(' / ')
+  }
   return [row.target_class_name, row.target_section].filter(Boolean).join(' / ')
 }
 
@@ -73,14 +110,57 @@ export function filterPublications<T extends PublicationRow>(
   return rows.filter((r) => (!q || r.title.toLowerCase().includes(q)) && (!kind || r.kind === kind))
 }
 
-/** A "specific" target needs at least one of class/section chosen. */
-export function validateTargetSelection(
-  targetType: TargetType,
-  className: string,
-  section: string,
-): string | null {
-  if (targetType === 'all') return null
-  if (!className && !section) return 'Choose at least one target filter'
+/** The compose form's raw target fields, before they become a stored row.
+ *  Empty string = "not chosen" (offering id / class name) or "Any" (a
+ *  broadcast predicate dimension). */
+export interface TargetSelectionInput {
+  scope: TargetScope
+  /** scope === 'offering': the picked Class Offering id. */
+  classOfferingId: string
+  /** scope === 'broadcast': the Class name (`class_offerings.name` text). */
+  className: string
+  /** scope === 'broadcast': the School's active Academic Year, pinned at
+   *  compose time (#599). null = no active year set -> a broadcast can't be
+   *  composed yet. */
+  academicYear: number | null
+  /** scope === 'broadcast': '' = Any. */
+  shift: string
+  /** scope === 'broadcast': '' = Any. */
+  groupDepartment: string
+  /** scope === 'broadcast': '' = Any. */
+  section: string
+}
+
+/** A stable machine code rather than an English sentence, so the caller
+ *  renders it through `t()` in the viewer's language -- the form (client) and
+ *  createPublication (server) both localise it. */
+export type TargetSelectionError = 'offering-required' | 'class-required' | 'active-year-required'
+
+/** The i18n key each validation code maps to. Lives here (pure, no i18n
+ *  import) so both the client form and the server action look it up the same
+ *  way. */
+export const TARGET_SELECTION_ERROR_KEY = {
+  'offering-required': 'notices.targetErrOffering',
+  'class-required': 'notices.targetErrClass',
+  'active-year-required': 'notices.targetErrActiveYear',
+} as const satisfies Record<TargetSelectionError, string>
+
+/** Three-scope compose validation (issue #607, map #598 Wave 6), mirroring
+ *  migration 0195's per-scope CHECK invariants at the application layer -- the
+ *  belt-and-suspenders pattern this codebase applies everywhere the DB has a
+ *  CHECK. Returns a `TargetSelectionError` code, or null when well-formed.
+ *   - `all`: always valid, no fields required.
+ *   - `offering`: a Class Offering must be picked.
+ *   - `broadcast`: a Class must be picked AND the School must have an active
+ *     Academic Year to pin the target to (Shift/Group Department/Section stay
+ *     optional -- blank means Any). */
+export function validateTargetSelection(input: TargetSelectionInput): TargetSelectionError | null {
+  if (input.scope === 'all') return null
+  if (input.scope === 'offering') {
+    return input.classOfferingId ? null : 'offering-required'
+  }
+  if (!input.className) return 'class-required'
+  if (input.academicYear === null) return 'active-year-required'
   return null
 }
 

@@ -3,8 +3,10 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { currentActor } from '@/lib/school/actor'
-import { galleryImageExtension, validateTargetSelection } from '@/lib/publishing'
-import type { Importance, PublicationKind, TargetType } from '@/lib/publishing'
+import { currentLang } from '@/lib/i18n-server'
+import { t } from '@/lib/i18n'
+import { galleryImageExtension, validateTargetSelection, TARGET_SELECTION_ERROR_KEY } from '@/lib/publishing'
+import type { Importance, PublicationKind, TargetScope } from '@/lib/publishing'
 import { createSignedUpload, type SignedUpload } from '@/lib/storage/signed-upload'
 
 // The image bytes are uploaded client-side straight to the private
@@ -31,8 +33,13 @@ export async function createPublication(input: {
   title: string
   content: string
   importance: Importance
-  targetType: TargetType
+  targetScope: TargetScope
+  /** targetScope === 'offering' */
+  classOfferingId: string
+  /** targetScope === 'broadcast' */
   targetClassName: string
+  targetShift: string
+  targetGroupDepartment: string
   targetSection: string
   imagePath: string | null
   linkUrl: string
@@ -41,17 +48,40 @@ export async function createPublication(input: {
   if ('error' in me) return { error: me.error }
   const title = input.title.trim()
   if (!title) return { error: 'Title is required' }
-  const targetError = validateTargetSelection(
-    input.targetType,
-    input.targetClassName,
-    input.targetSection,
-  )
-  if (targetError) return { error: targetError }
+
+  const supabase = me.supabase
+  // A broadcast target's Academic Year is pinned to the School's active year
+  // at compose time (#599) -- it never spans years and is never "Any".
+  const { data: school } = await supabase
+    .from('schools')
+    .select('active_academic_year')
+    .eq('id', me.schoolId)
+    .maybeSingle()
+  const activeAcademicYear = (school?.active_academic_year ?? null) as number | null
+
+  const scope = input.targetScope
+  const targetError = validateTargetSelection({
+    scope,
+    classOfferingId: input.classOfferingId,
+    className: input.targetClassName,
+    academicYear: activeAcademicYear,
+    shift: input.targetShift,
+    groupDepartment: input.targetGroupDepartment,
+    section: input.targetSection,
+  })
+  if (targetError) return { error: t(TARGET_SELECTION_ERROR_KEY[targetError], await currentLang()) }
   // imagePath (if any) was already validated by publicationImageUploadPath and
   // the bucket's own type/size limits at upload time — nothing more to check.
 
-  const specific = input.targetType === 'specific'
-  const supabase = await createClient()
+  const broadcast = scope === 'broadcast'
+  // target_scope is the authoritative discriminator (map #598). target_type
+  // is still written as a transitional companion -- 'all' for a school-wide
+  // row, 'specific' for any targeted row -- because three not-yet-cut-over
+  // pieces still branch on it: the publications RLS SELECT policy (0196),
+  // task_completion_roster (0197), and homeworkTargetsOffering's legacy
+  // fallback all fast-path `target_type = 'all'` as "school-wide, visible to
+  // everyone". Writing 'all' on a targeted row would leak it school-wide.
+  // Wave 7 (#608) removes those branches and drops target_type; this goes too.
   const { data, error } = await supabase
     .from('publications')
     .insert({
@@ -59,9 +89,14 @@ export async function createPublication(input: {
       title: title.slice(0, 200),
       content: input.content.trim() ? input.content.trim() : null,
       importance: input.importance,
-      target_type: input.targetType,
-      target_class_name: specific ? input.targetClassName || null : null,
-      target_section: specific ? input.targetSection || null : null,
+      target_type: scope === 'all' ? 'all' : 'specific',
+      target_scope: scope,
+      class_offering_id: scope === 'offering' ? input.classOfferingId : null,
+      target_class_name: broadcast ? input.targetClassName : null,
+      target_academic_year: broadcast ? activeAcademicYear : null,
+      target_shift: broadcast ? input.targetShift || null : null,
+      target_group_department: broadcast ? input.targetGroupDepartment || null : null,
+      target_section: broadcast ? input.targetSection || null : null,
       image_path: input.imagePath,
       link_url: input.linkUrl.trim() ? input.linkUrl.trim() : null,
       created_by: me.userId,

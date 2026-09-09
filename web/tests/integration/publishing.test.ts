@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { signedIn } from '../helpers/auth'
+import { targetAudienceLabel } from '@/lib/publishing'
 
 // Seam: Publishing (issue #37, PRD §5.8) — notices/homework/lesson-plans/
 // daily-lessons/exam-prep share one `publications` table (kind discriminates,
@@ -68,6 +69,135 @@ describe('Publishing (issue #37)', () => {
   it("RLS: another school's owner sees none of these publications", async () => {
     const { data } = await ownerB.from('publications').select('id').like('title', 'PUB Test%')
     expect(data).toHaveLength(0)
+  })
+
+  // issue #607, map #598 Wave 6 -- createPublication now writes the three-scope
+  // target_scope contract (never the retired free-text target_type='specific'
+  // triple as the authoritative target). This proves each scope's row lands
+  // with exactly #601's per-scope invariants, carrying target_type only as the
+  // transitional companion Waves 2-5's not-yet-cut-over consumers still read
+  // (removed in Wave 7/#608), and reads back through the shared label helper.
+  describe('three-scope compose write path (#607)', () => {
+    const SELECT =
+      'target_type, target_scope, class_offering_id, target_class_name, target_academic_year, target_shift, target_group_department, target_section'
+    let offeringId: string
+    let activeYear: number
+
+    beforeAll(async () => {
+      await ownerA.from('publications').delete().like('title', 'PUB Test%')
+      await ownerA.from('class_offerings').delete().like('name', 'PUB Test%')
+      const { data: off } = await ownerA
+        .from('class_offerings')
+        .insert({ name: 'PUB Test Offering', section: 'A', shift: 'Day', group_department: 'Science' })
+        .select('id, academic_year')
+        .single()
+      offeringId = off!.id
+      activeYear = off!.academic_year as number
+    })
+
+    afterAll(async () => {
+      await ownerA.from('publications').delete().like('title', 'PUB Test%')
+      await ownerA.from('class_offerings').delete().like('name', 'PUB Test%')
+    })
+
+    it("scope='all': target_type 'all', every target column NULL", async () => {
+      const { data, error } = await ownerA
+        .from('publications')
+        .insert({ kind: 'notice', title: 'PUB Test Scope All', importance: 'normal', target_type: 'all', target_scope: 'all' })
+        .select(SELECT)
+        .single()
+      expect(error).toBeNull()
+      expect(data).toMatchObject({
+        target_type: 'all',
+        target_scope: 'all',
+        class_offering_id: null,
+        target_class_name: null,
+        target_academic_year: null,
+        target_shift: null,
+        target_group_department: null,
+        target_section: null,
+      })
+      expect(targetAudienceLabel({ ...data!, target_type: 'all' }, 'en')).toBe('All Students')
+    })
+
+    it("scope='offering': class_offering_id set, every broadcast predicate column NULL, companion target_type='specific'", async () => {
+      const { data, error } = await ownerA
+        .from('publications')
+        .insert({
+          kind: 'homework',
+          title: 'PUB Test Scope Offering',
+          importance: 'normal',
+          target_type: 'specific',
+          target_scope: 'offering',
+          class_offering_id: offeringId,
+        })
+        .select(SELECT)
+        .single()
+      expect(error).toBeNull()
+      expect(data).toMatchObject({
+        target_type: 'specific',
+        target_scope: 'offering',
+        class_offering_id: offeringId,
+        target_class_name: null,
+        target_academic_year: null,
+        target_shift: null,
+        target_group_department: null,
+        target_section: null,
+      })
+      expect(
+        targetAudienceLabel({ ...data!, target_type: 'specific' }, 'en', {
+          name: 'PUB Test Offering',
+          section: 'A',
+          group_department: 'Science',
+          shift: 'Day',
+        }),
+      ).toBe('PUB Test Offering (Science) - Day - A')
+    })
+
+    it("scope='broadcast': class_offering_id NULL, Class + Year pinned, Any dimensions NULL, companion target_type='specific'", async () => {
+      const { data, error } = await ownerA
+        .from('publications')
+        .insert({
+          kind: 'notice',
+          title: 'PUB Test Scope Broadcast',
+          importance: 'normal',
+          target_type: 'specific',
+          target_scope: 'broadcast',
+          target_class_name: 'PUB Test Offering',
+          target_academic_year: activeYear,
+          target_shift: 'Day',
+        })
+        .select(SELECT)
+        .single()
+      expect(error).toBeNull()
+      expect(data).toMatchObject({
+        target_type: 'specific',
+        target_scope: 'broadcast',
+        class_offering_id: null,
+        target_class_name: 'PUB Test Offering',
+        target_academic_year: activeYear,
+        target_shift: 'Day',
+        target_group_department: null,
+        target_section: null,
+      })
+      expect(targetAudienceLabel({ ...data!, target_type: 'specific' }, 'en')).toBe('PUB Test Offering / Day')
+    })
+
+    it("rejects the retired shape createPublication no longer writes: scope='broadcast' with target_type='all' (would leak school-wide past the RLS fast-path)", async () => {
+      const { error } = await ownerA.from('publications').insert({
+        kind: 'notice',
+        title: 'PUB Test Scope Bad',
+        importance: 'normal',
+        target_type: 'all',
+        target_scope: 'broadcast',
+        target_class_name: 'PUB Test Offering',
+        target_academic_year: activeYear,
+      })
+      // publications_target_all_is_clean: a row with target_class_name set must
+      // carry target_type='specific'.
+      expect(error).not.toBeNull()
+      expect(error!.code).toBe('23514')
+    })
   })
 
   describe('gallery albums: server-enforced per-album caps', () => {

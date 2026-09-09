@@ -37,6 +37,16 @@ const EXEMPT: [file: string, reason: string][] = [
     'app/school/questions/response/page.tsx',
     'attribution map (offering -> class_teacher_id) for response stats, not a picker',
   ],
+  // --- class_offerings: Offering-aware publication targeting (map #598
+  // Wave 6, #607). The compose picker offers every Offering as a target:
+  // broadcast carries its OWN independent Shift dimension and exact-Offering
+  // targets by id, so narrowing by the composer's current global Shift view
+  // would hide legitimate cross-shift targets. The list read is a
+  // class_offering_id -> label map for the Target Audience column, not a
+  // picker — filtering it would blank off-shift Offering labels.
+  ['app/school/notices/new/page.tsx', 'targeting picker: broadcast has its own Shift dimension, exact-Offering is by id'],
+  ['app/school/notices/page.tsx', "labels each publication's target Offering by class_offering_id, not a picker"],
+
   // --- class_offerings: persisted-value / already-known-id lookups, not a
   // list of choices to narrow.
   ['app/school/exams/[id]/page.tsx', "this exam's own already-set class_id could be orphaned from the picker"],

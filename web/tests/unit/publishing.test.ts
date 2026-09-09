@@ -43,39 +43,91 @@ describe('importanceBadgeClass / kindBadgeClass: mockup badge colors', () => {
   })
 })
 
-describe('targetAudienceLabel: mockup "Target Audience" column', () => {
-  it('is "All Students" for target_type all', () => {
+describe('targetAudienceLabel: "Target Audience" column, three scopes (map #598 Wave 6)', () => {
+  it('is "All Students" for scope=all', () => {
     expect(
       targetAudienceLabel(
-        { target_type: 'all', target_class_name: null, target_section: null },
+        { target_scope: 'all', target_type: 'all', target_class_name: null, target_section: null },
         'en',
       ),
     ).toBe('All Students')
     expect(
       targetAudienceLabel(
-        { target_type: 'all', target_class_name: null, target_section: null },
+        { target_scope: 'all', target_type: 'all', target_class_name: null, target_section: null },
         'bn',
       ),
     ).toBe('সকল শিক্ষার্থী')
   })
 
-  // OfficeTime left publication targeting with issue #100.
-  it('joins class / section for a specific target', () => {
+  it('is the Class Catalogue label for scope=offering, given the resolved Offering', () => {
+    expect(
+      targetAudienceLabel(
+        { target_scope: 'offering', target_type: 'specific', target_class_name: null, target_section: null },
+        'en',
+        { name: 'Nine', section: 'A', group_department: 'Science', shift: 'Day' },
+      ),
+    ).toBe('Nine (Science) - Day - A')
+  })
+
+  it('says the Offering was removed when scope=offering but no Offering resolves (ON DELETE SET NULL, #599)', () => {
+    expect(
+      targetAudienceLabel(
+        { target_scope: 'offering', target_type: 'specific', target_class_name: null, target_section: null },
+        'en',
+        null,
+      ),
+    ).toBe('Removed class offering')
+  })
+
+  it('joins Class + every non-Any dimension for scope=broadcast (Year implicit)', () => {
+    expect(
+      targetAudienceLabel(
+        {
+          target_scope: 'broadcast',
+          target_type: 'specific',
+          target_class_name: 'Nine',
+          target_academic_year: 2026,
+          target_shift: 'Day',
+          target_group_department: null,
+          target_section: 'A',
+        },
+        'en',
+      ),
+    ).toBe('Nine / Day / A')
+  })
+
+  it('is just the Class name for a broadcast with every dimension Any', () => {
+    expect(
+      targetAudienceLabel(
+        {
+          target_scope: 'broadcast',
+          target_type: 'specific',
+          target_class_name: 'Nine',
+          target_academic_year: 2026,
+          target_shift: null,
+          target_group_department: null,
+          target_section: null,
+        },
+        'en',
+      ),
+    ).toBe('Nine')
+  })
+
+  // A not-yet-backfilled legacy row (target_scope null) keeps the old
+  // class / section join until Wave 7 (#608). OfficeTime left targeting with #100.
+  it('falls back to the class / section join for a legacy row (no target_scope)', () => {
     expect(
       targetAudienceLabel(
         { target_type: 'specific', target_class_name: 'Class 6', target_section: 'A' },
         'en',
       ),
     ).toBe('Class 6 / A')
-  })
-
-  it('drops missing parts of a specific target', () => {
     expect(
       targetAudienceLabel(
-        { target_type: 'specific', target_class_name: 'Class 9', target_section: null },
+        { target_type: 'all', target_class_name: null, target_section: null },
         'en',
       ),
-    ).toBe('Class 9')
+    ).toBe('All Students')
   })
 })
 
@@ -99,17 +151,44 @@ describe('filterPublications: list search + type filter', () => {
   })
 })
 
-describe('validateTargetSelection: specific target needs at least one filter', () => {
-  it('accepts "all" with nothing selected', () => {
-    expect(validateTargetSelection('all', '', '')).toBeNull()
+describe('validateTargetSelection: three-scope compose rules (map #598 Wave 6)', () => {
+  const base = {
+    classOfferingId: '',
+    className: '',
+    academicYear: 2026 as number | null,
+    shift: '',
+    groupDepartment: '',
+    section: '',
+  }
+
+  it('accepts scope=all with nothing selected', () => {
+    expect(validateTargetSelection({ ...base, scope: 'all' })).toBeNull()
   })
 
-  it('rejects "specific" with nothing selected', () => {
-    expect(validateTargetSelection('specific', '', '')).not.toBeNull()
+  it('rejects scope=offering with no Offering picked', () => {
+    expect(validateTargetSelection({ ...base, scope: 'offering' })).toBe('offering-required')
   })
 
-  it('accepts "specific" with just a class chosen', () => {
-    expect(validateTargetSelection('specific', 'Class 6', '')).toBeNull()
+  it('accepts scope=offering once an Offering is picked', () => {
+    expect(
+      validateTargetSelection({ ...base, scope: 'offering', classOfferingId: 'off-1' }),
+    ).toBeNull()
+  })
+
+  it('rejects scope=broadcast with no Class picked', () => {
+    expect(validateTargetSelection({ ...base, scope: 'broadcast' })).toBe('class-required')
+  })
+
+  it('rejects scope=broadcast when the School has no active Academic Year to pin to', () => {
+    expect(
+      validateTargetSelection({ ...base, scope: 'broadcast', className: 'Nine', academicYear: null }),
+    ).toBe('active-year-required')
+  })
+
+  it('accepts scope=broadcast with just a Class (Shift/Group/Section stay Any)', () => {
+    expect(
+      validateTargetSelection({ ...base, scope: 'broadcast', className: 'Nine' }),
+    ).toBeNull()
   })
 })
 

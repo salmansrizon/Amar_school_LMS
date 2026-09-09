@@ -32,14 +32,18 @@ export default async function NoticesPage({
   const lang: Lang = await currentLang()
   const { supabase } = await getSchoolContext()
 
-  const [{ data: rows }] = await Promise.all([
+  const [{ data: rows }, { data: offeringRows }] = await Promise.all([
     supabase
       .from('publications')
       .select(
-        'id, kind, title, importance, target_type, target_class_name, target_section, created_at',
+        'id, kind, title, importance, target_type, target_scope, class_offering_id, target_class_name, target_academic_year, target_shift, target_group_department, target_section, created_at',
       )
       .order('created_at', { ascending: false }),
+    // Resolve an 'offering'-scope row's label back to its Class Catalogue
+    // name (map #598 Wave 6, #607). One fetch, indexed by id.
+    supabase.from('class_offerings').select('id, name, section, group_department, shift'),
   ])
+  const offeringById = new Map((offeringRows ?? []).map((o) => [o.id, o]))
   const visible = filterPublications(rows ?? [], q, kind as PublicationKind | '')
   const locale = lang === 'bn' ? 'bn-BD' : 'en-GB'
 
@@ -123,10 +127,15 @@ export default async function NoticesPage({
                     {targetAudienceLabel(
                       {
                         target_type: row.target_type ?? 'all',
+                        target_scope: row.target_scope ?? null,
                         target_class_name: row.target_class_name ?? null,
+                        target_academic_year: row.target_academic_year ?? null,
+                        target_shift: row.target_shift ?? null,
+                        target_group_department: row.target_group_department ?? null,
                         target_section: row.target_section ?? null,
                       },
                       lang,
+                      row.class_offering_id ? offeringById.get(row.class_offering_id) ?? null : null,
                     )}
                   </td>
                   <td className={tdClass}>{new Date(row.created_at).toLocaleDateString(locale)}</td>
