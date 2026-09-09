@@ -19,13 +19,26 @@ export default async function SmsComposePage() {
   // Withdrawn/archived students and employees are excluded — matches the
   // active-only default every other list screen in this app uses (e.g.
   // app/school/students/page.tsx, app/school/employees/page.tsx).
-  const [{ data: students }, { data: employees }] = await Promise.all([
+  //
+  // The Class/Section picker options come from `class_offerings` now, not from
+  // the distinct values of `students.class_name`/`section` (map #598 Wave 5,
+  // #606): targeting resolves against a Student's current Enrollment's
+  // Offering, so the picker must offer the Catalogue's own Offerings.
+  const [{ data: students }, { data: employees }, { data: school }, { data: allOfferings }] = await Promise.all([
     supabase.from('students').select(COMPOSE_STUDENT_COLUMNS).is('archived_at', null),
     supabase.from('employee_card').select(COMPOSE_EMPLOYEE_COLUMNS).is('archived_at', null),
+    supabase.from('schools').select('active_academic_year').eq('id', schoolId).maybeSingle(),
+    supabase.from('class_offerings').select('id, name, section, group_department, shift, academic_year').order('name'),
   ])
 
-  const classNames = [...new Set((students ?? []).map((s) => s.class_name).filter(Boolean))] as string[]
-  const sections = [...new Set((students ?? []).map((s) => s.section).filter(Boolean))] as string[]
+  const activeAcademicYear = school?.active_academic_year ?? null
+  // Only the active-year Offerings can have current Enrollments pointing at
+  // them, so a past-year Offering in the picker resolves to zero recipients
+  // and — since the Catalogue label omits the year — is indistinguishable
+  // from the current one. Drop them (keep all only when no year is set yet).
+  const offerings = (allOfferings ?? []).filter(
+    (o) => activeAcademicYear === null || o.academic_year === activeAcademicYear,
+  )
   const categories = [...new Set((employees ?? []).map((e) => e.category).filter(Boolean))] as string[]
 
   return (
@@ -93,8 +106,8 @@ export default async function SmsComposePage() {
         lang={lang}
         students={students ?? []}
         employees={employees ?? []}
-        classNames={classNames}
-        sections={sections}
+        offerings={offerings}
+        activeAcademicYear={activeAcademicYear}
         categories={categories}
       />
     </div>

@@ -5,7 +5,15 @@ import { labelClass } from '@/components/auth-card'
 import { Button } from '@/components/ui/button'
 import { t, type Lang } from '@/lib/i18n'
 import { countSmsSegments } from '@/lib/sms/segments'
-import { resolveRecipients, type ComposeMode, type ComposeStudentRow, type ComposeEmployeeRow } from '@/lib/sms/recipients'
+import {
+  classTargetFromInput,
+  resolveRecipients,
+  type ComposeMode,
+  type ComposeStudentRow,
+  type ComposeEmployeeRow,
+} from '@/lib/sms/recipients'
+import { classCatalogueOptions, type ClassCatalogueRow } from '@/lib/class-catalogue'
+import type { TargetScope } from '@/lib/publishing'
 import { sendCompose } from './actions'
 import { selectClass } from '@/components/ui/field'
 
@@ -17,11 +25,18 @@ const inputClass =
 // Equal minimum width so the two actions stay the same size when labels swap bn/en.
 const actionBtn = 'min-w-[9rem]'
 
-const DRAFT_KEY = 'asm-sms-compose-draft'
+// Bumped from -draft when the Class/Section text fields were replaced by the
+// Offering-aware target picker (map #598 Wave 5, #606) — an old draft's
+// className/section values must not leak into the new broadcast fields.
+const DRAFT_KEY = 'asm-sms-compose-draft-v2'
 
 interface Draft {
   mode: ComposeMode
+  targetScope: TargetScope
+  offeringId: string
   className: string
+  shift: string
+  groupDepartment: string
   section: string
   category: string
   manualNumbers: string
@@ -30,26 +45,34 @@ interface Draft {
 
 const EMPTY_DRAFT: Draft = {
   mode: 'class_section',
+  targetScope: 'all',
+  offeringId: '',
   className: '',
+  shift: '',
+  groupDepartment: '',
   section: '',
   category: '',
   manualNumbers: '',
   body: '',
 }
 
+function distinct(values: (string | null | undefined)[]): string[] {
+  return [...new Set(values.filter((v): v is string => !!v))].sort()
+}
+
 export function ComposeForm({
   lang,
   students,
   employees,
-  classNames,
-  sections,
+  offerings,
+  activeAcademicYear,
   categories,
 }: {
   lang: Lang
   students: ComposeStudentRow[]
   employees: ComposeEmployeeRow[]
-  classNames: string[]
-  sections: string[]
+  offerings: ClassCatalogueRow[]
+  activeAcademicYear: number | null
   categories: string[]
 }) {
   // Restore a locally-saved draft as the initial state (client-only; no
@@ -70,16 +93,38 @@ export function ComposeForm({
   const [draftSaved, setDraftSaved] = useState(false)
   const [pending, startTransition] = useTransition()
 
+  const offeringOptions = useMemo(() => classCatalogueOptions(offerings), [offerings])
+  const classNameOptions = useMemo(() => distinct(offerings.map((o) => o.name)), [offerings])
+  const shiftOptions = useMemo(() => distinct(offerings.map((o) => o.shift)), [offerings])
+  const groupOptions = useMemo(() => distinct(offerings.map((o) => o.group_department)), [offerings])
+  const sectionOptions = useMemo(() => distinct(offerings.map((o) => o.section)), [offerings])
+
+  const target = useMemo(
+    () =>
+      classTargetFromInput(
+        {
+          scope: draft.targetScope,
+          offeringId: draft.offeringId,
+          className: draft.className,
+          shift: draft.shift,
+          groupDepartment: draft.groupDepartment,
+          section: draft.section,
+        },
+        activeAcademicYear,
+      ),
+    [draft.targetScope, draft.offeringId, draft.className, draft.shift, draft.groupDepartment, draft.section, activeAcademicYear],
+  )
+
   const recipients = useMemo(
     () =>
       resolveRecipients(draft.mode, {
         students,
         employees,
-        filter: { className: draft.className, section: draft.section },
+        target,
         category: draft.category,
         manualNumbers: draft.manualNumbers,
       }),
-    [draft, students, employees],
+    [draft.mode, draft.category, draft.manualNumbers, target, students, employees],
   )
 
   const segmentInfo = useMemo(() => countSmsSegments(draft.body), [draft.body])
@@ -104,8 +149,12 @@ export function ComposeForm({
     setResult(null)
     const formData = new FormData()
     formData.set('mode', draft.mode)
-    formData.set('class_name', draft.className)
-    formData.set('section', draft.section)
+    formData.set('target_scope', draft.targetScope)
+    formData.set('offering_id', draft.offeringId)
+    formData.set('target_class_name', draft.className)
+    formData.set('target_shift', draft.shift)
+    formData.set('target_group_department', draft.groupDepartment)
+    formData.set('target_section', draft.section)
     formData.set('category', draft.category)
     formData.set('manual_numbers', draft.manualNumbers)
     formData.set('body', draft.body)
@@ -144,27 +193,114 @@ export function ComposeForm({
           {draft.mode === 'class_section' && (
             <>
               <div>
-                <label className={labelClass}>{t('sms.class', lang)}</label>
-                <select className={selectClass({ size: 'md', fullWidth: true })} value={draft.className} onChange={(e) => update('className', e.target.value)}>
-                  <option value="">{t('sms.allClasses', lang)}</option>
-                  {classNames.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
+                <label className={labelClass}>{t('sms.target', lang)}</label>
+                <select
+                  className={selectClass({ size: 'md', fullWidth: true })}
+                  value={draft.targetScope}
+                  onChange={(e) => {
+                    const scope = e.target.value as TargetScope
+                    setDraftSaved(false)
+                    setResult(null)
+                    setDraft((d) => ({
+                      ...d,
+                      targetScope: scope,
+                      // A broadcast MUST name a Class (#600) — seed it with the
+                      // first option so the target is never left incomplete.
+                      className: scope === 'broadcast' && !d.className ? (classNameOptions[0] ?? '') : d.className,
+                    }))
+                  }}
+                >
+                  <option value="all">{t('sms.targetAll', lang)}</option>
+                  <option value="offering">{t('sms.targetOffering', lang)}</option>
+                  <option value="broadcast">{t('sms.targetBroadcast', lang)}</option>
                 </select>
               </div>
-              <div>
-                <label className={labelClass}>{t('sms.section', lang)}</label>
-                <select className={selectClass({ size: 'md', fullWidth: true })} value={draft.section} onChange={(e) => update('section', e.target.value)}>
-                  <option value="">{t('sms.allSections', lang)}</option>
-                  {sections.map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ))}
-                </select>
-              </div>
+
+              {draft.targetScope === 'offering' && (
+                <div className="sm:col-span-2">
+                  <label className={labelClass}>{t('sms.classOffering', lang)}</label>
+                  <select
+                    className={selectClass({ size: 'md', fullWidth: true })}
+                    value={draft.offeringId}
+                    onChange={(e) => update('offeringId', e.target.value)}
+                  >
+                    <option value="">{t('sms.selectOffering', lang)}</option>
+                    {offeringOptions.map((o) => (
+                      <option key={o.value} value={o.value}>
+                        {o.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {draft.targetScope === 'broadcast' && (
+                <div className="grid gap-3 sm:col-span-2 sm:grid-cols-2">
+                  <div>
+                    <label className={labelClass}>{t('sms.class', lang)}</label>
+                    <select
+                      className={selectClass({ size: 'md', fullWidth: true })}
+                      value={draft.className}
+                      onChange={(e) => update('className', e.target.value)}
+                    >
+                      <option value="">{t('sms.selectClass', lang)}</option>
+                      {classNameOptions.map((c) => (
+                        <option key={c} value={c}>
+                          {c}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className={labelClass}>{t('sms.shift', lang)}</label>
+                    <select
+                      className={selectClass({ size: 'md', fullWidth: true })}
+                      value={draft.shift}
+                      onChange={(e) => update('shift', e.target.value)}
+                    >
+                      <option value="">{t('sms.anyShift', lang)}</option>
+                      {shiftOptions.map((s) => (
+                        <option key={s} value={s}>
+                          {s}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className={labelClass}>{t('sms.groupDepartment', lang)}</label>
+                    <select
+                      className={selectClass({ size: 'md', fullWidth: true })}
+                      value={draft.groupDepartment}
+                      onChange={(e) => update('groupDepartment', e.target.value)}
+                    >
+                      <option value="">{t('sms.anyGroup', lang)}</option>
+                      {groupOptions.map((g) => (
+                        <option key={g} value={g}>
+                          {g}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className={labelClass}>{t('sms.section', lang)}</label>
+                    <select
+                      className={selectClass({ size: 'md', fullWidth: true })}
+                      value={draft.section}
+                      onChange={(e) => update('section', e.target.value)}
+                    >
+                      <option value="">{t('sms.anySection', lang)}</option>
+                      {sectionOptions.map((s) => (
+                        <option key={s} value={s}>
+                          {s}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <p className="text-xs text-muted sm:col-span-2">
+                    {t('sms.academicYearPinned', lang)}: {activeAcademicYear ?? '—'}
+                  </p>
+                </div>
+              )}
             </>
           )}
 

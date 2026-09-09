@@ -211,7 +211,7 @@ export interface OfferingRow {
   section: string | null
 }
 
-function toCandidateOffering(row: OfferingRow): CandidateOffering {
+export function toCandidateOffering(row: OfferingRow): CandidateOffering {
   return {
     id: row.id,
     name: row.name,

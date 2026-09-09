@@ -9,6 +9,8 @@ import { smsGateway } from '@/lib/sms/gateway'
 import { countSmsSegments } from '@/lib/sms/segments'
 import { smsCanSend, smsPoolBalance, smsRecordDebit } from '@/lib/sms/credit'
 import {
+  classTargetFromInput,
+  formatClassTargetLabel,
   resolveRecipients,
   COMPOSE_STUDENT_COLUMNS,
   COMPOSE_EMPLOYEE_COLUMNS,
@@ -16,6 +18,7 @@ import {
   type ComposeStudentRow,
   type ComposeEmployeeRow,
 } from '@/lib/sms/recipients'
+import type { TargetScope } from '@/lib/publishing'
 
 const RULES_PAGE = '/school/sms/rules'
 const LOG_PAGE = '/school/sms/log'
@@ -123,8 +126,12 @@ export async function sendCompose(formData: FormData): Promise<{ error?: string;
   const lang = await currentLang()
   const mode = formData.get('mode') as ComposeMode
   const body = ((formData.get('body') as string) || '').trim()
-  const className = (formData.get('class_name') as string) || ''
-  const section = (formData.get('section') as string) || ''
+  const targetScope = (formData.get('target_scope') as string) || 'all'
+  const offeringId = (formData.get('offering_id') as string) || ''
+  const targetClassName = (formData.get('target_class_name') as string) || ''
+  const targetShift = (formData.get('target_shift') as string) || ''
+  const targetGroupDepartment = (formData.get('target_group_department') as string) || ''
+  const targetSection = (formData.get('target_section') as string) || ''
   const category = (formData.get('category') as string) || ''
   const manualNumbers = (formData.get('manual_numbers') as string) || ''
 
@@ -132,22 +139,67 @@ export async function sendCompose(formData: FormData): Promise<{ error?: string;
   if (mode !== 'class_section' && mode !== 'group' && mode !== 'manual') {
     return { error: t('sms.invalidMode', lang) }
   }
+  if (targetScope !== 'all' && targetScope !== 'offering' && targetScope !== 'broadcast') {
+    return { error: t('sms.invalidTarget', lang) }
+  }
+  // Each non-'all' scope has one required field. Without this, a broadcast
+  // left on "All Classes" or an offering with nothing picked maps to a
+  // className/id of null, which the shared predicate never matches — the send
+  // would fail as "no recipients" with no hint that the target was incomplete.
+  if (mode === 'class_section' && targetScope === 'offering' && !offeringId) {
+    return { error: t('sms.invalidTarget', lang) }
+  }
+  if (mode === 'class_section' && targetScope === 'broadcast' && !targetClassName) {
+    return { error: t('sms.invalidTarget', lang) }
+  }
 
   const supabase = await createClient()
   const { ok, schoolId } = await requireSchoolMemberProfile(supabase)
   if (!ok || !schoolId) return { error: 'Unauthorized' }
 
+  const needsOfferings = mode === 'class_section' && targetScope === 'offering'
+
   // Withdrawn/archived students and employees are excluded — matches the
-  // active-only default every other list screen in this app uses.
-  const [{ data: students }, { data: employees }] = await Promise.all([
+  // active-only default every other list screen in this app uses. The
+  // School's active Academic Year pins a broadcast target's Year (#599). The
+  // Offerings list is fetched only for an 'offering'-scope send — its sole
+  // use is the Send Log label lookup below.
+  const [{ data: students }, { data: employees }, { data: school }, { data: offerings }] = await Promise.all([
     supabase.from('students').select(COMPOSE_STUDENT_COLUMNS).is('archived_at', null),
     supabase.from('employee_card').select(COMPOSE_EMPLOYEE_COLUMNS).is('archived_at', null),
+    supabase.from('schools').select('active_academic_year').eq('id', schoolId).maybeSingle(),
+    needsOfferings
+      ? supabase.from('class_offerings').select('id, name, section, group_department, shift')
+      : Promise.resolve({ data: [] as { id: string; name: string; section: string | null; group_department: string | null; shift: string | null }[] }),
   ])
 
+  const activeAcademicYear = school?.active_academic_year ?? null
+  // A broadcast target is always pinned to a real Year (#599) — the shared
+  // predicate has no "Any year" and class_offerings.academic_year is NOT NULL,
+  // so a null pin can only ever match nobody. Fail loudly instead.
+  if (mode === 'class_section' && targetScope === 'broadcast' && activeAcademicYear === null) {
+    return { error: t('sms.noActiveYear', lang) }
+  }
+
+  // The exact same predicate input the client built for its live "estimated
+  // recipients" preview — one resolution function, not two (issue #606
+  // acceptance criterion).
+  const target = classTargetFromInput(
+    {
+      scope: targetScope as TargetScope,
+      offeringId,
+      className: targetClassName,
+      shift: targetShift,
+      groupDepartment: targetGroupDepartment,
+      section: targetSection,
+    },
+    activeAcademicYear,
+  )
+
   const recipients = resolveRecipients(mode, {
-    students: (students ?? []) as ComposeStudentRow[],
+    students: (students ?? []) as unknown as ComposeStudentRow[],
     employees: (employees ?? []) as ComposeEmployeeRow[],
-    filter: { className, section },
+    target,
     category,
     manualNumbers,
   })
@@ -155,7 +207,7 @@ export async function sendCompose(formData: FormData): Promise<{ error?: string;
 
   const recipientLabel =
     mode === 'class_section'
-      ? [className, section].filter(Boolean).join(' / ') || null
+      ? formatClassTargetLabel(target, (offerings ?? []).find((o) => o.id === offeringId) ?? null)
       : mode === 'group'
         ? category || null
         : null
