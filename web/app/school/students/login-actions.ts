@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { sendStudentSms } from '@/lib/sms/student-sms'
+import { enrolledStudentIds, enrolledIdFilter } from '@/lib/school/offering-roster'
 import { PASSWORD_MASK, studentLoginSmsBody } from '@/lib/students'
 
 // Student login provisioning, owner side (#442). Every check that matters lives
@@ -105,24 +106,28 @@ export async function resetStudentPassword(
   return { login }
 }
 
-/** Students of one class that would get a login — the preview the owner sees
- *  before committing. Already-provisioned and archived Students are excluded,
- *  which is also exactly what createClassLogins acts on. */
+/** Students of one Class Offering that would get a login — the preview the
+ *  owner sees before committing. Already-provisioned and archived Students are
+ *  excluded, which is also exactly what createClassLogins acts on.
+ *
+ *  Takes the exact `class_offering_id` (the picker's own value), not a
+ *  class_name/section text pair: since #593 that pair can match two Offerings
+ *  (a Morning and a Day "Nine - A"), and a text match would provision both
+ *  shifts' children in one batch (issue #596). Roster resolved through the
+ *  Student's current Enrollment. */
 export async function classLoginCandidates(
-  className: string,
-  section: string,
+  classOfferingId: string,
 ): Promise<{ students: { id: string; full_name: string; student_no: string | null; roll_number: number | null }[]; error?: string }> {
   const supabase = await createClient()
-  let query = supabase
+  const enrolledIds = await enrolledStudentIds(supabase, classOfferingId)
+  const { data, error } = await supabase
     .from('students')
     .select('id, full_name, student_no, roll_number')
-    .eq('class_name', className)
+    .in('id', enrolledIdFilter(enrolledIds))
     .is('archived_at', null)
     .is('profile_id', null)
     .order('roll_number', { ascending: true, nullsFirst: false })
-  query = section ? query.eq('section', section) : query.is('section', null)
 
-  const { data, error } = await query
   if (error) return { students: [], error: error.message }
   return { students: data ?? [] }
 }
@@ -131,11 +136,10 @@ export async function classLoginCandidates(
  *  cannot be provisioned (no Student Number, address already taken) must not
  *  cost the other 39 their logins. Re-running fills only the gaps. */
 export async function createClassLogins(
-  className: string,
-  section: string,
+  classOfferingId: string,
   sendSms = false,
 ): Promise<BulkResult> {
-  const { students, error } = await classLoginCandidates(className, section)
+  const { students, error } = await classLoginCandidates(classOfferingId)
   if (error) return { issued: [], failed: [], error }
 
   const issued: IssuedLogin[] = []

@@ -4,7 +4,7 @@ import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
-import { resolveClassSection } from '@/lib/class-catalogue'
+import { classCatalogueOptions } from '@/lib/class-catalogue'
 import { Card, PageHeader } from '@/components/ui/page'
 import { classLoginCandidates } from '../login-actions'
 import { BulkLoginControls } from './bulk-controls'
@@ -30,9 +30,14 @@ export default async function StudentLoginsPage({
     supabase.from('class_offerings').select('id, name, section, group_department, shift').order('created_at'),
     shiftSelection,
   )
-  const { combos, className, section } = resolveClassSection(classes ?? [], classSection)
-  const { students } = className
-    ? await classLoginCandidates(className, section)
+  // `classSection` IS the picked Class Offering's id (the option value). It is
+  // passed straight through to roster resolution — never collapsed to a
+  // class_name/section text pair, which since #593 can match two Offerings
+  // (issue #596). Combos are for rendering the picker only.
+  const combos = classCatalogueOptions(classes ?? [])
+  const selectedOfferingId = combos.some((c) => c.value === classSection) ? classSection : ''
+  const { students } = selectedOfferingId
+    ? await classLoginCandidates(selectedOfferingId)
     : { students: [] }
 
   return (
@@ -77,11 +82,10 @@ export default async function StudentLoginsPage({
           </button>
         </form>
 
-        {className && (
+        {selectedOfferingId && (
           <BulkLoginControls
             lang={lang}
-            klass={className}
-            section={section}
+            classOfferingId={selectedOfferingId}
             candidates={students}
           />
         )}

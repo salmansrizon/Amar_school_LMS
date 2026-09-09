@@ -4,6 +4,7 @@ import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { overlappingRowIds, overCapacityRoomIds } from '@/lib/exam-setup'
+import { enrolledStudentIds, enrolledIdFilter } from '@/lib/school/offering-roster'
 import {
   AddSeatPlanRowForm,
   GeneratePanel,
@@ -72,18 +73,16 @@ export default async function SeatPlanPage({
 
   let rolls: number[] = []
   if (exam.class_id) {
-    const { data: cls } = await supabase.from('class_offerings').select('name, section').eq('id', exam.class_id).maybeSingle()
-    if (cls) {
-      let query = supabase
-        .from('students')
-        .select('roll_number')
-        .eq('class_name', cls.name)
-        .is('archived_at', null)
-        .not('roll_number', 'is', null)
-      query = cls.section ? query.eq('section', cls.section) : query.is('section', null)
-      const { data: students } = await query
-      rolls = (students ?? []).map((s) => s.roll_number as number)
-    }
+    // Roster via the current Enrollment's Class Offering, not class_name/
+    // section text — since #593 that pair can match two Offerings (issue #596).
+    const enrolledIds = await enrolledStudentIds(supabase, exam.class_id)
+    const { data: students } = await supabase
+      .from('students')
+      .select('roll_number')
+      .in('id', enrolledIdFilter(enrolledIds))
+      .is('archived_at', null)
+      .not('roll_number', 'is', null)
+    rolls = (students ?? []).map((s) => s.roll_number as number)
   }
 
   const seatRows = (rows ?? []) as SeatPlanRow[]

@@ -5,6 +5,7 @@ import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { loadInstitutePrintHeader } from '@/lib/institute-print'
 import { sittingLabel, studentsInRanges, type SheetStudent } from '@/lib/exam-attendance-sheet'
+import { enrolledStudentIds, enrolledIdFilter } from '@/lib/school/offering-roster'
 import { PrintPage, InstituteHeader, InfoGrid, PaginatedSheet, SignatureRow } from '@/components/print/pieces'
 import { PrintButton } from '@/components/print/print-button'
 import { embeddedBuildingName } from '@/lib/venues'
@@ -108,15 +109,23 @@ export default async function ExamAttendanceSheetPage({
   ])
 
   let students: SheetStudent[] = []
-  if (cls) {
-    let query = supabase
+  if (exam.class_id && cls) {
+    // Roster via the current Enrollment's Class Offering, not class_name/
+    // section text — since #593 that pair can match two Offerings, which
+    // would print both shifts on one sheet (issue #596). Class/Section shown
+    // is the resolved Offering's own — every candidate on one sheet belongs
+    // to it — not the legacy students.class_name/section bridge.
+    const enrolledIds = await enrolledStudentIds(supabase, exam.class_id)
+    const { data } = await supabase
       .from('students')
-      .select('id, full_name, roll_number, class_name, section')
-      .eq('class_name', cls.name)
+      .select('id, full_name, roll_number')
+      .in('id', enrolledIdFilter(enrolledIds))
       .is('archived_at', null)
-    query = cls.section ? query.eq('section', cls.section) : query.is('section', null)
-    const { data } = await query
-    students = (data ?? []) as SheetStudent[]
+    students = (data ?? []).map((s) => ({
+      ...s,
+      class_name: cls.name,
+      section: cls.section,
+    })) as SheetStudent[]
   }
 
   const roomById = new Map(

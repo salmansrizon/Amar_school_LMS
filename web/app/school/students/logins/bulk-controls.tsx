@@ -9,17 +9,13 @@ import { CredentialSlip } from '../[id]/login-controls'
 // The preview → commit → slips half of the class login screen (#442). The
 // preview is server-rendered above this; this holds the act and its result.
 
-// `klass`, not `className`: on a React component that prop means a CSS class,
-// and this one is a school Class. The students list dodges the same collision.
 export function BulkLoginControls({
   lang,
-  klass,
-  section,
+  classOfferingId,
   candidates,
 }: {
   lang: Lang
-  klass: string
-  section: string
+  classOfferingId: string
   candidates: { id: string; full_name: string; student_no: string | null; roll_number: number | null }[]
 }) {
   const router = useRouter()
@@ -66,7 +62,7 @@ export function BulkLoginControls({
             disabled={pending}
             onClick={() =>
               startTransition(async () => {
-                setResult(await createClassLogins(klass, section, sendSms))
+                setResult(await createClassLogins(classOfferingId, sendSms))
                 router.refresh()
               })
             }

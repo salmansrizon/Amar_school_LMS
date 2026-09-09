@@ -6,6 +6,7 @@ import { getSchoolContext } from '@/lib/school/context'
 import { classSectionLabel } from '@/lib/students'
 import { filterResultRoster, roomForRoll, type SeatPlanRoomRow } from '@/lib/exam-setup'
 import { loadExamRosterResults } from '@/lib/exam-print-data'
+import { enrolledStudentIds, enrolledIdFilter } from '@/lib/school/offering-roster'
 import { loadProgressReportExtras } from '@/lib/progress-report-data'
 import { renderAuthenticityQr } from '@/lib/qr'
 import { PrintButton } from '@/components/print/print-button'
@@ -169,15 +170,18 @@ export default async function PrintAllPage({
   // Admit cards need no grading scheme — plain roster + roll-range filter,
   // seat-plan lookup for Exam Center.
   if (doc === 'admit-card') {
-    let studentsQuery = supabase
-      .from('students')
-      .select('id, full_name, roll_number, guardian_name, photo_path')
-      .eq('class_name', cls?.name ?? '')
-      .is('archived_at', null)
-      .order('roll_number', { ascending: true, nullsFirst: false })
-    studentsQuery = cls?.section ? studentsQuery.eq('section', cls.section) : studentsQuery.is('section', null)
+    // Roster via the current Enrollment's Class Offering, not class_name/
+    // section text — since #593 that pair can match two Offerings (issue
+    // #596). The mark-sheet / progress-report branch below already resolves
+    // this way through loadExamRosterResults.
+    const enrolledIds = await enrolledStudentIds(supabase, exam.class_id)
     const [{ data: students }, { data: seatRows }, { data: rooms }] = await Promise.all([
-      studentsQuery,
+      supabase
+        .from('students')
+        .select('id, full_name, roll_number, guardian_name, photo_path')
+        .in('id', enrolledIdFilter(enrolledIds))
+        .is('archived_at', null)
+        .order('roll_number', { ascending: true, nullsFirst: false }),
       supabase.from('exam_seat_plans').select('room_id, roll_start, roll_end').eq('exam_id', examId),
       supabase.from('rooms').select('id, name'),
     ])

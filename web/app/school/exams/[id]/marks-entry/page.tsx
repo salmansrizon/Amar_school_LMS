@@ -4,6 +4,7 @@ import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { subjectsForClass } from '@/lib/students'
 import { loadGradingScheme } from '@/lib/grading-scheme-loader'
+import { enrolledStudentIds, enrolledIdFilter } from '@/lib/school/offering-roster'
 import { MarksEntryTable, SubjectPicker, type MarkStudentRow, type SubjectOption } from './marks-entry-controls'
 import { BackLink } from '@/components/back-link'
 import { resolveBackHref } from '@/lib/back-nav'
@@ -59,7 +60,6 @@ export default async function MarksEntryPage({
     )
   }
 
-  const { data: cls } = await supabase.from('class_offerings').select('name, section').eq('id', exam.class_id).maybeSingle()
   const { data: allSubjects } = await supabase
     .from('subjects')
     .select('id, name, class_id, theory_marks, mcq_marks, practical_marks')
@@ -79,13 +79,16 @@ export default async function MarksEntryPage({
 
   const selectedSubject = subjects.find((s) => s.id === subjectParam) ?? subjects[0]
 
-  let studentsQuery = supabase
+  // Roster resolved through the current Enrollment's Class Offering, not a
+  // class_name/section text match — since #593 two Offerings can share that
+  // pair and a text match would merge both shifts' students (issue #596).
+  const enrolledIds = await enrolledStudentIds(supabase, exam.class_id)
+  const studentsQuery = supabase
     .from('students')
     .select('id, full_name, roll_number')
-    .eq('class_name', cls?.name ?? '')
+    .in('id', enrolledIdFilter(enrolledIds))
     .is('archived_at', null)
     .order('roll_number', { ascending: true, nullsFirst: false })
-  studentsQuery = cls?.section ? studentsQuery.eq('section', cls.section) : studentsQuery.is('section', null)
 
   const [{ data: students }, { data: marksRows }, { data: optionalRows }, scheme] = await Promise.all([
     studentsQuery,

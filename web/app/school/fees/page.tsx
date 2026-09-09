@@ -4,6 +4,7 @@ import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
+import { enrolledStudentIds, enrolledIdFilter } from '@/lib/school/offering-roster'
 import { AccountingTabs } from './accounting-tabs'
 import { FeeForm, type CollectStudent, type ExistingFeeRecord } from './fee-form'
 import { selectClass } from '@/components/ui/field'
@@ -58,14 +59,19 @@ export default async function FeesPage({
   let finePerDay = 0
 
   if (cls) {
-    const studentsQuery = supabase
-      .from('students')
-      .select('id, full_name, roll_number, class_name, section')
-      .eq('class_name', cls.name)
-      .is('archived_at', null)
-      .order('roll_number')
+    // Roster via the current Enrollment's Class Offering, not class_name/
+    // section text — since #593 that pair can match two Offerings and a text
+    // match would merge both shifts' students, risking a payment posted
+    // against the wrong Student (issue #596). Class/Section shown is the
+    // selected Offering's own.
+    const enrolledIds = await enrolledStudentIds(supabase, cls.id)
     const [{ data: students }, { data: structure }] = await Promise.all([
-      cls.section ? studentsQuery.eq('section', cls.section) : studentsQuery.is('section', null),
+      supabase
+        .from('students')
+        .select('id, full_name, roll_number')
+        .in('id', enrolledIdFilter(enrolledIds))
+        .is('archived_at', null)
+        .order('roll_number'),
       supabase
         .from('fee_structures')
         .select('amount, fine_per_absent_day')
@@ -74,7 +80,7 @@ export default async function FeesPage({
         .eq('fee_type', 'monthly')
         .maybeSingle(),
     ])
-    roster = students ?? []
+    roster = (students ?? []).map((s) => ({ ...s, class_name: cls.name, section: cls.section }))
     prescribedFee = Number(structure?.amount ?? 0)
     finePerDay = Number(structure?.fine_per_absent_day ?? 0)
 

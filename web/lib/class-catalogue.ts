@@ -76,6 +76,15 @@ export function classCatalogueOptions(rows: ClassCatalogueRow[]): ClassCatalogue
  * section}` text pair that filterRoster/filterStudents and their downstream
  * links already expect. An empty or unmatched id resolves to the "All" pair
  * (empty strings) — the same behavior as an absent filter.
+ *
+ * DISPLAY / catalogue-label resolution only. Do NOT use the returned
+ * `{className, section}` to resolve a roster of Students: since #593 widened
+ * `class_offerings`' uniqueness, two Offerings can share a name+section
+ * (differing by Shift / Academic Year / Group Department), so a
+ * `students.class_name`/`section` text match built from this pair would mix
+ * both. Resolve the roster from the picked `class_offering_id` directly —
+ * `enrolledStudentIds` (`lib/school/offering-roster.ts`), or the enrollment
+ * join `schoolRoster` already uses (issue #596).
  */
 export function resolveClassCatalogueSelection(
   options: ClassCatalogueOption[],
@@ -107,6 +116,12 @@ export function resolveClassSection(
  * the decoded filter and needs to rebuild a picker's value from it (e.g. a
  * back-link to a page whose dropdown reads this id). Returns '' (the "All"
  * value) when className is empty or no matching row exists.
+ *
+ * DISPLAY / picker-value rebuild only. Since #593 a name+section pair can
+ * match more than one Offering (different Shift / Academic Year / Group
+ * Department); this returns the FIRST match, so it must not be used to pick
+ * which Offering a roster resolves against — carry the real
+ * `class_offering_id` instead (issue #596).
  */
 export function findClassCatalogueId(
   options: ClassCatalogueOption[],

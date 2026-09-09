@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
+import { enrolledStudentIds, enrolledIdFilter } from '@/lib/school/offering-roster'
 import { BackLink } from '@/components/back-link'
 import { resolveBackHref, selfOrigin, withOrigin } from '@/lib/back-nav'
 
@@ -64,15 +65,16 @@ export default async function AdmitCardsPage({
     )
   }
 
-  const { data: cls } = await supabase.from('class_offerings').select('name, section').eq('id', exam.class_id).maybeSingle()
-  let studentsQuery = supabase
+  // Roster resolved through the current Enrollment's Class Offering, not a
+  // class_name/section text match (issue #596 — since #593 two Offerings can
+  // share that pair, and a text match would merge both shifts).
+  const enrolledIds = await enrolledStudentIds(supabase, exam.class_id)
+  const { data: students } = await supabase
     .from('students')
     .select('id, full_name, roll_number')
-    .eq('class_name', cls?.name ?? '')
+    .in('id', enrolledIdFilter(enrolledIds))
     .is('archived_at', null)
     .order('roll_number', { ascending: true, nullsFirst: false })
-  studentsQuery = cls?.section ? studentsQuery.eq('section', cls.section) : studentsQuery.is('section', null)
-  const { data: students } = await studentsQuery
 
   if (!students?.length) {
     return (
