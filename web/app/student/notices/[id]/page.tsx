@@ -25,7 +25,7 @@ export default async function StudentNoticePage({
   // RLS decides visibility: a notice aimed at another class is simply not here.
   const { data: notice } = await supabase
     .from('publications')
-    .select('id, title, content, importance, target_type, image_path, link_url, created_at')
+    .select('id, title, content, importance, target_scope, image_path, link_url, created_at')
     .eq('id', id)
     .eq('kind', 'notice')
     .maybeSingle()

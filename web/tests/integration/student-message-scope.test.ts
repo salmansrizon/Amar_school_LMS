@@ -274,7 +274,7 @@ describe('Question and correction scope (#508, ADR 0018)', () => {
         kind: 'notice',
         title: `${P}Clerk notice`,
         importance: 'normal',
-        target_type: 'all',
+        target_scope: 'all',
       })
       .select('id')
       .single()

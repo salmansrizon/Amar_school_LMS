@@ -69,7 +69,6 @@ describe('task_completion_roster resolves via the shared predicate (#595, #604)'
       .insert({
         kind: 'homework',
         title: `${TAG} Exact Offering Homework`,
-        target_type: 'specific',
         target_scope: 'offering',
         class_offering_id: offeringMorningId,
       })
@@ -95,7 +94,6 @@ describe('task_completion_roster resolves via the shared predicate (#595, #604)'
       .insert({
         kind: 'homework',
         title: `${TAG} Broadcast Any Shift Homework`,
-        target_type: 'specific',
         target_scope: 'broadcast',
         target_class_name: `${TAG} Nine`,
         target_academic_year: year!.academic_year,
@@ -123,7 +121,6 @@ describe('task_completion_roster resolves via the shared predicate (#595, #604)'
       .insert({
         kind: 'homework',
         title: `${TAG} Broadcast Morning-Only Homework`,
-        target_type: 'specific',
         target_scope: 'broadcast',
         target_class_name: `${TAG} Nine`,
         target_academic_year: year!.academic_year,
@@ -148,7 +145,7 @@ describe('task_completion_roster resolves via the shared predicate (#595, #604)'
   it("a school-wide (target_scope='all') homework target still reaches every Student, enrolled or not", async () => {
     const { data: pub, error } = await owner
       .from('publications')
-      .insert({ kind: 'homework', title: `${TAG} All Students Homework`, target_type: 'all' })
+      .insert({ kind: 'homework', title: `${TAG} All Students Homework`, target_scope: 'all' })
       .select('id')
       .single()
     if (error) throw new Error(error.message)

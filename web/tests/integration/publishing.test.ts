@@ -35,28 +35,48 @@ describe('Publishing (issue #37)', () => {
   it('creates a notice targeted at everyone', async () => {
     const { data, error } = await ownerA
       .from('publications')
-      .insert({ kind: 'notice', title: 'PUB Test All Notice', importance: 'urgent' })
-      .select('id, target_type')
+      .insert({ kind: 'notice', title: 'PUB Test All Notice', importance: 'urgent', target_scope: 'all' })
+      .select('id, target_scope')
       .single()
     expect(error).toBeNull()
-    expect(data?.target_type).toBe('all')
+    expect(data?.target_scope).toBe('all')
   })
 
-  it('creates homework targeted at a specific class/section', async () => {
+  it('creates homework broadcast at a Class/Section in the pinned Year', async () => {
+    const { data: off } = await ownerA
+      .from('class_offerings')
+      .select('academic_year')
+      .limit(1)
+      .single()
     const { data, error } = await ownerA
       .from('publications')
       .insert({
         kind: 'homework',
         title: 'PUB Test Homework',
         importance: 'important',
-        target_type: 'specific',
+        target_scope: 'broadcast',
         target_class_name: 'Class 6',
+        target_academic_year: off!.academic_year as number,
         target_section: 'A',
       })
       .select('id')
       .single()
     expect(error).toBeNull()
     expect(data?.id).toBeTruthy()
+  })
+
+  it('rejects an insert that still names the retired target_type column', async () => {
+    const { error } = await ownerA
+      .from('publications')
+      .insert({ kind: 'notice', title: 'PUB Test Retired Column', importance: 'normal', target_scope: 'all', target_type: 'all' })
+    expect(error).not.toBeNull()
+  })
+
+  it('rejects a row with no target_scope (NOT NULL as of Wave 7/#608)', async () => {
+    const { error } = await ownerA
+      .from('publications')
+      .insert({ kind: 'notice', title: 'PUB Test No Scope', importance: 'normal' })
+    expect(error).not.toBeNull()
   })
 
   it('rejects an unknown kind (check constraint)', async () => {
@@ -71,15 +91,14 @@ describe('Publishing (issue #37)', () => {
     expect(data).toHaveLength(0)
   })
 
-  // issue #607, map #598 Wave 6 -- createPublication now writes the three-scope
-  // target_scope contract (never the retired free-text target_type='specific'
-  // triple as the authoritative target). This proves each scope's row lands
-  // with exactly #601's per-scope invariants, carrying target_type only as the
-  // transitional companion Waves 2-5's not-yet-cut-over consumers still read
-  // (removed in Wave 7/#608), and reads back through the shared label helper.
+  // issue #607, map #598 Wave 6 -- createPublication writes the three-scope
+  // target_scope contract. As of Wave 7 (#608) target_scope is the sole
+  // discriminator (target_type dropped). This proves each scope's row lands
+  // with exactly #601's per-scope invariants and reads back through the
+  // shared label helper.
   describe('three-scope compose write path (#607)', () => {
     const SELECT =
-      'target_type, target_scope, class_offering_id, target_class_name, target_academic_year, target_shift, target_group_department, target_section'
+      'target_scope, class_offering_id, target_class_name, target_academic_year, target_shift, target_group_department, target_section'
     let offeringId: string
     let activeYear: number
 
@@ -100,15 +119,14 @@ describe('Publishing (issue #37)', () => {
       await ownerA.from('class_offerings').delete().like('name', 'PUB Test%')
     })
 
-    it("scope='all': target_type 'all', every target column NULL", async () => {
+    it("scope='all': every target column NULL", async () => {
       const { data, error } = await ownerA
         .from('publications')
-        .insert({ kind: 'notice', title: 'PUB Test Scope All', importance: 'normal', target_type: 'all', target_scope: 'all' })
+        .insert({ kind: 'notice', title: 'PUB Test Scope All', importance: 'normal', target_scope: 'all' })
         .select(SELECT)
         .single()
       expect(error).toBeNull()
       expect(data).toMatchObject({
-        target_type: 'all',
         target_scope: 'all',
         class_offering_id: null,
         target_class_name: null,
@@ -117,17 +135,16 @@ describe('Publishing (issue #37)', () => {
         target_group_department: null,
         target_section: null,
       })
-      expect(targetAudienceLabel({ ...data!, target_type: 'all' }, 'en')).toBe('All Students')
+      expect(targetAudienceLabel(data!, 'en')).toBe('All Students')
     })
 
-    it("scope='offering': class_offering_id set, every broadcast predicate column NULL, companion target_type='specific'", async () => {
+    it("scope='offering': class_offering_id set, every broadcast predicate column NULL", async () => {
       const { data, error } = await ownerA
         .from('publications')
         .insert({
           kind: 'homework',
           title: 'PUB Test Scope Offering',
           importance: 'normal',
-          target_type: 'specific',
           target_scope: 'offering',
           class_offering_id: offeringId,
         })
@@ -135,7 +152,6 @@ describe('Publishing (issue #37)', () => {
         .single()
       expect(error).toBeNull()
       expect(data).toMatchObject({
-        target_type: 'specific',
         target_scope: 'offering',
         class_offering_id: offeringId,
         target_class_name: null,
@@ -145,7 +161,7 @@ describe('Publishing (issue #37)', () => {
         target_section: null,
       })
       expect(
-        targetAudienceLabel({ ...data!, target_type: 'specific' }, 'en', {
+        targetAudienceLabel(data!, 'en', {
           name: 'PUB Test Offering',
           section: 'A',
           group_department: 'Science',
@@ -154,14 +170,13 @@ describe('Publishing (issue #37)', () => {
       ).toBe('PUB Test Offering (Science) - Day - A')
     })
 
-    it("scope='broadcast': class_offering_id NULL, Class + Year pinned, Any dimensions NULL, companion target_type='specific'", async () => {
+    it("scope='broadcast': class_offering_id NULL, Class + Year pinned, Any dimensions NULL", async () => {
       const { data, error } = await ownerA
         .from('publications')
         .insert({
           kind: 'notice',
           title: 'PUB Test Scope Broadcast',
           importance: 'normal',
-          target_type: 'specific',
           target_scope: 'broadcast',
           target_class_name: 'PUB Test Offering',
           target_academic_year: activeYear,
@@ -171,7 +186,6 @@ describe('Publishing (issue #37)', () => {
         .single()
       expect(error).toBeNull()
       expect(data).toMatchObject({
-        target_type: 'specific',
         target_scope: 'broadcast',
         class_offering_id: null,
         target_class_name: 'PUB Test Offering',
@@ -180,21 +194,21 @@ describe('Publishing (issue #37)', () => {
         target_group_department: null,
         target_section: null,
       })
-      expect(targetAudienceLabel({ ...data!, target_type: 'specific' }, 'en')).toBe('PUB Test Offering / Day')
+      expect(targetAudienceLabel(data!, 'en')).toBe('PUB Test Offering / Day')
     })
 
-    it("rejects the retired shape createPublication no longer writes: scope='broadcast' with target_type='all' (would leak school-wide past the RLS fast-path)", async () => {
+    it("rejects scope='broadcast' with a predicate-forbidden shape: class_offering_id also set", async () => {
       const { error } = await ownerA.from('publications').insert({
         kind: 'notice',
         title: 'PUB Test Scope Bad',
         importance: 'normal',
-        target_type: 'all',
         target_scope: 'broadcast',
+        class_offering_id: offeringId,
         target_class_name: 'PUB Test Offering',
         target_academic_year: activeYear,
       })
-      // publications_target_all_is_clean: a row with target_class_name set must
-      // carry target_type='specific'.
+      // publications_target_scope_broadcast_valid: a broadcast row must not
+      // carry class_offering_id.
       expect(error).not.toBeNull()
       expect(error!.code).toBe('23514')
     })

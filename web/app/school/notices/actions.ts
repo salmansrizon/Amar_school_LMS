@@ -74,14 +74,10 @@ export async function createPublication(input: {
   // the bucket's own type/size limits at upload time — nothing more to check.
 
   const broadcast = scope === 'broadcast'
-  // target_scope is the authoritative discriminator (map #598). target_type
-  // is still written as a transitional companion -- 'all' for a school-wide
-  // row, 'specific' for any targeted row -- because three not-yet-cut-over
-  // pieces still branch on it: the publications RLS SELECT policy (0196),
-  // task_completion_roster (0197), and homeworkTargetsOffering's legacy
-  // fallback all fast-path `target_type = 'all'` as "school-wide, visible to
-  // everyone". Writing 'all' on a targeted row would leak it school-wide.
-  // Wave 7 (#608) removes those branches and drops target_type; this goes too.
+  // target_scope is the sole targeting discriminator (map #598 Wave 7/#608 --
+  // target_type is gone). The per-scope CHECK invariants (migration 0195)
+  // require every non-owning column NULL for 'all'/'offering', so the
+  // conditional column values below are load-bearing, not cosmetic.
   const { data, error } = await supabase
     .from('publications')
     .insert({
@@ -89,7 +85,6 @@ export async function createPublication(input: {
       title: title.slice(0, 200),
       content: input.content.trim() ? input.content.trim() : null,
       importance: input.importance,
-      target_type: scope === 'all' ? 'all' : 'specific',
       target_scope: scope,
       class_offering_id: scope === 'offering' ? input.classOfferingId : null,
       target_class_name: broadcast ? input.targetClassName : null,

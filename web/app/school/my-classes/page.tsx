@@ -46,14 +46,13 @@ export default async function MyClassesPage() {
     ),
     // ponytail: whole-table scan capped at 10k rows, same as the classes page.
     supabase.from('student_enrollments').select('class_offering_id').is('closed_at', null).limit(10000),
-    // Offering-aware since map #598 Wave 4 (#605) -- target_scope and its
-    // companion columns, alongside the legacy target_type/target_class_name/
-    // target_section triple homeworkTargetsOffering still falls back to for
-    // a not-yet-migrated (target_scope null) row.
+    // Offering-aware since map #598 Wave 4 (#605); target_scope is the sole
+    // targeting discriminator as of Wave 7 (#608) -- homeworkTargetsOffering
+    // resolves every row through the shared predicate.
     supabase
       .from('publications')
       .select(
-        'id, title, due_at, target_scope, target_type, class_offering_id, target_class_name, target_academic_year, target_shift, target_group_department, target_section',
+        'id, title, due_at, target_scope, class_offering_id, target_class_name, target_academic_year, target_shift, target_group_department, target_section',
       )
       .eq('kind', 'homework')
       .order('created_at', { ascending: false })
@@ -87,9 +86,10 @@ export default async function MyClassesPage() {
                   </span>
                 </div>
                 {(() => {
-                  // Homework aimed at this class: target_type='all' always
-                  // counts, and a class-only target (no section) counts for
-                  // every section — same rule Notices' own targeting uses.
+                  // Homework aimed at this class: a school-wide (scope='all')
+                  // target always counts, and a broadcast target with an Any
+                  // dimension counts for every value of it — the shared
+                  // Notices/SMS targeting rule.
                   const mine = (tasks ?? []).filter((task) => homeworkTargetsOffering(task, c))
                   if (!mine.length) return null
                   return (

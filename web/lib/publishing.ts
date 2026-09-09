@@ -7,7 +7,6 @@ import { classCatalogueLabel } from '@/lib/class-catalogue'
 
 export type PublicationKind = 'notice' | 'homework' | 'lesson_plan' | 'daily_lesson' | 'exam_prep'
 export type Importance = 'normal' | 'important' | 'urgent'
-export type TargetType = 'all' | 'specific'
 
 export const PUBLICATION_KINDS: { key: PublicationKind; label: { bn: string; en: string } }[] = [
   { key: 'notice', label: { bn: 'নোটিশ', en: 'Notice' } },
@@ -49,8 +48,7 @@ export interface PublicationRow {
   kind: PublicationKind
   title: string
   importance: Importance
-  target_type?: TargetType
-  target_scope?: TargetScope | null
+  target_scope?: TargetScope
   target_class_name?: string | null
   target_section?: string | null
 }
@@ -58,10 +56,8 @@ export interface PublicationRow {
 /** A publication row's own target columns, in the shape a `publications`
  *  query returns, as far as the "Target Audience" label needs them. */
 export interface TargetDisplayRow {
-  /** The authoritative discriminator since map #598. null = a not-yet-migrated
-   *  legacy row -- fall back to the target_type/text pair. */
-  target_scope?: TargetScope | null
-  target_type: TargetType
+  /** The sole targeting discriminator (map #598 Wave 7/#608). */
+  target_scope: TargetScope
   target_class_name: string | null
   target_academic_year?: number | null
   target_shift?: string | null
@@ -71,33 +67,27 @@ export interface TargetDisplayRow {
 
 /** The "Target Audience" label for the notices list/detail (issue #100),
  *  covering all three of map #598's scopes:
- *   - `all` (or a legacy `target_type='all'` row)  -> "All Students".
+ *   - `all`  -> "All Students".
  *   - `offering`  -> the picked Class Offering's Class Catalogue label; when
  *     the Offering was since deleted (`class_offering_id` nulled by ON DELETE
  *     SET NULL, #599) the caller passes `offering = null` and we say so.
  *   - `broadcast` -> Class name plus every non-Any dimension, ' / '-joined
  *     (the Year is implicit -- always the active Academic Year pinned at
- *     compose time, #599 -- so it is not spelled out).
- *   - a legacy row (`target_scope` null, not yet backfilled) keeps the old
- *     `class / section` join. Removed in Wave 7 (#608). */
+ *     compose time, #599 -- so it is not spelled out). */
 export function targetAudienceLabel(
   row: TargetDisplayRow,
   lang: Lang,
   offering?: { name: string; section: string | null; group_department?: string | null; shift?: string | null } | null,
 ): string {
   const allStudents = lang === 'bn' ? 'সকল শিক্ষার্থী' : 'All Students'
-  const scope = row.target_scope ?? null
-  if (scope === 'all' || (scope === null && row.target_type === 'all')) return allStudents
-  if (scope === 'offering') {
+  if (row.target_scope === 'all') return allStudents
+  if (row.target_scope === 'offering') {
     if (offering) return classCatalogueLabel(offering)
     return lang === 'bn' ? 'অপসারিত ক্লাস অফারিং' : 'Removed class offering'
   }
-  if (scope === 'broadcast') {
-    return [row.target_class_name, row.target_shift, row.target_group_department, row.target_section]
-      .filter(Boolean)
-      .join(' / ')
-  }
-  return [row.target_class_name, row.target_section].filter(Boolean).join(' / ')
+  return [row.target_class_name, row.target_shift, row.target_group_department, row.target_section]
+    .filter(Boolean)
+    .join(' / ')
 }
 
 /** List search (title, case-insensitive) + optional kind filter, for the List tab. */
@@ -165,20 +155,15 @@ export function validateTargetSelection(input: TargetSelectionInput): TargetSele
 }
 
 // Offering-aware targeting (issue #595, map #598) -- the shared resolution
-// primitive every consumer is MEANT to call instead of each re-implementing
-// its own class_name/section text match (map #598's central lesson from
-// #593). Adoption so far: Student RLS via student_matches_target (Wave 2,
-// #603) and task_completion_roster (Wave 3, #604) both delegate to this
-// (via the shared publication_target_matches_offering_any dispatcher, which
-// itself was added specifically so this second consumer didn't hand-copy
-// the dispatch logic). SMS (Wave 5, #606) does not yet -- until that wave
-// lands, it still runs its pre-existing independent logic. Keep this list
-// current as each wave lands: do not describe adoption as more complete
-// than it actually is in the tree, and do not let it silently fall out of
-// date either -- #607 (Wave 6, the compose UI that would actually let a
-// School write an 'offering'-scoped row) is blocked by BOTH #604 and #605
-// in the map's dependency graph specifically to prevent landing before
-// every read-side consumer understands the new scope.
+// primitive every consumer calls instead of re-implementing its own
+// class_name/section text match (map #598's central lesson from #593). As of
+// Wave 7 (#608) every consumer is on it: the Student RLS SELECT policy +
+// student_material via student_matches_target (SQL), task_completion_roster
+// (SQL), homeworkTargetsOffering / My Classes (TS, via targetRowMatchesOffering
+// below), and SMS recipient resolution (TS, lib/sms/recipients.ts). The
+// transitional target_type/'specific' shape and the target_scope-is-null
+// legacy fallback are both gone -- this predicate and its SQL mirror are the
+// only place the match logic exists anywhere in the repo.
 //
 // This TS function and its SQL mirror (publication_target_matches_offering,
 // migration 0195) must stay in lockstep -- see
@@ -254,29 +239,6 @@ export function targetMatchesOffering(target: PublicationTarget, offering: Candi
   )
 }
 
-// The pre-#595 (name, section)-text targeting rule (map #598 Wave 4/#605) --
-// the TS mirror of the SQL publication_target_matches_offering_legacy
-// (0196), for a `target_scope IS NULL` (not-yet-migrated) row. Kept as its
-// own function rather than inlined, for the identical reason the SQL side
-// extracted it: every transitional-window TS consumer shares this one copy,
-// not a hand-copy each.
-export interface LegacyPublicationTarget {
-  targetType: string
-  targetClassName: string | null
-  targetSection: string | null
-}
-
-export function targetMatchesOfferingLegacy(
-  target: LegacyPublicationTarget,
-  offering: { name: string; section: string | null },
-): boolean {
-  if (target.targetType === 'all') return true
-  return (
-    (target.targetClassName === null || target.targetClassName === offering.name) &&
-    (target.targetSection === null || target.targetSection === (offering.section ?? ''))
-  )
-}
-
 /** A Class Offering's own identifying fields, in the exact snake_case shape
  *  a real `class_offerings` query returns -- the boundary type real callers
  *  (My Classes, #605) actually have on hand, as opposed to CandidateOffering
@@ -303,15 +265,12 @@ export function toCandidateOffering(row: OfferingRow): CandidateOffering {
 }
 
 /** A publication's own target columns, in the exact snake_case shape a real
- *  `publications` query returns. The TS mirror of the SQL dispatch
- *  publication_target_matches_offering_any (0196): delegates to the shared
- *  predicate when target_scope is populated, falls back to the legacy rule
- *  when it is still null -- one dispatch, shared by every TS consumer
- *  (homeworkTargetsOffering today; SMS, Wave 5/#606, next), not a hand-copy
- *  each. Retired in Wave 7 (#608) once every row has target_scope. */
+ *  `publications` query returns. Adapts that row shape to the shared
+ *  `targetMatchesOffering` predicate -- the one match rule every consumer
+ *  calls (map #598). `target_scope` is NOT NULL as of Wave 7 (#608); the
+ *  transitional target_type/legacy-text dispatch is gone. */
 export interface PublicationTargetRow {
-  target_scope: TargetScope | null
-  target_type: string
+  target_scope: TargetScope
   class_offering_id: string | null
   target_class_name: string | null
   target_academic_year: number | null
@@ -321,24 +280,17 @@ export interface PublicationTargetRow {
 }
 
 export function targetRowMatchesOffering(row: PublicationTargetRow, offering: OfferingRow): boolean {
-  const candidate = toCandidateOffering(offering)
-  if (row.target_scope !== null) {
-    return targetMatchesOffering(
-      {
-        scope: row.target_scope,
-        classOfferingId: row.class_offering_id,
-        className: row.target_class_name,
-        academicYear: row.target_academic_year,
-        shift: row.target_shift,
-        groupDepartment: row.target_group_department,
-        section: row.target_section,
-      },
-      candidate,
-    )
-  }
-  return targetMatchesOfferingLegacy(
-    { targetType: row.target_type, targetClassName: row.target_class_name, targetSection: row.target_section },
-    candidate,
+  return targetMatchesOffering(
+    {
+      scope: row.target_scope,
+      classOfferingId: row.class_offering_id,
+      className: row.target_class_name,
+      academicYear: row.target_academic_year,
+      shift: row.target_shift,
+      groupDepartment: row.target_group_department,
+      section: row.target_section,
+    },
+    toCandidateOffering(offering),
   )
 }
 

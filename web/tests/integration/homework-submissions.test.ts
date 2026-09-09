@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { signedIn } from '../helpers/auth'
+import { seedClassYear } from '../helpers/seed'
 
 // Seam: homework submission (#448, migration 0142).
 //
@@ -17,6 +18,7 @@ describe('Homework submissions (#448)', () => {
   let studentId: string
   let schoolId: string
   let taskId: string
+  let seedYear: number
 
   const file = (n: number, size = 1024) => ({
     school_id: schoolId,
@@ -31,6 +33,7 @@ describe('Homework submissions (#448)', () => {
     owner = await signedIn('owner-a@test.local')
     ownerB = await signedIn('owner-b@test.local')
     student = await signedIn('s9001@test-a.students.invalid')
+    seedYear = await seedClassYear(owner)
 
     const self = (await student.from('student_self').select('id, school_id').single()).data!
     studentId = self.id
@@ -43,8 +46,9 @@ describe('Homework submissions (#448)', () => {
         kind: 'homework',
         title: `${P}Essay`,
         importance: 'normal',
-        target_type: 'specific',
+        target_scope: 'broadcast',
         target_class_name: 'Seed Class',
+        target_academic_year: seedYear,
         target_section: 'A',
       })
       .select('id')

@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { signedIn } from '../helpers/auth'
+import { seedClassYear } from '../helpers/seed'
 
 // Seam: study material (#447, migration 0141) — two sources, one view, and the
 // guarantee that a Student cannot reach another class's material.
@@ -10,18 +11,20 @@ const P = 'MT1 '
 describe('Student materials (#447)', () => {
   let owner: SupabaseClient
   let student: SupabaseClient
+  let seedYear: number
 
   beforeAll(async () => {
     owner = await signedIn('owner-a@test.local')
     student = await signedIn('s9001@test-a.students.invalid')
+    seedYear = await seedClassYear(owner)
     await owner.from('publications').delete().like('title', `${P}%`)
 
     const rows = [
-      { kind: 'lesson_plan', title: `${P}Mine`, target_type: 'specific', target_class_name: 'Seed Class', target_section: 'A' },
-      { kind: 'exam_prep', title: `${P}Everyone`, target_type: 'all' },
-      { kind: 'daily_lesson', title: `${P}Other class`, target_type: 'specific', target_class_name: 'Not My Class', target_section: 'B' },
+      { kind: 'lesson_plan', title: `${P}Mine`, target_scope: 'broadcast', target_class_name: 'Seed Class', target_academic_year: seedYear, target_section: 'A' },
+      { kind: 'exam_prep', title: `${P}Everyone`, target_scope: 'all' },
+      { kind: 'daily_lesson', title: `${P}Other class`, target_scope: 'broadcast', target_class_name: 'Not My Class', target_academic_year: seedYear, target_section: 'B' },
       // A notice is not study material, even though it is a publication.
-      { kind: 'notice', title: `${P}Not material`, target_type: 'all' },
+      { kind: 'notice', title: `${P}Not material`, target_scope: 'all' },
     ]
     for (const r of rows) {
       const { error } = await owner.from('publications').insert({ importance: 'normal', ...r })

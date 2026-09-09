@@ -1,4 +1,4 @@
-import type { Importance } from '@/lib/publishing'
+import type { Importance, TargetScope } from '@/lib/publishing'
 
 // The Student's notice feed (#445), kept pure.
 //
@@ -10,7 +10,7 @@ export interface StudentNotice {
   kind: string
   title: string
   importance: Importance
-  target_type: string
+  target_scope: TargetScope
   target_class_name: string | null
   target_section: string | null
   image_path: string | null
@@ -42,8 +42,8 @@ export function sortNotices<T extends { importance: string; created_at: string }
 }
 
 /** Whether a notice went to the whole school or to this student's class. */
-export function isForMyClass(notice: { target_type: string }): boolean {
-  return notice.target_type !== 'all'
+export function isForMyClass(notice: { target_scope: TargetScope }): boolean {
+  return notice.target_scope !== 'all'
 }
 
 /** The ids a Student has not opened yet, for the home screen's "what's new".

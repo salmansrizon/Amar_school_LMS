@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { signedIn } from '../helpers/auth'
+import { seedClassYear } from '../helpers/seed'
 
 // Seam: homework completion (#446, migration 0140).
 //
@@ -15,10 +16,12 @@ describe('Student tasks (#446)', () => {
   let student: SupabaseClient
   let studentId: string
   let taskId: string
+  let seedYear: number
 
   beforeAll(async () => {
     owner = await signedIn('owner-a@test.local')
     student = await signedIn('s9001@test-a.students.invalid')
+    seedYear = await seedClassYear(owner)
     studentId = (await student.from('student_self').select('id').single()).data!.id
 
     await owner.from('publications').delete().like('title', `${P}%`)
@@ -28,8 +31,9 @@ describe('Student tasks (#446)', () => {
         kind: 'homework',
         title: `${P}Algebra exercises 4-9`,
         importance: 'normal',
-        target_type: 'specific',
+        target_scope: 'broadcast',
         target_class_name: 'Seed Class',
+        target_academic_year: seedYear,
         target_section: 'A',
         due_at: '2099-01-15T00:00:00Z',
       })

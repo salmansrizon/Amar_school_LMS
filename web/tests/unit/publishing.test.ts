@@ -47,13 +47,13 @@ describe('targetAudienceLabel: "Target Audience" column, three scopes (map #598 
   it('is "All Students" for scope=all', () => {
     expect(
       targetAudienceLabel(
-        { target_scope: 'all', target_type: 'all', target_class_name: null, target_section: null },
+        { target_scope: 'all', target_class_name: null, target_section: null },
         'en',
       ),
     ).toBe('All Students')
     expect(
       targetAudienceLabel(
-        { target_scope: 'all', target_type: 'all', target_class_name: null, target_section: null },
+        { target_scope: 'all', target_class_name: null, target_section: null },
         'bn',
       ),
     ).toBe('সকল শিক্ষার্থী')
@@ -62,7 +62,7 @@ describe('targetAudienceLabel: "Target Audience" column, three scopes (map #598 
   it('is the Class Catalogue label for scope=offering, given the resolved Offering', () => {
     expect(
       targetAudienceLabel(
-        { target_scope: 'offering', target_type: 'specific', target_class_name: null, target_section: null },
+        { target_scope: 'offering', target_class_name: null, target_section: null },
         'en',
         { name: 'Nine', section: 'A', group_department: 'Science', shift: 'Day' },
       ),
@@ -72,7 +72,7 @@ describe('targetAudienceLabel: "Target Audience" column, three scopes (map #598 
   it('says the Offering was removed when scope=offering but no Offering resolves (ON DELETE SET NULL, #599)', () => {
     expect(
       targetAudienceLabel(
-        { target_scope: 'offering', target_type: 'specific', target_class_name: null, target_section: null },
+        { target_scope: 'offering', target_class_name: null, target_section: null },
         'en',
         null,
       ),
@@ -84,7 +84,6 @@ describe('targetAudienceLabel: "Target Audience" column, three scopes (map #598 
       targetAudienceLabel(
         {
           target_scope: 'broadcast',
-          target_type: 'specific',
           target_class_name: 'Nine',
           target_academic_year: 2026,
           target_shift: 'Day',
@@ -101,7 +100,6 @@ describe('targetAudienceLabel: "Target Audience" column, three scopes (map #598 
       targetAudienceLabel(
         {
           target_scope: 'broadcast',
-          target_type: 'specific',
           target_class_name: 'Nine',
           target_academic_year: 2026,
           target_shift: null,
@@ -111,23 +109,6 @@ describe('targetAudienceLabel: "Target Audience" column, three scopes (map #598 
         'en',
       ),
     ).toBe('Nine')
-  })
-
-  // A not-yet-backfilled legacy row (target_scope null) keeps the old
-  // class / section join until Wave 7 (#608). OfficeTime left targeting with #100.
-  it('falls back to the class / section join for a legacy row (no target_scope)', () => {
-    expect(
-      targetAudienceLabel(
-        { target_type: 'specific', target_class_name: 'Class 6', target_section: 'A' },
-        'en',
-      ),
-    ).toBe('Class 6 / A')
-    expect(
-      targetAudienceLabel(
-        { target_type: 'all', target_class_name: null, target_section: null },
-        'en',
-      ),
-    ).toBe('All Students')
   })
 })
 

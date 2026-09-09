@@ -1,18 +1,18 @@
 import { describe, it, expect, beforeAll } from 'vitest'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { signedIn } from '../helpers/auth'
-import { LEGACY_TARGET_SCENARIOS, PUBLICATION_TARGET_SCENARIOS } from '@/lib/publishing-targeting-scenarios'
+import { PUBLICATION_TARGET_SCENARIOS } from '@/lib/publishing-targeting-scenarios'
 
-// issue #595, map #598 Wave 1 (#602). Three concerns:
+// issue #595, map #598 Wave 1 (#602), contract phase Wave 7 (#608). Three concerns:
 //  1. publication_target_matches_offering (SQL) agrees with targetMatchesOffering
 //     (TS, tests/unit/publishing-targeting.test.ts) on every row of the same
 //     shared scenario table -- the parity proof the whole shared-primitive
 //     design depends on.
 //  2. publications_target_scope_valid rejects every malformed all/offering/
-//     broadcast combination, and exempts a not-yet-migrated (target_scope
-//     null) row -- the additive "expand phase" contract.
-//  3. The one-time backfill actually produced what #600's resolution said it
-//     would, against the two real rows this was grilled against.
+//     broadcast combination, and (as of #608) rejects a NULL target_scope --
+//     the transitional not-yet-migrated exemption is gone.
+//  3. The one-time backfill produced what #600's resolution said it would, and
+//     no row is left without a populated target_scope.
 describe('publication_target_matches_offering (#595, #602)', () => {
   let owner: SupabaseClient
 
@@ -43,33 +43,7 @@ describe('publication_target_matches_offering (#595, #602)', () => {
   }
 })
 
-// map #598 Wave 4 (#605) -- the legacy (target_scope IS NULL) predicate's own
-// parity proof, added after code review found the primary predicate had one
-// but this one didn't. TS half proven against the same table in
-// tests/unit/publishing-targeting.test.ts.
-describe('publication_target_matches_offering_legacy (#595, #605)', () => {
-  let owner: SupabaseClient
-
-  beforeAll(async () => {
-    owner = await signedIn('owner-a@test.local')
-  })
-
-  for (const scenario of LEGACY_TARGET_SCENARIOS) {
-    it(`SQL agrees with TS: ${scenario.description}`, async () => {
-      const { data, error } = await owner.rpc('publication_target_matches_offering_legacy', {
-        p_target_type: scenario.target.targetType,
-        p_target_class_name: scenario.target.targetClassName,
-        p_target_section: scenario.target.targetSection,
-        p_offering_name: scenario.offering.name,
-        p_offering_section: scenario.offering.section,
-      })
-      expect(error).toBeNull()
-      expect(data).toBe(scenario.expected)
-    })
-  }
-})
-
-describe('publications_target_scope_valid (#595, #602)', () => {
+describe('publications_target_scope_valid (#595, #602/#608)', () => {
   let owner: SupabaseClient
   const TAG = 'W595 targeting-check'
 
@@ -88,16 +62,16 @@ describe('publications_target_scope_valid (#595, #602)', () => {
     importance: 'normal' as const,
   }
 
-  it('accepts a null target_scope row unchanged (backward compatibility with not-yet-migrated writers)', async () => {
-    const { error } = await owner.from('publications').insert({ ...base, target_type: 'all' })
-    expect(error).toBeNull()
+  it('rejects a row with no target_scope (NOT NULL as of Wave 7/#608)', async () => {
+    const { error } = await owner.from('publications').insert({ ...base })
+    expect(error).not.toBeNull()
     await cleanup()
   })
 
   it("rejects scope='all' with any target field set", async () => {
     const { error } = await owner
       .from('publications')
-      .insert({ ...base, target_type: 'all', target_scope: 'all', target_class_name: 'Nine' })
+      .insert({ ...base, target_scope: 'all', target_class_name: 'Nine' })
     expect(error).not.toBeNull()
     expect(error!.code).toBe('23514')
   })
@@ -108,7 +82,7 @@ describe('publications_target_scope_valid (#595, #602)', () => {
     // produce this exact row shape when a targeted Offering is deleted
     // (#599) -- a CHECK that rejected it would turn every such deletion into
     // a foreign-key failure. Proven end-to-end in student-matches-target.test.ts.
-    const { error } = await owner.from('publications').insert({ ...base, target_type: 'specific', target_scope: 'offering' })
+    const { error } = await owner.from('publications').insert({ ...base, target_scope: 'offering' })
     expect(error).toBeNull()
     await cleanup()
   })
@@ -117,7 +91,6 @@ describe('publications_target_scope_valid (#595, #602)', () => {
     const { data: offering } = await owner.from('class_offerings').select('id').limit(1).single()
     const { error } = await owner.from('publications').insert({
       ...base,
-      target_type: 'specific',
       target_scope: 'offering',
       class_offering_id: offering!.id,
       target_class_name: 'Nine',
@@ -130,7 +103,7 @@ describe('publications_target_scope_valid (#595, #602)', () => {
     const { data: offering } = await owner.from('class_offerings').select('id').limit(1).single()
     const { error } = await owner
       .from('publications')
-      .insert({ ...base, target_type: 'specific', target_scope: 'offering', class_offering_id: offering!.id })
+      .insert({ ...base, target_scope: 'offering', class_offering_id: offering!.id })
     expect(error).toBeNull()
     await cleanup()
   })
@@ -138,7 +111,7 @@ describe('publications_target_scope_valid (#595, #602)', () => {
   it("rejects scope='broadcast' without a Class name", async () => {
     const { error } = await owner
       .from('publications')
-      .insert({ ...base, target_type: 'specific', target_scope: 'broadcast', target_academic_year: 2026 })
+      .insert({ ...base, target_scope: 'broadcast', target_academic_year: 2026 })
     expect(error).not.toBeNull()
     expect(error!.code).toBe('23514')
   })
@@ -146,7 +119,7 @@ describe('publications_target_scope_valid (#595, #602)', () => {
   it("rejects scope='broadcast' without an Academic Year", async () => {
     const { error } = await owner
       .from('publications')
-      .insert({ ...base, target_type: 'specific', target_scope: 'broadcast', target_class_name: 'Nine' })
+      .insert({ ...base, target_scope: 'broadcast', target_class_name: 'Nine' })
     expect(error).not.toBeNull()
     expect(error!.code).toBe('23514')
   })
@@ -154,7 +127,7 @@ describe('publications_target_scope_valid (#595, #602)', () => {
   it("accepts a well-formed scope='broadcast' row with every predicate field Any", async () => {
     const { error } = await owner
       .from('publications')
-      .insert({ ...base, target_type: 'specific', target_scope: 'broadcast', target_class_name: 'Nine', target_academic_year: 2026 })
+      .insert({ ...base, target_scope: 'broadcast', target_class_name: 'Nine', target_academic_year: 2026 })
     expect(error).toBeNull()
     await cleanup()
   })
@@ -162,7 +135,6 @@ describe('publications_target_scope_valid (#595, #602)', () => {
   it('rejects an invalid target_shift value', async () => {
     const { error } = await owner.from('publications').insert({
       ...base,
-      target_type: 'specific',
       target_scope: 'broadcast',
       target_class_name: 'Nine',
       target_academic_year: 2026,
@@ -199,8 +171,8 @@ describe('Wave 1 backfill of the two known legacy rows (#600)', () => {
     expect(data).toBeNull()
   })
 
-  it('zero rows anywhere are left with target_type=specific and no target_scope backfilled', async () => {
-    const { data } = await owner.from('publications').select('id').eq('target_type', 'specific').is('target_scope', null)
+  it('zero rows anywhere are left without a populated target_scope (Wave 7/#608 cutover)', async () => {
+    const { data } = await owner.from('publications').select('id').is('target_scope', null)
     expect(data ?? []).toEqual([])
   })
 })

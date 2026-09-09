@@ -37,21 +37,20 @@ describe('studentCounts', () => {
 })
 
 // #587's own Wave 4a planning-pass finding: my-classes/page.tsx's inline
-// homework filter never checked target_type, so a target_type='all' homework
-// never appeared on any Class Teacher's list — a real bug, independent of
-// the Notices targeting SQL rewrite. Regression-pinned here now that the
-// filter is a named, testable function instead of inline JSX logic.
+// homework filter never checked scope, so a school-wide homework never
+// appeared on any Class Teacher's list — a real bug, independent of the
+// Notices targeting SQL rewrite. Regression-pinned here now that the filter
+// is a named, testable function instead of inline JSX logic.
 //
-// Offering-aware since map #598 Wave 4 (#605): homeworkTargetsOffering is
-// now a thin wrapper over the shared resolution primitive
-// (targetRowMatchesOffering, lib/publishing.ts). The legacy-shape tests
-// below build a full HomeworkTargetRow/OfferingRow with target_scope: null
-// and the new columns defaulted -- a not-yet-migrated row, exercising the
-// same fallback path #603/#604's own SQL-side legacy predicate takes.
+// Offering-aware since map #598 Wave 4 (#605); as of Wave 7 (#608)
+// homeworkTargetsOffering is a pure wrapper over the shared resolution
+// primitive (targetRowMatchesOffering, lib/publishing.ts) with no legacy
+// fallback -- target_scope is always populated.
 describe('homeworkTargetsOffering', () => {
-  function legacyTask(overrides: Partial<HomeworkTargetRow> & { target_type: string }): HomeworkTargetRow {
+  const YEAR = 2026
+
+  function task(overrides: Partial<HomeworkTargetRow> & { target_scope: HomeworkTargetRow['target_scope'] }): HomeworkTargetRow {
     return {
-      target_scope: null,
       class_offering_id: null,
       target_academic_year: null,
       target_shift: null,
@@ -64,8 +63,8 @@ describe('homeworkTargetsOffering', () => {
 
   function offering(overrides: Partial<OfferingRow> & { name: string }): OfferingRow {
     return {
-      id: 'unused-in-legacy-path',
-      academic_year: null,
+      id: 'offering-id',
+      academic_year: YEAR,
       shift: null,
       group_department: null,
       section: null,
@@ -75,58 +74,39 @@ describe('homeworkTargetsOffering', () => {
 
   const nineA = offering({ name: 'Nine', section: 'A' })
 
-  it("a target_type='all' task always matches, regardless of class/section", () => {
-    expect(homeworkTargetsOffering(legacyTask({ target_type: 'all' }), nineA)).toBe(true)
-    // Even a class-only-looking name that doesn't match this Offering at all —
-    // 'all' overrides every other field.
+  it('a school-wide (scope=all) task always matches, regardless of Offering', () => {
+    expect(homeworkTargetsOffering(task({ target_scope: 'all' }), nineA)).toBe(true)
     expect(
-      homeworkTargetsOffering(legacyTask({ target_type: 'all', target_class_name: 'Ten', target_section: 'Z' }), nineA),
+      homeworkTargetsOffering(task({ target_scope: 'all' }), offering({ name: 'Ten', section: 'Z' })),
     ).toBe(true)
   })
 
-  it('a specific target with no section reaches every section of that class', () => {
-    expect(
-      homeworkTargetsOffering(legacyTask({ target_type: 'specific', target_class_name: 'Nine' }), nineA),
-    ).toBe(true)
-    expect(
-      homeworkTargetsOffering(
-        legacyTask({ target_type: 'specific', target_class_name: 'Nine' }),
-        offering({ name: 'Nine', section: 'B' }),
-      ),
-    ).toBe(true)
+  it('a broadcast target with no Section reaches every Section of that Class in the pinned Year', () => {
+    const t = task({ target_scope: 'broadcast', target_class_name: 'Nine', target_academic_year: YEAR })
+    expect(homeworkTargetsOffering(t, nineA)).toBe(true)
+    expect(homeworkTargetsOffering(t, offering({ name: 'Nine', section: 'B' }))).toBe(true)
   })
 
-  it('a specific target with a section narrows to that section only', () => {
-    expect(
-      homeworkTargetsOffering(legacyTask({ target_type: 'specific', target_class_name: 'Nine', target_section: 'A' }), nineA),
-    ).toBe(true)
-    expect(
-      homeworkTargetsOffering(
-        legacyTask({ target_type: 'specific', target_class_name: 'Nine', target_section: 'A' }),
-        offering({ name: 'Nine', section: 'B' }),
-      ),
-    ).toBe(false)
+  it('a broadcast target with a Section narrows to that Section only', () => {
+    const t = task({ target_scope: 'broadcast', target_class_name: 'Nine', target_academic_year: YEAR, target_section: 'A' })
+    expect(homeworkTargetsOffering(t, nineA)).toBe(true)
+    expect(homeworkTargetsOffering(t, offering({ name: 'Nine', section: 'B' }))).toBe(false)
   })
 
-  it('a specific target for a different class never matches', () => {
-    expect(
-      homeworkTargetsOffering(legacyTask({ target_type: 'specific', target_class_name: 'Ten' }), nineA),
-    ).toBe(false)
+  it('a broadcast target for a different Class never matches', () => {
+    const t = task({ target_scope: 'broadcast', target_class_name: 'Ten', target_academic_year: YEAR })
+    expect(homeworkTargetsOffering(t, nineA)).toBe(false)
   })
 
-  it('a section-only target (no class chosen) reaches every class in that section', () => {
-    // Caught by code review alongside the SQL-side fix (student_matches_target
-    // dropped this same null-class guard) — a valid, create-form-permitted
-    // submission (validateTargetSelection only requires className OR section).
-    expect(
-      homeworkTargetsOffering(legacyTask({ target_type: 'specific', target_section: 'A' }), nineA),
-    ).toBe(true)
-    expect(
-      homeworkTargetsOffering(
-        legacyTask({ target_type: 'specific', target_section: 'A' }),
-        offering({ name: 'Ten', section: 'B' }),
-      ),
-    ).toBe(false)
+  it('a broadcast target is pinned to one Academic Year', () => {
+    const t = task({ target_scope: 'broadcast', target_class_name: 'Nine', target_academic_year: YEAR })
+    expect(homeworkTargetsOffering(t, offering({ name: 'Nine', section: 'A', academic_year: YEAR + 1 }))).toBe(false)
+  })
+
+  it('an offering target matches only the exact Offering id', () => {
+    const t = task({ target_scope: 'offering', class_offering_id: nineA.id })
+    expect(homeworkTargetsOffering(t, nineA)).toBe(true)
+    expect(homeworkTargetsOffering(t, offering({ id: 'other-id', name: 'Nine', section: 'A' }))).toBe(false)
   })
 
   // Parity with the shared predicate (map #598 Wave 1/#602's own scenario
@@ -140,7 +120,6 @@ describe('homeworkTargetsOffering', () => {
     it(`agrees with the shared predicate: ${scenario.description}`, () => {
       const task: HomeworkTargetRow = {
         target_scope: scenario.target.scope,
-        target_type: 'specific',
         class_offering_id: scenario.target.classOfferingId,
         target_class_name: scenario.target.className,
         target_academic_year: scenario.target.academicYear,

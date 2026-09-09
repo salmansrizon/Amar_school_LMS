@@ -6,7 +6,7 @@ import { sortNotices, unreadIds, type StudentNotice } from '@/lib/student/notice
 // class — so this never filters by audience itself.
 
 const COLUMNS =
-  'id, kind, title, importance, target_type, target_class_name, target_section, image_path, link_url, created_at'
+  'id, kind, title, importance, target_scope, target_class_name, target_section, image_path, link_url, created_at'
 
 export interface NoticeFeed {
   notices: StudentNotice[]

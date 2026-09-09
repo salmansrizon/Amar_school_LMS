@@ -82,7 +82,6 @@ describe('student_matches_target() / Student RLS on publications (#595, #603)', 
       .insert({
         kind: 'notice',
         title: `${TAG} Exact Offering Notice`,
-        target_type: 'specific',
         target_scope: 'offering',
         class_offering_id: offeringMorningId,
       })
@@ -101,7 +100,6 @@ describe('student_matches_target() / Student RLS on publications (#595, #603)', 
       .insert({
         kind: 'notice',
         title: `${TAG} Broadcast Any Shift Notice`,
-        target_type: 'specific',
         target_scope: 'broadcast',
         target_class_name: `${TAG} Nine`,
         target_academic_year: year!.academic_year,
@@ -122,7 +120,6 @@ describe('student_matches_target() / Student RLS on publications (#595, #603)', 
       .insert({
         kind: 'notice',
         title: `${TAG} Broadcast Morning-Only Notice`,
-        target_type: 'specific',
         target_scope: 'broadcast',
         target_class_name: `${TAG} Nine`,
         target_academic_year: year!.academic_year,
@@ -144,7 +141,6 @@ describe('student_matches_target() / Student RLS on publications (#595, #603)', 
       .insert({
         kind: 'notice',
         title: `${TAG} Broadcast Science-Only Notice`,
-        target_type: 'specific',
         target_scope: 'broadcast',
         target_class_name: `${TAG} Nine`,
         target_academic_year: year!.academic_year,
@@ -178,7 +174,6 @@ describe('student_matches_target() / Student RLS on publications (#595, #603)', 
       .insert({
         kind: 'notice',
         title: `${TAG} Deleted Offering Notice`,
-        target_type: 'specific',
         target_scope: 'offering',
         class_offering_id: throwaway!.id,
       })
@@ -204,7 +199,7 @@ describe('student_matches_target() / Student RLS on publications (#595, #603)', 
   it("a school-wide (target_scope='all') publication is readable by every Student regardless of Offering", async () => {
     const { data: pub, error } = await owner
       .from('publications')
-      .insert({ kind: 'notice', title: `${TAG} All Students Notice`, target_type: 'all' })
+      .insert({ kind: 'notice', title: `${TAG} All Students Notice`, target_scope: 'all' })
       .select('id')
       .single()
     if (error) throw new Error(error.message)
@@ -238,7 +233,7 @@ describe('student_matches_target() / Student RLS on publications (#595, #603)', 
 
     const { data: pub, error } = await owner
       .from('publications')
-      .insert({ kind: 'notice', title: `${TAG} All Students Notice For Unplaced`, target_type: 'all' })
+      .insert({ kind: 'notice', title: `${TAG} All Students Notice For Unplaced`, target_scope: 'all' })
       .select('id')
       .single()
     if (error) throw new Error(error.message)
@@ -264,7 +259,6 @@ describe('student_matches_target() / Student RLS on publications (#595, #603)', 
       .insert({
         kind: 'notice',
         title: `${TAG} Exact Offering Notice For Unplaced`,
-        target_type: 'specific',
         target_scope: 'offering',
         class_offering_id: offeringMorningId,
       })

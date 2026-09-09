@@ -50,8 +50,9 @@ describe('sortNotices', () => {
 
 describe('isForMyClass', () => {
   it('distinguishes a school-wide notice from a class one', () => {
-    expect(isForMyClass({ target_type: 'all' })).toBe(false)
-    expect(isForMyClass({ target_type: 'specific' })).toBe(true)
+    expect(isForMyClass({ target_scope: 'all' })).toBe(false)
+    expect(isForMyClass({ target_scope: 'broadcast' })).toBe(true)
+    expect(isForMyClass({ target_scope: 'offering' })).toBe(true)
   })
 })
 

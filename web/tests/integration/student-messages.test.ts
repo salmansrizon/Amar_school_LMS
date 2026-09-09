@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { signedIn } from '../helpers/auth'
+import { seedClassYear } from '../helpers/seed'
 
 // Seam: questions to the Class Teacher (#454, migration 0148).
 //
@@ -17,11 +18,13 @@ describe('Student questions (#454)', () => {
   let studentId: string
   let schoolId: string
   let publicationId: string
+  let seedYear: number
 
   beforeAll(async () => {
     owner = await signedIn('owner-a@test.local')
     ownerB = await signedIn('owner-b@test.local')
     student = await signedIn('s9001@test-a.students.invalid')
+    seedYear = await seedClassYear(owner)
     const self = (await student.from('student_self').select('id, school_id').single()).data!
     studentId = self.id
     schoolId = self.school_id
@@ -33,8 +36,9 @@ describe('Student questions (#454)', () => {
         kind: 'homework',
         title: `${P}Chapter 4`,
         importance: 'normal',
-        target_type: 'specific',
+        target_scope: 'broadcast',
         target_class_name: 'Seed Class',
+        target_academic_year: seedYear,
         target_section: 'A',
       })
       .select('id')

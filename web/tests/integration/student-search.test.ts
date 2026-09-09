@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { signedIn } from '../helpers/auth'
+import { seedClassYear } from '../helpers/seed'
 
 // Seam: what the student branch of globalRecordSearch can actually reach
 // (#457). The ticket says RLS already guarantees scoping — but assert it rather
@@ -11,17 +12,19 @@ const P = 'SR1 '
 describe('Student search sources (#457)', () => {
   let owner: SupabaseClient
   let student: SupabaseClient
+  let seedYear: number
 
   beforeAll(async () => {
     owner = await signedIn('owner-a@test.local')
     student = await signedIn('s9001@test-a.students.invalid')
+    seedYear = await seedClassYear(owner)
     await owner.from('publications').delete().like('title', `${P}%`)
 
     for (const row of [
-      { kind: 'notice', title: `${P}Mine notice`, target_type: 'specific', target_class_name: 'Seed Class', target_section: 'A' },
-      { kind: 'homework', title: `${P}Mine task`, target_type: 'specific', target_class_name: 'Seed Class', target_section: 'A' },
-      { kind: 'lesson_plan', title: `${P}Mine material`, target_type: 'all' },
-      { kind: 'notice', title: `${P}Other class notice`, target_type: 'specific', target_class_name: 'Not My Class', target_section: 'Z' },
+      { kind: 'notice', title: `${P}Mine notice`, target_scope: 'broadcast', target_class_name: 'Seed Class', target_academic_year: seedYear, target_section: 'A' },
+      { kind: 'homework', title: `${P}Mine task`, target_scope: 'broadcast', target_class_name: 'Seed Class', target_academic_year: seedYear, target_section: 'A' },
+      { kind: 'lesson_plan', title: `${P}Mine material`, target_scope: 'all' },
+      { kind: 'notice', title: `${P}Other class notice`, target_scope: 'broadcast', target_class_name: 'Not My Class', target_academic_year: seedYear, target_section: 'Z' },
     ]) {
       const { error } = await owner.from('publications').insert({ importance: 'normal', ...row })
       if (error) throw new Error(`${row.title}: ${error.message}`)

@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { signedIn } from '../helpers/auth'
+import { seedClassYear } from '../helpers/seed'
 
 // Seam: the Student's notice targeting (#445, migration 0139).
 //
@@ -14,6 +15,7 @@ describe('Student notices (#445)', () => {
   let owner: SupabaseClient
   let student: SupabaseClient
   let studentId: string
+  let seedYear: number
   const ids: Record<string, string> = {}
 
   async function post(fields: Record<string, unknown>): Promise<string> {
@@ -29,35 +31,40 @@ describe('Student notices (#445)', () => {
   beforeAll(async () => {
     owner = await signedIn('owner-a@test.local')
     student = await signedIn('s9001@test-a.students.invalid')
+    seedYear = await seedClassYear(owner)
 
     const { data: me } = await student.from('student_self').select('id').single()
     studentId = me!.id
 
     await owner.from('publications').delete().like('title', `${P}%`)
 
-    ids.schoolWide = await post({ title: `${P}School wide`, target_type: 'all' })
+    ids.schoolWide = await post({ title: `${P}School wide`, target_scope: 'all' })
     ids.myClassAndSection = await post({
       title: `${P}My class and section`,
-      target_type: 'specific',
+      target_scope: 'broadcast',
       target_class_name: 'Seed Class',
+      target_academic_year: seedYear,
       target_section: 'A',
     })
     ids.myClassAnySection = await post({
       title: `${P}My class any section`,
-      target_type: 'specific',
+      target_scope: 'broadcast',
       target_class_name: 'Seed Class',
+      target_academic_year: seedYear,
       target_section: null,
     })
     ids.otherClass = await post({
       title: `${P}Other class`,
-      target_type: 'specific',
+      target_scope: 'broadcast',
       target_class_name: 'Not My Class',
+      target_academic_year: seedYear,
       target_section: 'B',
     })
     ids.otherSection = await post({
       title: `${P}Same class other section`,
-      target_type: 'specific',
+      target_scope: 'broadcast',
       target_class_name: 'Seed Class',
+      target_academic_year: seedYear,
       target_section: 'B',
     })
   })
@@ -90,20 +97,22 @@ describe('Student notices (#445)', () => {
     }
   })
 
-  it('a section-only target (no class chosen) reaches every class in that section', async () => {
-    // caught by code review on #587's own targeting rewrite: a bare
-    // `co.name = p_class` (no null guard) would have silently matched nobody
-    // for this input, which validateTargetSelection and the create-form both
-    // permit (Class select's empty '—' option is not required).
-    const sectionOnly = await post({
+  it('a class-name-less broadcast target is rejected outright (no representation in the contract, #600)', async () => {
+    // The pre-#595 "everyone in Section A regardless of Class" shape has no
+    // place in the target_scope='broadcast' contract -- a broadcast target
+    // always names a Class (publications_target_scope_broadcast_valid requires
+    // target_class_name NOT NULL). The compose UI (#607) never offers it.
+    const { error } = await owner.from('publications').insert({
+      kind: 'notice',
+      importance: 'normal',
       title: `${P}Section only, no class`,
-      target_type: 'specific',
+      target_scope: 'broadcast',
       target_class_name: null,
+      target_academic_year: seedYear,
       target_section: 'A',
     })
-    const { data } = await student.from('publications').select('id').eq('id', sectionOnly)
-    expect(data).toHaveLength(1)
-    await owner.from('publications').delete().eq('id', sectionOnly)
+    expect(error).not.toBeNull()
+    expect(error!.code).toBe('23514')
   })
 
   it("resolves via the Student's current Enrollment, not the legacy class_name/section text (map #568/#582, Wave 4a Part B, issue #587)", async () => {
@@ -125,8 +134,9 @@ describe('Student notices (#445)', () => {
       // her; the old text-bridge resolution would have missed this.
       const stillMatches = await post({
         title: `${P}Enrollment not text (positive)`,
-        target_type: 'specific',
+        target_scope: 'broadcast',
         target_class_name: 'Seed Class',
+        target_academic_year: seedYear,
         target_section: 'A',
       })
       const { data: seenReal } = await student.from('publications').select('id').eq('id', stillMatches)
@@ -136,8 +146,9 @@ describe('Student notices (#445)', () => {
       // NOT reach her — the legacy columns are not consulted at all any more.
       const onlyMatchesText = await post({
         title: `${P}Enrollment not text (negative)`,
-        target_type: 'specific',
+        target_scope: 'broadcast',
         target_class_name: 'SN1 Bogus Class',
+        target_academic_year: seedYear,
         target_section: 'Z',
       })
       const { data: seenBogus } = await student.from('publications').select('id').eq('id', onlyMatchesText)

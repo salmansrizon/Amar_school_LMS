@@ -30,16 +30,12 @@ export type HomeworkTargetRow = PublicationTargetRow
  *  its own copy of the match -- the third independent re-implementation of
  *  this exact rule this map exists to close (`student_matches_target` and
  *  `task_completion_roster` were the other two, Waves 2-3/#603-#604).
- *  `target_scope='all'` (or, for a not-yet-migrated row, `target_type='all'`)
- *  always matches (school-wide); a null predicate field means "any" for
- *  that half of the target -- the same null-guard every other consumer
- *  applies (issue #572's resolution), kept in parity here so a section-only
- *  target (no class chosen, a valid create-form submission) doesn't
- *  silently disappear from My Classes while still reaching the Student
- *  portal. Also fixes a real gap found during Wave 4a's planning pass
- *  (#587's own comment): the original inline predicate this replaced never
- *  checked `target_type` at all, so a `target_type='all'` homework never
- *  showed on any Class Teacher's list. */
+ *  `target_scope='all'` always matches (school-wide); a null predicate field
+ *  means "any" for that half of the target -- the same null-guard every
+ *  other consumer applies (issue #572's resolution). Also fixes a real gap
+ *  found during Wave 4a's planning pass (#587's own comment): the original
+ *  inline predicate this replaced never checked scope at all, so a
+ *  school-wide homework never showed on any Class Teacher's list. */
 export function homeworkTargetsOffering(task: HomeworkTargetRow, offering: OfferingRow): boolean {
   return targetRowMatchesOffering(task, offering)
 }

@@ -22,7 +22,7 @@ export default async function NoticeDetailPage({ params }: { params: Promise<{ i
   const { data: row } = await supabase
     .from('publications')
     .select(
-      'id, kind, title, content, importance, target_type, target_scope, class_offering_id, target_class_name, target_academic_year, target_shift, target_group_department, target_section, image_path, link_url, created_at',
+      'id, kind, title, content, importance, target_scope, class_offering_id, target_class_name, target_academic_year, target_shift, target_group_department, target_section, image_path, link_url, created_at',
     )
     .eq('id', id)
     .maybeSingle()
@@ -60,8 +60,7 @@ export default async function NoticeDetailPage({ params }: { params: Promise<{ i
         <p className="mb-4 text-sm text-muted">
           {targetAudienceLabel(
             {
-              target_type: row.target_type,
-              target_scope: row.target_scope ?? null,
+              target_scope: row.target_scope,
               target_class_name: row.target_class_name,
               target_academic_year: row.target_academic_year ?? null,
               target_shift: row.target_shift ?? null,
