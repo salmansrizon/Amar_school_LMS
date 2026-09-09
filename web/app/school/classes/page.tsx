@@ -3,7 +3,14 @@ import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
-import { countFor, studentCounts } from '@/lib/classes'
+import {
+  academicYearsOf,
+  countFor,
+  resolveYearFilter,
+  showAcademicYearColumn,
+  studentCounts,
+  visibleClasses,
+} from '@/lib/classes'
 import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
 import { isKnownAcademicShift, ACADEMIC_SHIFT_LABEL_KEY, type AcademicShift } from '@/lib/institute'
 import { AddClassForm, AddSubjectForm, DeleteButton } from './class-controls'
@@ -21,11 +28,11 @@ const tdClass = 'px-3 py-2 text-sm'
 export default async function ClassesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; level?: string }>
+  searchParams: Promise<{ q?: string; level?: string; year?: string }>
 }) {
-  const { q = '', level = '' } = await searchParams
+  const { q = '', level = '', year: yearParam } = await searchParams
   const lang: Lang = await currentLang()
-  const { supabase, configuredShifts, shiftSelection } = await getSchoolContext()
+  const { supabase, configuredShifts, shiftSelection, activeAcademicYear } = await getSchoolContext()
 
   // Choices for the create form are the current Global Shift Selection —
   // parseShiftSelection already guarantees every element is a member of
@@ -36,7 +43,7 @@ export default async function ClassesPage({
     applyGlobalShiftFilterToOfferings(
       supabase
         .from('class_offerings')
-        .select('id, name, section, education_level, group_department, class_teacher_id, shift')
+        .select('id, name, section, education_level, group_department, class_teacher_id, shift, academic_year')
         .order('created_at'),
       shiftSelection,
     ),
@@ -59,13 +66,21 @@ export default async function ClassesPage({
       .order('full_name'),
   ])
 
-  const levels = [...new Set((classes ?? []).map((c) => c.education_level).filter(Boolean))] as string[]
-  const query = q.trim().toLowerCase()
-  const visibleClasses = (classes ?? []).filter(
-    (c) =>
-      (!query || c.name.toLowerCase().includes(query)) &&
-      (!level || c.education_level === level),
-  )
+  const allClasses = classes ?? []
+  const levels = [...new Set(allClasses.map((c) => c.education_level).filter(Boolean))] as string[]
+  // Academic Year (issue #597): the list defaults to the School's active
+  // Academic Year; every year the School has Offerings in stays selectable
+  // (newest first), plus an "All years" option. The Year column shows only
+  // when the full set spans more than one year.
+  const presentYears = academicYearsOf(allClasses)
+  const showYearColumn = showAcademicYearColumn(allClasses)
+  // Only a multi-year School gets the year filter at all — a single-year list
+  // behaves exactly as it did pre-#597 (no column, no dropdown, no narrowing).
+  const selectedYear = showYearColumn
+    ? resolveYearFilter(yearParam, { activeYear: activeAcademicYear, presentYears })
+    : null
+  const yearFilterValue = selectedYear === null ? 'all' : String(selectedYear)
+  const shownClasses = visibleClasses(allClasses, { q, level, year: selectedYear })
   const counts = studentCounts(enrollments ?? [])
   const dash = <span className="text-muted">—</span>
 
@@ -113,6 +128,16 @@ export default async function ClassesPage({
                 </option>
               ))}
             </select>
+            {showYearColumn && (
+              <select name="year" defaultValue={yearFilterValue} className={selectClass()}>
+                <option value="all">{t('classes.allYears', lang)}</option>
+                {presentYears.map((y) => (
+                  <option key={y} value={y}>
+                    {y}
+                  </option>
+                ))}
+              </select>
+            )}
             <button
               type="submit"
               className="cursor-pointer rounded-full border border-line px-3 py-1 text-xs font-semibold hover:bg-paper-muted"
@@ -124,7 +149,7 @@ export default async function ClassesPage({
             <AddClassForm lang={lang} teachers={teachers ?? []} shiftChoices={shiftChoices} />
           </AddDetails>
         </div>
-        {!visibleClasses.length ? (
+        {!shownClasses.length ? (
           <p className="text-sm text-muted">{t('classes.noClasses', lang)}</p>
         ) : (
           <div className="overflow-x-auto">
@@ -136,13 +161,14 @@ export default async function ClassesPage({
                   <th className={thClass}>{t('classes.educationLevel', lang)}</th>
                   <th className={thClass}>{t('classes.groupDept', lang)}</th>
                   {configuredShifts.length > 0 && <th className={thClass}>{t('classes.shift', lang)}</th>}
+                  {showYearColumn && <th className={thClass}>{t('classes.academicYear', lang)}</th>}
                   <th className={thClass}>{t('classes.classTeacher', lang)}</th>
                   <th className={thClass}>{t('classes.students', lang)}</th>
                   <th className={thClass}>{t('classes.actions', lang)}</th>
                 </tr>
               </thead>
               <tbody>
-                {visibleClasses.map((c) => (
+                {shownClasses.map((c) => (
                   <tr key={c.id} className="border-b border-line">
                     <td className={`${tdClass} font-medium`}>{c.name}</td>
                     <td className={tdClass}>{c.section ?? dash}</td>
@@ -153,6 +179,7 @@ export default async function ClassesPage({
                         {c.shift ? t(ACADEMIC_SHIFT_LABEL_KEY[c.shift as AcademicShift], lang) : dash}
                       </td>
                     )}
+                    {showYearColumn && <td className={tdClass}>{c.academic_year ?? dash}</td>}
                     <td className={tdClass}>
                       <ClassTeacherPicker
                         lang={lang}

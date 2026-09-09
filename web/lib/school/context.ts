@@ -29,6 +29,11 @@ export interface SchoolContext {
    *  is already reconciled against it (#577's parseShiftSelection). */
   configuredShifts: readonly string[]
   shiftSelection: readonly string[]
+  /** schools.active_academic_year (#570/#594) — the year new Class Offerings
+   *  are stamped with, and the year list/report screens default their view to.
+   *  Read here (the shared schools-row query) so pages needn't re-fetch it.
+   *  null only for a School whose row predates the column's default. */
+  activeAcademicYear: number | null
 }
 
 export const getSchoolContext = cache(async (): Promise<SchoolContext> => {
@@ -52,7 +57,7 @@ export const getSchoolContext = cache(async (): Promise<SchoolContext> => {
   const [{ data: school }, grantsRes, { data: status }] = await Promise.all([
     supabase
       .from('schools')
-      .select('name, subscription_expires_at, configured_shifts')
+      .select('name, subscription_expires_at, configured_shifts, active_academic_year')
       .eq('id', profile.school_id)
       .maybeSingle(),
     role === 'staff_user'
@@ -75,5 +80,6 @@ export const getSchoolContext = cache(async (): Promise<SchoolContext> => {
     grants: (grantsRes.data ?? []).map((p) => p.screen_key),
     configuredShifts,
     shiftSelection: await globalShiftSelection(configuredShifts),
+    activeAcademicYear: (school?.active_academic_year ?? null) as number | null,
   }
 })

@@ -1354,6 +1354,10 @@ const dict = {
   'classes.groupDept': { bn: 'গ্রুপ/বিভাগ', en: 'Group/Department' },
   // Shift (issue #578, Wave 5/#590) — optional per Class Offering.
   'classes.shift': { bn: 'শিফট', en: 'Shift' },
+  // Academic Year (issue #597) — list filter + column, shown once a School
+  // runs more than one year of Offerings side by side (#593/#594).
+  'classes.academicYear': { bn: 'শিক্ষাবর্ষ', en: 'Academic Year' },
+  'classes.allYears': { bn: 'সকল শিক্ষাবর্ষ', en: 'All years' },
   'classes.students': { bn: 'শিক্ষার্থী সংখ্যা', en: 'Students' },
   'classes.actions': { bn: 'কার্যক্রম', en: 'Actions' },
   'classes.search': { bn: 'শ্রেণি খুঁজুন', en: 'Search classes' },
