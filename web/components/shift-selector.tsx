@@ -4,7 +4,12 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Icon } from '@/components/school-icons'
 import { t, type Lang } from '@/lib/i18n'
-import { shiftSelectionCookieAssignment } from '@/lib/ui-prefs'
+import {
+  shiftSelectionCookieAssignment,
+  academicYearSelectionCookieAssignment,
+  toggleAcademicYearSelection,
+  academicYearSectionVisible,
+} from '@/lib/ui-prefs'
 import { ACADEMIC_SHIFT_LABEL_KEY, type AcademicShift } from '@/lib/institute'
 
 // Global Shift Selection (issue #577, Wave 5/#590): a per-user, per-request
@@ -14,20 +19,41 @@ import { ACADEMIC_SHIFT_LABEL_KEY, type AcademicShift } from '@/lib/institute'
 // outside-click/Escape dismiss) and ThemeSwitch's cookie-write +
 // router.refresh() persistence — this is pure view preference like theme/
 // sidebar/lang, so there's no server round trip, just a cookie write.
+//
+// Map #609 / ticket #613 folds a second section into the same popover: the
+// Global Academic Year Selection. It's the year twin of the shift preference —
+// same cookie-write + router.refresh() persistence, same "no new top-bar icon".
+// It renders only for a School that has *started* more than one Academic Year;
+// a single-year School sees exactly today's Shift-only popover, and the current
+// year's row is always checked and disabled (it can never be deselected).
 export function ShiftSelector({
   lang,
   buttonClass,
   configuredShifts,
   initialSelection,
+  startedAcademicYears = [],
+  activeAcademicYear = null,
+  academicYearSelection = [],
 }: {
   lang: Lang
   buttonClass: string
   configuredShifts: readonly string[]
   initialSelection: readonly string[]
+  /** Academic Years this School has actually started (SchoolContext,
+   *  #609/#610), newest first. The Academic Year section renders only when
+   *  there is more than one. */
+  startedAcademicYears?: readonly number[]
+  /** schools.active_academic_year — the row that is always checked and never
+   *  deselectable. null for a School whose row predates the backfill. */
+  activeAcademicYear?: number | null
+  /** The effective Global Academic Year Selection from SchoolContext, already
+   *  reconciled + guaranteed to contain activeAcademicYear when non-null. */
+  academicYearSelection?: readonly number[]
 }) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [selection, setSelection] = useState<string[]>([...initialSelection])
+  const [yearSelection, setYearSelection] = useState<number[]>([...academicYearSelection])
   // Where the phone-width sheet starts: measured from the trigger as it
   // opens, matching NotificationBell's issue #118 fix.
   const [sheetTop, setSheetTop] = useState<number | null>(null)
@@ -55,9 +81,13 @@ export function ShiftSelector({
     }
   }, [open])
 
-  // A No-Shift institute has nothing to select — absent entirely, not
-  // rendered-but-disabled (#577's resolution).
-  if (configuredShifts.length === 0) return null
+  const showShiftSection = configuredShifts.length > 0
+  // Only a School spanning more than one started year gets a choice to make.
+  const showYearSection = academicYearSectionVisible(startedAcademicYears)
+
+  // Nothing to select on either axis (a No-Shift, single-year School) — absent
+  // entirely, not rendered-but-disabled (#577's resolution).
+  if (!showShiftSection && !showYearSection) return null
 
   function toggleShift(shift: string) {
     // The sole remaining checked box can't be unchecked client-side. Not a
@@ -71,11 +101,26 @@ export function ShiftSelector({
     router.refresh()
   }
 
+  function toggleYear(year: number) {
+    // The active year is permanently checked — toggleAcademicYearSelection
+    // makes this a no-op, but bail before the cookie write / refresh too.
+    if (year === activeAcademicYear) return
+    const next = toggleAcademicYearSelection(yearSelection, year, activeAcademicYear)
+    setYearSelection(next)
+    document.cookie = academicYearSelectionCookieAssignment(next)
+    router.refresh()
+  }
+
+  // Header + per-list group labels: a single-section popover keeps today's
+  // exact "Shift Selection" bar; with both sections the bar goes generic and
+  // each list carries its own sub-heading.
+  const headerKey = showYearSection ? 'shell.viewSelection' : 'shell.shiftSelection'
+
   return (
     <div className="relative" ref={ref}>
       <button
         type="button"
-        aria-label={t('shell.shiftSelection', lang)}
+        aria-label={t(showShiftSection ? 'shell.shiftSelection' : 'shell.academicYearSelection', lang)}
         aria-expanded={open}
         onClick={toggle}
         className={`${buttonClass} text-muted hover:bg-brand-50 hover:text-brand-600`}
@@ -89,20 +134,52 @@ export function ShiftSelector({
           className="fixed inset-x-3 top-[var(--sheet-top,4rem)] z-50 flex max-h-[calc(100dvh-var(--sheet-top,4rem)-0.75rem)] flex-col overflow-hidden rounded-2xl border border-line bg-paper shadow-xl sm:absolute sm:inset-x-auto sm:right-0 sm:top-auto sm:mt-2 sm:max-h-none sm:w-64 sm:max-w-[calc(100vw-1.5rem)]"
         >
           <div className="flex shrink-0 items-center justify-between border-b border-line px-4 py-3">
-            <span className="text-sm font-bold uppercase tracking-wide text-muted">
-              {t('shell.shiftSelection', lang)}
-            </span>
+            <span className="text-sm font-bold uppercase tracking-wide text-muted">{t(headerKey, lang)}</span>
           </div>
-          <ul className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-2">
-            {configuredShifts.map((shift) => (
-              <li key={shift}>
-                <label className="flex items-center gap-2 rounded-xl px-2 py-2 text-sm hover:bg-brand-50/60">
-                  <input type="checkbox" checked={selection.includes(shift)} onChange={() => toggleShift(shift)} />
-                  {t(ACADEMIC_SHIFT_LABEL_KEY[shift as AcademicShift] ?? ACADEMIC_SHIFT_LABEL_KEY.Morning, lang)}
-                </label>
-              </li>
-            ))}
-          </ul>
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+            {showShiftSection && (
+              <ul className="p-2">
+                {showYearSection && (
+                  <li className="px-2 py-1 text-xs font-bold uppercase tracking-wide text-muted">
+                    {t('shell.shiftSelection', lang)}
+                  </li>
+                )}
+                {configuredShifts.map((shift) => (
+                  <li key={shift}>
+                    <label className="flex items-center gap-2 rounded-xl px-2 py-2 text-sm hover:bg-brand-50/60">
+                      <input type="checkbox" checked={selection.includes(shift)} onChange={() => toggleShift(shift)} />
+                      {t(ACADEMIC_SHIFT_LABEL_KEY[shift as AcademicShift] ?? ACADEMIC_SHIFT_LABEL_KEY.Morning, lang)}
+                    </label>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {showYearSection && (
+              <ul className="border-t border-line p-2">
+                <li className="px-2 py-1 text-xs font-bold uppercase tracking-wide text-muted">
+                  {t('shell.academicYearSelection', lang)}
+                </li>
+                {startedAcademicYears.map((year) => {
+                  const isActive = year === activeAcademicYear
+                  return (
+                    <li key={year}>
+                      <label
+                        className={`flex items-center gap-2 rounded-xl px-2 py-2 text-sm ${isActive ? 'opacity-70' : 'hover:bg-brand-50/60'}`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isActive || yearSelection.includes(year)}
+                          disabled={isActive}
+                          onChange={() => toggleYear(year)}
+                        />
+                        {year}
+                      </label>
+                    </li>
+                  )
+                })}
+              </ul>
+            )}
+          </div>
         </div>
       )}
     </div>

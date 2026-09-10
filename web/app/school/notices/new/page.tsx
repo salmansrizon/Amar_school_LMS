@@ -26,6 +26,11 @@ export default async function CreateNoticePage() {
   // be indistinguishable from the current one and resolve to nobody. Drop them
   // (keep all only when no active year is set yet). Mirrors SMS compose (map
   // #598 Wave 5, #606).
+  //
+  // Deliberately NOT wired to the Global Academic Year Selection (map #609,
+  // T6/#615): that is a browse/management visibility preference. Targeting
+  // stays pinned to `active_academic_year` by business rule -- a broader
+  // "visible years" set must never widen who a notice can reach.
   const offerings = (allOfferings ?? []).filter(
     (o) => activeAcademicYear === null || o.academic_year === activeAcademicYear,
   )

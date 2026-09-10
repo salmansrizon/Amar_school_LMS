@@ -1,7 +1,7 @@
 import { cache } from 'react'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { globalShiftSelection } from '@/lib/ui-prefs-server'
+import { globalShiftSelection, globalAcademicYearSelection } from '@/lib/ui-prefs-server'
 import type { Role } from '@/lib/auth/routing'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
@@ -34,6 +34,16 @@ export interface SchoolContext {
    *  Read here (the shared schools-row query) so pages needn't re-fetch it.
    *  null only for a School whose row predates the column's default. */
   activeAcademicYear: number | null
+  /** Academic Years this School has actually *started* (school_academic_years,
+   *  #609/#610), newest first. Read here alongside the schools row so browse
+   *  screens needn't re-fetch it. Empty only for a School with no history row
+   *  yet (pre-backfill). */
+  startedAcademicYears: readonly number[]
+  /** The effective Global Academic Year Selection (#609) — a per-user cookie
+   *  view preference, already reconciled against startedAcademicYears and
+   *  guaranteed to include activeAcademicYear when that is non-null. Browse
+   *  Offering lists narrow to this; compose/targeting surfaces never read it. */
+  academicYearSelection: readonly number[]
 }
 
 export const getSchoolContext = cache(async (): Promise<SchoolContext> => {
@@ -54,7 +64,7 @@ export const getSchoolContext = cache(async (): Promise<SchoolContext> => {
   // School, grants and subscription status are independent → fetch in parallel,
   // not in a waterfall. Status lives here (inside the cached seam) so the layout
   // gate (#169) and any page share the single round-trip.
-  const [{ data: school }, grantsRes, { data: status }] = await Promise.all([
+  const [{ data: school }, grantsRes, { data: status }, { data: startedYearRows }] = await Promise.all([
     supabase
       .from('schools')
       .select('name, subscription_expires_at, configured_shifts, active_academic_year')
@@ -64,8 +74,15 @@ export const getSchoolContext = cache(async (): Promise<SchoolContext> => {
       ? supabase.from('staff_permissions').select('screen_key').eq('staff_user_id', user.id)
       : Promise.resolve({ data: [] as { screen_key: string }[] }),
     supabase.rpc('school_subscription_status', { sid: profile.school_id }),
+    supabase
+      .from('school_academic_years')
+      .select('academic_year')
+      .eq('school_id', profile.school_id)
+      .order('academic_year', { ascending: false }),
   ])
   const configuredShifts = school?.configured_shifts ?? []
+  const activeAcademicYear = (school?.active_academic_year ?? null) as number | null
+  const startedAcademicYears = (startedYearRows ?? []).map((r) => r.academic_year as number)
 
   return {
     supabase,
@@ -80,6 +97,8 @@ export const getSchoolContext = cache(async (): Promise<SchoolContext> => {
     grants: (grantsRes.data ?? []).map((p) => p.screen_key),
     configuredShifts,
     shiftSelection: await globalShiftSelection(configuredShifts),
-    activeAcademicYear: (school?.active_academic_year ?? null) as number | null,
+    activeAcademicYear,
+    startedAcademicYears,
+    academicYearSelection: await globalAcademicYearSelection(startedAcademicYears, activeAcademicYear),
   }
 })

@@ -150,4 +150,122 @@ describe('start_academic_year (#570, #594)', () => {
     expect((auditRows![0].before as { active_academic_year: number | null }).active_academic_year).toBe(initialYear)
     expect((auditRows![0].after as { active_academic_year: number }).active_academic_year).toBe(target)
   })
+
+  // #609 / ticket #610 -- start_academic_year now also records the year it
+  // left and the year it entered in school_academic_years, in the same
+  // transaction, without disturbing anything above.
+  const currentYear = async () => {
+    const { data } = await admin.from('schools').select('active_academic_year').eq('id', schoolId).single()
+    return data!.active_academic_year as number
+  }
+
+  it('records both the year left and the year entered in school_academic_years, idempotently', async () => {
+    if (!fresh) return
+
+    const left = await currentYear()
+    const entered = left + 1
+    {
+      const { error } = await fresh.rpc('start_academic_year', { p_year: entered })
+      expect(error).toBeNull()
+    }
+
+    const { data: rows } = await admin
+      .from('school_academic_years')
+      .select('academic_year, started_at')
+      .eq('school_id', schoolId)
+    const leftRow = rows!.find((r) => r.academic_year === left)!
+    const enteredRow = rows!.find((r) => r.academic_year === entered)!
+    expect(leftRow).toBeTruthy()
+    expect(enteredRow).toBeTruthy()
+    expect(leftRow.started_at).toBeTruthy()
+
+    // Advancing again must not rewrite existing rows -- ON CONFLICT DO
+    // NOTHING, not DO UPDATE: the 'left' and 'entered' rows keep their
+    // original started_at, and 'entered' is itself now a recorded year.
+    {
+      const { error } = await fresh.rpc('start_academic_year', { p_year: entered + 1 })
+      expect(error).toBeNull()
+    }
+    const { data: rows2 } = await admin
+      .from('school_academic_years')
+      .select('academic_year, started_at')
+      .eq('school_id', schoolId)
+    expect(rows2!.find((r) => r.academic_year === left)!.started_at).toBe(leftRow.started_at)
+    expect(rows2!.find((r) => r.academic_year === entered)!.started_at).toBe(enteredRow.started_at)
+    expect(rows2!.map((r) => r.academic_year)).toContain(entered + 1)
+  })
+
+  it('never derives a started year from a class_offerings row', async () => {
+    if (!fresh) return
+
+    const started = await currentYear()
+    const strayYear = started + 40 // far past any started year, safely inside 2000-2100
+    const { error: offErr } = await admin.from('class_offerings').insert({
+      school_id: schoolId,
+      name: 'Stray',
+      section: 'Z',
+      academic_year: strayYear,
+    })
+    expect(offErr).toBeNull()
+
+    const { data: rows } = await admin
+      .from('school_academic_years')
+      .select('academic_year')
+      .eq('school_id', schoolId)
+      .eq('academic_year', strayYear)
+    expect(rows ?? []).toHaveLength(0)
+  })
+
+  it('exposes school_academic_years to a School member but refuses direct writes', async () => {
+    if (!fresh) return
+
+    // The School's own Owner reads its rows.
+    const { data: mine, error: readErr } = await fresh
+      .from('school_academic_years')
+      .select('academic_year')
+      .eq('school_id', schoolId)
+    expect(readErr).toBeNull()
+    expect((mine ?? []).length).toBeGreaterThan(0)
+
+    // A member of a different School sees nothing (school_id-scoped SELECT).
+    const { data: theirs } = await staff
+      .from('school_academic_years')
+      .select('academic_year')
+      .eq('school_id', schoolId)
+    expect(theirs ?? []).toHaveLength(0)
+
+    // No INSERT policy for authenticated -> a direct insert is refused.
+    const { error: insErr } = await fresh
+      .from('school_academic_years')
+      .insert({ school_id: schoolId, academic_year: 2099 })
+    expect(insErr).not.toBeNull()
+    const { data: afterIns } = await admin
+      .from('school_academic_years')
+      .select('academic_year')
+      .eq('school_id', schoolId)
+      .eq('academic_year', 2099)
+    expect(afterIns ?? []).toHaveLength(0)
+
+    // No UPDATE/DELETE policy either -> a direct write touches nothing.
+    const anyYear = (mine ?? [])[0]!.academic_year
+    const { data: before } = await admin
+      .from('school_academic_years')
+      .select('started_at')
+      .eq('school_id', schoolId)
+      .eq('academic_year', anyYear)
+      .single()
+    await fresh
+      .from('school_academic_years')
+      .update({ started_at: new Date(0).toISOString() })
+      .eq('school_id', schoolId)
+      .eq('academic_year', anyYear)
+    await fresh.from('school_academic_years').delete().eq('school_id', schoolId)
+    const { data: after } = await admin
+      .from('school_academic_years')
+      .select('started_at')
+      .eq('school_id', schoolId)
+      .eq('academic_year', anyYear)
+      .single()
+    expect(after!.started_at).toBe(before!.started_at)
+  })
 })

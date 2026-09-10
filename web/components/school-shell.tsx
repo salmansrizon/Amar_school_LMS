@@ -86,6 +86,9 @@ export function SchoolShell({
   enabledFeatures,
   configuredShifts = [],
   shiftSelection = [],
+  startedAcademicYears = [],
+  activeAcademicYear = null,
+  academicYearSelection = [],
   children,
 }: {
   role: Role
@@ -102,6 +105,12 @@ export function SchoolShell({
    *  means a No-Shift institute, so the selector doesn't render at all. */
   configuredShifts?: readonly string[]
   shiftSelection?: readonly string[]
+  /** Global Academic Year Selection (map #609, ticket #613) — the year twin of
+   *  the shift preference, folded into the same popover. The section renders
+   *  only when startedAcademicYears has more than one entry. */
+  startedAcademicYears?: readonly number[]
+  activeAcademicYear?: number | null
+  academicYearSelection?: readonly number[]
   children: React.ReactNode
 }) {
   const nav = buildSchoolNav(role, grants, lang, enabledFeatures)
@@ -147,6 +156,9 @@ export function SchoolShell({
         buttonClass={ICON_BUTTON}
         configuredShifts={configuredShifts}
         initialSelection={shiftSelection}
+        startedAcademicYears={startedAcademicYears}
+        activeAcademicYear={activeAcademicYear}
+        academicYearSelection={academicYearSelection}
       />
     </>
   )

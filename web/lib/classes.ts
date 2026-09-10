@@ -43,15 +43,106 @@ export function academicYearsOf(classes: readonly ClassListRow[]): number[] {
   )
 }
 
-/** Show the Academic Year column only when the (unfiltered) Offering set spans
- *  more than one distinct year — mirrors the conditional Shift column's
- *  intent: no column for a value that is the same on every row (#597 Q3).
- *  Nulls (legacy rows with no recorded year) do not count as a distinct
- *  year, so a single real year plus legacy nulls keeps the pre-#597 view.
- *  Computed from the full set, so it stays visible while the table is
- *  filtered to one year. */
-export function showAcademicYearColumn(classes: readonly ClassListRow[]): boolean {
-  return academicYearsOf(classes).length > 1
+/** Whether the Class Offerings list shows its Academic Year column + year
+ *  filter at all. Driven by the School's *started-year history*
+ *  (`startedAcademicYears`, #609/#612), not inferred from the current Offering
+ *  set: a School that has started more than one year gets the column even
+ *  before it has created an Offering in the new one — the spec wants history,
+ *  not pure inference (#597 Q3 keeps its "no redundant column" intent, but the
+ *  signal is now the started-year count). A single started year (or a legacy
+ *  School with none) is byte-identical to the pre-#597 view. This is the same
+ *  boolean the page threads into `classCatalogueLabel` as `showYear`. */
+export function showAcademicYearColumn(startedYears: readonly number[]): boolean {
+  return startedYears.length > 1
+}
+
+/** The year choices the per-page dropdown offers: the years the School
+ *  actually has Offerings in, already narrowed to the current Global Academic
+ *  Year Selection by the caller (so the dropdown can only ever narrow *within*
+ *  the global set, never widen it), plus the active Academic Year which is
+ *  always a valid choice even with no Offering in it yet. Newest first, deduped. */
+export function yearFilterOptions(
+  selectableYears: readonly number[],
+  activeYear: number | null,
+): number[] {
+  const out = new Set(selectableYears)
+  if (activeYear != null) out.add(activeYear)
+  return [...out].sort((a, b) => b - a)
+}
+
+// "Copy Classes from {year}" — the list-header action (map #609, T8/#617) over
+// the copy_class_offerings_to_active_year RPC (T7/#616). These helpers keep the
+// page + control a thin render: what years the copy can pull from, which one it
+// defaults to, whether the control shows at all, and how to read the result.
+
+/** A candidate copy source year plus how many Offerings the School has in it. */
+export interface CopySourceYear {
+  year: number
+  offeringCount: number
+}
+
+/** The years "Copy Classes from {year}" can pull from: every *started* year
+ *  (`startedAcademicYears`, #612 — never inferred from the Offering set) strictly
+ *  older than the active Academic Year, newest first, each carrying its Offering
+ *  count taken from the set the page already holds. Empty when the School has no
+ *  active year yet, or has never started an earlier one. The RPC re-validates
+ *  "was never started" / "older than the active year" itself; this list only
+ *  keeps the UI from offering an invalid source. */
+export function copySourceYears(
+  startedAcademicYears: readonly number[],
+  activeYear: number | null,
+  offeringCountForYear: (year: number) => number,
+): CopySourceYear[] {
+  if (activeYear == null) return []
+  return [...new Set(startedAcademicYears)]
+    .filter((y) => y < activeYear)
+    .sort((a, b) => b - a)
+    .map((year) => ({ year, offeringCount: offeringCountForYear(year) }))
+}
+
+/** The source year the control defaults to: the most-recently-started year
+ *  strictly before the active year that actually has Offerings to copy, falling
+ *  back to the most-recently-started one when none do. `null` when there is no
+ *  candidate at all. */
+export function defaultCopySourceYear(sourceYears: readonly CopySourceYear[]): number | null {
+  return (sourceYears.find((s) => s.offeringCount > 0) ?? sourceYears[0])?.year ?? null
+}
+
+/** Whether to render the "Copy Classes from {year}" control: there is a started
+ *  year before the active one AND at least one such year has an Offering to
+ *  copy. A source year that is currently deselected from the Global Academic
+ *  Year Selection is not in the page's Offering set, so the affordance for that
+ *  year is hidden until it is reselected — the RPC stays the authority either
+ *  way (map #609, T5's "global selection is the candidate set" carried forward). */
+export function copyClassesControlVisible(sourceYears: readonly CopySourceYear[]): boolean {
+  return sourceYears.some((s) => s.offeringCount > 0)
+}
+
+/** The read-only Academic Year confirmation shown on the new-Class form (map
+ *  #609, T9/#618). The active year is displayed for confirmation only — it is
+ *  never a submitted field; `addClass` keeps stamping `active_academic_year`
+ *  server-side, so the normal creation flow cannot place an Offering under an
+ *  older year. A School with no active year yet (pre-backfill) shows nothing
+ *  rather than a fabricated year, so this returns null in that case. */
+export function newClassYearHint(activeYear: number | null): number | null {
+  return typeof activeYear === 'number' ? activeYear : null
+}
+
+/** The shape copy_class_offerings_to_active_year returns. */
+export interface CopyResult {
+  copied: number
+  skipped: number
+}
+
+export type CopyOutcomeKind = 'none' | 'partial' | 'all'
+
+/** How the result panel reads a copy result:
+ *   - `none`    — `copied === 0`: every source Offering already existed
+ *   - `partial` — some copied, some skipped
+ *   - `all`     — everything copied, nothing skipped */
+export function copyOutcomeKind({ copied, skipped }: CopyResult): CopyOutcomeKind {
+  if (copied === 0) return 'none'
+  return skipped > 0 ? 'partial' : 'all'
 }
 
 /** The effective year the list is filtered to: `null` means "All years".

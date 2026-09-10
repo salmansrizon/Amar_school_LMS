@@ -94,3 +94,80 @@ export function parseShiftSelection(
 
   return valid.length > 0 ? valid : [...configuredShifts]
 }
+
+// Global Academic Year Selection (map #609) — the year twin of the Global Shift
+// Selection above: a per-user, per-request view preference over which of the
+// School's *started* Academic Years (`school_academic_years`, #610) this user is
+// currently looking at. Never a source of truth — RLS and authorization never
+// read it, and it never writes `schools.active_academic_year`; it only narrows
+// what a browse-time Offering list returns, reconciled fresh on every read
+// against the started-years list. The current year is always included and can
+// never be deselected.
+
+export const ACADEMIC_YEAR_SELECTION_COOKIE = 'asm-academic-year-selection'
+
+/** The full `document.cookie` assignment string that persists the Academic Year
+ *  selection — comma-joined years, no re-encoding. */
+export function academicYearSelectionCookieAssignment(years: readonly number[]): string {
+  return `${ACADEMIC_YEAR_SELECTION_COOKIE}=${years.join(',')};path=/;max-age=${PREF_MAX_AGE};samesite=lax`
+}
+
+/**
+ * Reconciles the raw cookie value against this School's *started* Academic
+ * Years, always keeping the current year visible:
+ * - `activeYear` (when non-null) is always in the result — it can never be
+ *   deselected, even if the cookie omits it
+ * - any requested year not in `startedYears` is dropped
+ * - missing, empty, or fully-invalid cookie → every started year (the
+ *   "everything visible" default, mirroring `parseShiftSelection`'s
+ *   repair-to-all)
+ * - result sorted newest first, matching the started-years list convention
+ *
+ * `activeYear` null (a School whose row predates the #610 backfill) → just the
+ * requested years that are started, which may be `[]`.
+ */
+export function parseAcademicYearSelection(
+  raw: string | undefined,
+  startedYears: readonly number[],
+  activeYear: number | null,
+): number[] {
+  const requested = raw
+    ? raw
+        .split(',')
+        .map((s) => Number(s.trim()))
+        .filter((n) => Number.isInteger(n))
+    : []
+  const valid = requested.filter((y) => startedYears.includes(y))
+
+  const base = valid.length > 0 ? valid : [...startedYears]
+  const withActive = activeYear != null && !base.includes(activeYear) ? [...base, activeYear] : base
+
+  return [...new Set(withActive)].sort((a, b) => b - a)
+}
+
+/**
+ * The next Academic Year selection after the user toggles `year` in the context
+ * popover (ticket #613). The active year can never be removed — toggling it is a
+ * no-op that returns the current selection unchanged — so the "current year is
+ * always visible" invariant holds client-side too, not only after
+ * `parseAcademicYearSelection` repairs the cookie on the next read. Any other
+ * year flips in or out. Result de-duped and sorted newest first, matching
+ * `parseAcademicYearSelection`.
+ */
+export function toggleAcademicYearSelection(
+  current: readonly number[],
+  year: number,
+  activeYear: number | null,
+): number[] {
+  if (year === activeYear) return [...current]
+  const next = current.includes(year) ? current.filter((y) => y !== year) : [...current, year]
+  return [...new Set(next)].sort((a, b) => b - a)
+}
+
+/** Whether the context popover shows its Academic Year section (ticket #613).
+ *  A School that has started at most one year has no choice to offer, so it
+ *  sees exactly today's Shift-only popover — the section appears only from the
+ *  second started year on. */
+export function academicYearSectionVisible(startedYears: readonly number[]): boolean {
+  return startedYears.length > 1
+}

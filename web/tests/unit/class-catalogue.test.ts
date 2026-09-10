@@ -149,6 +149,85 @@ describe('classCatalogueLabel', () => {
   })
 })
 
+// classCatalogueLabel Academic Year segment (issue #611, map #609): an
+// opt-in trailing ` — {academic_year}` (em-dash, space either side), for the
+// multi-started-year Schools where the year is what tells two otherwise
+// identical Offerings apart (#593). Off unless the caller passes showYear;
+// a null / absent year never renders even when showYear is true.
+describe('classCatalogueLabel — Academic Year segment', () => {
+  it('all segments plus year: {name} ({group}) - {shift} - {section} — {year}', () => {
+    expect(
+      classCatalogueLabel(
+        { name: 'Nine', section: 'A', group_department: 'Science', shift: 'Morning', academic_year: 2027 },
+        true,
+      ),
+    ).toBe('Nine (Science) - Morning - A — 2027')
+  })
+
+  it('showYear true but academic_year null: no segment', () => {
+    expect(classCatalogueLabel({ name: 'Nine', section: 'A', academic_year: null }, true)).toBe('Nine - A')
+  })
+
+  it('showYear true but academic_year absent: no segment', () => {
+    expect(classCatalogueLabel({ name: 'Nine', section: 'A' }, true)).toBe('Nine - A')
+  })
+
+  it('showYear false (or omitted): no segment even with a year present', () => {
+    expect(classCatalogueLabel({ name: 'Nine', section: 'A', academic_year: 2027 }, false)).toBe('Nine - A')
+    expect(classCatalogueLabel({ name: 'Nine', section: 'A', academic_year: 2027 })).toBe('Nine - A')
+  })
+
+  it('year with no group: {name} - {shift} - {section} — {year}', () => {
+    expect(
+      classCatalogueLabel({ name: 'Eight', section: 'A', shift: 'Morning', academic_year: 2027 }, true),
+    ).toBe('Eight - Morning - A — 2027')
+  })
+
+  it('year with no shift: {name} ({group}) - {section} — {year}', () => {
+    expect(
+      classCatalogueLabel({ name: 'Nine', section: 'A', group_department: 'Science', academic_year: 2027 }, true),
+    ).toBe('Nine (Science) - A — 2027')
+  })
+
+  it('year with no section: {name} - {shift} — {year}, no dangling separator', () => {
+    expect(classCatalogueLabel({ name: 'Eight', section: null, shift: 'Evening', academic_year: 2027 }, true)).toBe(
+      'Eight - Evening — 2027',
+    )
+  })
+
+  it('year with no group, no shift, no section: {name} — {year}', () => {
+    expect(classCatalogueLabel({ name: 'Ten', section: null, academic_year: 2027 }, true)).toBe('Ten — 2027')
+  })
+
+  it('two rows identical but for year produce two distinct labels', () => {
+    const base = { name: 'Nine', section: 'A', group_department: 'Science', shift: 'Morning' }
+    expect(classCatalogueLabel({ ...base, academic_year: 2026 }, true)).toBe('Nine (Science) - Morning - A — 2026')
+    expect(classCatalogueLabel({ ...base, academic_year: 2027 }, true)).toBe('Nine (Science) - Morning - A — 2027')
+  })
+})
+
+describe('classCatalogueOptions — showYear threading (#611)', () => {
+  const yearRows = [
+    { id: 'id-2026', name: 'Nine', section: 'A', academic_year: 2026 },
+    { id: 'id-2027', name: 'Nine', section: 'A', academic_year: 2027 },
+  ]
+
+  it('omits the year segment by default — pre-#611 output unchanged', () => {
+    expect(classCatalogueOptions(yearRows).map((o) => o.label)).toEqual(['Nine - A', 'Nine - A'])
+  })
+
+  it('appends the year on every option when showYear is passed', () => {
+    expect(classCatalogueOptions(yearRows, true).map((o) => o.label)).toEqual(['Nine - A — 2026', 'Nine - A — 2027'])
+  })
+
+  it('resolveClassSection threads showYear through to its combos', () => {
+    expect(resolveClassSection(yearRows, 'id-2027', true).combos.map((o) => o.label)).toEqual([
+      'Nine - A — 2026',
+      'Nine - A — 2027',
+    ])
+  })
+})
+
 describe('classCatalogueOptions with duplicate name/section across groups', () => {
   it('labels each row distinctly by its group', () => {
     const dupRows = [

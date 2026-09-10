@@ -82,6 +82,28 @@ export async function setClassTeacher(
   return {}
 }
 
+/** "Copy Classes from {year}" (map #609, T8/#617) — a thin wrapper over the
+ *  `copy_class_offerings_to_active_year` RPC (T7/#616), which owns every
+ *  authorization (School Owner only), validation (source is a started year
+ *  older than the active one), duplicate and concurrency guarantee. This
+ *  action shapes the input year and surfaces the RPC's own error string; it
+ *  does no client-side dedupe. Idempotent because the RPC is: a re-run just
+ *  reports the same rows as `skipped`. */
+export async function copyClassesFromYear(
+  sourceYear: number,
+): Promise<{ copied: number; skipped: number } | { error: string }> {
+  if (!Number.isInteger(sourceYear)) return { error: 'Invalid source year' }
+  const supabase = await createClient()
+  const { data, error } = await supabase.rpc('copy_class_offerings_to_active_year', {
+    p_source_year: sourceYear,
+  })
+  if (error) return { error: error.message }
+  // `returns table(copied int, skipped int)` arrives as a one-row array.
+  const row = Array.isArray(data) ? data[0] : data
+  revalidatePath(PAGE)
+  return { copied: Number(row?.copied ?? 0), skipped: Number(row?.skipped ?? 0) }
+}
+
 export async function addSubject(formData: FormData): Promise<{ error?: string }> {
   const name = str(formData, 'name')
   if (!name) return { error: 'Name is required' }

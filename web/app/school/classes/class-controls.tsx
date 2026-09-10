@@ -4,10 +4,17 @@ import { useMemo, useState, useTransition } from 'react'
 import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
 import { t, type Lang } from '@/lib/i18n'
 import { ACADEMIC_SHIFT_LABEL_KEY, type AcademicShift } from '@/lib/institute'
-import { addClass, addSubject, removeItem } from './actions'
+import { addClass, addSubject, copyClassesFromYear, removeItem } from './actions'
 import { selectClass } from '@/components/ui/field'
 import { ConfirmDialog } from '@/components/confirm-dialog'
 import { classCatalogueLabel, type ClassCatalogueRow } from '@/lib/class-catalogue'
+import {
+  copyOutcomeKind,
+  defaultCopySourceYear,
+  newClassYearHint,
+  type CopyResult,
+  type CopySourceYear,
+} from '@/lib/classes'
 import { subjectSuggestionsForClass } from '@/lib/subject-catalogue'
 import { Combobox, ComboboxInputGroup, ComboboxInput, ComboboxTrigger, ComboboxPopup, ComboboxItem } from '@/components/ui/combobox'
 
@@ -40,9 +47,15 @@ export function AddClassForm({
   lang,
   teachers,
   shiftChoices = [],
+  activeAcademicYear = null,
 }: {
   lang: Lang
   teachers: TeacherOption[]
+  /** The School's active Academic Year, shown as read-only confirmation only
+   *  (map #609, T9/#618). `addClass` stamps it server-side — it is never a
+   *  submitted field. Null (pre-backfill School) renders nothing, never a
+   *  fabricated year. */
+  activeAcademicYear?: number | null
   /** Shift is a class-level dimension (issue #578) — choices are
    *  `configured_shifts ∩ effectiveGlobalShiftSelection` (already
    *  intersected by the caller), never the raw ACADEMIC_SHIFTS vocabulary.
@@ -52,6 +65,7 @@ export function AddClassForm({
   shiftChoices?: readonly AcademicShift[]
 }) {
   const { error, pending, onSubmit } = useSubmit(addClass)
+  const yearHint = newClassYearHint(activeAcademicYear)
   return (
     <form className="grid gap-3 sm:grid-cols-4" onSubmit={onSubmit}>
       <div>
@@ -62,6 +76,16 @@ export function AddClassForm({
         <label className={labelClass} htmlFor="class_section">{t('classes.section', lang)}</label>
         <input id="class_section" name="section" className={inputClass} />
       </div>
+      {yearHint != null && (
+        <div className="flex flex-col justify-end">
+          {/* Read-only confirmation — no form field. addClass stamps the year
+              server-side (map #609, T9/#618); the creation flow cannot place an
+              Offering under an older year. */}
+          <p className="pb-2 text-sm font-medium text-muted">
+            {t('classes.newClassYear', lang).replace('{year}', String(yearHint))}
+          </p>
+        </div>
+      )}
       <div>
         <label className={labelClass} htmlFor="class_level">{t('classes.educationLevel', lang)}</label>
         <input id="class_level" name="education_level" className={inputClass} />
@@ -111,12 +135,137 @@ export function AddClassForm({
   )
 }
 
+/** "Copy Classes from {year}" — the Class Offerings list-header action (map
+ *  #609, T8/#617). Clones a started prior Academic Year's Class Offerings into
+ *  the active year through `copy_class_offerings_to_active_year` (T7/#616), which
+ *  owns all authorization / validation / duplicate / concurrency safety — this
+ *  control adds no client-side dedupe. The page renders it only when a started
+ *  year before the active one has at least one Offering to copy. */
+export function CopyClassesControl({
+  lang,
+  activeYear,
+  sourceYears,
+}: {
+  lang: Lang
+  activeYear: number
+  /** Started years strictly before `activeYear`, newest first, each with its
+   *  Offering count — already computed and gated by the page. Never empty here. */
+  sourceYears: CopySourceYear[]
+}) {
+  const [sourceYear, setSourceYear] = useState(
+    () => defaultCopySourceYear(sourceYears) ?? sourceYears[0]?.year ?? activeYear,
+  )
+  const [result, setResult] = useState<CopyResult | null>(null)
+
+  // One prior year -> no selector, the year rides the button label instead.
+  const showSelector = sourceYears.length > 1
+  const confirmBody = t('classes.copyConfirmBody', lang)
+    .replace('{source}', String(sourceYear))
+    .replace('{active}', String(activeYear))
+
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      {showSelector && (
+        <select
+          aria-label={t('classes.copySourceLabel', lang)}
+          value={sourceYear}
+          onChange={(e) => {
+            setSourceYear(Number(e.target.value))
+            setResult(null)
+          }}
+          className={selectClass()}
+        >
+          {sourceYears.map((s) => (
+            <option key={s.year} value={s.year}>
+              {s.year}
+            </option>
+          ))}
+        </select>
+      )}
+      <ConfirmDialog
+        triggerLabel={t('classes.copyClasses', lang).replace('{year}', String(sourceYear))}
+        triggerClassName="cursor-pointer rounded-full border border-line px-3 py-1 text-xs font-semibold hover:bg-paper-muted"
+        title={t('classes.copyClasses', lang).replace('{year}', String(sourceYear))}
+        body={confirmBody}
+        confirmLabel={t('classes.copyConfirm', lang)}
+        cancelLabel={t('routine.cancel', lang)}
+        onConfirm={async () => {
+          const res = await copyClassesFromYear(sourceYear)
+          if ('error' in res) return { error: res.error }
+          setResult(res)
+        }}
+      />
+      {result && (
+        <CopyResultPanel
+          lang={lang}
+          sourceYear={sourceYear}
+          activeYear={activeYear}
+          result={result}
+          onDismiss={() => setResult(null)}
+        />
+      )}
+    </div>
+  )
+}
+
+function CopyResultPanel({
+  lang,
+  sourceYear,
+  activeYear,
+  result,
+  onDismiss,
+}: {
+  lang: Lang
+  sourceYear: number
+  activeYear: number
+  result: CopyResult
+  onDismiss: () => void
+}) {
+  const kind = copyOutcomeKind(result)
+  const heading = t('classes.copyResultHeading', lang)
+    .replace('{source}', String(sourceYear))
+    .replace('{active}', String(activeYear))
+  return (
+    <div role="status" className="w-full rounded-md border border-line bg-paper-muted p-3 text-sm">
+      <p className="font-semibold text-ink">{heading}</p>
+      <p>{t('classes.copyCopied', lang).replace('{n}', String(result.copied))}</p>
+      <p>{t('classes.copySkipped', lang).replace('{n}', String(result.skipped))}</p>
+      {kind === 'none' && (
+        <p className="mt-1 text-muted">
+          {t('classes.copyNoneHint', lang)
+            .replace('{source}', String(sourceYear))
+            .replace('{active}', String(activeYear))}
+        </p>
+      )}
+      {kind === 'partial' && (
+        <p className="mt-1 text-muted">
+          {t('classes.copySkippedHint', lang)
+            .replace('{n}', String(result.skipped))
+            .replace('{active}', String(activeYear))}
+        </p>
+      )}
+      <button
+        type="button"
+        onClick={onDismiss}
+        className="mt-2 cursor-pointer rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted"
+      >
+        {t('classes.copyDismiss', lang)}
+      </button>
+    </div>
+  )
+}
+
 export function AddSubjectForm({
   lang,
   classes,
+  showYear = false,
 }: {
   lang: Lang
   classes: ClassCatalogueRow[]
+  /** Append the Academic Year segment to each Class option's label — set by
+   *  the page when the School spans more than one started year (map #609), so
+   *  two same-name Offerings in different years are told apart in the picker. */
+  showYear?: boolean
 }) {
   const [classId, setClassId] = useState('')
   // Bumped on a successful add to remount the Combobox — its typed text is
@@ -148,7 +297,7 @@ export function AddSubjectForm({
           </option>
           {classes.map((c) => (
             <option key={c.id} value={c.id}>
-              {classCatalogueLabel(c)}
+              {classCatalogueLabel(c, showYear)}
             </option>
           ))}
         </select>

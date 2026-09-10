@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { signedIn } from '../helpers/auth'
 
@@ -67,5 +67,53 @@ describe('Exam entity + Closed state (issue #8)', () => {
     const ownerB = await signedIn('owner-b@test.local')
     const { data } = await ownerB.from('exams').select('id').eq('id', examId)
     expect(data).toEqual([])
+  })
+})
+
+// Global Academic Year Selection on the Exams screen (map #609, T6/#615): it
+// narrows only which Offerings the class-filter dropdown offers. `exams.exam_year`
+// is an independent business concept and is never derived from, or constrained
+// by, the class Offering's `academic_year`.
+describe('Exams: exam_year stays independent of the class Offering year (#609/#615)', () => {
+  let ownerA: SupabaseClient
+  const NAME = 'Exam Year Independence Class'
+  let offeringId: string
+  let createdExamId: string
+
+  beforeAll(async () => {
+    ownerA = await signedIn('owner-a@test.local')
+    await ownerA.from('exams').delete().eq('name', 'Year Independence Exam')
+    await ownerA.from('class_offerings').delete().eq('name', NAME)
+    offeringId = (
+      await ownerA
+        .from('class_offerings')
+        .insert({ name: NAME, section: 'A', academic_year: 2030 })
+        .select('id')
+        .single()
+    ).data!.id
+  })
+
+  afterAll(async () => {
+    await ownerA.from('exams').delete().eq('name', 'Year Independence Exam')
+    await ownerA.from('class_offerings').delete().eq('name', NAME)
+  })
+
+  it('an exam records its own exam_year even when the class Offering is a different year', async () => {
+    const { data, error } = await ownerA
+      .from('exams')
+      .insert({ name: 'Year Independence Exam', exam_year: 2028, class_id: offeringId })
+      .select('id, exam_year, class_id')
+      .single()
+    expect(error).toBeNull()
+    expect(data!.exam_year).toBe(2028) // not coerced to the Offering's 2030
+    expect(data!.class_id).toBe(offeringId)
+    createdExamId = data!.id
+  })
+
+  it('editing exam_year is unaffected by the Offering year', async () => {
+    const { error } = await ownerA.from('exams').update({ exam_year: 2029 }).eq('id', createdExamId)
+    expect(error).toBeNull()
+    const { data } = await ownerA.from('exams').select('exam_year').eq('id', createdExamId).single()
+    expect(data!.exam_year).toBe(2029)
   })
 })

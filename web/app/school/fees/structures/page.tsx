@@ -4,6 +4,7 @@ import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
+import { applyGlobalYearFilterToOfferings } from '@/lib/school/year-filter'
 import { AccountingTabs } from '../accounting-tabs'
 import { FeeStructureForm, CopyFeeStructureForm } from './structure-controls'
 import { classCatalogueLabel, type ClassCatalogueRow } from '@/lib/class-catalogue'
@@ -35,28 +36,53 @@ export default async function FeeStructuresPage({
 }) {
   const { q = '' } = await searchParams
   const lang: Lang = await currentLang()
-  const { supabase, shiftSelection } = await getSchoolContext()
+  const { supabase, shiftSelection, startedAcademicYears, academicYearSelection } = await getSchoolContext()
 
+  // The Offering picker narrows to the Global Academic Year Selection (map #609,
+  // T6/#615) — same as the Shift filter beside it. The `fee_structures` rows
+  // list below is NOT year-filtered: a historical structure whose Offering year
+  // is currently deselected still renders (its label rides its own embed, not
+  // this picker fetch). `fee_structures.academic_year` stays derived from the
+  // picked Offering, never a user-editable field, so there is no separate year
+  // selector here.
   const [{ data: classes }, { data: allStructures }] = await Promise.all([
-    applyGlobalShiftFilterToOfferings(
-      supabase.from('class_offerings').select('id, name, section, group_department, shift').order('created_at'),
-      shiftSelection,
+    applyGlobalYearFilterToOfferings(
+      applyGlobalShiftFilterToOfferings(
+        supabase
+          .from('class_offerings')
+          .select('id, name, section, group_department, shift, academic_year')
+          .order('created_at'),
+        shiftSelection,
+      ),
+      academicYearSelection,
     ),
     supabase
       .from('fee_structures')
-      .select('id, academic_year, fee_type, amount, fine_per_absent_day, class_id, class_offerings(name, section)')
+      .select(
+        'id, academic_year, fee_type, amount, fine_per_absent_day, class_id, class_offerings(name, section, group_department, shift, academic_year)',
+      )
       .order('academic_year', { ascending: false }),
   ])
 
+  // Started-year history is the signal (#609/#612), not inference from the
+  // Offering set — the same boolean the Classes list threads as `showYear`.
+  const showYear = startedAcademicYears.length > 1
   const classOptions: ClassCatalogueRow[] = classes ?? []
-  const classLabel = (c: { name: string; section: string | null } | null) => (c ? classCatalogueLabel(c) : '—')
+  type LabelRow = {
+    name: string
+    section: string | null
+    group_department?: string | null
+    shift?: string | null
+    academic_year?: number | null
+  } | null
+  const classLabel = (c: LabelRow) => (c ? classCatalogueLabel(c, showYear) : '—')
 
   // Search box per ui/school-owner/fee-structures.html ("শ্রেণি খুঁজুন · Search
   // class") — filters the (typically small) structures list by Class label.
   const query = q.trim().toLowerCase()
   const structures = query
     ? (allStructures ?? []).filter((s) =>
-        classLabel(s.class_offerings as unknown as { name: string; section: string | null } | null)
+        classLabel(s.class_offerings as unknown as LabelRow)
           .toLowerCase()
           .includes(query),
       )
@@ -76,7 +102,7 @@ export default async function FeeStructuresPage({
         {!classOptions.length ? (
           <p className="text-sm text-muted">{t('routine.noClasses', lang)}</p>
         ) : (
-          <FeeStructureForm classes={classOptions} lang={lang} />
+          <FeeStructureForm classes={classOptions} lang={lang} showYear={showYear} />
         )}
       </section>
 
@@ -114,7 +140,7 @@ export default async function FeeStructuresPage({
             </thead>
             <tbody>
               {structures.map((s) => {
-                const cls = s.class_offerings as unknown as { name: string; section: string | null } | null
+                const cls = s.class_offerings as unknown as LabelRow
                 return (
                   <tr key={s.id} className="border-b border-line align-top">
                     <td className={`${tdClass} font-medium`}>{classLabel(cls)}</td>
@@ -132,6 +158,7 @@ export default async function FeeStructuresPage({
                             <FeeStructureForm
                               classes={classOptions}
                               lang={lang}
+                              showYear={showYear}
                               editing={{
                                 id: s.id,
                                 class_id: s.class_id,
@@ -149,7 +176,7 @@ export default async function FeeStructuresPage({
                           </summary>
                           <div className="mt-3 min-w-72 rounded-md border border-line bg-paper-muted p-4">
                             <p className="mb-3 text-xs text-muted">{t('fees.copyTitle', lang)}</p>
-                            <CopyFeeStructureForm sourceId={s.id} classes={classOptions} lang={lang} />
+                            <CopyFeeStructureForm sourceId={s.id} classes={classOptions} lang={lang} showYear={showYear} />
                           </div>
                         </details>
                       </div>

@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { signedIn } from '../helpers/auth'
+import { applyGlobalYearFilterToOfferings } from '@/lib/school/year-filter'
 
 // Seam: Accounting I (issue #34, PRD §5.6) — fee_structures (per Class/Year,
 // unique per fee type, same-school class tenancy) and the
@@ -215,5 +216,79 @@ describe('Accounting I: absent_working_days_in_month RPC (issue #34)', () => {
       p_month: MONTH,
     })
     expect(error).not.toBeNull()
+  })
+})
+
+// Global Academic Year Selection on the Fee Structures screen (map #609,
+// T6/#615): the Offering *picker* narrows to the caller's selected/visible
+// years; the existing fee_structures *rows list* does not — a historical
+// structure whose Offering year is currently deselected still renders.
+describe('Fee Structures: Academic Year picker filter vs. rows list (#609/#615)', () => {
+  let ownerA: SupabaseClient
+  const NAME = 'FS Year Filter Class'
+  const CURRENT = 2031 // deliberately far from any fixture's real active year
+  const PRIOR = 2030
+  let currentOfferingId: string
+  let priorOfferingId: string
+
+  beforeAll(async () => {
+    ownerA = await signedIn('owner-a@test.local')
+    await ownerA.from('fee_structures').delete().eq('academic_year', PRIOR)
+    await ownerA.from('class_offerings').delete().eq('name', NAME)
+
+    currentOfferingId = (
+      await ownerA
+        .from('class_offerings')
+        .insert({ name: NAME, section: 'A', academic_year: CURRENT })
+        .select('id')
+        .single()
+    ).data!.id
+    priorOfferingId = (
+      await ownerA
+        .from('class_offerings')
+        .insert({ name: NAME, section: 'A', academic_year: PRIOR })
+        .select('id')
+        .single()
+    ).data!.id
+    // A fee structure attached to the PRIOR-year Offering — the "historical
+    // row" that must survive the current-year-only selection.
+    await ownerA.from('fee_structures').insert({
+      class_id: priorOfferingId,
+      academic_year: PRIOR,
+      fee_type: 'monthly',
+      amount: 900,
+    })
+  })
+
+  afterAll(async () => {
+    await ownerA.from('fee_structures').delete().eq('class_id', priorOfferingId)
+    await ownerA.from('class_offerings').delete().eq('name', NAME)
+  })
+
+  it('the picker query (year filter composed) excludes a deselected prior-year Offering', async () => {
+    const { data, error } = await applyGlobalYearFilterToOfferings(
+      ownerA
+        .from('class_offerings')
+        .select('id, name, section, group_department, shift, academic_year')
+        .eq('name', NAME),
+      [CURRENT],
+    )
+    expect(error).toBeNull()
+    const ids = (data ?? []).map((o) => o.id)
+    expect(ids).toContain(currentOfferingId)
+    expect(ids).not.toContain(priorOfferingId)
+    // The select carries academic_year, so classCatalogueLabel(row, true) can
+    // render the ` — {year}` segment that disambiguates same-name Offerings.
+    expect((data ?? [])[0]).toHaveProperty('academic_year', CURRENT)
+  })
+
+  it('the fee_structures rows list is NOT year-filtered — the prior-year row still appears', async () => {
+    const { data, error } = await ownerA
+      .from('fee_structures')
+      .select('id, academic_year, class_offerings(name, section, academic_year)')
+      .eq('class_id', priorOfferingId)
+    expect(error).toBeNull()
+    expect((data ?? []).length).toBe(1)
+    expect((data ?? [])[0].academic_year).toBe(PRIOR)
   })
 })

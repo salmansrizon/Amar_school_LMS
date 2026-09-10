@@ -1,6 +1,7 @@
 import { currentLang } from '@/lib/i18n-server'
 import { t } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
+import { filterOfferingsByYearSelection } from '@/lib/school/year-filter'
 import { AddExamForm, ExamsListClient } from './exam-controls'
 import { ExamsTabs } from './exams-tabs'
 import { BackLink } from '@/components/back-link'
@@ -23,7 +24,7 @@ export default async function ExamsPage({
   // filters as they were, and the row that launched it (docs/010_exam_module.md
   // §5 — "returning merely to the Exams & Results URL is not sufficient").
   const { q = '', class: classParam = '', status: statusParam = '', exam: anchorExamId } = await searchParams
-  const { supabase } = await getSchoolContext()
+  const { supabase, startedAcademicYears, academicYearSelection } = await getSchoolContext()
 
   const [{ data: exams }, { data: classes }] = await Promise.all([
     supabase
@@ -35,8 +36,29 @@ export default async function ExamsPage({
       // against an unbounded read (#546), not a paging scheme. If a school ever
       // reaches 500 exams, the filters move to the server (#550).
       .limit(500),
-    supabase.from('class_offerings').select('id, name, section, group_department, shift').order('created_at'),
+    // Fetched unfiltered: this list double-duties as the class-label map for
+    // existing exam rows (keyed by class_id), so year-filtering the fetch would
+    // blank the label of an exam whose Offering is in a currently-deselected
+    // year — the same reason this file is exempt from the Global Shift filter
+    // (tests/unit/shift-filter-required.test.ts). The Global Academic Year
+    // Selection narrows the *picker options* only (below), never the exam rows
+    // or `exams.exam_year`, which is an independent business concept (map #609,
+    // T6/#615).
+    supabase
+      .from('class_offerings')
+      .select('id, name, section, group_department, shift, academic_year')
+      .order('created_at'),
   ])
+
+  // Started-year history is the signal (#609/#612), not inference from the
+  // Offering set — the same boolean the Classes list threads as `showYear`.
+  const showYear = startedAcademicYears.length > 1
+  // The class-filter dropdown offers only Offerings inside the current Global
+  // Academic Year Selection. Derived in-memory from the already-loaded set
+  // rather than a second query, because the primary fetch must stay unfiltered
+  // for the label map above.
+  const allOfferings = classes ?? []
+  const pickerOfferings = filterOfferingsByYearSelection(allOfferings, academicYearSelection)
 
   return (
     <div>
@@ -59,7 +81,9 @@ export default async function ExamsPage({
         <ExamsListClient
           key={`${q}|${classParam}|${statusParam}|${anchorExamId ?? ''}`}
           exams={exams ?? []}
-          classes={classes ?? []}
+          classes={allOfferings}
+          pickerClasses={pickerOfferings}
+          showYear={showYear}
           initialQuery={q}
           initialClassId={classParam}
           initialStatus={statusParam}

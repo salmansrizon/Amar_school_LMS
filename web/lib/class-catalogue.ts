@@ -19,6 +19,12 @@ export interface ClassCatalogueRow {
    *  that never selected the column; null on a No-Shift School's rows, or
    *  one predating Shift's introduction. Both render identically (omitted). */
   shift?: string | null
+  /** Academic Year (issue #611, map #609) — the year this Offering belongs
+   *  to. Renders as a trailing ` — {year}` segment, but only when the caller
+   *  opts in via `showYear` (the School spans more than one *started* year —
+   *  a fact #612 surfaces on SchoolContext, never decided in this module).
+   *  null / absent never produces a segment, whatever `showYear` says. */
+  academic_year?: number | null
 }
 
 export interface ClassCatalogueOption {
@@ -39,18 +45,31 @@ export interface ClassCatalogueOption {
  *   - `Eight - Morning - A` — no group
  *   - `Nine (Science) - A` — group present, shift absent
  *   - `Eight - A` — no group, no shift
+ *
+ * `showYear` (issue #611, map #609) appends a trailing ` — {academic_year}`
+ * (em-dash, a space either side) — `Nine (Science) - Day - A — 2027` — for
+ * the multi-started-year Schools where the year disambiguates two otherwise
+ * identical Offerings (#593). Off by default, so every pre-#611 caller's
+ * output is byte-identical; a null / absent `academic_year` never renders a
+ * segment even when `showYear` is true. The caller decides `showYear` — it
+ * is not this module's to compute.
  */
-export function classCatalogueLabel(row: {
-  name: string
-  section: string | null
-  group_department?: string | null
-  shift?: string | null
-}): string {
+export function classCatalogueLabel(
+  row: {
+    name: string
+    section: string | null
+    group_department?: string | null
+    shift?: string | null
+    academic_year?: number | null
+  },
+  showYear = false,
+): string {
   return (
     row.name +
     (row.group_department ? ` (${row.group_department})` : '') +
     (row.shift ? ` - ${row.shift}` : '') +
-    (row.section ? ` - ${row.section}` : '')
+    (row.section ? ` - ${row.section}` : '') +
+    (showYear && row.academic_year != null ? ` — ${row.academic_year}` : '')
   )
 }
 
@@ -59,14 +78,20 @@ export function classCatalogueLabel(row: {
  * students), value = classes.id. Sorted by class name then section — screens
  * that must preserve their existing row order (e.g. Exams' creation-order
  * list) should use classCatalogueLabel directly instead of this.
+ *
+ * `showYear` threads straight to classCatalogueLabel (issue #611): pass it
+ * when the picker's School spans more than one started Academic Year.
  */
-export function classCatalogueOptions(rows: ClassCatalogueRow[]): ClassCatalogueOption[] {
+export function classCatalogueOptions(
+  rows: ClassCatalogueRow[],
+  showYear = false,
+): ClassCatalogueOption[] {
   return rows
     .map((row) => ({
       value: row.id,
       className: row.name,
       section: row.section ?? '',
-      label: classCatalogueLabel(row),
+      label: classCatalogueLabel(row, showYear),
     }))
     .sort((a, b) => a.className.localeCompare(b.className) || a.section.localeCompare(b.section))
 }
@@ -105,8 +130,9 @@ export function resolveClassCatalogueSelection(
 export function resolveClassSection(
   rows: ClassCatalogueRow[],
   id: string,
+  showYear = false,
 ): { combos: ClassCatalogueOption[]; className: string; section: string } {
-  const combos = classCatalogueOptions(rows)
+  const combos = classCatalogueOptions(rows, showYear)
   return { combos, ...resolveClassCatalogueSelection(combos, id) }
 }
 

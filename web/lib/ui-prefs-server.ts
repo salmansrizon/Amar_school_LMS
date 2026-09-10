@@ -3,9 +3,11 @@ import {
   SIDEBAR_COOKIE,
   THEME_COOKIE,
   SHIFT_SELECTION_COOKIE,
+  ACADEMIC_YEAR_SELECTION_COOKIE,
   parseSidebarCollapsed,
   parseThemePreference,
   parseShiftSelection,
+  parseAcademicYearSelection,
   type ThemePreference,
 } from '@/lib/ui-prefs'
 
@@ -29,4 +31,17 @@ export async function themePreference(): Promise<ThemePreference> {
 export async function globalShiftSelection(configuredShifts: readonly string[]): Promise<string[]> {
   const store = await cookies()
   return parseShiftSelection(store.get(SHIFT_SELECTION_COOKIE)?.value, configuredShifts)
+}
+
+/** The effective Global Academic Year Selection (map #609), reconciled against
+ *  this School's *started* Academic Years and always including the current year.
+ *  Callers pass their own already-fetched started-years list and
+ *  `schools.active_academic_year` — this module has no notion of "current
+ *  school" on its own. */
+export async function globalAcademicYearSelection(
+  startedYears: readonly number[],
+  activeYear: number | null,
+): Promise<number[]> {
+  const store = await cookies()
+  return parseAcademicYearSelection(store.get(ACADEMIC_YEAR_SELECTION_COOKIE)?.value, startedYears, activeYear)
 }

@@ -77,6 +77,11 @@ const dict = {
   // Global Shift Selection (issue #577, Wave 5/#590) — topbar trigger, absent
   // entirely for a No-Shift institute.
   'shell.shiftSelection': { bn: 'শিফট নির্বাচন', en: 'Shift Selection' },
+  // Global Academic Year Selection (map #609, ticket #613) — a second section in
+  // the same popover, shown only for a School that has started more than one
+  // year. 'viewSelection' is the popover's header when both sections show.
+  'shell.academicYearSelection': { bn: 'শিক্ষাবর্ষ', en: 'Academic Year' },
+  'shell.viewSelection': { bn: 'ভিউ নির্বাচন', en: 'View' },
   'shell.nav': { bn: 'প্রধান নেভিগেশন', en: 'Main navigation' },
   'shell.help': { bn: 'সহায়তা', en: 'Help' },
   'shell.chat': { bn: 'চ্যাট', en: 'Chat' },
@@ -1358,6 +1363,32 @@ const dict = {
   // runs more than one year of Offerings side by side (#593/#594).
   'classes.academicYear': { bn: 'শিক্ষাবর্ষ', en: 'Academic Year' },
   'classes.allYears': { bn: 'সকল শিক্ষাবর্ষ', en: 'All years' },
+  // Read-only confirmation on the new-Class form (map #609, T9/#618) — the
+  // active Academic Year is shown, never edited; the year is stamped
+  // server-side by addClass and is never a submitted field.
+  'classes.newClassYear': { bn: 'শিক্ষাবর্ষ — {year}', en: 'Academic Year — {year}' },
+  // "Copy Classes from {year}" — list-header action (map #609, T8/#617) over the
+  // copy_class_offerings_to_active_year RPC. Clones a started prior year's Class
+  // Offerings into the active year; class names + sections only, nothing relational.
+  'classes.copyClasses': { bn: '{year} সাল থেকে শ্রেণি কপি করুন', en: 'Copy Classes from {year}' },
+  'classes.copySourceLabel': { bn: 'উৎস শিক্ষাবর্ষ', en: 'Source Academic Year' },
+  'classes.copyConfirm': { bn: 'কপি করুন', en: 'Copy' },
+  'classes.copyConfirmBody': {
+    bn: '{source} সালের প্রতিটি শ্রেণি {active} সালে কপি হবে। শুধু শ্রেণি ও শাখার নাম কপি হয় — শিক্ষার্থী বা শিক্ষক স্থানান্তর হয় না।',
+    en: 'Copy every Class Offering from {source} into {active}. This copies class names and sections only — it does not move students or staff.',
+  },
+  'classes.copyResultHeading': { bn: 'শিক্ষাবর্ষ: {source} → {active}', en: 'Academic Year: {source} → {active}' },
+  'classes.copyCopied': { bn: 'কপি হয়েছে: {n}', en: 'Copied: {n}' },
+  'classes.copySkipped': { bn: 'বাদ পড়েছে: {n}', en: 'Skipped: {n}' },
+  'classes.copySkippedHint': {
+    bn: '{n}টি শ্রেণি আগে থেকেই {active} সালে ছিল, তাই বাদ পড়েছে।',
+    en: '{n} classes already existed in {active} and were skipped.',
+  },
+  'classes.copyNoneHint': {
+    bn: 'নতুন কোনো শ্রেণি নেই — {source} সালের সব শ্রেণি আগে থেকেই {active} সালে আছে।',
+    en: 'No new classes — all {source} classes already exist in {active}.',
+  },
+  'classes.copyDismiss': { bn: 'বন্ধ করুন', en: 'Dismiss' },
   'classes.students': { bn: 'শিক্ষার্থী সংখ্যা', en: 'Students' },
   'classes.actions': { bn: 'কার্যক্রম', en: 'Actions' },
   'classes.search': { bn: 'শ্রেণি খুঁজুন', en: 'Search classes' },

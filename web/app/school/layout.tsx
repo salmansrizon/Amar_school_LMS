@@ -43,6 +43,9 @@ export default async function SchoolLayout({ children }: { children: React.React
     enabledFeatures,
     configuredShifts: ctx.configuredShifts,
     shiftSelection: ctx.shiftSelection,
+    startedAcademicYears: ctx.startedAcademicYears,
+    activeAcademicYear: ctx.activeAcademicYear,
+    academicYearSelection: ctx.academicYearSelection,
   }
 
   if (status === 'expired') {

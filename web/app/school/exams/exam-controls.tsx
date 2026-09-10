@@ -152,6 +152,8 @@ export interface ExamListItem {
 export function ExamsListClient({
   exams,
   classes,
+  pickerClasses,
+  showYear = false,
   initialQuery = '',
   initialClassId = '',
   initialStatus = '',
@@ -159,7 +161,16 @@ export function ExamsListClient({
   lang,
 }: {
   exams: ExamListItem[]
+  /** Every Offering — the class-label map for existing exam rows, keyed by
+   *  class_id. Unfiltered on purpose: an exam in a deselected year keeps its
+   *  label. */
   classes: ClassCatalogueRow[]
+  /** The Offerings the class-filter dropdown offers — `classes` narrowed to the
+   *  Global Academic Year Selection (map #609, T6/#615). Defaults to `classes`. */
+  pickerClasses?: ClassCatalogueRow[]
+  /** Append ` — {year}` to Offering labels when the School spans more than one
+   *  started Academic Year (map #609, T6/#615). */
+  showYear?: boolean
   /** Filter state to restore, from the `from` URL a destination came back to. */
   initialQuery?: string
   initialClassId?: string
@@ -171,6 +182,7 @@ export function ExamsListClient({
   const [query, setQuery] = useState(initialQuery)
   const [classId, setClassId] = useState(initialClassId)
   const [status, setStatus] = useState(initialStatus)
+  const pickerOptions = pickerClasses ?? classes
   const classById = new Map(classes.map((c) => [c.id, c]))
   const filtered = useMemo(() => filterExams(exams, query, classId, status), [exams, query, classId, status])
   // #550: every matching exam used to render at once — 570 rows and 934 controls
@@ -218,9 +230,9 @@ export function ExamsListClient({
         />
         <select value={classId} onChange={(e) => setClassId(e.target.value)} className={`${selectClass({ size: 'md', fullWidth: true })} max-w-48`}>
           <option value="">{t('exams.allClasses', lang)}</option>
-          {classes.map((c) => (
+          {pickerOptions.map((c) => (
             <option key={c.id} value={c.id}>
-              {classCatalogueLabel(c)}
+              {classCatalogueLabel(c, showYear)}
             </option>
           ))}
         </select>
@@ -239,7 +251,7 @@ export function ExamsListClient({
             <li key={exam.id} className="py-3">
               <ExamListRow
                 exam={exam}
-                classLabel={classLabelOf(classById.get(exam.class_id ?? ''))}
+                classLabel={classLabelOf(classById.get(exam.class_id ?? ''), showYear)}
                 origin={originFor(exam.id)}
                 lang={lang}
               />
@@ -265,8 +277,8 @@ export function ExamsListClient({
   )
 }
 
-function classLabelOf(cls: ClassCatalogueRow | undefined): string | null {
-  return cls ? classCatalogueLabel(cls) : null
+function classLabelOf(cls: ClassCatalogueRow | undefined, showYear = false): string | null {
+  return cls ? classCatalogueLabel(cls, showYear) : null
 }
 
 /** DOM id of an exam row. Returning from a destination scrolls this back into

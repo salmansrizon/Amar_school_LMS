@@ -36,6 +36,10 @@ export default async function SmsComposePage() {
   // them, so a past-year Offering in the picker resolves to zero recipients
   // and — since the Catalogue label omits the year — is indistinguishable
   // from the current one. Drop them (keep all only when no year is set yet).
+  //
+  // Deliberately NOT wired to the Global Academic Year Selection (map #609,
+  // T6/#615): that is a browse/management visibility preference. SMS targeting
+  // stays pinned to `active_academic_year` by business rule.
   const offerings = (allOfferings ?? []).filter(
     (o) => activeAcademicYear === null || o.academic_year === activeAcademicYear,
   )

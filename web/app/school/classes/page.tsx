@@ -5,15 +5,19 @@ import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import {
   academicYearsOf,
+  copyClassesControlVisible,
+  copySourceYears,
   countFor,
   resolveYearFilter,
   showAcademicYearColumn,
   studentCounts,
   visibleClasses,
+  yearFilterOptions,
 } from '@/lib/classes'
 import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
+import { applyGlobalYearFilterToOfferings } from '@/lib/school/year-filter'
 import { isKnownAcademicShift, ACADEMIC_SHIFT_LABEL_KEY, type AcademicShift } from '@/lib/institute'
-import { AddClassForm, AddSubjectForm, DeleteButton } from './class-controls'
+import { AddClassForm, AddSubjectForm, CopyClassesControl, DeleteButton } from './class-controls'
 import { ClassTeacherPicker } from './class-teacher-picker'
 import { AddDetails } from '@/components/add-details'
 import { selectClass } from '@/components/ui/field'
@@ -32,7 +36,14 @@ export default async function ClassesPage({
 }) {
   const { q = '', level = '', year: yearParam } = await searchParams
   const lang: Lang = await currentLang()
-  const { supabase, configuredShifts, shiftSelection, activeAcademicYear } = await getSchoolContext()
+  const {
+    supabase,
+    configuredShifts,
+    shiftSelection,
+    activeAcademicYear,
+    startedAcademicYears,
+    academicYearSelection,
+  } = await getSchoolContext()
 
   // Choices for the create form are the current Global Shift Selection —
   // parseShiftSelection already guarantees every element is a member of
@@ -40,12 +51,15 @@ export default async function ClassesPage({
   const shiftChoices = shiftSelection.filter(isKnownAcademicShift)
 
   const [{ data: classes }, { data: subjects }, { data: enrollments }, { data: teachers }] = await Promise.all([
-    applyGlobalShiftFilterToOfferings(
-      supabase
-        .from('class_offerings')
-        .select('id, name, section, education_level, group_department, class_teacher_id, shift, academic_year')
-        .order('created_at'),
-      shiftSelection,
+    applyGlobalYearFilterToOfferings(
+      applyGlobalShiftFilterToOfferings(
+        supabase
+          .from('class_offerings')
+          .select('id, name, section, education_level, group_department, class_teacher_id, shift, academic_year')
+          .order('created_at'),
+        shiftSelection,
+      ),
+      academicYearSelection,
     ),
     supabase
       .from('subjects')
@@ -72,17 +86,35 @@ export default async function ClassesPage({
   // Academic Year; every year the School has Offerings in stays selectable
   // (newest first), plus an "All years" option. The Year column shows only
   // when the full set spans more than one year.
-  const presentYears = academicYearsOf(allClasses)
-  const showYearColumn = showAcademicYearColumn(allClasses)
-  // Only a multi-year School gets the year filter at all — a single-year list
-  // behaves exactly as it did pre-#597 (no column, no dropdown, no narrowing).
+  // The classes query is already narrowed to the Global Academic Year
+  // Selection (candidate set), so `academicYearsOf(allClasses)` only ever names
+  // years inside it — the per-page dropdown can only narrow *within* the global
+  // set, never widen it (map #609, T5).
+  const selectableYears = academicYearsOf(allClasses)
+  const yearOptions = yearFilterOptions(selectableYears, activeAcademicYear)
+  // The column + dropdown appear on the started-year history, not on inference
+  // from the current Offering set — same boolean threaded into classCatalogueLabel.
+  const showYearColumn = showAcademicYearColumn(startedAcademicYears)
+  // A single-started-year School behaves exactly as it did pre-#597
+  // (no column, no dropdown, no narrowing).
   const selectedYear = showYearColumn
-    ? resolveYearFilter(yearParam, { activeYear: activeAcademicYear, presentYears })
+    ? resolveYearFilter(yearParam, { activeYear: activeAcademicYear, presentYears: selectableYears })
     : null
   const yearFilterValue = selectedYear === null ? 'all' : String(selectedYear)
   const shownClasses = visibleClasses(allClasses, { q, level, year: selectedYear })
   const counts = studentCounts(enrollments ?? [])
   const dash = <span className="text-muted">—</span>
+
+  // "Copy Classes from {year}" (map #609, T8): the source years are the School's
+  // started years strictly before the active one, each counted from the Offering
+  // set the page already holds — so a year currently deselected from the Global
+  // Academic Year Selection is not offered as a source until it is reselected
+  // (the copy_class_offerings_to_active_year RPC stays the authority regardless).
+  const copySources = copySourceYears(
+    startedAcademicYears,
+    activeAcademicYear,
+    (y) => allClasses.filter((c) => c.academic_year === y).length,
+  )
 
   return (
     <div>
@@ -131,7 +163,7 @@ export default async function ClassesPage({
             {showYearColumn && (
               <select name="year" defaultValue={yearFilterValue} className={selectClass()}>
                 <option value="all">{t('classes.allYears', lang)}</option>
-                {presentYears.map((y) => (
+                {yearOptions.map((y) => (
                   <option key={y} value={y}>
                     {y}
                   </option>
@@ -146,9 +178,23 @@ export default async function ClassesPage({
             </button>
           </Form>
           <AddDetails label={t('classes.addClass', lang)}>
-            <AddClassForm lang={lang} teachers={teachers ?? []} shiftChoices={shiftChoices} />
+            <AddClassForm
+              lang={lang}
+              teachers={teachers ?? []}
+              shiftChoices={shiftChoices}
+              activeAcademicYear={activeAcademicYear}
+            />
           </AddDetails>
         </div>
+        {activeAcademicYear != null && copyClassesControlVisible(copySources) && (
+          <div className="mb-4">
+            <CopyClassesControl
+              lang={lang}
+              activeYear={activeAcademicYear}
+              sourceYears={copySources}
+            />
+          </div>
+        )}
         {!shownClasses.length ? (
           <p className="text-sm text-muted">{t('classes.noClasses', lang)}</p>
         ) : (
@@ -243,7 +289,7 @@ export default async function ClassesPage({
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <h2 className="font-bold">{t('classes.subjectList', lang)}</h2>
           <AddDetails label={t('classes.addSubject', lang)}>
-            <AddSubjectForm lang={lang} classes={classes ?? []} />
+            <AddSubjectForm lang={lang} classes={classes ?? []} showYear={showYearColumn} />
           </AddDetails>
         </div>
         {!subjects?.length ? (

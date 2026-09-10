@@ -22,12 +22,17 @@ function ClassSelect({
   classes,
   defaultValue,
   lang,
+  showYear = false,
 }: {
   id: string
   name: string
   classes: ClassCatalogueRow[]
   defaultValue: string
   lang: Lang
+  /** Append ` — {year}` to each Offering label (map #609, T6/#615) — passed
+   *  true when the School spans more than one started Academic Year, so two
+   *  same-name Offerings in different years are distinguishable in the picker. */
+  showYear?: boolean
 }) {
   return (
     <select id={id} name={name} required defaultValue={defaultValue} className={selectClass({ size: 'md', fullWidth: true })}>
@@ -36,7 +41,7 @@ function ClassSelect({
       </option>
       {classes.map((c) => (
         <option key={c.id} value={c.id}>
-          {classCatalogueLabel(c)}
+          {classCatalogueLabel(c, showYear)}
         </option>
       ))}
     </select>
@@ -49,10 +54,13 @@ export function FeeStructureForm({
   classes,
   lang,
   editing,
+  showYear = false,
 }: {
   classes: ClassCatalogueRow[]
   lang: Lang
   editing?: FeeStructureEditing
+  /** Threads to the Class picker labels (map #609, T6/#615). */
+  showYear?: boolean
 }) {
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
@@ -87,6 +95,7 @@ export function FeeStructureForm({
           classes={classes}
           defaultValue={editing?.class_id ?? ''}
           lang={lang}
+          showYear={showYear}
         />
       </div>
       <div>
@@ -161,10 +170,13 @@ export function CopyFeeStructureForm({
   sourceId,
   classes,
   lang,
+  showYear = false,
 }: {
   sourceId: string
   classes: ClassCatalogueRow[]
   lang: Lang
+  /** Threads to the target-Class picker labels (map #609, T6/#615). */
+  showYear?: boolean
 }) {
   const [error, setError] = useState<string | null>(null)
   const [done, setDone] = useState(false)
@@ -201,6 +213,7 @@ export function CopyFeeStructureForm({
           classes={classes}
           defaultValue=""
           lang={lang}
+          showYear={showYear}
         />
       </div>
       <div>

@@ -36,6 +36,12 @@ export default async function MyClassesPage() {
   }
 
   const [{ data: classes }, { data: enrollments }, { data: tasks }] = await Promise.all([
+    // The Global Shift filter applies (a browse view), but the Global Academic
+    // Year Selection deliberately does NOT (map #609, T6/#615): Homework
+    // authoring is a compose/targeting surface, and `homeworkTargetsOffering`
+    // resolves against `active_academic_year` by business rule. A wider
+    // "visible years" set must never change which classes a teacher can assign
+    // homework to.
     applyGlobalShiftFilterToOfferings(
       supabase
         .from('class_offerings')
