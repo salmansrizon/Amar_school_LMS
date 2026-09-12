@@ -40,7 +40,7 @@ export default async function MarkAttendancePage({
 }) {
   const { classSection = '', date = todayIso() } = await searchParams
   const lang: Lang = await currentLang()
-  const { supabase, userId, shiftSelection, startedAcademicYears } = await getSchoolContext()
+  const { supabase, userId, shiftSelection, startedAcademicYears, academicYearSelection } = await getSchoolContext()
   // Started-year history is the signal (#609/#612), same boolean T6/#615
   // threaded into the Fee Structures Offering picker.
   const showYear = startedAcademicYears.length > 1
@@ -48,7 +48,14 @@ export default async function MarkAttendancePage({
   // One call, one model. This used to be ~60 lines of assembly: two Promise.all
   // waves, an .in(visibleIds) guard, a conditional profiles lookup for the
   // marker's name and three Map/Set joins — none of it reachable by a test.
-  const register = await studentRegister(supabase, { classSection, date, viewerId: userId, shiftSelection, showYear })
+  const register = await studentRegister(supabase, {
+    classSection,
+    date,
+    viewerId: userId,
+    shiftSelection,
+    showYear,
+    academicYearSelection,
+  })
 
   return (
     <div>

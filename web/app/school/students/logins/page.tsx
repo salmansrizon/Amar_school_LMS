@@ -4,6 +4,7 @@ import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
+import { applyGlobalYearFilterToOfferings } from '@/lib/school/year-filter'
 import { classCatalogueOptions } from '@/lib/class-catalogue'
 import { Card, PageHeader } from '@/components/ui/page'
 import { classLoginCandidates } from '../login-actions'
@@ -21,17 +22,20 @@ export default async function StudentLoginsPage({
 }) {
   const { classSection = '' } = await searchParams
   const lang: Lang = await currentLang()
-  const { supabase, role, shiftSelection, startedAcademicYears } = await getSchoolContext()
+  const { supabase, role, shiftSelection, startedAcademicYears, academicYearSelection } = await getSchoolContext()
   // Issuing a child's password is an owner act, not a Staff-User one — the RPCs
   // reject Staff anyway, this just avoids showing them a screen that cannot work.
   if (role !== 'school_owner') redirect('/school/students')
 
-  const { data: classes } = await applyGlobalShiftFilterToOfferings(
-    supabase
-      .from('class_offerings')
-      .select('id, name, section, group_department, shift, academic_year')
-      .order('created_at'),
-    shiftSelection,
+  const { data: classes } = await applyGlobalYearFilterToOfferings(
+    applyGlobalShiftFilterToOfferings(
+      supabase
+        .from('class_offerings')
+        .select('id, name, section, group_department, shift, academic_year')
+        .order('created_at'),
+      shiftSelection,
+    ),
+    academicYearSelection,
   )
   // Started-year history is the signal (#609/#612), same boolean T6/#615
   // threaded into the Fee Structures Offering picker.

@@ -3,6 +3,7 @@ import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
+import { applyGlobalYearFilterToOfferings } from '@/lib/school/year-filter'
 import { subjectsForClass } from '@/lib/students'
 import { ClassPicker } from '../../classes/routine/routine-cell'
 import { BulkAssignForm } from './bulk-assign-form'
@@ -17,15 +18,18 @@ export default async function SubjectAssignmentPage({
   searchParams: Promise<{ class?: string }>
 }) {
   const lang: Lang = await currentLang()
-  const { supabase, shiftSelection, startedAcademicYears } = await getSchoolContext()
+  const { supabase, shiftSelection, startedAcademicYears, academicYearSelection } = await getSchoolContext()
   // Started-year history is the signal (#609/#612), same boolean T6/#615
   // threaded into the Fee Structures Offering picker.
   const showYear = startedAcademicYears.length > 1
 
   const { class: selectedClass = '' } = await searchParams
-  const { data: classes } = await applyGlobalShiftFilterToOfferings(
-    supabase.from('class_offerings').select('id, name, section, shift, academic_year').order('created_at'),
-    shiftSelection,
+  const { data: classes } = await applyGlobalYearFilterToOfferings(
+    applyGlobalShiftFilterToOfferings(
+      supabase.from('class_offerings').select('id, name, section, shift, academic_year').order('created_at'),
+      shiftSelection,
+    ),
+    academicYearSelection,
   )
 
   return (

@@ -40,13 +40,13 @@ export default async function StudentsPage({
 }) {
   const { q = '', classSection = '' } = await searchParams
   const lang: Lang = await currentLang()
-  const { supabase, role, shiftSelection, startedAcademicYears } = await getSchoolContext()
+  const { supabase, role, shiftSelection, startedAcademicYears, academicYearSelection } = await getSchoolContext()
   // Started-year history is the signal (#609/#612), same boolean T6/#615
   // threaded into the Fee Structures Offering picker.
   const showYear = startedAcademicYears.length > 1
 
   const [roster, { data: ratings }] = await Promise.all([
-    schoolRoster(supabase, { classSection, q, shiftSelection, showYear }),
+    schoolRoster(supabase, { classSection, q, shiftSelection, showYear, academicYearSelection }),
     // ponytail: whole-table scan capped at 10k rows, mirrors the classes page.
     supabase.from('behaviour_log_entries').select('student_id, rating').limit(10000),
   ])

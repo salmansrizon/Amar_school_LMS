@@ -12,6 +12,7 @@ import {
 } from './combination-controls'
 import { BackLink } from '@/components/back-link'
 import { classCatalogueLabel, type ClassCatalogueRow } from '@/lib/class-catalogue'
+import { filterOfferingsByYearSelection } from '@/lib/school/year-filter'
 
 // Multi-exam combination (issue #32, PRD §5.5): a named recipe for combining
 // several exams — 'sum' (raw marks add together) or 'weighted_percentage'
@@ -24,7 +25,7 @@ import { classCatalogueLabel, type ClassCatalogueRow } from '@/lib/class-catalog
 
 export default async function ExamCombinationsPage() {
   const lang = await currentLang()
-  const { supabase, startedAcademicYears } = await getSchoolContext()
+  const { supabase, startedAcademicYears, academicYearSelection } = await getSchoolContext()
   // Started-year history is the signal (#609/#612), same boolean T6/#615
   // threaded into the Fee Structures Offering picker. The existing-
   // combination card's own class label (below) stays untouched — #621 is a
@@ -36,6 +37,13 @@ export default async function ExamCombinationsPage() {
       .from('exam_combinations')
       .select('id, name, class_id, strategy, grading_scheme_id')
       .order('created_at', { ascending: false }),
+    // Fetched unfiltered: this same read is also the class-label map for
+    // EXISTING combinations (classById below), so year-filtering it would
+    // blank a combination's label when its Offering's year is currently
+    // deselected — the same reason the Exams list's own class_offerings
+    // fetch stays unfiltered (app/school/exams/page.tsx). The Global
+    // Academic Year Selection narrows the Add-Combination picker only (see
+    // pickerClasses below).
     supabase
       .from('class_offerings')
       .select('id, name, section, group_department, shift, academic_year')
@@ -60,6 +68,10 @@ export default async function ExamCombinationsPage() {
   }
   const classById = new Map((classes ?? []).map((c) => [c.id, c]))
   const schemeById = new Map((schemes ?? []).map((s) => [s.id, s]))
+  // The Add-Combination picker narrows to the Global Academic Year Selection —
+  // derived in-memory from the already-loaded set (see the fetch comment
+  // above), never a second query.
+  const pickerClasses = filterOfferingsByYearSelection((classes ?? []) as ClassCatalogueRow[], academicYearSelection)
 
   return (
     <div>
@@ -73,7 +85,7 @@ export default async function ExamCombinationsPage() {
       <section className="mb-6 rounded-lg border border-line bg-paper p-5">
         <h2 className="mb-3 font-bold">{t('combinations.add', lang)}</h2>
         <AddCombinationForm
-          classes={(classes ?? []) as ClassCatalogueRow[]}
+          classes={pickerClasses}
           schemes={(schemes ?? []) as SchemeOption[]}
           lang={lang}
           showYear={showYear}

@@ -3,6 +3,7 @@ import { resolveClassSection, type ClassCatalogueOption, type ClassCatalogueRow 
 import { firstRelation } from '@/lib/supabase/relation'
 import { classScopeFor } from '@/lib/school/class-scope'
 import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
+import { applyGlobalYearFilterToOfferings } from '@/lib/school/year-filter'
 import {
   latestMark,
   markedByOf,
@@ -99,6 +100,7 @@ export async function schoolRoster(
     q = '',
     shiftSelection = [],
     showYear = false,
+    academicYearSelection = [],
   }: {
     classSection?: string
     q?: string
@@ -108,6 +110,12 @@ export async function schoolRoster(
      *  Academic Year. Caller passes its own
      *  getSchoolContext().startedAcademicYears.length > 1. */
     showYear?: boolean
+    /** Narrows the picker OPTIONS to the caller's Global Academic Year
+     *  Selection (map #609, T6/#615's recipe) — same as the Shift filter
+     *  beside it, and orthogonal to the roster's own class_offering_id
+     *  filter. Caller passes its own
+     *  getSchoolContext().academicYearSelection. */
+    academicYearSelection?: readonly number[]
   } = {},
 ): Promise<RosterView> {
   // Shift (issue #579, Wave 5/#590): only narrows which classes appear as
@@ -117,12 +125,15 @@ export async function schoolRoster(
   // per request, no re-fetch needed here.
   const [{ data: students }, { data: classes }] = await Promise.all([
     supabase.from('students').select(ROSTER_COLUMNS).is('archived_at', null).order('full_name'),
-    applyGlobalShiftFilterToOfferings(
-      supabase
-        .from('class_offerings')
-        .select('id, name, section, group_department, shift, academic_year')
-        .order('created_at'),
-      shiftSelection,
+    applyGlobalYearFilterToOfferings(
+      applyGlobalShiftFilterToOfferings(
+        supabase
+          .from('class_offerings')
+          .select('id, name, section, group_department, shift, academic_year')
+          .order('created_at'),
+        shiftSelection,
+      ),
+      academicYearSelection,
     ),
   ])
 
@@ -180,15 +191,17 @@ export async function studentRegister(
     viewerId,
     shiftSelection = [],
     showYear = false,
+    academicYearSelection = [],
   }: {
     classSection?: string
     date: string
     viewerId: string
     shiftSelection?: readonly string[]
     showYear?: boolean
+    academicYearSelection?: readonly number[]
   },
 ): Promise<RegisterView> {
-  const view = await schoolRoster(supabase, { classSection, shiftSelection, showYear })
+  const view = await schoolRoster(supabase, { classSection, shiftSelection, showYear, academicYearSelection })
   const ids = view.students.map((s) => s.id)
   if (!ids.length) return { ...view, rows: [], markedBy: null }
 

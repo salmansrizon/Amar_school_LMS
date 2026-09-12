@@ -23,7 +23,7 @@ export default async function StudentLogPage({
 }) {
   const { classSection = '' } = await searchParams
   const lang: Lang = await currentLang()
-  const { supabase, shiftSelection, startedAcademicYears } = await getSchoolContext()
+  const { supabase, shiftSelection, startedAcademicYears, academicYearSelection } = await getSchoolContext()
   // Started-year history is the signal (#609/#612), same boolean T6/#615
   // threaded into the Fee Structures Offering picker.
   const showYear = startedAcademicYears.length > 1
@@ -33,6 +33,7 @@ export default async function StudentLogPage({
     classSection,
     shiftSelection,
     showYear,
+    academicYearSelection,
   })
 
   // Forwards the already-picked Class Offering id straight through (map

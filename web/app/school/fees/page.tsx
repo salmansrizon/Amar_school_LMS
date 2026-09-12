@@ -4,6 +4,7 @@ import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
+import { applyGlobalYearFilterToOfferings } from '@/lib/school/year-filter'
 import { enrolledStudentIds, enrolledIdFilter } from '@/lib/school/offering-roster'
 import { AccountingTabs } from './accounting-tabs'
 import { FeeForm, type CollectStudent, type ExistingFeeRecord } from './fee-form'
@@ -35,18 +36,21 @@ export default async function FeesPage({
   const year = Number(yearParam) || now.getFullYear()
 
   const lang: Lang = await currentLang()
-  const { supabase, shiftSelection, startedAcademicYears } = await getSchoolContext()
+  const { supabase, shiftSelection, startedAcademicYears, academicYearSelection } = await getSchoolContext()
   // Started-year history is the signal (#609/#612), same boolean T6/#615
   // threaded into the Fee Structures Offering picker.
   const showYear = startedAcademicYears.length > 1
 
   const [{ data: classes }, { data: recentRecords }] = await Promise.all([
-    applyGlobalShiftFilterToOfferings(
-      supabase
-        .from('class_offerings')
-        .select('id, name, section, group_department, shift, academic_year')
-        .order('created_at'),
-      shiftSelection,
+    applyGlobalYearFilterToOfferings(
+      applyGlobalShiftFilterToOfferings(
+        supabase
+          .from('class_offerings')
+          .select('id, name, section, group_department, shift, academic_year')
+          .order('created_at'),
+        shiftSelection,
+      ),
+      academicYearSelection,
     ),
     supabase
       .from('fee_collection_records')

@@ -2,6 +2,7 @@ import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
+import { applyGlobalYearFilterToOfferings } from '@/lib/school/year-filter'
 import { PageHeader } from '@/components/ui/page'
 import { AdmissionForm } from './admission-form'
 
@@ -15,18 +16,21 @@ import { AdmissionForm } from './admission-form'
 
 export default async function NewAdmissionPage() {
   const lang: Lang = await currentLang()
-  const { supabase, schoolId, shiftSelection, startedAcademicYears } = await getSchoolContext()
+  const { supabase, schoolId, shiftSelection, startedAcademicYears, academicYearSelection } = await getSchoolContext()
   // Started-year history is the signal (#609/#612), same boolean T6/#615
   // threaded into the Fee Structures Offering picker.
   const showYear = startedAcademicYears.length > 1
 
   const [{ data: classOfferings }, { data: enrollments }, { data: school }] = await Promise.all([
-    applyGlobalShiftFilterToOfferings(
-      supabase
-        .from('class_offerings')
-        .select('id, name, section, group_department, shift, academic_year')
-        .order('created_at'),
-      shiftSelection,
+    applyGlobalYearFilterToOfferings(
+      applyGlobalShiftFilterToOfferings(
+        supabase
+          .from('class_offerings')
+          .select('id, name, section, group_department, shift, academic_year')
+          .order('created_at'),
+        shiftSelection,
+      ),
+      academicYearSelection,
     ),
     // Same bounded whole-table read as the Class & Curriculum counts (ponytail:
     // fine up to 10k rows) — feeds the Roll Number field's next-roll suggestion.
