@@ -18,6 +18,9 @@ const student = (over: Partial<RosterStudent> & { id: string; full_name: string 
   section: 'A',
   guardian_name: null,
   class_offering_id: 'off-six-a',
+  group_department: null,
+  shift: null,
+  academic_year: null,
   ...over,
 })
 

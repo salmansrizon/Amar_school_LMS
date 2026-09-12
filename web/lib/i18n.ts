@@ -1863,7 +1863,7 @@ const dict = {
   'students.oldStudents': { bn: 'পুরাতন শিক্ষার্থী', en: 'Old Students' },
   'students.newAdmission': { bn: 'নতুন ভর্তি', en: 'New Admission' },
   'students.roll': { bn: 'রোল', en: 'Roll' },
-  'students.classSection': { bn: 'শ্রেণি/শাখা', en: 'Class/Section' },
+  'students.classSection': { bn: 'শ্রেণি', en: 'Class' },
   'students.guardian': { bn: 'অভিভাবক', en: 'Guardian' },
   'students.behaviourAvg': { bn: 'আচরণ লগ (গড়)', en: 'Behaviour Avg' },
   'students.status': { bn: 'অবস্থা', en: 'Status' },

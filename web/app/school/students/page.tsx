@@ -4,6 +4,8 @@ import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { schoolRoster } from '@/lib/school/roster-source'
 import { behaviourAverages } from '@/lib/students'
+import { classCatalogueLabel } from '@/lib/class-catalogue'
+import type { RosterStudent } from '@/lib/school/roster'
 import { Badge } from '@/components/ui/badge'
 import {
   Table,
@@ -18,14 +20,30 @@ import { EmptyState } from '@/components/ui/states'
 import { StudentFilters } from './student-filters'
 
 // Layout per ui/school-owner/students-list.html: search (name/roll/guardian) +
-// class/section filters, table Roll | Name | Class/Section | Guardian |
+// class/section filters, table Roll | Name | Class | Guardian |
 // Behaviour Avg | Status | View, with Old Students + New Admission actions.
+// The Class column renders the full shared Class Catalogue label (issue
+// #621's follow-up), not a bare class_name/section join — same format every
+// picker in the app already uses.
 //
 // List archetype (gate #372): renders bare content — the shell owns the <main>,
 // the width and the gutters — so the table fills the viewport instead of sitting
 // in an 896px column. Columns distribute across that width the way an ERP grid
 // does; an earlier pass clustered them left and left the right half of the card
 // empty, which read as broken rather than tidy.
+/** The Class column's full Class Catalogue label ({name} ({group}) - {shift}
+ *  - {section} — {year}), same shared formatter every other picker/label in
+ *  the app uses — never a bare class_name/section join. Null for an unplaced
+ *  Student (class_name null), same as before this column carried more than
+ *  name+section. */
+function classLabelFor(s: RosterStudent, showYear: boolean): string | null {
+  if (!s.class_name) return null
+  return classCatalogueLabel(
+    { name: s.class_name, section: s.section, group_department: s.group_department, shift: s.shift, academic_year: s.academic_year },
+    showYear,
+  )
+}
+
 function avgBadge(avg: number | undefined) {
   if (avg === undefined) return <span className="text-muted">—</span>
   const tone =
@@ -135,7 +153,7 @@ export default async function StudentsPage({
                   </span>
                 </div>
                 <p className="mt-0.5 text-xs text-muted">
-                  {[s.class_name, s.section].filter(Boolean).join(' / ') || '—'}
+                  {classLabelFor(s, showYear) ?? '—'}
                   {s.guardian_name ? ` · ${s.guardian_name}` : ''}
                 </p>
                 <Link
@@ -170,9 +188,7 @@ export default async function StudentsPage({
                   </TableCell>
                   <TableCell className="font-medium">{s.full_name}</TableCell>
                   <TableCell>
-                    {[s.class_name, s.section].filter(Boolean).join(' / ') || (
-                      <span className="text-muted">—</span>
-                    )}
+                    {classLabelFor(s, showYear) ?? <span className="text-muted">—</span>}
                   </TableCell>
                   <TableCell>{s.guardian_name ?? <span className="text-muted">—</span>}</TableCell>
                   <TableCell>{avgBadge(avgs.get(s.id))}</TableCell>

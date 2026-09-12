@@ -30,25 +30,37 @@ import {
  *  by every caller: a student who has left is not on a register, not in a fee
  *  roster, and not in the list an Owner manages.
  *
- *  `roll_number`/`class_offering_id` (and its `name`/`section`) come from the
- *  Student's CURRENT Enrollment, not the legacy `students.class_name`/
- *  `section`/`roll_number` bridge (map #568/#582, Wave 4a Part B — blocked on
- *  Wave 6's backfill, which has now landed, #591). A left embed, not `!inner`:
- *  an unplaced Student (`current_enrollment_id is null`) must still come back
- *  with a null `student_enrollments`, not be dropped — the same "all Students
- *  visible under All classes" contract the text bridge always had (#569's "no
+ *  `roll_number`/`class_offering_id` (and its `name`/`section`/
+ *  `group_department`/`shift`/`academic_year`) come from the Student's
+ *  CURRENT Enrollment, not the legacy `students.class_name`/`section`/
+ *  `roll_number` bridge (map #568/#582, Wave 4a Part B — blocked on Wave 6's
+ *  backfill, which has now landed, #591). The three Offering fields beyond
+ *  name/section exist here only so a roster screen can render the shared
+ *  Class Catalogue label (`classCatalogueLabel`) instead of a bare
+ *  `class_name`/`section` join — added for the Students List (follow-up to
+ *  #621), one edit here rather than four, per this file's own stated
+ *  purpose. A left embed, not `!inner`: an unplaced Student
+ *  (`current_enrollment_id is null`) must still come back with a null
+ *  `student_enrollments`, not be dropped — the same "all Students visible
+ *  under All classes" contract the text bridge always had (#569's "no
  *  current Enrollment is a valid state"). `current_enrollment_id` can only
  *  ever point at an OPEN Enrollment by construction (`set_student_enrollment`
  *  closes the old one and repoints it atomically in the same transaction), so
  *  there is no separate `closed_at` to filter here. */
 const ROSTER_COLUMNS = `id, full_name, guardian_name,
   student_enrollments!students_current_enrollment_id_fkey(roll_number, class_offering_id,
-    class_offerings(name, section))`
+    class_offerings(name, section, group_department, shift, academic_year))`
 
 interface EnrollmentEmbed {
   roll_number: number | null
   class_offering_id: string | null
-  class_offerings: { name: string; section: string | null }[]
+  class_offerings: {
+    name: string
+    section: string | null
+    group_department: string | null
+    shift: string | null
+    academic_year: number | null
+  }[]
 }
 
 interface StudentRow {
@@ -69,6 +81,9 @@ function toRosterStudent(row: StudentRow): RosterStudent {
     class_offering_id: enrollment?.class_offering_id ?? null,
     class_name: offering?.name ?? null,
     section: offering?.section ?? null,
+    group_department: offering?.group_department ?? null,
+    shift: offering?.shift ?? null,
+    academic_year: offering?.academic_year ?? null,
   }
 }
 

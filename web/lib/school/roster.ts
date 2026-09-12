@@ -34,6 +34,14 @@ export interface RosterStudent {
   /** The Offering this Student's current Enrollment points at, or null when
    *  unplaced. What `rosterFor` actually filters on — never the text pair. */
   class_offering_id: string | null
+  /** The rest of the current Enrollment's Offering — group/shift/year — added
+   *  so a roster screen can render the full shared Class Catalogue label
+   *  (`classCatalogueLabel`, `lib/class-catalogue.ts`) instead of a bare
+   *  `class_name`/`section` join. Null whenever `class_name` is (unplaced),
+   *  and independently null for any field the Offering itself never set. */
+  group_department: string | null
+  shift: string | null
+  academic_year: number | null
 }
 
 /**

@@ -3,6 +3,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { signedIn } from '../helpers/auth'
 import { applyGlobalYearFilterToStudents } from '@/lib/school/year-filter'
 import { schoolRoster, studentRegister } from '@/lib/school/roster-source'
+import { classCatalogueLabel } from '@/lib/class-catalogue'
 
 // Global Academic Year Filtering for Students (issue #621's own follow-up,
 // grilled explicitly against the initially-recommended "browse-only" split)
@@ -196,5 +197,92 @@ describe('schoolRoster narrows "All Classes" to the Global Academic Year Selecti
     // ...and 2026, their old year, no longer does: their CURRENT Enrollment is
     // what this filter tests, not their Enrollment history.
     expect(await rosterNames([2026])).toEqual([])
+  })
+})
+
+// The Students List "Class" column (follow-up to #621 and the roster-year
+// filter above): schoolRoster's returned RosterStudent now carries the rest
+// of the current Enrollment's Offering (group_department/shift/academic_year),
+// added so the page can render the shared classCatalogueLabel format instead
+// of a bare class_name/section join. Proven end-to-end against real data
+// because a typo'd column or a wrong join alias would silently show a
+// truncated label in production, not fail a mock.
+describe('schoolRoster carries enough Offering data for the shared Class Catalogue label', () => {
+  let owner: SupabaseClient
+  const CTAG = 'ZZ621classlabel'
+  let studentId: string
+
+  beforeAll(async () => {
+    owner = await signedIn('owner-a@test.local')
+    await owner.from('students').delete().like('full_name', `${CTAG}%`)
+    await owner.from('class_offerings').delete().like('name', `${CTAG}%`)
+
+    const { data: offering, error: offErr } = await owner
+      .from('class_offerings')
+      .insert({
+        name: `${CTAG} Nine`,
+        section: 'A',
+        group_department: 'Science',
+        shift: 'Morning',
+        academic_year: 2027,
+      })
+      .select('id')
+      .single()
+    if (offErr) throw new Error(offErr.message)
+
+    const { data: student, error: stuErr } = await owner
+      .from('students')
+      .insert({ full_name: `${CTAG} Student` })
+      .select('id')
+      .single()
+    if (stuErr) throw new Error(stuErr.message)
+    studentId = student!.id
+
+    const { error: admitErr } = await owner.rpc('admit_student_enrollment', {
+      p_student_id: studentId,
+      p_class_offering_id: offering!.id,
+      p_roll_number: null,
+      p_note: null,
+    })
+    if (admitErr) throw new Error(admitErr.message)
+  })
+
+  afterAll(async () => {
+    await owner.from('students').delete().like('full_name', `${CTAG}%`)
+    await owner.from('class_offerings').delete().like('name', `${CTAG}%`)
+  })
+
+  it("returns the row's group_department/shift/academic_year alongside class_name/section", async () => {
+    const view = await schoolRoster(owner, { academicYearSelection: [2027] })
+    const row = view.students.find((s) => s.id === studentId)!
+    expect(row).toMatchObject({
+      class_name: `${CTAG} Nine`,
+      section: 'A',
+      group_department: 'Science',
+      shift: 'Morning',
+      academic_year: 2027,
+    })
+  })
+
+  it('feeds classCatalogueLabel to produce the exact format the Students List Class column shows', async () => {
+    const view = await schoolRoster(owner, { academicYearSelection: [2027] })
+    const row = view.students.find((s) => s.id === studentId)!
+    expect(
+      classCatalogueLabel(
+        { name: row.class_name!, section: row.section, group_department: row.group_department, shift: row.shift, academic_year: row.academic_year },
+        true,
+      ),
+    ).toBe(`${CTAG} Nine (Science) - Morning - A — 2027`)
+  })
+
+  it('omits the year segment for a single-started-year School (showYear false) — byte-identical to before this column existed', async () => {
+    const view = await schoolRoster(owner, { academicYearSelection: [2027] })
+    const row = view.students.find((s) => s.id === studentId)!
+    expect(
+      classCatalogueLabel(
+        { name: row.class_name!, section: row.section, group_department: row.group_department, shift: row.shift, academic_year: row.academic_year },
+        false,
+      ),
+    ).toBe(`${CTAG} Nine (Science) - Morning - A`)
   })
 })

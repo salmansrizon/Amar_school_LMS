@@ -155,7 +155,7 @@ test.describe('@crud @school class-section-select', () => {
     const studentB = await createStudent(owner, { className, section: sectionB })
 
     await page.goto('/school/students')
-    const trigger = page.getByRole('combobox', { name: 'শ্রেণি/শাখা' }) // students.classSection
+    const trigger = page.getByRole('combobox', { name: 'শ্রেণি' }) // students.classSection
     await expect(trigger).toBeVisible()
     await trigger.click()
     await expect(page.getByRole('option', { name: labelA })).toHaveCount(1)
@@ -189,7 +189,7 @@ test.describe('@crud @school class-section-select', () => {
     await expect(page.locator('select[name="classSection"] option', { hasText: 'All Classes' })).toHaveCount(1)
 
     await page.goto('/school/students')
-    await page.getByRole('combobox', { name: 'Class/Section' }).click()
+    await page.getByRole('combobox', { name: 'Class' }).click()
     await expect(page.getByRole('option', { name: 'All Classes' })).toBeVisible()
     await expectNoError(page)
   })
