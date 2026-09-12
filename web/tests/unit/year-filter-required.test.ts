@@ -13,6 +13,18 @@ import { join } from 'node:path'
 // bug this test exists to catch (found in production after #621 shipped:
 // several pickers showed every year's Offerings regardless of the global
 // selection).
+//
+// Deliberately watches `class_offerings` only, NOT `students` (unlike the
+// shift-filter guard, which watches both): `students` reads span admission,
+// transfer, employee, billing and archive surfaces where the reasons a read
+// doesn't apply the Shift filter mostly apply here too, and a grep-based
+// guard would need to re-derive nearly that entire allowlist for exactly one
+// true positive (lib/school/roster-source.ts's schoolRoster). That one seam
+// gets a stronger, precise proof instead — a live-Postgres integration test
+// (tests/integration/year-selection.test.ts) exercising the real behavior,
+// including the promotion-lag scenario applyGlobalYearFilterToStudents's own
+// doc comment describes, plus its empty-selection short-circuit in
+// tests/unit/year-filter.test.ts.
 
 const WATCHED_TABLES = ['class_offerings']
 

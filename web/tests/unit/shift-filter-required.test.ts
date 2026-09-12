@@ -28,6 +28,14 @@ const SINGLE_ROW = /\.(single|maybeSingle)\(/
  *  its name — see the Wave 5 (#590) resolution comment on GitHub for the
  *  full per-site reasoning this summarizes. */
 const EXEMPT: [file: string, reason: string][] = [
+  // --- class_offerings: the Year-filter's own internal implementation
+  // detail (issue #621's Students-roster follow-up) — resolves matching
+  // Offerings by Academic Year only, deliberately orthogonal to Shift, not
+  // itself a picker. Symmetric with this file's own internal
+  // class_offerings read below, which the year-filter guard exempts for the
+  // same reason in reverse.
+  ['lib/school/year-filter.ts', 'internal id-resolution read for applyGlobalYearFilterToStudents, not a picker'],
+
   // --- class_offerings: dual-purpose lookups (label an OTHER already-
   // existing entity by class_id) — filtering would blank legitimate
   // existing labels for off-shift classes, not just narrow a picker.

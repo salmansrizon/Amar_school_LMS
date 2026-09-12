@@ -3,7 +3,7 @@ import { resolveClassSection, type ClassCatalogueOption, type ClassCatalogueRow 
 import { firstRelation } from '@/lib/supabase/relation'
 import { classScopeFor } from '@/lib/school/class-scope'
 import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
-import { applyGlobalYearFilterToOfferings } from '@/lib/school/year-filter'
+import { applyGlobalYearFilterToOfferings, applyGlobalYearFilterToStudents } from '@/lib/school/year-filter'
 import {
   latestMark,
   markedByOf,
@@ -123,8 +123,22 @@ export async function schoolRoster(
   // now the Enrollment's class_offering_id (see ROSTER_COLUMNS). Caller
   // passes its own getSchoolContext().shiftSelection — already resolved once
   // per request, no re-fetch needed here.
-  const [{ data: students }, { data: classes }] = await Promise.all([
+  //
+  // Academic Year is NOT the same kind of filter (issue #621's own
+  // follow-up decision, deliberately diverging from Shift's precedent here):
+  // it narrows the Student read itself, not just the picker's Offering list
+  // below — a Student whose current Enrollment sits in a deselected year is
+  // excluded from the roster outright (see applyGlobalYearFilterToStudents's
+  // own doc comment for the accepted promotion-lag consequence). That
+  // resolution needs its own two round trips before the Students read can
+  // run, so it sits outside the Promise.all below rather than inside it.
+  const studentsQuery = await applyGlobalYearFilterToStudents(
+    supabase,
     supabase.from('students').select(ROSTER_COLUMNS).is('archived_at', null).order('full_name'),
+    academicYearSelection,
+  )
+  const [{ data: students }, { data: classes }] = await Promise.all([
+    studentsQuery,
     applyGlobalYearFilterToOfferings(
       applyGlobalShiftFilterToOfferings(
         supabase
