@@ -19,7 +19,23 @@ const VOCABULARIES: Record<string, Record<string, Parameters<typeof t>[0]>> = {
   gender: {
     male: 'students.male',
     female: 'students.female',
+    third_gender: 'students.thirdGender',
   },
+  religion: {
+    islam: 'students.islam',
+    hinduism: 'students.hinduism',
+    christianity: 'students.christianity',
+    buddhism: 'students.buddhism',
+  },
+}
+
+/** The canonical vocabulary value `field` recognizes for `value` (e.g. `male`),
+ *  or null when `value` is free text the form's "Other" path captured — those
+ *  must render as typed, not be forced into a bucket that isn't theirs. */
+export function knownVocabularyValue(field: string, value: string | null | undefined): string | null {
+  if (!value) return null
+  const v = value.trim().toLowerCase()
+  return VOCABULARIES[field]?.[v] ? v : null
 }
 
 /** Translate a stored value for `field`, or return it unchanged.
@@ -42,3 +58,6 @@ export const guardianRelationLabel = (value: string | null | undefined, lang: La
 
 export const genderLabel = (value: string | null | undefined, lang: Lang) =>
   storedFieldLabel('gender', value, lang)
+
+export const religionLabel = (value: string | null | undefined, lang: Lang) =>
+  storedFieldLabel('religion', value, lang)

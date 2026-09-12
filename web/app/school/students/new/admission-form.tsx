@@ -21,8 +21,23 @@ import {
 import { admitStudent, studentPhotoUploadTicket, recordStudentPhoto } from '../actions'
 import { dateInputClass, selectClass } from '@/components/ui/field'
 import { uploadWithSignedToken } from '@/lib/storage/upload-client'
+import { knownVocabularyValue } from '@/lib/students/stored-labels'
 
 const MAX_PHOTO_BYTES = 2 * 1024 * 1024 // mirrors the bucket's server-enforced cap
+
+const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']
+
+/** Religion is free text (grilled explicitly: no DB enum), but the form
+ *  offers a curated dropdown ending in "Other" + a reveal text field so a
+ *  typed answer isn't lost. Splits a stored value into the select's own
+ *  choice and, only for a value the vocabulary doesn't recognize, the text
+ *  that goes in the reveal field — mirrors how `class_name`/`section` above
+ *  resolve from one dropdown into the fields the server actually reads. */
+function splitReligionDefault(value: string) {
+  const known = knownVocabularyValue('religion', value)
+  if (known) return { choice: known, other: '' }
+  return { choice: value ? 'other' : '', other: value }
+}
 
 export const fieldClass =
   'w-full rounded-md border border-line bg-paper px-3 py-2 text-sm focus:border-brand-500 focus:outline-none'
@@ -127,6 +142,7 @@ export function ProfileFields({
   // findClassCatalogueId so an in-progress edit still shows the right
   // option selected, even though `defaults` never carried an id.
   const [editComboId, setEditComboId] = useState(() => findClassCatalogueId(classCatalogue, d('class_name'), d('section')))
+  const [religion, setReligion] = useState(() => splitReligionDefault(d('religion')))
   // Only className is required — an empty section is itself a valid scope
   // (a class with no sections at all, e.g. most Primary classes per
   // docs/012): nextRollNumber and assign_student_roll both treat "no
@@ -154,10 +170,18 @@ export function ProfileFields({
               <option value="">—</option>
               <option value="male">{t('students.male', lang)}</option>
               <option value="female">{t('students.female', lang)}</option>
+              <option value="third_gender">{t('students.thirdGender', lang)}</option>
             </select>
           </Field>
           <Field label={t('students.bloodGroup', lang)}>
-            <input name="blood_group" defaultValue={d('blood_group')} className={fieldClass} placeholder="A+" />
+            <select name="blood_group" defaultValue={d('blood_group')} className={selectClass({ size: 'md', fullWidth: true })}>
+              <option value="">—</option>
+              {BLOOD_GROUPS.map((bg) => (
+                <option key={bg} value={bg}>
+                  {bg}
+                </option>
+              ))}
+            </select>
           </Field>
           {usingOfferings ? (
             <Field label={t('students.class', lang)}>
@@ -241,7 +265,27 @@ export function ProfileFields({
             {suggestRoll && <p className="mt-1 text-xs text-muted">{t('students.rollAutoNote', lang)}</p>}
           </Field>
           <Field label={t('students.religion', lang)}>
-            <input name="religion" defaultValue={d('religion')} className={fieldClass} />
+            <select
+              value={religion.choice}
+              onChange={(e) => setReligion({ choice: e.target.value, other: religion.other })}
+              className={selectClass({ size: 'md', fullWidth: true })}
+            >
+              <option value="">—</option>
+              <option value="islam">{t('students.islam', lang)}</option>
+              <option value="hinduism">{t('students.hinduism', lang)}</option>
+              <option value="christianity">{t('students.christianity', lang)}</option>
+              <option value="buddhism">{t('students.buddhism', lang)}</option>
+              <option value="other">{t('students.otherReligion', lang)}</option>
+            </select>
+            {religion.choice === 'other' && (
+              <input
+                value={religion.other}
+                onChange={(e) => setReligion({ choice: 'other', other: e.target.value })}
+                placeholder={t('students.religionSpecify', lang)}
+                className={`${fieldClass} mt-2`}
+              />
+            )}
+            <input type="hidden" name="religion" value={religion.choice === 'other' ? religion.other : religion.choice} />
           </Field>
           <Field label={t('students.studentMobile', lang)}>
             <input name="student_mobile" defaultValue={d('student_mobile')} className={fieldClass} placeholder="01xxxxxxxxx" />

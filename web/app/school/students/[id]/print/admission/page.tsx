@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
 import { t } from '@/lib/i18n'
-import { genderLabel, guardianRelationLabel } from '@/lib/students/stored-labels'
+import { genderLabel, guardianRelationLabel, religionLabel } from '@/lib/students/stored-labels'
 import { getSchoolContext } from '@/lib/school/context'
 import { PrintPage, InstituteHeader, InfoGrid, SignatureRow, QrFooterRow } from '@/components/print/pieces'
 import { PrintButton } from '@/components/print/print-button'
@@ -55,7 +55,7 @@ export default async function AdmissionPrintPage({ params }: { params: Promise<{
             { label: t('students.gender', lang), value: v(genderLabel(student.gender, lang)) },
             { label: t('students.dob', lang), value: v(student.date_of_birth) },
             { label: t('students.bloodGroup', lang), value: v(student.blood_group) },
-            { label: t('students.religion', lang), value: v(student.religion) },
+            { label: t('students.religion', lang), value: v(religionLabel(student.religion, lang)) },
             { label: t('students.mobile', lang), value: v(student.student_mobile) },
             { label: t('students.address', lang), value: address || dash },
             { label: t('students.guardianName', lang), value: v(student.guardian_name) },

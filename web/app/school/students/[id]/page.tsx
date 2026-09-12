@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import { averageRating, isEntryLocked } from '@/lib/behaviour'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang, type MessageKey } from '@/lib/i18n'
-import { genderLabel, guardianRelationLabel } from '@/lib/students/stored-labels'
+import { genderLabel, guardianRelationLabel, religionLabel } from '@/lib/students/stored-labels'
 import { getSchoolContext } from '@/lib/school/context'
 import { classSectionLabel } from '@/lib/students'
 import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
@@ -179,7 +179,7 @@ export default async function StudentDetailPage({
               value={classSectionLabel(student.class_name, student.section)}
             />
             <InfoRow label={t('students.roll', lang)} value={student.roll_number} />
-            <InfoRow label={t('students.religion', lang)} value={student.religion} />
+            <InfoRow label={t('students.religion', lang)} value={religionLabel(student.religion, lang)} />
             <InfoRow label={t('students.studentMobile', lang)} value={student.student_mobile} />
           </InfoCard>
 
