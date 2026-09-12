@@ -64,7 +64,7 @@ export function StudentFilters({
         }}
       />
       <Select value={classSection || ALL} onValueChange={(v) => apply('classSection', v)}>
-        <SelectTrigger className="w-56" aria-label={t('students.classSection', lang)}>
+        <SelectTrigger className="w-80" aria-label={t('students.classSection', lang)}>
           {/* Base UI renders the raw value unless the label is resolved here, so
               the sentinel would otherwise show as "__all__" in the trigger. */}
           <SelectValue>
