@@ -23,12 +23,16 @@ export default async function StudentLogPage({
 }) {
   const { classSection = '' } = await searchParams
   const lang: Lang = await currentLang()
-  const { supabase, shiftSelection } = await getSchoolContext()
+  const { supabase, shiftSelection, startedAcademicYears } = await getSchoolContext()
+  // Started-year history is the signal (#609/#612), same boolean T6/#615
+  // threaded into the Fee Structures Offering picker.
+  const showYear = startedAcademicYears.length > 1
 
   // The roster model owns the fetch, the class filter and the register sort.
   const { combos, students: visible } = await schoolRoster(supabase, {
     classSection,
     shiftSelection,
+    showYear,
   })
 
   // Forwards the already-picked Class Offering id straight through (map

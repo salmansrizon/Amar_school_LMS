@@ -98,7 +98,17 @@ export async function schoolRoster(
     classSection = '',
     q = '',
     shiftSelection = [],
-  }: { classSection?: string; q?: string; shiftSelection?: readonly string[] } = {},
+    showYear = false,
+  }: {
+    classSection?: string
+    q?: string
+    shiftSelection?: readonly string[]
+    /** Academic Year segment on the class/section picker (issue #621, map
+     *  #609's recipe) — true only when the School has more than one started
+     *  Academic Year. Caller passes its own
+     *  getSchoolContext().startedAcademicYears.length > 1. */
+    showYear?: boolean
+  } = {},
 ): Promise<RosterView> {
   // Shift (issue #579, Wave 5/#590): only narrows which classes appear as
   // picker OPTIONS below — orthogonal to the roster's own filter, which is
@@ -108,7 +118,10 @@ export async function schoolRoster(
   const [{ data: students }, { data: classes }] = await Promise.all([
     supabase.from('students').select(ROSTER_COLUMNS).is('archived_at', null).order('full_name'),
     applyGlobalShiftFilterToOfferings(
-      supabase.from('class_offerings').select('id, name, section, group_department, shift').order('created_at'),
+      supabase
+        .from('class_offerings')
+        .select('id, name, section, group_department, shift, academic_year')
+        .order('created_at'),
       shiftSelection,
     ),
   ])
@@ -119,7 +132,7 @@ export async function schoolRoster(
   // combos/className/section stay purely for display (picker options, print
   // headings) via the one canonical helper (class-catalogue.ts), not a second
   // one duplicating it (map #568/#582, Wave 4a Part B).
-  const { combos, className, section } = resolveClassSection((classes ?? []) as ClassCatalogueRow[], classSection)
+  const { combos, className, section } = resolveClassSection((classes ?? []) as ClassCatalogueRow[], classSection, showYear)
   // An id that doesn't match any current Offering (deleted, mistyped, a stale
   // bookmark/printout) must degrade to "All classes", same as an absent
   // filter — resolveClassCatalogueSelection's own documented contract, which
@@ -166,9 +179,16 @@ export async function studentRegister(
     date,
     viewerId,
     shiftSelection = [],
-  }: { classSection?: string; date: string; viewerId: string; shiftSelection?: readonly string[] },
+    showYear = false,
+  }: {
+    classSection?: string
+    date: string
+    viewerId: string
+    shiftSelection?: readonly string[]
+    showYear?: boolean
+  },
 ): Promise<RegisterView> {
-  const view = await schoolRoster(supabase, { classSection, shiftSelection })
+  const view = await schoolRoster(supabase, { classSection, shiftSelection, showYear })
   const ids = view.students.map((s) => s.id)
   if (!ids.length) return { ...view, rows: [], markedBy: null }
 

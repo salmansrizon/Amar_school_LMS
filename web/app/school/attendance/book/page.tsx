@@ -48,7 +48,10 @@ export default async function AttendanceBookPage({
   } = await searchParams
   const mode = modeParam === 'blank' ? 'blank' : 'filled'
   const lang: Lang = await currentLang()
-  const { supabase, shiftSelection } = await getSchoolContext()
+  const { supabase, shiftSelection, startedAcademicYears } = await getSchoolContext()
+  // Started-year history is the signal (#609/#612), same boolean T6/#615
+  // threaded into the Fee Structures Offering picker.
+  const showYear = startedAcademicYears.length > 1
 
   const [yearStr, monthStr] = monthParam.split('-')
   const year = Number(yearStr) || new Date().getUTCFullYear()
@@ -60,7 +63,7 @@ export default async function AttendanceBookPage({
 
   const [institute, { combos, className, section, students: visible }] = await Promise.all([
     loadInstitutePrintHeader(supabase, lang),
-    schoolRoster(supabase, { classSection, shiftSelection }),
+    schoolRoster(supabase, { classSection, shiftSelection, showYear }),
   ])
   const visibleIds = visible.map((s) => s.id)
 

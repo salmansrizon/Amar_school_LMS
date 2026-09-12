@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { classCatalogueLabel, classCatalogueOptions } from '@/lib/class-catalogue'
+import { classCatalogueLabel, classCatalogueOptions, resolveClassSection } from '@/lib/class-catalogue'
 
 // Issue #621 — surgical follow-up to map #609 (T5/#614, T6/#615): every
 // remaining Class Offering picker/dropdown now selects `academic_year` and
@@ -108,6 +108,39 @@ describe('#621 — Fee Collection class filter picker (classCatalogueLabel)', ()
   it('filter option carries the year only when showYear is true', () => {
     expect(classCatalogueLabel(row, false)).toBe('Five - A')
     expect(classCatalogueLabel(row, true)).toBe('Five - A — 2026')
+  })
+})
+
+describe('shared roster picker — Students list / Mark Attendance / Attendance Book / Student Log (resolveClassSection)', () => {
+  // A gap found after #621 shipped, same recipe: lib/school/roster-source.ts's
+  // schoolRoster/studentRegister is the ONE seam behind all four of these
+  // screens' `classSection` picker (ClassSectionSelect renders its `combos`
+  // as-is), so fixing resolveClassSection's call site there fixes every
+  // caller at once. Row shape mirrors roster-source.ts's own
+  // class_offerings select: id, name, section, group_department, shift,
+  // academic_year.
+  const rows = [
+    { id: 'off-2026', name: 'Nine', section: 'A', group_department: 'Science', shift: 'Morning', academic_year: 2026 },
+    { id: 'off-2027', name: 'Nine', section: 'A', group_department: 'Science', shift: 'Morning', academic_year: 2027 },
+  ]
+
+  it('showYear=false (single started year): combos stay byte-identical to before this fix', () => {
+    expect(resolveClassSection(rows, 'off-2027', false).combos.map((o) => o.label)).toEqual([
+      'Nine (Science) - Morning - A',
+      'Nine (Science) - Morning - A',
+    ])
+  })
+
+  it('showYear=true: the picker distinguishes the two Offerings by year', () => {
+    expect(resolveClassSection(rows, 'off-2027', true).combos.map((o) => o.label)).toEqual([
+      'Nine (Science) - Morning - A — 2026',
+      'Nine (Science) - Morning - A — 2027',
+    ])
+  })
+
+  it('the resolved className/section pair is unaffected by showYear — only the label changes', () => {
+    expect(resolveClassSection(rows, 'off-2027', true)).toMatchObject({ className: 'Nine', section: 'A' })
+    expect(resolveClassSection(rows, 'off-2027', false)).toMatchObject({ className: 'Nine', section: 'A' })
   })
 })
 
