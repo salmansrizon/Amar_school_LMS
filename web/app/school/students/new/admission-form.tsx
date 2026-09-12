@@ -7,14 +7,17 @@ import { t, type Lang } from '@/lib/i18n'
 import { compressImage, IMAGE_PRESETS } from '@/lib/image/compress'
 import {
   photoExtension,
-  sectionsForClass,
-  classNamesFor,
   nextRollNumber,
   nextRollNumberForOffering,
   type RollRow,
   type EnrollmentRollRow,
 } from '@/lib/students'
-import { classCatalogueOptions, type ClassCatalogueRow } from '@/lib/class-catalogue'
+import {
+  classCatalogueOptions,
+  findClassCatalogueId,
+  resolveClassCatalogueSelection,
+  type ClassCatalogueRow,
+} from '@/lib/class-catalogue'
 import { admitStudent, studentPhotoUploadTicket, recordStudentPhoto } from '../actions'
 import { dateInputClass, selectClass } from '@/components/ui/field'
 import { uploadWithSignedToken } from '@/lib/storage/upload-client'
@@ -46,14 +49,27 @@ export function Field({ label, children }: { label: string; children: React.Reac
 /** Shared admission-profile sections (Identity/Address/Guardian/Benefits/
  *  Previous/Sibling) — reused by the edit form on the detail page.
  *
- *  Class selection has two modes (map #568/#582, issue #586): pass
- *  `classOfferings` for Admission's id-based Class Offering picker
- *  (submits `class_offering_id`, routed through admit_student_enrollment —
- *  see actions.ts's admitStudent), or `classes` for the edit form's
- *  unchanged text-based class_name/section cascade (updateStudent's direct
- *  profile-edit path was never proposed for retirement by #569-#574 — see
- *  0180's own header comment). Exactly one of the two is expected per
- *  caller. */
+ *  Class selection has two modes (map #568/#582, issue #586), both now
+ *  rendered as ONE Class Catalogue-labelled dropdown (grilled explicitly,
+ *  student-detail edit-form follow-up: option A — presentation only, no
+ *  change to what either mode writes):
+ *  - `classOfferings` for Admission's id-based Class Offering picker —
+ *    submits `class_offering_id` directly, routed through
+ *    admit_student_enrollment (actions.ts's admitStudent).
+ *  - `classes` for the edit form's still-text-based class_name/section pair
+ *    (updateStudent's direct profile-edit path was never proposed for
+ *    retirement by #569-#574 — see 0180's own header comment, and this
+ *    session's own ADR on the Enrollment-vs-text drift this path is
+ *    accepted to still carry). The dropdown here is id-based only to build
+ *    and disambiguate its OWN option list; the id itself is never
+ *    submitted — on pick it resolves straight back to a plain
+ *    `class_name`/`section` text pair via two hidden inputs, exactly the
+ *    shape `updateStudent` already reads. Two Offerings sharing a name+
+ *    section (differing by Shift/Year/Group) still resolve to the same
+ *    text pair here, same as the two-select cascade this replaced — a
+ *    pre-existing, not a new, ambiguity.
+ *
+ *  Exactly one of `classes`/`classOfferings` is expected per caller. */
 export function ProfileFields({
   lang,
   classes,
@@ -66,12 +82,10 @@ export function ProfileFields({
   showYear = false,
 }: {
   lang: Lang
-  /** Edit mode: the legacy text-based class/section cascade — same
-   *  Class Catalogue rows as `classOfferings`, just submitted as a
-   *  class_name/section text pair instead of an id (map #568/#582, Wave 4a
-   *  Part B: classNamesFor/sectionsForClass now derive from
-   *  classCatalogueOptions() too, so both modes read the one canonical
-   *  source). */
+  /** Edit mode: same Class Catalogue rows as `classOfferings`, rendered the
+   *  same way, but still submitted as a class_name/section text pair
+   *  instead of an id (map #568/#582, Wave 4a Part B — see this function's
+   *  own doc comment for why). */
   classes?: ClassCatalogueRow[]
   /** Admission mode: the id-based Class Offering picker. */
   classOfferings?: ClassCatalogueRow[]
@@ -88,9 +102,9 @@ export function ProfileFields({
    *  `rolls`/`rollIncrement` are never fetched for that call site, so a
    *  suggestion computed there would be a meaningless "1" every time. */
   suggestRoll?: boolean
-  /** Academic Year segment on the id-based Offering picker (issue #621, map
-   *  #609's recipe) — true only when the School has more than one started
-   *  Academic Year. Edit mode's text cascade never shows it. */
+  /** Academic Year segment on the Class dropdown, both modes (issue #621,
+   *  map #609's recipe) — true only when the School has more than one
+   *  started Academic Year. */
   showYear?: boolean
 }) {
   const d = (key: string) => String(defaults[key] ?? '')
@@ -99,15 +113,20 @@ export function ProfileFields({
     () => (classOfferings ? classCatalogueOptions(classOfferings, showYear) : []),
     [classOfferings, showYear],
   )
-  // Edit mode's own catalogue options, computed once and shared by both
-  // classNamesFor and sectionsForClass below — not two independent
-  // class_offerings-shaped derivations.
-  const classCatalogue = useMemo(() => (classes ? classCatalogueOptions(classes) : []), [classes])
-  const classNames = classNamesFor(classCatalogue)
+  // Edit mode's own catalogue options — one Class Catalogue-labelled
+  // dropdown, same as offeringOptions above; only the write path differs
+  // (see this function's own doc comment).
+  const classCatalogue = useMemo(() => (classes ? classCatalogueOptions(classes, showYear) : []), [classes, showYear])
   const [className, setClassName] = useState(d('class_name'))
   const [section, setSection] = useState(d('section'))
   const [classOfferingId, setClassOfferingId] = useState('')
-  const sections = useMemo(() => sectionsForClass(classCatalogue, className), [classCatalogue, className])
+  // The dropdown's own selection — an id purely to pick one option out of
+  // the (possibly ambiguous by name+section alone) catalogue; resolved
+  // immediately back to the className/section this mode actually submits.
+  // Initialized from the edit form's existing text pair via
+  // findClassCatalogueId so an in-progress edit still shows the right
+  // option selected, even though `defaults` never carried an id.
+  const [editComboId, setEditComboId] = useState(() => findClassCatalogueId(classCatalogue, d('class_name'), d('section')))
   // Only className is required — an empty section is itself a valid scope
   // (a class with no sections at all, e.g. most Primary classes per
   // docs/012): nextRollNumber and assign_student_roll both treat "no
@@ -163,47 +182,35 @@ export function ProfileFields({
               </select>
             </Field>
           ) : (
-            <>
-              <Field label={t('students.class', lang)}>
-                <select
-                  name="class_name"
-                  value={className}
-                  onChange={(e) => {
-                    setClassName(e.target.value)
-                    // A section from the old class won't be in the new class's
-                    // options — clear it rather than leave stale state behind
-                    // (the <select> below is now controlled, so it can no longer
-                    // rely on the key-remount trick to reset itself).
-                    setSection('')
-                  }}
-                  className={selectClass({ size: 'md', fullWidth: true })}
-                >
-                  <option value="">—</option>
-                  {classNames.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                </select>
-              </Field>
-              <Field label={t('students.section', lang)}>
-                {/* Controlled — the class select's onChange clears this state
-                    directly so a stale section can't linger past a class change. */}
-                <select
-                  name="section"
-                  value={section}
-                  onChange={(e) => setSection(e.target.value)}
-                  className={selectClass({ size: 'md', fullWidth: true })}
-                >
-                  <option value="">—</option>
-                  {sections.map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ))}
-                </select>
-              </Field>
-            </>
+            <Field label={t('students.class', lang)}>
+              {/* Edit mode (grilled explicitly, option A): one Class
+                  Catalogue-labelled select, same shape as every other
+                  Offering picker in the app. Its own value is an id, purely
+                  to disambiguate the option list — never submitted. Picking
+                  one resolves straight to the className/section hidden
+                  inputs below, so updateStudent's payload is byte-identical
+                  in shape to the two-select cascade this replaced. */}
+              <select
+                value={editComboId}
+                onChange={(e) => {
+                  const id = e.target.value
+                  setEditComboId(id)
+                  const resolved = resolveClassCatalogueSelection(classCatalogue, id)
+                  setClassName(resolved.className)
+                  setSection(resolved.section)
+                }}
+                className={selectClass({ size: 'md', fullWidth: true })}
+              >
+                <option value="">—</option>
+                {classCatalogue.map((c) => (
+                  <option key={c.value} value={c.value}>
+                    {c.label}
+                  </option>
+                ))}
+              </select>
+              <input type="hidden" name="class_name" value={className} />
+              <input type="hidden" name="section" value={section} />
+            </Field>
           )}
           <Field label={t('students.roll', lang)}>
             {/* key remounts on class/section (or Offering) change so a manual

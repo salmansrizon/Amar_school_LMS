@@ -6,6 +6,8 @@ import { t, type Lang, type MessageKey } from '@/lib/i18n'
 import { genderLabel, guardianRelationLabel } from '@/lib/students/stored-labels'
 import { getSchoolContext } from '@/lib/school/context'
 import { classSectionLabel } from '@/lib/students'
+import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
+import { applyGlobalYearFilterToOfferings } from '@/lib/school/year-filter'
 import { AddEntryForm, EditableEntry } from './behaviour-controls'
 import { ArchiveToggle, PhotoControl, ProfileEditor } from './profile-controls'
 import { StudentSubjects, type AssignedSubject } from './subject-controls'
@@ -43,7 +45,10 @@ export default async function StudentDetailPage({
 }) {
   const { id } = await params
   const lang: Lang = await currentLang()
-  const { supabase, role } = await getSchoolContext()
+  const { supabase, role, shiftSelection, startedAcademicYears, academicYearSelection } = await getSchoolContext()
+  // Started-year history is the signal (#609/#612), same boolean T6/#615
+  // threaded into the Fee Structures Offering picker.
+  const showYear = startedAcademicYears.length > 1
 
   const { data: student } = await supabase.from('students').select('*').eq('id', id).single()
   if (!student) notFound()
@@ -59,7 +64,16 @@ export default async function StudentDetailPage({
         .select('id, note, rating, remind_date, created_at')
         .eq('student_id', id)
         .order('created_at', { ascending: false }),
-      supabase.from('class_offerings').select('id, name, section').order('created_at'),
+      applyGlobalYearFilterToOfferings(
+        applyGlobalShiftFilterToOfferings(
+          supabase
+            .from('class_offerings')
+            .select('id, name, section, group_department, shift, academic_year')
+            .order('created_at'),
+          shiftSelection,
+        ),
+        academicYearSelection,
+      ),
       supabase.from('subjects').select('id, name').order('name'),
       supabase.from('student_subjects').select('subject_id, is_optional').eq('student_id', id),
       isOwner
@@ -141,7 +155,7 @@ export default async function StudentDetailPage({
           <PhotoControl lang={lang} studentId={id} hasPhoto={student.photo_path !== null} />
         </div>
 
-        <ProfileEditor lang={lang} student={student} classes={classes ?? []}>
+        <ProfileEditor lang={lang} student={student} classes={classes ?? []} showYear={showYear}>
           <InfoCard title={t('students.identity', lang)}>
             <InfoRow label={t('students.name', lang)} value={student.full_name} />
             <InfoRow

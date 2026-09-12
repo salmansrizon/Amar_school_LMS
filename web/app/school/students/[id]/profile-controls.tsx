@@ -22,11 +22,16 @@ export function ProfileEditor({
   lang,
   student,
   classes,
+  showYear = false,
   children,
 }: {
   lang: Lang
   student: Record<string, string | boolean | number | null> & { id: string; full_name: string }
   classes: ClassCatalogueRow[]
+  /** Academic Year segment on the Class dropdown (issue #621, map #609's
+   *  recipe) — true only when the School has more than one started
+   *  Academic Year. */
+  showYear?: boolean
   children: React.ReactNode // read-mode profile sections (server-rendered)
 }) {
   const router = useRouter()
@@ -65,7 +70,7 @@ export function ProfileEditor({
         })
       }}
     >
-      <ProfileFields lang={lang} classes={classes} defaults={student} />
+      <ProfileFields lang={lang} classes={classes} defaults={student} showYear={showYear} />
       {error && <p className="mb-3 text-sm text-alert-deep">{error}</p>}
       <div className="flex items-center justify-between">
         <button type="button" onClick={() => setEditing(false)} className={btnSecondary}>
