@@ -135,7 +135,7 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
 
         <footer className="mt-6 text-center text-xs text-muted">
           {t('fees.method', lang)}: {t(`fees.${record.payment_method}` as 'fees.cash', lang)} ·{' '}
-          {new Date(record.updated_at).toLocaleDateString()}
+          {new Date(record.updated_at).toLocaleDateString('en-GB')}
         </footer>
       </section>
     </main>

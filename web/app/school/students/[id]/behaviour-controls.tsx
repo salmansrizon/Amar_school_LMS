@@ -74,7 +74,7 @@ export function EditableEntry({
             {t('behaviour.rating', lang)}: <strong>{entry.rating}</strong>
             {entry.remind_date && <> · {t('behaviour.remind', lang)}: {entry.remind_date}</>}
             {' · '}
-            {new Date(entry.created_at).toLocaleDateString()}
+            {new Date(entry.created_at).toLocaleDateString('en-GB')}
           </p>
           {error && <p className="mt-1 text-xs text-alert-deep">{error}</p>}
         </div>
