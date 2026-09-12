@@ -23,16 +23,20 @@ export function TransferForm({
   lang,
   studentId,
   classOfferings,
+  showYear = false,
 }: {
   lang: Lang
   studentId: string
   classOfferings: ClassCatalogueRow[]
+  /** Academic Year segment (issue #621, map #609's recipe) — true only when
+   *  the School has more than one started Academic Year. */
+  showYear?: boolean
 }) {
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
   const [toOffering, setToOffering] = useState('')
-  const options = classCatalogueOptions(classOfferings)
+  const options = classCatalogueOptions(classOfferings, showYear)
 
   return (
     <form

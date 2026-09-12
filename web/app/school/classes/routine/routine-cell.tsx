@@ -203,12 +203,16 @@ export function ClassPicker({
   lang,
   basePath = '/school/classes/routine',
   pickLabelKey = 'routine.pickClass',
+  showYear = false,
 }: {
   classes: ClassCatalogueRow[]
   selected: string
   lang: Lang
   basePath?: string
   pickLabelKey?: 'routine.pickClass' | 'subjects.pickClass'
+  /** Academic Year segment (issue #621, map #609's recipe) — true only when
+   *  the School has more than one started Academic Year. */
+  showYear?: boolean
 }) {
   const router = useRouter()
   return (
@@ -223,7 +227,7 @@ export function ClassPicker({
       </option>
       {classes.map((c) => (
         <option key={c.id} value={c.id}>
-          {classCatalogueLabel(c)}
+          {classCatalogueLabel(c, showYear)}
         </option>
       ))}
     </select>

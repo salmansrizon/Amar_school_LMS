@@ -35,11 +35,17 @@ export default async function FeesPage({
   const year = Number(yearParam) || now.getFullYear()
 
   const lang: Lang = await currentLang()
-  const { supabase, shiftSelection } = await getSchoolContext()
+  const { supabase, shiftSelection, startedAcademicYears } = await getSchoolContext()
+  // Started-year history is the signal (#609/#612), same boolean T6/#615
+  // threaded into the Fee Structures Offering picker.
+  const showYear = startedAcademicYears.length > 1
 
   const [{ data: classes }, { data: recentRecords }] = await Promise.all([
     applyGlobalShiftFilterToOfferings(
-      supabase.from('class_offerings').select('id, name, section, group_department, shift').order('created_at'),
+      supabase
+        .from('class_offerings')
+        .select('id, name, section, group_department, shift, academic_year')
+        .order('created_at'),
       shiftSelection,
     ),
     supabase
@@ -127,7 +133,7 @@ export default async function FeesPage({
           <option value="">{t('fees.allClasses', lang)}</option>
           {classes?.map((c) => (
             <option key={c.id} value={c.id}>
-              {classCatalogueLabel(c)}
+              {classCatalogueLabel(c, showYear)}
             </option>
           ))}
         </select>

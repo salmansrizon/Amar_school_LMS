@@ -57,7 +57,10 @@ export default async function PromotionPage({
   const backHref = resolveBackHref(from, `/school/exams/${id}`)
   const basis: RankBasis = basisParam === 'mark' ? 'mark' : 'grade'
   const lang: Lang = await currentLang()
-  const { supabase, shiftSelection } = await getSchoolContext()
+  const { supabase, shiftSelection, startedAcademicYears } = await getSchoolContext()
+  // Started-year history is the signal (#609/#612), same boolean T6/#615
+  // threaded into the Fee Structures Offering picker.
+  const showYear = startedAcademicYears.length > 1
 
   const { data: exam } = await supabase
     .from('exams')
@@ -94,7 +97,10 @@ export default async function PromotionPage({
     .maybeSingle()
   const [{ data: allClasses }, { data: allSubjects }, { data: combos }] = await Promise.all([
     applyGlobalShiftFilterToOfferings(
-      supabase.from('class_offerings').select('id, name, section, group_department, shift').order('created_at'),
+      supabase
+        .from('class_offerings')
+        .select('id, name, section, group_department, shift, academic_year')
+        .order('created_at'),
       shiftSelection,
     ),
     supabase.from('subjects').select('id, name, class_id, theory_marks, mcq_marks, practical_marks').order('name'),
@@ -308,6 +314,7 @@ export default async function PromotionPage({
           classes={(allClasses ?? []) as ClassCatalogueRow[]}
           currentClassName={cls?.name ?? null}
           lang={lang}
+          showYear={showYear}
         />
       </section>
       {cls?.is_final_class && <GraduatingSection examId={exam.id} rows={rows} lang={lang} />}

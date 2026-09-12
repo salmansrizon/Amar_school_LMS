@@ -17,11 +17,14 @@ export default async function SubjectAssignmentPage({
   searchParams: Promise<{ class?: string }>
 }) {
   const lang: Lang = await currentLang()
-  const { supabase, shiftSelection } = await getSchoolContext()
+  const { supabase, shiftSelection, startedAcademicYears } = await getSchoolContext()
+  // Started-year history is the signal (#609/#612), same boolean T6/#615
+  // threaded into the Fee Structures Offering picker.
+  const showYear = startedAcademicYears.length > 1
 
   const { class: selectedClass = '' } = await searchParams
   const { data: classes } = await applyGlobalShiftFilterToOfferings(
-    supabase.from('class_offerings').select('id, name, section, shift').order('created_at'),
+    supabase.from('class_offerings').select('id, name, section, shift, academic_year').order('created_at'),
     shiftSelection,
   )
 
@@ -45,6 +48,7 @@ export default async function SubjectAssignmentPage({
               lang={lang}
               basePath="/school/students/subject-assignment"
               pickLabelKey="subjects.pickClass"
+              showYear={showYear}
             />
           </div>
           {selectedClass ? (

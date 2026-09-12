@@ -72,12 +72,16 @@ export function PromotionTable({
   classes,
   currentClassName,
   lang,
+  showYear = false,
 }: {
   examId: string
   rows: PromotionStudentRow[]
   classes: ClassCatalogueRow[]
   currentClassName: string | null
   lang: Lang
+  /** Academic Year segment (issue #621, map #609's recipe) — true only when
+   *  the School has more than one started Academic Year. */
+  showYear?: boolean
 }) {
   const router = useRouter()
   const [toClassId, setToClassId] = useState('')
@@ -99,7 +103,7 @@ export function PromotionTable({
           <option value="">—</option>
           {classes.map((c) => (
             <option key={c.id} value={c.id}>
-              {classCatalogueLabel(c)}
+              {classCatalogueLabel(c, showYear)}
             </option>
           ))}
         </select>
@@ -153,7 +157,7 @@ export function PromotionTable({
                   <td className="py-2 pr-2">
                     {row.passed ? (
                       targetClass ? (
-                        classCatalogueLabel(targetClass)
+                        classCatalogueLabel(targetClass, showYear)
                       ) : (
                         <span className="text-muted">—</span>
                       )

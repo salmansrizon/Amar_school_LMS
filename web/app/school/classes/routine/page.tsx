@@ -17,11 +17,17 @@ export default async function RoutinePage({
   searchParams: Promise<{ class?: string }>
 }) {
   const lang: Lang = await currentLang()
-  const { supabase, shiftSelection } = await getSchoolContext()
+  const { supabase, shiftSelection, startedAcademicYears } = await getSchoolContext()
+  // Started-year history is the signal (#609/#612), same boolean T6/#615
+  // threaded into the Fee Structures Offering picker.
+  const showYear = startedAcademicYears.length > 1
 
   const { class: selectedClass = '' } = await searchParams
   const { data: classes } = await applyGlobalShiftFilterToOfferings(
-    supabase.from('class_offerings').select('id, name, section, group_department, shift').order('created_at'),
+    supabase
+      .from('class_offerings')
+      .select('id, name, section, group_department, shift, academic_year')
+      .order('created_at'),
     shiftSelection,
   )
 
@@ -39,7 +45,7 @@ export default async function RoutinePage({
       ) : (
         <>
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-            <ClassPicker classes={classes} selected={selectedClass} lang={lang} />
+            <ClassPicker classes={classes} selected={selectedClass} lang={lang} showYear={showYear} />
             {selectedClass && (
               <span className="flex items-center gap-2">
                 <a

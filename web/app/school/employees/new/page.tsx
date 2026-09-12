@@ -18,19 +18,22 @@ import { CreateEmployeeForm } from './create-form'
 // page used to build.
 export default async function NewEmployeePage() {
   const lang: Lang = await currentLang()
-  const { supabase, shiftSelection, configuredShifts } = await getSchoolContext()
+  const { supabase, shiftSelection, configuredShifts, startedAcademicYears } = await getSchoolContext()
+  // Started-year history is the signal (#609/#612), same boolean T6/#615
+  // threaded into the Fee Structures Offering picker.
+  const showYear = startedAcademicYears.length > 1
 
   const { data: classes } = await applyGlobalShiftFilterToOfferings(
     supabase
       .from('class_offerings')
-      .select('id, name, section, group_department, class_teacher_id, shift')
+      .select('id, name, section, group_department, class_teacher_id, shift, academic_year')
       .order('created_at'),
     shiftSelection,
   )
 
   const classOptions = (classes ?? []).map((c) => ({
     id: c.id,
-    label: classCatalogueLabel(c),
+    label: classCatalogueLabel(c, showYear),
     // A class that already has a teacher is still offered — reassignment is
     // legitimate — but the Owner is told, because silently replacing a class
     // teacher takes the previous one's students away without telling anybody.

@@ -38,10 +38,14 @@ export function AddCombinationForm({
   classes,
   schemes,
   lang,
+  showYear = false,
 }: {
   classes: ClassCatalogueRow[]
   schemes: SchemeOption[]
   lang: Lang
+  /** Academic Year segment (issue #621, map #609's recipe) — true only when
+   *  the School has more than one started Academic Year. */
+  showYear?: boolean
 }) {
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
@@ -79,7 +83,7 @@ export function AddCombinationForm({
           <option value="">{t('combinations.anyClass', lang)}</option>
           {classes.map((c) => (
             <option key={c.id} value={c.id}>
-              {classCatalogueLabel(c)}
+              {classCatalogueLabel(c, showYear)}
             </option>
           ))}
         </select>

@@ -41,7 +41,10 @@ export default async function ExamSetupPage({
   const { from } = await searchParams
   const backHref = resolveBackHref(from, '/school/exams')
   const lang: Lang = await currentLang()
-  const { supabase } = await getSchoolContext()
+  const { supabase, startedAcademicYears } = await getSchoolContext()
+  // Started-year history is the signal (#609/#612), same boolean T6/#615
+  // threaded into the Fee Structures Offering picker.
+  const showYear = startedAcademicYears.length > 1
 
   const { data: exam } = await supabase
     .from('exams')
@@ -53,7 +56,10 @@ export default async function ExamSetupPage({
 
   const [{ data: classes }, { data: schemes }, { data: allSubjects }, { data: assignments }, { data: teachers }] =
     await Promise.all([
-      supabase.from('class_offerings').select('id, name, section, group_department, shift').order('created_at'),
+      supabase
+        .from('class_offerings')
+        .select('id, name, section, group_department, shift, academic_year')
+        .order('created_at'),
       supabase.from('grading_schemes').select('id, name').order('name'),
       supabase.from('subjects').select('id, name, class_id, theory_marks, mcq_marks, practical_marks').order('name'),
       supabase.from('exam_subject_teachers').select('subject_id, teacher_id').eq('exam_id', id),
@@ -104,6 +110,7 @@ export default async function ExamSetupPage({
           classes={(classes ?? []) as ClassCatalogueRow[]}
           disabled={closed}
           lang={lang}
+          showYear={showYear}
         />
       </section>
 

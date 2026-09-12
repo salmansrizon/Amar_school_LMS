@@ -33,7 +33,10 @@ export default async function StudentTransferPage({
 }) {
   const { id } = await params
   const lang: Lang = await currentLang()
-  const { supabase, shiftSelection } = await getSchoolContext()
+  const { supabase, shiftSelection, startedAcademicYears } = await getSchoolContext()
+  // Started-year history is the signal (#609/#612), same boolean T6/#615
+  // threaded into the Fee Structures Offering picker.
+  const showYear = startedAcademicYears.length > 1
 
   const { data: student } = await supabase
     .from('students')
@@ -49,7 +52,10 @@ export default async function StudentTransferPage({
       .eq('student_id', id)
       .order('created_at', { ascending: true }),
     applyGlobalShiftFilterToOfferings(
-      supabase.from('class_offerings').select('id, name, section, group_department, shift').order('created_at'),
+      supabase
+        .from('class_offerings')
+        .select('id, name, section, group_department, shift, academic_year')
+        .order('created_at'),
       shiftSelection,
     ),
   ])
@@ -91,7 +97,7 @@ export default async function StudentTransferPage({
       </p>
 
       <section className="mb-6 rounded-lg border border-line bg-paper p-5">
-        <TransferForm lang={lang} studentId={id} classOfferings={classOfferings ?? []} />
+        <TransferForm lang={lang} studentId={id} classOfferings={classOfferings ?? []} showYear={showYear} />
       </section>
 
       <section className="rounded-lg border border-line bg-paper p-5">

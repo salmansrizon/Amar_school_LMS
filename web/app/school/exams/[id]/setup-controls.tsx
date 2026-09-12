@@ -143,6 +143,7 @@ export function BasicInfoForm({
   classes,
   disabled,
   lang,
+  showYear = false,
 }: {
   examId: string
   name: string
@@ -152,6 +153,9 @@ export function BasicInfoForm({
   classes: ClassCatalogueRow[]
   disabled: boolean
   lang: Lang
+  /** Academic Year segment (issue #621, map #609's recipe) — true only when
+   *  the School has more than one started Academic Year. */
+  showYear?: boolean
 }) {
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
@@ -181,7 +185,7 @@ export function BasicInfoForm({
           <option value="">{t('exams.allClasses', lang)}</option>
           {classes.map((c) => (
             <option key={c.id} value={c.id}>
-              {classCatalogueLabel(c)}
+              {classCatalogueLabel(c, showYear)}
             </option>
           ))}
         </select>

@@ -15,11 +15,17 @@ import { AdmissionForm } from './admission-form'
 
 export default async function NewAdmissionPage() {
   const lang: Lang = await currentLang()
-  const { supabase, schoolId, shiftSelection } = await getSchoolContext()
+  const { supabase, schoolId, shiftSelection, startedAcademicYears } = await getSchoolContext()
+  // Started-year history is the signal (#609/#612), same boolean T6/#615
+  // threaded into the Fee Structures Offering picker.
+  const showYear = startedAcademicYears.length > 1
 
   const [{ data: classOfferings }, { data: enrollments }, { data: school }] = await Promise.all([
     applyGlobalShiftFilterToOfferings(
-      supabase.from('class_offerings').select('id, name, section, group_department, shift').order('created_at'),
+      supabase
+        .from('class_offerings')
+        .select('id, name, section, group_department, shift, academic_year')
+        .order('created_at'),
       shiftSelection,
     ),
     // Same bounded whole-table read as the Class & Curriculum counts (ponytail:
@@ -40,6 +46,7 @@ export default async function NewAdmissionPage() {
         classOfferings={classOfferings ?? []}
         enrollmentRolls={enrollments ?? []}
         rollIncrement={school?.roll_number_increment ?? 1}
+        showYear={showYear}
       />
     </>
   )

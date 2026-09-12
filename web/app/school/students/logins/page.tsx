@@ -21,20 +21,26 @@ export default async function StudentLoginsPage({
 }) {
   const { classSection = '' } = await searchParams
   const lang: Lang = await currentLang()
-  const { supabase, role, shiftSelection } = await getSchoolContext()
+  const { supabase, role, shiftSelection, startedAcademicYears } = await getSchoolContext()
   // Issuing a child's password is an owner act, not a Staff-User one — the RPCs
   // reject Staff anyway, this just avoids showing them a screen that cannot work.
   if (role !== 'school_owner') redirect('/school/students')
 
   const { data: classes } = await applyGlobalShiftFilterToOfferings(
-    supabase.from('class_offerings').select('id, name, section, group_department, shift').order('created_at'),
+    supabase
+      .from('class_offerings')
+      .select('id, name, section, group_department, shift, academic_year')
+      .order('created_at'),
     shiftSelection,
   )
+  // Started-year history is the signal (#609/#612), same boolean T6/#615
+  // threaded into the Fee Structures Offering picker.
+  const showYear = startedAcademicYears.length > 1
   // `classSection` IS the picked Class Offering's id (the option value). It is
   // passed straight through to roster resolution — never collapsed to a
   // class_name/section text pair, which since #593 can match two Offerings
   // (issue #596). Combos are for rendering the picker only.
-  const combos = classCatalogueOptions(classes ?? [])
+  const combos = classCatalogueOptions(classes ?? [], showYear)
   const selectedOfferingId = combos.some((c) => c.value === classSection) ? classSection : ''
   const { students } = selectedOfferingId
     ? await classLoginCandidates(selectedOfferingId)

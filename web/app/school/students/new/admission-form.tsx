@@ -63,6 +63,7 @@ export function ProfileFields({
   enrollmentRolls = [],
   rollIncrement = 1,
   suggestRoll = false,
+  showYear = false,
 }: {
   lang: Lang
   /** Edit mode: the legacy text-based class/section cascade — same
@@ -87,12 +88,16 @@ export function ProfileFields({
    *  `rolls`/`rollIncrement` are never fetched for that call site, so a
    *  suggestion computed there would be a meaningless "1" every time. */
   suggestRoll?: boolean
+  /** Academic Year segment on the id-based Offering picker (issue #621, map
+   *  #609's recipe) — true only when the School has more than one started
+   *  Academic Year. Edit mode's text cascade never shows it. */
+  showYear?: boolean
 }) {
   const d = (key: string) => String(defaults[key] ?? '')
   const usingOfferings = classOfferings !== undefined
   const offeringOptions = useMemo(
-    () => (classOfferings ? classCatalogueOptions(classOfferings) : []),
-    [classOfferings],
+    () => (classOfferings ? classCatalogueOptions(classOfferings, showYear) : []),
+    [classOfferings, showYear],
   )
   // Edit mode's own catalogue options, computed once and shared by both
   // classNamesFor and sectionsForClass below — not two independent
@@ -350,11 +355,13 @@ export function AdmissionForm({
   classOfferings,
   enrollmentRolls = [],
   rollIncrement = 1,
+  showYear = false,
 }: {
   lang: Lang
   classOfferings: ClassCatalogueRow[]
   enrollmentRolls?: EnrollmentRollRow[]
   rollIncrement?: number
+  showYear?: boolean
 }) {
   const router = useRouter()
   const photoRef = useRef<HTMLInputElement>(null)
@@ -396,6 +403,7 @@ export function AdmissionForm({
         enrollmentRolls={enrollmentRolls}
         rollIncrement={rollIncrement}
         suggestRoll
+        showYear={showYear}
       />
 
       <Card title={t('students.photo', lang)}>
