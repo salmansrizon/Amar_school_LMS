@@ -1890,6 +1890,10 @@ const dict = {
     bn: 'ফাঁকা রাখলে শ্রেণি ও শাখা অনুযায়ী পরবর্তী রোল স্বয়ংক্রিয়ভাবে নির্ধারিত হবে — প্রয়োজনে নিজে লিখুন।',
     en: 'Leave blank to auto-assign the next roll for this class & section — or type your own.',
   },
+  // Links to Institute Setup's Roll Numbering panel (issue #629) — same term
+  // as institute.rollNumbering, kept as its own key so this screen owns its
+  // own strings.
+  'students.rollNumberingLink': { bn: 'রোল নম্বরিং', en: 'Roll Numbering' },
   'students.address': { bn: 'ঠিকানা', en: 'Address' },
   'students.addressPlaceholder': {
     bn: 'যেমন: বাড়ি ১২, রোড ৩, সাভার, ঢাকা',

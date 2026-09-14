@@ -12,8 +12,15 @@ import { AcademicYearCard } from './academic-year-card'
 // cluster_id columns (issue #1/#3) — the new columns here are the Bangladesh
 // registration fields + education levels offered.
 
-export default async function InstituteProfilePage() {
+export default async function InstituteProfilePage({
+  searchParams,
+}: {
+  // `?section=roll-numbering` (issue #629) — New Student Admission's Roll
+  // helper text links here to bring the Roll Numbering panel into view.
+  searchParams: Promise<{ section?: string }>
+}) {
   const lang: Lang = await currentLang()
+  const { section } = await searchParams
   const { supabase, role } = await getSchoolContext()
 
   const [{ data: school }, { data: locations }, { data: clusters }, { data: admitCardTheme }] = await Promise.all([
@@ -48,6 +55,7 @@ export default async function InstituteProfilePage() {
         locations={(locations ?? []) as LocationRow[]}
         clusters={clusters ?? []}
         admitCardTheme={admitCardTheme?.palette_key ?? null}
+        highlightSection={section}
       />
 
       <AcademicYearCard lang={lang} isOwner={role === 'school_owner'} currentYear={school?.active_academic_year ?? null} />

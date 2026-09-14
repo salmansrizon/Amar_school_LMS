@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useRef, useState, useTransition } from 'react'
+import { useEffect, useMemo, useRef, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
 import { t, type Lang } from '@/lib/i18n'
@@ -60,6 +60,7 @@ export function ProfileForm({
   locations,
   clusters,
   admitCardTheme,
+  highlightSection,
 }: {
   lang: Lang
   isOwner: boolean
@@ -67,6 +68,9 @@ export function ProfileForm({
   locations: LocationRow[]
   clusters: { id: string; name: string }[]
   admitCardTheme: string | null
+  /** `?section=roll-numbering` (issue #629): scroll the Roll Numbering panel
+   *  into view and briefly flash it on arrival. */
+  highlightSection?: string
 }) {
   const [error, setError] = useState<string | null>(null)
   const [saved, setSaved] = useState(false)
@@ -74,6 +78,29 @@ export function ProfileForm({
   const [shiftMode, setShiftMode] = useState<'none' | 'has'>(
     (school?.configured_shifts.length ?? 0) > 0 ? 'has' : 'none',
   )
+
+  const rollNumberingRef = useRef<HTMLDivElement>(null)
+  // Imperative DOM class toggling, not React state: swapping classes
+  // directly on the element re-fires correctly every time this effect runs
+  // (every arrival at ?section=roll-numbering), not just on first mount —
+  // and avoids two Tailwind border-color utilities (the base border-line and
+  // the flash's border-brand-400) ever being applied at once, which would
+  // leave the winner down to arbitrary stylesheet order. Runs once per
+  // arrival — same reasoning as the Exams page's own anchor effect
+  // (exam-controls.tsx): scrollIntoView deliberately doesn't move focus.
+  useEffect(() => {
+    if (highlightSection !== 'roll-numbering') return
+    const el = rollNumberingRef.current
+    if (!el) return
+    el.scrollIntoView({ block: 'center' })
+    el.classList.remove('border-line')
+    el.classList.add('border-brand-400', 'ring-2', 'ring-brand-400', 'ring-offset-2')
+    const timer = setTimeout(() => {
+      el.classList.add('border-line')
+      el.classList.remove('border-brand-400', 'ring-2', 'ring-brand-400', 'ring-offset-2')
+    }, 1600)
+    return () => clearTimeout(timer)
+  }, [highlightSection])
 
   const initialChain = useMemo(() => ancestorChain(locations, school?.location_id ?? null), [locations, school])
   const [divisionId, setDivisionId] = useState(initialChain[0] ?? '')
@@ -334,8 +361,14 @@ export function ProfileForm({
         </div>
 
         {/* Roll numbering (issue #503): step used by assign_student_roll when
-            the admission form's Roll Number field is left blank. */}
-        <div className="mb-4 rounded-lg border border-line bg-paper p-5 shadow-card">
+            the admission form's Roll Number field is left blank. id + ref are
+            the scroll/flash target for the New Admission page's "Roll
+            Numbering" link (issue #629). */}
+        <div
+          ref={rollNumberingRef}
+          id="roll-numbering"
+          className="mb-4 rounded-lg border border-line bg-paper p-5 shadow-card transition-shadow duration-500"
+        >
           <h3 className="mb-1 font-bold">{t('institute.rollNumbering', lang)}</h3>
           <p className="mb-3 text-xs text-muted">{t('institute.rollIncrementHint', lang)}</p>
           <div className="max-w-40">

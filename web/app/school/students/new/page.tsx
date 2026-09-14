@@ -17,7 +17,8 @@ import { recentAdmissions } from '../recent-admissions-actions'
 
 export default async function NewAdmissionPage() {
   const lang: Lang = await currentLang()
-  const { supabase, schoolId, shiftSelection, startedAcademicYears, academicYearSelection } = await getSchoolContext()
+  const { supabase, schoolId, userId, shiftSelection, startedAcademicYears, academicYearSelection } =
+    await getSchoolContext()
   // Started-year history is the signal (#609/#612), same boolean T6/#615
   // threaded into the Fee Structures Offering picker.
   const showYear = startedAcademicYears.length > 1
@@ -51,6 +52,8 @@ export default async function NewAdmissionPage() {
       />
       <AdmissionForm
         lang={lang}
+        schoolId={schoolId}
+        userId={userId}
         classOfferings={classOfferings ?? []}
         enrollmentRolls={enrollments ?? []}
         rollIncrement={school?.roll_number_increment ?? 1}

@@ -20,6 +20,7 @@ import {
 } from '@/lib/class-catalogue'
 import { admitStudent, studentPhotoUploadTicket, recordStudentPhoto } from '../actions'
 import { recentAdmissions, type RecentAdmissionRow } from '../recent-admissions-actions'
+import { saveAdmissionDraft, loadAdmissionDraft, clearAdmissionDraft } from './admission-draft'
 import { dateInputClass, selectClass } from '@/components/ui/field'
 import { uploadWithSignedToken } from '@/lib/storage/upload-client'
 import { knownVocabularyValue } from '@/lib/students/stored-labels'
@@ -262,26 +263,48 @@ export function ProfileFields({
                 stays the default once className/section have moved away from
                 that original class+section (a genuine scope change), so a
                 class edit forces a conscious re-entry instead of silently
-                reattaching the old roll to a new class+section. The
-                suggestion itself is a *placeholder*, not a prefilled value:
-                left blank, the field submits null and the appropriate
-                advisory-locked max()+increment trigger (assign_student_roll
-                in text mode, assign_enrollment_roll in offering mode) safely
-                serializes concurrent admissions — submitting the guessed
-                number as a real value would instead race two simultaneous
-                admissions for the same roll. */}
+                reattaching the old roll to a new class+section. In offering
+                (admission) mode, d('roll_number') is only ever a same-scope
+                value too — either absent (the post-save reset's defaults
+                carry no roll_number) or a same-Offering draft restore (issue
+                #628, whose own remount already happens above on Offering
+                change) — so it's always safe to read here, never a stale
+                cross-scope leftover. The suggestion itself is a *placeholder*,
+                not a prefilled value: left blank, the field submits null and
+                the appropriate advisory-locked max()+increment trigger
+                (assign_student_roll in text mode, assign_enrollment_roll in
+                offering mode) safely serializes concurrent admissions —
+                submitting the guessed number as a real value would instead
+                race two simultaneous admissions for the same roll. In
+                offering mode the scope check is classOfferingId === the
+                Offering the draft/edit default was recorded for — same
+                purpose as the className/section pair below, just keyed by
+                id instead of a text pair. */}
             <input
               key={usingOfferings ? classOfferingId : JSON.stringify([className, section])}
               type="number"
               name="roll_number"
               min={1}
               defaultValue={
-                !usingOfferings && className === d('class_name') && section === d('section') ? d('roll_number') : ''
+                usingOfferings
+                  ? classOfferingId === d('class_offering_id')
+                    ? d('roll_number')
+                    : ''
+                  : className === d('class_name') && section === d('section')
+                    ? d('roll_number')
+                    : ''
               }
               placeholder={suggestedRoll !== null ? String(suggestedRoll) : undefined}
               className={fieldClass}
             />
-            {suggestRoll && <p className="mt-1 text-xs text-muted">{t('students.rollAutoNote', lang)}</p>}
+            {suggestRoll && (
+              <p className="mt-1 text-xs text-muted">
+                {t('students.rollAutoNote', lang)}{' '}
+                <Link href="/school/institute?section=roll-numbering" className="text-brand-600 hover:underline">
+                  {t('students.rollNumberingLink', lang)}
+                </Link>
+              </p>
+            )}
           </Field>
           <Field label={t('students.religion', lang)}>
             <select
@@ -420,8 +443,25 @@ export async function uploadStudentPhoto(
   return res.error ?? null
 }
 
+// The two ProfileFields checkboxes: FormData only carries their name when
+// checked (value "on"), so an unchecked box leaves no entry at all — the
+// draft snapshot reflects that, and this turns it back into the boolean
+// `defaults.is_x === true` check those checkboxes' `defaultChecked` reads.
+const DRAFT_CHECKBOX_FIELDS = ['is_freedom_fighter_child', 'is_indigenous'] as const
+
+function draftDefaults(draft: Record<string, string> | null): Record<string, string | boolean> {
+  if (!draft) return {}
+  const defaults: Record<string, string | boolean> = { ...draft }
+  for (const key of DRAFT_CHECKBOX_FIELDS) {
+    defaults[key] = draft[key] === 'on'
+  }
+  return defaults
+}
+
 export function AdmissionForm({
   lang,
+  schoolId,
+  userId,
   classOfferings,
   enrollmentRolls = [],
   rollIncrement = 1,
@@ -429,6 +469,10 @@ export function AdmissionForm({
   initialRecent,
 }: {
   lang: Lang
+  /** Scope the draft (issue #628) to this school + user, so it never leaks
+   *  across different Staff Users on a shared browser. */
+  schoolId: string
+  userId: string
   classOfferings: ClassCatalogueRow[]
   enrollmentRolls?: EnrollmentRollRow[]
   rollIncrement?: number
@@ -438,9 +482,16 @@ export function AdmissionForm({
    *  save so the list never drifts into a session-local echo. */
   initialRecent: RecentAdmissionRow[]
 }) {
+  const formRef = useRef<HTMLFormElement>(null)
+  const draftSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const photoRef = useRef<HTMLInputElement>(null)
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
+  // Unfinished-admission draft (issue #628): read once at mount, restored
+  // below as ProfileFields' initial `defaults` only on the very first
+  // generation — after a save, `formGeneration`'s own reset-for-next-entry
+  // (see below) is what should apply, not a now-cleared draft.
+  const [draft] = useState(() => loadAdmissionDraft(schoolId, userId))
 
   // Rapid bulk admission (grilled explicitly): saving stays on this page
   // instead of navigating to the new Student's detail page, so admitting ~100
@@ -465,6 +516,20 @@ export function AdmissionForm({
 
   return (
     <form
+      ref={formRef}
+      onChange={() => {
+        // Silent autosave (issue #628) — every field change snapshots the
+        // whole form to localStorage, so a nav-away (sidebar, browser back)
+        // doesn't lose in-progress work. Only Save success or Cancel clears
+        // it, both below. Debounced so a full-form FormData scan + stringify
+        // + write doesn't run on literally every keystroke — a real cost
+        // across a ~20-field form repeated per student during rapid bulk
+        // admission.
+        if (draftSaveTimer.current) clearTimeout(draftSaveTimer.current)
+        draftSaveTimer.current = setTimeout(() => {
+          if (formRef.current) saveAdmissionDraft(schoolId, userId, formRef.current)
+        }, 400)
+      }}
       onSubmit={(e) => {
         e.preventDefault()
         const data = new FormData(e.currentTarget)
@@ -496,6 +561,7 @@ export function AdmissionForm({
           // succeeded should make the operator wait before typing the next
           // student. The Recent Admissions refresh below is a background
           // update, not a gate on that.
+          clearAdmissionDraft(schoolId, userId)
           setLastSaved({ name: fullName, roll: result.roll_number ?? null })
           if (classOfferingId) {
             setEnrollmentRollsState((prev) => [
@@ -529,7 +595,10 @@ export function AdmissionForm({
         key={formGeneration}
         lang={lang}
         classOfferings={classOfferings}
-        defaults={{ class_offering_id: lastClassOfferingId }}
+        // Generation 0 restores the unsaved draft, if any (issue #628); every
+        // later generation is a post-save reset, which only carries the Class
+        // forward — the draft was already cleared at that point.
+        defaults={formGeneration === 0 ? draftDefaults(draft) : { class_offering_id: lastClassOfferingId }}
         enrollmentRolls={enrollmentRollsState}
         rollIncrement={rollIncrement}
         suggestRoll
@@ -548,6 +617,7 @@ export function AdmissionForm({
       <div className="mb-4 flex items-center justify-between">
         <Link
           href="/school/students"
+          onClick={() => clearAdmissionDraft(schoolId, userId)}
           className="rounded-full border border-line-strong px-4 py-1.5 text-sm font-semibold hover:bg-paper-muted"
         >
           {t('routine.cancel', lang)}
