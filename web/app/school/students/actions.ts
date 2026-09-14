@@ -84,10 +84,13 @@ function profileFields(formData: FormData) {
  *  student_enrollments (issue #503's UI hint, now offering-scoped), but a
  *  blank field still falls through to admit_student_enrollment's own
  *  assign_enrollment_roll trigger (0181) so a school without JS-computed
- *  rolls keeps working. Returns the new id for photo upload. */
+ *  rolls keeps working. Returns the new id for photo upload, and the roll
+ *  number actually assigned — so a caller that stays on the form for rapid
+ *  bulk admission can update its own roll-suggestion state without
+ *  re-fetching. */
 export async function admitStudent(
   formData: FormData,
-): Promise<{ id?: string; error?: string }> {
+): Promise<{ id?: string; error?: string; roll_number?: number | null }> {
   const name = String(formData.get('full_name') ?? '').trim()
   if (!name) return { error: 'Name is required' }
   const classOfferingId = String(formData.get('class_offering_id') ?? '').trim()
@@ -117,9 +120,15 @@ export async function admitStudent(
       class_name: className,
       section,
     })
-    .select('id')
+    .select('id, roll_number')
     .single()
   if (error) return { error: friendlyStudentError(error) }
+
+  // What actually landed on the row — assign_student_roll (0032) runs
+  // before this insert, so a blank roll.value is already resolved by the
+  // time the row comes back; the sync block below corrects it again for
+  // offering mode, whose own trigger this select can't see yet.
+  let finalRoll: number | null = data.roll_number
 
   if (classOfferingId) {
     const { data: enrollmentId, error: enrollError } = await supabase.rpc('admit_student_enrollment', {
@@ -148,6 +157,7 @@ export async function admitStudent(
       .select('roll_number')
       .eq('id', enrollmentId)
       .maybeSingle()
+    if (enrollment) finalRoll = enrollment.roll_number
     if (enrollment && enrollment.roll_number !== roll.value) {
       const { error: syncError } = await supabase
         .from('students')
@@ -160,13 +170,13 @@ export async function admitStudent(
       // roll instead.
       if (syncError) {
         revalidatePath(LIST)
-        return { id: data.id, error: `Admitted, but the roll number did not sync: ${syncError.message}` }
+        return { id: data.id, error: `Admitted, but the roll number did not sync: ${syncError.message}`, roll_number: finalRoll }
       }
     }
   }
 
   revalidatePath(LIST)
-  return { id: data.id }
+  return { id: data.id, roll_number: finalRoll }
 }
 
 export async function updateStudent(formData: FormData): Promise<{ error?: string }> {

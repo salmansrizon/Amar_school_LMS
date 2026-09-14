@@ -2,7 +2,6 @@
 
 import { useMemo, useRef, useState, useTransition } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { t, type Lang } from '@/lib/i18n'
 import { compressImage, IMAGE_PRESETS } from '@/lib/image/compress'
 import {
@@ -14,6 +13,7 @@ import {
 } from '@/lib/students'
 import {
   classCatalogueOptions,
+  classCatalogueLabel,
   findClassCatalogueId,
   resolveClassCatalogueSelection,
   type ClassCatalogueRow,
@@ -22,6 +22,7 @@ import { admitStudent, studentPhotoUploadTicket, recordStudentPhoto } from '../a
 import { dateInputClass, selectClass } from '@/components/ui/field'
 import { uploadWithSignedToken } from '@/lib/storage/upload-client'
 import { knownVocabularyValue } from '@/lib/students/stored-labels'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 
 const MAX_PHOTO_BYTES = 2 * 1024 * 1024 // mirrors the bucket's server-enforced cap
 
@@ -134,7 +135,12 @@ export function ProfileFields({
   const classCatalogue = useMemo(() => (classes ? classCatalogueOptions(classes, showYear) : []), [classes, showYear])
   const [className, setClassName] = useState(d('class_name'))
   const [section, setSection] = useState(d('section'))
-  const [classOfferingId, setClassOfferingId] = useState('')
+  // Offering mode has no text-pair default to seed from (edit mode's
+  // className/section above cover that mode instead) — but a caller can
+  // still carry a prior selection forward via defaults.class_offering_id
+  // (AdmissionForm remounts with everything but the Class cleared, for rapid
+  // back-to-back admission into the same Class).
+  const [classOfferingId, setClassOfferingId] = useState(d('class_offering_id'))
   // The dropdown's own selection — an id purely to pick one option out of
   // the (possibly ambiguous by name+section alone) catalogue; resolved
   // immediately back to the className/section this mode actually submits.
@@ -401,6 +407,20 @@ export async function uploadStudentPhoto(
   return res.error ?? null
 }
 
+/** One row of the on-page Recent Admissions list — built entirely from what
+ *  the form itself already knows (the just-submitted FormData plus
+ *  admitStudent's own return), never a re-fetch. Session-local by design: it
+ *  shows what THIS bulk-entry run just did, not the school's full history. */
+interface RecentAdmission {
+  id: string
+  full_name: string
+  roll_number: number | null
+  classLabel: string | null
+  guardian_name: string | null
+}
+
+const RECENT_ADMISSIONS_MAX = 10
+
 export function AdmissionForm({
   lang,
   classOfferings,
@@ -414,16 +434,36 @@ export function AdmissionForm({
   rollIncrement?: number
   showYear?: boolean
 }) {
-  const router = useRouter()
   const photoRef = useRef<HTMLInputElement>(null)
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
+
+  // Rapid bulk admission (grilled explicitly): saving stays on this page
+  // instead of navigating to the new Student's detail page, so admitting ~100
+  // students in a row never leaves the form. `formGeneration` remounts
+  // ProfileFields after each save — the only way to clear its uncontrolled
+  // inputs (defaultValue-based) short of a page reload — while `lastClassOfferingId`
+  // is fed back in as the ONLY carried-over default (Q2: same Class, blank
+  // everything else, since Guardian fields being sticky risks silently
+  // reusing the previous student's guardian on a genuinely new admission).
+  const [formGeneration, setFormGeneration] = useState(0)
+  const [lastClassOfferingId, setLastClassOfferingId] = useState('')
+  // Seeds ProfileFields' roll-number placeholder same as a fresh page load
+  // would, then grows by one synthetic row per save so the placeholder keeps
+  // reflecting the true next roll through the whole batch — the fetched list
+  // never changes underneath us since navigation never happens.
+  const [enrollmentRollsState, setEnrollmentRollsState] = useState<EnrollmentRollRow[]>(enrollmentRolls)
+  const [lastSaved, setLastSaved] = useState<{ name: string; roll: number | null } | null>(null)
+  const [recent, setRecent] = useState<RecentAdmission[]>([])
 
   return (
     <form
       onSubmit={(e) => {
         e.preventDefault()
         const data = new FormData(e.currentTarget)
+        const fullName = String(data.get('full_name') ?? '').trim()
+        const guardianName = String(data.get('guardian_name') ?? '').trim() || null
+        const classOfferingId = String(data.get('class_offering_id') ?? '').trim()
         startTransition(async () => {
           setError(null)
           const result = await admitStudent(data)
@@ -434,8 +474,8 @@ export function AdmissionForm({
           // An id means the Student exists — anything reported alongside it is
           // a non-fatal follow-up problem (e.g. the roll number failing to
           // sync). Stranding the operator on the form would invite a resubmit
-          // that creates a duplicate, so this is surfaced the same way a photo
-          // failure below is, and the profile we navigate to shows the truth.
+          // that creates a duplicate, so this is surfaced as a console warning
+          // the same way a photo failure below is.
           if (result.error) console.warn('admission warning:', result.error)
           const photo = photoRef.current?.files?.[0]
           if (photo) {
@@ -444,14 +484,45 @@ export function AdmissionForm({
             // the user on the form — it can be re-uploaded from the profile.
             if (photoError) console.warn('photo upload failed:', photoError)
           }
-          router.push(`/school/students/${result.id}`)
+
+          const offering = classOfferingId ? classOfferings.find((o) => o.id === classOfferingId) : undefined
+          setLastSaved({ name: fullName, roll: result.roll_number ?? null })
+          setRecent((prev) =>
+            [
+              {
+                id: result.id!,
+                full_name: fullName,
+                roll_number: result.roll_number ?? null,
+                classLabel: offering ? classCatalogueLabel(offering, showYear) : null,
+                guardian_name: guardianName,
+              },
+              ...prev,
+            ].slice(0, RECENT_ADMISSIONS_MAX),
+          )
+          if (classOfferingId) {
+            setEnrollmentRollsState((prev) => [
+              ...prev,
+              { class_offering_id: classOfferingId, roll_number: result.roll_number ?? null },
+            ])
+          }
+          setLastClassOfferingId(classOfferingId)
+          setFormGeneration((g) => g + 1)
         })
       }}
     >
+      {lastSaved && (
+        <p className="mb-3 rounded-md border border-mint-soft bg-mint-soft/40 px-3 py-2 text-sm text-mint-deep">
+          {t('students.lastSaved', lang)}: {lastSaved.name}
+          {lastSaved.roll !== null && ` — ${t('students.roll', lang)} ${lastSaved.roll}`}
+        </p>
+      )}
+
       <ProfileFields
+        key={formGeneration}
         lang={lang}
         classOfferings={classOfferings}
-        enrollmentRolls={enrollmentRolls}
+        defaults={{ class_offering_id: lastClassOfferingId }}
+        enrollmentRolls={enrollmentRollsState}
         rollIncrement={rollIncrement}
         suggestRoll
         showYear={showYear}
@@ -481,6 +552,39 @@ export function AdmissionForm({
           {t('students.saveAdmission', lang)}
         </button>
       </div>
+
+      <Card title={t('students.recentAdmissions', lang)}>
+        {!recent.length ? (
+          <p className="text-sm text-muted">{t('students.recentAdmissionsEmpty', lang)}</p>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{t('students.roll', lang)}</TableHead>
+                <TableHead>{t('students.name', lang)}</TableHead>
+                <TableHead>{t('students.classSection', lang)}</TableHead>
+                <TableHead>{t('students.guardian', lang)}</TableHead>
+                <TableHead className="text-right">{t('students.view', lang)}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {recent.map((s) => (
+                <TableRow key={s.id}>
+                  <TableCell>{s.roll_number ?? <span className="text-muted">—</span>}</TableCell>
+                  <TableCell className="font-medium">{s.full_name}</TableCell>
+                  <TableCell>{s.classLabel ?? <span className="text-muted">—</span>}</TableCell>
+                  <TableCell>{s.guardian_name ?? <span className="text-muted">—</span>}</TableCell>
+                  <TableCell className="text-right">
+                    <Link href={`/school/students/${s.id}`} className="text-brand-600 hover:underline">
+                      {t('students.view', lang)}
+                    </Link>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+      </Card>
     </form>
   )
 }

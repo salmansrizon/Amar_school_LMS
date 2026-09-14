@@ -1978,6 +1978,12 @@ const dict = {
   'students.photoType': { bn: 'শুধুমাত্র JPEG, PNG বা WebP', en: 'JPEG, PNG or WebP only' },
   'students.photoTooBig': { bn: 'ছবি ২ MB-এর বেশি', en: 'Photo exceeds 2 MB' },
   'students.saveAdmission': { bn: 'ভর্তি সংরক্ষণ করুন', en: 'Save Admission' },
+  'students.lastSaved': { bn: 'সর্বশেষ সংরক্ষিত', en: 'Last saved' },
+  'students.recentAdmissions': { bn: 'সাম্প্রতিক ভর্তি', en: 'Recent Admissions' },
+  'students.recentAdmissionsEmpty': {
+    bn: 'এই সেশনে এখনও কোনো ভর্তি সংরক্ষণ করা হয়নি।',
+    en: 'No admissions saved yet this session.',
+  },
   'students.editProfile': { bn: 'প্রোফাইল সম্পাদনা', en: 'Edit Profile' },
   'students.archive': { bn: 'আর্কাইভ করুন', en: 'Archive' },
   'students.restore': { bn: 'পুনরুদ্ধার', en: 'Restore' },
