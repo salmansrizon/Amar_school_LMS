@@ -184,10 +184,7 @@ export default async function StudentDetailPage({
           </InfoCard>
 
           <InfoCard title={t('students.address', lang)}>
-            <InfoRow label={t('students.village', lang)} value={student.village} />
-            <InfoRow label={t('students.union', lang)} value={student.union_name} />
-            <InfoRow label={t('students.upazila', lang)} value={student.upazila} />
-            <InfoRow label={t('students.district', lang)} value={student.district} />
+            <InfoRow label={t('students.address', lang)} value={student.address} />
           </InfoCard>
 
           <InfoCard title={t('students.guardianInfo', lang)}>

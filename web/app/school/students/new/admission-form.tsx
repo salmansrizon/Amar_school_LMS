@@ -307,20 +307,14 @@ export function ProfileFields({
       </Card>
 
       <Card title={t('students.address', lang)}>
-        <div className="grid gap-grid sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-          <Field label={t('students.village', lang)}>
-            <input name="village" defaultValue={d('village')} className={fieldClass} />
-          </Field>
-          <Field label={t('students.union', lang)}>
-            <input name="union_name" defaultValue={d('union_name')} className={fieldClass} />
-          </Field>
-          <Field label={t('students.upazila', lang)}>
-            <input name="upazila" defaultValue={d('upazila')} className={fieldClass} />
-          </Field>
-          <Field label={t('students.district', lang)}>
-            <input name="district" defaultValue={d('district')} className={fieldClass} />
-          </Field>
-        </div>
+        <Field label={t('students.address', lang)}>
+          <input
+            name="address"
+            defaultValue={d('address')}
+            placeholder={t('students.addressPlaceholder', lang)}
+            className={fieldClass}
+          />
+        </Field>
       </Card>
 
       <Card title={t('students.guardianInfo', lang)}>
@@ -333,6 +327,12 @@ export function ProfileFields({
               <option value="">—</option>
               <option value="father">{t('students.father', lang)}</option>
               <option value="mother">{t('students.mother', lang)}</option>
+              <option value="brother">{t('students.brother', lang)}</option>
+              <option value="sister">{t('students.sister', lang)}</option>
+              <option value="grandfather">{t('students.grandfather', lang)}</option>
+              <option value="grandmother">{t('students.grandmother', lang)}</option>
+              <option value="uncle">{t('students.uncle', lang)}</option>
+              <option value="aunty">{t('students.aunty', lang)}</option>
               <option value="other">{t('students.otherRelation', lang)}</option>
             </select>
           </Field>

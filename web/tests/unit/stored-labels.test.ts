@@ -9,6 +9,8 @@ describe('guardianRelationLabel', () => {
     expect(guardianRelationLabel('mother', 'bn')).toBe('মাতা')
     expect(guardianRelationLabel('other', 'bn')).toBe('অন্যান্য')
     expect(guardianRelationLabel('father', 'en')).toBe('Father')
+    expect(guardianRelationLabel('grandmother', 'bn')).toBe('দাদি')
+    expect(guardianRelationLabel('uncle', 'en')).toBe('Uncle')
   })
 
   // The column is free text, not a database enum, and staging holds both spellings.
@@ -18,8 +20,8 @@ describe('guardianRelationLabel', () => {
   })
 
   it('passes an unrecognised value through rather than blanking or guessing it', () => {
-    expect(guardianRelationLabel('চাচা', 'bn')).toBe('চাচা')
-    expect(guardianRelationLabel('uncle', 'en')).toBe('uncle')
+    expect(guardianRelationLabel('মামা', 'bn')).toBe('মামা')
+    expect(guardianRelationLabel('cousin', 'en')).toBe('cousin')
   })
 
   it('is null for an empty value, so the row renders as absent not as a label', () => {
@@ -48,6 +50,6 @@ describe('storedFieldLabel', () => {
 
   it('leaves a field with no vocabulary exactly as stored', () => {
     expect(storedFieldLabel('guardian_name', 'father', 'bn')).toBe('father')
-    expect(storedFieldLabel('village', 'Mirpur', 'bn')).toBe('Mirpur')
+    expect(storedFieldLabel('address', 'Mirpur, Dhaka', 'bn')).toBe('Mirpur, Dhaka')
   })
 })

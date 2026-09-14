@@ -29,8 +29,7 @@ describe('Students I (issue #27)', () => {
         class_name: 'ST1 Class',
         section: 'A',
         gender: 'male',
-        village: 'Basail',
-        district: 'Tangail',
+        address: 'Basail, Tangail',
         guardian_name: 'ST1 Guardian',
         guardian_relation: 'father',
         guardian_mobile: '01700000000',
@@ -56,13 +55,13 @@ describe('Students I (issue #27)', () => {
   it('admission stores the full profile and auto-assigns roll 1', async () => {
     const { data } = await ownerA
       .from('students')
-      .select('roll_number, guardian_name, is_freedom_fighter_child, village, rfid_card_number')
+      .select('roll_number, guardian_name, is_freedom_fighter_child, address, rfid_card_number')
       .eq('id', studentId)
       .single()
     expect(data?.roll_number).toBe(1)
     expect(data?.guardian_name).toBe('ST1 Guardian')
     expect(data?.is_freedom_fighter_child).toBe(true)
-    expect(data?.village).toBe('Basail')
+    expect(data?.address).toBe('Basail, Tangail')
     expect(data?.rfid_card_number).toBe('ST1-CARD-00054321')
   })
 

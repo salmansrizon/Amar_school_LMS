@@ -25,7 +25,7 @@ export default async function AdmissionPrintPage({ params }: { params: Promise<{
     supabase
       .from('students')
       .select(
-        'full_name, class_name, section, roll_number, gender, date_of_birth, blood_group, religion, student_mobile, village, union_name, upazila, district, guardian_name, guardian_relation, guardian_mobile, previous_institute, previous_class',
+        'full_name, class_name, section, roll_number, gender, date_of_birth, blood_group, religion, student_mobile, address, guardian_name, guardian_relation, guardian_mobile, previous_institute, previous_class',
       )
       .eq('id', id)
       .maybeSingle(),
@@ -33,9 +33,6 @@ export default async function AdmissionPrintPage({ params }: { params: Promise<{
   if (!institute || !student) notFound()
 
   const v = (x: string | number | null | undefined) => (x === null || x === undefined || x === '' ? dash : x)
-  const address = [student.village, student.union_name, student.upazila, student.district]
-    .filter(Boolean)
-    .join(', ')
 
   return (
     <main className="mx-auto w-full max-w-4xl flex-1 p-6">
@@ -57,7 +54,7 @@ export default async function AdmissionPrintPage({ params }: { params: Promise<{
             { label: t('students.bloodGroup', lang), value: v(student.blood_group) },
             { label: t('students.religion', lang), value: v(religionLabel(student.religion, lang)) },
             { label: t('students.mobile', lang), value: v(student.student_mobile) },
-            { label: t('students.address', lang), value: address || dash },
+            { label: t('students.address', lang), value: v(student.address) },
             { label: t('students.guardianName', lang), value: v(student.guardian_name) },
             // Printed onto an official document, so it must not say `father` on a Bangla form (#539).
             { label: t('students.guardianRelation', lang), value: v(guardianRelationLabel(student.guardian_relation, lang)) },

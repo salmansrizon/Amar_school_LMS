@@ -14,6 +14,12 @@ const VOCABULARIES: Record<string, Record<string, Parameters<typeof t>[0]>> = {
   guardian_relation: {
     father: 'students.father',
     mother: 'students.mother',
+    brother: 'students.brother',
+    sister: 'students.sister',
+    grandfather: 'students.grandfather',
+    grandmother: 'students.grandmother',
+    uncle: 'students.uncle',
+    aunty: 'students.aunty',
     other: 'students.otherRelation',
   },
   gender: {
