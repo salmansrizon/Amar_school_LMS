@@ -94,6 +94,10 @@ const EXEMPT: [file: string, reason: string][] = [
   // an existing filter. Candidate follow-up, not this wave's scope.
   ['app/api/school/recent-activity/route.ts', 'recent-admissions feed has no class dimension today'],
   ['app/school/activity/page.tsx', 'recent-admissions feed has no class dimension today'],
+  [
+    'app/school/students/recent-admissions-actions.ts',
+    'New Admission page Recent Admissions list (#625) — deliberately unfiltered by design, same shape as the two recent-activity entries above',
+  ],
   ['app/school/attendance/leave/page.tsx', "leave list's student-name lookup has no class filter today"],
   ['app/school/page.tsx', 'dashboard total-student count is schoolwide, no class dimension'],
   ['app/school/sms/rules/page.tsx', 'student picker here has no class/section dimension at all'],

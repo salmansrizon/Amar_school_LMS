@@ -8,17 +8,18 @@ import {
   photoExtension,
   nextRollNumber,
   nextRollNumberForOffering,
+  classSectionLabel,
   type RollRow,
   type EnrollmentRollRow,
 } from '@/lib/students'
 import {
   classCatalogueOptions,
-  classCatalogueLabel,
   findClassCatalogueId,
   resolveClassCatalogueSelection,
   type ClassCatalogueRow,
 } from '@/lib/class-catalogue'
 import { admitStudent, studentPhotoUploadTicket, recordStudentPhoto } from '../actions'
+import { recentAdmissions, type RecentAdmissionRow } from '../recent-admissions-actions'
 import { dateInputClass, selectClass } from '@/components/ui/field'
 import { uploadWithSignedToken } from '@/lib/storage/upload-client'
 import { knownVocabularyValue } from '@/lib/students/stored-labels'
@@ -44,11 +45,23 @@ export const fieldClass =
   'w-full rounded-md border border-line bg-paper px-3 py-2 text-sm focus:border-brand-500 focus:outline-none'
 export const fieldLabelClass = 'mb-1 block text-xs font-semibold text-muted'
 
-export function Card({ title, children }: { title: string; children: React.ReactNode }) {
+/** `padded={false}` for a Card whose only child is a Table — the table
+ *  supplies its own cell padding and should reach the card's edges, same
+ *  convention as the shared Card in `@/components/ui/page` (see its own doc
+ *  comment). The heading keeps its padding either way. */
+export function Card({
+  title,
+  children,
+  padded = true,
+}: {
+  title: string
+  children: React.ReactNode
+  padded?: boolean
+}) {
   return (
-    <section className="mb-4 rounded-lg border border-line bg-paper p-5 shadow-card">
-      <h3 className="mb-3 font-bold">{title}</h3>
-      {children}
+    <section className="mb-4 rounded-lg border border-line bg-paper shadow-card">
+      <h3 className="p-5 pb-3 font-bold">{title}</h3>
+      {padded ? <div className="px-5 pb-5">{children}</div> : children}
     </section>
   )
 }
@@ -407,32 +420,23 @@ export async function uploadStudentPhoto(
   return res.error ?? null
 }
 
-/** One row of the on-page Recent Admissions list — built entirely from what
- *  the form itself already knows (the just-submitted FormData plus
- *  admitStudent's own return), never a re-fetch. Session-local by design: it
- *  shows what THIS bulk-entry run just did, not the school's full history. */
-interface RecentAdmission {
-  id: string
-  full_name: string
-  roll_number: number | null
-  classLabel: string | null
-  guardian_name: string | null
-}
-
-const RECENT_ADMISSIONS_MAX = 10
-
 export function AdmissionForm({
   lang,
   classOfferings,
   enrollmentRolls = [],
   rollIncrement = 1,
   showYear = false,
+  initialRecent,
 }: {
   lang: Lang
   classOfferings: ClassCatalogueRow[]
   enrollmentRolls?: EnrollmentRollRow[]
   rollIncrement?: number
   showYear?: boolean
+  /** The real last 10 admissions (issue #625) — fetched server-side by
+   *  `page.tsx` for the initial render, then re-fetched here after every
+   *  save so the list never drifts into a session-local echo. */
+  initialRecent: RecentAdmissionRow[]
 }) {
   const photoRef = useRef<HTMLInputElement>(null)
   const [error, setError] = useState<string | null>(null)
@@ -454,7 +458,10 @@ export function AdmissionForm({
   // never changes underneath us since navigation never happens.
   const [enrollmentRollsState, setEnrollmentRollsState] = useState<EnrollmentRollRow[]>(enrollmentRolls)
   const [lastSaved, setLastSaved] = useState<{ name: string; roll: number | null } | null>(null)
-  const [recent, setRecent] = useState<RecentAdmission[]>([])
+  // Server-sourced (issue #625): seeded from page.tsx's own fetch for the
+  // initial render, replaced wholesale (never appended-to locally) after
+  // each save so it's always the real last 10, not a session-local echo.
+  const [recent, setRecent] = useState<RecentAdmissionRow[]>(initialRecent)
 
   return (
     <form
@@ -462,7 +469,6 @@ export function AdmissionForm({
         e.preventDefault()
         const data = new FormData(e.currentTarget)
         const fullName = String(data.get('full_name') ?? '').trim()
-        const guardianName = String(data.get('guardian_name') ?? '').trim() || null
         const classOfferingId = String(data.get('class_offering_id') ?? '').trim()
         startTransition(async () => {
           setError(null)
@@ -485,20 +491,12 @@ export function AdmissionForm({
             if (photoError) console.warn('photo upload failed:', photoError)
           }
 
-          const offering = classOfferingId ? classOfferings.find((o) => o.id === classOfferingId) : undefined
+          // Reset for the next entry FIRST — rapid bulk admission is the
+          // whole point of this page, so nothing after the admission itself
+          // succeeded should make the operator wait before typing the next
+          // student. The Recent Admissions refresh below is a background
+          // update, not a gate on that.
           setLastSaved({ name: fullName, roll: result.roll_number ?? null })
-          setRecent((prev) =>
-            [
-              {
-                id: result.id!,
-                full_name: fullName,
-                roll_number: result.roll_number ?? null,
-                classLabel: offering ? classCatalogueLabel(offering, showYear) : null,
-                guardian_name: guardianName,
-              },
-              ...prev,
-            ].slice(0, RECENT_ADMISSIONS_MAX),
-          )
           if (classOfferingId) {
             setEnrollmentRollsState((prev) => [
               ...prev,
@@ -507,6 +505,16 @@ export function AdmissionForm({
           }
           setLastClassOfferingId(classOfferingId)
           setFormGeneration((g) => g + 1)
+
+          // Best-effort: the admission already succeeded and the form
+          // already reset, so a transient failure here shouldn't be fatal —
+          // the list just stays one save behind until the next successful
+          // refresh (or a manual reload).
+          try {
+            setRecent(await recentAdmissions())
+          } catch (err) {
+            console.warn('recent admissions refresh failed:', err)
+          }
         })
       }}
     >
@@ -537,7 +545,7 @@ export function AdmissionForm({
 
       {error && <p className="mb-3 text-sm text-alert-deep">{error}</p>}
 
-      <div className="flex items-center justify-between">
+      <div className="mb-4 flex items-center justify-between">
         <Link
           href="/school/students"
           className="rounded-full border border-line-strong px-4 py-1.5 text-sm font-semibold hover:bg-paper-muted"
@@ -553,7 +561,7 @@ export function AdmissionForm({
         </button>
       </div>
 
-      <Card title={t('students.recentAdmissions', lang)}>
+      <Card title={t('students.recentAdmissions', lang)} padded={!recent.length}>
         {!recent.length ? (
           <p className="text-sm text-muted">{t('students.recentAdmissionsEmpty', lang)}</p>
         ) : (
@@ -572,7 +580,9 @@ export function AdmissionForm({
                 <TableRow key={s.id}>
                   <TableCell>{s.roll_number ?? <span className="text-muted">—</span>}</TableCell>
                   <TableCell className="font-medium">{s.full_name}</TableCell>
-                  <TableCell>{s.classLabel ?? <span className="text-muted">—</span>}</TableCell>
+                  <TableCell>
+                    {classSectionLabel(s.class_name, s.section) ?? <span className="text-muted">—</span>}
+                  </TableCell>
                   <TableCell>{s.guardian_name ?? <span className="text-muted">—</span>}</TableCell>
                   <TableCell className="text-right">
                     <Link href={`/school/students/${s.id}`} className="text-brand-600 hover:underline">

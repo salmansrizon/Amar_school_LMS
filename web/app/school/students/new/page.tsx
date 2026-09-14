@@ -5,6 +5,7 @@ import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
 import { applyGlobalYearFilterToOfferings } from '@/lib/school/year-filter'
 import { PageHeader } from '@/components/ui/page'
 import { AdmissionForm } from './admission-form'
+import { recentAdmissions } from '../recent-admissions-actions'
 
 // Layout per ui/school-owner/student-admission-form.html: carded sections
 // Identity / Address / Guardian Info / Photo / Benefit Flags / Previous
@@ -21,7 +22,7 @@ export default async function NewAdmissionPage() {
   // threaded into the Fee Structures Offering picker.
   const showYear = startedAcademicYears.length > 1
 
-  const [{ data: classOfferings }, { data: enrollments }, { data: school }] = await Promise.all([
+  const [{ data: classOfferings }, { data: enrollments }, { data: school }, initialRecent] = await Promise.all([
     applyGlobalYearFilterToOfferings(
       applyGlobalShiftFilterToOfferings(
         supabase
@@ -36,6 +37,9 @@ export default async function NewAdmissionPage() {
     // fine up to 10k rows) — feeds the Roll Number field's next-roll suggestion.
     supabase.from('student_enrollments').select('class_offering_id, roll_number').limit(10000),
     supabase.from('schools').select('roll_number_increment').eq('id', schoolId).maybeSingle(),
+    // Recent Admissions list (issue #625) — server-sourced so it reflects
+    // real history, not just what this browser session admitted.
+    recentAdmissions(),
   ])
 
   return (
@@ -51,6 +55,7 @@ export default async function NewAdmissionPage() {
         enrollmentRolls={enrollments ?? []}
         rollIncrement={school?.roll_number_increment ?? 1}
         showYear={showYear}
+        initialRecent={initialRecent}
       />
     </>
   )
