@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
 import { t, type Lang } from '@/lib/i18n'
 import { ACADEMIC_SHIFT_LABEL_KEY, GROUP_DEPARTMENTS, type AcademicShift } from '@/lib/institute'
+import { Modal } from '@/components/modal'
 import { addClass, addSubject, archiveClassOffering, copyClassesFromYear, removeItem } from './actions'
 import { selectClass } from '@/components/ui/field'
 import { ConfirmDialog } from '@/components/confirm-dialog'
@@ -208,6 +209,50 @@ export function AddClassForm({
         {t('classes.addClass', lang)}
       </button>
     </form>
+  )
+}
+
+/** Wraps AddClassForm in the Add Class modal (issue #632). Composed here,
+ *  inside this already-client module, rather than in the server-rendered
+ *  page: Modal's `children` is a render-prop function, and a Server
+ *  Component cannot pass a function across the RSC boundary into a Client
+ *  Component's props — only the page's own plain, serializable data
+ *  (teachers, shiftChoices, etc.) may cross that line. */
+export function AddClassModal({
+  lang,
+  teachers,
+  shiftChoices,
+  activeAcademicYear,
+  educationLevels,
+  groupDepartmentOptions,
+  triggerLabel,
+  triggerClassName,
+  title,
+}: {
+  lang: Lang
+  teachers: TeacherOption[]
+  shiftChoices: readonly AcademicShift[]
+  activeAcademicYear: number | null
+  educationLevels: EducationLevelOption[]
+  groupDepartmentOptions: string[]
+  triggerLabel: string
+  triggerClassName: string
+  title: string
+}) {
+  return (
+    <Modal lang={lang} triggerLabel={triggerLabel} triggerClassName={triggerClassName} title={title}>
+      {(close) => (
+        <AddClassForm
+          lang={lang}
+          teachers={teachers}
+          shiftChoices={shiftChoices}
+          activeAcademicYear={activeAcademicYear}
+          educationLevels={educationLevels}
+          groupDepartmentOptions={groupDepartmentOptions}
+          onCreated={close}
+        />
+      )}
+    </Modal>
   )
 }
 

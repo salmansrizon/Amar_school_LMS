@@ -20,10 +20,9 @@ import { applyGlobalYearFilterToOfferings } from '@/lib/school/year-filter'
 import { excludeArchivedOfferings } from '@/lib/school/archived-offerings-filter'
 import { usedClassOfferingIds } from '@/lib/school/class-offering-usage'
 import { isKnownAcademicShift, ACADEMIC_SHIFT_LABEL_KEY, type AcademicShift } from '@/lib/institute'
-import { AddClassForm, AddSubjectForm, ArchiveOrDeleteButton, CopyClassesControl, DeleteButton } from './class-controls'
+import { AddClassModal, AddSubjectForm, ArchiveOrDeleteButton, CopyClassesControl, DeleteButton } from './class-controls'
 import { ClassTeacherPicker } from './class-teacher-picker'
 import { AddDetails } from '@/components/add-details'
-import { Modal } from '@/components/modal'
 import { selectClass } from '@/components/ui/field'
 
 const addTriggerClass =
@@ -220,24 +219,17 @@ export default async function ClassesPage({
           </Form>
         </div>
         <div className="mb-4 flex justify-end">
-          <Modal
+          <AddClassModal
             lang={lang}
+            teachers={teachers ?? []}
+            shiftChoices={shiftChoices}
+            activeAcademicYear={activeAcademicYear}
+            educationLevels={educationLevelOptions}
+            groupDepartmentOptions={groupDepartmentOptions}
             triggerLabel={t('classes.addClass', lang)}
             triggerClassName={addTriggerClass}
             title={t('classes.addClassTitle', lang)}
-          >
-            {(close) => (
-              <AddClassForm
-                lang={lang}
-                teachers={teachers ?? []}
-                shiftChoices={shiftChoices}
-                activeAcademicYear={activeAcademicYear}
-                educationLevels={educationLevelOptions}
-                groupDepartmentOptions={groupDepartmentOptions}
-                onCreated={close}
-              />
-            )}
-          </Modal>
+          />
         </div>
         {activeAcademicYear != null && copyClassesControlVisible(copySources) && (
           <div className="mb-4">
