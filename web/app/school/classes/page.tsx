@@ -175,12 +175,12 @@ export default async function ClassesPage({
 
       {/* Classes */}
       <section id="classes" className="mb-8 rounded-lg border border-line bg-paper p-5">
-        {/* Filter bar stays at the top of the list and never shifts, whether
-            or not Add Class is open (issue #632) — it no longer shares a flex
-            row with the Add Class trigger, which the AddDetails disclosure it
-            used to sit beside caused to happen (the panel expanding inline
-            pushed this whole row down). */}
-        <div className="mb-4">
+        {/* Filter bar and the Add Class trigger share one row (filter bar
+            left, button right, flex-wrap on narrow screens) — safe now that
+            Add Class is a fixed-overlay modal (issue #632) rather than the
+            inline-expanding <details> that used to push this row down when
+            it opened. */}
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <Form className="flex flex-wrap items-center gap-2" action="/school/classes">
             <input
               name="q"
@@ -217,8 +217,6 @@ export default async function ClassesPage({
               {t('classes.filter', lang)}
             </button>
           </Form>
-        </div>
-        <div className="mb-4 flex justify-end">
           <AddClassModal
             lang={lang}
             teachers={teachers ?? []}

@@ -38,7 +38,7 @@ export function Modal({
             if (e.target === e.currentTarget) close()
           }}
         >
-          <div className="w-full max-w-2xl rounded-lg border border-line bg-paper p-6 shadow-card">
+          <div className="max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-lg border border-line bg-paper p-4 shadow-card sm:p-6">
             <div className="mb-4 flex items-center justify-between gap-4">
               <h3 className="text-lg font-bold">{title}</h3>
               <button

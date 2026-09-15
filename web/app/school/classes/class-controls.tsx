@@ -106,9 +106,9 @@ export function AddClassForm({
   }
 
   return (
-    <form className="grid gap-3 sm:grid-cols-4" onSubmit={onSubmit}>
+    <form className="grid grid-cols-1 gap-3 sm:grid-cols-2" onSubmit={onSubmit}>
       {yearHint != null && (
-        <div className="rounded-md border border-line bg-paper-muted p-3 text-sm font-semibold text-ink sm:col-span-4">
+        <div className="rounded-md border border-line bg-paper-muted p-3 text-sm font-semibold text-ink sm:col-span-2">
           {/* Read-only confirmation — no form field. addClass stamps the year
               server-side (map #609, T9/#618); the creation flow cannot place an
               Offering under an older year. Shown first (issue #634) so it's the
@@ -172,7 +172,7 @@ export function AddClassForm({
         />
       </div>
       {shiftChoices.length > 0 && (
-        <div>
+        <div className="sm:col-span-2">
           <label className={labelClass} htmlFor="class_shift">{t('classes.shift', lang)}</label>
           <select id="class_shift" name="shift" defaultValue="" className={selectClass()}>
             <option value="">{t('institute.selectOne', lang)}</option>
@@ -184,7 +184,7 @@ export function AddClassForm({
           </select>
         </div>
       )}
-      <div className="sm:col-span-4">
+      <div className="sm:col-span-2">
         <label className={labelClass} htmlFor="class_teacher">{t('classes.classTeacher', lang)}</label>
         {/* Required once the school has any Employee to pick — mandatory as a
             product rule (#435), but never a wall in front of a brand-new school
@@ -204,8 +204,8 @@ export function AddClassForm({
           ))}
         </select>
       </div>
-      {error && <p className="text-sm text-alert-deep sm:col-span-4">{error}</p>}
-      <button type="submit" disabled={pending} className={`${primaryBtnClass} sm:col-span-4`}>
+      {error && <p className="text-sm text-alert-deep sm:col-span-2">{error}</p>}
+      <button type="submit" disabled={pending} className={`${primaryBtnClass} sm:col-span-2`}>
         {t('classes.addClass', lang)}
       </button>
     </form>
