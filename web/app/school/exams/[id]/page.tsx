@@ -4,6 +4,7 @@ import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { examBasicInfoComplete } from '@/lib/exam-setup'
 import { applyGlobalYearFilterToOfferings } from '@/lib/school/year-filter'
+import { excludeArchivedOfferings } from '@/lib/school/archived-offerings-filter'
 import { subjectsForClass } from '@/lib/students'
 import {
   BasicInfoForm,
@@ -57,11 +58,17 @@ export default async function ExamSetupPage({
 
   const [{ data: classes }, { data: schemes }, { data: allSubjects }, { data: assignments }, { data: teachers }] =
     await Promise.all([
+      // Basic Info's Class picker excludes archived Offerings for NEW picks
+      // (ADR 0024) — the exam's own current selection is preserved below
+      // regardless, so an exam already pointing at a since-archived class
+      // doesn't silently blank out and null class_id on the next save.
       applyGlobalYearFilterToOfferings(
-        supabase
-          .from('class_offerings')
-          .select('id, name, section, group_department, shift, academic_year')
-          .order('created_at'),
+        excludeArchivedOfferings(
+          supabase
+            .from('class_offerings')
+            .select('id, name, section, group_department, shift, academic_year')
+            .order('created_at'),
+        ),
         academicYearSelection,
       ),
       supabase.from('grading_schemes').select('id, name').order('name'),
@@ -69,6 +76,16 @@ export default async function ExamSetupPage({
       supabase.from('exam_subject_teachers').select('subject_id, teacher_id').eq('exam_id', id),
       supabase.from('employee_card').select('id, full_name').is('archived_at', null).order('full_name'),
     ])
+
+  let classOptions = classes ?? []
+  if (exam.class_id && !classOptions.some((c) => c.id === exam.class_id)) {
+    const { data: currentClass } = await supabase
+      .from('class_offerings')
+      .select('id, name, section, group_department, shift, academic_year')
+      .eq('id', exam.class_id)
+      .maybeSingle()
+    if (currentClass) classOptions = [...classOptions, currentClass]
+  }
 
   const teacherBySubject = new Map((assignments ?? []).map((a) => [a.subject_id, a.teacher_id]))
   const subjectRows: SubjectRow[] = exam.class_id
@@ -111,7 +128,7 @@ export default async function ExamSetupPage({
           examYear={exam.exam_year}
           classId={exam.class_id}
           startDate={exam.start_date}
-          classes={(classes ?? []) as ClassCatalogueRow[]}
+          classes={classOptions as ClassCatalogueRow[]}
           disabled={closed}
           lang={lang}
           showYear={showYear}

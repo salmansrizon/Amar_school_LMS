@@ -4,6 +4,7 @@ import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
 import { applyGlobalYearFilterToOfferings } from '@/lib/school/year-filter'
+import { excludeArchivedOfferings } from '@/lib/school/archived-offerings-filter'
 import { classCatalogueLabel } from '@/lib/class-catalogue'
 import { isKnownAcademicShift } from '@/lib/institute'
 import { CreateEmployeeForm } from './create-form'
@@ -25,12 +26,15 @@ export default async function NewEmployeePage() {
   // threaded into the Fee Structures Offering picker.
   const showYear = startedAcademicYears.length > 1
 
+  // The Class Teacher picker never offers an archived Offering (ADR 0024).
   const { data: classes } = await applyGlobalYearFilterToOfferings(
     applyGlobalShiftFilterToOfferings(
-      supabase
-        .from('class_offerings')
-        .select('id, name, section, group_department, class_teacher_id, shift, academic_year')
-        .order('created_at'),
+      excludeArchivedOfferings(
+        supabase
+          .from('class_offerings')
+          .select('id, name, section, group_department, class_teacher_id, shift, academic_year')
+          .order('created_at'),
+      ),
       shiftSelection,
     ),
     academicYearSelection,

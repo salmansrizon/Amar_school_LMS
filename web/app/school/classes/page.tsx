@@ -16,8 +16,10 @@ import {
 } from '@/lib/classes'
 import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
 import { applyGlobalYearFilterToOfferings } from '@/lib/school/year-filter'
+import { excludeArchivedOfferings } from '@/lib/school/archived-offerings-filter'
+import { usedClassOfferingIds } from '@/lib/school/class-offering-usage'
 import { isKnownAcademicShift, ACADEMIC_SHIFT_LABEL_KEY, type AcademicShift } from '@/lib/institute'
-import { AddClassForm, AddSubjectForm, CopyClassesControl, DeleteButton } from './class-controls'
+import { AddClassForm, AddSubjectForm, ArchiveOrDeleteButton, CopyClassesControl, DeleteButton } from './class-controls'
 import { ClassTeacherPicker } from './class-teacher-picker'
 import { AddDetails } from '@/components/add-details'
 import { selectClass } from '@/components/ui/field'
@@ -50,35 +52,42 @@ export default async function ClassesPage({
   // configured_shifts (#577), so no separate intersection is needed.
   const shiftChoices = shiftSelection.filter(isKnownAcademicShift)
 
-  const [{ data: classes }, { data: subjects }, { data: enrollments }, { data: teachers }] = await Promise.all([
-    applyGlobalYearFilterToOfferings(
-      applyGlobalShiftFilterToOfferings(
-        supabase
-          .from('class_offerings')
-          .select('id, name, section, education_level, group_department, class_teacher_id, shift, academic_year')
-          .order('created_at'),
-        shiftSelection,
+  const [{ data: classes }, { data: subjects }, { data: enrollments }, { data: teachers }, usedIds] =
+    await Promise.all([
+      applyGlobalYearFilterToOfferings(
+        applyGlobalShiftFilterToOfferings(
+          // Archived Class Offerings (ADR 0024) never show on the active
+          // list — the new Archived Classes view is where they live.
+          excludeArchivedOfferings(
+            supabase
+              .from('class_offerings')
+              .select('id, name, section, education_level, group_department, class_teacher_id, shift, academic_year')
+              .order('created_at'),
+          ),
+          shiftSelection,
+        ),
+        academicYearSelection,
       ),
-      academicYearSelection,
-    ),
-    supabase
-      .from('subjects')
-      .select(
-        'id, name, code, theory_marks, mcq_marks, practical_marks, paper_count, class_offerings(name, section)',
-      )
-      .order('created_at'),
-    // ponytail: whole-table scan capped at 10k rows; switch to a count RPC
-    // if a school ever outgrows it.
-    supabase.from('student_enrollments').select('class_offering_id').is('closed_at', null).limit(10000),
-    // Class teachers are Employees (#435). Archived staff are not offerable.
-    // employee_card, not employees: 0136 gates the base table on the Employees
-    // grant, and this picker belongs to Classes. A name is all it wants.
-    supabase
-      .from('employee_card')
-      .select('id, full_name')
-      .is('archived_at', null)
-      .order('full_name'),
-  ])
+      supabase
+        .from('subjects')
+        .select(
+          'id, name, code, theory_marks, mcq_marks, practical_marks, paper_count, class_offerings(name, section)',
+        )
+        .order('created_at'),
+      // ponytail: whole-table scan capped at 10k rows; switch to a count RPC
+      // if a school ever outgrows it.
+      supabase.from('student_enrollments').select('class_offering_id').is('closed_at', null).limit(10000),
+      // Class teachers are Employees (#435). Archived staff are not offerable.
+      // employee_card, not employees: 0136 gates the base table on the Employees
+      // grant, and this picker belongs to Classes. A name is all it wants.
+      supabase
+        .from('employee_card')
+        .select('id, full_name')
+        .is('archived_at', null)
+        .order('full_name'),
+      // Which visible rows can only be Archived, not Deleted (ADR 0024).
+      usedClassOfferingIds(supabase),
+    ])
 
   const allClasses = classes ?? []
   const levels = [...new Set(allClasses.map((c) => c.education_level).filter(Boolean))] as string[]
@@ -120,7 +129,15 @@ export default async function ClassesPage({
     <div>
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold">{t('classes.title', lang)}</h1>
-        <Link href="/school" aria-label={t('common.back', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/school/classes/archive"
+            className="inline-flex h-9 items-center rounded-full border border-line-strong px-4 text-xs font-semibold hover:bg-paper-muted"
+          >
+            {t('classes.oldClasses', lang)}
+          </Link>
+          <Link href="/school" aria-label={t('common.back', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
+        </div>
       </div>
 
       {/* Tabs (anchors, as in the mockup — all three sections on one page) */}
@@ -255,7 +272,7 @@ export default async function ClassesPage({
                         >
                           {t('classes.subjects', lang)}
                         </Link>
-                        <DeleteButton entity="class_offerings" id={c.id} lang={lang} />
+                        <ArchiveOrDeleteButton classOfferingId={c.id} used={usedIds.has(c.id)} lang={lang} />
                       </div>
                     </td>
                   </tr>

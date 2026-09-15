@@ -5,6 +5,7 @@ import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
 import { applyGlobalYearFilterToOfferings } from '@/lib/school/year-filter'
+import { excludeArchivedOfferings } from '@/lib/school/archived-offerings-filter'
 import { AccountingTabs } from '../accounting-tabs'
 import { FeeStructureForm, CopyFeeStructureForm } from './structure-controls'
 import { classCatalogueLabel, type ClassCatalogueRow } from '@/lib/class-catalogue'
@@ -45,13 +46,18 @@ export default async function FeeStructuresPage({
   // this picker fetch). `fee_structures.academic_year` stays derived from the
   // picked Offering, never a user-editable field, so there is no separate year
   // selector here.
+  // Fee Structure setup's Class picker never offers an archived Offering
+  // (ADR 0024) — historical `fee_structures` rows below stay unfiltered,
+  // resolving their own Offering label regardless.
   const [{ data: classes }, { data: allStructures }] = await Promise.all([
     applyGlobalYearFilterToOfferings(
       applyGlobalShiftFilterToOfferings(
-        supabase
-          .from('class_offerings')
-          .select('id, name, section, group_department, shift, academic_year')
-          .order('created_at'),
+        excludeArchivedOfferings(
+          supabase
+            .from('class_offerings')
+            .select('id, name, section, group_department, shift, academic_year')
+            .order('created_at'),
+        ),
         shiftSelection,
       ),
       academicYearSelection,

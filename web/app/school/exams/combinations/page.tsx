@@ -46,7 +46,7 @@ export default async function ExamCombinationsPage() {
     // pickerClasses below).
     supabase
       .from('class_offerings')
-      .select('id, name, section, group_department, shift, academic_year')
+      .select('id, name, section, group_department, shift, academic_year, archived_at')
       .order('created_at'),
     supabase.from('grading_schemes').select('id, name').order('name'),
     supabase.from('exams').select('id, name, exam_year').order('created_at', { ascending: false }),
@@ -68,10 +68,14 @@ export default async function ExamCombinationsPage() {
   }
   const classById = new Map((classes ?? []).map((c) => [c.id, c]))
   const schemeById = new Map((schemes ?? []).map((s) => [s.id, s]))
-  // The Add-Combination picker narrows to the Global Academic Year Selection —
-  // derived in-memory from the already-loaded set (see the fetch comment
-  // above), never a second query.
-  const pickerClasses = filterOfferingsByYearSelection((classes ?? []) as ClassCatalogueRow[], academicYearSelection)
+  // The Add-Combination picker narrows to the Global Academic Year Selection
+  // and excludes archived Offerings (ADR 0024) — both derived in-memory from
+  // the already-loaded set (see the fetch comment above), never a second
+  // query. The class-label map above (classById) stays unfiltered either way.
+  const pickerClasses = filterOfferingsByYearSelection(
+    ((classes ?? []) as (ClassCatalogueRow & { archived_at: string | null })[]).filter((c) => !c.archived_at),
+    academicYearSelection,
+  )
 
   return (
     <div>

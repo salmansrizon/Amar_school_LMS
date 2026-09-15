@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { isKnownAcademicShift } from '@/lib/institute'
+import { classOfferingIsUsed } from '@/lib/school/class-offering-usage'
 
 // RLS ("school members manage …" scoped to app_current_school_id()) is the
 // authority on every write here — these actions only validate + shape input.
@@ -148,9 +149,51 @@ const ENTITIES: ReadonlySet<Entity> = new Set(['class_offerings', 'subjects'])
 export async function removeItem(entity: Entity, id: string): Promise<{ error?: string }> {
   if (!ENTITIES.has(entity)) return { error: 'Unknown item type' }
   const supabase = await createClient()
+  if (entity === 'class_offerings') {
+    // Defense-in-depth (ADR 0024): the UI only ever offers Delete for a
+    // fresh (never-used) Class Offering, but re-check here too — a used
+    // Offering must never be force-deleted, and the raw FK-violation error
+    // this would otherwise surface (student_enrollments_class_offering_id_fkey)
+    // is not a message an operator can act on.
+    if (await classOfferingIsUsed(supabase, id)) {
+      return { error: 'This class has been used — archive it instead of deleting.' }
+    }
+  }
   const { data, error } = await supabase.from(entity).delete().eq('id', id).select('id')
   if (error) return { error: error.message }
   if (!data?.length) return { error: 'Item not found or not accessible' }
   revalidatePath(PAGE)
+  return {}
+}
+
+/** Old Classes soft-archive (ADR 0024) — every subject, fee structure,
+ *  routine slot, exam, publication target and enrollment history pointing at
+ *  this Class Offering is untouched; only its availability for NEW picks
+ *  changes (see `excludeArchivedOfferings`). Reversible via `restoreClassOffering`. */
+export async function archiveClassOffering(id: string): Promise<{ error?: string }> {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('class_offerings')
+    .update({ archived_at: new Date().toISOString() })
+    .eq('id', id)
+    .select('id')
+  if (error) return { error: error.message }
+  if (!data?.length) return { error: 'Class not found' }
+  revalidatePath(PAGE)
+  revalidatePath(`${PAGE}/archive`)
+  return {}
+}
+
+export async function restoreClassOffering(id: string): Promise<{ error?: string }> {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('class_offerings')
+    .update({ archived_at: null })
+    .eq('id', id)
+    .select('id')
+  if (error) return { error: error.message }
+  if (!data?.length) return { error: 'Class not found' }
+  revalidatePath(PAGE)
+  revalidatePath(`${PAGE}/archive`)
   return {}
 }

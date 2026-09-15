@@ -3,6 +3,7 @@ import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
 import { applyGlobalYearFilterToOfferings } from '@/lib/school/year-filter'
+import { excludeArchivedOfferings } from '@/lib/school/archived-offerings-filter'
 import { PageHeader } from '@/components/ui/page'
 import { AdmissionForm } from './admission-form'
 import { recentAdmissions } from '../recent-admissions-actions'
@@ -26,10 +27,13 @@ export default async function NewAdmissionPage() {
   const [{ data: classOfferings }, { data: enrollments }, { data: school }, initialRecent] = await Promise.all([
     applyGlobalYearFilterToOfferings(
       applyGlobalShiftFilterToOfferings(
-        supabase
-          .from('class_offerings')
-          .select('id, name, section, group_department, shift, academic_year')
-          .order('created_at'),
+        // Admission's Class picker never offers an archived Offering (ADR 0024).
+        excludeArchivedOfferings(
+          supabase
+            .from('class_offerings')
+            .select('id, name, section, group_department, shift, academic_year')
+            .order('created_at'),
+        ),
         shiftSelection,
       ),
       academicYearSelection,

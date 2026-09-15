@@ -4,7 +4,7 @@ import { useMemo, useState, useTransition } from 'react'
 import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
 import { t, type Lang } from '@/lib/i18n'
 import { ACADEMIC_SHIFT_LABEL_KEY, type AcademicShift } from '@/lib/institute'
-import { addClass, addSubject, copyClassesFromYear, removeItem } from './actions'
+import { addClass, addSubject, archiveClassOffering, copyClassesFromYear, removeItem } from './actions'
 import { selectClass } from '@/components/ui/field'
 import { ConfirmDialog } from '@/components/confirm-dialog'
 import { classCatalogueLabel, type ClassCatalogueRow } from '@/lib/class-catalogue'
@@ -347,24 +347,62 @@ export function DeleteButton({
   id,
   lang,
 }: {
-  entity: 'class_offerings' | 'subjects'
+  entity: 'subjects'
   id: string
   lang: Lang
 }) {
-  // Deleting a class cascades to its subjects, and deleting a subject cascades
-  // to its marks, its student questions and its routine links — say so in the
-  // in-app dialog (#365, #548). "This will be deleted. Are you sure?" was true
-  // and useless.
-  const key = entity === 'class_offerings' ? 'classes.deleteConfirm' : 'classes.deleteConfirmSubject'
+  // Deleting a subject cascades to its marks, its student questions and its
+  // routine links — say so in the in-app dialog (#365, #548). "This will be
+  // deleted. Are you sure?" was true and useless.
   return (
     <ConfirmDialog
       triggerLabel={t('common.delete', lang)}
       triggerClassName="cursor-pointer rounded-full border border-alert px-3 py-1 text-xs font-semibold text-alert-deep hover:bg-alert-soft"
       title={t('common.delete', lang)}
-      body={t(key, lang)}
+      body={t('classes.deleteConfirmSubject', lang)}
       confirmLabel={t('common.delete', lang)}
       cancelLabel={t('routine.cancel', lang)}
       onConfirm={async () => await removeItem(entity, id)}
+    />
+  )
+}
+
+/** A Class Offering's own action (ADR 0024): fresh (never used, per
+ *  `usedClassOfferingIds`) still gets the plain permanent Delete; a used one
+ *  gets Archive instead — Delete is never even offered, so the raw
+ *  FK-violation error a used Offering used to surface can no longer happen
+ *  from this button (the server action re-checks too, as a backstop). */
+export function ArchiveOrDeleteButton({
+  classOfferingId,
+  used,
+  lang,
+}: {
+  classOfferingId: string
+  used: boolean
+  lang: Lang
+}) {
+  if (used) {
+    return (
+      <ConfirmDialog
+        triggerLabel={t('classes.archive', lang)}
+        triggerClassName="cursor-pointer rounded-full border border-alert px-3 py-1 text-xs font-semibold text-alert-deep hover:bg-alert-soft"
+        title={t('classes.archive', lang)}
+        body={t('classes.archiveConfirm', lang)}
+        confirmLabel={t('classes.archive', lang)}
+        cancelLabel={t('routine.cancel', lang)}
+        onConfirm={async () => await archiveClassOffering(classOfferingId)}
+      />
+    )
+  }
+  return (
+    <ConfirmDialog
+      triggerLabel={t('common.delete', lang)}
+      triggerClassName="cursor-pointer rounded-full border border-alert px-3 py-1 text-xs font-semibold text-alert-deep hover:bg-alert-soft"
+      title={t('common.delete', lang)}
+      body={t('classes.deleteConfirmSimple', lang)}
+      confirmLabel={t('common.delete', lang)}
+      cancelLabel={t('routine.cancel', lang)}
+      onConfirm={async () => await removeItem('class_offerings', classOfferingId)}
     />
   )
 }

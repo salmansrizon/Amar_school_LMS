@@ -5,6 +5,7 @@ import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
 import { applyGlobalYearFilterToOfferings } from '@/lib/school/year-filter'
+import { excludeArchivedOfferings } from '@/lib/school/archived-offerings-filter'
 import { classSectionLabel } from '@/lib/students'
 import { classCatalogueLabel } from '@/lib/class-catalogue'
 import { firstRelation } from '@/lib/supabase/relation'
@@ -46,6 +47,9 @@ export default async function StudentTransferPage({
     .single()
   if (!student) notFound()
 
+  // Transfer's target Class picker never offers an archived Offering (ADR
+  // 0024) — the history table below, reading enrollments' own embedded
+  // class_offerings relation, is untouched by this.
   const [{ data: enrollments }, { data: classOfferings }] = await Promise.all([
     supabase
       .from('student_enrollments')
@@ -54,10 +58,12 @@ export default async function StudentTransferPage({
       .order('created_at', { ascending: true }),
     applyGlobalYearFilterToOfferings(
       applyGlobalShiftFilterToOfferings(
-        supabase
-          .from('class_offerings')
-          .select('id, name, section, group_department, shift, academic_year')
-          .order('created_at'),
+        excludeArchivedOfferings(
+          supabase
+            .from('class_offerings')
+            .select('id, name, section, group_department, shift, academic_year')
+            .order('created_at'),
+        ),
         shiftSelection,
       ),
       academicYearSelection,

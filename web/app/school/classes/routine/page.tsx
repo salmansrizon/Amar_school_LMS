@@ -4,6 +4,7 @@ import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
 import { applyGlobalYearFilterToOfferings } from '@/lib/school/year-filter'
+import { excludeArchivedOfferings } from '@/lib/school/archived-offerings-filter'
 import { ROUTINE_DAYS, ROUTINE_PERIODS, dayLabel, indexSlots, type RoutineSlot } from '@/lib/routine'
 import { SlotCell, PublishButton, ClassPicker, type Option } from './routine-cell'
 
@@ -24,12 +25,18 @@ export default async function RoutinePage({
   const showYear = startedAcademicYears.length > 1
 
   const { class: selectedClass = '' } = await searchParams
+  // Routine builder's Class picker never offers an archived Offering (ADR
+  // 0024) — building/extending a routine is new-selection use; the Routine
+  // Print page keeps reading an already-built routine regardless of archive
+  // status, unaffected by this.
   const { data: classes } = await applyGlobalYearFilterToOfferings(
     applyGlobalShiftFilterToOfferings(
-      supabase
-        .from('class_offerings')
-        .select('id, name, section, group_department, shift, academic_year')
-        .order('created_at'),
+      excludeArchivedOfferings(
+        supabase
+          .from('class_offerings')
+          .select('id, name, section, group_department, shift, academic_year')
+          .order('created_at'),
+      ),
       shiftSelection,
     ),
     academicYearSelection,

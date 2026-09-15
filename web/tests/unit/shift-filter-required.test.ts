@@ -106,6 +106,10 @@ const EXEMPT: [file: string, reason: string][] = [
   // --- students: deliberately not shift-narrowed.
   ['app/school/students/archive/page.tsx', 'archived roster is a historical view, deliberately unfiltered'],
 
+  // --- class_offerings: deliberately not shift-narrowed (ADR 0024, issue
+  // #631) — same reasoning as the Students archive above.
+  ['app/school/classes/archive/page.tsx', 'archived roster is a historical view, deliberately unfiltered'],
+
   // --- students: cross-School aggregate — no single institute's Shift
   // configuration applies to a super-admin, cross-tenant count.
   ['lib/super-admin/schools-read-model.ts', 'cross-School super-admin aggregate, no single institute context'],

@@ -1,0 +1,19 @@
+# A used Class Offering is archived, never force-deleted
+
+**Status**: accepted
+
+`student_enrollments.class_offering_id` has no `ON DELETE` clause (defaults to `NO ACTION`), the only one of nine tables referencing `class_offerings` that isn't `CASCADE` or `SET NULL` — so deleting a Class Offering with any enrollment history already failed loudly with a raw Postgres FK-violation error, with no app-level explanation. Grilled explicitly: the fix is not to relax that FK. Cascading it would silently delete a Student's enrollment history; `SET NULL` would leave orphaned `student_enrollments` rows pointing at nothing, corrupting every report, attendance record, fee record and exam result that resolves a Student's class through their Enrollment. Deleting the Students first to unblock the class, or deleting the enrollment rows directly, were both explicitly rejected too — neither is a legitimate way to "make a class deletable."
+
+Instead, a Class Offering's deletability now depends on whether it's ever been used: **used** means at least one row exists in any of `student_enrollments`, `subjects`, `fee_structures`, `routine_slots`, `class_routines`, `class_syllabi`, `exams`, `exam_combinations`, or `publications` referencing it — not just enrollment. A School Owner who created a class and typed in subjects, a fee structure, or a routine before ever admitting a Student has done real, non-recoverable work; that shouldn't be silently cascade-deleted either, even though the FKs alone would allow it. A genuinely untouched Class Offering (matching none of the nine) stays permanently Delete-eligible, unchanged. A used one can only be Archived — the same reversible `archived_at` toggle already used for Students and Employees — never hard-deleted from the UI.
+
+## Considered options
+
+- **A — Relax the FK (CASCADE or SET NULL).** Rejected outright by the school owner (Mahbubur Rahman Khan): destroys or corrupts Student enrollment history, the one thing this decision exists to protect.
+- **B — "Used" means enrollment only**, since that's the sole FK actually blocking deletion today; leave subjects/fee-structures/routine freely cascading via Delete exactly as before. Considered and rejected by the school owner in favor of C — configured-but-unenrolled setup work is still real work worth protecting from a one-click Delete.
+- **C — "Used" spans all nine referencing tables (chosen).** Broader than the FK strictly requires, but matches what a School Owner would actually consider "this class has been touched."
+
+## Consequences
+
+- Delete's existing cascade behavior (subjects, fee structures, routine, syllabus) is now only ever exercised on a Class Offering that has none of those things in the first place — it stays correct but becomes close to vestigial for `class_offerings` itself (a Delete on a truly fresh offering has nothing left to cascade over).
+- `class_offering_is_used(id)`, a SECURITY DEFINER function (matching the existing `app_current_employee_id`/`student_current_class_offering_id` helper convention), is the single source of truth for the used/fresh boundary — both the UI's Delete-vs-Archive button choice and the delete action's own defense-in-depth re-check call it, so the two can never disagree.
+- Archiving does not close open Enrollments or touch any other row — a currently-enrolled Student's attendance, fees and marks are unaffected, since those all key off the Enrollment, never off the Offering's archived state. Archiving only removes the Offering from screens that pick a class for new forward-looking use (Admission, Fee Structure setup, Routine building, Subject assignment, Transfer/Promotion targets, Exam setup) — the same "browse/pick narrows, resolve-existing doesn't" split already established for Global Shift/Year Selection (ADR 0023), applied here as a second, permanent narrowing rather than a new mechanism.

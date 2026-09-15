@@ -4,6 +4,7 @@ import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
 import { applyGlobalYearFilterToOfferings } from '@/lib/school/year-filter'
+import { excludeArchivedOfferings } from '@/lib/school/archived-offerings-filter'
 import { subjectsForClass } from '@/lib/students'
 import { ClassPicker } from '../../classes/routine/routine-cell'
 import { BulkAssignForm } from './bulk-assign-form'
@@ -24,9 +25,15 @@ export default async function SubjectAssignmentPage({
   const showYear = startedAcademicYears.length > 1
 
   const { class: selectedClass = '' } = await searchParams
+  // The Class picker never offers an archived Offering (ADR 0024) — a
+  // deep-linked archived class still resolves below (the point lookup by id
+  // is unfiltered), since bulk-assigning is one thing, but a stale link
+  // shouldn't 404 outright.
   const { data: classes } = await applyGlobalYearFilterToOfferings(
     applyGlobalShiftFilterToOfferings(
-      supabase.from('class_offerings').select('id, name, section, shift, academic_year').order('created_at'),
+      excludeArchivedOfferings(
+        supabase.from('class_offerings').select('id, name, section, shift, academic_year').order('created_at'),
+      ),
       shiftSelection,
     ),
     academicYearSelection,

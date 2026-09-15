@@ -5,6 +5,7 @@ import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
 import { applyGlobalYearFilterToOfferings } from '@/lib/school/year-filter'
+import { excludeArchivedOfferings } from '@/lib/school/archived-offerings-filter'
 import { subjectsForClass } from '@/lib/students'
 import { subjectFullMarks } from '@/lib/exam-setup'
 import { evaluateSubject, evaluateOverallResult, subjectPercent, type GradingScheme, type OverallResult, type SubjectMark } from '@/lib/grading'
@@ -97,12 +98,16 @@ export default async function PromotionPage({
     .eq('id', exam.class_id)
     .maybeSingle()
   const [{ data: allClasses }, { data: allSubjects }, { data: combos }] = await Promise.all([
+    // Promotion's target Class picker never offers an archived Offering (ADR
+    // 0024) — `cls` above (the exam's own source class) stays unfiltered.
     applyGlobalYearFilterToOfferings(
       applyGlobalShiftFilterToOfferings(
-        supabase
-          .from('class_offerings')
-          .select('id, name, section, group_department, shift, academic_year')
-          .order('created_at'),
+        excludeArchivedOfferings(
+          supabase
+            .from('class_offerings')
+            .select('id, name, section, group_department, shift, academic_year')
+            .order('created_at'),
+        ),
         shiftSelection,
       ),
       academicYearSelection,

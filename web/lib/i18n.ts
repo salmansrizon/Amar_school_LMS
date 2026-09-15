@@ -1417,10 +1417,6 @@ const dict = {
     bn: 'কোনো মিল নেই — একটি কাস্টম বিষয়ের নাম লিখুন',
     en: 'No matches — type a custom subject name',
   },
-  'classes.deleteConfirm': {
-    bn: 'মুছে ফেলা হবে — শ্রেণি মুছলে এর বিষয়গুলোও মুছে যাবে। নিশ্চিত?',
-    en: 'This will be deleted — deleting a class also deletes its subjects. Are you sure?',
-  },
   // #548: deleting a subject takes its marks, its student questions and its
   // routine links with it. That has been true of marks since 0031; the dialog
   // said none of it.
@@ -1432,6 +1428,20 @@ const dict = {
     bn: 'মুছে ফেলা হবে। নিশ্চিত?',
     en: 'This will be deleted. Are you sure?',
   },
+  // Old Classes soft-archive (ADR 0024) — mirrors students.archive/restore/
+  // archiveTitle/oldStudents and employees' equivalents exactly.
+  'classes.archive': { bn: 'আর্কাইভ করুন', en: 'Archive' },
+  'classes.restore': { bn: 'পুনরুদ্ধার', en: 'Restore' },
+  'classes.archiveConfirm': {
+    bn: 'শ্রেণিটি পুরাতন তালিকায় পাঠানো হবে — পরে পুনরুদ্ধার করা যাবে। এটি ইতিমধ্যে ব্যবহৃত হয়েছে বলে স্থায়ীভাবে মুছে ফেলা যাবে না। নিশ্চিত?',
+    en: 'This class will move to the Old Classes list — restorable later. It has already been used, so it can no longer be permanently deleted. Are you sure?',
+  },
+  'classes.oldClasses': { bn: 'পুরাতন শ্রেণি', en: 'Old Classes' },
+  'classes.oldClass': { bn: 'পুরাতন শ্রেণি', en: 'Old Class' },
+  'classes.activeList': { bn: 'সক্রিয় শ্রেণি তালিকা', en: 'Active Classes List' },
+  'classes.archiveSearch': { bn: 'নাম বা শাখা দিয়ে খুঁজুন', en: 'Search by name or section' },
+  'classes.noArchived': { bn: 'কোনো পুরাতন শ্রেণি নেই', en: 'No archived classes' },
+  'classes.archivedOn': { bn: 'আর্কাইভের তারিখ', en: 'Archived On' },
   'classes.noClasses': { bn: 'এখনো কোনো শ্রেণি নেই', en: 'No classes yet' },
   'classes.noRooms': { bn: 'এখনো কোনো কক্ষ নেই', en: 'No rooms yet' },
   'classes.noSubjects': { bn: 'এখনো কোনো বিষয় নেই', en: 'No subjects yet' },

@@ -77,6 +77,11 @@ const EXEMPT: [file: string, reason: string][] = [
   // --- the Shift filter's own internal implementation detail, not itself a
   // class picker.
   ['lib/school/shift-filter.ts', 'internal id-resolution read for applyGlobalShiftFilterToStudents, not a picker'],
+
+  // --- deliberately not year-narrowed (ADR 0024, issue #631) — an archived
+  // roster is a historical view, same reasoning as the Students archive
+  // page's own exemption in shift-filter-required.test.ts.
+  ['app/school/classes/archive/page.tsx', 'archived roster is a historical view, deliberately unfiltered'],
 ]
 
 function sourceFiles(dir: string, out: string[] = []): string[] {
