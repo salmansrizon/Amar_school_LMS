@@ -29,6 +29,10 @@ export interface SchoolContext {
    *  is already reconciled against it (#577's parseShiftSelection). */
   configuredShifts: readonly string[]
   shiftSelection: readonly string[]
+  /** schools.education_levels (Institute Setup, issue #633) — the School's
+   *  own configured subset of the platform's fixed Education Level
+   *  vocabulary. Add Class's Education Level dropdown offers only these. */
+  educationLevels: readonly string[]
   /** schools.active_academic_year (#570/#594) — the year new Class Offerings
    *  are stamped with, and the year list/report screens default their view to.
    *  Read here (the shared schools-row query) so pages needn't re-fetch it.
@@ -67,7 +71,7 @@ export const getSchoolContext = cache(async (): Promise<SchoolContext> => {
   const [{ data: school }, grantsRes, { data: status }, { data: startedYearRows }] = await Promise.all([
     supabase
       .from('schools')
-      .select('name, subscription_expires_at, configured_shifts, active_academic_year')
+      .select('name, subscription_expires_at, configured_shifts, active_academic_year, education_levels')
       .eq('id', profile.school_id)
       .maybeSingle(),
     role === 'staff_user'
@@ -97,6 +101,7 @@ export const getSchoolContext = cache(async (): Promise<SchoolContext> => {
     grants: (grantsRes.data ?? []).map((p) => p.screen_key),
     configuredShifts,
     shiftSelection: await globalShiftSelection(configuredShifts),
+    educationLevels: school?.education_levels ?? [],
     activeAcademicYear,
     startedAcademicYears,
     academicYearSelection: await globalAcademicYearSelection(startedAcademicYears, activeAcademicYear),

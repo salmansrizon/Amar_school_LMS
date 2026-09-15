@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
-import { isKnownAcademicShift } from '@/lib/institute'
+import { isKnownAcademicShift, isBuiltInGroupDepartment } from '@/lib/institute'
 import { classOfferingIsUsed } from '@/lib/school/class-offering-usage'
 
 // RLS ("school members manage …" scoped to app_current_school_id()) is the
@@ -37,6 +37,8 @@ export async function addClass(formData: FormData): Promise<{ error?: string }> 
   if (!name) return { error: 'Name is required' }
   const shift = optStr(formData, 'shift')
   if (shift && !isKnownAcademicShift(shift)) return { error: 'Invalid Shift' }
+  const educationLevel = optStr(formData, 'education_level')
+  const groupDepartment = optStr(formData, 'group_department')
   const supabase = await createClient()
   // Scoped to the caller's own School explicitly: an unfiltered maybeSingle()
   // returns nothing (and silently drops academic_year) for any caller who can
@@ -44,14 +46,21 @@ export async function addClass(formData: FormData): Promise<{ error?: string }> 
   const { data: schoolId } = await supabase.rpc('app_current_school_id')
   const { data: school } = await supabase
     .from('schools')
-    .select('active_academic_year')
+    .select('active_academic_year, education_levels')
     .eq('id', schoolId)
     .maybeSingle()
+  // Education Level (issue #633): the picker only ever offers the School's
+  // own configured set, but re-validate here too rather than trust it blindly
+  // — unlike Shift, there is no broader fixed vocabulary to fall back to, so
+  // a value outside the School's configured set is simply invalid.
+  if (educationLevel && !(school?.education_levels ?? []).includes(educationLevel)) {
+    return { error: 'Invalid Education Level' }
+  }
   const { error } = await supabase.from('class_offerings').insert({
     name,
     section: optStr(formData, 'section'),
-    education_level: optStr(formData, 'education_level'),
-    group_department: optStr(formData, 'group_department'),
+    education_level: educationLevel,
+    group_department: groupDepartment,
     class_teacher_id: optStr(formData, 'class_teacher_id'),
     academic_year: school?.active_academic_year ?? null,
     shift,
@@ -59,6 +68,18 @@ export async function addClass(formData: FormData): Promise<{ error?: string }> 
   if (error) {
     if (error.code === '23505') return { error: 'This class + section already exists' }
     return { error: error.message }
+  }
+  // Group/Department Other (issue #635, ADR 0025): a School-typed value that
+  // isn't one of the three built-ins is remembered for this School's future
+  // Add Class dropdowns. Only after the class itself saved successfully.
+  // school_group_department_options' unique index is case-insensitive per
+  // school, so a value that already exists (in any casing) just no-ops here
+  // (23505) rather than erroring the whole save — the class was already created.
+  if (groupDepartment && !isBuiltInGroupDepartment(groupDepartment)) {
+    const { error: optionError } = await supabase
+      .from('school_group_department_options')
+      .insert({ name: groupDepartment })
+    if (optionError && optionError.code !== '23505') return { error: optionError.message }
   }
   revalidatePath(PAGE)
   return {}

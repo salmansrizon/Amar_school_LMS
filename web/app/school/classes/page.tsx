@@ -5,6 +5,7 @@ import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import {
   academicYearsOf,
+  configuredEducationLevelOptions,
   copyClassesControlVisible,
   copySourceYears,
   countFor,
@@ -22,7 +23,11 @@ import { isKnownAcademicShift, ACADEMIC_SHIFT_LABEL_KEY, type AcademicShift } fr
 import { AddClassForm, AddSubjectForm, ArchiveOrDeleteButton, CopyClassesControl, DeleteButton } from './class-controls'
 import { ClassTeacherPicker } from './class-teacher-picker'
 import { AddDetails } from '@/components/add-details'
+import { Modal } from '@/components/modal'
 import { selectClass } from '@/components/ui/field'
+
+const addTriggerClass =
+  'inline-flex min-h-11 cursor-pointer items-center rounded-full bg-brand-500 px-4 text-xs font-semibold text-white hover:bg-brand-600 sm:min-h-9'
 
 // Layout per ui/school-owner/classes-list.html: three anchored sections
 // (Classes / Rooms / Subjects), each a toolbar + data table. Each class row
@@ -45,15 +50,25 @@ export default async function ClassesPage({
     activeAcademicYear,
     startedAcademicYears,
     academicYearSelection,
+    educationLevels,
   } = await getSchoolContext()
 
   // Choices for the create form are the current Global Shift Selection —
   // parseShiftSelection already guarantees every element is a member of
   // configured_shifts (#577), so no separate intersection is needed.
   const shiftChoices = shiftSelection.filter(isKnownAcademicShift)
+  // Add Class's Education Level choices (issue #633) — only the levels this
+  // School configured in Institute Setup.
+  const educationLevelOptions = configuredEducationLevelOptions(educationLevels)
 
-  const [{ data: classes }, { data: subjects }, { data: enrollments }, { data: teachers }, usedIds] =
-    await Promise.all([
+  const [
+    { data: classes },
+    { data: subjects },
+    { data: enrollments },
+    { data: teachers },
+    usedIds,
+    { data: groupDepartmentOptionRows },
+  ] = await Promise.all([
       applyGlobalYearFilterToOfferings(
         applyGlobalShiftFilterToOfferings(
           // Archived Class Offerings (ADR 0024) never show on the active
@@ -87,7 +102,11 @@ export default async function ClassesPage({
         .order('full_name'),
       // Which visible rows can only be Archived, not Deleted (ADR 0024).
       usedClassOfferingIds(supabase),
+      // This School's own custom Group/Department values (issue #635, ADR
+      // 0025) — offered in Add Class's dropdown above Other, oldest first.
+      supabase.from('school_group_department_options').select('name').order('created_at'),
     ])
+  const groupDepartmentOptions = (groupDepartmentOptionRows ?? []).map((r) => r.name)
 
   const allClasses = classes ?? []
   const levels = [...new Set(allClasses.map((c) => c.education_level).filter(Boolean))] as string[]
@@ -157,7 +176,12 @@ export default async function ClassesPage({
 
       {/* Classes */}
       <section id="classes" className="mb-8 rounded-lg border border-line bg-paper p-5">
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        {/* Filter bar stays at the top of the list and never shifts, whether
+            or not Add Class is open (issue #632) — it no longer shares a flex
+            row with the Add Class trigger, which the AddDetails disclosure it
+            used to sit beside caused to happen (the panel expanding inline
+            pushed this whole row down). */}
+        <div className="mb-4">
           <Form className="flex flex-wrap items-center gap-2" action="/school/classes">
             <input
               name="q"
@@ -194,14 +218,26 @@ export default async function ClassesPage({
               {t('classes.filter', lang)}
             </button>
           </Form>
-          <AddDetails label={t('classes.addClass', lang)}>
-            <AddClassForm
-              lang={lang}
-              teachers={teachers ?? []}
-              shiftChoices={shiftChoices}
-              activeAcademicYear={activeAcademicYear}
-            />
-          </AddDetails>
+        </div>
+        <div className="mb-4 flex justify-end">
+          <Modal
+            lang={lang}
+            triggerLabel={t('classes.addClass', lang)}
+            triggerClassName={addTriggerClass}
+            title={t('classes.addClassTitle', lang)}
+          >
+            {(close) => (
+              <AddClassForm
+                lang={lang}
+                teachers={teachers ?? []}
+                shiftChoices={shiftChoices}
+                activeAcademicYear={activeAcademicYear}
+                educationLevels={educationLevelOptions}
+                groupDepartmentOptions={groupDepartmentOptions}
+                onCreated={close}
+              />
+            )}
+          </Modal>
         </div>
         {activeAcademicYear != null && copyClassesControlVisible(copySources) && (
           <div className="mb-4">

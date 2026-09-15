@@ -4,6 +4,7 @@
 // section matching (issue #26's MVP shape, superseded).
 
 import { targetRowMatchesOffering, type OfferingRow, type PublicationTargetRow } from '@/lib/publishing'
+import { EDUCATION_LEVELS } from '@/lib/institute'
 
 export interface EnrollmentCountRow {
   class_offering_id: string
@@ -126,6 +127,16 @@ export function copyClassesControlVisible(sourceYears: readonly CopySourceYear[]
  *  rather than a fabricated year, so this returns null in that case. */
 export function newClassYearHint(activeYear: number | null): number | null {
   return typeof activeYear === 'number' ? activeYear : null
+}
+
+/** Add Class's Education Level dropdown choices (issue #633): only the
+ *  levels this School configured in Institute Setup (`schools.education_levels`),
+ *  in the platform's fixed display order rather than that array's own storage
+ *  order. Empty means the School hasn't configured any yet, which blocks Add
+ *  Class entirely rather than falling back to the full platform vocabulary. */
+export function configuredEducationLevelOptions(schoolEducationLevels: readonly string[]) {
+  const configured = new Set(schoolEducationLevels)
+  return EDUCATION_LEVELS.filter((l) => configured.has(l.key))
 }
 
 /** The shape copy_class_offerings_to_active_year returns. */

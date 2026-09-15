@@ -32,6 +32,21 @@ export function isKnownAcademicShift(value: string): value is AcademicShift {
   return (ACADEMIC_SHIFTS as readonly string[]).includes(value)
 }
 
+/** Add Class's Group/Department built-in choices (issue #635, ADR 0025) —
+ *  code constants, unlike `schools.education_levels`/`configured_shifts`
+ *  they are not columns a School picks a subset of, and unlike
+ *  `school_group_department_options` (the per-School custom values a School
+ *  types in via Other) they are never stored as rows. The string itself is
+ *  the value stored on `class_offerings.group_department` — there is no
+ *  separate key/label split, since this field has never carried a bn/en
+ *  translation (it renders in the class list exactly as typed). */
+export const GROUP_DEPARTMENTS = ['Science', 'Business Studies (Commerce)', 'Humanities (Arts)'] as const
+export type BuiltInGroupDepartment = (typeof GROUP_DEPARTMENTS)[number]
+
+export function isBuiltInGroupDepartment(value: string): value is BuiltInGroupDepartment {
+  return (GROUP_DEPARTMENTS as readonly string[]).includes(value)
+}
+
 /** One source for every UI that renders a Shift's display label — was
  *  independently redeclared per consumer (Institute Profile, Class
  *  Offerings, Employee assignment, Global Shift Selection), which let a

@@ -1308,6 +1308,7 @@ const dict = {
   },
   'common.yes': { bn: 'হ্যাঁ', en: 'Yes' },
   'common.no': { bn: 'না', en: 'No' },
+  'common.close': { bn: 'বন্ধ করুন', en: 'Close' },
   'classes.title': { bn: 'শ্রেণি ও পাঠ্যক্রম', en: 'Class & Curriculum' },
   'classes.tabClasses': { bn: 'শ্রেণিসমূহ', en: 'Classes' },
   'classes.tabRooms': { bn: 'কক্ষসমূহ', en: 'Rooms' },
@@ -1389,6 +1390,18 @@ const dict = {
     en: 'No new classes — all {source} classes already exist in {active}.',
   },
   'classes.copyDismiss': { bn: 'বন্ধ করুন', en: 'Dismiss' },
+  // Add Class as a modal (issue #632) — the trigger button keeps the "+" from
+  // classes.addClass; the modal heading drops it.
+  'classes.addClassTitle': { bn: 'শ্রেণি যোগ করুন', en: 'Add Class' },
+  // Education Level dropdown scoped to Institute Setup (issue #633).
+  'classes.educationLevelNotConfigured': {
+    bn: 'আপনার প্রতিষ্ঠানের জন্য এখনো কোনো শিক্ষাস্তর নির্ধারণ করা হয়নি। শ্রেণি যোগ করার আগে প্রতিষ্ঠান সেটআপ থেকে শিক্ষাস্তর নির্বাচন করুন।',
+    en: 'No Education Level is configured for your institute yet. Configure Education Level in Institute Setup before adding a class.',
+  },
+  // Group/Department dropdown (issue #635, ADR 0025) — built-ins, a School's
+  // own custom values (school_group_department_options), then Other.
+  'classes.groupOther': { bn: 'অন্যান্য', en: 'Other' },
+  'classes.groupOtherSpecify': { bn: 'গ্রুপ/বিভাগের নাম লিখুন', en: 'Type the Group/Department name' },
   'classes.students': { bn: 'শিক্ষার্থী সংখ্যা', en: 'Students' },
   'classes.actions': { bn: 'কার্যক্রম', en: 'Actions' },
   'classes.search': { bn: 'শ্রেণি খুঁজুন', en: 'Search classes' },

@@ -1,9 +1,10 @@
 'use client'
 
 import { useMemo, useState, useTransition } from 'react'
+import Link from 'next/link'
 import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
 import { t, type Lang } from '@/lib/i18n'
-import { ACADEMIC_SHIFT_LABEL_KEY, type AcademicShift } from '@/lib/institute'
+import { ACADEMIC_SHIFT_LABEL_KEY, GROUP_DEPARTMENTS, type AcademicShift } from '@/lib/institute'
 import { addClass, addSubject, archiveClassOffering, copyClassesFromYear, removeItem } from './actions'
 import { selectClass } from '@/components/ui/field'
 import { ConfirmDialog } from '@/components/confirm-dialog'
@@ -43,11 +44,19 @@ export interface TeacherOption {
   full_name: string
 }
 
+export interface EducationLevelOption {
+  key: string
+  label: { bn: string; en: string }
+}
+
 export function AddClassForm({
   lang,
   teachers,
   shiftChoices = [],
   activeAcademicYear = null,
+  educationLevels,
+  groupDepartmentOptions = [],
+  onCreated,
 }: {
   lang: Lang
   teachers: TeacherOption[]
@@ -63,11 +72,49 @@ export function AddClassForm({
    *  currently deselected from Global Shift Selection — either way, no
    *  field is rendered, matching #578's "not presented at all" rule. */
   shiftChoices?: readonly AcademicShift[]
+  /** This School's own configured Education Levels (issue #633), already
+   *  filtered from the full platform vocabulary by the caller
+   *  (`configuredEducationLevelOptions`). Empty means the School hasn't
+   *  configured any yet — Add Class is blocked entirely rather than falling
+   *  back to the full vocabulary. */
+  educationLevels: EducationLevelOption[]
+  /** This School's previously-submitted custom Group/Department values
+   *  (issue #635, ADR 0025), oldest first — offered in the dropdown above
+   *  Other, below the three built-ins. */
+  groupDepartmentOptions?: string[]
+  /** Called after a successful save so a modal caller can close itself
+   *  (issue #632). */
+  onCreated?: () => void
 }) {
-  const { error, pending, onSubmit } = useSubmit(addClass)
+  const [groupDept, setGroupDept] = useState<{ choice: string; other: string }>({ choice: '', other: '' })
+  const { error, pending, onSubmit } = useSubmit(addClass, () => {
+    setGroupDept({ choice: '', other: '' })
+    onCreated?.()
+  })
   const yearHint = newClassYearHint(activeAcademicYear)
+
+  if (educationLevels.length === 0) {
+    return (
+      <div className="rounded-md border border-line bg-paper-muted p-4 text-sm">
+        <p className="text-muted">{t('classes.educationLevelNotConfigured', lang)}</p>
+        <Link href="/school/institute" className="mt-2 inline-block font-semibold text-brand-600 hover:underline">
+          {t('institute.title', lang)}
+        </Link>
+      </div>
+    )
+  }
+
   return (
     <form className="grid gap-3 sm:grid-cols-4" onSubmit={onSubmit}>
+      {yearHint != null && (
+        <div className="rounded-md border border-line bg-paper-muted p-3 text-sm font-semibold text-ink sm:col-span-4">
+          {/* Read-only confirmation — no form field. addClass stamps the year
+              server-side (map #609, T9/#618); the creation flow cannot place an
+              Offering under an older year. Shown first (issue #634) so it's the
+              first thing read when the panel opens. */}
+          {t('classes.newClassYear', lang).replace('{year}', String(yearHint))}
+        </div>
+      )}
       <div>
         <label className={labelClass} htmlFor="class_name">{t('classes.name', lang)}</label>
         <input id="class_name" name="name" required className={inputClass} />
@@ -76,23 +123,52 @@ export function AddClassForm({
         <label className={labelClass} htmlFor="class_section">{t('classes.section', lang)}</label>
         <input id="class_section" name="section" className={inputClass} />
       </div>
-      {yearHint != null && (
-        <div className="flex flex-col justify-end">
-          {/* Read-only confirmation — no form field. addClass stamps the year
-              server-side (map #609, T9/#618); the creation flow cannot place an
-              Offering under an older year. */}
-          <p className="pb-2 text-sm font-medium text-muted">
-            {t('classes.newClassYear', lang).replace('{year}', String(yearHint))}
-          </p>
-        </div>
-      )}
       <div>
         <label className={labelClass} htmlFor="class_level">{t('classes.educationLevel', lang)}</label>
-        <input id="class_level" name="education_level" className={inputClass} />
+        <select id="class_level" name="education_level" defaultValue="" className={selectClass()}>
+          <option value="">{t('institute.selectOne', lang)}</option>
+          {educationLevels.map((lvl) => (
+            <option key={lvl.key} value={lvl.key}>
+              {lvl.label[lang]}
+            </option>
+          ))}
+        </select>
       </div>
       <div>
         <label className={labelClass} htmlFor="class_group">{t('classes.groupDept', lang)}</label>
-        <input id="class_group" name="group_department" className={inputClass} />
+        <select
+          id="class_group"
+          value={groupDept.choice}
+          onChange={(e) => setGroupDept({ choice: e.target.value, other: groupDept.other })}
+          className={selectClass()}
+        >
+          <option value="">{t('institute.selectOne', lang)}</option>
+          {GROUP_DEPARTMENTS.map((g) => (
+            <option key={g} value={g}>
+              {g}
+            </option>
+          ))}
+          <option disabled>──────────</option>
+          {groupDepartmentOptions.map((g) => (
+            <option key={g} value={g}>
+              {g}
+            </option>
+          ))}
+          <option value="other">{t('classes.groupOther', lang)}</option>
+        </select>
+        {groupDept.choice === 'other' && (
+          <input
+            value={groupDept.other}
+            onChange={(e) => setGroupDept({ choice: 'other', other: e.target.value })}
+            placeholder={t('classes.groupOtherSpecify', lang)}
+            className={`${inputClass} mt-2`}
+          />
+        )}
+        <input
+          type="hidden"
+          name="group_department"
+          value={groupDept.choice === 'other' ? groupDept.other.trim() : groupDept.choice}
+        />
       </div>
       {shiftChoices.length > 0 && (
         <div>
