@@ -22,9 +22,8 @@ import { applyGlobalYearFilterToOfferings } from '@/lib/school/year-filter'
 import { excludeArchivedOfferings } from '@/lib/school/archived-offerings-filter'
 import { usedClassOfferingIds } from '@/lib/school/class-offering-usage'
 import { isKnownAcademicShift, ACADEMIC_SHIFT_LABEL_KEY, type AcademicShift } from '@/lib/institute'
-import { AddClassModal, AddSubjectForm, ArchiveOrDeleteButton, CopyClassesControl, DeleteButton } from './class-controls'
+import { AddClassModal, AddSubjectModal, ArchiveOrDeleteButton, CopyClassesControl, DeleteButton } from './class-controls'
 import { ClassTeacherPicker } from './class-teacher-picker'
-import { AddDetails } from '@/components/add-details'
 import { selectClass } from '@/components/ui/field'
 
 const addTriggerClass =
@@ -195,12 +194,21 @@ export default async function ClassesPage({
 
       {/* Classes */}
       <section id="classes" className="mb-8 rounded-lg border border-line bg-paper p-5">
-        {/* Filter bar and the Add Class trigger share one row (filter bar
-            left, button right, flex-wrap on narrow screens) — safe now that
-            Add Class is a fixed-overlay modal (issue #632) rather than the
-            inline-expanding <details> that used to push this row down when
-            it opened. */}
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <h2 className="font-bold">{t('classes.classCatalogue', lang)}</h2>
+          <AddClassModal
+            lang={lang}
+            teachers={teachers ?? []}
+            shiftChoices={shiftChoices}
+            activeAcademicYear={activeAcademicYear}
+            educationLevels={educationLevelOptions}
+            groupDepartmentOptions={groupDepartmentOptions}
+            triggerLabel={t('classes.addClass', lang)}
+            triggerClassName={addTriggerClass}
+            title={t('classes.addClassTitle', lang)}
+          />
+        </div>
+        <div className="mb-4 flex flex-wrap items-center gap-2">
           <Form className="flex flex-wrap items-center gap-2" action="/school/classes">
             <input
               name="q"
@@ -237,17 +245,6 @@ export default async function ClassesPage({
               {t('classes.filter', lang)}
             </button>
           </Form>
-          <AddClassModal
-            lang={lang}
-            teachers={teachers ?? []}
-            shiftChoices={shiftChoices}
-            activeAcademicYear={activeAcademicYear}
-            educationLevels={educationLevelOptions}
-            groupDepartmentOptions={groupDepartmentOptions}
-            triggerLabel={t('classes.addClass', lang)}
-            triggerClassName={addTriggerClass}
-            title={t('classes.addClassTitle', lang)}
-          />
         </div>
         {activeAcademicYear != null && copyClassesControlVisible(copySources) && (
           <div className="mb-4">
@@ -351,9 +348,14 @@ export default async function ClassesPage({
       <section id="subjects" className="rounded-lg border border-line bg-paper p-5">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <h2 className="font-bold">{t('classes.subjectList', lang)}</h2>
-          <AddDetails label={t('classes.addSubject', lang)}>
-            <AddSubjectForm lang={lang} classes={classes ?? []} showYear={showYearColumn} />
-          </AddDetails>
+          <AddSubjectModal
+            lang={lang}
+            classes={classes ?? []}
+            showYear={showYearColumn}
+            triggerLabel={t('classes.addSubject', lang)}
+            triggerClassName={addTriggerClass}
+            title={t('classes.addSubjectTitle', lang)}
+          />
         </div>
         {!shownSubjects.length ? (
           <p className="text-sm text-muted">{t('classes.noSubjects', lang)}</p>

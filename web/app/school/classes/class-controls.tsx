@@ -393,6 +393,7 @@ export function AddSubjectForm({
   lang,
   classes,
   showYear = false,
+  onCreated,
 }: {
   lang: Lang
   classes: ClassCatalogueRow[]
@@ -400,6 +401,9 @@ export function AddSubjectForm({
    *  the page when the School spans more than one started year (map #609), so
    *  two same-name Offerings in different years are told apart in the picker. */
   showYear?: boolean
+  /** Called after a successful save so a modal caller can close itself
+   *  (issue #639, mirrors AddClassForm's onCreated from issue #632). */
+  onCreated?: () => void
 }) {
   const [classId, setClassId] = useState('')
   // Bumped on a successful add to remount the Combobox — its typed text is
@@ -410,6 +414,7 @@ export function AddSubjectForm({
   const { error, pending, onSubmit } = useSubmit(addSubject, () => {
     setClassId('')
     setSubjectFieldKey((k) => k + 1)
+    onCreated?.()
   })
   const selectedClass = classes.find((c) => c.id === classId) ?? null
   const suggestions = useMemo(() => subjectSuggestionsForClass(selectedClass), [selectedClass])
@@ -473,6 +478,34 @@ export function AddSubjectForm({
         {t('classes.addSubject', lang)}
       </button>
     </form>
+  )
+}
+
+/** Wraps AddSubjectForm in a modal (issue #639), mirroring AddClassModal
+ *  (issue #632) — composed here for the same reason: Modal's `children` is a
+ *  render-prop function that cannot cross the RSC boundary from the
+ *  server-rendered page. */
+export function AddSubjectModal({
+  lang,
+  classes,
+  showYear,
+  triggerLabel,
+  triggerClassName,
+  title,
+}: {
+  lang: Lang
+  classes: ClassCatalogueRow[]
+  showYear?: boolean
+  triggerLabel: string
+  triggerClassName: string
+  title: string
+}) {
+  return (
+    <Modal lang={lang} triggerLabel={triggerLabel} triggerClassName={triggerClassName} title={title}>
+      {(close) => (
+        <AddSubjectForm lang={lang} classes={classes} showYear={showYear} onCreated={close} />
+      )}
+    </Modal>
   )
 }
 
