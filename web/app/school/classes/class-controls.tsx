@@ -126,7 +126,12 @@ export function AddClassForm({
       </div>
       <div>
         <label className={labelClass} htmlFor="class_level">{t('classes.educationLevel', lang)}</label>
-        <select id="class_level" name="education_level" defaultValue="" className={selectClass()}>
+        <select
+          id="class_level"
+          name="education_level"
+          defaultValue=""
+          className={selectClass({ size: 'md', fullWidth: true })}
+        >
           <option value="">{t('institute.selectOne', lang)}</option>
           {educationLevels.map((lvl) => (
             <option key={lvl.key} value={lvl.key}>
@@ -141,7 +146,7 @@ export function AddClassForm({
           id="class_group"
           value={groupDept.choice}
           onChange={(e) => setGroupDept({ choice: e.target.value, other: groupDept.other })}
-          className={selectClass()}
+          className={selectClass({ size: 'md', fullWidth: true })}
         >
           <option value="">{t('institute.selectOne', lang)}</option>
           {GROUP_DEPARTMENTS.map((g) => (
@@ -172,9 +177,14 @@ export function AddClassForm({
         />
       </div>
       {shiftChoices.length > 0 && (
-        <div className="sm:col-span-2">
+        <div>
           <label className={labelClass} htmlFor="class_shift">{t('classes.shift', lang)}</label>
-          <select id="class_shift" name="shift" defaultValue="" className={selectClass()}>
+          <select
+            id="class_shift"
+            name="shift"
+            defaultValue=""
+            className={selectClass({ size: 'md', fullWidth: true })}
+          >
             <option value="">{t('institute.selectOne', lang)}</option>
             {shiftChoices.map((shift) => (
               <option key={shift} value={shift}>
@@ -184,7 +194,10 @@ export function AddClassForm({
           </select>
         </div>
       )}
-      <div className="sm:col-span-2">
+      {/* Pairs with Shift on one row (issue #636); goes full-width only when
+          there's no Shift field beside it to pair with (a No-Shift School),
+          rather than sitting alone at half-width with empty space beside it. */}
+      <div className={shiftChoices.length > 0 ? undefined : 'sm:col-span-2'}>
         <label className={labelClass} htmlFor="class_teacher">{t('classes.classTeacher', lang)}</label>
         {/* Required once the school has any Employee to pick — mandatory as a
             product rule (#435), but never a wall in front of a brand-new school
@@ -194,7 +207,7 @@ export function AddClassForm({
           name="class_teacher_id"
           required={teachers.length > 0}
           defaultValue=""
-          className={selectClass()}
+          className={selectClass({ size: 'md', fullWidth: true })}
         >
           <option value="">{t('classes.classTeacherNone', lang)}</option>
           {teachers.map((teacher) => (
