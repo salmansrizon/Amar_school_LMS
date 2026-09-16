@@ -189,6 +189,27 @@ export function visibleClasses<T extends ClassListRow>(
   )
 }
 
+/** Subject List narrowing to the Global Shift/Academic Year Selection (issue
+ *  #637) — a Subject whose Class Offering isn't in `visibleClassIds` is
+ *  hidden. The caller must build `visibleClassIds` from a Shift/Year-only
+ *  filtered query (`applyGlobalYearFilterToOfferings`/
+ *  `applyGlobalShiftFilterToOfferings`, deliberately WITHOUT
+ *  `excludeArchivedOfferings`) — a Subject already configured against an
+ *  archived Class Offering is a "resolve existing link" case ADR 0024 says
+ *  archiving must never disturb, so this must not reuse the Classes table's
+ *  own (archived-excluding) id set. A Subject with no linked Class at all
+ *  (`class_id` null — "a catalogue subject without a class is still valid",
+ *  the pre-hardening-rows case) always passes through unfiltered, the same
+ *  null-always-passes rule every other Global Selection filter in this
+ *  codebase applies (year-filter.ts, shift-filter.ts) — there is no Class
+ *  Offering to test it against. */
+export function visibleSubjects<T extends { class_id: string | null }>(
+  subjects: readonly T[],
+  visibleClassIds: ReadonlySet<string>,
+): T[] {
+  return subjects.filter((s) => s.class_id == null || visibleClassIds.has(s.class_id))
+}
+
 export type HomeworkTargetRow = PublicationTargetRow
 
 /** Whether a homework Publication targets this Class Offering — `my-classes`

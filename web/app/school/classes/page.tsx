@@ -13,8 +13,10 @@ import {
   showAcademicYearColumn,
   studentCounts,
   visibleClasses,
+  visibleSubjects,
   yearFilterOptions,
 } from '@/lib/classes'
+import { classCatalogueLabel } from '@/lib/class-catalogue'
 import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
 import { applyGlobalYearFilterToOfferings } from '@/lib/school/year-filter'
 import { excludeArchivedOfferings } from '@/lib/school/archived-offerings-filter'
@@ -67,6 +69,7 @@ export default async function ClassesPage({
     { data: teachers },
     usedIds,
     { data: groupDepartmentOptionRows },
+    { data: subjectVisibleOfferings },
   ] = await Promise.all([
       applyGlobalYearFilterToOfferings(
         applyGlobalShiftFilterToOfferings(
@@ -85,7 +88,7 @@ export default async function ClassesPage({
       supabase
         .from('subjects')
         .select(
-          'id, name, code, theory_marks, mcq_marks, practical_marks, paper_count, class_offerings(name, section)',
+          'id, name, code, theory_marks, mcq_marks, practical_marks, paper_count, class_id, class_offerings(name, section, group_department, shift, academic_year)',
         )
         .order('created_at'),
       // ponytail: whole-table scan capped at 10k rows; switch to a count RPC
@@ -104,10 +107,27 @@ export default async function ClassesPage({
       // This School's own custom Group/Department values (issue #635, ADR
       // 0025) — offered in Add Class's dropdown above Other, oldest first.
       supabase.from('school_group_department_options').select('name').order('created_at'),
+      // Subject List's own Global Selection scoping (issue #637) —
+      // deliberately narrowed by Shift/Academic Year only, NOT by archived
+      // status. Unlike `classes` above (which excludes archived Offerings so
+      // they drop off this *pick-a-class* list per ADR 0024), a Subject
+      // already configured against an archived Offering is a "resolve
+      // existing link" case ADR 0024 says archiving must never disturb — so
+      // this is a separate query rather than reusing `allClasses`'s ids.
+      applyGlobalYearFilterToOfferings(
+        applyGlobalShiftFilterToOfferings(supabase.from('class_offerings').select('id'), shiftSelection),
+        academicYearSelection,
+      ),
     ])
   const groupDepartmentOptions = (groupDepartmentOptionRows ?? []).map((r) => r.name)
 
   const allClasses = classes ?? []
+  // Subject List narrowing to the Global Shift/Academic Year Selection
+  // (issue #637) — `subjectVisibleOfferings` deliberately includes archived
+  // Offerings (see its own query comment above); `allClasses` must not be
+  // reused here.
+  const visibleClassIds = new Set((subjectVisibleOfferings ?? []).map((c) => c.id))
+  const shownSubjects = visibleSubjects(subjects ?? [], visibleClassIds)
   const levels = [...new Set(allClasses.map((c) => c.education_level).filter(Boolean))] as string[]
   // Academic Year (issue #597): the list defaults to the School's active
   // Academic Year; every year the School has Offerings in stays selectable
@@ -335,7 +355,7 @@ export default async function ClassesPage({
             <AddSubjectForm lang={lang} classes={classes ?? []} showYear={showYearColumn} />
           </AddDetails>
         </div>
-        {!subjects?.length ? (
+        {!shownSubjects.length ? (
           <p className="text-sm text-muted">{t('classes.noSubjects', lang)}</p>
         ) : (
           <div className="overflow-x-auto">
@@ -352,17 +372,21 @@ export default async function ClassesPage({
                 </tr>
               </thead>
               <tbody>
-                {subjects.map((s) => {
-                  const cls = s.class_offerings as unknown as { name: string; section: string | null } | null
+                {shownSubjects.map((s) => {
+                  const cls = s.class_offerings as unknown as {
+                    name: string
+                    section: string | null
+                    group_department: string | null
+                    shift: string | null
+                    academic_year: number | null
+                  } | null
                   return (
                     <tr key={s.id} className="border-b border-line">
                       <td className={`${tdClass} font-medium`}>
                         {s.name}
                         {s.code ? <span className="text-muted"> ({s.code})</span> : null}
                       </td>
-                      <td className={tdClass}>
-                        {cls ? `${cls.name}${cls.section ? ` — ${cls.section}` : ''}` : dash}
-                      </td>
+                      <td className={tdClass}>{cls ? classCatalogueLabel(cls, showYearColumn) : dash}</td>
                       <td className={tdClass}>{s.theory_marks > 0 ? s.theory_marks : dash}</td>
                       <td className={tdClass}>{s.mcq_marks > 0 ? s.mcq_marks : dash}</td>
                       <td className={tdClass}>{s.practical_marks > 0 ? s.practical_marks : dash}</td>
