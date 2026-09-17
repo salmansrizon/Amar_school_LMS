@@ -13,11 +13,13 @@ import {
   type EnrollmentRollRow,
 } from '@/lib/students'
 import {
+  classCatalogueLabel,
   classCatalogueOptions,
   findClassCatalogueId,
   resolveClassCatalogueSelection,
   type ClassCatalogueRow,
 } from '@/lib/class-catalogue'
+import { firstRelation } from '@/lib/supabase/relation'
 import { admitStudent, studentPhotoUploadTicket, recordStudentPhoto } from '../actions'
 import { recentAdmissions, type RecentAdmissionRow } from '../recent-admissions-actions'
 import { saveAdmissionDraft, loadAdmissionDraft, clearAdmissionDraft } from './admission-draft'
@@ -458,6 +460,20 @@ function draftDefaults(draft: Record<string, string> | null): Record<string, str
   return defaults
 }
 
+/** Recent Admissions' Class cell (issue #640): the full Class Catalogue
+ *  label, same convention Students List already uses (`classLabelFor` in
+ *  app/school/students/page.tsx) — not the legacy bare class_name/section
+ *  join. Falls back to that legacy pair when a row has no current enrollment
+ *  (offering null): unlike the full Students List, where "unplaced" is a
+ *  real status worth showing as blank, this is a narrow "what did we just
+ *  admit" list where every row should show something. */
+function recentAdmissionClassLabel(row: RecentAdmissionRow, showYear: boolean): string | null {
+  const enrollment = firstRelation(row.student_enrollments)
+  const offering = enrollment ? firstRelation(enrollment.class_offerings) : null
+  if (offering) return classCatalogueLabel(offering, showYear)
+  return classSectionLabel(row.class_name, row.section)
+}
+
 export function AdmissionForm({
   lang,
   schoolId,
@@ -651,7 +667,7 @@ export function AdmissionForm({
                   <TableCell>{s.roll_number ?? <span className="text-muted">—</span>}</TableCell>
                   <TableCell className="font-medium">{s.full_name}</TableCell>
                   <TableCell>
-                    {classSectionLabel(s.class_name, s.section) ?? <span className="text-muted">—</span>}
+                    {recentAdmissionClassLabel(s, showYear) ?? <span className="text-muted">—</span>}
                   </TableCell>
                   <TableCell>{s.guardian_name ?? <span className="text-muted">—</span>}</TableCell>
                   <TableCell className="text-right">
