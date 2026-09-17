@@ -126,6 +126,29 @@ export async function copyClassesFromYear(
   return { copied: Number(row?.copied ?? 0), skipped: Number(row?.skipped ?? 0) }
 }
 
+/** Subject List's "Copy to Class" bulk action (issue #642) -- duplicates the
+ *  given Subjects onto one other Class Offering. All the validation
+ *  (target must be this School's, non-archived; conflicts skipped rather
+ *  than overwritten) lives in the `copy_subjects_to_class` RPC (0204), same
+ *  split as `copyClassesFromYear` below. */
+export async function copySubjectsToClass(
+  subjectIds: string[],
+  targetClassId: string,
+): Promise<{ copied: number; skipped: number } | { error: string }> {
+  if (!subjectIds.length) return { error: 'No subjects selected' }
+  if (!targetClassId) return { error: 'Target class is required' }
+  const supabase = await createClient()
+  const { data, error } = await supabase.rpc('copy_subjects_to_class', {
+    p_subject_ids: subjectIds,
+    p_target_class_id: targetClassId,
+  })
+  if (error) return { error: error.message }
+  // `returns table(copied int, skipped int)` arrives as a one-row array.
+  const row = Array.isArray(data) ? data[0] : data
+  revalidatePath(PAGE)
+  return { copied: Number(row?.copied ?? 0), skipped: Number(row?.skipped ?? 0) }
+}
+
 export async function addSubject(formData: FormData): Promise<{ error?: string }> {
   const name = str(formData, 'name')
   if (!name) return { error: 'Name is required' }

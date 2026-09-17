@@ -1391,6 +1391,10 @@ const dict = {
     en: 'No new classes — all {source} classes already exist in {active}.',
   },
   'classes.copyDismiss': { bn: 'বন্ধ করুন', en: 'Dismiss' },
+  'classes.selectAll': { bn: 'সব নির্বাচন করুন', en: 'Select all' },
+  'classes.copySubjectsToClass': { bn: 'ক্লাসে কপি করুন', en: 'Copy to Class' },
+  'classes.copySubjectsTitle': { bn: 'শ্রেণিতে বিষয় কপি করুন', en: 'Copy Subjects to Class' },
+  'classes.targetClass': { bn: 'লক্ষ্য শ্রেণি', en: 'Target Class' },
   // Add Class as a modal (issue #632) — the trigger button keeps the "+" from
   // classes.addClass; the modal heading drops it.
   'classes.addClassTitle': { bn: 'শ্রেণি যোগ করুন', en: 'Add Class' },

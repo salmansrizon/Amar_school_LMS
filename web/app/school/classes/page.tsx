@@ -17,14 +17,15 @@ import {
   visibleSubjects,
   yearFilterOptions,
 } from '@/lib/classes'
-import { classCatalogueLabel, classCatalogueOptions } from '@/lib/class-catalogue'
+import { classCatalogueOptions } from '@/lib/class-catalogue'
 import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
 import { applyGlobalYearFilterToOfferings } from '@/lib/school/year-filter'
 import { excludeArchivedOfferings } from '@/lib/school/archived-offerings-filter'
 import { usedClassOfferingIds } from '@/lib/school/class-offering-usage'
 import { isKnownAcademicShift, ACADEMIC_SHIFT_LABEL_KEY, type AcademicShift } from '@/lib/institute'
-import { AddClassModal, AddSubjectModal, ArchiveOrDeleteButton, CopyClassesControl, DeleteButton } from './class-controls'
+import { AddClassModal, AddSubjectModal, ArchiveOrDeleteButton, CopyClassesControl } from './class-controls'
 import { ClassTeacherPicker } from './class-teacher-picker'
+import { SubjectListTable, type SubjectListRow } from './subject-list-table'
 import { selectClass } from '@/components/ui/field'
 
 const addTriggerClass =
@@ -386,62 +387,13 @@ export default async function ClassesPage({
             {t('classes.filter', lang)}
           </button>
         </Form>
-        {!shownSubjects.length ? (
-          <p className="text-sm text-muted">{t('classes.noSubjects', lang)}</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="border-b border-line-strong">
-                  <th className={thClass}>{t('classes.subject', lang)}</th>
-                  <th className={thClass}>{t('classes.class', lang)}</th>
-                  <th className={thClass}>{t('classes.theory', lang)}</th>
-                  <th className={thClass}>{t('classes.mcq', lang)}</th>
-                  <th className={thClass}>{t('classes.practical', lang)}</th>
-                  <th className={thClass}>{t('classes.multiPaper', lang)}</th>
-                  <th className={thClass}>{t('classes.actions', lang)}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {shownSubjects.map((s) => {
-                  const cls = s.class_offerings as unknown as {
-                    name: string
-                    section: string | null
-                    group_department: string | null
-                    shift: string | null
-                    academic_year: number | null
-                  } | null
-                  return (
-                    <tr key={s.id} className="border-b border-line">
-                      <td className={`${tdClass} font-medium`}>
-                        {s.name}
-                        {s.code ? <span className="text-muted"> ({s.code})</span> : null}
-                      </td>
-                      <td className={tdClass}>{cls ? classCatalogueLabel(cls, showYearColumn) : dash}</td>
-                      <td className={tdClass}>{s.theory_marks > 0 ? s.theory_marks : dash}</td>
-                      <td className={tdClass}>{s.mcq_marks > 0 ? s.mcq_marks : dash}</td>
-                      <td className={tdClass}>{s.practical_marks > 0 ? s.practical_marks : dash}</td>
-                      <td className={tdClass}>
-                        <span
-                          className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
-                            s.paper_count > 1 ? 'bg-sky-soft text-sky-deep' : 'bg-paper-muted text-muted'
-                          }`}
-                        >
-                          {s.paper_count > 1
-                            ? `${s.paper_count} ${t('classes.papersWord', lang)}`
-                            : t('classes.singlePaper', lang)}
-                        </span>
-                      </td>
-                      <td className={tdClass}>
-                        <DeleteButton entity="subjects" id={s.id} lang={lang} />
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
+        <SubjectListTable
+          lang={lang}
+          subjects={shownSubjects as SubjectListRow[]}
+          showYear={showYearColumn}
+          allClasses={allClasses}
+          noSubjectsMessage={t('classes.noSubjects', lang)}
+        />
       </section>
     </div>
   )
