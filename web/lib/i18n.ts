@@ -1407,6 +1407,7 @@ const dict = {
   'classes.actions': { bn: 'কার্যক্রম', en: 'Actions' },
   'classes.search': { bn: 'শ্রেণি খুঁজুন', en: 'Search classes' },
   'classes.allLevels': { bn: 'সকল শিক্ষাস্তর', en: 'All Education Levels' },
+  'classes.allClasses': { bn: 'সকল শ্রেণি', en: 'All Classes' },
   'classes.filter': { bn: 'ফিল্টার', en: 'Filter' },
   'classes.room': { bn: 'কক্ষ', en: 'Room' },
   'classes.classCatalogue': { bn: 'শ্রেণি তালিকা', en: 'Class Catalogue' },

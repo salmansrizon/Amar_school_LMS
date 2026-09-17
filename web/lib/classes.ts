@@ -210,6 +210,21 @@ export function visibleSubjects<T extends { class_id: string | null }>(
   return subjects.filter((s) => s.class_id == null || visibleClassIds.has(s.class_id))
 }
 
+/** Subject List's own per-Class filter (issue #641), applied on top of
+ *  `visibleSubjects`'s Global Selection scoping above. Different null rule
+ *  than that one: `visibleSubjects` always keeps a Subject with no linked
+ *  Class because that's a Global Selection scoping concern, not a user
+ *  choice — but once the user has picked one specific Class, a Subject with
+ *  no Class isn't it, so it drops out. An empty/undefined `classId` ("All
+ *  Classes") returns the list unfiltered. */
+export function filterSubjectsByClass<T extends { class_id: string | null }>(
+  subjects: readonly T[],
+  classId: string | null | undefined,
+): T[] {
+  if (!classId) return [...subjects]
+  return subjects.filter((s) => s.class_id === classId)
+}
+
 export type HomeworkTargetRow = PublicationTargetRow
 
 /** Whether a homework Publication targets this Class Offering — `my-classes`

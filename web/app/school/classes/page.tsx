@@ -9,6 +9,7 @@ import {
   copyClassesControlVisible,
   copySourceYears,
   countFor,
+  filterSubjectsByClass,
   resolveYearFilter,
   showAcademicYearColumn,
   studentCounts,
@@ -16,7 +17,7 @@ import {
   visibleSubjects,
   yearFilterOptions,
 } from '@/lib/classes'
-import { classCatalogueLabel } from '@/lib/class-catalogue'
+import { classCatalogueLabel, classCatalogueOptions } from '@/lib/class-catalogue'
 import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
 import { applyGlobalYearFilterToOfferings } from '@/lib/school/year-filter'
 import { excludeArchivedOfferings } from '@/lib/school/archived-offerings-filter'
@@ -39,9 +40,9 @@ const tdClass = 'px-3 py-2 text-sm'
 export default async function ClassesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; level?: string; year?: string }>
+  searchParams: Promise<{ q?: string; level?: string; year?: string; subjectClass?: string }>
 }) {
-  const { q = '', level = '', year: yearParam } = await searchParams
+  const { q = '', level = '', year: yearParam, subjectClass = '' } = await searchParams
   const lang: Lang = await currentLang()
   const {
     supabase,
@@ -113,8 +114,15 @@ export default async function ClassesPage({
       // already configured against an archived Offering is a "resolve
       // existing link" case ADR 0024 says archiving must never disturb — so
       // this is a separate query rather than reusing `allClasses`'s ids.
+      // Also backs the Subject List's own Class filter dropdown (issue #641)
+      // — its options must be a subset of this same Global-Selection-scoped
+      // set, so choosing one can never silently select a Class with zero
+      // visible Subjects to show.
       applyGlobalYearFilterToOfferings(
-        applyGlobalShiftFilterToOfferings(supabase.from('class_offerings').select('id'), shiftSelection),
+        applyGlobalShiftFilterToOfferings(
+          supabase.from('class_offerings').select('id, name, section, group_department, shift, academic_year'),
+          shiftSelection,
+        ),
         academicYearSelection,
       ),
     ])
@@ -126,7 +134,7 @@ export default async function ClassesPage({
   // Offerings (see its own query comment above); `allClasses` must not be
   // reused here.
   const visibleClassIds = new Set((subjectVisibleOfferings ?? []).map((c) => c.id))
-  const shownSubjects = visibleSubjects(subjects ?? [], visibleClassIds)
+  const subjectsInSelection = visibleSubjects(subjects ?? [], visibleClassIds)
   const levels = [...new Set(allClasses.map((c) => c.education_level).filter(Boolean))] as string[]
   // Academic Year (issue #597): the list defaults to the School's active
   // Academic Year; every year the School has Offerings in stays selectable
@@ -141,6 +149,11 @@ export default async function ClassesPage({
   // The column + dropdown appear on the started-year history, not on inference
   // from the current Offering set — same boolean threaded into classCatalogueLabel.
   const showYearColumn = showAcademicYearColumn(startedAcademicYears)
+  // Subject List's own Class filter (issue #641) — options are the same
+  // Global-Selection-scoped set `subjectsInSelection` was narrowed to above,
+  // so every option can match at least one currently-visible Subject row.
+  const subjectClassOptions = classCatalogueOptions(subjectVisibleOfferings ?? [], showYearColumn)
+  const shownSubjects = filterSubjectsByClass(subjectsInSelection, subjectClass)
   // A single-started-year School behaves exactly as it did pre-#597
   // (no column, no dropdown, no narrowing).
   const selectedYear = showYearColumn
@@ -357,6 +370,22 @@ export default async function ClassesPage({
             title={t('classes.addSubjectTitle', lang)}
           />
         </div>
+        <Form className="mb-4 flex flex-wrap items-center gap-2" action="/school/classes#subjects">
+          <select name="subjectClass" defaultValue={subjectClass} className={selectClass()}>
+            <option value="">{t('classes.allClasses', lang)}</option>
+            {subjectClassOptions.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+          <button
+            type="submit"
+            className="cursor-pointer rounded-full border border-line px-3 py-1 text-xs font-semibold hover:bg-paper-muted"
+          >
+            {t('classes.filter', lang)}
+          </button>
+        </Form>
         {!shownSubjects.length ? (
           <p className="text-sm text-muted">{t('classes.noSubjects', lang)}</p>
         ) : (
