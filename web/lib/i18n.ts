@@ -2369,6 +2369,7 @@ const dict = {
   'institute.tabChecklist': { bn: 'দৈনিক চেকলিস্ট', en: 'Activity Checklist' },
   'institute.tabLogistics': { bn: 'লজিস্টিক্স ইনডেক্স', en: 'Logistics Index' },
   'institute.tabTemplates': { bn: 'খালি টেমপ্লেট', en: 'Blank Templates' },
+  'institute.tabOfficeHour': { bn: 'অফিস আওয়ার', en: 'Office Hour' },
   'institute.tabVenues': { bn: 'ভবন ও কক্ষ', en: 'Venues' },
   // Venues master data (issue #93, docs/improvement.md §2A).
   'venues.intro': {
@@ -2517,6 +2518,68 @@ const dict = {
   'institute.errConfiguredShiftsEmpty': {
     bn: 'অন্তত একটি শিফট নির্বাচন করুন, অথবা "শিফট নেই" বেছে নিন',
     en: 'Select at least one Shift, or choose "No Shift"',
+  },
+  // Office Hour (issue #643, ADR 0026): Employee-Category x Shift x Day
+  // published schedule. Deliberately distinct wording from Office Time
+  // ("অফিস সময়") both in English and Bangla, to avoid confusing the two
+  // unrelated features in either language.
+  'officeHour.title': { bn: 'অফিস আওয়ার', en: 'Office Hour' },
+  'officeHour.intro': {
+    bn: 'কর্মচারী বিভাগ অনুযায়ী প্রত্যাশিত অফিস সময়সূচি নির্ধারণ করুন।',
+    en: 'Define the expected office schedule per Employee Category.',
+  },
+  'officeHour.addButton': { bn: 'অফিস আওয়ার যোগ করুন', en: 'Add Office Hour' },
+  'officeHour.shift': { bn: 'শিফট', en: 'Shift' },
+  'officeHour.categories': { bn: 'কর্মচারী বিভাগ', en: 'Employee Categories' },
+  'officeHour.category': { bn: 'কর্মচারী বিভাগ', en: 'Employee Category' },
+  'officeHour.days': { bn: 'দিন', en: 'Days' },
+  'officeHour.startTime': { bn: 'শুরুর সময়', en: 'Start Time' },
+  'officeHour.endTime': { bn: 'শেষের সময়', en: 'End Time' },
+  'officeHour.save': { bn: 'সংরক্ষণ করুন', en: 'Save' },
+  'officeHour.remove': { bn: 'মুছে ফেলুন', en: 'Remove' },
+  'officeHour.confirmRemove': {
+    bn: 'এই অফিস আওয়ার এন্ট্রিটি মুছে ফেলতে চান? এটি পূর্বাবস্থায় ফেরানো যাবে না।',
+    en: 'Remove this Office Hour entry? This cannot be undone.',
+  },
+  'officeHour.errTimeRequired': {
+    bn: 'শুরু ও শেষের সময় উভয়ই আবশ্যক',
+    en: 'Both Start Time and End Time are required',
+  },
+  'officeHour.errEndBeforeStart': {
+    bn: 'শেষের সময় শুরুর সময়ের পরে হতে হবে',
+    en: 'End Time must be after Start Time',
+  },
+  'officeHour.errNoSelection': {
+    bn: 'অন্তত একটি বিভাগ ও একটি দিন নির্বাচন করুন',
+    en: 'Select at least one Category and one Day',
+  },
+  'officeHour.errInvalidShift': { bn: 'অবৈধ শিফট নির্বাচন', en: 'Invalid Shift selection' },
+  'officeHour.errInvalidCategory': { bn: 'অবৈধ কর্মচারী বিভাগ নির্বাচন', en: 'Invalid Employee Category selection' },
+  'officeHour.errDuplicate': {
+    bn: 'এই সমন্বয়ে ইতিমধ্যে একটি অফিস আওয়ার আছে',
+    en: 'This combination already has an Office Hour',
+  },
+  'officeHour.errNotFound': {
+    bn: 'এই অফিস আওয়ারটি খুঁজে পাওয়া যায়নি — সম্ভবত ইতিমধ্যে মুছে ফেলা হয়েছে',
+    en: 'This Office Hour was not found — it may have already been removed',
+  },
+  'officeHour.conflictTitle': {
+    bn: 'বিদ্যমান সময়সূচি প্রতিস্থাপিত হবে',
+    en: 'Existing schedules will be replaced',
+  },
+  'officeHour.conflictIntro': {
+    bn: 'নিচের সমন্বয়গুলোর জন্য ইতিমধ্যে একটি অফিস আওয়ার আছে। সংরক্ষণ করলে সেগুলো নতুন সময় দ্বারা প্রতিস্থাপিত হবে।',
+    en: 'The following combinations already have an Office Hour. Saving will replace them with the new time.',
+  },
+  'officeHour.conflictConfirm': { bn: 'তবুও সংরক্ষণ করুন', en: 'Save anyway' },
+  'officeHour.conflictCancel': { bn: 'বাতিল', en: 'Cancel' },
+  'officeHour.noEntries': {
+    bn: 'এই শিফটের জন্য এখনো কোনো অফিস আওয়ার সংরক্ষিত হয়নি।',
+    en: 'No Office Hours saved yet for this Shift.',
+  },
+  'officeHour.noShiftConfigured': {
+    bn: 'এখনো কোনো শিফট কনফিগার করা হয়নি — সংস্থাপন প্রোফাইল থেকে যোগ করুন।',
+    en: 'No Shifts are configured yet — add one from the Institute Profile.',
   },
   'institute.checklistToday': { bn: 'আজকের চেকলিস্ট', en: "Today's Checklist" },
   'institute.cancel': { bn: 'বাতিল', en: 'Cancel' },

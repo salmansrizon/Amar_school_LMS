@@ -14,15 +14,25 @@ export function Modal({
   triggerLabel,
   triggerClassName,
   title,
+  onOpenChange,
   children,
 }: {
   lang: Lang
   triggerLabel: string
   triggerClassName: string
   title: string
+  /** Fires on every open/close transition, including a backdrop click or the
+   *  X button — not just a caller-initiated `close()`. Lets a form reset its
+   *  own state on dismissal without this component knowing anything about
+   *  what it's showing. */
+  onOpenChange?: (open: boolean) => void
   children: (close: () => void) => React.ReactNode
 }) {
-  const [open, setOpen] = useState(false)
+  const [open, setOpenState] = useState(false)
+  const setOpen = (next: boolean) => {
+    setOpenState(next)
+    onOpenChange?.(next)
+  }
   const close = () => setOpen(false)
   return (
     <>
