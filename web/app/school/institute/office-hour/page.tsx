@@ -21,6 +21,19 @@ import { OfficeHourCell } from './office-hour-cell'
 // reads schools.configured_shifts directly (via getSchoolContext().configuredShifts)
 // — it has no relationship with the topbar's Global Shift Selection cookie.
 
+// Per-day column tinting so a hovering eye can tell which day a cell belongs
+// to without re-counting columns or re-reading the header every time (the
+// reported problem: every row looked the same). Sun/Tue/Thu and Mon/Wed
+// alternate between the two calmest existing tones (sky, mint — both already
+// "positive/neutral" elsewhere in this app, never the alert/warning tones
+// used for real errors on this same page); Fri/Sat get the same dimmed
+// "off day" treatment used everywhere else, reinforcing that they're outside
+// the Sun-Thu school week this product is built around.
+function dayColumnClass(day: number): string {
+  if (day === 5 || day === 6) return 'bg-paper-muted text-muted'
+  return day % 2 === 0 ? 'bg-sky-soft text-sky-deep' : 'bg-mint-soft text-mint-deep'
+}
+
 export default async function OfficeHourPage({
   searchParams,
 }: {
@@ -62,9 +75,7 @@ export default async function OfficeHourPage({
         <OfficeHourForm lang={lang} shiftOptions={shiftOptions} activeShift={activeShift} />
       </div>
 
-      {shiftOptions.length === 0 ? (
-        <p className="mb-4 text-sm text-muted">{t('officeHour.noShiftConfigured', lang)}</p>
-      ) : (
+      {shiftOptions.length > 0 && (
         <div className="mb-4 flex flex-wrap items-center gap-2">
           <span className="text-xs font-semibold text-muted">{t('officeHour.shift', lang)}:</span>
           {shiftOptions.map((s) => (
@@ -93,7 +104,7 @@ export default async function OfficeHourPage({
                     {t('officeHour.category', lang)}
                   </th>
                   {OFFICE_HOUR_DAYS.map((d) => (
-                    <th key={d} className="border border-line bg-paper-muted p-1.5 font-semibold">
+                    <th key={d} className={`border border-line p-1.5 font-semibold ${dayColumnClass(d)}`}>
                       {dayLabel(d, lang)}
                     </th>
                   ))}
@@ -106,7 +117,10 @@ export default async function OfficeHourPage({
                     {OFFICE_HOUR_DAYS.map((d) => {
                       const cell = row.cells.get(d)
                       return (
-                        <td key={d} className="border border-line p-1 text-center align-middle">
+                        <td
+                          key={d}
+                          className={`border border-line p-1 text-center align-middle ${dayColumnClass(d)}`}
+                        >
                           {cell ? (
                             <OfficeHourCell id={cell.id} startTime={cell.start_time} endTime={cell.end_time} lang={lang} />
                           ) : (

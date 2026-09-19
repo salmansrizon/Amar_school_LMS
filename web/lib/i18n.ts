@@ -2574,12 +2574,8 @@ const dict = {
   'officeHour.conflictConfirm': { bn: 'তবুও সংরক্ষণ করুন', en: 'Save anyway' },
   'officeHour.conflictCancel': { bn: 'বাতিল', en: 'Cancel' },
   'officeHour.noEntries': {
-    bn: 'এই শিফটের জন্য এখনো কোনো অফিস আওয়ার সংরক্ষিত হয়নি।',
-    en: 'No Office Hours saved yet for this Shift.',
-  },
-  'officeHour.noShiftConfigured': {
-    bn: 'এখনো কোনো শিফট কনফিগার করা হয়নি — সংস্থাপন প্রোফাইল থেকে যোগ করুন।',
-    en: 'No Shifts are configured yet — add one from the Institute Profile.',
+    bn: 'এখনো কোনো অফিস আওয়ার সংরক্ষিত হয়নি।',
+    en: 'No Office Hours saved yet.',
   },
   'institute.checklistToday': { bn: 'আজকের চেকলিস্ট', en: "Today's Checklist" },
   'institute.cancel': { bn: 'বাতিল', en: 'Cancel' },

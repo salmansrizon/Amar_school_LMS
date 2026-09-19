@@ -42,7 +42,11 @@ export function OfficeHourCell({
           setEnd(endTime.slice(0, 5))
           setEditing(true)
         }}
-        className="w-full cursor-pointer rounded-full bg-mint-soft px-2 py-1 text-center text-xs font-semibold text-mint-deep hover:opacity-80"
+        // A neutral card, not a colored pill: the matrix cell itself now
+        // carries the day's own color band (page.tsx's dayColumnClass), so a
+        // colored pill here would blend into or clash with it. This floats
+        // cleanly on top of any day's tint.
+        className="w-full cursor-pointer rounded-full border border-line-strong bg-paper px-2 py-1 text-center text-xs font-semibold text-ink shadow-sm hover:border-brand-500 hover:text-brand-600"
       >
         {formatTime12h(startTime)} – {formatTime12h(endTime)}
       </button>
