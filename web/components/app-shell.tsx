@@ -108,7 +108,7 @@ function NavLinks({
               (collapsed ? (
                 <div className="mx-2 my-2 border-t border-line/70" aria-hidden="true" />
               ) : (
-                <p className={`${index ? 'mt-4 ' : ''}px-3 text-xs font-bold uppercase tracking-[0.16em] text-muted`}>{item.group}</p>
+                <p className={`${index ? 'mt-4 ' : ''}px-3 text-xs font-bold uppercase text-muted ${lang === 'bn' ? 'tracking-normal' : 'tracking-[0.16em]'}`}>{item.group}</p>
               ))}
             {renderLink(item)}
             {item.children?.map((child) => renderLink(child))}
