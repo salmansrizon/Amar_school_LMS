@@ -5,6 +5,16 @@ import { HUB_HOME } from '@/lib/student/hub'
 // Shared nav data for the School Owner/Staff sidebar (school-shell.tsx) and the
 // dashboard's Quick Actions, per ui/school-owner/dashboard.html's sidebar.
 
+export const SCHOOL_NAV_GROUPS = {
+  overview: 'schoolNav.overview',
+  people: 'schoolNav.people',
+  academics: 'schoolNav.academics',
+  financeCommunication: 'schoolNav.financeCommunication',
+  administration: 'schoolNav.administration',
+} as const satisfies Record<string, MessageKey>
+
+export type SchoolNavGroup = keyof typeof SCHOOL_NAV_GROUPS
+
 export interface SchoolNavItem {
   /** 'dashboard' is the always-available sentinel — an entry every school member
    *  can open, whose own contents gate themselves. See the Messages & Requests
@@ -12,6 +22,8 @@ export interface SchoolNavItem {
   screen: ScreenKey | 'dashboard'
   href: string
   titleKey: MessageKey
+  /** Visual journey grouping only; access remains governed by `screen`. */
+  group: SchoolNavGroup
   /** Sidebar glyph, when it should not be the one named by `screen` — the
    *  always-available sentinel has no glyph of its own. */
   icon?: string
@@ -21,22 +33,23 @@ export interface SchoolNavItem {
 }
 
 export const SCHOOL_MODULES: SchoolNavItem[] = [
-  { screen: 'students', href: '/school/students', titleKey: 'students.title' },
-  { screen: 'employees', href: '/school/employees', titleKey: 'employees.title' },
+  { screen: 'students', href: '/school/students', titleKey: 'students.title', group: 'people' },
+  { screen: 'employees', href: '/school/employees', titleKey: 'employees.title', group: 'people' },
   {
     screen: 'classes',
     href: '/school/classes',
     titleKey: 'classes.title',
+    group: 'academics',
     // Attendance depends on class information (docs/improvement.md Known
     // Issues §1), so it reads as a child of Class & Curriculum. Nav position
     // only (map #91 grilling decision 11): the route stays /school/attendance,
     // and the `attendance` grant key is untouched.
-    children: [{ screen: 'attendance', href: '/school/attendance', titleKey: 'attendance.title' }],
+    children: [{ screen: 'attendance', href: '/school/attendance', titleKey: 'attendance.title', group: 'academics' }],
   },
-  { screen: 'exams', href: '/school/exams', titleKey: 'exams.title' },
-  { screen: 'fees', href: '/school/fees', titleKey: 'fees.title' },
-  { screen: 'sms', href: '/school/sms', titleKey: 'sms.title' },
-  { screen: 'notices', href: '/school/notices', titleKey: 'notices.title' },
+  { screen: 'exams', href: '/school/exams', titleKey: 'exams.title', group: 'academics' },
+  { screen: 'fees', href: '/school/fees', titleKey: 'fees.title', group: 'financeCommunication' },
+  { screen: 'sms', href: '/school/sms', titleKey: 'sms.title', group: 'financeCommunication' },
+  { screen: 'notices', href: '/school/notices', titleKey: 'notices.title', group: 'financeCommunication' },
   // GUARDIAN FEEDBACK IS HIDDEN (#510), not removed. Its routes, tables, the
   // `feedback` grant key, the `feedback` feature key and all its i18n are
   // untouched — this is a nav decision and a temporary one ("not workable for
@@ -59,9 +72,9 @@ export const SCHOOL_MODULES: SchoolNavItem[] = [
   // actually sees inside is decided by class attachment, in RLS (0152) — so an
   // office staff member reaching this nav item finds an empty section that says
   // why, which is the designed outcome rather than a leak.
-  { screen: 'dashboard', href: HUB_HOME, titleKey: 'hub.title', icon: 'feedback' },
-  { screen: 'institute', href: '/school/institute', titleKey: 'institute.title' },
-  { screen: 'staff', href: '/school/staff', titleKey: 'staff.title' },
+  { screen: 'dashboard', href: HUB_HOME, titleKey: 'hub.title', icon: 'feedback', group: 'financeCommunication' },
+  { screen: 'institute', href: '/school/institute', titleKey: 'institute.title', group: 'administration' },
+  { screen: 'staff', href: '/school/staff', titleKey: 'staff.title', group: 'administration' },
 ]
 
 /** Every nav entry, parents and children alike — for anything that needs the

@@ -30,6 +30,8 @@ export interface AppNavItem {
   icon: React.ReactNode
   /** Root/home items match the path exactly; section items match by prefix. */
   matchExact?: boolean
+  /** Optional visual journey label. Omit for ungrouped role navigation. */
+  group?: string
   children?: AppNavItem[]
 }
 
@@ -98,12 +100,21 @@ function NavLinks({
 
   return (
     <nav className="flex flex-col gap-1" aria-label={t('shell.nav', lang)}>
-      {nav.map((item) => (
-        <div key={item.href} className="flex flex-col gap-1">
-          {renderLink(item)}
-          {item.children?.map((child) => renderLink(child))}
-        </div>
-      ))}
+      {nav.map((item, index) => {
+        const showGroup = item.group && item.group !== nav[index - 1]?.group
+        return (
+          <div key={item.href} className="flex flex-col gap-1">
+            {showGroup &&
+              (collapsed ? (
+                <div className="mx-2 my-2 border-t border-line/70" aria-hidden="true" />
+              ) : (
+                <p className={`${index ? 'mt-4 ' : ''}px-3 text-xs font-bold uppercase tracking-[0.16em] text-muted`}>{item.group}</p>
+              ))}
+            {renderLink(item)}
+            {item.children?.map((child) => renderLink(child))}
+          </div>
+        )
+      })}
     </nav>
   )
 }

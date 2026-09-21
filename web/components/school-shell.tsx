@@ -4,7 +4,7 @@ import Link from 'next/link'
 import type { ThemePreference } from '@/lib/ui-prefs'
 import { AppShell, type AppNavItem } from '@/components/app-shell'
 import { Icon } from '@/components/school-icons'
-import { SearchPalette, type PaletteEntry } from '@/components/search-palette'
+import type { PaletteEntry } from '@/components/search-palette'
 import { NotificationBell } from '@/components/notification-bell'
 import { ShiftSelector } from '@/components/shift-selector'
 import { SCHOOL_SEARCH } from '@/lib/school-search'
@@ -13,7 +13,7 @@ import { FOCUS_RING, ICON_BUTTON } from '@/lib/ui-tokens'
 import { canOpenScreen, FEATURE_KEYS } from '@/lib/auth/screens'
 import type { ScreenKey } from '@/lib/auth/screens'
 import type { Role } from '@/lib/auth/routing'
-import { SCHOOL_MODULES } from '@/lib/school-nav'
+import { SCHOOL_MODULES, SCHOOL_NAV_GROUPS, type SchoolNavGroup } from '@/lib/school-nav'
 import type { SchoolSmsCredit } from '@/lib/sms/credit'
 
 // SMS-balance badge styling by level (map #171 T9).
@@ -50,6 +50,7 @@ function buildSchoolNav(
     href: string
     titleKey: Parameters<typeof t>[0]
     icon?: string
+    group: SchoolNavGroup
   }): AppNavItem => ({
     href: it.href,
     label: t(it.titleKey, lang),
@@ -57,10 +58,11 @@ function buildSchoolNav(
     // would wear the dashboard's (lib/school-nav.ts).
     icon: <Icon name={(it.icon ?? it.screen) as Parameters<typeof Icon>[0]['name']} className="size-5" />,
     matchExact: it.href === '/school',
+    group: t(SCHOOL_NAV_GROUPS[it.group], lang),
   })
 
   const src = [
-    { screen: 'dashboard' as const, href: '/school', titleKey: 'dash.dashboard' as const },
+    { screen: 'dashboard' as const, href: '/school', titleKey: 'dash.dashboard' as const, group: 'overview' as const },
     ...SCHOOL_MODULES,
   ]
   const out: AppNavItem[] = []
