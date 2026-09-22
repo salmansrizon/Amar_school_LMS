@@ -8,8 +8,9 @@ import { schoolToday } from '@/lib/school-time'
 /** A Student asking for leave (#452).
  *
  *  The row lands as 'pending' and joins the SAME queue at
- *  /school/attendance/leave that Attendance I already built — nothing new on
- *  the staff side, per the ticket. Once approved, the existing absent-fine and
+ *  /school/attendance/leave/student that Attendance I already built (split
+ *  from Employee Leave in map #664) — nothing new on the staff side, per the
+ *  ticket. Once approved, the existing absent-fine and
  *  absence-SMS rules already excuse the days; none of that is rebuilt here.
  *
  *  Errors are returned as codes, not sentences: the raw English "To date must be

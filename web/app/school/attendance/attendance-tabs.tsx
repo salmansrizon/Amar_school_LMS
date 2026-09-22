@@ -13,16 +13,16 @@ const STUDENT_TABS = [
   { href: '/school/attendance/mark', key: 'attendance.tabMark' as const },
   { href: '/school/attendance/book', key: 'attendance.tabBook' as const },
   { href: '/school/attendance/student-log', key: 'attendance.tabStudentLog' as const },
-  { href: '/school/attendance/leave', key: 'attendance.tabLeave' as const },
+  { href: '/school/attendance/leave/student', key: 'attendance.tabLeave' as const },
 ]
 
-// Leave Management is still one unified page/route (split lands in #664), so
-// its Employees-group entry carries a `group` query param purely to
-// disambiguate which parent row highlights as active — it is never read for
-// filtering, only threaded through to the `active` prop below.
+// Leave Management is two independent routes/pages since #664 — each parent
+// group's Leave tab points at its own audience-specific page, so no
+// disambiguation query param is needed any more (see #663's original fix,
+// no longer required now that the routes themselves differ).
 const EMPLOYEE_TABS = [
   { href: '/school/attendance/employee', key: 'attendance.tabEmployee' as const },
-  { href: '/school/attendance/leave?group=employees', key: 'attendance.tabLeave' as const },
+  { href: '/school/attendance/leave/employee', key: 'attendance.tabLeave' as const },
 ]
 
 const GROUPS = [

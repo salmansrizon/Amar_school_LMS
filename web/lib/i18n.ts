@@ -2275,13 +2275,16 @@ const dict = {
   'attendance.causePlaceholder': { bn: 'অনুপস্থিতির কারণ', en: 'Reason for absence' },
   'attendance.pickClass': { bn: 'একটি শ্রেণি নির্বাচন করুন', en: 'Pick a class to load the roster' },
 
-  'attendance.leaveTitle': { bn: 'ছুটি ব্যবস্থাপনা', en: 'Leave Management' },
-  'attendance.leaveSearch': { bn: 'নাম দিয়ে খুঁজুন', en: 'Search by name' },
-  'attendance.leaveAllTypes': { bn: 'সকল ধরন', en: 'All Types' },
-  'attendance.leaveStudentType': { bn: 'শিক্ষার্থী', en: 'Student' },
-  'attendance.leaveEmployeeType': { bn: 'কর্মচারী', en: 'Employee' },
+  // Split Student/Employee Leave Management (map #664): separate titles and a
+  // student search that covers name, roll number, and class in one box. The
+  // old combined page's title/search/type-filter keys (leaveTitle,
+  // leaveSearch, leaveAllTypes, leaveStudentType, leaveEmployeeType,
+  // leaveTypeCol) were removed with it — nothing references them any more.
+  'attendance.studentLeaveTitle': { bn: 'শিক্ষার্থী ছুটি ব্যবস্থাপনা', en: 'Student Leave Management' },
+  'attendance.employeeLeaveTitle': { bn: 'কর্মচারী ছুটি ব্যবস্থাপনা', en: 'Employee Leave Management' },
+  'attendance.leaveSearchStudent': { bn: 'নাম বা রোল দিয়ে খুঁজুন', en: 'Search by name or roll number' },
+  'attendance.leaveStatusSummary': { bn: 'অবস্থার সারাংশ', en: 'Status summary' },
   'attendance.leaveName': { bn: 'নাম', en: 'Name' },
-  'attendance.leaveTypeCol': { bn: 'ধরন', en: 'Type' },
   'attendance.leaveFromCol': { bn: 'শুরুর তারিখ', en: 'From' },
   'attendance.leaveToCol': { bn: 'শেষ তারিখ', en: 'To' },
   'attendance.leaveReasonCol': { bn: 'কারণ', en: 'Reason' },

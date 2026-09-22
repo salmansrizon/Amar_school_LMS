@@ -36,7 +36,7 @@ const SURFACES = {
     '/school', '/school/students', '/school/students/new', '/school/students/archive',
     '/school/employees', '/school/classes', '/school/classes/routine',
     '/school/attendance', '/school/attendance/mark', '/school/attendance/book',
-    '/school/attendance/leave', '/school/attendance/off-days',
+    '/school/attendance/leave/student', '/school/attendance/leave/employee', '/school/attendance/off-days',
     '/school/exams', '/school/exams/grading-schemes', '/school/exams/combinations',
     '/school/fees', '/school/fees/structures', '/school/fees/ledger',
     '/school/fees/vouchers', '/school/fees/bank', '/school/sms', '/school/notices',

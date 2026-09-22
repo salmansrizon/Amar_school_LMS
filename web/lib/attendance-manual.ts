@@ -16,65 +16,11 @@ export interface RosterStudent {
 
 export type LeaveStatus = 'pending' | 'approved' | 'rejected'
 
-export interface RawLeave {
-  id: string
-  from_day: string
-  to_day: string
-  reason: string | null
-  status: string
-  created_at: string
-}
-
-export interface UnifiedLeave {
-  id: string
-  kind: 'student' | 'employee'
-  personId: string
-  name: string
-  fromDay: string
-  toDay: string
-  reason: string | null
-  status: LeaveStatus
-  createdAt: string
-}
-
-/** Merge student + employee leave rows into one list, newest first. */
-export function mergeLeaves(
-  studentLeaves: (RawLeave & { student_id: string })[],
-  employeeLeaves: (RawLeave & { employee_id: string })[],
-  studentNames: Map<string, string>,
-  employeeNames: Map<string, string>,
-): UnifiedLeave[] {
-  const rows: UnifiedLeave[] = [
-    ...studentLeaves.map((l) => ({
-      id: l.id,
-      kind: 'student' as const,
-      personId: l.student_id,
-      name: studentNames.get(l.student_id) ?? '—',
-      fromDay: l.from_day,
-      toDay: l.to_day,
-      reason: l.reason,
-      status: l.status as LeaveStatus,
-      createdAt: l.created_at,
-    })),
-    ...employeeLeaves.map((l) => ({
-      id: l.id,
-      kind: 'employee' as const,
-      personId: l.employee_id,
-      name: employeeNames.get(l.employee_id) ?? '—',
-      fromDay: l.from_day,
-      toDay: l.to_day,
-      reason: l.reason,
-      status: l.status as LeaveStatus,
-      createdAt: l.created_at,
-    })),
-  ]
-  return rows.sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-}
-
-export function filterLeaves(rows: UnifiedLeave[], query: string, kind: string): UnifiedLeave[] {
-  const q = query.trim().toLowerCase()
-  return rows.filter((r) => (!q || r.name.toLowerCase().includes(q)) && (!kind || r.kind === kind))
-}
+// mergeLeaves/filterLeaves (the old combined Student+Employee Leave
+// Management page's helpers) removed with the page itself (map #664): Leave
+// Management is now two independent, audience-scoped pages, each querying
+// its own table directly rather than merging both into one client-filtered
+// list.
 
 export interface OffDay {
   day: string // YYYY-MM-DD

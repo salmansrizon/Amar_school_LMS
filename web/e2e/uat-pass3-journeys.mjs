@@ -115,7 +115,7 @@ if (run('leave')) {
   await s.context.close()
 
   const o = await signIn(browser, 'owner-a@test.local')
-  await o.page.goto(`${BASE}/school/attendance/leave`, { waitUntil: 'domcontentloaded' })
+  await o.page.goto(`${BASE}/school/attendance/leave/student`, { waitUntil: 'domcontentloaded' })
   await o.page.waitForTimeout(900)
   // The queue holds every request; the one to act on is the pending row that
   // still offers a decision button.

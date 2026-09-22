@@ -7,13 +7,18 @@ import { t, type Lang } from '@/lib/i18n'
 import { requestLeave, approveLeave, rejectLeave } from '../manual-actions'
 import { dateInputClass, selectClass } from '@/components/ui/field'
 
-export function RequestLeaveForm({
-  students,
-  employees,
+// Split from the old combined Student+Employee picker (map #664): each
+// audience gets its own single-purpose dropdown rather than one `<select>`
+// with two `<optgroup>`s, but both still submit the same `holder`
+// ("student:<id>" | "employee:<id>") shape `requestLeave` already expects —
+// only the picker UI is audience-specific, not the server action.
+function RequestLeaveFormShell({
+  kind,
+  people,
   lang,
 }: {
-  students: { id: string; full_name: string }[]
-  employees: { id: string; full_name: string }[]
+  kind: 'student' | 'employee'
+  people: { id: string; full_name: string }[]
   lang: Lang
 }) {
   const [error, setError] = useState<string | null>(null)
@@ -39,20 +44,11 @@ export function RequestLeaveForm({
           {t('attendance.leavePerson', lang)}
         </label>
         <select id="holder" name="holder" required className={selectClass({ size: 'md', fullWidth: true })}>
-          <optgroup label={t('students.title', lang)}>
-            {students.map((s) => (
-              <option key={s.id} value={`student:${s.id}`}>
-                {s.full_name}
-              </option>
-            ))}
-          </optgroup>
-          <optgroup label={t('employees.title', lang)}>
-            {employees.map((e) => (
-              <option key={e.id} value={`employee:${e.id}`}>
-                {e.full_name}
-              </option>
-            ))}
-          </optgroup>
+          {people.map((p) => (
+            <option key={p.id} value={`${kind}:${p.id}`}>
+              {p.full_name}
+            </option>
+          ))}
         </select>
       </div>
       <div>
@@ -85,7 +81,15 @@ export function RequestLeaveForm({
   )
 }
 
-export function LeaveActions({ kind, id, lang }: { kind: string; id: string; lang: Lang }) {
+export function RequestStudentLeaveForm({ students, lang }: { students: { id: string; full_name: string }[]; lang: Lang }) {
+  return <RequestLeaveFormShell kind="student" people={students} lang={lang} />
+}
+
+export function RequestEmployeeLeaveForm({ employees, lang }: { employees: { id: string; full_name: string }[]; lang: Lang }) {
+  return <RequestLeaveFormShell kind="employee" people={employees} lang={lang} />
+}
+
+export function LeaveActions({ kind, id, lang }: { kind: 'student' | 'employee'; id: string; lang: Lang }) {
   const router = useRouter()
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)

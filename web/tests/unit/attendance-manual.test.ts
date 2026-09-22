@@ -1,7 +1,5 @@
 import { describe, it, expect } from 'vitest'
 import {
-  mergeLeaves,
-  filterLeaves,
   monthGrid,
   dateRangeDays,
   registerDayStatus,
@@ -9,54 +7,10 @@ import {
   attendancePercent,
 } from '@/lib/attendance-manual'
 
-const students = [
-  { id: '1', full_name: 'Rakib Hasan', class_name: 'Class 8', section: 'A', roll_number: 2 },
-  { id: '2', full_name: 'Tamim Iqbal', class_name: 'Class 8', section: 'B', roll_number: 1 },
-  { id: '3', full_name: 'Sadia Islam', class_name: 'Class 9', section: 'A', roll_number: null, office_time_id: null },
-  { id: '4', full_name: 'Nusrat Jahan', class_name: null, section: null, roll_number: null, office_time_id: null },
-]
-
 // filterRoster's cases moved with it to tests/unit/school-roster.test.ts.
-
-describe('mergeLeaves / filterLeaves', () => {
-  const studentLeaves = [
-    {
-      id: 'sl1',
-      student_id: '1',
-      from_day: '2026-07-05',
-      to_day: '2026-07-06',
-      reason: 'Fever',
-      status: 'pending',
-      created_at: '2026-07-04T10:00:00Z',
-    },
-  ]
-  const employeeLeaves = [
-    {
-      id: 'el1',
-      employee_id: 'e1',
-      from_day: '2026-07-05',
-      to_day: '2026-07-07',
-      reason: 'Family event',
-      status: 'approved',
-      created_at: '2026-07-04T12:00:00Z',
-    },
-  ]
-  const studentNames = new Map([['1', 'Rakib Hasan']])
-  const employeeNames = new Map([['e1', 'Kamrul Hasan']])
-
-  it('merges both kinds, newest first', () => {
-    const rows = mergeLeaves(studentLeaves, employeeLeaves, studentNames, employeeNames)
-    expect(rows.map((r) => r.id)).toEqual(['el1', 'sl1'])
-    expect(rows[0]).toMatchObject({ kind: 'employee', name: 'Kamrul Hasan', status: 'approved' })
-  })
-
-  it('filters by search text and kind', () => {
-    const rows = mergeLeaves(studentLeaves, employeeLeaves, studentNames, employeeNames)
-    expect(filterLeaves(rows, 'rakib', '').map((r) => r.id)).toEqual(['sl1'])
-    expect(filterLeaves(rows, '', 'employee').map((r) => r.id)).toEqual(['el1'])
-    expect(filterLeaves(rows, '', '')).toHaveLength(2)
-  })
-})
+// mergeLeaves/filterLeaves cases removed with the functions themselves (map
+// #664, the old combined Leave Management page) — Student/Employee Leave
+// Management now query and render each table independently.
 
 describe('monthGrid', () => {
   it('leads with blank cells to align the first weekday', () => {

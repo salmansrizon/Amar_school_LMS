@@ -5,8 +5,10 @@ import { requireSchoolMember } from '@/lib/auth/require-role'
 import { createClient } from '@/lib/supabase/server'
 
 const MARK_PAGE = '/school/attendance/mark'
-const LEAVE_PAGE = '/school/attendance/leave'
+const STUDENT_LEAVE_PAGE = '/school/attendance/leave/student'
+const EMPLOYEE_LEAVE_PAGE = '/school/attendance/leave/employee'
 const OFFDAY_PAGE = '/school/attendance/off-days'
+const leavePageFor = (kind: string) => (kind === 'student' ? STUDENT_LEAVE_PAGE : EMPLOYEE_LEAVE_PAGE)
 
 export interface AttendanceRecordInput {
   student_id: string
@@ -50,7 +52,7 @@ export async function requestLeave(formData: FormData): Promise<{ error?: string
   const idField = kind === 'student' ? 'student_id' : 'employee_id'
   const { error } = await supabase.from(table).insert({ [idField]: personId, from_day: fromDay, to_day: toDay, reason })
   if (error) return { error: error.message }
-  revalidatePath(LEAVE_PAGE)
+  revalidatePath(leavePageFor(kind))
   return {}
 }
 
@@ -67,7 +69,7 @@ async function setLeaveStatus(
   const { data, error } = await supabase.from(table).update({ status }).eq('id', id).select('id')
   if (error) return { error: error.message }
   if (!data?.length) return { error: 'Leave request not found or not accessible' }
-  revalidatePath(LEAVE_PAGE)
+  revalidatePath(leavePageFor(kind))
   return {}
 }
 

@@ -98,7 +98,10 @@ const EXEMPT: [file: string, reason: string][] = [
     'app/school/students/recent-admissions-actions.ts',
     'New Admission page Recent Admissions list (#625) — deliberately unfiltered by design, same shape as the two recent-activity entries above',
   ],
-  ['app/school/attendance/leave/page.tsx', "leave list's student-name lookup has no class filter today"],
+  [
+    'app/school/attendance/leave/student/page.tsx',
+    "request-leave form's full student picker (map #664 split) — a leave can be requested for any student regardless of Shift Selection; the page's own search/list below is shift-filtered via schoolRoster",
+  ],
   ['app/school/page.tsx', 'dashboard total-student count is schoolwide, no class dimension'],
   ['app/school/sms/rules/page.tsx', 'student picker here has no class/section dimension at all'],
   ['lib/search/actions.ts', 'global search has no class dimension today'],
