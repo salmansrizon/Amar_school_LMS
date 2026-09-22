@@ -48,7 +48,7 @@ export default async function AttendanceBookPage({
   } = await searchParams
   const mode = modeParam === 'blank' ? 'blank' : 'filled'
   const lang: Lang = await currentLang()
-  const { supabase, shiftSelection, startedAcademicYears, academicYearSelection } = await getSchoolContext()
+  const { supabase, shiftSelection, startedAcademicYears, academicYearSelection, weeklyOffDays } = await getSchoolContext()
   // Started-year history is the signal (#609/#612), same boolean T6/#615
   // threaded into the Fee Structures Offering picker.
   const showYear = startedAcademicYears.length > 1
@@ -96,7 +96,7 @@ export default async function AttendanceBookPage({
   ])
 
   const offDays: OffDay[] = offDaysRaw ?? []
-  const grid = monthGrid(year, month, offDays).filter((c) => c.day !== null)
+  const grid = monthGrid(year, month, offDays, weeklyOffDays).filter((c) => c.day !== null)
   const today = todayIso()
 
   const presentSet = new Set((recordsRaw ?? []).map((r) => `${r.person_id}:${r.att_date}`))

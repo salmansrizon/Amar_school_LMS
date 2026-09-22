@@ -13,10 +13,10 @@ import { loadInstitutePrintHeader } from '@/lib/institute-print'
 
 // Individual Student Log (map #380, docs/011_student_module.md): one
 // student's attendance history, with Today / Monthly / Custom filters and
-// print for the currently filtered view. Off-day/Saturday shading and the
-// day-by-day range reuse dateRangeDays (shared with monthGrid's Saturday
-// rule); day status reuses studentLogDayStatus, the four-state sibling of
-// registerDayStatus. Print reuses the same PrintPage/InstituteHeader/
+// print for the currently filtered view. Off-day/Weekly-Off-Day shading and
+// the day-by-day range reuse dateRangeDays (shared with monthGrid's Weekly
+// Off-Day rule, issue #665); day status reuses studentLogDayStatus, the
+// four-state sibling of registerDayStatus. Print reuses the same PrintPage/InstituteHeader/
 // PaginatedSheet/PrintButton seam every other printable in the app composes
 // (ADR 0007) — no new print system.
 
@@ -68,7 +68,7 @@ export default async function StudentLogDetailPage({
   } = await searchParams
   const view: ViewMode = viewParam === 'today' || viewParam === 'custom' ? viewParam : 'month'
   const lang: Lang = await currentLang()
-  const { supabase } = await getSchoolContext()
+  const { supabase, weeklyOffDays } = await getSchoolContext()
 
   const [{ data: studentRow }, institute] = await Promise.all([
     supabase
@@ -146,7 +146,7 @@ export default async function StudentLogDetailPage({
   const leaveRanges = leavesRaw ?? []
   const onApprovedLeave = (iso: string): boolean => leaveRanges.some((l) => iso >= l.from_day && iso <= l.to_day)
 
-  const rows = dateRangeDays(rangeStart, rangeEnd, offDays)
+  const rows = dateRangeDays(rangeStart, rangeEnd, offDays, weeklyOffDays)
     .map((cell) => ({
       iso: cell.iso,
       status: studentLogDayStatus({

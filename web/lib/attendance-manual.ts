@@ -36,15 +36,20 @@ export interface CalendarCell {
   label: string | null
 }
 
-/** Saturday shades as the regular weekly off-day even with no off_days row
- *  (no recurring-rule table exists yet); an explicit off_days row adds a
- *  label and/or significance on top. Shared by monthGrid and dateRangeDays so
- *  the rule lives in exactly one place. */
-function dayOffInfo(iso: string, offByDay: Map<string, OffDay>): Pick<CalendarCell, 'isOff' | 'isSignificant' | 'label'> {
+/** A day shades off when its weekday is one of the School's configured
+ *  Weekly Off-Days (issue #665, ADR 0027 — schools.weekly_off_days, 0=Sun..
+ *  6=Sat) even with no off_days row; an explicit off_days row adds a label
+ *  and/or significance on top. Shared by monthGrid and dateRangeDays so the
+ *  rule lives in exactly one place. */
+function dayOffInfo(
+  iso: string,
+  offByDay: Map<string, OffDay>,
+  weeklyOffDays: readonly number[],
+): Pick<CalendarCell, 'isOff' | 'isSignificant' | 'label'> {
   const [y, m, d] = iso.split('-').map(Number)
-  const isSaturday = new Date(Date.UTC(y, m - 1, d)).getUTCDay() === 6
+  const weekday = new Date(Date.UTC(y, m - 1, d)).getUTCDay()
   const off = offByDay.get(iso)
-  return { isOff: isSaturday || !!off, isSignificant: !!off?.is_significant, label: off?.label ?? null }
+  return { isOff: weeklyOffDays.includes(weekday) || !!off, isSignificant: !!off?.is_significant, label: off?.label ?? null }
 }
 
 function addDaysIso(iso: string, delta: number): string {
@@ -56,9 +61,10 @@ function addDaysIso(iso: string, delta: number): string {
 /**
  * One month's day grid (Sun-first, matching off-day-calendar.html), leading
  * blanks for alignment. School-specific extra off-days and significant days
- * come from the off_days table (see dayOffInfo for the Saturday rule).
+ * come from the off_days table; `weeklyOffDays` is the School's configured
+ * Weekly Off-Day weekdays (see dayOffInfo).
  */
-export function monthGrid(year: number, month: number, offDays: OffDay[]): CalendarCell[] {
+export function monthGrid(year: number, month: number, offDays: OffDay[], weeklyOffDays: readonly number[]): CalendarCell[] {
   const prefix = `${year}-${String(month + 1).padStart(2, '0')}`
   const byDay = new Map(offDays.filter((o) => o.day.startsWith(prefix)).map((o) => [o.day, o]))
   const startWeekday = new Date(Date.UTC(year, month, 1)).getUTCDay()
@@ -70,7 +76,7 @@ export function monthGrid(year: number, month: number, offDays: OffDay[]): Calen
   }
   for (let d = 1; d <= daysInMonth; d++) {
     const iso = `${prefix}-${String(d).padStart(2, '0')}`
-    cells.push({ day: d, iso, ...dayOffInfo(iso, byDay) })
+    cells.push({ day: d, iso, ...dayOffInfo(iso, byDay, weeklyOffDays) })
   }
   return cells
 }
@@ -78,19 +84,25 @@ export function monthGrid(year: number, month: number, offDays: OffDay[]): Calen
 // Student Log Today/Custom filters (map #380): an arbitrary [fromIso, toIso]
 // range doesn't fit monthGrid's one-calendar-month shape, so this is the
 // flat-list equivalent, sharing dayOffInfo rather than re-deriving the
-// Saturday/off_days rule a third time. A missing or reversed range returns no
-// days — the caller's empty state, not a crash or a runaway loop. Capped at
-// a year of days for the same reason: this renders as a flat list/print
-// sheet, not a paged table, so an unbounded range would just hang the page.
+// Weekly Off-Day/off_days rule a third time. A missing or reversed range
+// returns no days — the caller's empty state, not a crash or a runaway loop.
+// Capped at a year of days for the same reason: this renders as a flat
+// list/print sheet, not a paged table, so an unbounded range would just hang
+// the page.
 const MAX_RANGE_DAYS = 366
 
-export function dateRangeDays(fromIso: string, toIso: string, offDays: OffDay[]): { iso: string; isOff: boolean }[] {
+export function dateRangeDays(
+  fromIso: string,
+  toIso: string,
+  offDays: OffDay[],
+  weeklyOffDays: readonly number[],
+): { iso: string; isOff: boolean }[] {
   if (!fromIso || !toIso || fromIso > toIso) return []
   const byDay = new Map(offDays.map((o) => [o.day, o]))
   const days: { iso: string; isOff: boolean }[] = []
   let cursor = fromIso
   while (cursor <= toIso && days.length < MAX_RANGE_DAYS) {
-    days.push({ iso: cursor, isOff: dayOffInfo(cursor, byDay).isOff })
+    days.push({ iso: cursor, isOff: dayOffInfo(cursor, byDay, weeklyOffDays).isOff })
     cursor = addDaysIso(cursor, 1)
   }
   return days

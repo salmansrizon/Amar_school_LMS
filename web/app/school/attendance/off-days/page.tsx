@@ -4,11 +4,12 @@ import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { monthGrid, type OffDay } from '@/lib/attendance-manual'
 import { AttendanceTabs } from '../attendance-tabs'
-import { AddOffDayForm, DeleteOffDayButton, ImportCentralButton } from './off-day-controls'
+import { AddOffDayForm, DeleteOffDayButton, ImportCentralButton, WeeklyOffDayForm } from './off-day-controls'
 
 // Layout per ui/school-owner/off-day-calendar.html: 12-month grid shading
-// off-days (red) and significant days (blue); every Saturday shades as the
-// regular weekly off-day without needing a DB row (see monthGrid).
+// off-days (red) and significant days (blue); the School's configured Weekly
+// Off-Day weekdays (issue #665, ADR 0027) shade without needing a DB row per
+// date (see monthGrid) — replacing the old hardcoded Saturday-only rule.
 const MONTH_NAMES: { bn: string; en: string }[] = [
   { bn: 'জানুয়ারি', en: 'January' },
   { bn: 'ফেব্রুয়ারি', en: 'February' },
@@ -45,7 +46,7 @@ export default async function OffDayCalendarPage({
   const { year: yearParam } = await searchParams
   const year = Number(yearParam) || currentYear()
   const lang: Lang = await currentLang()
-  const { supabase } = await getSchoolContext()
+  const { supabase, weeklyOffDays, role } = await getSchoolContext()
 
   const { data: offDaysRaw } = await supabase
     .from('off_days')
@@ -67,6 +68,25 @@ export default async function OffDayCalendarPage({
       <AttendanceTabs active="/school/attendance/off-days" lang={lang} />
 
       <section className="mb-6 rounded-lg border border-line bg-paper p-5">
+        <h3 className="mb-3 font-bold">{t('attendance.weeklyOffDayTitle', lang)}</h3>
+        {role === 'school_owner' ? (
+          <WeeklyOffDayForm value={weeklyOffDays} lang={lang} />
+        ) : (
+          <div className="text-sm text-muted">
+            <p>
+              {weeklyOffDays.length
+                ? weeklyOffDays
+                    .toSorted((a, b) => a - b)
+                    .map((d) => WEEKDAY_LABELS[d][lang])
+                    .join(', ')
+                : t('attendance.none', lang)}
+            </p>
+            <p className="mt-1 text-xs">{t('attendance.weeklyOffDayOwnerOnly', lang)}</p>
+          </div>
+        )}
+      </section>
+
+      <section className="mb-6 rounded-lg border border-line bg-paper p-5">
         <h3 className="mb-3 font-bold">{t('attendance.offDayAddTitle', lang)}</h3>
         <AddOffDayForm lang={lang} />
         <div className="mt-3 border-t border-line pt-3">
@@ -85,7 +105,7 @@ export default async function OffDayCalendarPage({
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {MONTH_NAMES.map((name, month) => {
-          const grid = monthGrid(year, month, offDays)
+          const grid = monthGrid(year, month, offDays, weeklyOffDays)
           return (
             <div key={month} className="rounded-lg border border-line bg-paper p-3">
               <h4 className="mb-2 text-center text-sm font-bold">{name[lang]}</h4>
@@ -116,7 +136,7 @@ export default async function OffDayCalendarPage({
         })}
       </div>
 
-      <p className="mt-4 text-xs text-muted">{t('attendance.offDaySaturdayNote', lang)}</p>
+      <p className="mt-4 text-xs text-muted">{t('attendance.offDayWeeklyNote', lang)}</p>
 
       <section className="mt-6 rounded-lg border border-line bg-paper p-5">
         {!offDays.length ? (

@@ -1,7 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { requireSchoolMember } from '@/lib/auth/require-role'
+import { requireSchoolMember, requireSchoolOwnerProfile } from '@/lib/auth/require-role'
 import { createClient } from '@/lib/supabase/server'
 
 const MARK_PAGE = '/school/attendance/mark'
@@ -132,4 +132,35 @@ export async function importCentralOffDays(): Promise<{ error?: string; imported
   if (error) return { error: error.message }
   revalidatePath(OFFDAY_PAGE)
   return { imported: data?.length ?? 0 }
+}
+
+/** Replace this School's Weekly Off-Day weekdays (issue #665, ADR 0027) —
+ *  wholesale, never merged: whatever weekdays were selected before are gone
+ *  once this saves, matching the DB column's own "replaced, not appended"
+ *  contract. An empty selection is valid (no regular weekly off-day at all).
+ *
+ *  Owner-only, like every other edit to the schools row itself (migration
+ *  0043's "owner updates own school" policy — Staff Users may hold the
+ *  attendance/institute Screen grants but never write this table directly).
+ *  The `.select('id')` + length check mirrors setLeaveStatus's own handling
+ *  of an RLS-filtered write: without it, a non-owner's update matches zero
+ *  rows and returns no error, so the UI would report "Saved" while the
+ *  School's setting silently stayed unchanged. */
+export async function updateWeeklyOffDays(formData: FormData): Promise<{ error?: string }> {
+  const weekdays = [...new Set(formData.getAll('weekday').map(Number))]
+  if (weekdays.some((d) => !Number.isInteger(d) || d < 0 || d > 6)) return { error: 'Invalid weekday' }
+
+  const supabase = await createClient()
+  const { ok, schoolId } = await requireSchoolOwnerProfile(supabase)
+  if (!ok || !schoolId) return { error: 'Only the School Owner can change this setting' }
+
+  const { data, error } = await supabase
+    .from('schools')
+    .update({ weekly_off_days: weekdays })
+    .eq('id', schoolId)
+    .select('id')
+  if (error) return { error: error.message }
+  if (!data?.length) return { error: 'Not authorized to update this setting' }
+  revalidatePath(OFFDAY_PAGE)
+  return {}
 }

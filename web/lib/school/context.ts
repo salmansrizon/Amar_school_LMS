@@ -38,6 +38,12 @@ export interface SchoolContext {
    *  Read here (the shared schools-row query) so pages needn't re-fetch it.
    *  null only for a School whose row predates the column's default. */
   activeAcademicYear: number | null
+  /** schools.weekly_off_days (issue #665, ADR 0027) — the weekday(s) (0=Sun..
+   *  6=Sat) this School treats as off every week, replacing the old hardcoded
+   *  Saturday-only rule. Read here alongside the rest of the schools row so
+   *  every Off-Days Calendar/Attendance Book/Student Log consumer of
+   *  monthGrid/dateRangeDays shares one query instead of three. */
+  weeklyOffDays: readonly number[]
   /** Academic Years this School has actually *started* (school_academic_years,
    *  #609/#610), newest first. Read here alongside the schools row so browse
    *  screens needn't re-fetch it. Empty only for a School with no history row
@@ -71,7 +77,7 @@ export const getSchoolContext = cache(async (): Promise<SchoolContext> => {
   const [{ data: school }, grantsRes, { data: status }, { data: startedYearRows }] = await Promise.all([
     supabase
       .from('schools')
-      .select('name, subscription_expires_at, configured_shifts, active_academic_year, education_levels')
+      .select('name, subscription_expires_at, configured_shifts, active_academic_year, education_levels, weekly_off_days')
       .eq('id', profile.school_id)
       .maybeSingle(),
     role === 'staff_user'
@@ -103,6 +109,7 @@ export const getSchoolContext = cache(async (): Promise<SchoolContext> => {
     shiftSelection: await globalShiftSelection(configuredShifts),
     educationLevels: school?.education_levels ?? [],
     activeAcademicYear,
+    weeklyOffDays: school?.weekly_off_days ?? [6],
     startedAcademicYears,
     academicYearSelection: await globalAcademicYearSelection(startedAcademicYears, activeAcademicYear),
   }

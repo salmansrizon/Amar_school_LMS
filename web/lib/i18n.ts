@@ -2305,10 +2305,30 @@ const dict = {
   'attendance.offDayDate': { bn: 'তারিখ', en: 'Date' },
   'attendance.offDayLabelField': { bn: 'বিবরণ', en: 'Label' },
   'attendance.offDaySignificant': { bn: 'গুরুত্বপূর্ণ দিন হিসেবে চিহ্নিত করুন', en: 'Mark as significant day' },
-  'attendance.offDaySaturdayNote': {
-    bn: 'প্রতি শনিবার নিয়মিত সাপ্তাহিক ছুটি হিসেবে চিহ্নিত। প্রতিষ্ঠান-নির্দিষ্ট অতিরিক্ত ছুটি এখানে যোগ করা যাবে।',
-    en: 'Every Saturday is shaded as the regular weekly off-day. Institute-specific extra off-days can be added here.',
+  // Configurable Weekly Off-Day (issue #665, ADR 0027) — replaces the old
+  // hardcoded Saturday-only note and off-day rule.
+  'attendance.offDayWeeklyNote': {
+    bn: 'আপনার নির্ধারিত নিয়মিত সাপ্তাহিক ছুটি (নিচে সেট করুন) প্রতি সপ্তাহে ছায়াযুক্ত থাকে। প্রতিষ্ঠান-নির্দিষ্ট অতিরিক্ত ছুটি এখানে যোগ করা যাবে।',
+    en: 'Your configured Regular Weekly Off-Day (set below) shades every week. Institute-specific extra off-days can be added here.',
   },
+  'attendance.weeklyOffDayTitle': { bn: 'নিয়মিত সাপ্তাহিক ছুটি', en: 'Regular Weekly Off-Day' },
+  'attendance.weeklyOffDayHint': {
+    bn: 'সংরক্ষণ করলে আগের নির্বাচন প্রতিস্থাপিত হবে — যোগ হবে না।',
+    en: 'Saving replaces your previous selection — it does not add to it.',
+  },
+  'attendance.weeklyOffDaySave': { bn: 'সংরক্ষণ করুন', en: 'Save' },
+  'attendance.weeklyOffDaySaved': { bn: 'সংরক্ষিত হয়েছে', en: 'Saved' },
+  'attendance.weeklyOffDayOwnerOnly': {
+    bn: 'শুধুমাত্র প্রতিষ্ঠান মালিক এই সেটিং পরিবর্তন করতে পারবেন।',
+    en: 'Only the School Owner can change this setting.',
+  },
+  'attendance.weekdaySun': { bn: 'রবি', en: 'Sun' },
+  'attendance.weekdayMon': { bn: 'সোম', en: 'Mon' },
+  'attendance.weekdayTue': { bn: 'মঙ্গল', en: 'Tue' },
+  'attendance.weekdayWed': { bn: 'বুধ', en: 'Wed' },
+  'attendance.weekdayThu': { bn: 'বৃহঃ', en: 'Thu' },
+  'attendance.weekdayFri': { bn: 'শুক্র', en: 'Fri' },
+  'attendance.weekdaySat': { bn: 'শনি', en: 'Sat' },
   'attendance.rollCol': { bn: 'রোল', en: 'Roll' },
 
   // Attendance II (issue #30, PRD §5.3 automated half + §6.9): employee
