@@ -16,9 +16,13 @@ const STUDENT_TABS = [
   { href: '/school/attendance/leave', key: 'attendance.tabLeave' as const },
 ]
 
+// Leave Management is still one unified page/route (split lands in #664), so
+// its Employees-group entry carries a `group` query param purely to
+// disambiguate which parent row highlights as active — it is never read for
+// filtering, only threaded through to the `active` prop below.
 const EMPLOYEE_TABS = [
   { href: '/school/attendance/employee', key: 'attendance.tabEmployee' as const },
-  { href: '/school/attendance/leave', key: 'attendance.tabLeave' as const },
+  { href: '/school/attendance/leave?group=employees', key: 'attendance.tabLeave' as const },
 ]
 
 const GROUPS = [

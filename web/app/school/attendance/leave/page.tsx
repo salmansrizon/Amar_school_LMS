@@ -25,9 +25,9 @@ const statusRail: Record<string, Tone> = {
 export default async function LeaveManagementPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; type?: string }>
+  searchParams: Promise<{ q?: string; type?: string; group?: string }>
 }) {
-  const { q = '', type = '' } = await searchParams
+  const { q = '', type = '', group = '' } = await searchParams
   const lang: Lang = await currentLang()
   const { supabase } = await getSchoolContext()
 
@@ -59,7 +59,10 @@ export default async function LeaveManagementPage({
         <Link href="/school" aria-label={t('common.back', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
       </div>
 
-      <AttendanceTabs active="/school/attendance/leave" lang={lang} />
+      <AttendanceTabs
+        active={group === 'employees' ? '/school/attendance/leave?group=employees' : '/school/attendance/leave'}
+        lang={lang}
+      />
 
       <section className="mb-6 rounded-lg border border-line bg-paper p-5">
         <h3 className="mb-3 font-bold">{t('attendance.leaveRequestTitle', lang)}</h3>
