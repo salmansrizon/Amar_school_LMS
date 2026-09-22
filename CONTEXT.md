@@ -156,6 +156,18 @@ _Avoid_: Punch, tap (fine informally, but the record type is "Attendance Event")
 A School-configured trigger ("exactly N working-days absent" or "absent within an X–Y working-day range") that automatically sends an SMS about a Student. Uses the same "working days" definition as the absent-fine formula (§5.6: total days minus off-days, approved leave, and present days) — one definition, not redefined per feature. Evaluated by a once-daily scheduled job after that day's attendance is finalized, not triggered instantly on each attendance mark.
 _Avoid_: Alert (implies real-time urgency this rule doesn't have)
 
+**Off-Day**:
+A calendar date on which no Student or Employee is expected to attend, School-wide. Two kinds shade identically on the Off-Days Calendar and both count as non-working days in the Absence SMS Rule's working-days formula (§5.6): a dated Off-Day (a School-added entry for one specific date, e.g. a public holiday, optionally labeled and marked significant) and a **Weekly Off-Day** (a standing weekday rule, carrying no label since it isn't a single record). Applies to the whole School regardless of who was expected to attend — contrast **Leave**, which exempts one person.
+_Avoid_: Holiday (only the dated kind), non-working day (vaguer synonym this term already covers)
+
+**Weekly Off-Day**:
+One or more weekdays a School designates as off in every week — e.g. Friday and Saturday — replacing the old assumption that Saturday alone is always off. Configured per School and wholesale-replaced on save: choosing Friday+Saturday clears out whatever weekday(s) were selected before, it never adds to them. A kind of **Off-Day**, distinguished from the dated kind by having no specific date and no label.
+_Avoid_: Weekend (implies a fixed Sat/Sun default that doesn't hold here — it's school-configurable), regular off-day (says the same thing less precisely)
+
+**Leave**:
+An individual Student's or Employee's approved (or pending/rejected) exemption from attendance over a date range, requested for that one person. Distinct from an **Off-Day**, which exempts the whole School regardless of individual request; a Leave is the only one of the two with a requester and an approval status. Both count as non-working days in the Absence SMS Rule's working-days formula (§5.6).
+_Avoid_: Absence (the fact of not attending; a Leave is the sanctioned reason for it), holiday (that's an Off-Day)
+
 **Screen**:
 A named area of the School product that an Owner or Staff User opens — শিক্ষার্থী, উপস্থিতি, পরীক্ষা ও ফলাফল. Three kinds, and the difference is what a School Owner is deciding when they set someone up. A **grantable** Screen can be handed to a Staff User (see Permission Grant). An **owner-only** Screen never can, because it is where reach itself is handed out — granting it would let a Staff User widen their own. The third kind is open to every member of the School, and what a person finds inside it depends entirely on their own reach rather than on any Grant: a Staff User with no Class Attachment opens one and finds it empty, which is the answer, not a failure. A name the product does not use is not a Screen and cannot be opened at all.
 _Avoid_: Page, tab (layout, not access), route (a Screen spans several), module (that is what a School is billed for)
