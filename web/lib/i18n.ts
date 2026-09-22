@@ -2238,6 +2238,9 @@ const dict = {
   'attendance.tabLeave': { bn: 'ছুটি ব্যবস্থাপনা', en: 'Leave Management' },
   'attendance.tabOffDays': { bn: 'ছুটির দিন ক্যালেন্ডার', en: 'Off-Day Calendar' },
   'attendance.tabCards': { bn: 'RFID কার্ড', en: 'RFID Card' },
+  // Two-level nav grouping (map #663): Students / Employees / Off-Days Calendar.
+  'attendance.groupStudents': { bn: 'শিক্ষার্থী', en: 'Students' },
+  'attendance.groupEmployees': { bn: 'কর্মচারী', en: 'Employees' },
 
   'attendance.markTitle': { bn: 'শিক্ষার্থী উপস্থিতি — হাজিরা নিন', en: 'Student Attendance — Mark' },
   'attendance.class': { bn: 'শ্রেণি', en: 'Class' },
