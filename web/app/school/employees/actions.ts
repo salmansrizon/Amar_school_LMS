@@ -2,7 +2,13 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
-import { friendlyEmployeeError, validateOptionalLogin, validateEmployeeCategory } from '@/lib/employees'
+import {
+  friendlyEmployeeError,
+  validateOptionalLogin,
+  validateEmployeeCategory,
+  isKnownEmployeeCategory,
+  EMPLOYEE_CATEGORIES,
+} from '@/lib/employees'
 import { isKnownAcademicShift } from '@/lib/institute'
 
 // RLS scopes all writes to the caller's School.
@@ -250,6 +256,13 @@ export async function setShiftAssignment(
 export async function setCategoryGrace(formData: FormData): Promise<{ error?: string }> {
   const category = String(formData.get('category') ?? '').trim()
   if (!category) return { error: 'Category is required' }
+  // The UI is a `<select>` restricted to the fixed list (issue #666), same as
+  // Office Hour's own category picker — this rejects a raw POST that tries to
+  // smuggle a value past it, the same role isKnownEmployeeCategory already
+  // plays for Office Hour and the Employee form.
+  if (!isKnownEmployeeCategory(category)) {
+    return { error: `Category must be one of: ${EMPLOYEE_CATEGORIES.join(', ')}` }
+  }
   const grace = Number(formData.get('grace_minutes'))
   if (!Number.isInteger(grace) || grace < 0) return { error: 'Grace must be a non-negative integer' }
   const supabase = await createClient()

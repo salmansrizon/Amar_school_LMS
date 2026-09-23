@@ -1,6 +1,7 @@
 // Employees I helpers (issue #28): list filtering, kept pure for unit testing.
 
 import { pgConstraintMessage } from '@/lib/crud/pg-error'
+import type { MessageKey } from '@/lib/i18n'
 
 export interface EmployeeListRow {
   id: string
@@ -103,6 +104,34 @@ export const EMPLOYEE_CATEGORIES = [
   'Security Guard',
   'Transport Staff',
 ] as const
+
+/** The translated label for each fixed category (issue #666) — moved here
+ *  from the Add Employee form so Category Grace's own dropdown (which needs
+ *  the identical fixed list, issue #666's validation fix) renders the same
+ *  labels instead of re-declaring them, the same "one map, several
+ *  consumers" pattern as ACADEMIC_SHIFT_LABEL_KEY (lib/institute.ts). */
+export const EMPLOYEE_CATEGORY_LABEL_KEY: Record<(typeof EMPLOYEE_CATEGORIES)[number], MessageKey> = {
+  Teacher: 'employees.categoryTeacher',
+  'Office Staff': 'employees.categoryOfficeStaff',
+  Management: 'employees.categoryManagement',
+  Security: 'employees.categorySecurity',
+  'Head Teacher': 'employees.categoryHeadTeacher',
+  Principal: 'employees.categoryPrincipal',
+  'Vice Principal': 'employees.categoryVicePrincipal',
+  Registrar: 'employees.categoryRegistrar',
+  'Office Clerk': 'employees.categoryOfficeClerk',
+  Accountant: 'employees.categoryAccountant',
+  Professor: 'employees.categoryProfessor',
+  Lecturer: 'employees.categoryLecturer',
+  Librarian: 'employees.categoryLibrarian',
+  Nurse: 'employees.categoryNurse',
+  'Medical Staff': 'employees.categoryMedicalStaff',
+  'IT Technician': 'employees.categoryItTechnician',
+  Janitor: 'employees.categoryJanitor',
+  Cleaner: 'employees.categoryCleaner',
+  'Security Guard': 'employees.categorySecurityGuard',
+  'Transport Staff': 'employees.categoryTransportStaff',
+}
 
 /** Whether `category` is one of the fixed list — shared by the validator
  *  below and the edit form's "is this a legacy value?" check, so the

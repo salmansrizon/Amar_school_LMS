@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { t, type Lang } from '@/lib/i18n'
+import { EMPLOYEE_CATEGORIES, EMPLOYEE_CATEGORY_LABEL_KEY } from '@/lib/employees'
 import {
   addOfficeTime,
   setCategoryGrace,
@@ -63,13 +64,21 @@ export function AddOfficeTimeForm({ lang }: { lang: Lang }) {
   )
 }
 
+// Category is a `<select>` over the fixed EMPLOYEE_CATEGORIES list (issue
+// #666), not free text: a typo here used to silently create a grace row that
+// matched no Employee, since setCategoryGrace didn't validate it either.
 export function CategoryGraceForm({ lang }: { lang: Lang }) {
   const { error, pending, submit } = useAction(setCategoryGrace)
   return (
     <form onSubmit={submit}>
       <label className={label}>{t('categoryGrace.add', lang)}</label>
       <div className="flex gap-2">
-        <input name="category" required placeholder={t('employees.category', lang)} className={input} />
+        <select name="category" required defaultValue="" className={input} aria-label={t('employees.category', lang)}>
+          <option value="" disabled>{t('employees.category', lang)}</option>
+          {EMPLOYEE_CATEGORIES.map((c) => (
+            <option key={c} value={c}>{t(EMPLOYEE_CATEGORY_LABEL_KEY[c], lang)}</option>
+          ))}
+        </select>
         <input name="grace_minutes" type="number" min={0} required placeholder={t('officeTimes.grace', lang)} className={`${input} w-24`} />
         <button type="submit" disabled={pending} className={btn}>{t('common.add', lang)}</button>
       </div>

@@ -3,35 +3,12 @@
 import { useRef, useState, useTransition } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { t, type Lang, type MessageKey } from '@/lib/i18n'
+import { t, type Lang } from '@/lib/i18n'
 import { createEmployee } from '../actions'
 import { dateInputClass } from '@/components/ui/field'
 import { reachSentences } from '@/lib/school/teacher-reach'
-import { EMPLOYEE_CATEGORIES, isKnownEmployeeCategory } from '@/lib/employees'
+import { EMPLOYEE_CATEGORIES, EMPLOYEE_CATEGORY_LABEL_KEY, isKnownEmployeeCategory } from '@/lib/employees'
 import { ACADEMIC_SHIFT_LABEL_KEY, type AcademicShift } from '@/lib/institute'
-
-const categoryLabelKey: Record<(typeof EMPLOYEE_CATEGORIES)[number], MessageKey> = {
-  Teacher: 'employees.categoryTeacher',
-  'Office Staff': 'employees.categoryOfficeStaff',
-  Management: 'employees.categoryManagement',
-  Security: 'employees.categorySecurity',
-  'Head Teacher': 'employees.categoryHeadTeacher',
-  Principal: 'employees.categoryPrincipal',
-  'Vice Principal': 'employees.categoryVicePrincipal',
-  Registrar: 'employees.categoryRegistrar',
-  'Office Clerk': 'employees.categoryOfficeClerk',
-  Accountant: 'employees.categoryAccountant',
-  Professor: 'employees.categoryProfessor',
-  Lecturer: 'employees.categoryLecturer',
-  Librarian: 'employees.categoryLibrarian',
-  Nurse: 'employees.categoryNurse',
-  'Medical Staff': 'employees.categoryMedicalStaff',
-  'IT Technician': 'employees.categoryItTechnician',
-  Janitor: 'employees.categoryJanitor',
-  Cleaner: 'employees.categoryCleaner',
-  'Security Guard': 'employees.categorySecurityGuard',
-  'Transport Staff': 'employees.categoryTransportStaff',
-}
 
 export const fieldClass =
   'w-full rounded-md border border-line bg-paper px-3 py-2 text-sm focus:border-brand-500 focus:outline-none'
@@ -148,7 +125,7 @@ export function ProfileFields({
               <option value="">{t('employees.categoryUnset', lang)}</option>
               {EMPLOYEE_CATEGORIES.map((c) => (
                 <option key={c} value={c}>
-                  {t(categoryLabelKey[c], lang)}
+                  {t(EMPLOYEE_CATEGORY_LABEL_KEY[c], lang)}
                 </option>
               ))}
               {/* A category that predates the fixed list (issue #567) — the
