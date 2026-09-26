@@ -100,7 +100,7 @@ export interface RosterView {
   /** Filtered and ordered — what the screen renders. */
   students: RosterStudent[]
   /** Every Student the caller may read, before the class filter and search. */
-  readableCount: number
+  readable: RosterStudent[]
   /** Null when `students` is non-empty; otherwise WHY it is empty. */
   empty: RosterEmptyReason | null
   classes: ClassCatalogueRow[]
@@ -200,7 +200,7 @@ export async function schoolRoster(
     className,
     section,
     students: matched,
-    readableCount: readable.length,
+    readable,
     empty: rosterEmptyReason({ readable: readable.length, matched: matched.length, scope }),
     classes: (classes ?? []) as ClassCatalogueRow[],
   }
