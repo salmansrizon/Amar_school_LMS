@@ -38,5 +38,6 @@ export async function setScreenGrant(
         .eq('screen_key', screenKey)
   if (error) return { error: error.message }
   revalidatePath(`/school/staff/${staffUserId}`)
+  revalidatePath('/school/staff') // the list's per-row grant summary
   return {}
 }

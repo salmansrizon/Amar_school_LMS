@@ -1,34 +1,17 @@
-import Link from 'next/link'
-import { t, type Lang, type MessageKey } from '@/lib/i18n'
+import { t, type Lang } from '@/lib/i18n'
+import { SectionTabs, type SectionTab } from '@/components/ui/section-tabs'
 
-// Shared tab bar per the mockups (institute-profile.html, activity-checklist.html,
-// logistics-index.html, blank-templates.html) — real routes, not anchors, since
-// each tab has its own data/forms (unlike the single-page classes anchors).
-const TABS: { href: string; key: MessageKey }[] = [
-  { href: '/school/institute', key: 'institute.tabProfile' },
-  { href: '/school/institute/office-hour', key: 'institute.tabOfficeHour' },
-  { href: '/school/institute/venues', key: 'institute.tabVenues' },
-  { href: '/school/institute/checklist', key: 'institute.tabChecklist' },
-  { href: '/school/institute/logistics', key: 'institute.tabLogistics' },
-  { href: '/school/institute/templates', key: 'institute.tabTemplates' },
+// Institute section tabs — real routes, each with its own data/forms. Now the
+// shared SectionTabs (the migration #509 left as a follow-up).
+const TABS: readonly SectionTab[] = [
+  { href: '/school/institute', labelKey: 'institute.tabProfile' },
+  { href: '/school/institute/office-hour', labelKey: 'institute.tabOfficeHour' },
+  { href: '/school/institute/venues', labelKey: 'institute.tabVenues' },
+  { href: '/school/institute/checklist', labelKey: 'institute.tabChecklist' },
+  { href: '/school/institute/logistics', labelKey: 'institute.tabLogistics' },
+  { href: '/school/institute/templates', labelKey: 'institute.tabTemplates' },
 ]
 
 export function InstituteTabs({ active, lang }: { active: string; lang: Lang }) {
-  return (
-    <nav className="mb-5 flex flex-nowrap gap-1 overflow-x-auto border-b border-line text-sm font-semibold">
-      {TABS.map((tab) => (
-        <Link
-          key={tab.href}
-          href={tab.href}
-          className={`shrink-0 whitespace-nowrap rounded-t-md px-4 py-2 ${
-            tab.href === active
-              ? 'border-b-2 border-brand-500 text-brand-600'
-              : 'text-muted hover:bg-paper hover:text-ink'
-          }`}
-        >
-          {t(tab.key, lang)}
-        </Link>
-      ))}
-    </nav>
-  )
+  return <SectionTabs tabs={TABS} active={active} lang={lang} label={t('institute.title', lang)} />
 }
