@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { attendanceRate, mergeActivity, isSubscriptionActive, unmarkedOfferings, buildDashAlerts } from '@/lib/dashboard'
+import { attendanceBand, attendanceRate, mergeActivity, isSubscriptionActive, unmarkedOfferings, buildDashAlerts } from '@/lib/dashboard'
 
 describe('attendanceRate', () => {
   it('returns a 1-dp percentage', () => {
@@ -100,5 +100,16 @@ describe('buildDashAlerts', () => {
         canSms: false,
       }),
     ).toEqual([])
+  })
+})
+
+describe('attendanceBand', () => {
+  it('bands at 90 and 75, inclusive on the upper band', () => {
+    expect(attendanceBand(100)).toBe('regular')
+    expect(attendanceBand(90)).toBe('regular')
+    expect(attendanceBand(89.9)).toBe('irregular')
+    expect(attendanceBand(75)).toBe('irregular')
+    expect(attendanceBand(74.9)).toBe('atRisk')
+    expect(attendanceBand(0)).toBe('atRisk')
   })
 })
