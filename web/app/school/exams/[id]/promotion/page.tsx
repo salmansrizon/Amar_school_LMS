@@ -1,4 +1,6 @@
 import { notFound } from 'next/navigation'
+import { schoolCrumbs } from '@/lib/school-crumbs'
+import { PageHeader } from '@/components/ui/page'
 import type { ReactNode } from 'react'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
@@ -29,7 +31,6 @@ import {
   type CombinationOption,
   type PromotionStudentRow,
 } from './promotion-controls'
-import { BackLink } from '@/components/back-link'
 import { resolveBackHref } from '@/lib/back-nav'
 import type { ClassCatalogueRow } from '@/lib/class-catalogue'
 import { selectAllRows } from '@/lib/supabase/select-all'
@@ -73,19 +74,19 @@ export default async function PromotionPage({
   const examLabel = `${exam.name} (${exam.exam_year})`
 
   const header = (
-    <div className="mb-4 flex items-center justify-between">
-      <h1 className="text-2xl font-extrabold">
-        {t('promotion.title', lang)} — {examLabel}
-      </h1>
-      <BackLink href={backHref} label={t('common.back', lang)} />
-    </div>
+    <PageHeader
+      title={`${t('promotion.title', lang)} — ${examLabel}`}
+      crumbs={schoolCrumbs('/school/exams', lang, { label: t('exams.title', lang), href: '/school/exams' }, { label: `${t('promotion.title', lang)} — ${examLabel}` })}
+      backHref={backHref}
+      backLabel={t('common.back', lang)}
+    />
   )
 
   if (!exam.class_id) {
     return (
       <div>
         {header}
-        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted">
+        <p className="rounded-2xl border border-line bg-paper p-card text-sm text-muted">
           {t('promotion.noClassSet', lang)}
         </p>
       </div>
@@ -316,7 +317,7 @@ export default async function PromotionPage({
         isFinalClass={cls?.is_final_class ?? false}
         lang={lang}
       />
-      <section className="mb-4 rounded-lg border border-line bg-paper p-5">
+      <section className="mb-4 rounded-2xl border border-line bg-paper p-card">
         <PromotionTable
           examId={exam.id}
           rows={rows}

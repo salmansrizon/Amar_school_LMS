@@ -1,4 +1,6 @@
 import { currentLang } from '@/lib/i18n-server'
+import { schoolCrumbs } from '@/lib/school-crumbs'
+import { PageHeader } from '@/components/ui/page'
 import { t } from '@/lib/i18n'
 import { ExamsTabs } from '../exams-tabs'
 import { getSchoolContext } from '@/lib/school/context'
@@ -10,7 +12,6 @@ import {
   type MemberRow,
   type SchemeOption,
 } from './combination-controls'
-import { BackLink } from '@/components/back-link'
 import { classCatalogueLabel, type ClassCatalogueRow } from '@/lib/class-catalogue'
 import { filterOfferingsByYearSelection } from '@/lib/school/year-filter'
 
@@ -79,14 +80,14 @@ export default async function ExamCombinationsPage() {
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-extrabold">{t('combinations.title', lang)}</h1>
-        <BackLink href="/school/exams" label={t('exams.title', lang)} />
-      </div>
+      <PageHeader
+        title={`${t('combinations.title', lang)}`}
+        crumbs={schoolCrumbs('/school/exams', lang, { label: t('exams.title', lang), href: '/school/exams' }, { label: `${t('combinations.title', lang)}` })}
+      />
 
       <ExamsTabs active="/school/exams/combinations" lang={lang} />
 
-      <section className="mb-6 rounded-lg border border-line bg-paper p-5">
+      <section className="mb-6 rounded-2xl border border-line bg-paper p-card">
         <h2 className="mb-3 font-bold">{t('combinations.add', lang)}</h2>
         <AddCombinationForm
           classes={pickerClasses}

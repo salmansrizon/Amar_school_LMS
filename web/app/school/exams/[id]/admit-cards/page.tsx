@@ -4,7 +4,8 @@ import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { enrolledStudentIds, enrolledIdFilter } from '@/lib/school/offering-roster'
-import { BackLink } from '@/components/back-link'
+import { PageHeader } from '@/components/ui/page'
+import { schoolCrumbs } from '@/lib/school-crumbs'
 import { resolveBackHref, selfOrigin, withOrigin } from '@/lib/back-nav'
 
 // Admit card roster picker (issue #48, PRD §5.5) — same shape as printables/
@@ -38,27 +39,27 @@ export default async function AdmitCardsPage({
   const examLabel = `${exam.name} (${exam.exam_year})`
 
   const header = (
-    <div className="mb-4 flex items-center justify-between">
-      <h1 className="text-2xl font-extrabold">
-        {t('admitCard.title', lang)} — {examLabel}
-      </h1>
-      <div className="flex items-center gap-4">
+    <PageHeader
+      title={`${t('admitCard.title', lang)} — ${examLabel}`}
+      crumbs={schoolCrumbs('/school/exams', lang, { label: t('exams.title', lang), href: '/school/exams' }, { label: `${t('admitCard.title', lang)} — ${examLabel}` })}
+      backHref={backHref}
+      backLabel={t('common.back', lang)}
+      actions={
         <Link
           href={withOrigin(`/school/exams/${exam.id}/print-all?doc=admit-card`, deeper)}
-          className="text-sm text-brand-600 hover:underline"
+          className="inline-flex h-11 items-center rounded-full border border-line-strong px-4 text-xs font-semibold hover:bg-paper-muted"
         >
           {t('printAll.title', lang)}
         </Link>
-        <BackLink href={backHref} label={t('common.back', lang)} />
-      </div>
-    </div>
+      }
+    />
   )
 
   if (!exam.class_id) {
     return (
       <div>
         {header}
-        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted">
+        <p className="rounded-2xl border border-line bg-paper p-card text-sm text-muted">
           {t('markEntry.noClassSet', lang)}
         </p>
       </div>
@@ -80,7 +81,7 @@ export default async function AdmitCardsPage({
     return (
       <div>
         {header}
-        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted">
+        <p className="rounded-2xl border border-line bg-paper p-card text-sm text-muted">
           {t('markEntry.noStudents', lang)}
         </p>
       </div>
@@ -90,21 +91,21 @@ export default async function AdmitCardsPage({
   return (
     <div>
       {header}
-      <section className="rounded-lg border border-line bg-paper p-4">
+      <section className="overflow-x-auto rounded-2xl border border-line bg-paper">
         <table className="w-full border-collapse text-sm">
-          <thead>
-            <tr className="border-b border-line-strong text-left text-xs uppercase tracking-wide text-muted">
-              <th className="py-2 pr-2 font-semibold">{t('students.roll', lang)}</th>
-              <th className="py-2 pr-2 font-semibold">{t('students.name', lang)}</th>
-              <th className="py-2 font-semibold">{t('admitCard.docWord', lang)}</th>
+          <thead className="bg-paper-muted">
+            <tr className="text-left text-sm text-muted">
+              <th className="px-4 py-3 font-semibold">{t('students.roll', lang)}</th>
+              <th className="px-4 py-3 font-semibold">{t('students.name', lang)}</th>
+              <th className="px-4 py-3 font-semibold">{t('admitCard.docWord', lang)}</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-line">
             {students.map((s) => (
-              <tr key={s.id} className="border-b border-line">
-                <td className="py-2 pr-2">{s.roll_number ?? '—'}</td>
-                <td className="py-2 pr-2">{s.full_name}</td>
-                <td className="py-2">
+              <tr key={s.id}>
+                <td className="px-4 py-3">{s.roll_number ?? '—'}</td>
+                <td className="px-4 py-3">{s.full_name}</td>
+                <td className="px-4 py-3">
                   <Link href={withOrigin(`/school/exams/${exam.id}/admit-cards/${s.id}`, deeper)} className="text-brand-600 hover:underline">
                     {t('admitCard.docWord', lang)}
                   </Link>

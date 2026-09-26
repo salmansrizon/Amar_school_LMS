@@ -1016,6 +1016,13 @@ const dict = {
   'exams.none': { bn: 'এখনো কোনো পরীক্ষা নেই', en: 'No exams yet' },
   'exams.open': { bn: 'চলমান', en: 'Open' },
   'exams.closed': { bn: 'বন্ধ', en: 'Closed' },
+  'exams.examsWord': { bn: 'টি পরীক্ষা', en: 'exams' },
+  'exams.alertTitle': { bn: 'পরীক্ষা সতর্কতা', en: 'Exam alerts' },
+  'exams.setupIncomplete': { bn: 'মূল তথ্য অসম্পূর্ণ', en: 'Basic Info incomplete' },
+  'exams.statTotal': { bn: 'মোট পরীক্ষা', en: 'Total exams' },
+  'exams.statOpen': { bn: 'চলমান পরীক্ষা', en: 'Open exams' },
+  'exams.statClosed': { bn: 'বন্ধ পরীক্ষা', en: 'Closed exams' },
+  'exams.schemeSet': { bn: 'নির্ধারিত', en: 'Set' },
   // #551: an exam created by mistake used to be permanent for every school
   // role — there was no delete anywhere in the product.
   'exams.delete': { bn: 'মুছে ফেলুন', en: 'Delete' },

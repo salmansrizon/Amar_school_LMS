@@ -1,14 +1,14 @@
 import Link from 'next/link'
+import { schoolCrumbs } from '@/lib/school-crumbs'
 import { notFound } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { classSectionLabel } from '@/lib/students'
 import { loadExamRosterResults } from '@/lib/exam-print-data'
-import { Badge } from '@/components/print/pieces'
+import { Pill } from '@/components/data-table/data-table'
 import { ExamPicker, type ExamOption } from './result-book-controls'
-import { railClass } from '@/components/ui/page'
-import { BackLink } from '@/components/back-link'
+import { railClass, PageHeader } from '@/components/ui/page'
 import { resolveBackHref, selfOrigin, withOrigin } from '@/lib/back-nav'
 
 // Result Book (issue #48, PRD §5.5), per ui/school-owner/result-book.html —
@@ -20,10 +20,10 @@ import { resolveBackHref, selfOrigin, withOrigin } from '@/lib/back-nav'
 /** Mirrors the mockup's low-but-passing grade getting a distinct "warning"
  * badge (its sample C-grade/GPA-2.00 row) instead of the plain pass/fail
  * success/alert split every other printable uses. */
-function gradeTone(passed: boolean, gpa: number | null): 'success' | 'warning' | 'alert' {
+function gradeTone(passed: boolean, gpa: number | null): 'mint' | 'sun' | 'alert' {
   if (!passed) return 'alert'
-  if (gpa !== null && gpa < 3) return 'warning'
-  return 'success'
+  if (gpa !== null && gpa < 3) return 'sun'
+  return 'mint'
 }
 
 export default async function ResultBookPage({
@@ -68,12 +68,12 @@ export default async function ResultBookPage({
   const examLabel = `${roster.exam.name} ${roster.exam.exam_year}`
 
   const header = (
-    <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-      <h1 className="text-2xl font-extrabold">
-        {t('resultBook.title', lang)} — {examLabel}
-      </h1>
-      <BackLink href={backHref} label={t('common.back', lang)} />
-    </div>
+    <PageHeader
+      title={`${t('resultBook.title', lang)} — ${examLabel}`}
+      crumbs={schoolCrumbs('/school/exams', lang, { label: t('exams.title', lang), href: '/school/exams' }, { label: `${t('resultBook.title', lang)} — ${examLabel}` })}
+      backHref={backHref}
+      backLabel={t('common.back', lang)}
+    />
   )
 
   const toolbar = (
@@ -101,7 +101,7 @@ export default async function ResultBookPage({
       <div>
         {header}
         {toolbar}
-        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted">
+        <p className="rounded-2xl border border-line bg-paper p-card text-sm text-muted">
           {t('markEntry.noClassSet', lang)}
         </p>
       </div>
@@ -112,7 +112,7 @@ export default async function ResultBookPage({
       <div>
         {header}
         {toolbar}
-        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted">{t('promotion.noScheme', lang)}</p>
+        <p className="rounded-2xl border border-line bg-paper p-card text-sm text-muted">{t('promotion.noScheme', lang)}</p>
       </div>
     )
   }
@@ -121,7 +121,7 @@ export default async function ResultBookPage({
       <div>
         {header}
         {toolbar}
-        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted">{t('markEntry.noStudents', lang)}</p>
+        <p className="rounded-2xl border border-line bg-paper p-card text-sm text-muted">{t('markEntry.noStudents', lang)}</p>
       </div>
     )
   }
@@ -130,40 +130,40 @@ export default async function ResultBookPage({
     <div>
       {header}
       {toolbar}
-      <section className="rounded-lg border border-line bg-paper p-4">
+      <section className="overflow-hidden rounded-2xl border border-line bg-paper">
         <div className="overflow-x-auto">
           <table className="w-full min-w-180 text-sm">
-            <thead>
-              <tr className="border-b border-line-strong text-left text-xs uppercase tracking-wide text-muted">
-                <th className="py-2 pr-2 font-semibold">{t('promotion.position', lang)}</th>
-                <th className="py-2 pr-2 font-semibold">{t('students.roll', lang)}</th>
-                <th className="py-2 pr-2 font-semibold">{t('students.name', lang)}</th>
-                <th className="py-2 pr-2 font-semibold">{t('resultBook.totalMarks', lang)}</th>
-                <th className="py-2 pr-2 font-semibold">{t('markSheet.gpa', lang)}</th>
-                <th className="py-2 pr-2 font-semibold">{t('markSheet.grade', lang)}</th>
-                <th className="py-2 pr-2 font-semibold">{t('promotion.result', lang)}</th>
-                <th className="py-2 font-semibold">{t('resultBook.actions', lang)}</th>
+            <thead className="bg-paper-muted">
+              <tr className="text-left text-sm text-muted">
+                <th className="px-4 py-3 font-semibold">{t('promotion.position', lang)}</th>
+                <th className="px-4 py-3 font-semibold">{t('students.roll', lang)}</th>
+                <th className="px-4 py-3 font-semibold">{t('students.name', lang)}</th>
+                <th className="px-4 py-3 font-semibold">{t('resultBook.totalMarks', lang)}</th>
+                <th className="px-4 py-3 font-semibold">{t('markSheet.gpa', lang)}</th>
+                <th className="px-4 py-3 font-semibold">{t('markSheet.grade', lang)}</th>
+                <th className="px-4 py-3 font-semibold">{t('promotion.result', lang)}</th>
+                <th className="px-4 py-3 font-semibold">{t('resultBook.actions', lang)}</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-line">
               {roster.rows.map((row) => {
                 const passed = row.overall?.passed ?? false
                 return (
-                  <tr key={row.studentId} className="border-b border-line">
-                    <td className={`py-2 pr-2 ${railClass(passed ? 'mint' : 'alert')}`}>{row.rankPosition ?? '—'}</td>
-                    <td className="py-2 pr-2">{row.rollNumber ?? '—'}</td>
-                    <td className="py-2 pr-2 font-medium">{row.fullName}</td>
-                    <td className="py-2 pr-2">
+                  <tr key={row.studentId}>
+                    <td className={`px-4 py-3 ${railClass(passed ? 'mint' : 'alert')}`}>{row.rankPosition ?? '—'}</td>
+                    <td className="px-4 py-3">{row.rollNumber ?? '—'}</td>
+                    <td className="px-4 py-3 font-medium">{row.fullName}</td>
+                    <td className="px-4 py-3">
                       {row.totalObtained} / {row.totalFull}
                     </td>
-                    <td className="py-2 pr-2">{row.overall?.gpa !== null && row.overall?.gpa !== undefined ? row.overall.gpa.toFixed(2) : '—'}</td>
-                    <td className="py-2 pr-2">
-                      {row.overall?.label ? <Badge tone={gradeTone(passed, row.overall.gpa)}>{row.overall.label}</Badge> : '—'}
+                    <td className="px-4 py-3">{row.overall?.gpa !== null && row.overall?.gpa !== undefined ? row.overall.gpa.toFixed(2) : '—'}</td>
+                    <td className="px-4 py-3">
+                      {row.overall?.label ? <Pill tone={gradeTone(passed, row.overall.gpa)}>{row.overall.label}</Pill> : '—'}
                     </td>
-                    <td className="py-2 pr-2">
-                      <Badge tone={passed ? 'success' : 'alert'}>{passed ? t('promotion.pass', lang) : t('promotion.fail', lang)}</Badge>
+                    <td className="px-4 py-3">
+                      <Pill tone={passed ? 'mint' : 'alert'}>{passed ? t('promotion.pass', lang) : t('promotion.fail', lang)}</Pill>
                     </td>
-                    <td className="py-2">
+                    <td className="px-4 py-3">
                       <div className="flex gap-2">
                         <Link href={withOrigin(`/school/exams/${id}/mark-sheet/${row.studentId}`, deeper)} className="text-brand-600 hover:underline">
                           {t('markSheet.docWord', lang)}

@@ -111,15 +111,15 @@ export function PromotionTable({
 
       <div className="overflow-x-auto">
         <table className="w-full min-w-160 text-sm">
-          <thead>
-            <tr className="border-b border-line text-left text-xs font-semibold text-muted">
-              <th className="py-2 pr-2" />
-              <th className="py-2 pr-2">{t('promotion.currentRoll', lang)}</th>
-              <th className="py-2 pr-2">{t('students.name', lang)}</th>
-              <th className="py-2 pr-2">{t('promotion.result', lang)}</th>
-              <th className="py-2 pr-2 text-right">{t('promotion.position', lang)}</th>
-              <th className="py-2 pr-2">{t('promotion.newClass', lang)}</th>
-              <th className="py-2">{t('promotion.newRoll', lang)}</th>
+          <thead className="bg-paper-muted">
+            <tr className="text-left text-sm text-muted">
+              <th className="px-4 py-3" />
+              <th className="px-4 py-3">{t('promotion.currentRoll', lang)}</th>
+              <th className="px-4 py-3">{t('students.name', lang)}</th>
+              <th className="px-4 py-3">{t('promotion.result', lang)}</th>
+              <th className="px-4 py-3 text-right">{t('promotion.position', lang)}</th>
+              <th className="px-4 py-3">{t('promotion.newClass', lang)}</th>
+              <th className="px-4 py-3">{t('promotion.newRoll', lang)}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-line">
@@ -127,7 +127,7 @@ export function PromotionTable({
               const isChecked = checked.has(row.id) && row.passed
               return (
                 <tr key={row.id}>
-                  <td className="py-2 pr-2">
+                  <td className="px-4 py-3">
                     <input
                       type="checkbox"
                       disabled={!row.passed}
@@ -142,9 +142,9 @@ export function PromotionTable({
                       }}
                     />
                   </td>
-                  <td className="py-2 pr-2">{row.roll_number ?? '—'}</td>
-                  <td className="py-2 pr-2 font-medium">{row.full_name}</td>
-                  <td className="py-2 pr-2">
+                  <td className="px-4 py-3">{row.roll_number ?? '—'}</td>
+                  <td className="px-4 py-3 font-medium">{row.full_name}</td>
+                  <td className="px-4 py-3">
                     <span
                       className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
                         row.passed ? 'bg-mint-soft text-mint-deep' : 'bg-alert-soft text-alert-deep'
@@ -153,8 +153,8 @@ export function PromotionTable({
                       {row.passed ? t('promotion.pass', lang) : t('promotion.fail', lang)}
                     </span>
                   </td>
-                  <td className="py-2 pr-2 text-right">{row.position ?? '—'}</td>
-                  <td className="py-2 pr-2">
+                  <td className="px-4 py-3 text-right">{row.position ?? '—'}</td>
+                  <td className="px-4 py-3">
                     {row.passed ? (
                       targetClass ? (
                         classCatalogueLabel(targetClass, showYear)
@@ -165,7 +165,7 @@ export function PromotionTable({
                       `${currentClassName ?? ''} ${t('promotion.repeat', lang)}`
                     )}
                   </td>
-                  <td className="py-2">
+                  <td className="px-4 py-3">
                     {row.passed ? (
                       <input
                         type="text"
@@ -277,23 +277,23 @@ export function GraduatingSection({
   if (!passed.length) return null
 
   return (
-    <section className="mt-6 rounded-lg border border-line bg-paper p-5 shadow-card">
+    <section className="mt-6 rounded-2xl border border-line bg-paper p-card shadow-card">
       <h3 className="mb-1 font-bold">{t('promotion.graduatingTitle', lang)}</h3>
       <p className="mb-3 text-xs text-muted">{t('promotion.graduatingHint', lang)}</p>
       <div className="overflow-x-auto">
         <table className="w-full min-w-120 text-sm">
-          <thead>
-            <tr className="border-b border-line text-left text-xs font-semibold text-muted">
-              <th className="py-2 pr-2" />
-              <th className="py-2 pr-2">{t('students.roll', lang)}</th>
-              <th className="py-2 pr-2">{t('students.name', lang)}</th>
-              <th className="py-2">{t('promotion.result', lang)}</th>
+          <thead className="bg-paper-muted">
+            <tr className="text-left text-sm text-muted">
+              <th className="px-4 py-3" />
+              <th className="px-4 py-3">{t('students.roll', lang)}</th>
+              <th className="px-4 py-3">{t('students.name', lang)}</th>
+              <th className="px-4 py-3">{t('promotion.result', lang)}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-line">
             {passed.map((row) => (
               <tr key={row.id}>
-                <td className="py-2 pr-2">
+                <td className="px-4 py-3">
                   <input
                     type="checkbox"
                     checked={checked.has(row.id)}
@@ -307,9 +307,9 @@ export function GraduatingSection({
                     }}
                   />
                 </td>
-                <td className="py-2 pr-2">{row.roll_number ?? '—'}</td>
-                <td className="py-2 pr-2 font-medium">{row.full_name}</td>
-                <td className="py-2">
+                <td className="px-4 py-3">{row.roll_number ?? '—'}</td>
+                <td className="px-4 py-3 font-medium">{row.full_name}</td>
+                <td className="px-4 py-3">
                   <span className="rounded-full bg-mint-soft px-2 py-0.5 text-xs font-semibold text-mint-deep">
                     {t('promotion.pass', lang)}
                   </span>

@@ -131,21 +131,21 @@ export function MarksEntryTable({
     <>
       <div className="overflow-x-auto">
         <table className="w-full min-w-160 text-sm">
-          <thead>
-            <tr className="border-b border-line text-left text-xs font-semibold text-muted">
-              <th className="py-2 pr-2">{t('students.roll', lang)}</th>
-              <th className="py-2 pr-2">{t('students.name', lang)}</th>
-              <th className="py-2 pr-2 text-right">
+          <thead className="bg-paper-muted">
+            <tr className="text-left text-sm text-muted">
+              <th className="px-4 py-3">{t('students.roll', lang)}</th>
+              <th className="px-4 py-3">{t('students.name', lang)}</th>
+              <th className="px-4 py-3 text-right">
                 {t('examSetup.theory', lang)} ({subject.theory_marks})
               </th>
-              <th className="py-2 pr-2 text-right">
+              <th className="px-4 py-3 text-right">
                 {t('examSetup.mcq', lang)} ({subject.mcq_marks})
               </th>
-              <th className="py-2 pr-2 text-right">
+              <th className="px-4 py-3 text-right">
                 {t('examSetup.practical', lang)} ({subject.practical_marks})
               </th>
-              <th className="py-2 pr-2 text-right">{t('markEntry.total', lang)}</th>
-              <th className="py-2 text-right">{t('markEntry.grade', lang)}</th>
+              <th className="px-4 py-3 text-right">{t('markEntry.total', lang)}</th>
+              <th className="px-4 py-3 text-right">{t('markEntry.grade', lang)}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-line">
@@ -160,13 +160,13 @@ export function MarksEntryTable({
                 : null
               return (
                 <tr key={row.id}>
-                  <td className="py-2 pr-2">{row.roll_number ?? '—'}</td>
-                  <td className="py-2 pr-2 font-medium">{row.full_name}</td>
-                  <td className="py-2 pr-2 text-right">{componentInput(row, 'theory', subject.theory_marks)}</td>
-                  <td className="py-2 pr-2 text-right">{componentInput(row, 'mcq', subject.mcq_marks)}</td>
-                  <td className="py-2 pr-2 text-right">{componentInput(row, 'practical', subject.practical_marks)}</td>
-                  <td className="py-2 pr-2 text-right font-semibold">{total}</td>
-                  <td className="py-2 text-right">
+                  <td className="px-4 py-3">{row.roll_number ?? '—'}</td>
+                  <td className="px-4 py-3 font-medium">{row.full_name}</td>
+                  <td className="px-4 py-3 text-right">{componentInput(row, 'theory', subject.theory_marks)}</td>
+                  <td className="px-4 py-3 text-right">{componentInput(row, 'mcq', subject.mcq_marks)}</td>
+                  <td className="px-4 py-3 text-right">{componentInput(row, 'practical', subject.practical_marks)}</td>
+                  <td className="px-4 py-3 text-right font-semibold">{total}</td>
+                  <td className="px-4 py-3 text-right">
                     <GradeBadge label={evaluated?.label ?? null} passed={evaluated?.passed ?? false} />
                   </td>
                 </tr>

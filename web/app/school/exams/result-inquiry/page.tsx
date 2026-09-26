@@ -1,4 +1,5 @@
 import Form from 'next/form'
+import { schoolCrumbs } from '@/lib/school-crumbs'
 import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
@@ -6,10 +7,9 @@ import { ExamsTabs } from '../exams-tabs'
 import { getSchoolContext } from '@/lib/school/context'
 import { classSectionLabel } from '@/lib/students'
 import { loadExamRosterResults } from '@/lib/exam-print-data'
-import { Badge } from '@/components/print/pieces'
+import { Pill } from '@/components/data-table/data-table'
 import { selectClass } from '@/components/ui/field'
-import { railClass } from '@/components/ui/page'
-import { BackLink } from '@/components/back-link'
+import { railClass, PageHeader } from '@/components/ui/page'
 
 // Result Inquiry (issue #48, PRD §5.5), per ui/school-owner/result-inquiry.html
 // — plain GET-form search (mirrors ledger/page.tsx's date-range filter, no
@@ -42,10 +42,10 @@ export default async function ResultInquiryPage({
 
   const header = (
     <>
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-extrabold">{t('resultInquiry.title', lang)}</h1>
-        <BackLink href="/school/exams" label={t('exams.title', lang)} />
-      </div>
+      <PageHeader
+        title={`${t('resultInquiry.title', lang)}`}
+        crumbs={schoolCrumbs('/school/exams', lang, { label: t('exams.title', lang), href: '/school/exams' }, { label: `${t('resultInquiry.title', lang)}` })}
+      />
       <ExamsTabs active="/school/exams/result-inquiry" lang={lang} />
     </>
   )
@@ -54,7 +54,7 @@ export default async function ResultInquiryPage({
     return (
       <div>
         {header}
-        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted">{t('exams.none', lang)}</p>
+        <p className="rounded-2xl border border-line bg-paper p-card text-sm text-muted">{t('exams.none', lang)}</p>
       </div>
     )
   }
@@ -62,7 +62,7 @@ export default async function ResultInquiryPage({
   const roster = await loadExamRosterResults(supabase, examId)
 
   const form = (
-    <Form className="card mb-4 grid gap-3 rounded-lg border border-line bg-paper p-5 sm:grid-cols-4" action="/school/exams/result-inquiry">
+    <Form className="card mb-4 grid gap-3 rounded-2xl border border-line bg-paper p-card sm:grid-cols-4" action="/school/exams/result-inquiry">
       <div>
         <label className="mb-1 block text-xs font-semibold text-muted">{t('resultInquiry.exam', lang)}</label>
         <select name="exam" defaultValue={examId} className={selectClass({ fullWidth: true })}>
@@ -121,7 +121,7 @@ export default async function ResultInquiryPage({
       <div>
         {header}
         {form}
-        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted">{message}</p>
+        <p className="rounded-2xl border border-line bg-paper p-card text-sm text-muted">{message}</p>
       </div>
     )
   }
@@ -150,37 +150,37 @@ export default async function ResultInquiryPage({
     <div>
       {header}
       {form}
-      <section className="rounded-lg border border-line bg-paper p-4">
+      <section className="overflow-x-auto rounded-2xl border border-line bg-paper">
         {rows.length ? (
           <div className="overflow-x-auto">
             <table className="w-full min-w-160 text-sm">
-              <thead>
-                <tr className="border-b border-line-strong text-left text-xs uppercase tracking-wide text-muted">
-                  <th className="py-2 pr-2 font-semibold">{t('students.roll', lang)}</th>
-                  <th className="py-2 pr-2 font-semibold">{t('students.name', lang)}</th>
-                  <th className="py-2 pr-2 font-semibold">{t('exams.class', lang)}</th>
-                  <th className="py-2 pr-2 font-semibold">{t('resultBook.totalMarks', lang)}</th>
-                  <th className="py-2 pr-2 font-semibold">{t('markSheet.gpa', lang)}</th>
-                  <th className="py-2 pr-2 font-semibold">{t('promotion.result', lang)}</th>
-                  <th className="py-2 font-semibold">{t('resultBook.actions', lang)}</th>
+              <thead className="bg-paper-muted">
+                <tr className="text-left text-sm text-muted">
+                  <th className="px-4 py-3 font-semibold">{t('students.roll', lang)}</th>
+                  <th className="px-4 py-3 font-semibold">{t('students.name', lang)}</th>
+                  <th className="px-4 py-3 font-semibold">{t('exams.class', lang)}</th>
+                  <th className="px-4 py-3 font-semibold">{t('resultBook.totalMarks', lang)}</th>
+                  <th className="px-4 py-3 font-semibold">{t('markSheet.gpa', lang)}</th>
+                  <th className="px-4 py-3 font-semibold">{t('promotion.result', lang)}</th>
+                  <th className="px-4 py-3 font-semibold">{t('resultBook.actions', lang)}</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-line">
                 {rows.map((row) => {
                   const passed = row.overall?.passed ?? false
                   return (
-                    <tr key={row.studentId} className="border-b border-line">
-                      <td className={`py-2 pr-2 ${railClass(passed ? 'mint' : 'alert')}`}>{row.rollNumber ?? '—'}</td>
-                      <td className="py-2 pr-2 font-medium">{row.fullName}</td>
-                      <td className="py-2 pr-2">{clsLabel}</td>
-                      <td className="py-2 pr-2">
+                    <tr key={row.studentId}>
+                      <td className={`px-4 py-3 ${railClass(passed ? 'mint' : 'alert')}`}>{row.rollNumber ?? '—'}</td>
+                      <td className="px-4 py-3 font-medium">{row.fullName}</td>
+                      <td className="px-4 py-3">{clsLabel}</td>
+                      <td className="px-4 py-3">
                         {row.totalObtained} / {row.totalFull}
                       </td>
-                      <td className="py-2 pr-2">{row.overall?.gpa !== null && row.overall?.gpa !== undefined ? row.overall.gpa.toFixed(2) : '—'}</td>
-                      <td className="py-2 pr-2">
-                        <Badge tone={passed ? 'success' : 'alert'}>{passed ? t('promotion.pass', lang) : t('promotion.fail', lang)}</Badge>
+                      <td className="px-4 py-3">{row.overall?.gpa !== null && row.overall?.gpa !== undefined ? row.overall.gpa.toFixed(2) : '—'}</td>
+                      <td className="px-4 py-3">
+                        <Pill tone={passed ? 'mint' : 'alert'}>{passed ? t('promotion.pass', lang) : t('promotion.fail', lang)}</Pill>
                       </td>
-                      <td className="py-2">
+                      <td className="px-4 py-3">
                         <Link href={`/school/exams/${examId}/mark-sheet/${row.studentId}`} className="text-brand-600 hover:underline">
                           {t('markSheet.docWord', lang)}
                         </Link>

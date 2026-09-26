@@ -1,4 +1,6 @@
 import { notFound } from 'next/navigation'
+import { schoolCrumbs } from '@/lib/school-crumbs'
+import { PageHeader } from '@/components/ui/page'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
@@ -15,7 +17,6 @@ import {
   type SubjectRow,
   type TeacherOption,
 } from './setup-controls'
-import { BackLink } from '@/components/back-link'
 import { resolveBackHref, selfOrigin } from '@/lib/back-nav'
 import type { ClassCatalogueRow } from '@/lib/class-catalogue'
 import { PublishResults } from './publish-results'
@@ -104,12 +105,12 @@ export default async function ExamSetupPage({
   return (
     <div>
       <PublishResults lang={lang} examId={exam.id} publishedAt={exam.results_published_at} />
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-extrabold">
-          {t('examSetup.title', lang)} — {examLabel}
-        </h1>
-        <BackLink href={backHref} label={t('common.back', lang)} />
-      </div>
+      <PageHeader
+        title={`${t('examSetup.title', lang)} — ${examLabel}`}
+        crumbs={schoolCrumbs('/school/exams', lang, { label: t('exams.title', lang), href: '/school/exams' }, { label: `${t('examSetup.title', lang)} — ${examLabel}` })}
+        backHref={backHref}
+        backLabel={t('common.back', lang)}
+      />
 
       <ExamHeader
         examId={exam.id}
@@ -120,7 +121,7 @@ export default async function ExamSetupPage({
         lang={lang}
       />
 
-      <section className="mb-4 rounded-lg border border-line bg-paper p-5">
+      <section className="mb-4 rounded-2xl border border-line bg-paper p-card">
         <h3 className="mb-3 font-bold">{t('examSetup.basicInfo', lang)}</h3>
         <BasicInfoForm
           examId={exam.id}
@@ -135,7 +136,7 @@ export default async function ExamSetupPage({
         />
       </section>
 
-      <section className="mb-4 rounded-lg border border-line bg-paper p-5">
+      <section className="mb-4 rounded-2xl border border-line bg-paper p-card">
         <h3 className="mb-3 font-bold">{t('examSetup.gradingScheme', lang)}</h3>
         <GradingSchemeSelect
           examId={exam.id}
@@ -146,7 +147,7 @@ export default async function ExamSetupPage({
         />
       </section>
 
-      <section className="rounded-lg border border-line bg-paper p-5">
+      <section className="rounded-2xl border border-line bg-paper p-card">
         <h3 className="mb-3 font-bold">{t('examSetup.subjectTeacher', lang)}</h3>
         {!exam.class_id ? (
           <p className="text-sm text-muted">{t('examSetup.noClassSet', lang)}</p>

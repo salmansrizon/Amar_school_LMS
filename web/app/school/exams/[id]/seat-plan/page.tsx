@@ -1,4 +1,6 @@
 import Link from 'next/link'
+import { schoolCrumbs } from '@/lib/school-crumbs'
+import { PageHeader } from '@/components/ui/page'
 import { notFound } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
@@ -16,7 +18,6 @@ import {
   type SeatPlanRow,
 } from './seat-plan-controls'
 import { embeddedBuildingName } from '@/lib/venues'
-import { BackLink } from '@/components/back-link'
 import { resolveBackHref, selfOrigin, withOrigin } from '@/lib/back-nav'
 
 // Layout per ui/school-owner/seat-plan.html: toolbar (exam label; Generate +
@@ -107,10 +108,12 @@ export default async function SeatPlanPage({
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-extrabold">{t('seatPlan.title', lang)}</h1>
-        <BackLink href={backHref} label={t('common.back', lang)} />
-      </div>
+      <PageHeader
+        title={`${t('seatPlan.title', lang)}`}
+        crumbs={schoolCrumbs('/school/exams', lang, { label: t('exams.title', lang), href: '/school/exams' }, { label: `${t('seatPlan.title', lang)}` })}
+        backHref={backHref}
+        backLabel={t('common.back', lang)}
+      />
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <span className="text-sm text-muted">{examLabel}</span>
@@ -153,7 +156,7 @@ export default async function SeatPlanPage({
       )}
 
       {!exam.class_id ? (
-        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted">
+        <p className="rounded-2xl border border-line bg-paper p-card text-sm text-muted">
           {t('seatPlan.noClassSet', lang)}
         </p>
       ) : (
@@ -164,7 +167,7 @@ export default async function SeatPlanPage({
             </div>
           )}
 
-          <section className="rounded-lg border border-line bg-paper p-4">
+          <section className="rounded-2xl border border-line bg-paper p-card">
             {!seatRows.length ? (
               <p className="text-sm text-muted">{t('seatPlan.none', lang)}</p>
             ) : (

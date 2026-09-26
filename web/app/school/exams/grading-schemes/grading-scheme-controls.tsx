@@ -133,7 +133,7 @@ export function GradingSchemeCard({
   const showGradePoint = scheme.scheme_type === 'grade_point'
 
   return (
-    <div className="rounded-lg border border-line bg-paper p-4 shadow-card">
+    <div className="rounded-2xl border border-line bg-paper p-card shadow-card">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <span className="font-semibold">{scheme.name}</span>{' '}
@@ -207,23 +207,23 @@ function GradeBandTable({
   return (
     <div className="mb-3 overflow-x-auto">
     <table className="w-full min-w-[36rem] text-left text-sm">
-      <thead>
-        <tr className="border-b border-line-strong text-xs uppercase tracking-wide text-muted">
-          <th className="py-1 pr-2 font-semibold">{t('grading.label', lang)}</th>
-          <th className="py-1 pr-2 font-semibold">{t('grading.minPercent', lang)}</th>
-          <th className="py-1 pr-2 font-semibold">{t('grading.maxPercent', lang)}</th>
-          {showGradePoint && <th className="py-1 pr-2 font-semibold">{t('grading.gradePoint', lang)}</th>}
-          <th className="py-1"></th>
+      <thead className="bg-paper-muted">
+        <tr className="text-sm text-muted">
+          <th className="px-4 py-3 font-semibold">{t('grading.label', lang)}</th>
+          <th className="px-4 py-3 font-semibold">{t('grading.minPercent', lang)}</th>
+          <th className="px-4 py-3 font-semibold">{t('grading.maxPercent', lang)}</th>
+          {showGradePoint && <th className="px-4 py-3 font-semibold">{t('grading.gradePoint', lang)}</th>}
+          <th className="px-4 py-3"></th>
         </tr>
       </thead>
-      <tbody>
+      <tbody className="divide-y divide-line">
         {bands.map((b) => (
-          <tr key={b.id} className="border-b border-line">
-            <td className="py-1 pr-2">{b.label}</td>
-            <td className="py-1 pr-2">{b.min_percent}</td>
-            <td className="py-1 pr-2">{b.max_percent}</td>
-            {showGradePoint && <td className="py-1 pr-2">{b.grade_point ?? '—'}</td>}
-            <td className="py-1">
+          <tr key={b.id}>
+            <td className="px-4 py-3">{b.label}</td>
+            <td className="px-4 py-3">{b.min_percent}</td>
+            <td className="px-4 py-3">{b.max_percent}</td>
+            {showGradePoint && <td className="px-4 py-3">{b.grade_point ?? '—'}</td>}
+            <td className="px-4 py-3">
               <button
                 type="button"
                 disabled={pending}
