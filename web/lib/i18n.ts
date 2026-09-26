@@ -1054,6 +1054,9 @@ const dict = {
   'employees.noRecordYet': { bn: 'আজ কোনো রেকর্ড নেই', en: 'no record today' },
   'employees.viewAttendance': { bn: 'হাজিরা দেখুন', en: 'View attendance' },
   'employees.leaveRequests': { bn: 'ছুটির আবেদন', en: 'Leave requests' },
+  'employees.leaveSectionTitle': { bn: 'সাম্প্রতিক ছুটি', en: 'Recent Leaves' },
+  'employees.noLeaves': { bn: 'কোনো ছুটির আবেদন নেই', en: 'No leave requests' },
+  'employees.fullProfileSectionTitle': { bn: 'পূর্ণ প্রোফাইল', en: 'Full profile' },
   'employees.pageSubtitle': {
     bn: 'সকল সক্রিয় শিক্ষক ও কর্মচারী — আজকের উপস্থিতি ও ছুটির অবস্থাসহ।',
     en: 'Every active teacher and staff member — today’s presence and leave status.',

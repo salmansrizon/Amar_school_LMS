@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { CalendarOff, Clock, UserCheck, Users } from 'lucide-react'
+import { CalendarOff, Clock, SquarePen, UserCheck, Users } from 'lucide-react'
 import { currentLang } from '@/lib/i18n-server'
 import { t, numberFmt, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
@@ -21,6 +21,8 @@ import { RowActionPill } from '@/components/data-table/row-action-pill'
 import { AddOfficeTimeForm, CategoryGraceForm, DefaultGraceForm } from './employee-controls'
 import { EmployeeProfile, getEmployee } from './[id]/employee-profile'
 import { RowMore } from '@/components/data-table/row-more'
+import { DrawerFooter, DrawerHeader } from '@/components/data-table/drawer-parts'
+import { EmployeeDrawerBody, loadEmployeeDrawerData, employeeDrawerCancelHref } from './employee-drawer'
 
 // Employee directory (map 013, P3), per new_ui/02-people/employees-directory,
 // following the exam landing pattern (013 A3): header + subtitle, a one-line
@@ -83,6 +85,7 @@ export default async function EmployeesPage({
     { count: pendingLeaveCount },
     { data: pendingLeaves },
     viewed,
+    employeeDrawerData,
   ] = await Promise.all([
     supabase.from('schools').select('default_grace_minutes').eq('id', schoolId).single(),
     supabase.from('office_times').select('id, name, grace_minutes').order('name'),
@@ -128,6 +131,7 @@ export default async function EmployeesPage({
       .order('created_at', { ascending: false })
       .limit(5),
     view ? getEmployee(view) : Promise.resolve(null),
+    view ? loadEmployeeDrawerData(view) : Promise.resolve(null),
   ])
 
   const entryBy = new Map(records.map((r) => [r.person_id, r.entry_at as string | null]))
@@ -142,6 +146,7 @@ export default async function EmployeesPage({
     presence: entryBy.has(e.id) ? 'present' : onLeave.has(e.id) ? 'on_leave' : 'not_in',
     entryAt: entryBy.get(e.id) ?? null,
   }))
+  const viewedRow = view ? (all.find((e) => e.id === view) ?? null) : null
 
   const needle = q.trim().toLowerCase()
   const visible = all.filter(
@@ -526,12 +531,48 @@ export default async function EmployeesPage({
       <RecordDrawer
         open={Boolean(viewed)}
         title={viewed?.full_name ?? ''}
-        subtitle={viewed?.category ? categoryLabel(viewed.category) : undefined}
-        fullPageHref={viewed ? `/school/employees/${viewed.id}` : undefined}
+        header={
+          viewed && (
+            <DrawerHeader
+              name={viewed.full_name}
+              avatarId={viewed.id}
+              subtitle={viewed.category ? categoryLabel(viewed.category) : undefined}
+            />
+          )
+        }
+        footer={
+          viewed && (
+            <DrawerFooter
+              cancelHref={employeeDrawerCancelHref(params)}
+              cancelLabel={t('routine.cancel', lang)}
+              primary={
+                viewedRow?.presence === 'not_in' && canAttendance
+                  ? {
+                      href: `/school/attendance/employee?q=${encodeURIComponent(viewed.full_name)}`,
+                      label: t('employees.viewAttendance', lang),
+                    }
+                  : {
+                      href: `/school/employees/${viewed.id}`,
+                      label: t('employees.editProfile', lang),
+                      icon: <SquarePen className="size-4" aria-hidden />,
+                    }
+              }
+            />
+          )
+        }
         fullPageLabel={t('table.openFullPage', lang)}
         closeLabel={t('common.close', lang)}
       >
-        {viewed && <EmployeeProfile id={viewed.id} lang={lang} />}
+        {viewed &&
+          (viewedRow ? (
+            <EmployeeDrawerBody
+              employee={viewedRow}
+              data={employeeDrawerData ?? { recentLeaves: [] }}
+              lang={lang}
+            />
+          ) : (
+            <EmployeeProfile id={viewed.id} lang={lang} />
+          ))}
       </RecordDrawer>
     </>
   )
