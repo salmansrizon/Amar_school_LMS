@@ -31,6 +31,7 @@ export function PageHeader({
   backLabel,
   actions,
   crumbs,
+  subtitle,
   badge,
 }: {
   title: string
@@ -40,6 +41,8 @@ export function PageHeader({
   actions?: React.ReactNode
   /** Trail above the title; the last crumb is the current page. */
   crumbs?: { lang: Lang; items: Crumb[] }
+  /** One muted line under the title. */
+  subtitle?: string
   /** Short count/status pill beside the title, e.g. "Total: 1,485". */
   badge?: string
 }) {
@@ -99,6 +102,7 @@ export function PageHeader({
         </div>
         {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
       </div>
+      {subtitle && <p className="mt-1 text-sm text-muted">{subtitle}</p>}
     </div>
   )
 }

@@ -15,6 +15,7 @@ import {
   sortRoutineEntries,
   roomUsedSeats,
   overCapacityRoomIds,
+  examStage,
 } from '@/lib/exam-setup'
 
 describe('subjectFullMarks', () => {
@@ -281,5 +282,69 @@ describe('roomUsedSeats / overCapacityRoomIds', () => {
   it('a room within budget for each exam alone but over when summed is still flagged', () => {
     const over = overCapacityRoomIds(rows, [{ id: 'r1', capacity: 5 }])
     expect(over.has('r1')).toBe(true)
+  })
+})
+
+// Map 013 A3: the exam landing page's lifecycle board classifies every exam
+// into one of six stages, purely from data (never a stored workflow flag).
+describe('examStage', () => {
+  const TODAY = '2026-03-10'
+  const complete = { class_id: 'c1', grading_scheme_id: 'g1' }
+  const incomplete = { class_id: 'c1', grading_scheme_id: null }
+  const noFacts = { marksComplete: false, lastExamDate: null }
+
+  it('closed wins over everything, even an incomplete exam or one with marks done', () => {
+    expect(examStage({ ...complete, status: 'closed', start_date: TODAY }, TODAY, noFacts)).toBe('closed')
+    expect(examStage({ ...incomplete, status: 'closed', start_date: null }, TODAY, noFacts)).toBe('closed')
+    expect(
+      examStage({ ...complete, status: 'closed', start_date: '2026-01-01' }, TODAY, { ...noFacts, marksComplete: true }),
+    ).toBe('closed')
+  })
+
+  it('an open exam with incomplete Basic Info is setup, whatever its dates or marks say', () => {
+    expect(examStage({ ...incomplete, status: 'open', start_date: '2026-01-01' }, TODAY, { ...noFacts, marksComplete: true })).toBe(
+      'setup',
+    )
+    expect(examStage({ ...incomplete, status: 'open', start_date: null }, TODAY, noFacts)).toBe('setup')
+  })
+
+  it('marks-complete is ready, ahead of the date-window check', () => {
+    expect(
+      examStage({ ...complete, status: 'open', start_date: '2026-06-01' }, TODAY, { ...noFacts, marksComplete: true }),
+    ).toBe('ready')
+    expect(
+      examStage({ ...complete, status: 'open', start_date: '2026-01-01' }, TODAY, {
+        marksComplete: true,
+        lastExamDate: '2026-01-05',
+      }),
+    ).toBe('ready')
+  })
+
+  it('no start date, or one in the future, is upcoming', () => {
+    expect(examStage({ ...complete, status: 'open', start_date: null }, TODAY, noFacts)).toBe('upcoming')
+    expect(examStage({ ...complete, status: 'open', start_date: '2026-04-01' }, TODAY, noFacts)).toBe('upcoming')
+  })
+
+  it('started, no routine yet: running on its start date, marks-pending the day after', () => {
+    expect(examStage({ ...complete, status: 'open', start_date: TODAY }, TODAY, noFacts)).toBe('running')
+    expect(examStage({ ...complete, status: 'open', start_date: '2026-03-09' }, TODAY, noFacts)).toBe('marksPending')
+  })
+
+  it('a routine extends the window: running until its last sitting, marks-pending after', () => {
+    expect(
+      examStage({ ...complete, status: 'open', start_date: '2026-03-01' }, TODAY, { marksComplete: false, lastExamDate: TODAY }),
+    ).toBe('running')
+    expect(
+      examStage({ ...complete, status: 'open', start_date: '2026-03-01' }, TODAY, {
+        marksComplete: false,
+        lastExamDate: '2026-03-20',
+      }),
+    ).toBe('running')
+    expect(
+      examStage({ ...complete, status: 'open', start_date: '2026-03-01' }, TODAY, {
+        marksComplete: false,
+        lastExamDate: '2026-03-05',
+      }),
+    ).toBe('marksPending')
   })
 })

@@ -199,6 +199,53 @@ export function filterResultRoster<T extends ResultRosterFilterRow>(
   })
 }
 
+// Map 013 A3 (exam landing → lifecycle board): one stage per exam, derived
+// purely from data the row already carries (status, Basic Info, a start
+// date) plus two cheap per-exam facts the page computes once. Never a stored
+// workflow column — same philosophy as examActionState, and this reuses
+// examBasicInfoComplete rather than re-deriving the setup gate.
+//
+// There is no exams.end_date column (only start_date), so "still running" vs
+// "overdue for marks" needs a window end. `lastExamDate` supplies it from the
+// exam's own routine (exam_routine_entries.exam_date) when one has been
+// entered; a single-day exam with no routine yet falls back to its own
+// start_date as its whole window, which is the only date this can know.
+export type ExamStage = 'setup' | 'upcoming' | 'running' | 'marksPending' | 'ready' | 'closed'
+
+export interface ExamStageInput extends ExamConfiguration {
+  status: string
+  start_date: string | null
+}
+
+export interface ExamStageFacts {
+  /** True once exam_marks rows entered === enrolled roster × applicable
+   *  subjects for this exam — false too when that target is unknown/zero
+   *  (no roster or no subjects yet), since "complete" cannot be claimed
+   *  without a real target. */
+  marksComplete: boolean
+  /** Latest `exam_routine_entries.exam_date` for the exam ('YYYY-MM-DD'), or
+   *  null when no routine entry exists yet. */
+  lastExamDate: string | null
+}
+
+/** Order of precedence, each a real fact and never inferred beyond it:
+ *  Closed is terminal and overrides everything else. Setup (Basic Info
+ *  incomplete) is the one true bottleneck and wins over dates — an exam
+ *  can't be "running" without a class/grading scheme, whatever its dates
+ *  say. Marks-complete means ready to publish/close regardless of the
+ *  calendar (a school can finish entry early). Otherwise it's upcoming
+ *  (no start date yet, or one in the future), overdue (`marksPending`, the
+ *  window has closed and marks aren't in), or running (today falls inside
+ *  the window). */
+export function examStage(exam: ExamStageInput, today: string, facts: ExamStageFacts): ExamStage {
+  if (exam.status === 'closed') return 'closed'
+  if (!examBasicInfoComplete(exam)) return 'setup'
+  if (facts.marksComplete) return 'ready'
+  if (!exam.start_date || exam.start_date > today) return 'upcoming'
+  const windowEnd = facts.lastExamDate ?? exam.start_date
+  return today > windowEnd ? 'marksPending' : 'running'
+}
+
 // Exams V (issue #48): resolves an admit card's "Exam Center" field — the
 // exam_seat_plans row (issue #47) whose [roll_start, roll_end] contains the
 // student's roll, joined to its room name. Not a stored column on students;
