@@ -1,9 +1,13 @@
 import Form from 'next/form'
 import Link from 'next/link'
+import { Images, FolderClosed, FolderCheck } from 'lucide-react'
 import { currentLang } from '@/lib/i18n-server'
-import { t, type Lang } from '@/lib/i18n'
+import { t, numberFmt, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
+import { schoolCrumbs, headerPrimary } from '@/lib/school-crumbs'
 import { albumCountLabel, albumIsFull } from '@/lib/publishing'
+import { Card, PageHeader } from '@/components/ui/page'
+import { StatCard, StatGrid } from '@/components/ui/widgets'
 import { NoticeTabs } from '../notice-tabs'
 import { CreateAlbumForm } from './gallery-controls'
 
@@ -17,6 +21,7 @@ export default async function GalleryAlbumsPage({
 }) {
   const { q = '' } = await searchParams
   const lang: Lang = await currentLang()
+  const fmt = numberFmt(lang)
   const { supabase } = await getSchoolContext()
 
   const [{ data: albums }, { data: photos }] = await Promise.all([
@@ -27,16 +32,34 @@ export default async function GalleryAlbumsPage({
   for (const p of photos ?? []) counts.set(p.album_id, (counts.get(p.album_id) ?? 0) + 1)
   const query = q.trim().toLowerCase()
   const visible = (albums ?? []).filter((a) => !query || a.title.toLowerCase().includes(query))
+  const fullCount = (albums ?? []).filter((a) => albumIsFull(counts.get(a.id) ?? 0, a.max_images)).length
 
   return (
-    <div>
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-extrabold">{t('notices.title', lang)}</h1>
-        <Link href="/school" aria-label={t('common.back', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
-      </div>
+    <>
+      <PageHeader
+        title={t('notices.tabGallery', lang)}
+        crumbs={schoolCrumbs('/school/notices/gallery', lang, [
+          { label: t('notices.title', lang), href: '/school/notices' },
+          { label: t('notices.tabGallery', lang) },
+        ])}
+        actions={
+          <details className="group relative">
+            <summary className={`${headerPrimary} cursor-pointer list-none`}>+ {t('gallery.newAlbum', lang)}</summary>
+            <div className="absolute right-0 z-10 mt-2 w-80 rounded-md border border-line bg-paper-muted p-4 shadow-lg">
+              <CreateAlbumForm lang={lang} />
+            </div>
+          </details>
+        }
+      />
       <NoticeTabs active="gallery" lang={lang} />
 
-      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+      <StatGrid>
+        <StatCard icon={<FolderClosed className="size-5" />} label={t('gallery.statAlbums', lang)} value={fmt.format((albums ?? []).length)} />
+        <StatCard icon={<Images className="size-5" />} tone="sky" label={t('gallery.statPhotos', lang)} value={fmt.format((photos ?? []).length)} />
+        <StatCard icon={<FolderCheck className="size-5" />} tone="sun" label={t('gallery.statFull', lang)} value={fmt.format(fullCount)} />
+      </StatGrid>
+
+      <Card className="mb-grid">
         <Form className="flex items-center gap-2" action="/school/notices/gallery">
           <input
             name="q"
@@ -51,18 +74,12 @@ export default async function GalleryAlbumsPage({
             {t('classes.filter', lang)}
           </button>
         </Form>
-        <details className="group">
-          <summary className="inline-flex cursor-pointer list-none rounded-full bg-brand-500 px-4 py-1.5 text-xs font-semibold text-white hover:bg-brand-600">
-            + {t('gallery.newAlbum', lang)}
-          </summary>
-          <div className="mt-3 rounded-md border border-line bg-paper-muted p-4">
-            <CreateAlbumForm lang={lang} />
-          </div>
-        </details>
-      </div>
+      </Card>
 
       {!visible.length ? (
-        <p className="text-sm text-muted">{t('gallery.noAlbums', lang)}</p>
+        <Card>
+          <p className="text-sm text-muted">{t('gallery.noAlbums', lang)}</p>
+        </Card>
       ) : (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           {visible.map((a) => {
@@ -93,6 +110,6 @@ export default async function GalleryAlbumsPage({
           })}
         </div>
       )}
-    </div>
+    </>
   )
 }

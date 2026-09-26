@@ -2940,6 +2940,9 @@ const dict = {
   'gallery.confirmDeletePhoto': { bn: 'এই ছবিটি মুছে যাবে — নিশ্চিত?', en: 'Delete this photo?' },
   'gallery.deleteAlbum': { bn: 'অ্যালবাম মুছুন', en: 'Delete album' },
   'gallery.confirmDeleteAlbum': { bn: 'এই অ্যালবাম ও এর সব ছবি মুছে যাবে — নিশ্চিত?', en: 'Delete this album and all its photos?' },
+  'gallery.statAlbums': { bn: 'মোট অ্যালবাম', en: 'Total Albums' },
+  'gallery.statPhotos': { bn: 'মোট ছবি', en: 'Total Photos' },
+  'gallery.statFull': { bn: 'পূর্ণ অ্যালবাম', en: 'Full Albums' },
 
   // Feedback (issue #38, PRD §5.9)
   'feedback.title': { bn: 'মতামত', en: 'Feedback' },
@@ -2956,6 +2959,7 @@ const dict = {
   'feedback.statusUnread': { bn: 'অপঠিত', en: 'Unread' },
   'feedback.statusRead': { bn: 'পঠিত', en: 'Read' },
   'feedback.statusAnswered': { bn: 'উত্তর দেওয়া', en: 'Answered' },
+  'feedback.statTotal': { bn: 'মোট বার্তা', en: 'Total Messages' },
   'feedback.reply': { bn: 'উত্তর দিন', en: 'Reply' },
   'feedback.view': { bn: 'দেখুন', en: 'View' },
   'feedback.close': { bn: 'বন্ধ করুন', en: 'Close' },
