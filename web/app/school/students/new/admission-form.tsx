@@ -56,14 +56,17 @@ export function Card({
   title,
   children,
   padded = true,
+  id,
 }: {
   title: string
   children: React.ReactNode
   padded?: boolean
+  /** Anchor for the admission form's step strip. */
+  id?: string
 }) {
   return (
-    <section className="mb-4 rounded-lg border border-line bg-paper shadow-card">
-      <h3 className="p-5 pb-3 font-bold">{title}</h3>
+    <section id={id} className="mb-4 scroll-mt-24 rounded-2xl border border-line bg-paper shadow-card">
+      <h3 className="mx-5 mb-4 border-b border-line py-4 font-bold">{title}</h3>
       {padded ? <div className="px-5 pb-5">{children}</div> : children}
     </section>
   )
@@ -163,7 +166,9 @@ export function ProfileFields({
   // Initialized from the edit form's existing text pair via
   // findClassCatalogueId so an in-progress edit still shows the right
   // option selected, even though `defaults` never carried an id.
-  const [editComboId, setEditComboId] = useState(() => findClassCatalogueId(classCatalogue, d('class_name'), d('section')))
+  const [editComboId, setEditComboId] = useState(() =>
+    findClassCatalogueId(classCatalogue, d('class_name'), d('section')),
+  )
   const [religion, setReligion] = useState(() => splitReligionDefault(d('religion')))
   // Only className is required — an empty section is itself a valid scope
   // (a class with no sections at all, e.g. most Primary classes per
@@ -179,13 +184,18 @@ export function ProfileFields({
 
   return (
     <>
-      <Card title={t('students.identity', lang)}>
+      <Card id="admission-student" title={t('students.identity', lang)}>
         <div className="grid gap-grid sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
           <Field label={t('students.name', lang)}>
             <input name="full_name" required defaultValue={d('full_name')} className={fieldClass} />
           </Field>
           <Field label={t('students.dob', lang)}>
-            <input type="date" name="date_of_birth" defaultValue={d('date_of_birth')} className={dateInputClass({ size: 'md', fullWidth: true })} />
+            <input
+              type="date"
+              name="date_of_birth"
+              defaultValue={d('date_of_birth')}
+              className={dateInputClass({ size: 'md', fullWidth: true })}
+            />
           </Field>
           <Field label={t('students.gender', lang)}>
             <select name="gender" defaultValue={d('gender')} className={selectClass({ size: 'md', fullWidth: true })}>
@@ -196,7 +206,11 @@ export function ProfileFields({
             </select>
           </Field>
           <Field label={t('students.bloodGroup', lang)}>
-            <select name="blood_group" defaultValue={d('blood_group')} className={selectClass({ size: 'md', fullWidth: true })}>
+            <select
+              name="blood_group"
+              defaultValue={d('blood_group')}
+              className={selectClass({ size: 'md', fullWidth: true })}
+            >
               <option value="">—</option>
               {BLOOD_GROUPS.map((bg) => (
                 <option key={bg} value={bg}>
@@ -329,10 +343,19 @@ export function ProfileFields({
                 className={`${fieldClass} mt-2`}
               />
             )}
-            <input type="hidden" name="religion" value={religion.choice === 'other' ? religion.other : religion.choice} />
+            <input
+              type="hidden"
+              name="religion"
+              value={religion.choice === 'other' ? religion.other : religion.choice}
+            />
           </Field>
           <Field label={t('students.studentMobile', lang)}>
-            <input name="student_mobile" defaultValue={d('student_mobile')} className={fieldClass} placeholder="01xxxxxxxxx" />
+            <input
+              name="student_mobile"
+              defaultValue={d('student_mobile')}
+              className={fieldClass}
+              placeholder="01xxxxxxxxx"
+            />
           </Field>
           {/* Data-model prep for future attendance-machine sync (issue #564)
               gets its UI here (#565) — plain text (not number: leading zeros
@@ -340,11 +363,7 @@ export function ProfileFields({
               the DB. Separate from the Attendance module's own card
               assignment (card-controls.tsx / rfid_cards) — the hint says so. */}
           <Field label={t('students.rfidCardNumber', lang)}>
-            <input
-              name="rfid_card_number"
-              defaultValue={d('rfid_card_number')}
-              className={`${fieldClass} font-mono`}
-            />
+            <input name="rfid_card_number" defaultValue={d('rfid_card_number')} className={`${fieldClass} font-mono`} />
             <p className="mt-1 text-xs text-muted">{t('students.rfidCardNumberHint', lang)}</p>
           </Field>
         </div>
@@ -361,13 +380,17 @@ export function ProfileFields({
         </Field>
       </Card>
 
-      <Card title={t('students.guardianInfo', lang)}>
+      <Card id="admission-guardian" title={t('students.guardianInfo', lang)}>
         <div className="grid gap-grid sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
           <Field label={t('students.guardianName', lang)}>
             <input name="guardian_name" defaultValue={d('guardian_name')} className={fieldClass} />
           </Field>
           <Field label={t('students.relation', lang)}>
-            <select name="guardian_relation" defaultValue={d('guardian_relation')} className={selectClass({ size: 'md', fullWidth: true })}>
+            <select
+              name="guardian_relation"
+              defaultValue={d('guardian_relation')}
+              className={selectClass({ size: 'md', fullWidth: true })}
+            >
               <option value="">—</option>
               <option value="father">{t('students.father', lang)}</option>
               <option value="mother">{t('students.mother', lang)}</option>
@@ -381,7 +404,12 @@ export function ProfileFields({
             </select>
           </Field>
           <Field label={t('students.guardianMobile', lang)}>
-            <input name="guardian_mobile" defaultValue={d('guardian_mobile')} className={fieldClass} placeholder="01xxxxxxxxx" />
+            <input
+              name="guardian_mobile"
+              defaultValue={d('guardian_mobile')}
+              className={fieldClass}
+              placeholder="01xxxxxxxxx"
+            />
           </Field>
           <Field label={t('students.guardianNid', lang)}>
             <input name="guardian_nid" defaultValue={d('guardian_nid')} className={fieldClass} />
@@ -389,7 +417,7 @@ export function ProfileFields({
         </div>
       </Card>
 
-      <Card title={t('students.benefitFlags', lang)}>
+      <Card id="admission-history" title={t('students.benefitFlags', lang)}>
         <div className="flex flex-wrap gap-4 text-sm">
           <label className="flex items-center gap-2">
             <input
@@ -428,11 +456,7 @@ export function ProfileFields({
 
 /** Uploads the picked photo for a student: server-derived path, client-direct
  *  bytes to the private bucket, then records photo_path on the row. */
-export async function uploadStudentPhoto(
-  studentId: string,
-  file: File,
-  lang: Lang,
-): Promise<string | null> {
+export async function uploadStudentPhoto(studentId: string, file: File, lang: Lang): Promise<string | null> {
   if (!photoExtension(file.type)) return t('students.photoType', lang)
   // Compress before the size check so large phone photos fit the 2 MB bucket cap.
   const photo = await compressImage(file, IMAGE_PRESETS.studentPhoto)
@@ -524,11 +548,40 @@ export function AdmissionForm({
   // reflecting the true next roll through the whole batch — the fetched list
   // never changes underneath us since navigation never happens.
   const [enrollmentRollsState, setEnrollmentRollsState] = useState<EnrollmentRollRow[]>(enrollmentRolls)
-  const [lastSaved, setLastSaved] = useState<{ name: string; roll: number | null } | null>(null)
+  const [lastSaved, setLastSaved] = useState<{
+    name: string
+    roll: number | null
+  } | null>(null)
   // Server-sourced (issue #625): seeded from page.tsx's own fetch for the
   // initial render, replaced wholesale (never appended-to locally) after
   // each save so it's always the real last 10, not a session-local echo.
   const [recent, setRecent] = useState<RecentAdmissionRow[]>(initialRecent)
+
+  // Section jump links styled as the reference's step strip. Layout only: the
+  // form is still one page and one submit.
+  const steps = [
+    {
+      href: '#admission-student',
+      title: 'students.admissionStepStudent',
+      hint: 'students.admissionStepStudentHint',
+    },
+    {
+      href: '#admission-guardian',
+      title: 'students.admissionStepGuardian',
+      hint: 'students.admissionStepGuardianHint',
+    },
+    {
+      href: '#admission-history',
+      title: 'students.admissionStepHistory',
+      hint: 'students.admissionStepHistoryHint',
+    },
+    {
+      href: '#admission-photo',
+      title: 'students.admissionStepPhoto',
+      hint: 'students.admissionStepPhotoHint',
+    },
+  ] as const
+  const numFmt = new Intl.NumberFormat(lang === 'bn' ? 'bn-BD' : 'en-US')
 
   return (
     <form
@@ -582,7 +635,10 @@ export function AdmissionForm({
           if (classOfferingId) {
             setEnrollmentRollsState((prev) => [
               ...prev,
-              { class_offering_id: classOfferingId, roll_number: result.roll_number ?? null },
+              {
+                class_offering_id: classOfferingId,
+                roll_number: result.roll_number ?? null,
+              },
             ])
           }
           setLastClassOfferingId(classOfferingId)
@@ -607,44 +663,100 @@ export function AdmissionForm({
         </p>
       )}
 
-      <ProfileFields
-        key={formGeneration}
-        lang={lang}
-        classOfferings={classOfferings}
-        // Generation 0 restores the unsaved draft, if any (issue #628); every
-        // later generation is a post-save reset, which only carries the Class
-        // forward — the draft was already cleared at that point.
-        defaults={formGeneration === 0 ? draftDefaults(draft) : { class_offering_id: lastClassOfferingId }}
-        enrollmentRolls={enrollmentRollsState}
-        rollIncrement={rollIncrement}
-        suggestRoll
-        showYear={showYear}
-      />
+      <nav
+        aria-label={t('students.admissionTitle', lang)}
+        className="mb-4 rounded-2xl border border-line bg-paper p-3 shadow-card"
+      >
+        <ol className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+          {steps.map((s, i) => (
+            <li key={s.href}>
+              <a
+                href={s.href}
+                className="flex items-center gap-3 rounded-xl bg-paper-muted p-3 transition hover:bg-brand-50"
+              >
+                <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-brand-500 text-sm font-bold text-white">
+                  {numFmt.format(i + 1)}
+                </span>
+                <span className="min-w-0">
+                  <span className="block truncate text-sm font-semibold">{t(s.title, lang)}</span>
+                  <span className="block truncate text-xs text-muted">{t(s.hint, lang)}</span>
+                </span>
+              </a>
+            </li>
+          ))}
+        </ol>
+      </nav>
 
-      <Card title={t('students.photo', lang)}>
-        <Field label={t('students.uploadPhoto', lang)}>
-          <input ref={photoRef} type="file" accept="image/jpeg,image/png,image/webp" className={fieldClass} />
-        </Field>
-        <p className="mt-1 text-xs text-muted">{t('students.photoHint', lang)}</p>
-      </Card>
+      <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_18rem]">
+        <div className="min-w-0">
+          <ProfileFields
+            key={formGeneration}
+            lang={lang}
+            classOfferings={classOfferings}
+            // Generation 0 restores the unsaved draft, if any (issue #628); every
+            // later generation is a post-save reset, which only carries the Class
+            // forward — the draft was already cleared at that point.
+            defaults={formGeneration === 0 ? draftDefaults(draft) : { class_offering_id: lastClassOfferingId }}
+            enrollmentRolls={enrollmentRollsState}
+            rollIncrement={rollIncrement}
+            suggestRoll
+            showYear={showYear}
+          />
 
-      {error && <p className="mb-3 text-sm text-alert-deep">{error}</p>}
+          <Card id="admission-photo" title={t('students.photo', lang)}>
+            <Field label={t('students.uploadPhoto', lang)}>
+              <input ref={photoRef} type="file" accept="image/jpeg,image/png,image/webp" className={fieldClass} />
+            </Field>
+            <p className="mt-1 text-xs text-muted">{t('students.photoHint', lang)}</p>
+          </Card>
 
-      <div className="mb-4 flex items-center justify-between">
-        <Link
-          href="/school/students"
-          onClick={() => clearAdmissionDraft(schoolId, userId)}
-          className="rounded-full border border-line-strong px-4 py-1.5 text-sm font-semibold hover:bg-paper-muted"
-        >
-          {t('routine.cancel', lang)}
-        </Link>
-        <button
-          type="submit"
-          disabled={pending}
-          className="cursor-pointer rounded-full bg-brand-500 px-5 py-1.5 text-sm font-semibold text-white hover:bg-brand-600 disabled:opacity-50"
-        >
-          {t('students.saveAdmission', lang)}
-        </button>
+          {error && <p className="mb-3 text-sm text-alert-deep">{error}</p>}
+
+          {/* Sticky action bar: stays in reach while scrolling a long form. */}
+          <div className="sticky bottom-0 z-10 mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-line bg-paper/95 p-3 shadow-card backdrop-blur">
+            <span className="flex items-center gap-2 text-xs font-semibold text-mint-deep">
+              <span aria-hidden className="size-2 rounded-full bg-mint-deep" />
+              {t('students.draftAutosaved', lang)}
+            </span>
+            <div className="flex items-center gap-2">
+              <Link
+                href="/school/students"
+                onClick={() => clearAdmissionDraft(schoolId, userId)}
+                className="rounded-full border border-line-strong px-4 py-1.5 text-sm font-semibold hover:bg-paper-muted"
+              >
+                {t('routine.cancel', lang)}
+              </Link>
+              <button
+                type="submit"
+                disabled={pending}
+                className="cursor-pointer rounded-full bg-brand-500 px-5 py-1.5 text-sm font-semibold text-white hover:bg-brand-600 disabled:opacity-50"
+              >
+                {t('students.saveAdmission', lang)}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <aside className="rounded-2xl border border-line bg-paper p-5 shadow-card lg:sticky lg:top-4">
+          <h3 className="mb-3 border-b border-line pb-3 font-bold">{t('students.afterAdmission', lang)}</h3>
+          <ol className="space-y-3 text-sm">
+            {(
+              [
+                'students.afterAdmission1',
+                'students.afterAdmission2',
+                'students.afterAdmission3',
+                'students.afterAdmission4',
+              ] as const
+            ).map((key, i) => (
+              <li key={key} className="flex gap-3">
+                <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-brand-50 text-xs font-bold text-brand-700">
+                  {numFmt.format(i + 1)}
+                </span>
+                <span className="text-muted">{t(key, lang)}</span>
+              </li>
+            ))}
+          </ol>
+        </aside>
       </div>
 
       <Card title={t('students.recentAdmissions', lang)} padded={!recent.length}>

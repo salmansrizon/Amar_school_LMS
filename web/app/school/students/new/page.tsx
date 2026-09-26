@@ -53,6 +53,14 @@ export default async function NewAdmissionPage() {
         title={t('students.admissionTitle', lang)}
         backHref="/school/students"
         backLabel={t('students.listTitle', lang)}
+        crumbs={{
+          lang,
+          items: [
+            { label: t('dash.dashboard', lang), href: '/school' },
+            { label: t('students.listTitle', lang), href: '/school/students' },
+            { label: t('students.admissionTitle', lang) },
+          ],
+        }}
       />
       <AdmissionForm
         lang={lang}
