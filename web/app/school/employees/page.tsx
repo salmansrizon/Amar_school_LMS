@@ -4,7 +4,7 @@ import { currentLang } from '@/lib/i18n-server'
 import { t, numberFmt, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { canOpenScreen } from '@/lib/auth/screens'
-import { employeeOfficeTimeNames, EMPLOYEE_CATEGORY_LABEL_KEY, isKnownEmployeeCategory } from '@/lib/employees'
+import { employeeOfficeTimeNames, employeeCategoryLabel } from '@/lib/employees'
 import { ACADEMIC_SHIFT_LABEL_KEY, isKnownAcademicShift } from '@/lib/institute'
 import { schoolToday } from '@/lib/school-time'
 import { selectAllRows } from '@/lib/supabase/select-all'
@@ -169,8 +169,7 @@ export default async function EmployeesPage({
   const pendingLeaveRows = (pendingLeaves ?? []).map((l) => ({ ...l, name: nameById.get(l.employee_id) ?? '—' }))
   const pendingCount = pendingLeaveCount ?? 0
 
-  const categoryLabel = (c: string) =>
-    isKnownEmployeeCategory(c) ? t(EMPLOYEE_CATEGORY_LABEL_KEY[c as keyof typeof EMPLOYEE_CATEGORY_LABEL_KEY], lang) : c
+  const categoryLabel = (c: string) => employeeCategoryLabel(c, lang)
   const shiftLabel = (s: string) => (isKnownAcademicShift(s) ? t(ACADEMIC_SHIFT_LABEL_KEY[s], lang) : s)
   const distinct = (xs: (string | null)[]) => [...new Set(xs.filter((x): x is string => Boolean(x)))].sort()
   const time = new Intl.DateTimeFormat(lang === 'bn' ? 'bn-BD' : 'en-GB', {

@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { isKnownAcademicShift, ACADEMIC_SHIFT_LABEL_KEY } from '@/lib/institute'
+import { employeeCategoryLabel } from '@/lib/employees'
 import { OfficeTimeToggle, ShiftToggle } from '../employee-controls'
 import { ProfileEditor } from './profile-controls'
 
@@ -94,7 +95,10 @@ export async function EmployeeProfile({ id, lang }: { id: string; lang: Lang }) 
         </InfoCard>
 
         <InfoCard title={t('employees.categoryQualification', lang)}>
-          <InfoRow label={t('employees.category', lang)} value={employee.category} />
+          <InfoRow
+            label={t('employees.category', lang)}
+            value={employee.category ? employeeCategoryLabel(employee.category, lang) : null}
+          />
           <InfoRow label={t('employees.qualification', lang)} value={employee.qualification} />
           <InfoRow label={t('employees.department', lang)} value={employee.department} />
         </InfoCard>

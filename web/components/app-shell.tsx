@@ -15,6 +15,7 @@ import { avatarInitials } from '@/lib/name'
 import { sidebarCookieAssignment } from '@/lib/ui-prefs'
 import { SearchPalette, type PaletteEntry } from '@/components/search-palette'
 import { NotificationsBell } from '@/components/notifications-bell'
+import { isPrintPath } from '@/lib/print-path'
 
 // The single, config-driven application shell (#285, map #284). Every role group
 // renders THIS — one webframe: collapsible sidebar nav + topbar (search slot,
@@ -426,7 +427,15 @@ export function AppShell({
                 a readable measure gets it from its own archetype (forms go
                 multi-column within the width, not narrower than it). Gutters are
                 applied once, here, using the shared density scale. */}
-            {contentContainer ? (
+            {/* A print route (ADR 0007, lib/print-path.ts) owns its own <main> —
+                components/ui/page.tsx's "print — exempt, keeps its own A4
+                layout" — but every school page always got this wrapper
+                regardless (contentContainer never varied per route), so a print
+                page's own <main> nested inside this one: two landmarks, one
+                DOM. Bare children here, same as the contentContainer=false
+                branch below, fixes it without touching a print page's own
+                layout. */}
+            {contentContainer && !isPrintPath(pathname) ? (
               <main className="w-full px-gutter pt-section pb-16 print:max-w-none print:p-0">
                 {children}
               </main>
