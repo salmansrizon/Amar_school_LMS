@@ -8,22 +8,28 @@ import { employeeOfficeTimeNames, EMPLOYEE_CATEGORY_LABEL_KEY, isKnownEmployeeCa
 import { ACADEMIC_SHIFT_LABEL_KEY, isKnownAcademicShift } from '@/lib/institute'
 import { schoolToday } from '@/lib/school-time'
 import { selectAllRows } from '@/lib/supabase/select-all'
+import { schoolCrumbs } from '@/lib/school-crumbs'
+import { withParams } from '@/lib/url-params'
 import { PageHeader } from '@/components/ui/page'
-import { StatCard, StatGrid } from '@/components/ui/widgets'
+import { StatCard, StatGrid, WarningBanner, WorkflowCard } from '@/components/ui/widgets'
 import { EmptyState } from '@/components/ui/states'
 import { paginate, pageSizeFrom } from '@/components/pager'
 import { EntityAvatar } from '@/components/entity-avatar'
 import { DataTable, Pill, type Column } from '@/components/data-table/data-table'
 import { RecordDrawer } from '@/components/data-table/record-drawer'
-import { ViewLink } from '@/components/data-table/view-link'
+import { RowActionPill } from '@/components/data-table/row-action-pill'
 import { AddOfficeTimeForm, CategoryGraceForm, DefaultGraceForm } from './employee-controls'
 import { EmployeeProfile, getEmployee } from './[id]/employee-profile'
+import { EmployeeRowMore } from './employee-row-more'
 
-// Employee directory (map 013, P3), per new_ui/02-people/employees-directory:
-// header + stat cards + DataTable (search, filters, presence chips, Profile
-// drawer, ⋮ menu). Today's presence is one attendance_records read for today
-// (at most one row per employee) plus today's approved leaves. The office-time
-// / grace config (issue #9) moved below the table, unchanged.
+// Employee directory (map 013, P3), per new_ui/02-people/employees-directory,
+// following the exam landing pattern (013 A3): header + subtitle, a one-line
+// "not checked in" warning banner, four stat cards, a titled DataTable (one
+// contextual next-step pill per row, everything else behind ⋮), then two
+// workflow cards — today's presence and leave requests awaiting review.
+// Today's presence is one attendance_records read for today (at most one row
+// per employee) plus today's approved leaves. The office-time / grace config
+// (issue #9) stays below the table, unchanged.
 
 type Presence = 'present' | 'on_leave' | 'not_in'
 
@@ -74,6 +80,8 @@ export default async function EmployeesPage({
     { rows: shiftRows },
     { rows: records },
     { rows: leaves },
+    { count: pendingLeaveCount },
+    { data: pendingLeaves },
     viewed,
   ] = await Promise.all([
     supabase.from('schools').select('default_grace_minutes').eq('id', schoolId).single(),
@@ -108,6 +116,17 @@ export default async function EmployeesPage({
         .gte('to_day', today)
         .range(from, to),
     ),
+    // Leave-requests workflow card: how many are waiting, full count first —
+    // separate head-only read (same shape as every other count in this file).
+    supabase.from('employee_leaves').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+    // …and the handful most worth surfacing, newest first — the workflow card
+    // shows at most 5, so a bounded read is enough (never all of them).
+    supabase
+      .from('employee_leaves')
+      .select('id, employee_id, from_day, to_day')
+      .eq('status', 'pending')
+      .order('created_at', { ascending: false })
+      .limit(5),
     view ? getEmployee(view) : Promise.resolve(null),
   ])
 
@@ -139,11 +158,16 @@ export default async function EmployeesPage({
   const pageData = paginate(visible, page, pageSize)
 
   const fmt = numberFmt(lang)
+  const n = (x: number) => fmt.format(x)
   const count = (p: Presence) => all.filter((e) => e.presence === p).length
   const present = count('present')
   const leaveCount = count('on_leave')
   const notIn = count('not_in')
+  const notInList = all.filter((e) => e.presence === 'not_in')
   const rate = all.length ? Math.round((present / all.length) * 100) : 0
+  const nameById = new Map(all.map((e) => [e.id, e.full_name]))
+  const pendingLeaveRows = (pendingLeaves ?? []).map((l) => ({ ...l, name: nameById.get(l.employee_id) ?? '—' }))
+  const pendingCount = pendingLeaveCount ?? 0
 
   const categoryLabel = (c: string) =>
     isKnownEmployeeCategory(c) ? t(EMPLOYEE_CATEGORY_LABEL_KEY[c as keyof typeof EMPLOYEE_CATEGORY_LABEL_KEY], lang) : c
@@ -184,7 +208,14 @@ export default async function EmployeesPage({
         <div className="flex items-center gap-3">
           <EntityAvatar name={e.full_name} id={e.id} />
           <div className="min-w-0">
-            <div className="truncate font-semibold">{e.full_name}</div>
+            <Link
+              href={withParams(params, { view: e.id })}
+              scroll={false}
+              data-view-link={e.id}
+              className="truncate font-semibold hover:text-brand-600 hover:underline"
+            >
+              {e.full_name}
+            </Link>
             <div className="text-xs text-muted">
               {[e.qualification, e.unique_id && `${t('employees.uniqueId', lang)} ${e.unique_id}`]
                 .filter(Boolean)
@@ -230,19 +261,15 @@ export default async function EmployeesPage({
 
   const secondary =
     'inline-flex h-11 items-center rounded-full border border-line-strong px-4 text-xs font-semibold hover:bg-paper-muted'
+  const primaryClass =
+    'inline-flex h-11 items-center rounded-full bg-brand-500 px-4 text-xs font-semibold text-white hover:bg-brand-600'
 
   return (
     <>
       <PageHeader
         title={t('employees.title', lang)}
-        crumbs={{
-          lang,
-          items: [
-            { label: t('dash.dashboard', lang), href: '/school' },
-            { label: t('employees.people', lang) },
-            { label: t('employees.title', lang) },
-          ],
-        }}
+        subtitle={t('employees.pageSubtitle', lang)}
+        crumbs={schoolCrumbs('/school/employees', lang, { label: t('employees.people', lang) }, { label: t('employees.title', lang) })}
         badge={`${t('pager.total', lang)}: ${fmt.format(all.length)}`}
         actions={
           <>
@@ -256,37 +283,47 @@ export default async function EmployeesPage({
             )}
             {/* One entry point (issue #566) — login and class assignment are
                 optional sections on the same create form. */}
-            <Link
-              href="/school/employees/new"
-              className="inline-flex h-11 items-center rounded-full bg-brand-500 px-4 text-xs font-semibold text-white hover:bg-brand-600"
-            >
+            <Link href="/school/employees/new" className={primaryClass}>
               + {t('employees.add', lang)}
             </Link>
           </>
         }
       />
 
+      {notInList.length > 0 && (
+        <WarningBanner
+          label={t('employees.bannerNotIn', lang)}
+          text={`${notInList
+            .slice(0, 3)
+            .map((e) => e.full_name)
+            .join(', ')}${notInList.length > 3 ? ` +${n(notInList.length - 3)}` : ''}`}
+          href="/school/employees?presence=not_in"
+          linkLabel={t('employees.viewNotInList', lang)}
+        />
+      )}
+
       <StatGrid>
         <StatCard
           icon={<Users className="size-5" />}
           label={t('dash.totalEmployees', lang)}
-          value={fmt.format(all.length)}
+          value={n(all.length)}
           note={t('dash.teachersStaff', lang)}
           noteTone="muted"
+          action={{ href: '/school/employees/new', label: t('employees.add', lang) }}
         />
         <StatCard
           icon={<UserCheck className="size-5" />}
           tone="mint"
           label={t('employees.presentToday', lang)}
-          value={`${fmt.format(present)} / ${fmt.format(all.length)}`}
-          note={`${fmt.format(rate)}% ${t('employees.presentRate', lang)}`}
+          value={`${n(present)} / ${n(all.length)}`}
+          note={`${n(rate)}% ${t('employees.presentRate', lang)}`}
           action={canAttendance ? { href: '/school/attendance/employee', label: t('employees.viewAttendance', lang) } : undefined}
         />
         <StatCard
           icon={<CalendarOff className="size-5" />}
           tone="sky"
           label={t('employees.onLeaveToday', lang)}
-          value={fmt.format(leaveCount)}
+          value={n(leaveCount)}
           note={t('employees.approvedLeave', lang)}
           action={
             canAttendance ? { href: '/school/attendance/leave/employee', label: t('employees.leaveRequests', lang) } : undefined
@@ -296,11 +333,13 @@ export default async function EmployeesPage({
           icon={<Clock className="size-5" />}
           tone={notIn ? 'sun' : 'muted'}
           label={t('employees.notInYet', lang)}
-          value={fmt.format(notIn)}
+          value={n(notIn)}
           note={t('employees.noRecordYet', lang)}
+          action={notIn ? { href: '/school/employees?presence=not_in', label: t('employees.viewNotInList', lang) } : undefined}
         />
       </StatGrid>
 
+      <h2 className="mb-grid mt-section text-lg font-extrabold">{t('employees.tableTitle', lang)}</h2>
       <DataTable
         rows={pageData.items}
         rowId={(e) => e.id}
@@ -336,20 +375,36 @@ export default async function EmployeesPage({
           { param: 'presence', value: 'on_leave', label: `${t('status.on_leave', lang)} (${fmt.format(leaveCount)})` },
           { param: 'presence', value: 'not_in', label: `${t('employees.notInYet', lang)} (${fmt.format(notIn)})` },
         ]}
-        rowActions={(e) => (
-          <ViewLink id={e.id} params={params} label={t('table.profile', lang)} name={e.full_name} />
-        )}
-        rowMenu={(e) => [
-          { label: t('employees.view', lang), href: `/school/employees/${e.id}` },
-          ...(canAttendance
-            ? [
-                {
-                  label: t('employees.viewAttendance', lang),
-                  href: `/school/attendance/employee?q=${encodeURIComponent(e.full_name)}`,
-                },
-              ]
-            : []),
-        ]}
+        rowActions={(e) => {
+          const attendanceHref = `/school/attendance/employee?q=${encodeURIComponent(e.full_name)}`
+          const next =
+            e.presence === 'not_in' && canAttendance
+              ? { state: 'next' as const, href: attendanceHref, label: t('employees.viewAttendance', lang) }
+              : { state: 'default' as const, href: `/school/employees/${e.id}`, label: t('employees.view', lang) }
+          return (
+            <div className="flex items-center justify-end gap-1">
+              <RowActionPill state={next.state} href={next.href} label={next.label} />
+              <EmployeeRowMore label={`${t('employees.moreActions', lang)}: ${e.full_name}`}>
+                <div className="flex flex-wrap items-center justify-end gap-2">
+                  <Link
+                    href={`/school/employees/${e.id}`}
+                    className="inline-flex h-9 items-center rounded-full border border-line-strong px-4 text-xs font-semibold hover:bg-paper-muted"
+                  >
+                    {t('employees.view', lang)}
+                  </Link>
+                  {canAttendance && (
+                    <Link
+                      href={attendanceHref}
+                      className="inline-flex h-9 items-center rounded-full border border-line-strong px-4 text-xs font-semibold hover:bg-paper-muted"
+                    >
+                      {t('employees.viewAttendance', lang)}
+                    </Link>
+                  )}
+                </div>
+              </EmployeeRowMore>
+            </div>
+          )
+        }}
         pagination={{ page: pageData.page, totalPages: pageData.totalPages, total: pageData.total, pageSize }}
         empty={
           all.length ? (
@@ -367,6 +422,84 @@ export default async function EmployeesPage({
           )
         }
       />
+
+      <div className="mt-section grid gap-grid lg:grid-cols-2">
+        <WorkflowCard
+          icon={<UserCheck className="size-5" />}
+          title={t('employees.workflowPresenceTitle', lang)}
+          tag={`${n(rate)}% · ${t('employees.todayTag', lang)}`}
+        >
+          {notInList.length === 0 ? (
+            <p className="mb-4 rounded-xl border border-mint-100 bg-mint-soft p-4 text-center text-sm font-semibold text-mint-deep">
+              {t('employees.workflowPresenceAllIn', lang)}
+            </p>
+          ) : (
+            <ul className="mb-4 divide-y divide-line">
+              {notInList.slice(0, 5).map((e) => (
+                <li key={e.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
+                  <div className="min-w-0">
+                    <p className="truncate font-semibold">{e.full_name}</p>
+                    <p className="text-xs text-muted">{e.category ? categoryLabel(e.category) : dash}</p>
+                  </div>
+                  {canAttendance && (
+                    <RowActionPill
+                      state="next"
+                      href={`/school/attendance/employee?q=${encodeURIComponent(e.full_name)}`}
+                      label={t('employees.viewAttendance', lang)}
+                    />
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+          {canAttendance && (
+            <div className="mt-auto border-t border-line pt-4 text-center">
+              <Link href="/school/attendance/employee" className={primaryClass}>
+                {t('employees.viewAttendance', lang)}
+              </Link>
+            </div>
+          )}
+        </WorkflowCard>
+
+        <WorkflowCard
+          icon={<CalendarOff className="size-5" />}
+          title={t('employees.workflowLeaveTitle', lang)}
+          tag={pendingCount ? `${n(pendingCount)} ${t('employees.pendingCount', lang)}` : undefined}
+        >
+          {pendingLeaveRows.length === 0 ? (
+            <p className="mb-4 rounded-xl border border-dashed border-line p-6 text-center text-sm text-muted">
+              {t('employees.workflowLeaveEmpty', lang)}
+            </p>
+          ) : (
+            <ul className="mb-4 divide-y divide-line">
+              {pendingLeaveRows.map((l) => (
+                <li key={l.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
+                  <div className="min-w-0">
+                    <p className="truncate font-semibold">{l.name}</p>
+                    <p className="text-xs text-muted">
+                      {l.from_day} – {l.to_day}
+                    </p>
+                  </div>
+                  {canAttendance && (
+                    <RowActionPill
+                      state="next"
+                      href={`/school/attendance/leave/employee?status=pending&view=${l.id}`}
+                      label={t('employees.reviewLeave', lang)}
+                    />
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+          {canAttendance && (
+            <div className="mt-auto border-t border-line pt-4 text-center">
+              <Link href="/school/attendance/leave/employee" className={primaryClass}>
+                {t('employees.leaveRequests', lang)}
+              </Link>
+            </div>
+          )}
+        </WorkflowCard>
+      </div>
 
       <section className="mt-section grid gap-4 rounded-lg border border-line bg-paper p-5 sm:grid-cols-3">
         <div className="sm:col-span-3">
