@@ -1,13 +1,14 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useSyncExternalStore } from 'react'
 import { t, type Lang } from '@/lib/i18n'
-import { shortcutsCookieAssignment } from '@/lib/ui-prefs'
+import { SHORTCUTS_COOKIE, parseShortcutsEnabled, shortcutsCookieAssignment } from '@/lib/ui-prefs'
 
 // DataTable single-key shortcuts (map 013, F6): `/` search, `F` first filter.
 // Esc is base-ui's job (the drawer closes itself). WCAG 2.1.4: printable-key
 // shortcuts need an off switch, so the hint bar carries one, persisted in a
-// cookie like the theme and read on the server so there's no flash.
+// cookie like the theme and read client-side (see useShortcutsEnabled below)
+// so DataTable itself never needs a server-only cookie API.
 
 export type ShortcutKeyEvent = {
   key: string
@@ -42,16 +43,45 @@ export function shouldHandleShortcut(
 const TARGET: Record<ShortcutAction, string> = { search: 'data-table-search', filter: 'data-table-filter' }
 const OPEN_OVERLAY = '[role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"]'
 
+// DataTable itself must stay isomorphic (server or client caller), so the
+// preference can no longer be read server-side and passed down as a prop
+// (map 013 follow-up: a client caller's import graph can't include a
+// server-only cookie API at all). Read it here instead, the same
+// useSyncExternalStore + cookie-change-event shape as use-theme-preference.ts.
+const SHORTCUTS_CHANGE_EVENT = 'asm-shortcuts-change'
+
+function readShortcutsEnabled(): boolean {
+  const match = document.cookie.match(new RegExp(`${SHORTCUTS_COOKIE}=([01])`))
+  return parseShortcutsEnabled(match?.[1])
+}
+
+function subscribeShortcutsEnabled(onChange: () => void): () => void {
+  window.addEventListener(SHORTCUTS_CHANGE_EVENT, onChange)
+  return () => window.removeEventListener(SHORTCUTS_CHANGE_EVENT, onChange)
+}
+
+// ponytail: getServerSnapshot fixes "on" (the documented default) since there's
+// no request to read a cookie from during SSR; a user who turned shortcuts off
+// sees the hint bar for one frame before this hook re-reads on mount.
+function getServerSnapshot(): boolean {
+  return true
+}
+
+function useShortcutsEnabled(): boolean {
+  return useSyncExternalStore(subscribeShortcutsEnabled, readShortcutsEnabled, getServerSnapshot)
+}
+
 // Module scope, like writeThemeCookie: a document side effect, not component state.
 function writeShortcutsCookie(enabled: boolean) {
   document.cookie = shortcutsCookieAssignment(enabled)
+  window.dispatchEvent(new Event(SHORTCUTS_CHANGE_EVENT))
 }
 
 const KBD = 'inline-flex min-w-6 justify-center rounded-sm border border-line-strong bg-paper px-1.5 py-0.5 text-xs font-semibold text-ink'
 
 /** Mounted once per DataTable: the key listener plus the hint bar with its on/off switch. */
-export function DataTableShortcuts({ lang, enabled: initial }: { lang: Lang; enabled: boolean }) {
-  const [enabled, setEnabled] = useState(initial)
+export function DataTableShortcuts({ lang }: { lang: Lang }) {
+  const enabled = useShortcutsEnabled()
 
   useEffect(() => {
     if (!enabled) return
@@ -70,7 +100,6 @@ export function DataTableShortcuts({ lang, enabled: initial }: { lang: Lang; ena
 
   const toggle = () => {
     writeShortcutsCookie(!enabled)
-    setEnabled(!enabled)
   }
 
   return (

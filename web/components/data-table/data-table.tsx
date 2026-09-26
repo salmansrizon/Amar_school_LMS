@@ -8,7 +8,6 @@ import { DataTableFilters, type FilterDef } from './filters'
 import { BulkBar, RowCheck, SelectAll, SelectionProvider, type BulkAction } from './selection'
 import { RowMenu, type RowMenuItem } from './row-menu'
 import { DataTableShortcuts } from './shortcuts'
-import { shortcutsEnabled } from '@/lib/ui-prefs-server'
 
 // The one table every School Owner record list uses (map 013, F2).
 // Server component: rows are filtered, sorted and paginated by the page before
@@ -46,7 +45,7 @@ export function Pill({ tone, children }: { tone: keyof typeof TONES; children: R
   )
 }
 
-export async function DataTable<T>({
+export function DataTable<T>({
   rows,
   rowId,
   rowLabel,
@@ -85,7 +84,7 @@ export async function DataTable<T>({
   empty: ReactNode
 }) {
   const selectable = bulkActions.length > 0
-  const shortcuts = <DataTableShortcuts lang={lang} enabled={await shortcutsEnabled()} />
+  const shortcuts = <DataTableShortcuts lang={lang} />
   const hasActions = Boolean(rowActions || rowMenu)
   const filterParams = [search?.param ?? 'q', ...filters.map((f) => f.param), ...chips.map((c) => c.param)]
   const filtered = filterParams.some((p) => params[p])
