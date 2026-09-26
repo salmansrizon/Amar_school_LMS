@@ -46,7 +46,7 @@ export function PageHeader({
   return (
     <div className="mb-section">
       {crumbs && (
-        <nav aria-label={t('page.breadcrumb', crumbs.lang)} className="mb-2">
+        <nav data-page-crumbs aria-label={t('page.breadcrumb', crumbs.lang)} className="mb-2">
           <ol className="flex flex-wrap items-center gap-1.5 text-sm text-muted">
             {crumbs.items.map((c, i) => {
               const last = i === crumbs.items.length - 1

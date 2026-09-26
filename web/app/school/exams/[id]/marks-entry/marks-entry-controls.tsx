@@ -36,7 +36,9 @@ export function SubjectPicker({
     <select
       value={selectedId}
       aria-label={t('markEntry.pickSubject', lang)}
-      onChange={(e) => router.push(`${pathname}?subject=${e.target.value}`)}
+      // replace, not push: in the row-action popup, ✕ (router.back) must return
+      // to the list, not to the previously picked subject.
+      onChange={(e) => router.replace(`${pathname}?subject=${e.target.value}`)}
       className={`${selectClass({ size: 'md', fullWidth: true })} max-w-56`}
     >
       {subjects.map((s) => (
