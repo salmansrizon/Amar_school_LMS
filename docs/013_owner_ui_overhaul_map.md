@@ -13,6 +13,9 @@ Research: `docs/research/2026-09-26-owner-ui-ux-patterns.md`.
 - Reference comparison: jev checks **structure/content** (claims from reference screen vs Playwright snapshot); I check **visuals** side by side. Gaps → user.
 - Student ID shown = Student Number. No English name (no column). Class filter stays one Class Offering picker.
 - Fee column = **Monthly Fee Standing** (Paid / Partial / Due, current month) — see CONTEXT.md. Attendance = **Attendance Rate**, year to date, bands ≥90 / 75–89 / <75.
+- Q41: print opens as a preview popup; print routes allow same-origin framing only (`frame-ancestors 'self'`, XFO SAMEORIGIN), all else stays DENY.
+- Q42: shift label stays "সকাল". Q43: no report pages / plan name; dashboard attendance link unchanged.
+- Migration 0208 `student_attendance_summary` drafted (security invoker, additive), NOT applied — user runs `explain analyze` then applies.
 - No-DB features added: bulk ID card print (reuse single print), CSV export (filtered list), "Remind" → SMS Center with guardians prefilled.
 
 ## Rules
@@ -36,20 +39,20 @@ Research: `docs/research/2026-09-26-owner-ui-ux-patterns.md`.
 - [x] **F1** Token audit: reference vs `app/globals.css`; add only missing tokens. → none missing.
 - [x] **F2** `DataTable`: column defs, search, filter selects, quick-filter chips, server pagination, selection + bulk bar, row Profile + ⋮ menu, empty/loading/error, card render below breakpoint.
 - [x] **F3** `RecordDrawer`: base-ui `Drawer` (fallback `Dialog`), right side, `?view=<id>` via `window.history.pushState` (open = push, close = `history.back()`, record-to-record = replace); server reads `searchParams.view` so refresh opens it; focus title on open, return to row; "Open full page" link to `[id]`.
-- [ ] **F4** `PageHeader` (breadcrumbs, title, count badge, secondary + primary actions, More ⋮), `StatCard` (value + action link), `AlertStrip`, `QuickActions` (grant-gated); Pager: showing X–Y of N, per-page 10/20/50, numbered pages.
-- [ ] **F5** Top bar: year/shift switcher (per-user cookie, `lib/ui-prefs-server.ts`), SMS credit chip (`sms_balance`), reuse ⌘K search; phone bottom tab bar (5 sections), hamburger kept.
-- [ ] **F6** Shortcuts hook: `/` search, `F` filters, `Esc` drawer — never while typing, IME composing (`isComposing`), or with modifiers; match `event.key`. On/off toggle in ui-prefs cookie, default on (WCAG 2.1.4).
-- [ ] **F7** Derived-metric helpers: Attendance Rate (YTD, banded), Monthly Fee Standing (reuse `lib/dashboard.ts` `attendanceRate`, `lib/fees.ts` `dueAmount`), per-request cache, unit tests.
+- [x] **F4** `PageHeader` (breadcrumbs, title, count badge, secondary + primary actions, More ⋮), `StatCard` (value + action link), `AlertStrip`, `QuickActions` (grant-gated); Pager: showing X–Y of N, per-page 10/20/50, numbered pages.
+- [x] **F5** Top bar: year/shift switcher (per-user cookie, `lib/ui-prefs-server.ts`), SMS credit chip (`sms_balance`), reuse ⌘K search; phone bottom tab bar (5 sections), hamburger kept.
+- [x] **F6** Shortcuts hook: `/` search, `F` filters, `Esc` drawer — never while typing, IME composing (`isComposing`), or with modifiers; match `event.key`. On/off toggle in ui-prefs cookie, default on (WCAG 2.1.4).
+- [x] **F7** Derived-metric helpers: Attendance Rate (YTD, banded), Monthly Fee Standing (reuse `lib/dashboard.ts` `attendanceRate`, `lib/fees.ts` `dueAmount`), per-request cache, unit tests.
 
 ## Phase 1 — Overview
 
-- [ ] **O1** Owner dashboard: alert strip, 4 stat cards, quick actions, daily checklist, upcoming events (`buildUpcoming`), module nav.
+- [x] **O1** Owner dashboard: alert strip, 4 stat cards, quick actions, daily checklist, upcoming events (`buildUpcoming`), module nav.
 
 ## Phase 2 — People
 
-- [~] **P1** Student directory → `DataTable` + drawer (`ProfileEditor` shared with `[id]`). Left: Attendance Rate + Monthly Fee Standing columns/filters/chips (F7), search by Student Number + guardian mobile, Student Number line, header (ID card bulk print, export, More ⋮ with class logins), row ID-card + Remind actions, stat cards.
-- [ ] **P2** Student admission form restyle.
-- [ ] **P3** Employee directory → `DataTable` + drawer.
+- [x] **P1** Student directory → `DataTable` + drawer, stat cards, Monthly Fee Standing, bulk ID print (popup), CSV export. Attendance Rate column waits on migration 0208.
+- [x] **P2** Student admission form restyle.
+- [x] **P3** Employee directory → `DataTable` + drawer.
 
 ## Phase 3 — Academics
 
@@ -66,8 +69,8 @@ Research: `docs/research/2026-09-26-owner-ui-ux-patterns.md`.
 
 ## Phase 5 — Administration
 
-- [ ] **AD1** Institution settings.
-- [ ] **AD2** Staff permissions.
+- [x] **AD1** Institution settings.
+- [x] **AD2** Staff permissions.
 
 ## Phase 6 — Sweep + ship
 
