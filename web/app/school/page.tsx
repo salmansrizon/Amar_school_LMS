@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { CalendarClock, LayoutGrid } from 'lucide-react'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { canOpenScreen, type ScreenKey } from '@/lib/auth/screens'
@@ -20,7 +21,15 @@ import { hubSummary } from '@/lib/student/hub-source'
 import { loadSchoolSmsCredit } from '@/lib/sms/credit'
 import type { ActivityChecklistItem, ChecklistTicks } from '@/lib/institute'
 import { PageHeader } from '@/components/ui/page'
-import { StatCard, StatGrid, AlertStrip, QuickActions, type Alert, type QuickAction } from '@/components/ui/widgets'
+import {
+  StatCard,
+  StatGrid,
+  AlertStrip,
+  QuickActions,
+  WorkflowCard,
+  type Alert,
+  type QuickAction,
+} from '@/components/ui/widgets'
 
 // School Owner / Staff dashboard home (map 013 O1, new_ui 01-overview):
 // header → "needs attention" strip → 4 stat cards → today's quick steps →
@@ -334,22 +343,22 @@ export default async function SchoolHome() {
       <DashboardChecklist lang={lang} date={today} items={checklistItems} ticks={todayTicks} />
 
       <div className="mt-section grid gap-grid lg:grid-cols-3">
-        <section className="rounded-2xl border border-line bg-paper p-card lg:col-span-2">
-          <div className="mb-3 flex items-center justify-between gap-2">
-            <h2 className="font-bold">{t('dash.upcoming', lang)}</h2>
-            <Link
-              href="/school/activity"
-              className="inline-flex items-center gap-1 text-xs font-semibold text-brand-600 hover:underline"
-            >
-              {t('dash.viewAll', lang)}
-              <Icon name="chevronRight" className="size-3.5" />
-            </Link>
-          </div>
-          <UpcomingList items={upcoming} lang={lang} today={today} />
-        </section>
+        <div className="lg:col-span-2">
+          <WorkflowCard icon={<CalendarClock className="size-5" />} title={t('dash.upcoming', lang)}>
+            <UpcomingList items={upcoming} lang={lang} today={today} />
+            <div className="mt-auto border-t border-line pt-4 text-center">
+              <Link
+                href="/school/activity"
+                className="inline-flex items-center gap-1 text-xs font-semibold text-brand-600 hover:underline"
+              >
+                {t('dash.viewAll', lang)}
+                <Icon name="chevronRight" className="size-3.5" />
+              </Link>
+            </div>
+          </WorkflowCard>
+        </div>
 
-        <section className="rounded-2xl border border-line bg-paper p-card">
-          <h2 className="mb-3 font-bold">{t('dash.modules', lang)}</h2>
+        <WorkflowCard icon={<LayoutGrid className="size-5" />} title={t('dash.modules', lang)}>
           <ul className="divide-y divide-line">
             {modules.map((m) => (
               <li key={m.href}>
@@ -366,7 +375,7 @@ export default async function SchoolHome() {
               </li>
             ))}
           </ul>
-        </section>
+        </WorkflowCard>
       </div>
     </div>
   )
