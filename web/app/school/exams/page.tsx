@@ -116,6 +116,10 @@ export default async function ExamsPage({
 
   const fmt = numberFmt(lang)
   const dash = <span className="text-muted">—</span>
+  // Map 013 sweep: closed is a steady-state fact (no motion); open gets a
+  // live dot (still accepting entries); setup-incomplete gets the attention
+  // pulse (jev-picked candidate b-attention-pulse-scope — motion only where
+  // it means "needs attention now" or "live", never on every row).
   const statusPill = (e: ExamListItem) =>
     e.status === 'closed' ? (
       <Pill tone="muted">
@@ -123,9 +127,13 @@ export default async function ExamsPage({
         {t('exams.closed', lang)}
       </Pill>
     ) : examBasicInfoComplete(e) ? (
-      <Pill tone="mint">{t('exams.open', lang)}</Pill>
+      <Pill tone="mint" live>
+        {t('exams.open', lang)}
+      </Pill>
     ) : (
-      <Pill tone="sun">{t('exams.setupIncomplete', lang)}</Pill>
+      <Pill tone="sun" pulse>
+        {t('exams.setupIncomplete', lang)}
+      </Pill>
     )
 
   const columns: Column<ExamListItem>[] = [

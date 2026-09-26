@@ -152,6 +152,23 @@ export function examHasClass(exam: Pick<ExamConfiguration, 'class_id'>): boolean
   return Boolean(exam.class_id)
 }
 
+/** Map 013 sweep: colour state for one of an exam row's six actions, derived
+ * purely from data the row already carries — never a stored workflow flag.
+ * Basic Info is the row's one real bottleneck, so it is the only action with
+ * a genuine "done" signal (`requires: 'none'`): `done` once both class and
+ * grading scheme are set, `next` (the thing to do now) while they are not.
+ * The other five actions have no stored per-action completion, so they are
+ * simply `locked` while their own gate (`class` or `basicInfo`) is unmet and
+ * `default` once available — inventing a `done` for them would be a fabricated
+ * signal, not a derived one. */
+export type RowActionState = 'next' | 'done' | 'locked' | 'default'
+
+export function examActionState(exam: ExamConfiguration, requires: 'none' | 'class' | 'basicInfo'): RowActionState {
+  if (requires === 'none') return examBasicInfoComplete(exam) ? 'done' : 'next'
+  const gated = requires === 'class' ? !examHasClass(exam) : !examBasicInfoComplete(exam)
+  return gated ? 'locked' : 'default'
+}
+
 // Exams V (issue #48): roll-range + promoted-only filtering, shared by
 // Result Book and batch print-all. "Promoted" has no stored column anywhere
 // in the schema — it's operationalized the same way Promotion's own

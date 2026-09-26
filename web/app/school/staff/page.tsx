@@ -124,7 +124,10 @@ export default async function StaffPage({
             {fmt.format(r.screens.length)} {t('staff.screenCount', lang)}
           </Pill>
         ) : (
-          <Pill tone="muted">{t('staff.noAccess', lang)}</Pill>
+          // No screens granted needs attention; a granted count is a steady fact.
+          <Pill tone="muted" pulse>
+            {t('staff.noAccess', lang)}
+          </Pill>
         ),
     },
   ]

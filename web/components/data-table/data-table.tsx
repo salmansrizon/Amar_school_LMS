@@ -36,10 +36,42 @@ const TONES = {
   muted: 'bg-paper-muted text-muted',
 } as const
 
-/** Status pill. Always carries text, so colour is never the only signal. */
-export function Pill({ tone, children }: { tone: keyof typeof TONES; children: ReactNode }) {
+/** Status pill. Always carries text, so colour is never the only signal.
+ * `pulse` and `live` are motion, on top of that text, never instead of it —
+ * both reuse Tailwind's built-in keyframes (no new CSS) and both are
+ * `motion-safe:`, so a reduced-motion user gets the same pill with no
+ * animation at all (the app-wide prefers-reduced-motion override in
+ * globals.css also neutralises them as a second safety net). */
+export function Pill({
+  tone,
+  pulse,
+  live,
+  children,
+}: {
+  tone: keyof typeof TONES
+  /** "Needs attention now" — e.g. exam setup incomplete, fee due, staff not
+   *  checked in, no access granted. A soft opacity pulse on the pill itself,
+   *  the same idiom as the dashboard checklist's due badge. Never apply this
+   *  to a steady-state fact (closed, paid, present) — a screen full of
+   *  pulsing pills is noise, not engagement. */
+  pulse?: boolean
+  /** "Open / running" — a small live dot ahead of the label, the standard
+   *  online-indicator shape. */
+  live?: boolean
+  children: ReactNode
+}) {
   return (
-    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${TONES[tone]}`}>
+    <span
+      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${TONES[tone]} ${
+        pulse ? 'motion-safe:animate-pulse' : ''
+      }`}
+    >
+      {live && (
+        <span className="relative mr-1.5 flex size-1.5 shrink-0" aria-hidden="true">
+          <span className="absolute h-full w-full rounded-full bg-current opacity-75 motion-safe:animate-ping" />
+          <span className="relative inline-flex size-1.5 rounded-full bg-current" />
+        </span>
+      )}
       {children}
     </span>
   )

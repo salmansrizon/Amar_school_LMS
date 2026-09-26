@@ -169,7 +169,10 @@ export default async function EmployeesPage({
     ) : e.presence === 'on_leave' ? (
       <Pill tone="sky">{t('status.on_leave', lang)}</Pill>
     ) : (
-      <Pill tone="muted">{t('employees.notInYet', lang)}</Pill>
+      // Not checked in yet needs a look; on_leave/present are steady facts, no pulse.
+      <Pill tone="muted" pulse>
+        {t('employees.notInYet', lang)}
+      </Pill>
     )
 
   const columns: Column<Row>[] = [

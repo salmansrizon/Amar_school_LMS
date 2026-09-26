@@ -9,6 +9,7 @@ import {
   filterExams,
   examBasicInfoComplete,
   examHasClass,
+  examActionState,
   filterResultRoster,
   roomForRoll,
   sortRoutineEntries,
@@ -138,6 +139,32 @@ describe('examHasClass', () => {
     const classOnly = { class_id: 'c6a', grading_scheme_id: null }
     expect(examHasClass(classOnly)).toBe(true)
     expect(examBasicInfoComplete(classOnly)).toBe(false)
+  })
+})
+
+// Map 013 sweep: the exam row's action colour, derived purely from the two
+// Basic Info fields — never a stored workflow flag.
+describe('examActionState', () => {
+  const complete = { class_id: 'c6a', grading_scheme_id: 'gs1' }
+  const classOnly = { class_id: 'c6a', grading_scheme_id: null }
+  const neither = { class_id: null, grading_scheme_id: null }
+
+  it("Basic Info (requires 'none') is 'next' until both fields are set, then 'done'", () => {
+    expect(examActionState(neither, 'none')).toBe('next')
+    expect(examActionState(classOnly, 'none')).toBe('next')
+    expect(examActionState(complete, 'none')).toBe('done')
+  })
+
+  it("a class-gated action is 'locked' without a class, 'default' with one — grading scheme irrelevant", () => {
+    expect(examActionState(neither, 'class')).toBe('locked')
+    expect(examActionState(classOnly, 'class')).toBe('default')
+    expect(examActionState(complete, 'class')).toBe('default')
+  })
+
+  it("a basicInfo-gated action is 'locked' until both fields are set, then 'default' (never 'done')", () => {
+    expect(examActionState(neither, 'basicInfo')).toBe('locked')
+    expect(examActionState(classOnly, 'basicInfo')).toBe('locked')
+    expect(examActionState(complete, 'basicInfo')).toBe('default')
   })
 })
 
