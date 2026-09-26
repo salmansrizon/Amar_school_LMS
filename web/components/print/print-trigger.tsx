@@ -1,75 +1,83 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useRef, useState, type ReactNode } from 'react'
+import { Dialog } from '@base-ui/react/dialog'
+import { Printer, X } from 'lucide-react'
+import { t, type Lang } from '@/lib/i18n'
 
-// Same-page print entry (issue #116). Replaces the old new-tab link: loads the
-// print route into a hidden same-origin iframe and fires the browser print
-// dialog in place, so the user never leaves /school/students/[id]. Reuses the
-// print routes (ADR 0007) — printable markup + @media rules stay in one place.
+// Print as a popup (map 013): the print route (ADR 0007) loads in a preview
+// dialog over the current page, and Print prints that frame — the user never
+// leaves the page they were on. The one print entry in the app, so every print
+// button behaves the same.
 
-// #540 measured this at 26-30px on a phone. 44px is the floor for a thumb, and
-// this is the only definition of a print trigger in the app, so raising it here
-// raises every print button rather than the two the UAT pass happened to measure.
-// Desktop keeps the compact pill — a mouse does not need 44px.
+// #540: 44px thumb floor on a phone, compact pill on a pointer device.
 const triggerClass =
-  'inline-flex min-h-11 cursor-pointer items-center justify-center rounded-full border border-line-strong px-4 text-xs font-semibold hover:bg-paper-muted disabled:opacity-50 sm:min-h-9 sm:px-3'
+  'inline-flex min-h-11 cursor-pointer items-center justify-center gap-1.5 rounded-full border border-line-strong px-4 text-xs font-semibold hover:bg-paper-muted disabled:opacity-50 sm:min-h-9 sm:px-3'
+const iconClass =
+  'inline-flex size-9 cursor-pointer items-center justify-center rounded-full text-muted hover:bg-paper-muted hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300'
 
-export function PrintTrigger({ href, label }: { href: string; label: string }) {
-  const [busy, setBusy] = useState(false)
-  const busyRef = useRef(false)
+/** The page's own language, set on <html> by the root layout. */
+const docLang = (): Lang => (typeof document !== 'undefined' && document.documentElement.lang === 'en' ? 'en' : 'bn')
 
-  function print() {
-    if (busyRef.current) return
-    busyRef.current = true
-    setBusy(true)
-
-    const iframe = document.createElement('iframe')
-    // Off-screen but sized to an A4 sheet so the route lays out at print width.
-    iframe.setAttribute('aria-hidden', 'true')
-    iframe.style.cssText = 'position:fixed;left:-10000px;top:0;width:210mm;height:297mm;border:0;'
-
-    let done = false
-    const cleanup = () => {
-      if (done) return
-      done = true
-      clearTimeout(guard)
-      if (iframe.parentNode) document.body.removeChild(iframe)
-      busyRef.current = false
-      setBusy(false)
-    }
-    // Armed before load so a failed/stuck load still releases the button.
-    const guard = setTimeout(cleanup, 60000)
-
-    iframe.onload = () => {
-      const win = iframe.contentWindow
-      if (!win) return cleanup()
-      // An expired session redirects the print route to /login — don't print that.
-      if (!win.location.pathname.includes('/print/')) return cleanup()
-      // Wait for images (logo, QR) so they aren't missing on the sheet.
-      const images = Array.from(win.document.images)
-      Promise.all(
-        images.map((img) =>
-          img.complete
-            ? Promise.resolve()
-            : new Promise<void>((resolve) => {
-                img.addEventListener('load', () => resolve(), { once: true })
-                img.addEventListener('error', () => resolve(), { once: true })
-              }),
-        ),
-      ).then(() => {
-        win.addEventListener('afterprint', cleanup, { once: true })
-        win.focus()
-        win.print()
-      })
-    }
-
-    iframe.src = href
-    document.body.appendChild(iframe)
-  }
+export function PrintTrigger({
+  href,
+  label,
+  icon,
+  iconOnly = false,
+}: {
+  href: string
+  label: string
+  icon?: ReactNode
+  /** Icon button (e.g. in a table row); `label` becomes its accessible name. */
+  iconOnly?: boolean
+}) {
+  const frame = useRef<HTMLIFrameElement>(null)
+  const [ready, setReady] = useState(false)
+  const lang = docLang()
 
   return (
-    <button type="button" onClick={print} disabled={busy} className={triggerClass}>
-      {label}
-    </button>
+    <Dialog.Root onOpenChange={(open) => !open && setReady(false)}>
+      <Dialog.Trigger aria-label={iconOnly ? label : undefined} className={iconOnly ? iconClass : triggerClass}>
+        {icon ?? (iconOnly ? <Printer className="size-4" aria-hidden /> : null)}
+        {!iconOnly && label}
+      </Dialog.Trigger>
+      <Dialog.Portal>
+        <Dialog.Backdrop className="fixed inset-0 z-40 bg-ink/40 transition-opacity data-[ending-style]:opacity-0 data-[starting-style]:opacity-0" />
+        <Dialog.Popup className="fixed inset-3 z-50 mx-auto flex max-w-5xl flex-col overflow-hidden rounded-2xl bg-paper shadow-xl outline-none sm:inset-8">
+          <header className="flex items-center gap-3 border-b border-line px-card py-3">
+            <Dialog.Title className="min-w-0 flex-1 truncate font-bold">{label}</Dialog.Title>
+            <button
+              type="button"
+              disabled={!ready}
+              onClick={() => {
+                const win = frame.current?.contentWindow
+                win?.focus()
+                win?.print()
+              }}
+              className="inline-flex h-9 items-center gap-1.5 rounded-full bg-brand-500 px-4 text-xs font-semibold text-white hover:bg-brand-600 disabled:opacity-50"
+            >
+              <Printer className="size-4" aria-hidden />
+              {t('print.print', lang)}
+            </button>
+            <Dialog.Close
+              aria-label={t('common.close', lang)}
+              className="inline-flex size-9 items-center justify-center rounded-full text-muted hover:bg-paper-muted hover:text-ink"
+            >
+              <X className="size-4" aria-hidden />
+            </Dialog.Close>
+          </header>
+          <iframe
+            ref={frame}
+            src={href}
+            title={label}
+            className="w-full flex-1 bg-paper-muted"
+            onLoad={() => {
+              // An expired session redirects the print route to /login — never print that.
+              setReady(Boolean(frame.current?.contentWindow?.location.pathname.includes('/print/')))
+            }}
+          />
+        </Dialog.Popup>
+      </Dialog.Portal>
+    </Dialog.Root>
   )
 }

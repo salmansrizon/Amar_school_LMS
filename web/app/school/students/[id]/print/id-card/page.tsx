@@ -25,9 +25,10 @@ export default async function IdCardPrintPage({ params }: { params: Promise<{ id
       .from('students')
       .select(ID_CARD_COLUMNS)
       .eq('id', id)
-      .maybeSingle<IdCardStudent>(),
+      .maybeSingle(),
   ])
   if (!institute || !student) notFound()
+  const card = student as IdCardStudent
 
   // Real, scannable QR (issues #143/#144): an absolute URL to the public,
   // unauthenticated verification page. Built from the request host so it works
@@ -46,7 +47,7 @@ export default async function IdCardPrintPage({ params }: { params: Promise<{ id
       </div>
 
       <PrintPage>
-        <StudentIdCard institute={institute} student={student} qrSvg={qrSvg} lang={lang} />
+        <StudentIdCard institute={institute} student={card} qrSvg={qrSvg} lang={lang} />
       </PrintPage>
     </main>
   )

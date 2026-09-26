@@ -28,6 +28,9 @@ const SINGLE_ROW = /\.(single|maybeSingle)\(/
  *  its name — see the Wave 5 (#590) resolution comment on GitHub for the
  *  full per-site reasoning this summarizes. */
 const EXEMPT: [file: string, reason: string][] = [
+  // --- students: bulk ID cards read by id for rows the directory already
+  // resolved through schoolRoster (shift + year filtered upstream).
+  ['app/school/students/print/id-cards/page.tsx', 'reads by id the rows loadDirectoryRows already shift-filtered'],
   // --- class_offerings: the Year-filter's own internal implementation
   // detail (issue #621's Students-roster follow-up) — resolves matching
   // Offerings by Academic Year only, deliberately orthogonal to Shift, not

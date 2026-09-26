@@ -14,6 +14,7 @@ import { DataTable, Pill, type Column } from '@/components/data-table/data-table
 import { RecordDrawer } from '@/components/data-table/record-drawer'
 import { ViewLink } from '@/components/data-table/view-link'
 import { RowMenu } from '@/components/data-table/row-menu'
+import { PrintTrigger } from '@/components/print/print-trigger'
 import { StatCard, StatGrid } from '@/components/ui/widgets'
 import { withParams } from '@/lib/url-params'
 import { IdCard, UserPlus, Users, Wallet } from 'lucide-react'
@@ -166,10 +167,11 @@ export default async function StudentsPage({
             <Link href="/school/students/archive" className={secondary}>
               {t('students.oldStudents', lang)}
             </Link>
-            <Link href={`/school/students/print/id-cards${withParams(params, { view: null, page: null, size: null })}`} className={secondary}>
-              <IdCard className="mr-1.5 size-4" aria-hidden />
-              {t('students.idCardBulk', lang)}
-            </Link>
+            <PrintTrigger
+              href={`/school/students/print/id-cards${withParams(params, { view: null, page: null, size: null })}`}
+              label={t('students.idCardBulk', lang)}
+              icon={<IdCard className="size-4" aria-hidden />}
+            />
             <a href={`/school/students/export${withParams(params, { view: null, page: null, size: null })}`} className={secondary} download>
               {t('students.exportCsv', lang)}
             </a>
@@ -238,13 +240,12 @@ export default async function StudentsPage({
         ]}
         rowActions={(s) => (
           <>
-            <Link
+            <PrintTrigger
               href={`/school/students/${s.id}/print/id-card`}
-              aria-label={`${t('students.idCard', lang)}: ${s.full_name}`}
-              className="inline-flex size-9 items-center justify-center rounded-full text-muted hover:bg-paper-muted hover:text-ink"
-            >
-              <IdCard className="size-4" aria-hidden />
-            </Link>
+              label={`${t('students.idCard', lang)}: ${s.full_name}`}
+              icon={<IdCard className="size-4" aria-hidden />}
+              iconOnly
+            />
             <ViewLink id={s.id} params={params} label={t('table.profile', lang)} name={s.full_name} />
           </>
         )}
