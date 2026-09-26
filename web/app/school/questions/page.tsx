@@ -1,4 +1,5 @@
-import { CheckCircle2, Clock, MessageCircleQuestion } from 'lucide-react'
+import Link from 'next/link'
+import { CheckCircle2, Clock, MessageCircleQuestion, Tag } from 'lucide-react'
 import { currentLang } from '@/lib/i18n-server'
 import { t, numberFmt, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
@@ -7,16 +8,21 @@ import { groupByTopic, isAnswered, type InboxMessage } from '@/lib/student/messa
 import { hubSummary, answerableMessageIds } from '@/lib/student/hub-source'
 import { waitingHours, waitingTone, WAITING_LATE_HOURS } from '@/lib/student/hub'
 import { Card, PageHeader } from '@/components/ui/page'
-import { StatCard, StatGrid } from '@/components/ui/widgets'
+import { StatCard, StatGrid, WarningBanner, WorkflowCard } from '@/components/ui/widgets'
 import { paginate, pageSizeFrom } from '@/components/pager'
 import { DataTable, Pill, type Column } from '@/components/data-table/data-table'
 import { RecordDrawer } from '@/components/data-table/record-drawer'
-import { ViewLink } from '@/components/data-table/view-link'
+import { RowActionPill } from '@/components/data-table/row-action-pill'
+import { withParams } from '@/lib/url-params'
 import { HubTabs } from '../messages-hub-tabs'
 import { ReplyForm } from './reply-form'
 
-// The Questions tab of বার্তা ও অনুরোধ (#454 inbox, #509 section), on the
-// DataTable (map 013 FC4) with a drawer to read and answer.
+// The Questions tab of বার্তা ও অনুরোধ (#454 inbox, #509 section), following
+// the exam-landing pattern (013 FC4/013 A3): a one-line late-question warning
+// banner, four stat cards, the DataTable (title opens the drawer, one
+// contextual "Reply"/"View" pill per row — there is no second action to hide,
+// so no ⋮), then two workflow cards — oldest-waiting questions and the topic
+// queue.
 //
 // Grouping IS the feature. A flat chronological list would make a teacher sort
 // twenty questions about the same task in their head, so the rows stay in topic
@@ -76,7 +82,11 @@ export default async function SchoolQuestionsPage({
   )
   const pageData = paginate(shown, page, pageSize)
   const viewed = view ? (messages.find((m) => m.id === view) ?? null) : null
-  const late = messages.filter((m) => !isAnswered(m) && waitingHours(m) >= WAITING_LATE_HOURS).length
+  const lateList = messages.filter((m) => !isAnswered(m) && waitingHours(m) >= WAITING_LATE_HOURS)
+  const late = lateList.length
+  // Oldest-waiting-first — the ordering the workflow card needs, distinct from
+  // the table's topic-grouped default order above.
+  const oldestUnanswered = [...messages].filter((m) => !isAnswered(m)).sort((a, b) => waitingHours(b) - waitingHours(a))
 
   const who = (m: InboxMessage) =>
     [m.class_name && `${m.class_name}${m.section ? ` ${m.section}` : ''}`, m.roll_number !== null && `#${m.roll_number}`]
@@ -102,6 +112,13 @@ export default async function SchoolQuestionsPage({
     return <Pill tone={waitingTone(m) ?? 'muted'}>{age(m)}</Pill>
   }
   const topicLabel = (m: InboxMessage) => (m.publication_id ? m.topic_label : `${m.topic_label} · ${t('questions.generalBucket', lang)}`)
+  // The row's one contextual next step: Reply when unanswered and this viewer
+  // may answer it (ADR 0018 scopes who), View otherwise — matching the
+  // drawer's own ReplyForm/notYours split below.
+  const nextStepFor = (m: InboxMessage): { state: 'next' | 'default'; label: string } =>
+    !isAnswered(m) && (answerable === null || answerable.has(m.id))
+      ? { state: 'next', label: t('questions.reply', lang) }
+      : { state: 'default', label: t('notices.view', lang) }
 
   const columns: Column<InboxMessage>[] = [
     {
@@ -110,7 +127,14 @@ export default async function SchoolQuestionsPage({
       card: 'title',
       cell: (m) => (
         <div>
-          <p className="font-semibold">{m.student_name}</p>
+          <Link
+            href={withParams(params, { view: m.id })}
+            scroll={false}
+            data-view-link={m.id}
+            className="font-semibold hover:text-brand-600 hover:underline"
+          >
+            {m.student_name}
+          </Link>
           <p className="text-xs text-muted">{who(m)}</p>
         </div>
       ),
@@ -139,6 +163,7 @@ export default async function SchoolQuestionsPage({
     <>
       <PageHeader
         title={t('hub.title', lang)}
+        subtitle={t('hub.pageSubtitle', lang)}
         crumbs={schoolCrumbs('/school/questions', lang, [
           { label: t('hub.title', lang), href: '/school/questions' },
           { label: t('hub.tabQuestions', lang) },
@@ -146,6 +171,18 @@ export default async function SchoolQuestionsPage({
         badge={`${t('pager.total', lang)}: ${fmt.format(messages.length)}`}
       />
       <HubTabs active="/school/questions" lang={lang} summary={summary} />
+
+      {late > 0 && (
+        <WarningBanner
+          label={t('questions.statLate', lang)}
+          text={lateList
+            .slice(0, 3)
+            .map((m) => m.student_name)
+            .join(', ')}
+          href="/school/questions?state=unanswered"
+          linkLabel={t('notices.view', lang)}
+        />
+      )}
 
       <StatGrid>
         <StatCard
@@ -167,8 +204,17 @@ export default async function SchoolQuestionsPage({
           label={t('questions.statAnswered', lang)}
           value={fmt.format(messages.length - unansweredCount)}
         />
+        <StatCard
+          icon={<Tag className="size-5" />}
+          tone="sky"
+          label={t('questions.statTopics', lang)}
+          value={fmt.format(groups.length)}
+          note={groups[0]?.unanswered ? groups[0].label : undefined}
+          noteTone="muted"
+        />
       </StatGrid>
 
+      <h2 className="mb-grid mt-section text-lg font-extrabold">{t('hub.tabQuestions', lang)}</h2>
       <DataTable
         rows={pageData.items}
         rowId={(m) => m.id}
@@ -197,14 +243,10 @@ export default async function SchoolQuestionsPage({
           },
         ]}
         chips={[{ param: 'state', value: 'unanswered', label: t('questions.unanswered', lang) }]}
-        rowActions={(m) => (
-          <ViewLink
-            id={m.id}
-            params={params}
-            label={isAnswered(m) ? t('notices.view', lang) : t('questions.reply', lang)}
-            name={`${m.student_name}: ${m.subject}`}
-          />
-        )}
+        rowActions={(m) => {
+          const next = nextStepFor(m)
+          return <RowActionPill state={next.state} href={withParams(params, { view: m.id })} label={next.label} />
+        }}
         pagination={{ page: pageData.page, totalPages: pageData.totalPages, total: pageData.total, pageSize }}
         empty={
           <Card>
@@ -214,6 +256,48 @@ export default async function SchoolQuestionsPage({
           </Card>
         }
       />
+
+      <div className="mt-section grid gap-grid lg:grid-cols-2">
+        <WorkflowCard icon={<Clock className="size-5" />} title={t('questions.workflowOldestTitle', lang)}>
+          {oldestUnanswered.length === 0 ? (
+            <p className="mb-4 rounded-xl border border-dashed border-line p-6 text-center text-sm text-muted">
+              {t('questions.workflowOldestEmpty', lang)}
+            </p>
+          ) : (
+            <ul className="mb-4 divide-y divide-line">
+              {oldestUnanswered.slice(0, 5).map((m) => {
+                const next = nextStepFor(m)
+                return (
+                  <li key={m.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
+                    <div className="min-w-0">
+                      <p className="truncate font-semibold">{m.student_name}</p>
+                      <p className="truncate text-xs text-muted">{m.subject}</p>
+                    </div>
+                    <RowActionPill state={next.state} href={withParams(params, { view: m.id })} label={next.label} />
+                  </li>
+                )
+              })}
+            </ul>
+          )}
+        </WorkflowCard>
+
+        <WorkflowCard icon={<MessageCircleQuestion className="size-5" />} title={t('questions.colTopic', lang)}>
+          <ul className="mb-4 divide-y divide-line">
+            {groups.slice(0, 5).map((g) => (
+              <li key={g.key} className="flex flex-wrap items-center justify-between gap-2 py-3">
+                <p className="min-w-0 truncate font-semibold">
+                  {g.label} · {fmt.format(g.messages.length)}
+                </p>
+                <RowActionPill
+                  state={g.unanswered ? 'next' : 'default'}
+                  href={withParams(params, { topic: g.key })}
+                  label={t('notices.view', lang)}
+                />
+              </li>
+            ))}
+          </ul>
+        </WorkflowCard>
+      </div>
 
       <RecordDrawer
         open={Boolean(viewed)}

@@ -187,6 +187,10 @@ const dict = {
   // বার্তা ও অনুরোধ — the merged section (#509). Three sidebar entries became
   // one, so the section needs a name of its own that neither queue owns.
   'hub.title': { bn: 'বার্তা ও অনুরোধ', en: 'Messages & Requests' },
+  'hub.pageSubtitle': {
+    bn: 'শিক্ষার্থীদের প্রশ্ন, সংশোধনের অনুরোধ ও উত্তর দেওয়ার সময়ের হিসাব — একই ইনবক্সে',
+    en: 'Student questions, correction requests and reply-time tracking, in one inbox',
+  },
   'hub.tabQuestions': { bn: 'শিক্ষার্থীদের প্রশ্ন', en: 'Questions' },
   'hub.tabCorrections': { bn: 'সংশোধনের অনুরোধ', en: 'Corrections' },
   'hub.tabResponse': { bn: 'উত্তরের অবস্থা', en: 'Response' },
@@ -217,7 +221,10 @@ const dict = {
   'questions.search': { bn: 'শিক্ষার্থী বা প্রশ্ন খুঁজুন…', en: 'Search student or question…' },
   'questions.statUnanswered': { bn: 'উত্তর বাকি', en: 'Unanswered' },
   'questions.statLate': { bn: '৭২ ঘণ্টার বেশি অপেক্ষায়', en: 'Waiting over 72h' },
+  'questions.workflowOldestTitle': { bn: 'দীর্ঘদিন অপেক্ষমাণ প্রশ্ন', en: 'Longest-waiting questions' },
+  'questions.workflowOldestEmpty': { bn: 'উত্তরহীন কোনো প্রশ্ন নেই', en: 'No unanswered questions' },
   'questions.statAnswered': { bn: 'উত্তর দেওয়া হয়েছে', en: 'Answered' },
+  'questions.statTopics': { bn: 'সক্রিয় বিষয়', en: 'Active topics' },
   // The anchor rule, said in a sentence (ADR 0018). A Subject Teacher sees this
   // on a question about a colleague's subject — the row is visibly theirs to
   // read and not theirs to answer, and silence would read as a broken form.
