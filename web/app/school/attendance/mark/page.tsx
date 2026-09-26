@@ -1,25 +1,32 @@
 import Form from 'next/form'
 import Link from 'next/link'
-import { BookOpen, CalendarOff, ClipboardList, TrendingUp, UserCheck, UserX, Users } from 'lucide-react'
+import { BookOpen, CalendarClock, CalendarOff, ClipboardList, TrendingUp, UserCheck, UserX, Users } from 'lucide-react'
 import { currentLang } from '@/lib/i18n-server'
 import { t, numberFmt, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { studentRegister } from '@/lib/school/roster-source'
 import { studentAttendanceRates } from '@/lib/school/attendance-rate-source'
-import { attendanceRate } from '@/lib/dashboard'
+import { attendanceRate, unmarkedOfferings } from '@/lib/dashboard'
+import { selectAllRows } from '@/lib/supabase/select-all'
 import { schoolCrumbs } from '@/lib/school-crumbs'
 import { PageHeader } from '@/components/ui/page'
-import { QuickActions, StatCard, StatGrid } from '@/components/ui/widgets'
+import { QuickActions, StatCard, StatGrid, WarningBanner, WorkflowCard } from '@/components/ui/widgets'
+import { RowActionPill } from '@/components/data-table/row-action-pill'
 import { AttendanceTabs } from '../attendance-tabs'
 import { MarkAttendanceForm } from './mark-form'
 import { dateInputClass } from '@/components/ui/field'
 import { ClassSectionSelect } from '@/components/ui/class-section-select'
 import { EmptyState } from '@/components/ui/states'
 
-// Layout per ui/school-owner/attendance-student-mark.html: class/section/
+// Layout per ui/school-owner/attendance-student-mark.html, chromed to the
+// exam-landing pattern (map 013, new_ui/03-academics/attendance): header +
+// one-line warning banner + stat cards stay above the marking sheet, which
+// keeps its own layout unchanged (the "grids keep their layout" rule) —
 // class/section/date filters, bulk all-present/all-absent, per-row
-// present/absent + absence cause, Roll number leading each row (roll_number landed
-// with #27's admission profile, merged after this ticket first shipped).
+// present/absent + absence cause, Roll number leading each row (roll_number
+// landed with #27's admission profile, merged after this ticket first
+// shipped). Two workflow cards close the page: classes not yet marked today,
+// and the pending leave-request queue.
 function todayIso(): string {
   return new Date().toISOString().slice(0, 10)
 }
@@ -54,7 +61,7 @@ export default async function MarkAttendancePage({
   // One call, one model. This used to be ~60 lines of assembly: two Promise.all
   // waves, an .in(visibleIds) guard, a conditional profiles lookup for the
   // marker's name and three Map/Set joins — none of it reachable by a test.
-  const [register, rateMap] = await Promise.all([
+  const [register, rateMap, studentLeavePending, employeeLeavePending] = await Promise.all([
     studentRegister(supabase, {
       classSection,
       date,
@@ -66,9 +73,22 @@ export default async function MarkAttendancePage({
     // Attendance Rate (YTD, CONTEXT.md). Null while migration 0208 is
     // unapplied — the column and the card then hide rather than show zeros.
     studentAttendanceRates(supabase),
+    // Pending leave workflow card: a head-only count, so PostgREST's 1,000-row
+    // cap never enters into it (map 013, new_ui/03-academics/attendance).
+    supabase
+      .from('student_leaves')
+      .select('id', { count: 'exact', head: true })
+      .eq('status', 'pending')
+      .then((r) => r.count ?? 0),
+    supabase
+      .from('employee_leaves')
+      .select('id', { count: 'exact', head: true })
+      .eq('status', 'pending')
+      .then((r) => r.count ?? 0),
   ])
 
   const fmt = numberFmt(lang)
+  const n = (x: number) => fmt.format(x)
   const total = register.rows.length
   const taken = Boolean(register.markedBy)
   const present = register.rows.filter((r) => r.present).length
@@ -87,10 +107,62 @@ export default async function MarkAttendancePage({
     : null
   const ytdRate = ytd && ytd.d > 0 ? attendanceRate(ytd.p, ytd.d) : null
 
+  // Classes not marked for `date`, across every Class this caller can read —
+  // independent of the classSection filter above, so the banner and workflow
+  // card always describe the whole school, not just the row currently shown.
+  // A person is "marked" by either table (0170's own contract), same as the
+  // single-class register above; `register.readable` is unfiltered by
+  // classSection, so this covers every class regardless of the picker.
+  const readableIds = register.readable.map((s) => s.id)
+  const [{ rows: dayRecords }, { rows: dayNotes }] = readableIds.length
+    ? await Promise.all([
+        selectAllRows<{ person_id: string }>((from, to) =>
+          supabase
+            .from('attendance_records')
+            .select('person_id')
+            .eq('person_type', 'student')
+            .eq('att_date', date)
+            .in('person_id', readableIds)
+            .order('person_id')
+            .range(from, to),
+        ),
+        selectAllRows<{ person_id: string }>((from, to) =>
+          supabase
+            .from('attendance_absence_notes')
+            .select('person_id')
+            .eq('person_type', 'student')
+            .eq('att_date', date)
+            .in('person_id', readableIds)
+            .order('person_id')
+            .range(from, to),
+        ),
+      ])
+    : [{ rows: [] as { person_id: string }[] }, { rows: [] as { person_id: string }[] }]
+  const markedTodaySet = new Set([...dayRecords, ...dayNotes].map((r) => r.person_id))
+  const unmarkedIds = unmarkedOfferings(
+    register.readable.map((s) => ({ id: s.id, offeringId: s.class_offering_id })),
+    markedTodaySet,
+  )
+  const comboLabel = new Map(register.combos.map((c) => [c.value, c.label]))
+  const unmarkedNames = unmarkedIds.map((id) => comboLabel.get(id) ?? id)
+
+  // Banner: the single most urgent stalled item, one line, one way out.
+  const banner = unmarkedIds.length
+    ? {
+        text: `${t('attendance.classesNotMarked', lang)}: ${unmarkedNames.slice(0, 3).join(', ')}${
+          unmarkedIds.length > 3 ? ` +${n(unmarkedIds.length - 3)}` : ''
+        }`,
+        href: `/school/attendance/mark?date=${date}`,
+      }
+    : null
+  const pendingLeaveTotal = studentLeavePending + employeeLeavePending
+
   return (
     <div>
       <PageHeader
         title={t('attendance.markTitle', lang)}
+        subtitle={t('attendance.pageSubtitle', lang)}
+        badge={`${n(register.readable.length)} ${t('attendance.studentsTotal', lang)}`}
         crumbs={schoolCrumbs('/school/attendance', lang, { label: t('attendance.title', lang) })}
         actions={
           <Link
@@ -101,6 +173,15 @@ export default async function MarkAttendancePage({
           </Link>
         }
       />
+
+      {banner && (
+        <WarningBanner
+          label={t('attendance.bannerWarn', lang)}
+          text={banner.text}
+          href={banner.href}
+          linkLabel={t('attendance.viewUnmarkedList', lang)}
+        />
+      )}
 
       {total > 0 && (
         <StatGrid>
@@ -198,6 +279,84 @@ export default async function MarkAttendancePage({
           rates={rates}
         />
       )}
+
+      <div className="mt-section grid gap-grid lg:grid-cols-2">
+        <WorkflowCard
+          icon={<CalendarClock className="size-5" />}
+          title={t('attendance.classesNotMarked', lang)}
+          tag={unmarkedIds.length ? t('attendance.pendingTag', lang) : undefined}
+        >
+          {unmarkedIds.length ? (
+            <ul className="mb-4 divide-y divide-line">
+              {unmarkedIds.slice(0, 5).map((id) => (
+                <li key={id} className="flex flex-wrap items-center justify-between gap-2 py-3">
+                  <p className="truncate font-semibold">{comboLabel.get(id) ?? id}</p>
+                  <RowActionPill
+                    state="next"
+                    href={`/school/attendance/mark?classSection=${id}&date=${date}`}
+                    label={t('attendance.tabMark', lang)}
+                  />
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="mb-4 text-center">
+              <span
+                className="mx-auto mb-3 flex size-14 items-center justify-center rounded-full bg-brand-50 text-brand-600"
+                aria-hidden
+              >
+                <CalendarClock className="size-6" />
+              </span>
+              <p className="font-bold">{t('attendance.notMarkedEmpty', lang)}</p>
+            </div>
+          )}
+        </WorkflowCard>
+
+        <WorkflowCard
+          icon={<CalendarOff className="size-5" />}
+          title={t('attendance.leaveWorkflowTitle', lang)}
+          tag={pendingLeaveTotal ? t('attendance.leaveWorkflowTag', lang) : undefined}
+        >
+          {pendingLeaveTotal ? (
+            <ul className="mb-4 divide-y divide-line">
+              {studentLeavePending > 0 && (
+                <li className="flex flex-wrap items-center justify-between gap-2 py-3">
+                  <p className="font-semibold">
+                    {t('attendance.studentLeavesPendingLabel', lang)}: {n(studentLeavePending)}
+                  </p>
+                  <RowActionPill
+                    state="next"
+                    href="/school/attendance/leave/student?status=pending"
+                    label={t('attendance.reviewAction', lang)}
+                  />
+                </li>
+              )}
+              {employeeLeavePending > 0 && (
+                <li className="flex flex-wrap items-center justify-between gap-2 py-3">
+                  <p className="font-semibold">
+                    {t('attendance.employeeLeavesPendingLabel', lang)}: {n(employeeLeavePending)}
+                  </p>
+                  <RowActionPill
+                    state="next"
+                    href="/school/attendance/leave/employee?status=pending"
+                    label={t('attendance.reviewAction', lang)}
+                  />
+                </li>
+              )}
+            </ul>
+          ) : (
+            <div className="mb-4 text-center">
+              <span
+                className="mx-auto mb-3 flex size-14 items-center justify-center rounded-full bg-brand-50 text-brand-600"
+                aria-hidden
+              >
+                <CalendarOff className="size-6" />
+              </span>
+              <p className="font-bold">{t('attendance.leaveWorkflowEmpty', lang)}</p>
+            </div>
+          )}
+        </WorkflowCard>
+      </div>
     </div>
   )
 }

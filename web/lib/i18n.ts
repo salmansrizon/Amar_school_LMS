@@ -1672,6 +1672,31 @@ const dict = {
   'classes.routine': { bn: 'রুটিন', en: 'Routine' },
   'classes.syllabus': { bn: 'সিলেবাস', en: 'Syllabus' },
   'classes.subjects': { bn: 'বিষয় বরাদ্দ', en: 'Subjects' },
+  // Class & Curriculum landing (map 013, new_ui/03-academics/classes-curriculum) —
+  // header subtitle, one-line warning banner and the two bottom workflow cards.
+  'classes.pageSubtitle': {
+    bn: 'শিক্ষাবর্ষের সকল শ্রেণি, শাখা বিভাজন, পাঠ্যসূচি ও শিক্ষক বরাদ্দ তদারকি',
+    en: 'Track every class, section, curriculum and teacher assignment for the year',
+  },
+  'classes.bannerWarn': { bn: 'সতর্কতা', en: 'Warning' },
+  'classes.viewIncompleteList': { bn: 'অসম্পূর্ণ তালিকা দেখুন', en: 'View incomplete list' },
+  'classes.subjectsMissing': { bn: 'বিষয় নেই', en: 'No subjects' },
+  'classes.needsSetupTitle': { bn: 'শ্রেণি সেটআপ তালিকা', en: 'Class setup checklist' },
+  'classes.needsSetupTag': { bn: 'মনোযোগ প্রয়োজন', en: 'Needs attention' },
+  'classes.needsSetupEmpty': { bn: 'সব শ্রেণিতে শিক্ষক ও বিষয় নির্ধারিত', en: 'Every class has a teacher and subjects' },
+  'classes.teacherSet': { bn: 'শিক্ষক নির্ধারিত', en: 'Teacher set' },
+  'classes.subjectsSet': { bn: 'বিষয় নির্ধারিত', en: 'Subjects set' },
+  'classes.addSubjectsAction': { bn: 'বিষয় যোগ করুন', en: 'Add subjects' },
+  'classes.routineSetupTitle': { bn: 'রুটিন প্রস্তুতি', en: 'Routine setup' },
+  'classes.routineSetupTag': { bn: 'সহায়িকা', en: 'Guide' },
+  'classes.routineSetupEmpty': { bn: 'সব শ্রেণির রুটিন প্রস্তুত', en: 'Every class has a routine' },
+  'classes.noRoutineNote': {
+    bn: 'সাপ্তাহিক রুটিন তৈরি করলে বিষয় ও শিক্ষক ক্লাস রুটিনে দেখা যাবে।',
+    en: 'Build a weekly routine so subjects and teachers show up in the timetable.',
+  },
+  'classes.setupRoutineAction': { bn: 'রুটিন তৈরি করুন', en: 'Set up routine' },
+  'classes.viewRoutineAction': { bn: 'রুটিন দেখুন', en: 'View routine' },
+  'classes.openRoutineBuilder': { bn: 'রুটিন বিল্ডার খুলুন', en: 'Open routine builder' },
   'routine.title': { bn: 'ক্লাস রুটিন', en: 'Class Routine Builder' },
   'routine.docWord': { bn: 'ক্লাস রুটিন', en: 'Class Routine' },
   'routine.pickClass': { bn: 'শ্রেণি নির্বাচন করুন', en: 'Select class' },
@@ -2678,6 +2703,24 @@ const dict = {
   'attendance.filterToday': { bn: 'আজ', en: 'Today' },
   'attendance.filterMonthly': { bn: 'মাসিক', en: 'Monthly' },
   'attendance.filterCustom': { bn: 'নির্দিষ্ট সময়সীমা', en: 'Custom Range' },
+
+  // Mark Attendance landing (map 013, new_ui/03-academics/attendance) — header
+  // subtitle, one-line warning banner and the two bottom workflow cards.
+  'attendance.pageSubtitle': {
+    bn: 'দৈনিক শ্রেণিভিত্তিক হাজিরা নিন এবং অনুপস্থিতির কারণ যাচাই করুন',
+    en: 'Take daily class-wise attendance and verify absence reasons',
+  },
+  'attendance.bannerWarn': { bn: 'সতর্কতা', en: 'Warning' },
+  'attendance.classesNotMarked': { bn: 'হাজিরা নেওয়া হয়নি', en: 'Attendance not taken' },
+  'attendance.viewUnmarkedList': { bn: 'তালিকা দেখুন', en: 'View list' },
+  'attendance.pendingTag': { bn: 'অপেক্ষমাণ', en: 'Pending' },
+  'attendance.notMarkedEmpty': { bn: 'সব শ্রেণির আজকের হাজিরা নেওয়া হয়েছে', en: 'Every class has attendance taken' },
+  'attendance.leaveWorkflowTitle': { bn: 'অপেক্ষমাণ ছুটির আবেদন', en: 'Pending leave requests' },
+  'attendance.leaveWorkflowTag': { bn: 'অনুমোদন', en: 'Approvals' },
+  'attendance.studentLeavesPendingLabel': { bn: 'শিক্ষার্থী ছুটির আবেদন', en: 'Student leave requests' },
+  'attendance.employeeLeavesPendingLabel': { bn: 'কর্মচারী ছুটির আবেদন', en: 'Employee leave requests' },
+  'attendance.reviewAction': { bn: 'পর্যালোচনা করুন', en: 'Review' },
+  'attendance.leaveWorkflowEmpty': { bn: 'কোনো ছুটির আবেদন অপেক্ষমাণ নেই', en: 'No leave requests pending' },
 
   // Institute Setup & Misc (issue #39, PRD §5.11)
   'institute.title': { bn: 'প্রতিষ্ঠান সেটআপ', en: 'Institute Setup' },

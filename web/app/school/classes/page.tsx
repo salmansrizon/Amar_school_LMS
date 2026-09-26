@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { BookOpen, GraduationCap, School, UserX } from 'lucide-react'
+import { BookOpen, CalendarClock, ClipboardList, GraduationCap, School, UserCog, UserX } from 'lucide-react'
 import { currentLang } from '@/lib/i18n-server'
 import { t, numberFmt, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
@@ -28,7 +28,7 @@ import { isKnownAcademicShift, ACADEMIC_SHIFT_LABEL_KEY, type AcademicShift } fr
 import { schoolCrumbs } from '@/lib/school-crumbs'
 import { withParams } from '@/lib/url-params'
 import { PageHeader } from '@/components/ui/page'
-import { AlertStrip, StatCard, StatGrid } from '@/components/ui/widgets'
+import { StatCard, StatGrid, WarningBanner, WorkflowCard } from '@/components/ui/widgets'
 import { EmptyState } from '@/components/ui/states'
 import { SectionTabs } from '@/components/ui/section-tabs'
 import { paginate, pageSizeFrom } from '@/components/pager'
@@ -36,16 +36,24 @@ import { DataTable, Pill, type Column } from '@/components/data-table/data-table
 import { RecordDrawer } from '@/components/data-table/record-drawer'
 import { ViewLink } from '@/components/data-table/view-link'
 import { RowMenu } from '@/components/data-table/row-menu'
+import { RowActionPill } from '@/components/data-table/row-action-pill'
 import { AddClassModal, AddSubjectModal, ArchiveOrDeleteButton, CopyClassesControl, DeleteButton } from './class-controls'
 import { ClassTeacherPicker } from './class-teacher-picker'
 import { CopySubjectsBar, type SubjectListRow } from './subject-list-table'
 import { stageSubjectCopy } from './actions'
 
-// Class & Curriculum (map 013 A1, new_ui/03-academics/classes-curriculum):
-// header + alert strip + stat cards, then two tabs — Class Offerings and
-// Subjects — each a DataTable with a record drawer. Rooms moved to Institute
-// Setup -> Venues (issue #93); the header's More menu keeps the link across.
-// Every filter/scoping rule below is unchanged from the pre-013 page.
+// Class & Curriculum (map 013 A1, new_ui/03-academics/classes-curriculum),
+// laid out as the exam landing pattern: header + one-line warning banner +
+// four stat cards, then two tabs — Class Offerings and Subjects — each a
+// DataTable with a record drawer, and a bottom two-card workflow row (setup
+// checklist, routine setup). Rooms moved to Institute Setup -> Venues (issue
+// #93); the header's More menu keeps the link across. Every filter/scoping
+// rule below is unchanged from the pre-013 page.
+//
+// Only the Classes tab carries a per-row next step (assign teacher / add
+// subjects / set up routine) and a ⋮: Subjects have no lifecycle of their own
+// to point a next step at, so that tab keeps its plain Profile action rather
+// than faking one (the honesty rule this whole map runs on).
 
 const PAGE_SIZE = 20
 
@@ -65,6 +73,7 @@ export default async function ClassesPage({
     level?: string
     year?: string
     teacher?: string
+    subjects?: string
     subjectClass?: string
     copy?: string
     page?: string
@@ -73,7 +82,18 @@ export default async function ClassesPage({
   }>
 }) {
   const params = await searchParams
-  const { q = '', level = '', year: yearParam, teacher = '', subjectClass = '', copy = '', page, size, view } = params
+  const {
+    q = '',
+    level = '',
+    year: yearParam,
+    teacher = '',
+    subjects: subjectsGap = '',
+    subjectClass = '',
+    copy = '',
+    page,
+    size,
+    view,
+  } = params
   const tab: Tab = params.tab === 'subjects' ? 'subjects' : 'classes'
   const pageSize = pageSizeFrom(size, PAGE_SIZE)
   const lang: Lang = await currentLang()
@@ -103,6 +123,7 @@ export default async function ClassesPage({
     usedIds,
     { data: groupDepartmentOptionRows },
     { data: subjectVisibleOfferings },
+    { rows: routineRows },
   ] = await Promise.all([
     applyGlobalYearFilterToOfferings(
       applyGlobalShiftFilterToOfferings(
@@ -155,6 +176,13 @@ export default async function ClassesPage({
       ),
       academicYearSelection,
     ),
+    // Routine coverage for the bottom "Routine setup" workflow card: which
+    // Offerings have at least one routine_slots entry at all. Paged per
+    // select-all.ts — a school's total slot count (classes × periods × days)
+    // can pass PostgREST's 1,000-row cap.
+    selectAllRows<{ class_offering_id: string }>((from, to) =>
+      supabase.from('routine_slots').select('class_offering_id').order('class_offering_id').range(from, to),
+    ),
   ])
   const groupDepartmentOptions = (groupDepartmentOptionRows ?? []).map((r) => r.name)
 
@@ -174,9 +202,21 @@ export default async function ClassesPage({
     : null
   const counts = studentCounts(enrollments)
   const noTeacher = allClasses.filter((c) => !c.class_teacher_id)
+  // Classes with zero Subjects defined yet (the Subjects tab's own scoping —
+  // Global Shift/Year selection only, same set that tab renders).
+  const subjectCountByClass = new Map<string, number>()
+  for (const s of subjectsInSelection) {
+    if (s.class_id) subjectCountByClass.set(s.class_id, (subjectCountByClass.get(s.class_id) ?? 0) + 1)
+  }
+  const noSubjects = allClasses.filter((c) => (subjectCountByClass.get(c.id) ?? 0) === 0)
+  // Classes with no entry at all in the weekly routine grid (routine_slots) —
+  // the honest "no routine" signal new_ui's academics flowboard shows
+  // ("৬ষ্ঠ ও ৭ম শ্রেণির জন্য কোনো সূচি নেই").
+  const routinedClassIds = new Set(routineRows.map((r) => r.class_offering_id))
+  const noRoutine = allClasses.filter((c) => !routinedClassIds.has(c.id))
   const shownClasses = visibleClasses(allClasses, { q, level, year: selectedYear }).filter(
     (c) => teacher !== 'missing' || !c.class_teacher_id,
-  )
+  ).filter((c) => subjectsGap !== 'missing' || (subjectCountByClass.get(c.id) ?? 0) === 0)
   const needle = q.trim().toLowerCase()
   const shownSubjects = filterSubjectsByClass(subjectsInSelection, subjectClass).filter(
     (s) => !needle || s.name.toLowerCase().includes(needle) || (s.code ?? '').toLowerCase().includes(needle),
@@ -195,10 +235,52 @@ export default async function ClassesPage({
   const copySubjects = subjectsInSelection.filter((s) => copyIds.has(s.id))
 
   const fmt = numberFmt(lang)
+  const n = (x: number) => fmt.format(x)
   const dash = <span className="text-muted">—</span>
   const shiftLabel = (s: string | null) => (s ? t(ACADEMIC_SHIFT_LABEL_KEY[s as AcademicShift], lang) : null)
-  const enrolledTotal = allClasses.reduce((n, c) => n + countFor(counts, c.id), 0)
+  const enrolledTotal = allClasses.reduce((sum, c) => sum + countFor(counts, c.id), 0)
   const tabParams = { ...params, copy: undefined }
+
+  // Banner: the single most urgent stalled item, one line, one way out — a
+  // class with no teacher outranks one with no subjects yet (docs/013).
+  const banner = noTeacher.length
+    ? {
+        text: `${t('classes.classTeacherMissing', lang)}: ${noTeacher
+          .slice(0, 3)
+          .map((c) => [c.name, c.section].filter(Boolean).join(' - '))
+          .join(', ')}${noTeacher.length > 3 ? ` +${n(noTeacher.length - 3)}` : ''}`,
+        href: '/school/classes?teacher=missing',
+      }
+    : noSubjects.length
+      ? {
+          text: `${t('classes.subjectsMissing', lang)}: ${n(noSubjects.length)} — ${noSubjects
+            .slice(0, 3)
+            .map((c) => [c.name, c.section].filter(Boolean).join(' - '))
+            .join(', ')}`,
+          href: '/school/classes?subjects=missing',
+        }
+      : null
+
+  // The one contextual next step each class row surfaces (map 013's
+  // exam-landing pattern): assign a teacher, else define subjects, else build
+  // the routine, else just re-open it. The full action set (routine/syllabus/
+  // subject assignment) stays one click away behind ⋮. Forces `tab=classes`
+  // (rather than reusing whatever tab is current) because the "needs setup"
+  // workflow card below renders on both tabs, and the Class record drawer
+  // only opens when `viewedClass` is resolved on the Classes tab.
+  const classNextStep = (c: ClassRow): { href: string; label: string } => {
+    if (!c.class_teacher_id)
+      return { href: withParams(params, { tab: null, copy: null, view: c.id }), label: t('classes.assignTeacher', lang) }
+    if ((subjectCountByClass.get(c.id) ?? 0) === 0)
+      return { href: `/school/classes?tab=subjects&subjectClass=${c.id}`, label: t('classes.addSubjectsAction', lang) }
+    if (!routinedClassIds.has(c.id))
+      return { href: `/school/classes/routine?class=${c.id}`, label: t('classes.setupRoutineAction', lang) }
+    return { href: `/school/classes/routine?class=${c.id}`, label: t('classes.viewRoutineAction', lang) }
+  }
+
+  // Bottom workflow cards (map 013): every class still missing a teacher or
+  // subjects, and every class with no routine at all.
+  const setupQueue = allClasses.filter((c) => !c.class_teacher_id || (subjectCountByClass.get(c.id) ?? 0) === 0)
 
   type ClassRow = (typeof allClasses)[number]
   const classColumns: Column<ClassRow>[] = [
@@ -208,7 +290,14 @@ export default async function ClassesPage({
       card: 'title',
       cell: (c) => (
         <div className="min-w-0">
-          <div className="font-semibold">{c.name}</div>
+          <Link
+            href={withParams(tabParams, { view: c.id })}
+            scroll={false}
+            data-view-link={c.id}
+            className="font-semibold hover:text-brand-600 hover:underline"
+          >
+            {c.name}
+          </Link>
           <div className="text-xs text-muted">
             {[c.section && `${t('classes.section', lang)}: ${c.section}`, c.group_department].filter(Boolean).join(' · ') ||
               '—'}
@@ -296,6 +385,7 @@ export default async function ClassesPage({
     <>
       <PageHeader
         title={t('classes.title', lang)}
+        subtitle={t('classes.pageSubtitle', lang)}
         crumbs={schoolCrumbs('/school/classes', lang, { label: t('classes.title', lang) })}
         badge={`${fmt.format(allClasses.length)} ${t('classes.tabClasses', lang)} · ${fmt.format(subjectsInSelection.length)} ${t('classes.tabSubjects', lang)}`}
         actions={
@@ -339,24 +429,14 @@ export default async function ClassesPage({
         }
       />
 
-      <AlertStrip
-        title={t('classes.alertTitle', lang)}
-        alerts={
-          noTeacher.length
-            ? [
-                {
-                  tone: 'sun',
-                  title: `${t('classes.classTeacherMissing', lang)}: ${fmt.format(noTeacher.length)}`,
-                  body: noTeacher
-                    .slice(0, 3)
-                    .map((c) => [c.name, c.section].filter(Boolean).join(' - '))
-                    .join(', '),
-                  action: { href: '/school/classes?teacher=missing', label: t('classes.assignTeacher', lang) },
-                },
-              ]
-            : []
-        }
-      />
+      {banner && (
+        <WarningBanner
+          label={t('classes.bannerWarn', lang)}
+          text={banner.text}
+          href={banner.href}
+          linkLabel={t('classes.viewIncompleteList', lang)}
+        />
+      )}
 
       <StatGrid>
         <StatCard
@@ -377,6 +457,8 @@ export default async function ClassesPage({
           tone="sky"
           label={t('classes.statSubjects', lang)}
           value={fmt.format(subjectsInSelection.length)}
+          note={noSubjects.length ? `${n(noSubjects.length)} ${t('classes.subjectsMissing', lang)}` : undefined}
+          noteTone={noSubjects.length ? 'sun' : 'muted'}
           action={{ href: '/school/classes?tab=subjects', label: t('students.statView', lang) }}
         />
         <StatCard
@@ -405,6 +487,7 @@ export default async function ClassesPage({
               <CopyClassesControl lang={lang} activeYear={activeAcademicYear} sourceYears={copySources} />
             </div>
           )}
+          <h2 className="mb-grid mt-section text-lg font-extrabold">{t('classes.classCatalogue', lang)}</h2>
           <DataTable
             rows={classPage.items}
             rowId={(c) => c.id}
@@ -440,10 +523,16 @@ export default async function ClassesPage({
                 value: 'missing',
                 label: `${t('classes.classTeacherMissing', lang)} (${fmt.format(noTeacher.length)})`,
               },
+              {
+                param: 'subjects',
+                value: 'missing',
+                label: `${t('classes.subjectsMissing', lang)} (${fmt.format(noSubjects.length)})`,
+              },
             ]}
-            rowActions={(c) => (
-              <ViewLink id={c.id} params={tabParams} label={t('table.profile', lang)} name={c.name} />
-            )}
+            rowActions={(c) => {
+              const next = classNextStep(c)
+              return <RowActionPill state="next" href={next.href} label={next.label} />
+            }}
             rowMenu={(c) => [
               { label: t('classes.routine', lang), href: `/school/classes/routine?class=${c.id}` },
               { label: t('classes.syllabus', lang), href: '/school/classes/syllabus' },
@@ -479,6 +568,7 @@ export default async function ClassesPage({
               cancelHref={`/school/classes${withParams(params, { copy: null })}`}
             />
           )}
+          <h2 className="mb-grid mt-section text-lg font-extrabold">{t('classes.subjectList', lang)}</h2>
           <DataTable
             rows={subjectPage.items}
             rowId={(s) => s.id}
@@ -510,6 +600,87 @@ export default async function ClassesPage({
           />
         </>
       )}
+
+      <div className="mt-section grid gap-grid lg:grid-cols-2">
+        <WorkflowCard
+          icon={<UserCog className="size-5" />}
+          title={t('classes.needsSetupTitle', lang)}
+          tag={setupQueue.length ? t('classes.needsSetupTag', lang) : undefined}
+        >
+          {setupQueue.length ? (
+            <ul className="mb-4 divide-y divide-line">
+              {setupQueue.slice(0, 5).map((c) => {
+                const hasTeacher = Boolean(c.class_teacher_id)
+                const hasSubjects = (subjectCountByClass.get(c.id) ?? 0) > 0
+                const next = classNextStep(c)
+                return (
+                  <li key={c.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
+                    <div className="min-w-0">
+                      <p className="truncate font-semibold">{[c.name, c.section].filter(Boolean).join(' - ')}</p>
+                      <div className="mt-1 flex flex-wrap gap-1.5">
+                        <Pill tone={hasTeacher ? 'mint' : 'muted'}>
+                          {t(hasTeacher ? 'classes.teacherSet' : 'classes.classTeacherMissing', lang)}
+                        </Pill>
+                        <Pill tone={hasSubjects ? 'mint' : 'muted'}>
+                          {t(hasSubjects ? 'classes.subjectsSet' : 'classes.subjectsMissing', lang)}
+                        </Pill>
+                      </div>
+                    </div>
+                    <RowActionPill state="next" href={next.href} label={next.label} />
+                  </li>
+                )
+              })}
+            </ul>
+          ) : (
+            <div className="mb-4 text-center">
+              <span
+                className="mx-auto mb-3 flex size-14 items-center justify-center rounded-full bg-brand-50 text-brand-600"
+                aria-hidden
+              >
+                <UserCog className="size-6" />
+              </span>
+              <p className="font-bold">{t('classes.needsSetupEmpty', lang)}</p>
+            </div>
+          )}
+        </WorkflowCard>
+
+        <WorkflowCard
+          icon={<CalendarClock className="size-5" />}
+          title={t('classes.routineSetupTitle', lang)}
+          tag={t('classes.routineSetupTag', lang)}
+        >
+          {noRoutine.length ? (
+            <ul className="mb-4 divide-y divide-line">
+              {noRoutine.slice(0, 5).map((c) => (
+                <li key={c.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
+                  <p className="truncate font-semibold">{[c.name, c.section].filter(Boolean).join(' - ')}</p>
+                  <RowActionPill
+                    state="next"
+                    href={`/school/classes/routine?class=${c.id}`}
+                    label={t('classes.setupRoutineAction', lang)}
+                  />
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="mb-4 text-center">
+              <span
+                className="mx-auto mb-3 flex size-14 items-center justify-center rounded-full bg-brand-50 text-brand-600"
+                aria-hidden
+              >
+                <ClipboardList className="size-6" />
+              </span>
+              <p className="font-bold">{t('classes.routineSetupEmpty', lang)}</p>
+            </div>
+          )}
+          <p className="mb-4 rounded-xl bg-paper-muted p-4 text-sm text-muted">{t('classes.noRoutineNote', lang)}</p>
+          <div className="mt-auto border-t border-line pt-4 text-center">
+            <Link href="/school/classes/routine" className={primaryClass}>
+              {t('classes.openRoutineBuilder', lang)}
+            </Link>
+          </div>
+        </WorkflowCard>
+      </div>
 
       <RecordDrawer
         open={Boolean(viewedClass || viewedSubject)}
