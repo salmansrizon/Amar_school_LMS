@@ -8,8 +8,16 @@ import {
   parseThemePreference,
   parseShiftSelection,
   parseAcademicYearSelection,
+  SHORTCUTS_COOKIE,
+  parseShortcutsEnabled,
   type ThemePreference,
 } from '@/lib/ui-prefs'
+
+/** Whether DataTable single-key shortcuts are on (map 013, F6; WCAG 2.1.4). */
+export async function shortcutsEnabled(): Promise<boolean> {
+  const store = await cookies()
+  return parseShortcutsEnabled(store.get(SHORTCUTS_COOKIE)?.value)
+}
 
 /** The persisted sidebar collapse choice, read before first paint (issue #115). */
 export async function sidebarCollapsed(): Promise<boolean> {
