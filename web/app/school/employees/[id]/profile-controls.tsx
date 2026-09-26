@@ -2,16 +2,17 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
+import { Pencil, RotateCcw, Trash2 } from 'lucide-react'
 import { t, type Lang } from '@/lib/i18n'
 import { ProfileFields } from '../new/create-form'
 import { archiveEmployee, restoreEmployee, updateEmployee } from '../actions'
 import { ConfirmDialog } from '@/components/confirm-dialog'
 
 const btnSecondary =
-  'cursor-pointer rounded-full border border-line-strong px-4 py-1.5 text-xs font-semibold hover:bg-paper-muted disabled:opacity-50'
+  'inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-line-strong px-4 py-1.5 text-xs font-semibold hover:bg-paper-muted disabled:opacity-50'
 // Destructive tone for archive/delete triggers (#365).
 const btnDanger =
-  'cursor-pointer rounded-full border border-alert px-4 py-1.5 text-xs font-semibold text-alert-deep hover:bg-alert-soft disabled:opacity-50'
+  'inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-alert px-4 py-1.5 text-xs font-semibold text-alert-deep hover:bg-alert-soft disabled:opacity-50'
 
 /** Read-mode profile with an Edit toggle; edit reuses the create-form sections. */
 export function ProfileEditor({
@@ -33,6 +34,7 @@ export function ProfileEditor({
       <div>
         <div className="mb-3 flex justify-end">
           <button type="button" onClick={() => setEditing(true)} className={btnSecondary}>
+            <Pencil className="size-3.5" aria-hidden />
             {t('employees.editProfile', lang)}
           </button>
         </div>
@@ -108,6 +110,7 @@ export function ArchiveToggle({
           }
           className={btnSecondary}
         >
+          <RotateCcw className="size-3.5" aria-hidden />
           {t('employees.restore', lang)}
         </button>
         {error && <span className="ml-2 text-xs text-alert-deep">{error}</span>}
@@ -117,7 +120,12 @@ export function ArchiveToggle({
 
   return (
     <ConfirmDialog
-      triggerLabel={t('employees.archive', lang)}
+      triggerLabel={
+        <>
+          <Trash2 className="size-3.5" aria-hidden />
+          {t('employees.archive', lang)}
+        </>
+      }
       triggerClassName={btnDanger}
       title={t('employees.archive', lang)}
       body={t('employees.archiveConfirm', lang)}

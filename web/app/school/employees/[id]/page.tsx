@@ -1,12 +1,14 @@
-import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
+import { schoolCrumbs } from '@/lib/school-crumbs'
+import { PageHeader, railClass } from '@/components/ui/page'
+import { ProfileHeader } from '@/components/ui/profile'
+import { Pill } from '@/components/data-table/data-table'
 import { LoginLinkPicker } from '../employee-controls'
 import { ArchiveToggle } from './profile-controls'
 import { EmployeeProfile, getEmployee } from './employee-profile'
-import { railClass } from '@/components/ui/page'
 
 // Profile sections live in employee-profile.tsx (shared with the list's drawer).
 // Layout per ui/school-owner/employee-detail.html: status header with
@@ -75,10 +77,17 @@ export default async function EmployeeDetailPage({
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-extrabold">{employee.full_name}</h1>
-        <Link href="/school/employees" aria-label={t('employees.title', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
-      </div>
+      <PageHeader
+        title={employee.full_name}
+        backHref="/school/employees"
+        backLabel={t('employees.title', lang)}
+        crumbs={schoolCrumbs(
+          '/school/employees',
+          lang,
+          { label: t('employees.title', lang), href: '/school/employees' },
+          { label: employee.full_name },
+        )}
+      />
 
       {/* Carries a partial-creation failure (issue #566) across the redirect
           from the create form: the employee record exists, but a later step
@@ -88,16 +97,21 @@ export default async function EmployeeDetailPage({
         <p className="mb-4 rounded-md bg-alert-soft px-3 py-2 text-sm text-alert-deep">{createError}</p>
       )}
 
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <span
-          className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
-            archived ? 'bg-paper-muted text-muted' : 'bg-mint-soft text-mint-deep'
-          }`}
-        >
-          {t(archived ? 'employees.oldEmployee' : 'employees.active', lang)}
-        </span>
-        <ArchiveToggle lang={lang} employeeId={id} archived={archived} />
-      </div>
+      <ProfileHeader
+        name={employee.full_name}
+        status={
+          <Pill tone={archived ? 'muted' : 'mint'} live={!archived}>
+            {t(archived ? 'employees.oldEmployee' : 'employees.active', lang)}
+          </Pill>
+        }
+        meta={[
+          employee.category ? `${t('employees.category', lang)}: ${employee.category}` : null,
+          employee.unique_id ? `${t('employees.uniqueId', lang)}: ${employee.unique_id}` : null,
+        ]
+          .filter(Boolean)
+          .join('   |   ')}
+        actions={<ArchiveToggle lang={lang} employeeId={id} archived={archived} />}
+      />
 
       {role === 'school_owner' && (
         <section className="mb-4 rounded-lg border border-line bg-paper p-5">
