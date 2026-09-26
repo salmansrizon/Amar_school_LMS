@@ -7,6 +7,7 @@ import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { enrolledStudentIds, enrolledIdFilter } from '@/lib/school/offering-roster'
 import { resolveBackHref, selfOrigin, withOrigin } from '@/lib/back-nav'
+import { PrintTrigger } from '@/components/print/print-trigger'
 
 // Roster picker for the single-student printables (issue #33, PRD §5.5) —
 // the mockups' own entry point (a "Result Book" list) is out of scope here
@@ -99,17 +100,31 @@ export default async function ExamPrintablesPage({
                 <td className="px-4 py-3">{s.roll_number ?? '—'}</td>
                 <td className="px-4 py-3">{s.full_name}</td>
                 <td className="px-4 py-3">
-                  <Link href={withOrigin(`/school/exams/${exam.id}/mark-sheet/${s.id}`, deeper)} className="text-brand-600 hover:underline">
-                    {t('markSheet.docWord', lang)}
-                  </Link>
+                  <div className="flex items-center gap-1">
+                    <Link href={withOrigin(`/school/exams/${exam.id}/mark-sheet/${s.id}`, deeper)} className="text-brand-600 hover:underline">
+                      {t('markSheet.docWord', lang)}
+                    </Link>
+                    <PrintTrigger
+                      iconOnly
+                      href={`/school/exams/${exam.id}/mark-sheet/${s.id}/print`}
+                      label={`${t('print.print', lang)} ${t('markSheet.docWord', lang)}: ${s.full_name}`}
+                    />
+                  </div>
                 </td>
                 <td className="px-4 py-3">
-                  <Link
-                    href={withOrigin(`/school/exams/${exam.id}/progress-report/${s.id}`, deeper)}
-                    className="text-brand-600 hover:underline"
-                  >
-                    {t('progressReport.docWord', lang)}
-                  </Link>
+                  <div className="flex items-center gap-1">
+                    <Link
+                      href={withOrigin(`/school/exams/${exam.id}/progress-report/${s.id}`, deeper)}
+                      className="text-brand-600 hover:underline"
+                    >
+                      {t('progressReport.docWord', lang)}
+                    </Link>
+                    <PrintTrigger
+                      iconOnly
+                      href={`/school/exams/${exam.id}/progress-report/${s.id}/print`}
+                      label={`${t('print.print', lang)} ${t('progressReport.docWord', lang)}: ${s.full_name}`}
+                    />
+                  </div>
                 </td>
               </tr>
             ))}

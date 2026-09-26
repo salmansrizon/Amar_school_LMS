@@ -7,6 +7,7 @@ import { getSchoolContext } from '@/lib/school/context'
 import { subjectsForClass } from '@/lib/students'
 import { AddRoutineEntryForm, RoutineTable, type Option, type RoutineEntryRow } from './routine-controls'
 import { resolveBackHref } from '@/lib/back-nav'
+import { PrintTrigger } from '@/components/print/print-trigger'
 
 // Layout per ui/school-owner/exam-routine.html: toolbar (exam label + Exam
 // Setup / Print / Save) over a Date/Day/Time/Subject/Room table. Day is
@@ -59,14 +60,7 @@ export default async function ExamRoutinePage({
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <span className="text-sm text-muted">{examLabel}</span>
-        <a
-          href={`/school/exams/${exam.id}/routine/print`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="rounded-full border border-line-strong px-3 py-1.5 text-xs font-semibold hover:bg-paper-muted"
-        >
-          {t('examRoutine.print', lang)}
-        </a>
+        <PrintTrigger href={`/school/exams/${exam.id}/routine/print`} label={t('examRoutine.print', lang)} />
       </div>
 
       <section className="rounded-2xl border border-line bg-paper p-card">

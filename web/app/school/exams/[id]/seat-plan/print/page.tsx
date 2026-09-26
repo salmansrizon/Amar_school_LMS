@@ -12,7 +12,8 @@ import {
   type SeatAllocation,
 } from '@/lib/seat-plan-print'
 import { PrintPage, InstituteHeader, PaginatedSheet } from '@/components/print/pieces'
-import { PrintButton } from '@/components/print/print-button'
+import { PrintTrigger } from '@/components/print/print-trigger'
+import { withParams } from '@/lib/url-params'
 import { embeddedBuildingName, roomVenueLabel } from '@/lib/venues'
 import { BackLink } from '@/components/back-link'
 import { resolveBackHref, withOrigin } from '@/lib/back-nav'
@@ -157,7 +158,7 @@ export default async function SeatPlanPrintPage({
               ))}
             </nav>
           )}
-          <PrintButton label={t('print.print', lang)} />
+          <PrintTrigger href={`/school/exams/${id}/seat-plan/print${withParams({ date: sittingDate }, {})}`} label={t('print.print', lang)} />
         </div>
       </div>
 

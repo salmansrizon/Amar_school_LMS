@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { PrintTrigger } from '@/components/print/print-trigger'
 import { schoolCrumbs } from '@/lib/school-crumbs'
 import { notFound } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
@@ -164,13 +165,23 @@ export default async function ResultBookPage({
                       <Pill tone={passed ? 'mint' : 'alert'}>{passed ? t('promotion.pass', lang) : t('promotion.fail', lang)}</Pill>
                     </td>
                     <td className="px-4 py-3">
-                      <div className="flex gap-2">
+                      <div className="flex items-center gap-2">
                         <Link href={withOrigin(`/school/exams/${id}/mark-sheet/${row.studentId}`, deeper)} className="text-brand-600 hover:underline">
                           {t('markSheet.docWord', lang)}
                         </Link>
+                        <PrintTrigger
+                          iconOnly
+                          href={`/school/exams/${id}/mark-sheet/${row.studentId}/print`}
+                          label={`${t('print.print', lang)} ${t('markSheet.docWord', lang)}: ${row.fullName}`}
+                        />
                         <Link href={withOrigin(`/school/exams/${id}/progress-report/${row.studentId}`, deeper)} className="text-brand-600 hover:underline">
                           {t('progressReport.docWord', lang)}
                         </Link>
+                        <PrintTrigger
+                          iconOnly
+                          href={`/school/exams/${id}/progress-report/${row.studentId}/print`}
+                          label={`${t('print.print', lang)} ${t('progressReport.docWord', lang)}: ${row.fullName}`}
+                        />
                       </div>
                     </td>
                   </tr>

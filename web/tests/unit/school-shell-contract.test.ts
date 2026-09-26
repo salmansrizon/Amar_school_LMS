@@ -20,7 +20,10 @@ const SCHOOL_APP_DIR = path.resolve(__dirname, '../../app/school')
 // (e.g. exams/result-inquiry, exams/[id]/result-book) import the shared
 // Badge atom from components/print/pieces without being print pages at all;
 // a bare directory-prefix match would wrongly exempt them.
-const PRINT_MARKERS = ['PrintPage', 'PrintButton']
+// The exam sheet templates wrap PrintPage in their own templates.tsx; their
+// pages print through PrintTrigger (map 013), which ordinary screens use too,
+// so the template names are the marker, not PrintTrigger.
+const PRINT_MARKERS = ['PrintPage', 'PrintButton', 'MarkSheetTemplate', 'ProgressReportTemplate', 'AdmitCardTemplate']
 
 function isPrintExempt(source: string): boolean {
   return PRINT_MARKERS.some((marker) => source.includes(marker))

@@ -7,7 +7,8 @@ import { loadInstitutePrintHeader } from '@/lib/institute-print'
 import { sittingLabel, studentsInRanges, type SheetStudent } from '@/lib/exam-attendance-sheet'
 import { enrolledStudentIds, enrolledIdFilter } from '@/lib/school/offering-roster'
 import { PrintPage, InstituteHeader, InfoGrid, PaginatedSheet, SignatureRow } from '@/components/print/pieces'
-import { PrintButton } from '@/components/print/print-button'
+import { PrintTrigger } from '@/components/print/print-trigger'
+import { withParams } from '@/lib/url-params'
 import { embeddedBuildingName } from '@/lib/venues'
 import { BackLink } from '@/components/back-link'
 import { resolveBackHref } from '@/lib/back-nav'
@@ -159,7 +160,7 @@ export default async function ExamAttendanceSheetPage({
         >
           {t('examAttendanceSheet.otherSittings', lang)}
         </Link>
-        <PrintButton label={t('print.print', lang)} />
+        <PrintTrigger href={`/school/exams/${id}/attendance-sheet/print${withParams({ entry: entryId, room: roomFilter }, {})}`} label={t('print.print', lang)} />
       </div>
 
       {!roomIds.length ? (

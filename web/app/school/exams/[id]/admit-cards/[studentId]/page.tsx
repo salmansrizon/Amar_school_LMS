@@ -5,7 +5,8 @@ import { getSchoolContext } from '@/lib/school/context'
 import { classSectionLabel } from '@/lib/students'
 import { roomForRoll } from '@/lib/exam-setup'
 import { renderAuthenticityQr } from '@/lib/qr'
-import { PrintButton } from '@/components/print/print-button'
+import { PrintTrigger } from '@/components/print/print-trigger'
+import { withParams } from '@/lib/url-params'
 import { TemplatePicker2 } from '@/components/print/template-picker'
 import { ThemePicker } from '@/components/print/theme-picker'
 import { AdmitCardTemplate } from './templates'
@@ -66,7 +67,7 @@ export default async function AdmitCardPage({
           options={[t('markSheet.template1', lang), t('markSheet.template2', lang)]}
         />
         <ThemePicker selected={theme.key} label={t('admitCard.themeOverride', lang)} lang={lang} />
-        <PrintButton label={t('print.print', lang)} />
+        <PrintTrigger href={`/school/exams/${examId}/admit-cards/${studentId}/print${withParams({ template: templateParam, theme: themeParam }, {})}`} label={t('print.print', lang)} />
       </div>
     </div>
   )

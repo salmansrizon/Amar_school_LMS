@@ -7,6 +7,7 @@ import { enrolledStudentIds, enrolledIdFilter } from '@/lib/school/offering-rost
 import { PageHeader } from '@/components/ui/page'
 import { schoolCrumbs } from '@/lib/school-crumbs'
 import { resolveBackHref, selfOrigin, withOrigin } from '@/lib/back-nav'
+import { PrintTrigger } from '@/components/print/print-trigger'
 
 // Admit card roster picker (issue #48, PRD §5.5) — same shape as printables/
 // page.tsx's mark-sheet/progress-report roster, one entry point per student
@@ -106,9 +107,16 @@ export default async function AdmitCardsPage({
                 <td className="px-4 py-3">{s.roll_number ?? '—'}</td>
                 <td className="px-4 py-3">{s.full_name}</td>
                 <td className="px-4 py-3">
-                  <Link href={withOrigin(`/school/exams/${exam.id}/admit-cards/${s.id}`, deeper)} className="text-brand-600 hover:underline">
-                    {t('admitCard.docWord', lang)}
-                  </Link>
+                  <div className="flex items-center gap-1">
+                    <Link href={withOrigin(`/school/exams/${exam.id}/admit-cards/${s.id}`, deeper)} className="text-brand-600 hover:underline">
+                      {t('admitCard.docWord', lang)}
+                    </Link>
+                    <PrintTrigger
+                      iconOnly
+                      href={`/school/exams/${exam.id}/admit-cards/${s.id}/print`}
+                      label={`${t('print.print', lang)} ${t('admitCard.docWord', lang)}: ${s.full_name}`}
+                    />
+                  </div>
                 </td>
               </tr>
             ))}

@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { schoolCrumbs } from '@/lib/school-crumbs'
 import { PageHeader } from '@/components/ui/page'
+import { PrintTrigger } from '@/components/print/print-trigger'
 import { notFound } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
@@ -118,12 +119,7 @@ export default async function SeatPlanPage({
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <span className="text-sm text-muted">{examLabel}</span>
         <div className="flex items-center gap-4">
-          <Link
-            href={withOrigin(`/school/exams/${exam.id}/seat-plan/print`, deeper)}
-            className="text-sm text-brand-600 hover:underline"
-          >
-            {t('seatPlan.print', lang)}
-          </Link>
+          <PrintTrigger href={`/school/exams/${exam.id}/seat-plan/print`} label={t('seatPlan.print', lang)} />
           <Link
             href={withOrigin(`/school/exams/${exam.id}/attendance-sheet`, deeper)}
             className="text-sm text-brand-600 hover:underline"

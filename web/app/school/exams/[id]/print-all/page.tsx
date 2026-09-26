@@ -9,7 +9,8 @@ import { loadExamRosterResults } from '@/lib/exam-print-data'
 import { enrolledStudentIds, enrolledIdFilter } from '@/lib/school/offering-roster'
 import { loadProgressReportExtras } from '@/lib/progress-report-data'
 import { renderAuthenticityQr } from '@/lib/qr'
-import { PrintButton } from '@/components/print/print-button'
+import { PrintTrigger } from '@/components/print/print-trigger'
+import { withParams } from '@/lib/url-params'
 import { AdmitCardTemplate } from '../admit-cards/[studentId]/templates'
 import { MarkSheetTemplate } from '../mark-sheet/[studentId]/templates'
 import { ProgressReportTemplate } from '../progress-report/[studentId]/templates'
@@ -150,7 +151,10 @@ export default async function PrintAllPage({
       </h1>
       <div className="flex items-center gap-3">
         <BackLink href={backHref} label={t('common.back', lang)} />
-        <PrintButton label={t('print.print', lang)} />
+        <PrintTrigger
+          href={`/school/exams/${examId}/print/all${withParams({ doc: docParam, template: templateParam, rollFrom: rollFromParam, rollTo: rollToParam, promotedOnly: promotedOnlyParam, theme: themeParam }, {})}`}
+          label={t('print.print', lang)}
+        />
       </div>
     </div>
   )

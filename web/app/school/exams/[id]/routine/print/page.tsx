@@ -6,7 +6,7 @@ import { dateToDayOfWeek, sortRoutineEntries } from '@/lib/exam-setup'
 import { dayLabel } from '@/lib/routine'
 import { PrintPage, InstituteHeader, PaginatedSheet, QrFooterRow } from '@/components/print/pieces'
 import { loadInstitutePrintHeader } from '@/lib/institute-print'
-import { PrintButton } from '@/components/print/print-button'
+import { PrintTrigger } from '@/components/print/print-trigger'
 import { embeddedBuildingName, roomVenueLabel } from '@/lib/venues'
 import { BackLink } from '@/components/back-link'
 import { resolveBackHref } from '@/lib/back-nav'
@@ -82,7 +82,7 @@ export default async function ExamRoutinePrintPage({
     <main className="mx-auto w-full max-w-4xl flex-1 p-6">
       <div className="mb-4 flex items-center justify-between print:hidden">
         <BackLink href={backHref} label={t('common.back', lang)} />
-        <PrintButton label={t('print.print', lang)} />
+        <PrintTrigger href={`/school/exams/${id}/routine/print`} label={t('print.print', lang)} />
       </div>
 
       <PrintPage>

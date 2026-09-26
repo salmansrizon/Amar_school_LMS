@@ -6,7 +6,8 @@ import { classSectionLabel } from '@/lib/students'
 import { loadExamPrintContext } from '@/lib/exam-print-data'
 import { loadProgressReportExtras } from '@/lib/progress-report-data'
 import { renderAuthenticityQr } from '@/lib/qr'
-import { PrintButton } from '@/components/print/print-button'
+import { PrintTrigger } from '@/components/print/print-trigger'
+import { withParams } from '@/lib/url-params'
 import { TemplatePicker } from '@/components/print/template-picker'
 import { ProgressReportTemplate } from './templates'
 import { loadInstitutePrintHeader } from '@/lib/institute-print'
@@ -57,7 +58,7 @@ export default async function ProgressReportPage({
           label={t('markSheet.pickTemplate', lang)}
           options={[t('markSheet.template1', lang), t('markSheet.template2', lang), t('markSheet.template3', lang)]}
         />
-        <PrintButton label={t('print.print', lang)} />
+        <PrintTrigger href={`/school/exams/${examId}/progress-report/${studentId}/print${withParams({ template: templateParam }, {})}`} label={t('print.print', lang)} />
       </div>
     </div>
   )
