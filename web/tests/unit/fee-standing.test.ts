@@ -1,5 +1,19 @@
 import { describe, it, expect } from 'vitest'
-import { feeStanding } from '@/lib/fees'
+import { feeStanding, summarizeMonthFees } from '@/lib/fees'
+
+describe('summarizeMonthFees', () => {
+  it('totals received and due, and counts each standing', () => {
+    const s = summarizeMonthFees([
+      { pay_amount: 500, due_amount: 0 },
+      { pay_amount: 300, due_amount: 200 },
+      { pay_amount: 0, due_amount: 500 },
+    ])
+    expect(s).toEqual({ records: 3, collected: 800, due: 700, paid: 1, partial: 1, unpaid: 1 })
+  })
+  it('is all zeros for a month with no records', () => {
+    expect(summarizeMonthFees([])).toEqual({ records: 0, collected: 0, due: 0, paid: 0, partial: 0, unpaid: 0 })
+  })
+})
 
 describe('feeStanding (Monthly Fee Standing)', () => {
   it('has no standing without a record', () => {

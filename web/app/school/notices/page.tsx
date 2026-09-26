@@ -1,9 +1,12 @@
-import Form from 'next/form'
 import Link from 'next/link'
+import { AlertTriangle, CalendarDays, Megaphone, Star } from 'lucide-react'
 import { currentLang } from '@/lib/i18n-server'
-import { t, type Lang } from '@/lib/i18n'
+import { t, numberFmt, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
+import { schoolCrumbs, headerPrimary, headerSecondary } from '@/lib/school-crumbs'
+import { selectAllRows } from '@/lib/supabase/select-all'
 import {
+  IMPORTANCE_LEVELS,
   PUBLICATION_KINDS,
   filterPublications,
   importanceBadgeClass,
@@ -11,147 +14,189 @@ import {
   kindBadgeClass,
   kindLabel,
   targetAudienceLabel,
+  type Importance,
   type PublicationKind,
+  type TargetScope,
 } from '@/lib/publishing'
+import { Card, PageHeader } from '@/components/ui/page'
+import { StatCard, StatGrid } from '@/components/ui/widgets'
+import { paginate, pageSizeFrom } from '@/components/pager'
+import { DataTable, type Column } from '@/components/data-table/data-table'
+import { RecordDrawer } from '@/components/data-table/record-drawer'
+import { ViewLink } from '@/components/data-table/view-link'
 import { NoticeTabs } from './notice-tabs'
-import { selectClass } from '@/components/ui/field'
+import { getNotice, noticeMeta, NoticeDetail } from './[id]/notice-detail'
 
-// Layout per ui/school-owner/notices-list.html: one shared list for notices,
-// homework, lesson plans, daily lessons and exam-prep (kind filter + search),
-// each row linking to a shared detail page.
+// Notices (map 013 FC3, new_ui/04-finance-communication/notices): one shared
+// list for notices, homework, lesson plans, daily lessons and exam-prep —
+// stat cards, DataTable (title search, Type filter, Importance filter + chips)
+// and a drawer showing the record (with Delete). There is no edit action for a
+// publication; the full page `[id]` stays. Compose/targeting unchanged.
 
-const thClass = 'px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted'
-const tdClass = 'px-3 py-2 text-sm'
+type Row = {
+  id: string
+  kind: PublicationKind
+  title: string
+  importance: Importance
+  target_scope: TargetScope
+  class_offering_id: string | null
+  target_class_name: string | null
+  target_academic_year: number | null
+  target_shift: string | null
+  target_group_department: string | null
+  target_section: string | null
+  created_at: string
+}
+
+const PAGE_SIZE = 20
 
 export default async function NoticesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; kind?: string }>
+  searchParams: Promise<{ q?: string; kind?: string; importance?: string; page?: string; size?: string; view?: string }>
 }) {
-  const { q = '', kind = '' } = await searchParams
+  const params = await searchParams
+  const { q = '', kind = '', importance = '', page, size, view } = params
+  const pageSize = pageSizeFrom(size, PAGE_SIZE)
   const lang: Lang = await currentLang()
+  const fmt = numberFmt(lang)
   const { supabase } = await getSchoolContext()
 
-  const [{ data: rows }, { data: offeringRows }] = await Promise.all([
-    supabase
-      .from('publications')
-      .select(
-        'id, kind, title, importance, target_scope, class_offering_id, target_class_name, target_academic_year, target_shift, target_group_department, target_section, created_at',
-      )
-      .order('created_at', { ascending: false }),
+  const [{ rows }, { data: offeringRows }, viewed] = await Promise.all([
+    selectAllRows<Row>((from, to) =>
+      supabase
+        .from('publications')
+        .select(
+          'id, kind, title, importance, target_scope, class_offering_id, target_class_name, target_academic_year, target_shift, target_group_department, target_section, created_at',
+        )
+        .order('created_at', { ascending: false })
+        .order('id')
+        .range(from, to),
+    ),
     // Resolve an 'offering'-scope row's label back to its Class Catalogue
     // name (map #598 Wave 6, #607). One fetch, indexed by id.
     supabase.from('class_offerings').select('id, name, section, group_department, shift'),
+    view ? getNotice(view) : Promise.resolve(null),
   ])
   const offeringById = new Map((offeringRows ?? []).map((o) => [o.id, o]))
-  const visible = filterPublications(rows ?? [], q, kind as PublicationKind | '')
+  const visible = filterPublications(rows, q, kind as PublicationKind | '').filter(
+    (r) => !importance || r.importance === importance,
+  )
+  const pageData = paginate(visible, page, pageSize)
   const locale = lang === 'bn' ? 'bn-BD' : 'en-GB'
+  const monthStart = new Date().toISOString().slice(0, 7)
+  const count = (pred: (r: Row) => boolean) => fmt.format(rows.filter(pred).length)
+
+  const badge = (cls: string, label: string) => (
+    <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ${cls}`}>{label}</span>
+  )
+  const columns: Column<Row>[] = [
+    { key: 'title', header: t('notices.colTitle', lang), card: 'title', cell: (r) => <span className="font-semibold">{r.title}</span> },
+    { key: 'kind', header: t('notices.colType', lang), card: 'badge', cell: (r) => badge(kindBadgeClass(r.kind), kindLabel(r.kind, lang)) },
+    {
+      key: 'importance',
+      header: t('notices.colImportance', lang),
+      card: 'badge',
+      cell: (r) => badge(importanceBadgeClass(r.importance), importanceLabel(r.importance, lang)),
+    },
+    {
+      key: 'target',
+      header: t('notices.colTarget', lang),
+      cell: (r) =>
+        targetAudienceLabel(r, lang, r.class_offering_id ? (offeringById.get(r.class_offering_id) ?? null) : null),
+    },
+    { key: 'date', header: t('notices.colDate', lang), cell: (r) => new Date(r.created_at).toLocaleDateString(locale) },
+  ]
 
   return (
-    <div>
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-extrabold">{t('notices.title', lang)}</h1>
-        <Link href="/school" aria-label={t('common.back', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
-      </div>
+    <>
+      <PageHeader
+        title={t('notices.title', lang)}
+        crumbs={schoolCrumbs('/school/notices', lang, [{ label: t('notices.title', lang) }])}
+        badge={`${t('pager.total', lang)}: ${fmt.format(rows.length)}`}
+        actions={
+          <>
+            <Link href="/school/notices/gallery" className={headerSecondary}>
+              {t('notices.tabGallery', lang)}
+            </Link>
+            <Link href="/school/notices/new" className={headerPrimary}>
+              + {t('notices.new', lang)}
+            </Link>
+          </>
+        }
+      />
+
       <NoticeTabs active="list" lang={lang} />
 
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <Form className="flex flex-wrap items-center gap-2" action="/school/notices">
-          <input
-            name="q"
-            defaultValue={q}
-            placeholder={t('notices.search', lang)}
-            className="rounded-md border border-line bg-paper px-3 py-1.5 text-sm"
-          />
-          <select
-            name="kind"
-            defaultValue={kind}
-            className={selectClass()}
-          >
-            <option value="">{t('notices.allTypes', lang)}</option>
-            {PUBLICATION_KINDS.map((k) => (
-              <option key={k.key} value={k.key}>
-                {k.label[lang]}
-              </option>
-            ))}
-          </select>
-          <button
-            type="submit"
-            className="cursor-pointer rounded-full border border-line px-3 py-1 text-xs font-semibold hover:bg-paper-muted"
-          >
-            {t('classes.filter', lang)}
-          </button>
-        </Form>
-        <Link
-          href="/school/notices/new"
-          className="cursor-pointer rounded-full bg-brand-500 px-4 py-1.5 text-xs font-semibold text-white hover:bg-brand-600"
-        >
-          + {t('notices.new', lang)}
-        </Link>
-      </div>
+      <StatGrid>
+        <StatCard icon={<Megaphone className="size-5" />} label={t('notices.statTotal', lang)} value={fmt.format(rows.length)} />
+        <StatCard
+          icon={<AlertTriangle className="size-5" />}
+          tone="alert"
+          label={t('notices.statUrgent', lang)}
+          value={count((r) => r.importance === 'urgent')}
+          action={{ href: '/school/notices?importance=urgent', label: t('notices.view', lang) }}
+        />
+        <StatCard
+          icon={<Star className="size-5" />}
+          tone="sun"
+          label={t('notices.statImportant', lang)}
+          value={count((r) => r.importance === 'important')}
+          action={{ href: '/school/notices?importance=important', label: t('notices.view', lang) }}
+        />
+        <StatCard
+          icon={<CalendarDays className="size-5" />}
+          tone="sky"
+          label={t('notices.statThisMonth', lang)}
+          value={count((r) => r.created_at.startsWith(monthStart))}
+        />
+      </StatGrid>
 
-      {!visible.length ? (
-        <p className="text-sm text-muted">{t('notices.none', lang)}</p>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse">
-            <thead>
-              <tr className="border-b border-line-strong">
-                <th className={thClass}>{t('notices.colTitle', lang)}</th>
-                <th className={thClass}>{t('notices.colType', lang)}</th>
-                <th className={thClass}>{t('notices.colImportance', lang)}</th>
-                <th className={thClass}>{t('notices.colTarget', lang)}</th>
-                <th className={thClass}>{t('notices.colDate', lang)}</th>
-                <th className={thClass}>{t('classes.actions', lang)}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {visible.map((row) => (
-                <tr key={row.id} className="border-b border-line">
-                  <td className={`${tdClass} font-medium`}>{row.title}</td>
-                  <td className={tdClass}>
-                    <span
-                      className={`rounded-full px-2 py-0.5 text-xs font-semibold ${kindBadgeClass(row.kind)}`}
-                    >
-                      {kindLabel(row.kind, lang)}
-                    </span>
-                  </td>
-                  <td className={tdClass}>
-                    <span
-                      className={`rounded-full px-2 py-0.5 text-xs font-semibold ${importanceBadgeClass(row.importance)}`}
-                    >
-                      {importanceLabel(row.importance, lang)}
-                    </span>
-                  </td>
-                  <td className={tdClass}>
-                    {targetAudienceLabel(
-                      {
-                        target_scope: row.target_scope,
-                        target_class_name: row.target_class_name ?? null,
-                        target_academic_year: row.target_academic_year ?? null,
-                        target_shift: row.target_shift ?? null,
-                        target_group_department: row.target_group_department ?? null,
-                        target_section: row.target_section ?? null,
-                      },
-                      lang,
-                      row.class_offering_id ? offeringById.get(row.class_offering_id) ?? null : null,
-                    )}
-                  </td>
-                  <td className={tdClass}>{new Date(row.created_at).toLocaleDateString(locale)}</td>
-                  <td className={tdClass}>
-                    <Link
-                      href={`/school/notices/${row.id}`}
-                      className="rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted"
-                    >
-                      {t('notices.view', lang)}
-                    </Link>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </div>
+      <DataTable
+        rows={pageData.items}
+        rowId={(r) => r.id}
+        rowLabel={(r) => r.title}
+        columns={columns}
+        lang={lang}
+        params={params}
+        caption={t('notices.title', lang)}
+        search={{ placeholder: t('notices.search', lang) }}
+        filters={[
+          {
+            param: 'kind',
+            label: t('notices.colType', lang),
+            options: PUBLICATION_KINDS.map((k) => ({ value: k.key, label: k.label[lang] })),
+          },
+          {
+            param: 'importance',
+            label: t('notices.colImportance', lang),
+            options: IMPORTANCE_LEVELS.map((i) => ({ value: i.key, label: i.label[lang] })),
+          },
+        ]}
+        chips={[
+          { param: 'importance', value: 'urgent', label: importanceLabel('urgent', lang) },
+          { param: 'importance', value: 'important', label: importanceLabel('important', lang) },
+          { param: 'kind', value: 'homework', label: kindLabel('homework', lang) },
+        ]}
+        rowActions={(r) => <ViewLink id={r.id} params={params} label={t('notices.view', lang)} name={r.title} />}
+        pagination={{ page: pageData.page, totalPages: pageData.totalPages, total: pageData.total, pageSize }}
+        empty={
+          <Card>
+            <p className="text-sm text-muted">{t('notices.none', lang)}</p>
+          </Card>
+        }
+      />
+
+      <RecordDrawer
+        open={Boolean(viewed)}
+        title={viewed?.row.title ?? ''}
+        subtitle={viewed ? noticeMeta(viewed, lang) : undefined}
+        fullPageHref={viewed ? `/school/notices/${viewed.row.id}` : undefined}
+        fullPageLabel={t('table.openFullPage', lang)}
+        closeLabel={t('common.close', lang)}
+      >
+        {viewed && <NoticeDetail notice={viewed} lang={lang} />}
+      </RecordDrawer>
+    </>
   )
 }

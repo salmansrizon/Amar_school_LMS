@@ -1,100 +1,34 @@
-import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
-import { getSchoolContext } from '@/lib/school/context'
-import {
-  importanceBadgeClass,
-  importanceLabel,
-  kindBadgeClass,
-  kindLabel,
-  targetAudienceLabel,
-} from '@/lib/publishing'
-import { DeletePublicationButton } from './detail-controls'
+import { schoolCrumbs } from '@/lib/school-crumbs'
+import { Card, PageHeader } from '@/components/ui/page'
+import { getNotice, noticeMeta, NoticeDetail } from './notice-detail'
 
 // Shared detail view for notice/homework/lesson-plan/daily-lesson/exam-prep
 // rows (issue #37: one list/detail UI pattern across all publishing kinds).
+// Same body as the list's drawer (map 013 FC3).
 export default async function NoticeDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const lang: Lang = await currentLang()
-  const { supabase } = await getSchoolContext()
-
-  const { data: row } = await supabase
-    .from('publications')
-    .select(
-      'id, kind, title, content, importance, target_scope, class_offering_id, target_class_name, target_academic_year, target_shift, target_group_department, target_section, image_path, link_url, created_at',
-    )
-    .eq('id', id)
-    .maybeSingle()
-  if (!row) notFound()
-
-  // An 'offering'-scope row's label resolves back to the Class Catalogue name
-  // (map #598 Wave 6, #607); null when the Offering was since deleted (#599).
-  const { data: offering } = row.class_offering_id
-    ? await supabase
-        .from('class_offerings')
-        .select('name, section, group_department, shift')
-        .eq('id', row.class_offering_id)
-        .maybeSingle()
-    : { data: null }
-
-  const locale = lang === 'bn' ? 'bn-BD' : 'en-GB'
+  const notice = await getNotice(id)
+  if (!notice) notFound()
 
   return (
-    <div>
-      <p className="mb-4">
-        <Link href="/school/notices" aria-label={t('notices.tabList', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
-      </p>
-      <div className="rounded-lg border border-line bg-paper p-6">
-        <div className="mb-3 flex flex-wrap items-center gap-2">
-          <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${kindBadgeClass(row.kind)}`}>
-            {kindLabel(row.kind, lang)}
-          </span>
-          <span
-            className={`rounded-full px-2 py-0.5 text-xs font-semibold ${importanceBadgeClass(row.importance)}`}
-          >
-            {importanceLabel(row.importance, lang)}
-          </span>
-        </div>
-        <h1 className="mb-2 text-xl font-extrabold">{row.title}</h1>
-        <p className="mb-4 text-sm text-muted">
-          {targetAudienceLabel(
-            {
-              target_scope: row.target_scope,
-              target_class_name: row.target_class_name,
-              target_academic_year: row.target_academic_year ?? null,
-              target_shift: row.target_shift ?? null,
-              target_group_department: row.target_group_department ?? null,
-              target_section: row.target_section,
-            },
-            lang,
-            offering,
-          )}{' '}
-          · {new Date(row.created_at).toLocaleDateString(locale)}
-        </p>
-        {row.content && <p className="mb-4 max-w-prose whitespace-pre-wrap text-sm">{row.content}</p>}
-        {row.image_path && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={`/api/publication-image?id=${row.id}`}
-            alt=""
-            className="mb-4 max-w-full rounded-md border border-line"
-          />
-        )}
-        {row.link_url && (
-          <p className="mb-4 text-sm">
-            <a
-              href={row.link_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-brand-600 hover:underline"
-            >
-              {row.link_url}
-            </a>
-          </p>
-        )}
-        <DeletePublicationButton id={row.id} lang={lang} />
-      </div>
-    </div>
+    <>
+      <PageHeader
+        title={notice.row.title}
+        backHref="/school/notices"
+        backLabel={t('notices.tabList', lang)}
+        crumbs={schoolCrumbs('/school/notices', lang, [
+          { label: t('notices.title', lang), href: '/school/notices' },
+          { label: notice.row.title },
+        ])}
+      />
+      <Card>
+        <p className="mb-4 text-sm text-muted">{noticeMeta(notice, lang)}</p>
+        <NoticeDetail notice={notice} lang={lang} />
+      </Card>
+    </>
   )
 }

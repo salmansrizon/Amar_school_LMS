@@ -69,3 +69,26 @@ export function feeStanding(record: { pay_amount: number; due_amount: number } |
   if (record.due_amount <= 0) return 'paid'
   return record.pay_amount > 0 ? 'partial' : 'due'
 }
+
+/** A month's Fee Collection Records folded into the fee page's headline
+ *  figures (map 013 FC1). `unpaid` counts Due standings (nothing received). */
+export type MonthFeeSummary = {
+  records: number
+  collected: number
+  due: number
+  paid: number
+  partial: number
+  unpaid: number
+}
+export function summarizeMonthFees(rows: { pay_amount: number; due_amount: number }[]): MonthFeeSummary {
+  const out: MonthFeeSummary = { records: rows.length, collected: 0, due: 0, paid: 0, partial: 0, unpaid: 0 }
+  for (const r of rows) {
+    out.collected += r.pay_amount
+    out.due += Math.max(0, r.due_amount)
+    const s = feeStanding(r)
+    if (s === 'paid') out.paid++
+    else if (s === 'partial') out.partial++
+    else out.unpaid++
+  }
+  return out
+}

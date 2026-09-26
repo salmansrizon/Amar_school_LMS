@@ -1,4 +1,5 @@
-import Link from 'next/link'
+import { PageHeader } from '@/components/ui/page'
+import { schoolCrumbs } from '@/lib/school-crumbs'
 import { getSchoolContext } from '@/lib/school/context'
 import { currentLang } from '@/lib/i18n-server'
 import { t } from '@/lib/i18n'
@@ -14,13 +15,14 @@ export default async function BuySmsPage() {
   const packages = await listSmsPackages(supabase)
 
   return (
-    <div>
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-extrabold">{t('sms.buyTitle', lang)}</h1>
-        <Link href="/school/sms" className="text-sm text-brand-600 hover:underline">
-          ← {t('sms.composeTitle', lang)}
-        </Link>
-      </div>
+    <>
+      <PageHeader
+        title={t('sms.buyTitle', lang)}
+        crumbs={schoolCrumbs('/school/sms/buy', lang, [
+          { label: t('sms.centerTitle', lang), href: '/school/sms' },
+          { label: t('sms.buyTitle', lang) },
+        ])}
+      />
 
       {role !== 'school_owner' && (
         <p className="mb-4 rounded-lg border border-line bg-sun-soft p-3 text-sm text-sun-deep">
@@ -44,6 +46,6 @@ export default async function BuySmsPage() {
       </div>
 
       <p className="mt-4 text-xs text-muted">{t('sms.buyNote', lang)}</p>
-    </div>
+    </>
   )
 }

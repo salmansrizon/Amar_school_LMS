@@ -1,32 +1,39 @@
 import Form from 'next/form'
 import Link from 'next/link'
+import { ArrowDownCircle, ArrowUpCircle, Wallet } from 'lucide-react'
 import { currentLang } from '@/lib/i18n-server'
-import { t, type Lang } from '@/lib/i18n'
+import { t, numberFmt, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
+import { schoolCrumbs, headerPrimary, headerSecondary } from '@/lib/school-crumbs'
 import { AccountingTabs } from '../accounting-tabs'
 import { TransactionForm } from './director-capital-controls'
 import { dateInputClass } from '@/components/ui/field'
+import { Card, PageHeader } from '@/components/ui/page'
+import { StatCard, StatGrid } from '@/components/ui/widgets'
+import { paginate, pageSizeFrom } from '@/components/pager'
+import { DataTable, Pill, type Column } from '@/components/data-table/data-table'
 
-// Layout per ui/school-owner/director-capital.html: toolbar (date-range
-// filter, "+ Invest" / "+ Withdraw") over a Date | Type | Amount | Running
-// Balance | Note table.
+// Director Capital (map 013 FC1): balance + invested/withdrawn stat cards,
+// Invest / Withdraw header actions (open the unchanged TransactionForm), date
+// range, then the transactions DataTable (Date | Type | Amount | Running
+// Balance | Note).
 
-const thClass = 'px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted'
-const tdClass = 'px-3 py-2 text-sm'
+type Txn = { id: string; txn_date: string; txn_type: string; amount: number; balance_after: number; note: string | null }
+
+const PAGE_SIZE = 20
 
 export default async function DirectorCapitalPage({
   searchParams,
 }: {
-  searchParams: Promise<{ action?: string; from?: string; to?: string }>
+  searchParams: Promise<{ action?: string; from?: string; to?: string; type?: string; page?: string; size?: string }>
 }) {
-  const { action: selectedAction = '', from = '', to = '' } = await searchParams
+  const params = await searchParams
+  const { action: selectedAction = '', from = '', to = '', type = '', page, size } = params
+  const pageSize = pageSizeFrom(size, PAGE_SIZE)
   const lang: Lang = await currentLang()
   const { supabase } = await getSchoolContext()
 
-  const { data: balanceRow } = await supabase
-    .from('director_capital_balances')
-    .select('balance')
-    .maybeSingle()
+  const { data: balanceRow } = await supabase.from('director_capital_balances').select('balance').maybeSingle()
   const balance = Number(balanceRow?.balance ?? 0)
 
   let query = supabase
@@ -38,83 +45,113 @@ export default async function DirectorCapitalPage({
   if (to) query = query.lte('txn_date', to)
   const { data: transactions } = await query
 
+  const all: Txn[] = (transactions ?? []).map((x) => ({
+    ...x,
+    amount: Number(x.amount),
+    balance_after: Number(x.balance_after),
+  }))
+  const visible = all.filter((x) => !type || x.txn_type === type)
+  const pageData = paginate(visible, page, pageSize)
+
   const action = selectedAction === 'withdraw' ? 'withdraw' : selectedAction === 'invest' ? 'invest' : null
   const locale = lang === 'bn' ? 'bn-BD' : 'en-GB'
+  const fmt = numberFmt(lang)
+  const tk = (n: number) => `৳${fmt.format(n)}`
+  const sum = (k: string) => all.filter((x) => x.txn_type === k).reduce((s, x) => s + x.amount, 0)
+  const typeLabel = (k: string) => t(k === 'invest' ? 'directorCapital.investType' : 'directorCapital.withdrawType', lang)
+
+  const columns: Column<Txn>[] = [
+    {
+      key: 'date',
+      header: t('directorCapital.date', lang),
+      card: 'title',
+      cell: (x) => <span className="font-semibold">{new Date(x.txn_date).toLocaleDateString(locale)}</span>,
+    },
+    {
+      key: 'type',
+      header: t('directorCapital.type', lang),
+      card: 'badge',
+      cell: (x) => <Pill tone={x.txn_type === 'invest' ? 'sky' : 'muted'}>{typeLabel(x.txn_type)}</Pill>,
+    },
+    { key: 'amount', header: t('directorCapital.amount', lang), align: 'right', cell: (x) => tk(x.amount) },
+    { key: 'balance', header: t('directorCapital.runningBalance', lang), align: 'right', cell: (x) => tk(x.balance_after) },
+    { key: 'note', header: t('directorCapital.note', lang), cell: (x) => x.note ?? <span className="text-muted">—</span> },
+  ]
 
   return (
-    <div>
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-extrabold">{t('directorCapital.title', lang)}</h1>
-        <Link href="/school" aria-label={t('common.back', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
-      </div>
+    <>
+      <PageHeader
+        title={t('directorCapital.title', lang)}
+        crumbs={schoolCrumbs('/school/fees', lang, [
+          { label: t('fees.title', lang), href: '/school/fees' },
+          { label: t('directorCapital.title', lang) },
+        ])}
+        actions={
+          <>
+            <Link href="/school/fees/director-capital?action=invest#txn-form" className={headerSecondary}>
+              {t('directorCapital.invest', lang)}
+            </Link>
+            <Link href="/school/fees/director-capital?action=withdraw#txn-form" className={headerPrimary}>
+              {t('directorCapital.withdraw', lang)}
+            </Link>
+          </>
+        }
+      />
 
       <AccountingTabs active="directorCapital" lang={lang} />
 
-      <Form className="mb-4 flex flex-wrap items-center justify-between gap-2" action="/school/fees/director-capital">
-        <div className="flex items-center gap-2">
-          <input name="from" type="date" defaultValue={from} className={dateInputClass()} />
-          <input name="to" type="date" defaultValue={to} className={dateInputClass()} />
-          <button
-            type="submit"
-            className="cursor-pointer rounded-full border border-line px-3 py-1 text-xs font-semibold hover:bg-paper-muted"
-          >
-            {t('classes.filter', lang)}
-          </button>
-        </div>
-        <div className="flex gap-2">
-          <Link
-            href="/school/fees/director-capital?action=invest#txn-form"
-            className="rounded-full border border-line-strong px-3 py-1.5 text-xs font-semibold hover:bg-paper-muted"
-          >
-            {t('directorCapital.invest', lang)}
-          </Link>
-          <Link
-            href="/school/fees/director-capital?action=withdraw#txn-form"
-            className="rounded-full bg-brand-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-600"
-          >
-            {t('directorCapital.withdraw', lang)}
-          </Link>
-        </div>
-      </Form>
+      <StatGrid>
+        <StatCard icon={<Wallet className="size-5" />} label={t('directorCapital.currentBalance', lang)} value={tk(balance)} />
+        <StatCard
+          icon={<ArrowDownCircle className="size-5" />}
+          tone="sky"
+          label={t('directorCapital.investType', lang)}
+          value={tk(sum('invest'))}
+        />
+        <StatCard
+          icon={<ArrowUpCircle className="size-5" />}
+          tone="muted"
+          label={t('directorCapital.withdrawType', lang)}
+          value={tk(sum('withdraw'))}
+        />
+      </StatGrid>
 
       {action && <TransactionForm balance={balance} action={action} lang={lang} />}
 
-      <section className="overflow-x-auto rounded-lg border border-line bg-paper p-5">
-        {!transactions?.length ? (
-          <p className="text-sm text-muted">{t('directorCapital.noTransactions', lang)}</p>
-        ) : (
-          <table className="w-full border-collapse">
-            <thead>
-              <tr className="border-b border-line-strong">
-                <th className={thClass}>{t('directorCapital.date', lang)}</th>
-                <th className={thClass}>{t('directorCapital.type', lang)}</th>
-                <th className={thClass}>{t('directorCapital.amount', lang)}</th>
-                <th className={thClass}>{t('directorCapital.runningBalance', lang)}</th>
-                <th className={thClass}>{t('directorCapital.note', lang)}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {transactions.map((txn) => (
-                <tr key={txn.id} className="border-b border-line">
-                  <td className={tdClass}>{new Date(txn.txn_date).toLocaleDateString(locale)}</td>
-                  <td className={tdClass}>
-                    <span
-                      className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
-                        txn.txn_type === 'invest' ? 'bg-sky-soft text-sky-deep' : 'bg-paper-muted text-muted'
-                      }`}
-                    >
-                      {t(txn.txn_type === 'invest' ? 'directorCapital.investType' : 'directorCapital.withdrawType', lang)}
-                    </span>
-                  </td>
-                  <td className={tdClass}>৳{Number(txn.amount).toLocaleString()}</td>
-                  <td className={tdClass}>৳{Number(txn.balance_after).toLocaleString()}</td>
-                  <td className={tdClass}>{txn.note ?? <span className="text-muted">—</span>}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </section>
-    </div>
+      <Form className="mb-grid flex flex-wrap items-center gap-2" action="/school/fees/director-capital">
+        {type && <input type="hidden" name="type" value={type} />}
+        <input name="from" type="date" defaultValue={from} aria-label={t('vouchers.from', lang)} className={dateInputClass()} />
+        <input name="to" type="date" defaultValue={to} aria-label={t('vouchers.to', lang)} className={dateInputClass()} />
+        <button
+          type="submit"
+          className="cursor-pointer rounded-full border border-line px-3 py-1 text-xs font-semibold hover:bg-paper-muted"
+        >
+          {t('classes.filter', lang)}
+        </button>
+      </Form>
+
+      <DataTable
+        rows={pageData.items}
+        rowId={(x) => x.id}
+        rowLabel={(x) => x.txn_date}
+        columns={columns}
+        lang={lang}
+        params={params}
+        caption={t('directorCapital.title', lang)}
+        filters={[
+          {
+            param: 'type',
+            label: t('directorCapital.type', lang),
+            options: ['invest', 'withdraw'].map((k) => ({ value: k, label: typeLabel(k) })),
+          },
+        ]}
+        pagination={{ page: pageData.page, totalPages: pageData.totalPages, total: pageData.total, pageSize }}
+        empty={
+          <Card>
+            <p className="text-sm text-muted">{t('directorCapital.noTransactions', lang)}</p>
+          </Card>
+        }
+      />
+    </>
   )
 }
