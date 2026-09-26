@@ -4,6 +4,7 @@ import { useRef, useState, type ReactNode } from 'react'
 import { Dialog } from '@base-ui/react/dialog'
 import { Printer, X } from 'lucide-react'
 import { t, type Lang } from '@/lib/i18n'
+import { isPrintPath } from '@/lib/print-path'
 
 // Print as a popup (map 013): the print route (ADR 0007) loads in a preview
 // dialog over the current page, and Print prints that frame — the user never
@@ -74,7 +75,7 @@ export function PrintTrigger({
             onLoad={() => {
               const win = frame.current?.contentWindow
               // An expired session redirects the print route to /login — never print that.
-              const isPrint = Boolean(win?.location.pathname.includes('/print/'))
+              const isPrint = Boolean(win && isPrintPath(win.location.pathname))
               if (win && isPrint) {
                 // Preview what paper shows: hide the shell and the page's own
                 // back/print row, exactly the elements marked `print:hidden`.

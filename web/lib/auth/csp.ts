@@ -1,3 +1,6 @@
+import { isPrintPath } from '@/lib/print-path'
+
+export { isPrintPath }
 // Content-Security-Policy for the App Router (#528, from the #543 research).
 //
 // Two things here are not stylistic and will break the app if changed casually;
@@ -25,12 +28,6 @@ const SONNER_STYLE_HASHES = [
   "'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='", // the empty sheet it inserts first
   "'sha256-StEaX+se6YS7pqjzrzMIA0KaX9zF/8zAhvQXZAe5epY='", // sonner 2.0.8's own CSS
 ]
-
-/** Print routes (ADR 0007) may be framed by the app itself — the print preview
- *  popup (map 013). Everything else stays unframeable. */
-export function isPrintPath(pathname: string): boolean {
-  return /\/print(\/|$)/.test(pathname)
-}
 
 export function cspFor(nonce: string, framable = false): string {
   const origin = supabaseOrigin()
