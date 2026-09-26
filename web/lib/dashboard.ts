@@ -41,6 +41,13 @@ export function attendanceRate(present: number, total: number): number {
   return Math.round((present / total) * 1000) / 10
 }
 
+export type AttendanceBand = 'regular' | 'irregular' | 'atRisk'
+
+/** Attendance Rate band (CONTEXT.md): >=90 Regular, 75 to under 90 Irregular, <75 At risk. */
+export function attendanceBand(rate: number): AttendanceBand {
+  return rate >= 90 ? 'regular' : rate >= 75 ? 'irregular' : 'atRisk'
+}
+
 /** Merge the three activity streams into one list, newest first, capped at `limit`. */
 export function mergeActivity(sources: ActivitySources, limit = 6): ActivityItem[] {
   const items: ActivityItem[] = [
