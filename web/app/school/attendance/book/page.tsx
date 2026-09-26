@@ -10,11 +10,13 @@ import {
   type OffDay,
 } from '@/lib/attendance-manual'
 import { PrintPage, InstituteHeader, PaginatedSheet } from '@/components/print/pieces'
-import { PrintButton } from '@/components/print/print-button'
+import { PrintTrigger } from '@/components/print/print-trigger'
 import { AttendanceTabs } from '../attendance-tabs'
 import { loadInstitutePrintHeader } from '@/lib/institute-print'
 import { ClassSectionSelect } from '@/components/ui/class-section-select'
 import { selectAllRows } from '@/lib/supabase/select-all'
+import { schoolCrumbs } from '@/lib/school-crumbs'
+import { PageHeader } from '@/components/ui/page'
 
 // Layout per ui/school-owner/attendance-book.html: class/section + month
 // filter, Filled/Blank toggle, print button, monthly P/A register grid
@@ -116,9 +118,11 @@ export default async function AttendanceBookPage({
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between print:hidden">
-        <h1 className="text-2xl font-extrabold">{t('attendance.bookTitle', lang)}</h1>
-        <Link href="/school" aria-label={t('common.back', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
+      <div className="print:hidden">
+        <PageHeader
+          title={t('attendance.bookTitle', lang)}
+          crumbs={schoolCrumbs('/school/attendance', lang, { label: t('attendance.title', lang), href: '/school/attendance' }, { label: t('attendance.bookTitle', lang) })}
+        />
       </div>
 
       <div className="print:hidden">
@@ -164,12 +168,17 @@ export default async function AttendanceBookPage({
           >
             {t('attendance.bookBlank', lang)}
           </Link>
-          <PrintButton label={t('print.print', lang)} />
+          {visible.length > 0 && (
+            <PrintTrigger
+              href={`/school/attendance/book/print${buildLink({}).slice('/school/attendance/book'.length)}`}
+              label={t('print.print', lang)}
+            />
+          )}
         </div>
       </Form>
 
       {!visible.length ? (
-        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted print:hidden">
+        <p className="rounded-2xl border border-line bg-paper p-card text-sm text-muted print:hidden">
           {t('attendance.bookNoRoster', lang)}
         </p>
       ) : (
@@ -183,15 +192,15 @@ export default async function AttendanceBookPage({
             }
           >
 
-          <div className="overflow-x-auto print:overflow-visible">
+          <div className="overflow-x-auto rounded-2xl border border-line print:overflow-visible print:rounded-none print:border-0">
             <table className="w-full border-collapse text-xs whitespace-nowrap">
-              <thead>
+              <thead className="bg-paper-muted">
                 <tr>
-                  <th className="min-w-30 border border-line-strong px-2 py-1 text-left font-semibold">
+                  <th className="min-w-30 border border-line-strong px-2 py-1 text-left font-semibold text-muted">
                     {t('attendance.nameCol', lang)}
                   </th>
                   {grid.map((cell) => (
-                    <th key={cell.iso} className="border border-line-strong px-1.5 py-1 text-center font-semibold">
+                    <th key={cell.iso} className={`border border-line-strong px-1.5 py-1 text-center font-semibold ${cell.isOff ? 'text-alert-deep' : 'text-muted'}`}>
                       {cell.day}
                     </th>
                   ))}

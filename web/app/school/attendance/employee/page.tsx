@@ -1,5 +1,4 @@
 import Form from 'next/form'
-import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
@@ -7,6 +6,9 @@ import { effectiveGraceWithSource, type GraceSource } from '@/lib/grace'
 import { resolveEmployeeDisplayStatus, type EmployeeDisplayStatus } from '@/lib/attendance'
 import { AttendanceTabs } from '../attendance-tabs'
 import { dateInputClass } from '@/components/ui/field'
+import { schoolCrumbs } from '@/lib/school-crumbs'
+import { PageHeader } from '@/components/ui/page'
+import { Pill } from '@/components/data-table/data-table'
 
 // Layout per ui/school-owner/attendance-employee.html: search + date filter,
 // one row per employee with In/Out/Status/Applied-Grace, the 6-state status
@@ -18,14 +20,14 @@ function todayIso(): string {
   return new Date().toISOString().slice(0, 10)
 }
 
-const STATUS_BADGE: Record<EmployeeDisplayStatus, string> = {
-  on_time: 'bg-mint-soft text-mint-deep',
-  exit_early: 'bg-sun-soft text-sun-deep',
-  late_entry: 'bg-sun-soft text-sun-deep',
-  late_exit_early: 'bg-alert-soft text-alert-deep',
-  present: 'bg-mint-soft text-mint-deep',
-  absent: 'bg-alert-soft text-alert-deep',
-  on_leave: 'bg-sky-soft text-sky-deep',
+const STATUS_TONE: Record<EmployeeDisplayStatus, 'mint' | 'sun' | 'alert' | 'sky'> = {
+  on_time: 'mint',
+  exit_early: 'sun',
+  late_entry: 'sun',
+  late_exit_early: 'alert',
+  present: 'mint',
+  absent: 'alert',
+  on_leave: 'sky',
 }
 
 const GRACE_SOURCE_KEY: Record<GraceSource, 'attendance.graceSourceGlobal' | 'attendance.graceSourceCategory' | 'attendance.graceSourceOfficeTime' | 'attendance.graceSourceOverride'> = {
@@ -141,10 +143,10 @@ export default async function EmployeeAttendancePage({
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-extrabold">{t('attendance.employeeTitle', lang)}</h1>
-        <Link href="/school" aria-label={t('common.back', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
-      </div>
+      <PageHeader
+        title={t('attendance.employeeTitle', lang)}
+        crumbs={schoolCrumbs('/school/attendance', lang, { label: t('attendance.title', lang), href: '/school/attendance' }, { label: t('attendance.employeeTitle', lang) })}
+      />
 
       <AttendanceTabs active="/school/attendance/employee" lang={lang} />
 
@@ -164,43 +166,41 @@ export default async function EmployeeAttendancePage({
         </button>
       </Form>
 
-      <section className="mb-4 rounded-lg border border-line bg-paper p-5">
+      <section className="mb-4 overflow-hidden rounded-2xl border border-line bg-paper">
         {!rows.length ? (
-          <p className="text-sm text-muted">{t('attendance.noEmployees', lang)}</p>
+          <p className="p-card text-sm text-muted">{t('attendance.noEmployees', lang)}</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full border-collapse">
-              <thead>
-                <tr className="border-b border-line-strong">
-                  <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">
+              <thead className="bg-paper-muted">
+                <tr>
+                  <th className="whitespace-nowrap px-4 py-3 text-left text-sm font-semibold text-muted">
                     {t('attendance.nameCol', lang)}
                   </th>
-                  <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">
+                  <th className="whitespace-nowrap px-4 py-3 text-left text-sm font-semibold text-muted">
                     {t('attendance.inCol', lang)}
                   </th>
-                  <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">
+                  <th className="whitespace-nowrap px-4 py-3 text-left text-sm font-semibold text-muted">
                     {t('attendance.outCol', lang)}
                   </th>
-                  <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">
+                  <th className="whitespace-nowrap px-4 py-3 text-left text-sm font-semibold text-muted">
                     {t('codes.status', lang)}
                   </th>
-                  <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">
+                  <th className="whitespace-nowrap px-4 py-3 text-left text-sm font-semibold text-muted">
                     {t('attendance.appliedGraceCol', lang)}
                   </th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-line">
                 {rows.map((r) => (
-                  <tr key={r.id} className="border-b border-line">
-                    <td className="px-3 py-2 text-sm font-medium">{r.full_name}</td>
-                    <td className="px-3 py-2 text-sm">{hhmm(r.entry)}</td>
-                    <td className="px-3 py-2 text-sm">{hhmm(r.exit)}</td>
-                    <td className="px-3 py-2 text-sm">
-                      <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${STATUS_BADGE[r.status]}`}>
-                        {t(`status.${r.status}` as 'status.on_time', lang)}
-                      </span>
+                  <tr key={r.id}>
+                    <td className="px-4 py-3 text-sm font-medium">{r.full_name}</td>
+                    <td className="px-4 py-3 text-sm">{hhmm(r.entry)}</td>
+                    <td className="px-4 py-3 text-sm">{hhmm(r.exit)}</td>
+                    <td className="px-4 py-3 text-sm">
+                      <Pill tone={STATUS_TONE[r.status]}>{t(`status.${r.status}` as 'status.on_time', lang)}</Pill>
                     </td>
-                    <td className="px-3 py-2 text-xs text-muted">
+                    <td className="px-4 py-3 text-xs text-muted">
                       {r.status === 'absent' || r.status === 'on_leave' ? (
                         '—'
                       ) : (
@@ -218,7 +218,7 @@ export default async function EmployeeAttendancePage({
         )}
       </section>
 
-      <section className="rounded-lg border border-line bg-paper p-5">
+      <section className="rounded-2xl border border-line bg-paper p-card">
         <p className="text-sm text-muted">{t('attendance.employeeGraceNote', lang)}</p>
         <p className="mt-2 text-sm text-muted">{t('attendance.employeeRfidNote', lang)}</p>
       </section>

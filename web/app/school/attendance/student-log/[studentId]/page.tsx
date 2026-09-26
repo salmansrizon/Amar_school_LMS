@@ -8,7 +8,9 @@ import { dateRangeDays, studentLogDayStatus, type OffDay, type StudentLogDayStat
 import { firstRelation } from '@/lib/supabase/relation'
 import { dateInputClass } from '@/components/ui/field'
 import { PrintPage, InstituteHeader, PaginatedSheet, Badge } from '@/components/print/pieces'
-import { PrintButton } from '@/components/print/print-button'
+import { PrintTrigger } from '@/components/print/print-trigger'
+import { PageHeader } from '@/components/ui/page'
+import { schoolCrumbs } from '@/lib/school-crumbs'
 import { loadInstitutePrintHeader } from '@/lib/institute-print'
 
 // Individual Student Log (map #380, docs/011_student_module.md): one
@@ -173,6 +175,12 @@ export default async function StudentLogDetailPage({
     return `/school/attendance/student-log/${studentId}?${p.toString()}`
   }
 
+  // Print preview popup (map 013): the same view under /print, which frames.
+  const printQuery = new URLSearchParams(
+    Object.entries({ classSection, view, month: monthParam, from: fromParam, to: toParam }).filter(([, v]) => v),
+  )
+  const printHref = `/school/attendance/student-log/${studentId}/print?${printQuery.toString()}`
+
   const pillClass = (active: boolean) =>
     `rounded-full border px-3 py-1 text-xs font-semibold ${
       active ? 'border-brand-500 bg-brand-500 text-white' : 'border-line hover:bg-paper-muted'
@@ -181,18 +189,18 @@ export default async function StudentLogDetailPage({
   const docTitle = `${t('attendance.studentLogTitle', lang)} — ${student.full_name}${rangeLabel ? `, ${rangeLabel}` : ''}`
 
   return (
-    <main className="mx-auto w-full max-w-3xl flex-1 p-6">
-      <div className="mb-4 flex items-center justify-between print:hidden">
-        <h1 className="text-2xl font-extrabold">{t('attendance.studentLogTitle', lang)}</h1>
-        <Link
-          href={backHref}
-          aria-label={t('common.back', lang)}
-          className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true">
-            <path d="m15 18-6-6 6-6" />
-          </svg>
-        </Link>
+    <div className="mx-auto w-full max-w-3xl">
+      <div className="print:hidden">
+        <PageHeader
+          title={student.full_name}
+          crumbs={schoolCrumbs(
+            '/school/attendance',
+            lang,
+            { label: t('attendance.title', lang), href: '/school/attendance' },
+            { label: t('attendance.studentLogTitle', lang), href: backHref },
+            { label: student.full_name },
+          )}
+        />
       </div>
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3 print:hidden">
@@ -233,18 +241,18 @@ export default async function StudentLogDetailPage({
             </Form>
           )}
 
-          {!!rows.length && <PrintButton label={t('print.print', lang)} />}
+          {!!rows.length && <PrintTrigger href={printHref} label={t('print.print', lang)} />}
         </div>
       </div>
 
       {!rows.length ? (
-        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted shadow-card print:hidden">
+        <p className="rounded-2xl border border-line bg-paper p-card text-sm text-muted print:hidden">
           {t('attendance.none', lang)}
         </p>
       ) : (
         <PrintPage>
           <PaginatedSheet header={<InstituteHeader institute={institute ?? undefined} docTitle={docTitle} />}>
-            <div className="mb-4 grid grid-cols-2 gap-3 rounded-lg border border-line bg-paper p-5 shadow-card sm:grid-cols-4 print:rounded-none print:border-0 print:p-0 print:shadow-none">
+            <div className="mb-4 grid grid-cols-2 gap-3 rounded-2xl border border-line bg-paper p-card sm:grid-cols-4 print:rounded-none print:border-0 print:p-0 print:shadow-none">
               <div>
                 <div className="text-xs font-semibold uppercase tracking-wide text-muted">{t('attendance.nameCol', lang)}</div>
                 <div className="text-sm font-semibold">{student.full_name}</div>
@@ -263,23 +271,23 @@ export default async function StudentLogDetailPage({
               </div>
             </div>
 
-            <div className="overflow-x-auto rounded-lg border border-line bg-paper shadow-card print:overflow-visible print:rounded-none print:border-0 print:shadow-none">
+            <div className="overflow-x-auto rounded-2xl border border-line bg-paper print:overflow-visible print:rounded-none print:border-0 print:shadow-none">
               <table className="w-full border-collapse">
-                <thead>
-                  <tr className="border-b border-line-strong">
-                    <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">
+                <thead className="bg-paper-muted">
+                  <tr>
+                    <th className="whitespace-nowrap px-4 py-3 text-left text-sm font-semibold text-muted">
                       {t('attendance.date', lang)}
                     </th>
-                    <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">
+                    <th className="whitespace-nowrap px-4 py-3 text-left text-sm font-semibold text-muted">
                       {t('attendance.leaveStatusCol', lang)}
                     </th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-line">
                   {rows.map((row) => (
-                    <tr key={row.iso} className="border-b border-line last:border-0">
-                      <td className="px-3 py-2 text-sm">{dayLabel(row.iso, lang)}</td>
-                      <td className="px-3 py-2 text-sm">
+                    <tr key={row.iso}>
+                      <td className="px-4 py-3 text-sm">{dayLabel(row.iso, lang)}</td>
+                      <td className="px-4 py-3 text-sm">
                         <Badge tone={STATUS_TONE[row.status]}>{t(`status.${row.status}` as 'status.present', lang)}</Badge>
                       </td>
                     </tr>
@@ -290,6 +298,6 @@ export default async function StudentLogDetailPage({
           </PaginatedSheet>
         </PrintPage>
       )}
-    </main>
+    </div>
   )
 }

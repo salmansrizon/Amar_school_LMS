@@ -4,6 +4,8 @@ import { useEffect, useState, useTransition } from 'react'
 import { t, type Lang } from '@/lib/i18n'
 import { saveStudentAttendance } from '../manual-actions'
 import { railClass } from '@/components/ui/page'
+import { Pill } from '@/components/data-table/data-table'
+import { attendanceBand } from '@/lib/dashboard'
 
 interface Row {
   id: string
@@ -23,8 +25,15 @@ export interface MarkedBy {
   isSelf: boolean
 }
 
-const thClass = 'px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted'
-const tdClass = 'px-3 py-2 text-sm'
+const thClass = 'whitespace-nowrap px-4 py-3 text-left text-sm font-semibold text-muted'
+const tdClass = 'px-4 py-3 text-sm'
+const BAND_TONE = { regular: 'mint', irregular: 'sun', atRisk: 'alert' } as const
+
+/** Attendance Rate (YTD) pill; a dash when the school has no days yet. */
+function RatePill({ rate }: { rate: number | null | undefined }) {
+  if (rate == null) return <span className="text-muted">—</span>
+  return <Pill tone={BAND_TONE[attendanceBand(rate)]}>{rate}%</Pill>
+}
 
 // #540: 44px is the floor for anything a thumb has to hit. h-11 is exactly that.
 const toggleBase =
@@ -39,11 +48,14 @@ export function MarkAttendanceForm({
   date,
   students,
   markedBy,
+  rates = null,
 }: {
   lang: Lang
   date: string
   students: Row[]
   markedBy: MarkedBy | null
+  /** Attendance Rate (YTD) per student id; null hides the column (0208 unapplied). */
+  rates?: Record<string, number | null> | null
 }) {
   const [rows, setRows] = useState<Row[]>(students)
   const [error, setError] = useState<string | null>(null)
@@ -132,8 +144,9 @@ export function MarkAttendanceForm({
           <li key={r.id} className="rounded-lg border border-line bg-paper p-3">
             <div className="mb-2 flex items-baseline justify-between gap-2">
               <span className="font-medium">{r.full_name}</span>
-              <span className="text-xs text-muted">
+              <span className="flex items-center gap-2 text-xs text-muted">
                 {t('attendance.rollCol', lang)} {r.roll_number ?? '—'}
+                {rates && <RatePill rate={rates[r.id]} />}
               </span>
             </div>
             <div className="flex gap-2">
@@ -172,24 +185,30 @@ export function MarkAttendanceForm({
         ))}
       </ul>
 
-      <div className="hidden overflow-x-auto rounded-lg border border-line bg-paper md:block">
+      <div className="hidden overflow-x-auto rounded-2xl border border-line bg-paper md:block">
         <table className="w-full border-collapse">
-          <thead>
-            <tr className="border-b border-line-strong">
+          <thead className="bg-paper-muted">
+            <tr>
               <th className={thClass}>{t('attendance.rollCol', lang)}</th>
               <th className={thClass}>{t('employees.name', lang)}</th>
+              {rates && <th className={thClass}>{t('attendance.statRateYtd', lang)}</th>}
               <th className={thClass}>{t('attendance.presentCol', lang)}</th>
               <th className={thClass}>{t('attendance.absentCol', lang)}</th>
               <th className={thClass}>{t('attendance.causeCol', lang)}</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-line">
             {rows.map((r) => (
-              <tr key={r.id} className="border-b border-line">
+              <tr key={r.id}>
                 <td className={`${tdClass} ${railClass(r.present ? 'mint' : 'alert')}`}>
                   {r.roll_number ?? <span className="text-muted">—</span>}
                 </td>
                 <td className={`${tdClass} font-medium`}>{r.full_name}</td>
+                {rates && (
+                  <td className={tdClass}>
+                    <RatePill rate={rates[r.id]} />
+                  </td>
+                )}
                 <td className={tdClass}>
                   <input
                     type="radio"
@@ -224,7 +243,7 @@ export function MarkAttendanceForm({
         </table>
       </div>
 
-      <div className="mt-4 rounded-lg border border-line bg-paper p-4">
+      <div className="mt-4 rounded-2xl border border-line bg-paper p-card">
         <p className="text-xs text-muted">{t('attendance.rfidNote', lang)}</p>
       </div>
 

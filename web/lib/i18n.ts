@@ -2344,6 +2344,10 @@ const dict = {
   'attendance.groupEmployees': { bn: 'কর্মচারী', en: 'Employees' },
 
   'attendance.markTitle': { bn: 'শিক্ষার্থী উপস্থিতি — হাজিরা নিন', en: 'Student Attendance — Mark' },
+  'attendance.statTotal': { bn: 'মোট শিক্ষার্থী', en: 'Total students' },
+  'attendance.statPresent': { bn: 'আজ উপস্থিত', en: 'Present today' },
+  'attendance.statAbsent': { bn: 'আজ অনুপস্থিত', en: 'Absent today' },
+  'attendance.statRateYtd': { bn: 'উপস্থিতির হার (বছরে)', en: 'Attendance Rate (YTD)' },
   'attendance.class': { bn: 'শ্রেণি', en: 'Class' },
   'attendance.section': { bn: 'শাখা', en: 'Section' },
   'attendance.classSection': { bn: 'শ্রেণি/শাখা', en: 'Class/Section' },

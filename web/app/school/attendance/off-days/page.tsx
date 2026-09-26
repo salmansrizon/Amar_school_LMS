@@ -1,10 +1,11 @@
-import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { monthGrid, type OffDay } from '@/lib/attendance-manual'
 import { AttendanceTabs } from '../attendance-tabs'
 import { AddOffDayForm, DeleteOffDayButton, ImportCentralButton, WeeklyOffDayForm } from './off-day-controls'
+import { schoolCrumbs } from '@/lib/school-crumbs'
+import { PageHeader } from '@/components/ui/page'
 
 // Layout per ui/school-owner/off-day-calendar.html: 12-month grid shading
 // off-days (red) and significant days (blue); the School's configured Weekly
@@ -58,16 +59,14 @@ export default async function OffDayCalendarPage({
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-extrabold">
-          {t('attendance.offDayTitle', lang)} — {year}
-        </h1>
-        <Link href="/school" aria-label={t('common.back', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
-      </div>
+      <PageHeader
+        title={`${t('attendance.offDayTitle', lang)} — ${year}`}
+        crumbs={schoolCrumbs('/school/attendance', lang, { label: t('attendance.title', lang), href: '/school/attendance' }, { label: `${t('attendance.offDayTitle', lang)} — ${year}` })}
+      />
 
       <AttendanceTabs active="/school/attendance/off-days" lang={lang} />
 
-      <section className="mb-6 rounded-lg border border-line bg-paper p-5">
+      <section className="mb-grid rounded-2xl border border-line bg-paper p-card">
         <h3 className="mb-3 font-bold">{t('attendance.weeklyOffDayTitle', lang)}</h3>
         {role === 'school_owner' ? (
           <WeeklyOffDayForm value={weeklyOffDays} lang={lang} />
@@ -86,7 +85,7 @@ export default async function OffDayCalendarPage({
         )}
       </section>
 
-      <section className="mb-6 rounded-lg border border-line bg-paper p-5">
+      <section className="mb-grid rounded-2xl border border-line bg-paper p-card">
         <h3 className="mb-3 font-bold">{t('attendance.offDayAddTitle', lang)}</h3>
         <AddOffDayForm lang={lang} />
         <div className="mt-3 border-t border-line pt-3">
@@ -107,7 +106,7 @@ export default async function OffDayCalendarPage({
         {MONTH_NAMES.map((name, month) => {
           const grid = monthGrid(year, month, offDays, weeklyOffDays)
           return (
-            <div key={month} className="rounded-lg border border-line bg-paper p-3">
+            <div key={month} className="rounded-2xl border border-line bg-paper p-3">
               <h4 className="mb-2 text-center text-sm font-bold">{name[lang]}</h4>
               <div className="grid grid-cols-7 gap-0.5 text-xs">
                 {WEEKDAY_LABELS.map((w) => (
@@ -138,7 +137,7 @@ export default async function OffDayCalendarPage({
 
       <p className="mt-4 text-xs text-muted">{t('attendance.offDayWeeklyNote', lang)}</p>
 
-      <section className="mt-6 rounded-lg border border-line bg-paper p-5">
+      <section className="mt-6 rounded-2xl border border-line bg-paper p-card">
         {!offDays.length ? (
           <p className="text-sm text-muted">{t('attendance.none', lang)}</p>
         ) : (
