@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { attendanceRate, mergeActivity, isSubscriptionActive } from '@/lib/dashboard'
+import { attendanceRate, mergeActivity, isSubscriptionActive, unmarkedOfferings, buildDashAlerts } from '@/lib/dashboard'
 
 describe('attendanceRate', () => {
   it('returns a 1-dp percentage', () => {
@@ -45,5 +45,60 @@ describe('isSubscriptionActive', () => {
     expect(isSubscriptionActive('2026-12-31', today)).toBe(true)
     expect(isSubscriptionActive('2026-07-13', today)).toBe(true)
     expect(isSubscriptionActive('2026-07-12', today)).toBe(false)
+  })
+})
+
+describe('unmarkedOfferings', () => {
+  it('lists placed classes with nobody marked', () => {
+    const students = [
+      { id: 's1', offeringId: 'A' },
+      { id: 's2', offeringId: 'A' },
+      { id: 's3', offeringId: 'B' },
+      { id: 's4', offeringId: null },
+    ]
+    expect(unmarkedOfferings(students, new Set(['s2']))).toEqual(['B'])
+    expect(unmarkedOfferings(students, new Set(['s4']))).toEqual(['A', 'B'])
+  })
+})
+
+describe('buildDashAlerts', () => {
+  const zero = {
+    approvals: 0,
+    corrections: 0,
+    questions: 0,
+    unmarkedClasses: 0,
+    sms: null,
+    canAttendance: true,
+    canSms: true,
+  }
+  it('is empty when nothing needs attention', () => {
+    expect(buildDashAlerts(zero)).toEqual([])
+    expect(buildDashAlerts({ ...zero, sms: { balance: 500, level: 'ok' } })).toEqual([])
+  })
+  it('emits one alert per non-zero count, each with its fixing page', () => {
+    const out = buildDashAlerts({
+      ...zero,
+      approvals: 2,
+      corrections: 1,
+      unmarkedClasses: 3,
+      sms: { balance: 0, level: 'empty' },
+    })
+    expect(out.map((a) => [a.kind, a.count, a.href])).toEqual([
+      ['approvals', 2, '/school/approvals'],
+      ['corrections', 1, '/school/corrections'],
+      ['attendance', 3, '/school/attendance/mark'],
+      ['sms', 0, '/school/sms/buy'],
+    ])
+  })
+  it('drops alerts the caller cannot act on', () => {
+    expect(
+      buildDashAlerts({
+        ...zero,
+        unmarkedClasses: 3,
+        sms: { balance: 5, level: 'low' },
+        canAttendance: false,
+        canSms: false,
+      }),
+    ).toEqual([])
   })
 })
