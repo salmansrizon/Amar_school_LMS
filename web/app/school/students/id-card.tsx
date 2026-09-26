@@ -1,10 +1,16 @@
 import { t, type Lang } from '@/lib/i18n'
 import type { InstitutePrintHeader } from '@/lib/institute-print'
+import { firstRelation } from '@/lib/supabase/relation'
 
 // One printable Student ID card (issue #46, PRD §5.1), shared by the single
 // card page and the directory's bulk print (map 013). ADR 0007: browser print.
 
-export const ID_CARD_COLUMNS = 'id, full_name, class_name, section, roll_number, blood_group, guardian_mobile, public_token'
+// Class and roll come from the current Enrollment (map #568): the legacy
+// class_name/section/roll_number columns on students are no longer kept current.
+export const ID_CARD_COLUMNS = `id, full_name, class_name, section, roll_number, blood_group, guardian_mobile, public_token,
+  student_enrollments!students_current_enrollment_id_fkey(roll_number, class_offerings(name, section))`
+
+type EnrollmentEmbed = { roll_number: number | null; class_offerings: { name: string; section: string | null } | { name: string; section: string | null }[] | null }
 
 export type IdCardStudent = {
   id: string
@@ -15,6 +21,7 @@ export type IdCardStudent = {
   blood_group: string | null
   guardian_mobile: string | null
   public_token: string
+  student_enrollments?: EnrollmentEmbed | EnrollmentEmbed[] | null
 }
 
 const dash = '—'
@@ -31,6 +38,11 @@ export function StudentIdCard({
   lang: Lang
 }) {
   const v = (x: string | number | null | undefined) => (x === null || x === undefined || x === '' ? dash : x)
+  const enrollment = firstRelation(student.student_enrollments)
+  const offering = enrollment ? firstRelation(enrollment.class_offerings) : null
+  const className = offering?.name ?? student.class_name
+  const section = offering ? offering.section : student.section
+  const roll = enrollment ? enrollment.roll_number : student.roll_number
   return (
   <div className="mx-auto w-full max-w-80 rounded-lg border-2 border-brand-500 p-4 text-center">
     {/* An ID card is 80mm wide: the full institution block (address,
@@ -46,11 +58,11 @@ export function StudentIdCard({
     </div>
     <div className="text-base font-extrabold">{student.full_name}</div>
     <div className="mb-3 text-xs text-muted">
-      {`${v(student.class_name)} ${student.section ?? ''}`.trim()}
+      {`${v(className)} ${section ?? ''}`.trim()}
     </div>
     <dl className="grid grid-cols-2 gap-y-1 text-left text-xs">
       <dt className="text-muted">{t('students.roll', lang)}</dt>
-      <dd>{v(student.roll_number)}</dd>
+      <dd>{v(roll)}</dd>
       <dt className="text-muted">{t('students.bloodGroup', lang)}</dt>
       <dd>{v(student.blood_group)}</dd>
       <dt className="text-muted">{t('students.guardianMobile', lang)}</dt>
