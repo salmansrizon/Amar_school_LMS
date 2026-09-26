@@ -1,5 +1,6 @@
 'use server'
 
+import { selectAllRows } from '@/lib/supabase/select-all'
 import { revalidatePath } from 'next/cache'
 import { requireSchoolMember, requireSchoolMemberProfile } from '@/lib/auth/require-role'
 import { createClient } from '@/lib/supabase/server'
@@ -164,8 +165,13 @@ export async function sendCompose(formData: FormData): Promise<{ error?: string;
   // School's active Academic Year pins a broadcast target's Year (#599). The
   // Offerings list is fetched only for an 'offering'-scope send — its sole
   // use is the Send Log label lookup below.
-  const [{ data: students }, { data: employees }, { data: school }, { data: offerings }] = await Promise.all([
-    supabase.from('students').select(COMPOSE_STUDENT_COLUMNS).is('archived_at', null),
+  // Paged (map 013 FC2): PostgREST caps an unbounded select at 1000 rows, so an
+  // `all` send in a larger school silently skipped the rest. Same paging as the
+  // compose page's preview, so the two still resolve identically.
+  const [{ rows: students }, { data: employees }, { data: school }, { data: offerings }] = await Promise.all([
+    selectAllRows((from, to) =>
+      supabase.from('students').select(COMPOSE_STUDENT_COLUMNS).is('archived_at', null).order('id').range(from, to),
+    ),
     supabase.from('employee_card').select(COMPOSE_EMPLOYEE_COLUMNS).is('archived_at', null),
     supabase.from('schools').select('active_academic_year').eq('id', schoolId).maybeSingle(),
     needsOfferings

@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
+import { canOpenScreen } from '@/lib/auth/screens'
 import { numberFmt } from '@/lib/i18n'
 import { loadDirectoryRows } from './directory-rows'
 import { classCatalogueLabel } from '@/lib/class-catalogue'
@@ -59,7 +60,9 @@ export default async function StudentsPage({
   const { q = '', classSection = '', fee, admitted, page, size, view } = params
   const pageSize = pageSizeFrom(size, PAGE_SIZE)
   const lang: Lang = await currentLang()
-  const { role } = await getSchoolContext()
+  const { role, grants } = await getSchoolContext()
+  // The Remind row action opens SMS Center, which rides the `sms` grant.
+  const canSms = canOpenScreen(role, grants, 'sms')
   const [{ roster, fees, rows, showYear, admittedThisMonth }, viewed] = await Promise.all([
     loadDirectoryRows({ q, classSection, fee, admitted }),
     view ? getStudent(view) : Promise.resolve(null),
@@ -246,6 +249,15 @@ export default async function StudentsPage({
               icon={<IdCard className="size-4" aria-hidden />}
               iconOnly
             />
+            {canSms && (fees.get(s.id)?.standing === 'due' || fees.get(s.id)?.standing === 'partial') && (
+              <Link
+                href={`/school/sms?students=${s.id}`}
+                aria-label={`${t('students.remind', lang)}: ${s.full_name}`}
+                className="inline-flex h-9 items-center rounded-full border border-line-strong px-4 text-xs font-semibold hover:bg-paper-muted"
+              >
+                {t('students.remind', lang)}
+              </Link>
+            )}
             <ViewLink id={s.id} params={params} label={t('table.profile', lang)} name={s.full_name} />
           </>
         )}

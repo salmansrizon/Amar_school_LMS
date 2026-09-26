@@ -67,6 +67,7 @@ export function ComposeForm({
   offerings,
   activeAcademicYear,
   categories,
+  prefillNumbers,
 }: {
   lang: Lang
   students: ComposeStudentRow[]
@@ -74,11 +75,15 @@ export function ComposeForm({
   offerings: ClassCatalogueRow[]
   activeAcademicYear: number | null
   categories: string[]
+  /** Guardian mobiles from `?students=` (the "Remind" action, map 013 FC2):
+   *  opens in Manual Numbers mode with these, ignoring any saved draft. */
+  prefillNumbers?: string
 }) {
   // Restore a locally-saved draft as the initial state (client-only; no
   // server draft storage exists for this screen — see "Save Draft" below).
   // A lazy initializer rather than an effect avoids an extra render pass.
   const [draft, setDraft] = useState<Draft>(() => {
+    if (prefillNumbers !== undefined) return { ...EMPTY_DRAFT, mode: 'manual', manualNumbers: prefillNumbers }
     if (typeof window === 'undefined') return EMPTY_DRAFT
     try {
       const raw = window.localStorage.getItem(DRAFT_KEY)
