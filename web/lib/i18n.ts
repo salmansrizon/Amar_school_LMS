@@ -2670,6 +2670,24 @@ const dict = {
   'attendance.filterMonthly': { bn: 'মাসিক', en: 'Monthly' },
   'attendance.filterCustom': { bn: 'নির্দিষ্ট সময়সীমা', en: 'Custom Range' },
 
+  // Mark Attendance landing (map 013, new_ui/03-academics/attendance) — header
+  // subtitle, one-line warning banner and the two bottom workflow cards.
+  'attendance.pageSubtitle': {
+    bn: 'দৈনিক শ্রেণিভিত্তিক হাজিরা নিন এবং অনুপস্থিতির কারণ যাচাই করুন',
+    en: 'Take daily class-wise attendance and verify absence reasons',
+  },
+  'attendance.bannerWarn': { bn: 'সতর্কতা', en: 'Warning' },
+  'attendance.classesNotMarked': { bn: 'হাজিরা নেওয়া হয়নি', en: 'Attendance not taken' },
+  'attendance.viewUnmarkedList': { bn: 'তালিকা দেখুন', en: 'View list' },
+  'attendance.pendingTag': { bn: 'অপেক্ষমাণ', en: 'Pending' },
+  'attendance.notMarkedEmpty': { bn: 'সব শ্রেণির আজকের হাজিরা নেওয়া হয়েছে', en: 'Every class has attendance taken' },
+  'attendance.leaveWorkflowTitle': { bn: 'অপেক্ষমাণ ছুটির আবেদন', en: 'Pending leave requests' },
+  'attendance.leaveWorkflowTag': { bn: 'অনুমোদন', en: 'Approvals' },
+  'attendance.studentLeavesPendingLabel': { bn: 'শিক্ষার্থী ছুটির আবেদন', en: 'Student leave requests' },
+  'attendance.employeeLeavesPendingLabel': { bn: 'কর্মচারী ছুটির আবেদন', en: 'Employee leave requests' },
+  'attendance.reviewAction': { bn: 'পর্যালোচনা করুন', en: 'Review' },
+  'attendance.leaveWorkflowEmpty': { bn: 'কোনো ছুটির আবেদন অপেক্ষমাণ নেই', en: 'No leave requests pending' },
+
   // Institute Setup & Misc (issue #39, PRD §5.11)
   'institute.title': { bn: 'প্রতিষ্ঠান সেটআপ', en: 'Institute Setup' },
   'institute.tabProfile': { bn: 'প্রতিষ্ঠান প্রোফাইল', en: 'Institute Profile' },
