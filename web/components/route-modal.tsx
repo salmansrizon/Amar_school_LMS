@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Dialog } from '@base-ui/react/dialog'
 import { X } from 'lucide-react'
@@ -50,4 +50,14 @@ export function RouteModal({
       </Dialog.Portal>
     </Dialog.Root>
   )
+}
+
+/** An intercept caught a sibling static route (e.g. /school/exams/grading-schemes
+ *  under (.)exams/[id]): the URL is already right, so a full load renders the
+ *  real page — full loads are never intercepted. */
+export function ReloadToRealPage() {
+  useEffect(() => {
+    window.location.reload()
+  }, [])
+  return null
 }
