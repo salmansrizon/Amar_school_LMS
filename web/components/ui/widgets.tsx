@@ -46,19 +46,22 @@ export function StatCard({
   action?: WidgetAction
 }) {
   return (
-    <section className="flex items-start gap-3 rounded-2xl border border-line bg-paper p-card">
-      {icon && (
-        <span className={`flex size-11 shrink-0 items-center justify-center rounded-xl ${SOFT[tone]}`} aria-hidden>
-          {icon}
-        </span>
-      )}
-      <div className="min-w-0 flex-1">
+    <section className="flex flex-col rounded-2xl border border-line bg-paper p-card">
+      <div className="flex items-start justify-between gap-2">
         <h2 className="text-sm text-muted">{label}</h2>
-        <p className="mt-1 text-2xl font-extrabold tracking-tight">{value}</p>
-        {note && <p className={`mt-0.5 text-xs font-medium ${TEXT[noteTone ?? tone]}`}>{note}</p>}
+        {icon && (
+          <span className={`flex size-9 shrink-0 items-center justify-center rounded-xl ${SOFT[tone]}`} aria-hidden>
+            {icon}
+          </span>
+        )}
       </div>
+      <p className="mt-1 text-2xl font-extrabold tracking-tight">{value}</p>
+      {note && <p className={`mt-0.5 text-xs font-medium ${TEXT[noteTone ?? tone]}`}>{note}</p>}
       {action && (
-        <Link href={action.href} className="shrink-0 text-xs font-semibold text-brand-600 hover:underline">
+        <Link
+          href={action.href}
+          className="mt-auto self-end pt-3 text-right text-xs font-semibold text-brand-600 hover:underline"
+        >
           {action.label} <span aria-hidden>→</span>
         </Link>
       )}
