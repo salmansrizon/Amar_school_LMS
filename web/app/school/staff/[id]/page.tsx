@@ -1,10 +1,10 @@
-import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
-import { GRANTABLE_SCREENS } from '@/lib/auth/screens'
 import { currentLang } from '@/lib/i18n-server'
 import { t } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
-import { ScreenToggle } from './screen-toggle'
+import { navGroupFor } from '@/lib/school-nav'
+import { Card, PageHeader } from '@/components/ui/page'
+import { GrantList } from './grant-list'
 
 export default async function StaffPermissionsPage({
   params,
@@ -29,31 +29,28 @@ export default async function StaffPermissionsPage({
     .select('screen_key')
     .eq('staff_user_id', id)
   const granted = new Set((grants ?? []).map((g) => g.screen_key))
+  const group = navGroupFor('/school/staff')?.group
 
   return (
-    <div>
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-extrabold">
-          {t('staff.screens', lang)} — {staff.full_name}
-        </h1>
-        <Link href="/school/staff" aria-label={t('staff.list', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
-      </div>
+    <>
+      <PageHeader
+        title={`${t('staff.screens', lang)} — ${staff.full_name}`}
+        backHref="/school/staff"
+        backLabel={t('staff.list', lang)}
+        crumbs={{
+          lang,
+          items: [
+            { label: t('dash.dashboard', lang), href: '/school' },
+            ...(group ? [{ label: t(group.labelKey, lang) }] : []),
+            { label: t('staff.title', lang), href: '/school/staff' },
+            { label: staff.full_name ?? staff.id },
+          ],
+        }}
+      />
 
-      <section className="rounded-lg border border-line bg-paper p-5">
-        <ul className="divide-y divide-line">
-          {GRANTABLE_SCREENS.map((screen) => (
-            <li key={screen.key} className="flex items-center justify-between py-2.5">
-              <span className="text-sm font-medium">{t(screen.titleKey, lang)}</span>
-              <ScreenToggle
-                staffUserId={staff.id}
-                screenKey={screen.key}
-                granted={granted.has(screen.key)}
-                grantedLabel={t('staff.granted', lang)}
-              />
-            </li>
-          ))}
-        </ul>
-      </section>
-    </div>
+      <Card>
+        <GrantList staffUserId={staff.id} granted={granted} lang={lang} />
+      </Card>
+    </>
   )
 }
