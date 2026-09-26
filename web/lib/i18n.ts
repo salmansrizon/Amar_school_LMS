@@ -3038,6 +3038,13 @@ const dict = {
   // Publishing (issue #37, PRD §5.8): notices/homework/lesson-plans/daily-
   // lessons/exam-prep share one list/detail UI; gallery albums are a second tab.
   'notices.title': { bn: 'প্রকাশনা', en: 'Publishing' },
+  'notices.pageSubtitle': {
+    bn: 'নোটিশ, বাড়ির কাজ, পাঠ পরিকল্পনা ও পরীক্ষার প্রস্তুতি প্রকাশনা পরিচালনা',
+    en: 'Manage notices, homework, lesson plans and exam-prep publications',
+  },
+  'notices.workflowAttentionTitle': { bn: 'নজরে আনা প্রয়োজন', en: 'Needs attention' },
+  'notices.workflowAttentionEmpty': { bn: 'জরুরি বা গুরুত্বপূর্ণ কিছু নেই', en: 'Nothing urgent or important' },
+  'notices.workflowByTypeTitle': { bn: 'ধরন অনুযায়ী', en: 'By type' },
   'notices.tabList': { bn: 'তালিকা', en: 'List' },
   'notices.tabCreate': { bn: 'নতুন তৈরি করুন', en: 'Create' },
   'notices.tabGallery': { bn: 'গ্যালারি অ্যালবাম', en: 'Gallery Albums' },
