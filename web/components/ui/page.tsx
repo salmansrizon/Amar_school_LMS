@@ -75,6 +75,7 @@ export function PageHeader({
         <div className="flex min-w-0 items-center gap-2">
           {backHref && (
             <Link
+              data-page-back
               href={backHref}
               aria-label={backLabel}
               className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"

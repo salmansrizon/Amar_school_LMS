@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { t, type Lang, type MessageKey } from '@/lib/i18n'
 import { withOrigin } from '@/lib/back-nav'
 
@@ -61,7 +62,10 @@ export function ExamDocumentsModal({
       <button type="button" onClick={() => setOpen(true)} className={triggerClassName}>
         {t('examDocs.title', lang)}
       </button>
-      {open && (
+      {/* Portalled: opened from a row's ⋮ or the record drawer, both of which
+          are transformed, so a nested `fixed` overlay would be trapped inside. */}
+      {open &&
+        createPortal(
         <div
           role="dialog"
           aria-modal="true"
@@ -102,8 +106,9 @@ export function ExamDocumentsModal({
               </button>
             </div>
           </div>
-        </div>
-      )}
+        </div>,
+          document.body,
+        )}
     </>
   )
 }

@@ -21,7 +21,7 @@ import { withParams } from '@/lib/url-params'
 import { AddExamModal, ExamRowActions, ScrollToExam, type ExamListItem } from './exam-controls'
 import { ExamsTabs } from './exams-tabs'
 import { ProgressBar, WarningBanner, WorkflowCard } from '@/components/ui/widgets'
-import { ExamRowMore } from './exam-row-more'
+import { RowMore } from '@/components/data-table/row-more'
 import { PublishResults } from './[id]/publish-results'
 
 // Exams & Results (map 013 A3), laid out as new_ui/03-academics/exams-results:
@@ -483,9 +483,9 @@ export default async function ExamsPage({
           return (
             <div data-exam-row={e.id} className="flex items-center justify-end gap-1">
               <RowActionPill state="next" href={next.href} label={next.label} />
-              <ExamRowMore label={`${t('exams.moreActions', lang)}: ${e.name}`}>
+              <RowMore label={`${t('exams.moreActions', lang)}: ${e.name}`}>
                 <ExamRowActions exam={e} origin={originFor(e.id)} lang={lang} />
-              </ExamRowMore>
+              </RowMore>
             </div>
           )
         }}

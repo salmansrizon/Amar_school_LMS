@@ -21,7 +21,7 @@ import { RowActionPill } from '@/components/data-table/row-action-pill'
 import { withParams } from '@/lib/url-params'
 import { IdCard, UserPlus, Users, Wallet, HandCoins } from 'lucide-react'
 import { getStudent, StudentProfile } from './[id]/student-profile'
-import { StudentRowMore } from './student-row-more'
+import { RowMore } from '@/components/data-table/row-more'
 
 // Layout per Design System/new_ui/02-people/student-directory (map 013, P1),
 // following the exam landing pattern (013 A3): header + subtitle, a one-line
@@ -296,7 +296,7 @@ export default async function StudentsPage({
           return (
             <div className="flex items-center justify-end gap-1">
               <RowActionPill state={next.state} href={next.href} label={next.label} />
-              <StudentRowMore label={`${t('students.moreActions', lang)}: ${s.full_name}`}>
+              <RowMore label={`${t('students.moreActions', lang)}: ${s.full_name}`}>
                 <div className="flex flex-wrap items-center justify-end gap-2">
                   <PrintTrigger
                     href={`/school/students/${s.id}/print/id-card`}
@@ -316,7 +316,7 @@ export default async function StudentsPage({
                     {t('students.transfer', lang)}
                   </Link>
                 </div>
-              </StudentRowMore>
+              </RowMore>
             </div>
           )
         }}

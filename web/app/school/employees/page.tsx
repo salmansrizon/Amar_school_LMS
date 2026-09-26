@@ -20,7 +20,7 @@ import { RecordDrawer } from '@/components/data-table/record-drawer'
 import { RowActionPill } from '@/components/data-table/row-action-pill'
 import { AddOfficeTimeForm, CategoryGraceForm, DefaultGraceForm } from './employee-controls'
 import { EmployeeProfile, getEmployee } from './[id]/employee-profile'
-import { EmployeeRowMore } from './employee-row-more'
+import { RowMore } from '@/components/data-table/row-more'
 
 // Employee directory (map 013, P3), per new_ui/02-people/employees-directory,
 // following the exam landing pattern (013 A3): header + subtitle, a one-line
@@ -269,7 +269,7 @@ export default async function EmployeesPage({
       <PageHeader
         title={t('employees.title', lang)}
         subtitle={t('employees.pageSubtitle', lang)}
-        crumbs={schoolCrumbs('/school/employees', lang, { label: t('employees.people', lang) }, { label: t('employees.title', lang) })}
+        crumbs={schoolCrumbs('/school/employees', lang, { label: t('employees.title', lang) })}
         badge={`${t('pager.total', lang)}: ${fmt.format(all.length)}`}
         actions={
           <>
@@ -384,7 +384,7 @@ export default async function EmployeesPage({
           return (
             <div className="flex items-center justify-end gap-1">
               <RowActionPill state={next.state} href={next.href} label={next.label} />
-              <EmployeeRowMore label={`${t('employees.moreActions', lang)}: ${e.full_name}`}>
+              <RowMore label={`${t('employees.moreActions', lang)}: ${e.full_name}`}>
                 <div className="flex flex-wrap items-center justify-end gap-2">
                   <Link
                     href={`/school/employees/${e.id}`}
@@ -401,7 +401,7 @@ export default async function EmployeesPage({
                     </Link>
                   )}
                 </div>
-              </EmployeeRowMore>
+              </RowMore>
             </div>
           )
         }}

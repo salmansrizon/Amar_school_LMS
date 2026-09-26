@@ -9,9 +9,9 @@ import { X } from 'lucide-react'
 // intercepting route in `app/school/@modal` — soft navigation from a row opens
 // it; a refresh or direct URL renders the page itself, full size. Closing (Esc,
 // ✕, backdrop) is `router.back()`, so the list comes back with its filters and
-// page untouched. Only the page's breadcrumbs are hidden in here; its Back
-// chevron stays (it links to the list, which the @modal catch-all turns into
-// "close"), so everything else is the page, unchanged.
+// page untouched. The page's breadcrumbs and Back chevron are hidden in here:
+// the chevron is a Link, so it would push a new entry and browser Back would
+// reopen the closed popup (docs/010 test H). ✕ is the way back.
 
 export function RouteModal({
   title,
@@ -43,7 +43,7 @@ export function RouteModal({
               <X className="size-4" aria-hidden />
             </Dialog.Close>
           </header>
-          <div className="@container min-h-0 flex-1 overflow-y-auto p-card [&_[data-page-crumbs]]:hidden">
+          <div className="@container min-h-0 flex-1 overflow-y-auto p-card [&_[data-page-back]]:hidden [&_[data-page-crumbs]]:hidden">
             {children}
           </div>
         </Dialog.Popup>
