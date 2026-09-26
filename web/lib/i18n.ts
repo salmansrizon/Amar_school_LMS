@@ -1907,6 +1907,8 @@ const dict = {
   'fees.adjust': { bn: 'ছাড়/বৃত্তি (৳)', en: 'Adjustment (Tk)' },
   'fees.due': { bn: 'বকেয়া (৳)', en: 'Due (Tk)' },
   'fees.method': { bn: 'পেমেন্ট মাধ্যম', en: 'Payment method' },
+  'fees.historySectionTitle': { bn: 'পেমেন্ট ইতিহাস', en: 'Payment History' },
+  'fees.noHistory': { bn: 'অন্য কোনো মাসের রেকর্ড নেই', en: 'No other months on record' },
   'fees.cash': { bn: 'নগদ', en: 'Cash' },
   'fees.cheque': { bn: 'চেক', en: 'Cheque' },
   'fees.bank': { bn: 'ব্যাংক', en: 'Bank' },
