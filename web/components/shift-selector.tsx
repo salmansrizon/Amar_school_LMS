@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Icon } from '@/components/school-icons'
-import { t, type Lang } from '@/lib/i18n'
+import { numberFmt, t, type Lang } from '@/lib/i18n'
+import { FOCUS_RING } from '@/lib/ui-tokens'
 import {
   shiftSelectionCookieAssignment,
   academicYearSelectionCookieAssignment,
@@ -28,7 +29,6 @@ import { ACADEMIC_SHIFT_LABEL_KEY, type AcademicShift } from '@/lib/institute'
 // year's row is always checked and disabled (it can never be deselected).
 export function ShiftSelector({
   lang,
-  buttonClass,
   configuredShifts,
   initialSelection,
   startedAcademicYears = [],
@@ -36,7 +36,6 @@ export function ShiftSelector({
   academicYearSelection = [],
 }: {
   lang: Lang
-  buttonClass: string
   configuredShifts: readonly string[]
   initialSelection: readonly string[]
   /** Academic Years this School has actually started (SchoolContext,
@@ -85,9 +84,35 @@ export function ShiftSelector({
   // Only a School spanning more than one started year gets a choice to make.
   const showYearSection = academicYearSectionVisible(startedAcademicYears)
 
-  // Nothing to select on either axis (a No-Shift, single-year School) — absent
-  // entirely, not rendered-but-disabled (#577's resolution).
-  if (!showShiftSection && !showYearSection) return null
+  // Chip text (map 013 F5): "২০২৫ শিক্ষাবর্ষ • সকাল শিফট". A view filter only —
+  // reads the cookie-backed selections, never schools.active_academic_year writes.
+  const years = yearSelection.length > 0 ? [...yearSelection].sort((a, b) => a - b) : activeAcademicYear ? [activeAcademicYear] : []
+  const yearFmt = numberFmt(lang, { useGrouping: false })
+  const yearPart = years.length
+    ? `${years.map((y) => yearFmt.format(y)).join(', ')} ${t('shell.academicYearSelection', lang)}`
+    : ''
+  const shiftLabel = (s: string) =>
+    t(ACADEMIC_SHIFT_LABEL_KEY[s as AcademicShift] ?? ACADEMIC_SHIFT_LABEL_KEY.Morning, lang)
+  const shiftPart = showShiftSection
+    ? `${
+        selection.length === configuredShifts.length && configuredShifts.length > 1
+          ? t('shell.allShifts', lang)
+          : selection.map(shiftLabel).join(', ')
+      } ${t('shell.shiftWord', lang)}`
+    : ''
+  const chipText = [yearPart, shiftPart].filter(Boolean).join(' • ')
+  const chipClass = `inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-full border border-line bg-paper-muted px-2.5 text-sm font-semibold text-ink md:min-h-10 md:justify-start md:rounded-xl md:px-3 ${FOCUS_RING}`
+
+  // Nothing to select on either axis (a No-Shift, single-year School) — no
+  // popover (#577's resolution); the chip still names the year being viewed.
+  if (!showShiftSection && !showYearSection) {
+    return yearPart ? (
+      <span className={`${chipClass} hidden md:inline-flex`}>
+        <Icon name="layers" className="size-4 shrink-0 text-muted" />
+        {yearPart}
+      </span>
+    ) : null
+  }
 
   function toggleShift(shift: string) {
     // The sole remaining checked box can't be unchecked client-side. Not a
@@ -120,12 +145,14 @@ export function ShiftSelector({
     <div className="relative" ref={ref}>
       <button
         type="button"
-        aria-label={t(showShiftSection ? 'shell.shiftSelection' : 'shell.academicYearSelection', lang)}
+        aria-label={`${t(showShiftSection ? 'shell.shiftSelection' : 'shell.academicYearSelection', lang)}: ${chipText}`}
         aria-expanded={open}
         onClick={toggle}
-        className={`${buttonClass} text-muted hover:bg-brand-50 hover:text-brand-600`}
+        className={`${chipClass} cursor-pointer transition hover:border-brand-300 hover:text-brand-600`}
       >
-        <Icon name="layers" className="size-5" />
+        <Icon name="layers" className="size-4 shrink-0 text-muted" />
+        <span className="hidden truncate md:inline lg:max-w-72">{chipText}</span>
+        <Icon name="chevronRight" className="hidden size-3.5 shrink-0 rotate-90 text-muted md:block" />
       </button>
 
       {open && (

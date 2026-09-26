@@ -83,6 +83,18 @@ const dict = {
   'shell.academicYearSelection': { bn: 'শিক্ষাবর্ষ', en: 'Academic Year' },
   'shell.viewSelection': { bn: 'ভিউ নির্বাচন', en: 'View' },
   'shell.nav': { bn: 'প্রধান নেভিগেশন', en: 'Main navigation' },
+  // Chip text in the topbar year/shift switcher (map 013 F5): "২০২৫ শিক্ষাবর্ষ • সকাল শিফট".
+  'shell.shiftWord': { bn: 'শিফট', en: 'Shift' },
+  'shell.allShifts': { bn: 'সকল', en: 'All' },
+  'shell.bottomNav': { bn: 'বিভাগ নেভিগেশন', en: 'Section navigation' },
+  // School sidebar groups (map 013 F5, new_ui 00-reference); tab* = phone bottom-tab short form.
+  'nav.groupOverview': { bn: 'ওভারভিউ', en: 'Overview' },
+  'nav.groupPeople': { bn: 'ব্যক্তিবর্গ', en: 'People' },
+  'nav.groupAcademics': { bn: 'পাঠদান ও অ্যাকাডেমিক', en: 'Teaching & Academics' },
+  'nav.tabAcademics': { bn: 'পাঠদান', en: 'Academics' },
+  'nav.groupFinanceComms': { bn: 'অর্থ ও যোগাযোগ', en: 'Finance & Communication' },
+  'nav.tabFinanceComms': { bn: 'অর্থ ও ফি', en: 'Finance' },
+  'nav.groupAdministration': { bn: 'প্রশাসন', en: 'Administration' },
   'shell.help': { bn: 'সহায়তা', en: 'Help' },
   'shell.chat': { bn: 'চ্যাট', en: 'Chat' },
   'shell.profile': { bn: 'প্রোফাইল', en: 'Profile' },
@@ -753,6 +765,8 @@ const dict = {
   'sms.creditExhausted': { bn: 'SMS ক্রেডিট শেষ — টপ-আপের জন্য অ্যাডমিনের সাথে যোগাযোগ করুন।', en: 'Insufficient SMS credit — contact admin to top up.' },
   // Owner-side SMS balance (map #171 T9)
   'sms.balance': { bn: 'SMS ব্যালেন্স', en: 'SMS balance' },
+  'sms.chipLabel': { bn: 'এসএমএস', en: 'SMS' },
+  'sms.chipCredit': { bn: 'ক্রেডিট', en: 'credits' },
   'sms.creditsLeft': { bn: 'ক্রেডিট বাকি', en: 'credits left' },
   'approvals.title': { bn: 'অনুমোদন', en: 'Approvals' },
   'approvals.approve': { bn: 'অনুমোদন', en: 'Approve' },
