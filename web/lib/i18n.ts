@@ -1224,6 +1224,8 @@ const dict = {
   'exams.colExaminees': { bn: 'পরীক্ষার্থী', en: 'Examinees' },
   'exams.personSuffix': { bn: ' জন', en: '' },
   'exams.colProgress': { bn: 'নম্বর এন্ট্রি অগ্রগতি', en: 'Marks-entry progress' },
+  'exams.subjectsMissingShort': { bn: 'কোনো বিষয় নেই', en: 'No subjects yet' },
+  'exams.moreActionsSectionTitle': { bn: 'আরও কার্যক্রম', en: 'More actions' },
   'exams.colPublish': { bn: 'প্রকাশনা স্থিতি', en: 'Publish status' },
   'exams.pubPublished': { bn: 'প্রকাশিত', en: 'Published' },
   'exams.pubReady': { bn: 'প্রকাশের জন্য প্রস্তুত', en: 'Ready to publish' },
