@@ -125,3 +125,52 @@ export function isSubscriptionActive(expiresAt: string | null, today: Date): boo
   const exp = new Date(expiresAt + 'T00:00:00Z')
   return exp.getTime() >= Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate())
 }
+
+/** Class Offerings with at least one placed Student but no Student marked
+ *  (present row or absence note) on the day. `marked` = marked person ids. */
+export function unmarkedOfferings(
+  students: { id: string; offeringId: string | null }[],
+  marked: Set<string>,
+): string[] {
+  const placed = new Set<string>()
+  const done = new Set<string>()
+  for (const s of students) {
+    if (!s.offeringId) continue
+    placed.add(s.offeringId)
+    if (marked.has(s.id)) done.add(s.offeringId)
+  }
+  return [...placed].filter((id) => !done.has(id))
+}
+
+export type DashAlertKind = 'approvals' | 'corrections' | 'questions' | 'attendance' | 'sms'
+
+export interface DashAlert {
+  kind: DashAlertKind
+  tone: 'alert' | 'sun' | 'sky'
+  count: number
+  href: string
+}
+
+/** The dashboard's "needs attention" list from raw counts. Zero counts drop
+ *  out, so an all-clear day yields [] and the strip hides. `canAttendance` /
+ *  `canSms` drop alerts whose fixing page the caller cannot open. */
+export function buildDashAlerts(c: {
+  approvals: number
+  corrections: number
+  questions: number
+  unmarkedClasses: number
+  sms: { balance: number; level: 'ok' | 'low' | 'empty' } | null
+  canAttendance: boolean
+  canSms: boolean
+}): DashAlert[] {
+  const out: DashAlert[] = []
+  if (c.approvals > 0) out.push({ kind: 'approvals', tone: 'alert', count: c.approvals, href: '/school/approvals' })
+  if (c.corrections > 0)
+    out.push({ kind: 'corrections', tone: 'alert', count: c.corrections, href: '/school/corrections' })
+  if (c.questions > 0) out.push({ kind: 'questions', tone: 'sun', count: c.questions, href: '/school/questions' })
+  if (c.canAttendance && c.unmarkedClasses > 0)
+    out.push({ kind: 'attendance', tone: 'sun', count: c.unmarkedClasses, href: '/school/attendance/mark' })
+  if (c.canSms && c.sms && c.sms.level !== 'ok')
+    out.push({ kind: 'sms', tone: c.sms.level === 'empty' ? 'alert' : 'sky', count: c.sms.balance, href: '/school/sms/buy' })
+  return out
+}
