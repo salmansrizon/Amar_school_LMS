@@ -16,7 +16,7 @@ export function ConfirmDialog({
   cancelLabel,
   onConfirm,
 }: {
-  triggerLabel: string
+  triggerLabel: React.ReactNode
   triggerClassName: string
   title: string
   body?: string
