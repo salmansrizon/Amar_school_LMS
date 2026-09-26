@@ -2537,6 +2537,10 @@ const dict = {
   'sms.noLogRows': { bn: 'এই সময়ে কোনো এসএমএস পাঠানো হয়নি', en: 'No SMS sent in this period' },
   'sms.apply': { bn: 'প্রয়োগ করুন', en: 'Apply' },
   'sms.centerTitle': { bn: 'এসএমএস সেন্টার', en: 'SMS Center' },
+  'sms.pageSubtitle': {
+    bn: 'অভিভাবক, শিক্ষক ও শিক্ষার্থীদের কাছে বাল্ক এসএমএস, ব্যালেন্স ও পাঠানোর লগ',
+    en: 'Bulk SMS to guardians, staff and students — balance and send log',
+  },
   'sms.statSentToday': { bn: 'আজ প্রেরিত', en: 'Sent today' },
   'sms.statFailedToday': { bn: 'আজ ব্যর্থ', en: 'Failed today' },
   'sms.statRules': { bn: 'অনুপস্থিতি নিয়ম', en: 'Absence rules' },

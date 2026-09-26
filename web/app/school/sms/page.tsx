@@ -7,7 +7,7 @@ import { schoolCrumbs, headerPrimary } from '@/lib/school-crumbs'
 import { loadSchoolSmsCredit, loadSchoolSmsLedger } from '@/lib/sms/credit'
 import { selectAllRows } from '@/lib/supabase/select-all'
 import { Card, PageHeader } from '@/components/ui/page'
-import { AlertStrip, QuickActions, StatCard, StatGrid } from '@/components/ui/widgets'
+import { StatCard, StatGrid, WarningBanner } from '@/components/ui/widgets'
 import { SmsTabs } from './tabs'
 import { ComposeForm } from './compose-form'
 import { COMPOSE_STUDENT_COLUMNS, COMPOSE_EMPLOYEE_COLUMNS } from '@/lib/sms/recipients'
@@ -88,6 +88,7 @@ export default async function SmsComposePage({ searchParams }: { searchParams: P
     <>
       <PageHeader
         title={t('sms.centerTitle', lang)}
+        subtitle={t('sms.pageSubtitle', lang)}
         crumbs={schoolCrumbs('/school/sms', lang, [{ label: t('sms.centerTitle', lang) }])}
         actions={
           <Link href="/school/sms/buy" className={headerPrimary}>
@@ -97,15 +98,11 @@ export default async function SmsComposePage({ searchParams }: { searchParams: P
       />
 
       {smsCredit && smsCredit.level !== 'ok' && (
-        <AlertStrip
-          title={t('fees.attention', lang)}
-          alerts={[
-            {
-              tone: smsCredit.level === 'empty' ? 'alert' : 'sun',
-              title: t(smsCredit.level === 'empty' ? 'sms.balanceEmpty' : 'sms.lowBalance', lang),
-              action: { href: '/school/sms/buy', label: t('sms.buyMore', lang) },
-            },
-          ]}
+        <WarningBanner
+          label={t('fees.attention', lang)}
+          text={t(smsCredit.level === 'empty' ? 'sms.balanceEmpty' : 'sms.lowBalance', lang)}
+          href="/school/sms/buy"
+          linkLabel={t('sms.buyMore', lang)}
         />
       )}
 
@@ -142,16 +139,6 @@ export default async function SmsComposePage({ searchParams }: { searchParams: P
           action={{ href: '/school/sms/rules', label: t('sms.manageRules', lang) }}
         />
       </StatGrid>
-
-      <QuickActions
-        title={t('dash.quickActions', lang)}
-        actions={[
-          { href: '#compose', label: t('sms.composeTitle', lang), primary: true },
-          { href: '/school/sms/rules', label: t('sms.tabRules', lang) },
-          { href: '/school/sms/log', label: t('sms.tabLog', lang) },
-          { href: '/school/sms/buy', label: t('sms.buyMore', lang) },
-        ]}
-      />
 
       <SmsTabs active="/school/sms" lang={lang} />
 
