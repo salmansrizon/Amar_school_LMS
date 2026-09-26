@@ -1,8 +1,8 @@
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
-import { navGroupFor } from '@/lib/school-nav'
 import type { LocationRow } from '@/lib/locations'
+import { schoolCrumbs } from '@/lib/school-crumbs'
 import { PageHeader } from '@/components/ui/page'
 import { InstituteTabs } from './tabs'
 import { ProfileForm } from './profile-form'
@@ -41,20 +41,12 @@ export default async function InstituteProfilePage({
       .maybeSingle(),
   ])
 
-  const group = navGroupFor('/school/institute')?.group
-
   return (
     <>
       <PageHeader
         title={t('institute.title', lang)}
-        crumbs={{
-          lang,
-          items: [
-            { label: t('dash.dashboard', lang), href: '/school' },
-            ...(group ? [{ label: t(group.labelKey, lang) }] : []),
-            { label: t('institute.title', lang) },
-          ],
-        }}
+        subtitle={t('institute.pageSubtitle', lang)}
+        crumbs={schoolCrumbs('/school/institute', lang, { label: t('institute.title', lang) })}
       />
 
       <InstituteTabs active="/school/institute" lang={lang} />

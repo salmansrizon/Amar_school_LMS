@@ -1,12 +1,12 @@
-import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { AddDetails } from '@/components/add-details'
 import { buildingCapacity, buildingRoomTree, type BuildingRow, type RoomRow } from '@/lib/venues'
+import { schoolCrumbs } from '@/lib/school-crumbs'
 import { InstituteTabs } from '../tabs'
 import { BuildingForm, DeleteVenueButton, EditToggle, RoomForm } from './venue-controls'
-import { railClass } from '@/components/ui/page'
+import { PageHeader, railClass } from '@/components/ui/page'
 
 // Institute Seat Configuration (issue #93, docs/improvement.md §2A): buildings
 // and their rooms as institute master data, exam-independent. Lives under
@@ -31,10 +31,10 @@ export default async function VenuesPage() {
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-extrabold">{t('institute.title', lang)}</h1>
-        <Link href="/school" aria-label={t('common.back', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
-      </div>
+      <PageHeader
+        title={t('institute.tabVenues', lang)}
+        crumbs={schoolCrumbs('/school/institute/venues', lang, { label: t('institute.tabVenues', lang) })}
+      />
 
       <InstituteTabs active="/school/institute/venues" lang={lang} />
 

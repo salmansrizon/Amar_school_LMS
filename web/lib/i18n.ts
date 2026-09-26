@@ -2724,6 +2724,10 @@ const dict = {
 
   // Institute Setup & Misc (issue #39, PRD §5.11)
   'institute.title': { bn: 'প্রতিষ্ঠান সেটআপ', en: 'Institute Setup' },
+  'institute.pageSubtitle': {
+    bn: 'প্রতিষ্ঠানের পরিচয়, শিক্ষাবর্ষ, যোগাযোগ ও ব্র্যান্ডিং সেটিংস পরিচালনা করুন',
+    en: 'Manage institute identity, academic year, contact and branding settings',
+  },
   'institute.tabProfile': { bn: 'প্রতিষ্ঠান প্রোফাইল', en: 'Institute Profile' },
   'institute.tabChecklist': { bn: 'দৈনিক চেকলিস্ট', en: 'Activity Checklist' },
   'institute.tabLogistics': { bn: 'লজিস্টিক্স ইনডেক্স', en: 'Logistics Index' },
