@@ -3,13 +3,13 @@
 import { useRouter } from 'next/navigation'
 import { useEffect, useState, useTransition } from 'react'
 import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
-import { examBasicInfoComplete, examHasClass } from '@/lib/exam-setup'
+import { examActionState, examBasicInfoComplete, examHasClass } from '@/lib/exam-setup'
 import { withOrigin } from '@/lib/back-nav'
 import { t, type Lang } from '@/lib/i18n'
 import { addExam, closeExam } from './actions'
-import { ExamAction, examActionClass } from './exam-action'
 import { ExamDocumentsModal } from './exam-documents-modal'
 import { Modal } from '@/components/modal'
+import { RowActionPill, rowActionPillClass } from '@/components/data-table/row-action-pill'
 
 // Exams II (issue #47) repurposes this file for the exams-list.html toolbar +
 // row (search/class/status filter) — per-exam rename now lives on the Exam
@@ -195,12 +195,37 @@ export function ExamRowActions({ exam, origin, lang }: { exam: ExamListItem; ori
 
   return (
     // data-exam-row: the anchor ScrollToExam restores, and the row e2e scopes to.
+    // Map 013 sweep: each pill is coloured by examActionState — Basic Info is
+    // the row's one real bottleneck (next/done), the other five have no stored
+    // per-action completion so they are only ever locked/default (jev-picked
+    // candidate a-four-state-pills; docs §1 fixes the six actions and their
+    // order, this only changes how each one is painted).
     <div data-exam-row={exam.id} className="flex flex-wrap items-center justify-end gap-2">
-      <ExamAction href={action('')} label={t('examSetup.basicInfo', lang)} />
-      <ExamAction href={action('/marks-entry')} label={t('exams.markEntry', lang)} reason={needsBasicInfo} />
-      <ExamAction href={action('/cocurricular')} label={t('exams.cocurricular', lang)} reason={needsClass} />
-      <ExamAction href={action('/seat-plan')} label={t('exams.generateSeatPlan', lang)} reason={needsClass} />
-      <ExamAction href={action('/routine')} label={t('exams.makeRoutine', lang)} reason={needsClass} />
+      <RowActionPill state={examActionState(exam, 'none')} href={action('')} label={t('examSetup.basicInfo', lang)} />
+      <RowActionPill
+        state={examActionState(exam, 'basicInfo')}
+        href={action('/marks-entry')}
+        label={t('exams.markEntry', lang)}
+        reason={needsBasicInfo}
+      />
+      <RowActionPill
+        state={examActionState(exam, 'class')}
+        href={action('/cocurricular')}
+        label={t('exams.cocurricular', lang)}
+        reason={needsClass}
+      />
+      <RowActionPill
+        state={examActionState(exam, 'class')}
+        href={action('/seat-plan')}
+        label={t('exams.generateSeatPlan', lang)}
+        reason={needsClass}
+      />
+      <RowActionPill
+        state={examActionState(exam, 'class')}
+        href={action('/routine')}
+        label={t('exams.makeRoutine', lang)}
+        reason={needsClass}
+      />
       {/* Delete is NOT here: docs/010_exam_module.md §1 fixes six actions on
           this row, in this order. It lives on Basic Info next to Close (#551). */}
       {complete ? (
@@ -209,10 +234,10 @@ export function ExamRowActions({ exam, origin, lang }: { exam: ExamListItem; ori
           examLabel={`${exam.name} (${exam.exam_year})`}
           origin={origin}
           lang={lang}
-          triggerClassName={`cursor-pointer ${examActionClass()}`}
+          triggerClassName={rowActionPillClass.default}
         />
       ) : (
-        <ExamAction href="" label={t('examDocs.title', lang)} reason={needsBasicInfo} />
+        <RowActionPill state="locked" href="" label={t('examDocs.title', lang)} reason={needsBasicInfo} />
       )}
     </div>
   )

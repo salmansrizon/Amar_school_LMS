@@ -245,7 +245,12 @@ export default async function FeesPage({
       key: 'standing',
       header: t('fees.status', lang),
       card: 'badge',
-      cell: (r) => <Pill tone={STANDING_TONE[r.standing]}>{t(STANDING_LABEL[r.standing], lang)}</Pill>,
+      // Due fees need attention now; paid/partial are informational, no pulse.
+      cell: (r) => (
+        <Pill tone={STANDING_TONE[r.standing]} pulse={r.standing === 'due'}>
+          {t(STANDING_LABEL[r.standing], lang)}
+        </Pill>
+      ),
     },
   ]
 

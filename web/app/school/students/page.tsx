@@ -119,7 +119,8 @@ export default async function StudentsPage({
         const f = fees.get(s.id)
         if (!f) return <Pill tone="muted">{t('students.feeNotBilled', lang)}</Pill>
         return (
-          <Pill tone={FEE_TONE[f.standing]}>
+          // Due fees need attention now; paid/partial are informational, no pulse.
+          <Pill tone={FEE_TONE[f.standing]} pulse={f.standing === 'due'}>
             {t(FEE_LABEL[f.standing], lang)}
             {f.standing !== 'paid' && ` ৳${fmt.format(f.due)}`}
           </Pill>
