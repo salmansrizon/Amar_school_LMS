@@ -1,4 +1,3 @@
-import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
@@ -6,6 +5,8 @@ import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
 import { formatBytes } from '@/lib/routine'
 import { SyllabusRow } from './syllabus-controls'
 import { classCatalogueLabel } from '@/lib/class-catalogue'
+import { schoolCrumbs } from '@/lib/school-crumbs'
+import { PageHeader } from '@/components/ui/page'
 
 // Layout per ui/school-owner/syllabus-upload.html: the "Existing Syllabus
 // Files" table (Class | Current File | Uploaded On | Size | Actions), one row
@@ -13,7 +14,7 @@ import { classCatalogueLabel } from '@/lib/class-catalogue'
 // redundant with the per-row Upload buttons and is deliberately skipped, as is
 // its per-subject option — the schema (and ticket) are one syllabus per class.
 
-const thClass = 'px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted'
+const thClass = 'whitespace-nowrap px-4 py-3 text-left text-sm font-semibold text-muted'
 
 export default async function SyllabusPage() {
   const lang: Lang = await currentLang()
@@ -31,22 +32,24 @@ export default async function SyllabusPage() {
   const locale = lang === 'bn' ? 'bn-BD' : 'en-GB'
 
   return (
-    <div>
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-extrabold">{t('syllabus.title', lang)}</h1>
-        <Link href="/school/classes" aria-label={t('classes.title', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
-      </div>
+    <>
+      <PageHeader
+        title={t('syllabus.title', lang)}
+        backHref="/school/classes"
+        backLabel={t('classes.title', lang)}
+        crumbs={schoolCrumbs('/school/classes', lang, { label: t('classes.title', lang), href: '/school/classes' }, { label: t('syllabus.title', lang) })}
+      />
       <p className="mb-4 text-sm text-muted">{t('syllabus.intro', lang)}</p>
 
-      <section className="rounded-lg border border-line bg-paper p-5">
-        <h2 className="mb-4 font-bold">{t('syllabus.existing', lang)}</h2>
+      <section className="overflow-hidden rounded-2xl border border-line bg-paper">
+        <h2 className="px-card py-4 font-bold">{t('syllabus.existing', lang)}</h2>
         {!classes?.length ? (
-          <p className="text-sm text-muted">{t('syllabus.noClasses', lang)}</p>
+          <p className="px-card pb-4 text-sm text-muted">{t('syllabus.noClasses', lang)}</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full border-collapse">
-              <thead>
-                <tr className="border-b border-line-strong">
+              <thead className="bg-paper-muted">
+                <tr>
                   <th className={thClass}>{t('classes.class', lang)}</th>
                   <th className={thClass}>{t('syllabus.currentFile', lang)}</th>
                   <th className={thClass}>{t('syllabus.uploadedOn', lang)}</th>
@@ -54,7 +57,7 @@ export default async function SyllabusPage() {
                   <th className={thClass}>{t('classes.actions', lang)}</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-line">
                 {classes.map((c) => {
                   const s = byClass.get(c.id)
                   return (
@@ -76,6 +79,6 @@ export default async function SyllabusPage() {
           </div>
         )}
       </section>
-    </div>
+    </>
   )
 }
