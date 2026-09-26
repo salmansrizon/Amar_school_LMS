@@ -7,26 +7,30 @@ import { numberFmt } from '@/lib/i18n'
 import { loadDirectoryRows } from './directory-rows'
 import { classCatalogueLabel } from '@/lib/class-catalogue'
 import type { RosterStudent } from '@/lib/school/roster'
+import { schoolCrumbs } from '@/lib/school-crumbs'
 import { PageHeader } from '@/components/ui/page'
 import { EmptyState } from '@/components/ui/states'
 import { paginate, pageSizeFrom } from '@/components/pager'
 import { EntityAvatar } from '@/components/entity-avatar'
 import { DataTable, Pill, type Column } from '@/components/data-table/data-table'
 import { RecordDrawer } from '@/components/data-table/record-drawer'
-import { ViewLink } from '@/components/data-table/view-link'
 import { RowMenu } from '@/components/data-table/row-menu'
 import { PrintTrigger } from '@/components/print/print-trigger'
-import { StatCard, StatGrid } from '@/components/ui/widgets'
+import { StatCard, StatGrid, WarningBanner, WorkflowCard } from '@/components/ui/widgets'
+import { RowActionPill } from '@/components/data-table/row-action-pill'
 import { withParams } from '@/lib/url-params'
-import { IdCard, UserPlus, Users, Wallet } from 'lucide-react'
+import { IdCard, UserPlus, Users, Wallet, HandCoins } from 'lucide-react'
 import { getStudent, StudentProfile } from './[id]/student-profile'
+import { StudentRowMore } from './student-row-more'
 
-// Layout per Design System/new_ui/02-people/student-directory (map 013, P1):
-// stat cards, search (name / roll / Student Number / guardian / mobile), class
-// filter, Monthly Fee Standing filter + chips, DataTable with a record drawer.
-// The Class column renders the full shared Class Catalogue label (issue
-// #621's follow-up), not a bare class_name/section join — same format every
-// picker in the app already uses.
+// Layout per Design System/new_ui/02-people/student-directory (map 013, P1),
+// following the exam landing pattern (013 A3): header + subtitle, a one-line
+// fee-due warning banner, four stat cards, a titled DataTable (one contextual
+// next-step pill per row, everything else behind ⋮), then two workflow cards
+// — admissions/profile completion and fee-due follow-up. The Class column
+// renders the full shared Class Catalogue label (issue #621's follow-up), not
+// a bare class_name/section join — same format every picker in the app
+// already uses.
 //
 // List archetype (gate #372): renders bare content — the shell owns the <main>,
 // the width and the gutters — so the table fills the viewport instead of sitting
@@ -50,6 +54,8 @@ const FEE_TONE = { paid: 'mint', partial: 'sun', due: 'alert' } as const
 const FEE_LABEL = { paid: 'students.feePaid', partial: 'students.feePartial', due: 'students.feeDue' } as const
 
 const PAGE_SIZE = 20
+const primaryClass =
+  'inline-flex h-11 items-center rounded-full bg-brand-500 px-4 text-xs font-semibold text-white hover:bg-brand-600'
 
 export default async function StudentsPage({
   searchParams,
@@ -69,11 +75,16 @@ export default async function StudentsPage({
   ])
   const pageData = paginate(rows, page, pageSize)
   const fmt = numberFmt(lang)
-  const withDues = roster.readable.filter((s) => {
-    const st = fees.get(s.id)?.standing
-    return st === 'due' || st === 'partial'
-  }).length
-  const newThisMonth = roster.readable.filter(admittedThisMonth).length
+  const n = (x: number) => fmt.format(x)
+  const dash = <span className="text-muted">—</span>
+  const dueList = roster.readable.filter((s) => fees.get(s.id)?.standing === 'due')
+  const partialList = roster.readable.filter((s) => fees.get(s.id)?.standing === 'partial')
+  const totalDueAmt = dueList.reduce((sum, s) => sum + (fees.get(s.id)?.due ?? 0), 0)
+  const newThisMonthList = roster.readable.filter(admittedThisMonth)
+  const newThisMonth = newThisMonthList.length
+  // "Complete" means a guardian's mobile is on file — the one contact field
+  // every downstream feature (Remind, SMS, ID card) actually depends on.
+  const incompleteProfiles = newThisMonthList.filter((s) => !s.guardian_mobile)
 
   const columns: Column<RosterStudent>[] = [
     {
@@ -84,7 +95,14 @@ export default async function StudentsPage({
         <div className="flex items-center gap-3">
           <EntityAvatar name={s.full_name} id={s.id} />
           <div className="min-w-0">
-            <div className="truncate font-semibold">{s.full_name}</div>
+            <Link
+              href={withParams(params, { view: s.id })}
+              scroll={false}
+              data-view-link={s.id}
+              className="truncate font-semibold hover:text-brand-600 hover:underline"
+            >
+              {s.full_name}
+            </Link>
             <div className="text-xs text-muted">
               {t('students.roll', lang)} {s.roll_number ?? '—'}
               {s.student_no ? ` · ${s.student_no}` : ''}
@@ -161,10 +179,8 @@ export default async function StudentsPage({
     <>
       <PageHeader
         title={t('students.listTitle', lang)}
-        crumbs={{
-          lang,
-          items: [{ label: t('dash.dashboard', lang), href: '/school' }, { label: t('students.listTitle', lang) }],
-        }}
+        subtitle={t('students.pageSubtitle', lang)}
+        crumbs={schoolCrumbs('/school/students', lang, { label: t('students.listTitle', lang) })}
         badge={`${t('students.totalBadge', lang)}: ${fmt.format(roster.readable.length)}`}
         actions={
           <>
@@ -179,10 +195,7 @@ export default async function StudentsPage({
             <a href={`/school/students/export${withParams(params, { view: null, page: null, size: null })}`} className={secondary} download>
               {t('students.exportCsv', lang)}
             </a>
-            <Link
-              href="/school/students/new"
-              className="inline-flex h-11 items-center rounded-full bg-brand-500 px-4 text-xs font-semibold text-white hover:bg-brand-600"
-            >
+            <Link href="/school/students/new" className={primaryClass}>
               + {t('students.newAdmission', lang)}
             </Link>
             {/* Issuing logins is owner-only (#442) — the screen redirects Staff. */}
@@ -196,30 +209,62 @@ export default async function StudentsPage({
         }
       />
 
+      {dueList.length > 0 && (
+        <WarningBanner
+          label={t('students.statFeeDue', lang)}
+          text={`${dueList
+            .slice(0, 3)
+            .map((s) => s.full_name)
+            .join(', ')}${dueList.length > 3 ? ` +${n(dueList.length - 3)}` : ''}`}
+          href="/school/students?fee=due"
+          linkLabel={t('students.viewDueList', lang)}
+        />
+      )}
+
       <StatGrid>
         <StatCard
           icon={<Users className="size-5" />}
           tone="mint"
           label={t('students.statTotal', lang)}
-          value={fmt.format(roster.readable.length)}
+          value={n(roster.readable.length)}
+          note={`${n(roster.classes.length)} ${t('students.classesWord', lang)}`}
+          noteTone="muted"
+          action={{ href: '/school/students/new', label: t('students.newAdmission', lang) }}
         />
         <StatCard
           icon={<Wallet className="size-5" />}
-          tone="alert"
+          tone={dueList.length ? 'alert' : 'muted'}
           label={t('students.statFeeDue', lang)}
-          value={fmt.format(withDues)}
-          note={t('students.statFeeDueNote', lang)}
-          action={{ href: withParams({}, { fee: 'due' }), label: t('students.statView', lang) }}
+          value={n(dueList.length)}
+          note={dueList.length ? `৳${fmt.format(totalDueAmt)} ${t('students.statFeeDueNote', lang)}` : undefined}
+          noteTone="alert"
+          action={dueList.length ? { href: withParams({}, { fee: 'due' }), label: t('students.statView', lang) } : undefined}
+        />
+        <StatCard
+          icon={<HandCoins className="size-5" />}
+          tone={partialList.length ? 'sun' : 'muted'}
+          label={t('students.statFeePartial', lang)}
+          value={n(partialList.length)}
+          note={partialList.length ? `${n(partialList.length)} ${t('students.statFeePartialNote', lang)}` : undefined}
+          noteTone="sun"
+          action={
+            partialList.length ? { href: withParams({}, { fee: 'partial' }), label: t('students.statView', lang) } : undefined
+          }
         />
         <StatCard
           icon={<UserPlus className="size-5" />}
-          tone="sun"
+          tone="sky"
           label={t('students.statNew', lang)}
-          value={`+${fmt.format(newThisMonth)}`}
-          action={{ href: withParams({}, { admitted: 'month' }), label: t('students.statView', lang) }}
+          value={`+${n(newThisMonth)}`}
+          note={
+            newThisMonth ? `${n(incompleteProfiles.length)} ${t('students.incompleteProfilesNote', lang)}` : undefined
+          }
+          noteTone={incompleteProfiles.length ? 'alert' : 'muted'}
+          action={newThisMonth ? { href: withParams({}, { admitted: 'month' }), label: t('students.statView', lang) } : undefined}
         />
       </StatGrid>
 
+      <h2 className="mb-grid mt-section text-lg font-extrabold">{t('students.tableTitle', lang)}</h2>
       <DataTable
         rows={pageData.items}
         rowId={(s) => s.id}
@@ -238,37 +283,119 @@ export default async function StudentsPage({
           },
         ]}
         chips={[
-          { param: 'fee', value: 'due', label: t('students.chipFeeDue', lang) },
-          { param: 'fee', value: 'partial', label: t('students.chipFeePartial', lang) },
-          { param: 'admitted', value: 'month', label: t('students.chipNewThisMonth', lang) },
+          { param: 'fee', value: 'due', label: `${t('students.chipFeeDue', lang)} (${n(dueList.length)})` },
+          { param: 'fee', value: 'partial', label: `${t('students.chipFeePartial', lang)} (${n(partialList.length)})` },
+          { param: 'admitted', value: 'month', label: `${t('students.chipNewThisMonth', lang)} (${n(newThisMonth)})` },
         ]}
-        rowActions={(s) => (
-          <>
-            <PrintTrigger
-              href={`/school/students/${s.id}/print/id-card`}
-              label={`${t('students.idCard', lang)}: ${s.full_name}`}
-              icon={<IdCard className="size-4" aria-hidden />}
-              iconOnly
-            />
-            {canSms && (fees.get(s.id)?.standing === 'due' || fees.get(s.id)?.standing === 'partial') && (
-              <Link
-                href={`/school/sms?students=${s.id}`}
-                aria-label={`${t('students.remind', lang)}: ${s.full_name}`}
-                className="inline-flex h-9 items-center rounded-full border border-line-strong px-4 text-xs font-semibold hover:bg-paper-muted"
-              >
-                {t('students.remind', lang)}
-              </Link>
-            )}
-            <ViewLink id={s.id} params={params} label={t('table.profile', lang)} name={s.full_name} />
-          </>
-        )}
-        rowMenu={(s) => [
-          { label: t('students.view', lang), href: `/school/students/${s.id}` },
-          { label: t('students.transfer', lang), href: `/school/students/${s.id}/transfer` },
-        ]}
+        rowActions={(s) => {
+          const dueOrPartial = fees.get(s.id)?.standing === 'due' || fees.get(s.id)?.standing === 'partial'
+          const next =
+            canSms && dueOrPartial
+              ? { state: 'next' as const, href: `/school/sms?students=${s.id}`, label: t('students.remind', lang) }
+              : { state: 'default' as const, href: `/school/students/${s.id}`, label: t('students.view', lang) }
+          return (
+            <div className="flex items-center justify-end gap-1">
+              <RowActionPill state={next.state} href={next.href} label={next.label} />
+              <StudentRowMore label={`${t('students.moreActions', lang)}: ${s.full_name}`}>
+                <div className="flex flex-wrap items-center justify-end gap-2">
+                  <PrintTrigger
+                    href={`/school/students/${s.id}/print/id-card`}
+                    label={`${t('students.idCard', lang)}: ${s.full_name}`}
+                    icon={<IdCard className="size-4" aria-hidden />}
+                  />
+                  <Link
+                    href={`/school/students/${s.id}`}
+                    className="inline-flex h-9 items-center rounded-full border border-line-strong px-4 text-xs font-semibold hover:bg-paper-muted"
+                  >
+                    {t('students.view', lang)}
+                  </Link>
+                  <Link
+                    href={`/school/students/${s.id}/transfer`}
+                    className="inline-flex h-9 items-center rounded-full border border-line-strong px-4 text-xs font-semibold hover:bg-paper-muted"
+                  >
+                    {t('students.transfer', lang)}
+                  </Link>
+                </div>
+              </StudentRowMore>
+            </div>
+          )
+        }}
         pagination={{ page: pageData.page, totalPages: pageData.totalPages, total: pageData.total, pageSize }}
         empty={empty}
       />
+
+      <div className="mt-section grid gap-grid lg:grid-cols-2">
+        <WorkflowCard
+          icon={<UserPlus className="size-5" />}
+          title={t('students.workflowAdmissionsTitle', lang)}
+          tag={t('students.thisMonthTag', lang)}
+        >
+          {newThisMonth === 0 ? (
+            <p className="mb-4 rounded-xl border border-dashed border-line p-6 text-center text-sm text-muted">
+              {t('students.workflowAdmissionsEmpty', lang)}
+            </p>
+          ) : incompleteProfiles.length === 0 ? (
+            <p className="mb-4 rounded-xl border border-mint-100 bg-mint-soft p-4 text-center text-sm font-semibold text-mint-deep">
+              {t('students.workflowAdmissionsAllComplete', lang)} ({n(newThisMonth)})
+            </p>
+          ) : (
+            <ul className="mb-4 divide-y divide-line">
+              {incompleteProfiles.slice(0, 5).map((s) => (
+                <li key={s.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
+                  <div className="min-w-0">
+                    <p className="truncate font-semibold">{s.full_name}</p>
+                    <p className="text-xs text-muted">{classLabelFor(s, showYear) ?? dash}</p>
+                  </div>
+                  <RowActionPill
+                    state="next"
+                    href={withParams(params, { view: s.id })}
+                    label={t('students.completeProfile', lang)}
+                  />
+                </li>
+              ))}
+            </ul>
+          )}
+          <div className="mt-auto border-t border-line pt-4 text-center">
+            <Link href="/school/students/new" className={primaryClass}>
+              + {t('students.newAdmission', lang)}
+            </Link>
+          </div>
+        </WorkflowCard>
+
+        <WorkflowCard icon={<Wallet className="size-5" />} title={t('students.workflowFeeTitle', lang)} tag={t('students.thisMonthTag', lang)}>
+          {dueList.length === 0 ? (
+            <p className="mb-4 rounded-xl border border-dashed border-line p-6 text-center text-sm text-muted">
+              {t('students.workflowFeeEmpty', lang)}
+            </p>
+          ) : (
+            <ul className="mb-4 divide-y divide-line">
+              {dueList.slice(0, 5).map((s) => {
+                const due = fees.get(s.id)?.due ?? 0
+                return (
+                  <li key={s.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
+                    <div className="min-w-0">
+                      <p className="truncate font-semibold">{s.full_name}</p>
+                      <p className="text-xs text-muted">৳{fmt.format(due)}</p>
+                    </div>
+                    {canSms ? (
+                      <RowActionPill state="next" href={`/school/sms?students=${s.id}`} label={t('students.remind', lang)} />
+                    ) : (
+                      <RowActionPill state="default" href={`/school/students/${s.id}`} label={t('students.view', lang)} />
+                    )}
+                  </li>
+                )
+              })}
+            </ul>
+          )}
+          {canSms && dueList.length > 0 && (
+            <div className="mt-auto border-t border-line pt-4 text-center">
+              <Link href={`/school/sms?students=${dueList.slice(0, 50).map((s) => s.id).join(',')}`} className={primaryClass}>
+                {t('students.workflowFeeRemindAll', lang)}
+              </Link>
+            </div>
+          )}
+        </WorkflowCard>
+      </div>
 
       <RecordDrawer
         open={Boolean(viewed)}
