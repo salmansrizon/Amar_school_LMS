@@ -187,6 +187,10 @@ const dict = {
   // বার্তা ও অনুরোধ — the merged section (#509). Three sidebar entries became
   // one, so the section needs a name of its own that neither queue owns.
   'hub.title': { bn: 'বার্তা ও অনুরোধ', en: 'Messages & Requests' },
+  'hub.pageSubtitle': {
+    bn: 'শিক্ষার্থীদের প্রশ্ন, সংশোধনের অনুরোধ ও উত্তর দেওয়ার সময়ের হিসাব — একই ইনবক্সে',
+    en: 'Student questions, correction requests and reply-time tracking, in one inbox',
+  },
   'hub.tabQuestions': { bn: 'শিক্ষার্থীদের প্রশ্ন', en: 'Questions' },
   'hub.tabCorrections': { bn: 'সংশোধনের অনুরোধ', en: 'Corrections' },
   'hub.tabResponse': { bn: 'উত্তরের অবস্থা', en: 'Response' },
@@ -217,7 +221,10 @@ const dict = {
   'questions.search': { bn: 'শিক্ষার্থী বা প্রশ্ন খুঁজুন…', en: 'Search student or question…' },
   'questions.statUnanswered': { bn: 'উত্তর বাকি', en: 'Unanswered' },
   'questions.statLate': { bn: '৭২ ঘণ্টার বেশি অপেক্ষায়', en: 'Waiting over 72h' },
+  'questions.workflowOldestTitle': { bn: 'দীর্ঘদিন অপেক্ষমাণ প্রশ্ন', en: 'Longest-waiting questions' },
+  'questions.workflowOldestEmpty': { bn: 'উত্তরহীন কোনো প্রশ্ন নেই', en: 'No unanswered questions' },
   'questions.statAnswered': { bn: 'উত্তর দেওয়া হয়েছে', en: 'Answered' },
+  'questions.statTopics': { bn: 'সক্রিয় বিষয়', en: 'Active topics' },
   // The anchor rule, said in a sentence (ADR 0018). A Subject Teacher sees this
   // on a question about a colleague's subject — the row is visibly theirs to
   // read and not theirs to answer, and silence would read as a broken form.
@@ -831,6 +838,15 @@ const dict = {
   'approvals.colStage': { bn: 'ধাপ', en: 'Stage' },
   'approvals.statPending': { bn: 'অপেক্ষমাণ অনুমোদন', en: 'Pending approvals' },
   'approvals.decide': { bn: 'সিদ্ধান্ত দিন', en: 'Decide' },
+  'approvals.pageSubtitle': {
+    bn: 'অপেক্ষমাণ কার্যপ্রবাহ অনুমোদন পর্যালোচনা ও সিদ্ধান্ত দিন',
+    en: 'Review and decide on pending workflow approvals',
+  },
+  'approvals.statOldest': { bn: 'সবচেয়ে পুরনো অপেক্ষমাণ', en: 'Oldest waiting' },
+  'approvals.daysWord': { bn: 'দিন', en: 'days' },
+  'approvals.statTypes': { bn: 'কার্যপ্রবাহের ধরন', en: 'Workflow types' },
+  'approvals.workflowOldestTitle': { bn: 'সবচেয়ে পুরনো অপেক্ষমাণ', en: 'Oldest waiting' },
+  'approvals.workflowByTypeTitle': { bn: 'ধরন অনুযায়ী সারিবদ্ধ', en: 'Queue by type' },
   'sms.buyTitle': { bn: 'এসএমএস প্যাকেজ কিনুন', en: 'Buy SMS package' },
   'sms.buyMore': { bn: 'এসএমএস কিনুন', en: 'Buy SMS' },
   'sms.buy': { bn: 'কিনুন', en: 'Buy' },
@@ -1901,6 +1917,14 @@ const dict = {
   'fees.statRecords': { bn: 'এই মাসের রেকর্ড', en: 'Records this month' },
   'fees.statWithDues': { bn: 'বকেয়াসহ শিক্ষার্থী', en: 'Students with dues' },
   'fees.statWithDuesNote': { bn: 'আংশিক বা অপরিশোধিত', en: 'Partial or unpaid' },
+  'fees.pageSubtitle': {
+    bn: 'শিক্ষার্থীদের বকেয়া ও আদায়কৃত ফি নিরীক্ষণ এবং রসিদ ব্যবস্থাপনা',
+    en: 'Track student dues and collections, and manage receipts',
+  },
+  'fees.workflowDuesTitle': { bn: 'বকেয়া অনুসরণ', en: 'Dues follow-up' },
+  'fees.workflowDuesEmpty': { bn: 'এই মাসে কোনো বকেয়া নেই', en: 'No dues this month' },
+  'fees.workflowPartialTitle': { bn: 'আংশিক পরিশোধ অনুসরণ', en: 'Partial payment follow-up' },
+  'fees.workflowPartialEmpty': { bn: 'এই মাসে কোনো আংশিক পরিশোধ নেই', en: 'No partial payments this month' },
   'fees.receipt': { bn: 'রসিদ', en: 'Receipt' },
   'fees.inWords': { bn: 'কথায়', en: 'In words' },
   'fees.print': { bn: 'প্রিন্ট করুন', en: 'Print' },
@@ -2529,6 +2553,10 @@ const dict = {
   'sms.noLogRows': { bn: 'এই সময়ে কোনো এসএমএস পাঠানো হয়নি', en: 'No SMS sent in this period' },
   'sms.apply': { bn: 'প্রয়োগ করুন', en: 'Apply' },
   'sms.centerTitle': { bn: 'এসএমএস সেন্টার', en: 'SMS Center' },
+  'sms.pageSubtitle': {
+    bn: 'অভিভাবক, শিক্ষক ও শিক্ষার্থীদের কাছে বাল্ক এসএমএস, ব্যালেন্স ও পাঠানোর লগ',
+    en: 'Bulk SMS to guardians, staff and students — balance and send log',
+  },
   'sms.statSentToday': { bn: 'আজ প্রেরিত', en: 'Sent today' },
   'sms.statFailedToday': { bn: 'আজ ব্যর্থ', en: 'Failed today' },
   'sms.statRules': { bn: 'অনুপস্থিতি নিয়ম', en: 'Absence rules' },
@@ -3026,6 +3054,13 @@ const dict = {
   // Publishing (issue #37, PRD §5.8): notices/homework/lesson-plans/daily-
   // lessons/exam-prep share one list/detail UI; gallery albums are a second tab.
   'notices.title': { bn: 'প্রকাশনা', en: 'Publishing' },
+  'notices.pageSubtitle': {
+    bn: 'নোটিশ, বাড়ির কাজ, পাঠ পরিকল্পনা ও পরীক্ষার প্রস্তুতি প্রকাশনা পরিচালনা',
+    en: 'Manage notices, homework, lesson plans and exam-prep publications',
+  },
+  'notices.workflowAttentionTitle': { bn: 'নজরে আনা প্রয়োজন', en: 'Needs attention' },
+  'notices.workflowAttentionEmpty': { bn: 'জরুরি বা গুরুত্বপূর্ণ কিছু নেই', en: 'Nothing urgent or important' },
+  'notices.workflowByTypeTitle': { bn: 'ধরন অনুযায়ী', en: 'By type' },
   'notices.tabList': { bn: 'তালিকা', en: 'List' },
   'notices.tabCreate': { bn: 'নতুন তৈরি করুন', en: 'Create' },
   'notices.tabGallery': { bn: 'গ্যালারি অ্যালবাম', en: 'Gallery Albums' },

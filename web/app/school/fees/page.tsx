@@ -10,27 +10,34 @@ import { applyGlobalYearFilterToOfferings } from '@/lib/school/year-filter'
 import { enrolledStudentIds, enrolledIdFilter } from '@/lib/school/offering-roster'
 import { selectAllRows } from '@/lib/supabase/select-all'
 import { feeStanding, summarizeMonthFees, type FeeStanding } from '@/lib/fees'
-import { schoolCrumbs, headerPrimary, headerSecondary, rowAction, rowActionPrimary } from '@/lib/school-crumbs'
+import { schoolCrumbs, headerPrimary, headerSecondary } from '@/lib/school-crumbs'
 import { AccountingTabs } from './accounting-tabs'
 import { FeeForm, type CollectStudent, type ExistingFeeRecord } from './fee-form'
 import { selectClass } from '@/components/ui/field'
 import { Card } from '@/components/ui/page'
 import { PageHeader } from '@/components/ui/page'
-import { AlertStrip, QuickActions, StatCard, StatGrid } from '@/components/ui/widgets'
+import { StatCard, StatGrid, WarningBanner, WorkflowCard } from '@/components/ui/widgets'
 import { EmptyState } from '@/components/ui/states'
 import { paginate, pageSizeFrom } from '@/components/pager'
 import { DataTable, Pill, type Column } from '@/components/data-table/data-table'
+import { RecordDrawer } from '@/components/data-table/record-drawer'
+import { RowActionPill } from '@/components/data-table/row-action-pill'
+import { withParams } from '@/lib/url-params'
 import { classCatalogueLabel } from '@/lib/class-catalogue'
 
-// Fees & finance (map 013 FC1, new_ui/04-finance-communication/fees-finance):
-// header + alert + stat cards + quick actions, then the collection flow
-// (period picker → class roster → FeeForm, unchanged) and the month's Fee
-// Collection Records as a DataTable. One Fee Collection Record per Student per
+// Fees & finance (map 013 FC1, new_ui/04-finance-communication/fees-finance),
+// following the exam-landing pattern (013 A3): header + subtitle, one-line
+// dues warning banner, four stat cards, the collection flow (period picker →
+// class roster → FeeForm, unchanged), the month's Fee Collection Records as a
+// DataTable (title opens a drawer, one contextual next-step pill per row —
+// Remind for Due/Partial standings, Receipt otherwise), then two workflow
+// cards — Due and Partial follow-up. One Fee Collection Record per Student per
 // month is DB-enforced (0016/#11), so a month is at most a couple of 1000-row
 // pages — the headline figures fold those pages, no aggregate needed.
 
 type RecordRow = {
   id: string
+  student_id: string
   name: string
   roll: number | null
   pay: number
@@ -59,6 +66,7 @@ export default async function FeesPage({
     method?: string
     page?: string
     size?: string
+    view?: string
   }>
 }) {
   const params = await searchParams
@@ -73,6 +81,7 @@ export default async function FeesPage({
     method = '',
     page,
     size,
+    view,
   } = params
   const month = Number(monthParam) || now.getMonth() + 1
   const year = Number(yearParam) || now.getFullYear()
@@ -99,7 +108,9 @@ export default async function FeesPage({
     selectAllRows((from, to) =>
       supabase
         .from('fee_collection_records')
-        .select('id, pay_amount, fine_amount, adjust_amount, due_amount, payment_method, students(full_name, roll_number)')
+        .select(
+          'id, student_id, pay_amount, fine_amount, adjust_amount, due_amount, payment_method, students(full_name, roll_number)',
+        )
         .eq('month', month)
         .eq('year', year)
         .order('updated_at', { ascending: false })
@@ -176,6 +187,7 @@ export default async function FeesPage({
     const rec = { pay_amount: Number(r.pay_amount), due_amount: Number(r.due_amount) }
     return {
       id: r.id,
+      student_id: r.student_id,
       name: st?.full_name ?? '—',
       roll: st?.roll_number ?? null,
       pay: rec.pay_amount,
@@ -195,6 +207,7 @@ export default async function FeesPage({
       (!method || r.method === method),
   )
   const pageData = paginate(visible, page, pageSize)
+  const viewed = view ? (all.find((r) => r.id === view) ?? null) : null
 
   const fmt = numberFmt(lang)
   const tk = (n: number) => `৳${fmt.format(n)}`
@@ -203,8 +216,17 @@ export default async function FeesPage({
   const billed = summary.collected + summary.due
   const rate = billed ? Math.round((summary.collected / billed) * 100) : 0
   const canStudents = canOpenScreen(role, grants, 'students')
+  const canSms = canOpenScreen(role, grants, 'sms')
   const methodLabel = (m: string) =>
     (METHODS as readonly string[]).includes(m) ? t(`fees.${m}` as 'fees.cash', lang) : m
+  // The record's one contextual next step: a Due/Partial standing still needs
+  // money, so Remind (SMS) leads; a settled record's next step is its Receipt.
+  const nextStepFor = (r: RecordRow): { state: 'next' | 'default'; href: string; label: string } =>
+    canSms && r.standing !== 'paid'
+      ? { state: 'next', href: `/school/sms?students=${r.student_id}`, label: t('students.remind', lang) }
+      : { state: 'default', href: `/school/fees/receipt/${r.id}`, label: t('fees.receipt', lang) }
+  const dueRows = all.filter((r) => r.standing === 'due')
+  const partialRows = all.filter((r) => r.standing === 'partial')
 
   const columns: Column<RecordRow>[] = [
     {
@@ -213,7 +235,14 @@ export default async function FeesPage({
       card: 'title',
       cell: (r) => (
         <div className="min-w-0">
-          <div className="truncate font-semibold">{r.name}</div>
+          <Link
+            href={withParams(params, { view: r.id })}
+            scroll={false}
+            data-view-link={r.id}
+            className="truncate font-semibold hover:text-brand-600 hover:underline"
+          >
+            {r.name}
+          </Link>
           <div className="text-xs text-muted">
             {t('students.roll', lang)} {r.roll ?? '—'} · {period}
           </div>
@@ -286,6 +315,7 @@ export default async function FeesPage({
     <>
       <PageHeader
         title={t('fees.title', lang)}
+        subtitle={t('fees.pageSubtitle', lang)}
         crumbs={schoolCrumbs('/school/fees', lang, [{ label: t('fees.title', lang) }])}
         badge={`${t('fees.month', lang)}: ${period}`}
         actions={
@@ -305,23 +335,14 @@ export default async function FeesPage({
 
       <AccountingTabs active="collection" lang={lang} />
 
-      <AlertStrip
-        title={t('fees.attention', lang)}
-        alerts={
-          withDues
-            ? [
-                {
-                  tone: 'sun',
-                  title: `${fmt.format(withDues)} ${t('fees.alertDues', lang)}`,
-                  body: `${t('fees.due', lang)}: ${tk(summary.due)} · ${period}`,
-                  action: canStudents
-                    ? { href: '/school/students?fee=due', label: t('fees.alertDuesAction', lang) }
-                    : undefined,
-                },
-              ]
-            : []
-        }
-      />
+      {withDues > 0 && canStudents && (
+        <WarningBanner
+          label={t('fees.attention', lang)}
+          text={`${fmt.format(withDues)} ${t('fees.alertDues', lang)} · ${t('fees.due', lang)}: ${tk(summary.due)}`}
+          href="/school/students?fee=due"
+          linkLabel={t('fees.alertDuesAction', lang)}
+        />
+      )}
 
       <StatGrid>
         <StatCard
@@ -357,17 +378,6 @@ export default async function FeesPage({
           noteTone="muted"
         />
       </StatGrid>
-
-      <QuickActions
-        title={t('dash.quickActions', lang)}
-        actions={[
-          { href: '#collect', label: t('fees.collect', lang), primary: true },
-          { href: '/school/fees/structures', label: t('fees.tabStructures', lang) },
-          { href: '/school/fees/vouchers', label: t('fees.tabVouchers', lang) },
-          { href: '/school/fees/bank', label: t('fees.tabBank', lang) },
-          ...(canStudents ? [{ href: '/school/students?fee=due', label: t('fees.alertDuesAction', lang) }] : []),
-        ]}
-      />
 
       <section id="collect" className="mb-section scroll-mt-4">
         <Card className="mb-grid">
@@ -420,13 +430,11 @@ export default async function FeesPage({
               const collected = recordMap.has(s.id)
               // The row you just clicked stays marked by the form below it (#531).
               return (
-                <Link
+                <RowActionPill
+                  state={collected ? 'done' : 'next'}
                   href={`/school/fees?class=${selectedClass}&month=${month}&year=${year}&student=${s.id}#collect-form`}
-                  aria-current={s.id === selectedStudent ? 'true' : undefined}
-                  className={collected ? rowAction : rowActionPrimary}
-                >
-                  {t(collected ? 'fees.editRecord' : 'fees.collectAction', lang)}
-                </Link>
+                  label={t(collected ? 'fees.editRecord' : 'fees.collectAction', lang)}
+                />
               )
             }}
             empty={
@@ -494,11 +502,10 @@ export default async function FeesPage({
           },
           { param: 'standing', value: 'paid', label: `${t('students.feePaid', lang)} (${fmt.format(summary.paid)})` },
         ]}
-        rowActions={(r) => (
-          <Link href={`/school/fees/receipt/${r.id}`} aria-label={`${t('fees.receipt', lang)}: ${r.name}`} className={rowAction}>
-            {t('fees.receipt', lang)}
-          </Link>
-        )}
+        rowActions={(r) => {
+          const next = nextStepFor(r)
+          return <RowActionPill state={next.state} href={next.href} label={next.label} />
+        }}
         pagination={{ page: pageData.page, totalPages: pageData.totalPages, total: pageData.total, pageSize }}
         empty={
           all.length ? (
@@ -512,6 +519,106 @@ export default async function FeesPage({
           )
         }
       />
+
+      <div className="mt-section grid gap-grid lg:grid-cols-2">
+        <WorkflowCard icon={<Wallet className="size-5" />} title={t('fees.workflowDuesTitle', lang)} tag={t('students.thisMonthTag', lang)}>
+          {dueRows.length === 0 ? (
+            <p className="mb-4 rounded-xl border border-dashed border-line p-6 text-center text-sm text-muted">
+              {t('fees.workflowDuesEmpty', lang)}
+            </p>
+          ) : (
+            <ul className="mb-4 divide-y divide-line">
+              {dueRows.slice(0, 5).map((r) => {
+                const next = nextStepFor(r)
+                return (
+                  <li key={r.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
+                    <div className="min-w-0">
+                      <p className="truncate font-semibold">{r.name}</p>
+                      <p className="text-xs text-muted">{tk(r.due)}</p>
+                    </div>
+                    <RowActionPill state={next.state} href={next.href} label={next.label} />
+                  </li>
+                )
+              })}
+            </ul>
+          )}
+        </WorkflowCard>
+
+        <WorkflowCard
+          icon={<Receipt className="size-5" />}
+          title={t('fees.workflowPartialTitle', lang)}
+          tag={t('students.thisMonthTag', lang)}
+        >
+          {partialRows.length === 0 ? (
+            <p className="mb-4 rounded-xl border border-dashed border-line p-6 text-center text-sm text-muted">
+              {t('fees.workflowPartialEmpty', lang)}
+            </p>
+          ) : (
+            <ul className="mb-4 divide-y divide-line">
+              {partialRows.slice(0, 5).map((r) => {
+                const next = nextStepFor(r)
+                return (
+                  <li key={r.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
+                    <div className="min-w-0">
+                      <p className="truncate font-semibold">{r.name}</p>
+                      <p className="text-xs text-muted">{tk(r.due)}</p>
+                    </div>
+                    <RowActionPill state={next.state} href={next.href} label={next.label} />
+                  </li>
+                )
+              })}
+            </ul>
+          )}
+        </WorkflowCard>
+      </div>
+
+      <RecordDrawer
+        open={Boolean(viewed)}
+        title={viewed?.name ?? ''}
+        subtitle={viewed ? period : undefined}
+        fullPageHref={viewed ? `/school/fees/receipt/${viewed.id}` : undefined}
+        fullPageLabel={t('table.openFullPage', lang)}
+        closeLabel={t('common.close', lang)}
+      >
+        {viewed && (
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <Pill tone={STANDING_TONE[viewed.standing]} pulse={viewed.standing === 'due'}>
+                {t(STANDING_LABEL[viewed.standing], lang)}
+              </Pill>
+            </div>
+            <dl className="flex flex-col gap-2 text-sm">
+              <div className="flex justify-between gap-3">
+                <dt className="text-muted">{t('fees.pay', lang)}</dt>
+                <dd>{tk(viewed.pay)}</dd>
+              </div>
+              <div className="flex justify-between gap-3">
+                <dt className="text-muted">{t('fees.fine', lang)}</dt>
+                <dd>{tk(viewed.fine)}</dd>
+              </div>
+              <div className="flex justify-between gap-3">
+                <dt className="text-muted">{t('fees.adjust', lang)}</dt>
+                <dd>{tk(viewed.adjust)}</dd>
+              </div>
+              <div className="flex justify-between gap-3 border-t border-line pt-2 font-bold">
+                <dt>{t('fees.due', lang)}</dt>
+                <dd>{tk(viewed.due)}</dd>
+              </div>
+              <div className="flex justify-between gap-3">
+                <dt className="text-muted">{t('fees.method', lang)}</dt>
+                <dd>{methodLabel(viewed.method)}</dd>
+              </div>
+            </dl>
+            {viewed.standing !== 'paid' && canSms && (
+              <RowActionPill
+                state="next"
+                href={`/school/sms?students=${viewed.student_id}`}
+                label={t('students.remind', lang)}
+              />
+            )}
+          </div>
+        )}
+      </RecordDrawer>
     </>
   )
 }
