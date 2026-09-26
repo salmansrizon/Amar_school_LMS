@@ -6,7 +6,7 @@ import { resolveHost, rootDomain } from '@/lib/auth/tenant-host'
 import { authCookieOptions } from '@/lib/auth/cookie-options'
 import { carrySession } from '@/lib/auth/carry-session'
 import { expireLegacySessionCookie } from '@/lib/auth/legacy-cookie'
-import { cspFor, cspHeaderName, isPrefetch } from '@/lib/auth/csp'
+import { cspFor, cspHeaderName, isPrefetch, isPrintPath } from '@/lib/auth/csp'
 import { isTenantPath, tenantRoute, type TenantSession } from '@/lib/auth/tenant-routing'
 import { firstRelation } from '@/lib/supabase/relation'
 
@@ -21,7 +21,7 @@ export async function proxy(request: NextRequest) {
   // the shell. Response-only means unstamped bootstrap scripts, so the page
   // renders and is then dead.
   const nonce = crypto.randomUUID()
-  const csp = cspFor(nonce)
+  const csp = cspFor(nonce, isPrintPath(request.nextUrl.pathname))
   const skipCsp = isPrefetch(request.headers)
 
   // Rebuilt at each call site rather than hoisted: the Supabase cookie setAll()

@@ -72,8 +72,17 @@ export function PrintTrigger({
             title={label}
             className="w-full flex-1 bg-paper-muted"
             onLoad={() => {
+              const win = frame.current?.contentWindow
               // An expired session redirects the print route to /login — never print that.
-              setReady(Boolean(frame.current?.contentWindow?.location.pathname.includes('/print/')))
+              const isPrint = Boolean(win?.location.pathname.includes('/print/'))
+              if (win && isPrint) {
+                // Preview what paper shows: hide the shell and the page's own
+                // back/print row, exactly the elements marked `print:hidden`.
+                const style = win.document.createElement('style')
+                style.textContent = '.print\\:hidden{display:none!important}'
+                win.document.head.appendChild(style)
+              }
+              setReady(isPrint)
             }}
           />
         </Dialog.Popup>

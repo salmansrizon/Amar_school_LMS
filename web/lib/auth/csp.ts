@@ -26,7 +26,13 @@ const SONNER_STYLE_HASHES = [
   "'sha256-StEaX+se6YS7pqjzrzMIA0KaX9zF/8zAhvQXZAe5epY='", // sonner 2.0.8's own CSS
 ]
 
-export function cspFor(nonce: string): string {
+/** Print routes (ADR 0007) may be framed by the app itself — the print preview
+ *  popup (map 013). Everything else stays unframeable. */
+export function isPrintPath(pathname: string): boolean {
+  return /\/print(\/|$)/.test(pathname)
+}
+
+export function cspFor(nonce: string, framable = false): string {
   const origin = supabaseOrigin()
   const ws = origin.replace(/^http/, 'ws')
   const isDev = process.env.NODE_ENV === 'development'
@@ -67,8 +73,9 @@ export function cspFor(nonce: string): string {
     `base-uri 'none'`,
     // form-action does NOT inherit from default-src, so Server Actions need it named.
     `form-action 'self'`,
-    `frame-ancestors 'none'`,
-    `frame-src 'none'`,
+    framable ? `frame-ancestors 'self'` : `frame-ancestors 'none'`,
+    // Only our own print routes are ever framed (the print preview popup).
+    `frame-src 'self'`,
     `report-to csp-endpoint`,
     // Deprecated in CSP3 in favour of report-to, but still the one several shipping
     // browsers actually honour. Both may be present.

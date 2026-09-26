@@ -4,10 +4,10 @@ import nextConfig from '../../next.config'
 // #528: the static header set is a release gate, so it is pinned. Without this,
 // removing includeSubDomains or flipping poweredByHeader back on is a silent
 // one-line regression that only a header scanner would ever catch.
-async function headerMap() {
+async function headerMap(source = '/(.*)') {
   const groups = await nextConfig.headers!()
-  const all = groups.flatMap((g) => g.headers)
-  return new Map(all.map((h) => [h.key.toLowerCase(), h.value]))
+  const group = groups.find((g) => g.source === source)!
+  return new Map(group.headers.map((h) => [h.key.toLowerCase(), h.value]))
 }
 
 describe('static security headers', () => {
@@ -34,6 +34,14 @@ describe('static security headers', () => {
     const map = await headerMap()
     expect(map.get('content-security-policy')).toContain("frame-ancestors 'none'")
     expect(map.get('x-frame-options')).toBe('DENY')
+  })
+
+  it('lets only the app itself frame print routes, and lists that rule last so it wins', async () => {
+    const groups = await nextConfig.headers!()
+    expect(groups.at(-1)!.source).toBe('/:prefix*/print/:rest*')
+    const map = await headerMap('/:prefix*/print/:rest*')
+    expect(map.get('content-security-policy')).toBe("frame-ancestors 'self'")
+    expect(map.get('x-frame-options')).toBe('SAMEORIGIN')
   })
 
   it('names a reporting endpoint, or the report-to directive does nothing', async () => {
