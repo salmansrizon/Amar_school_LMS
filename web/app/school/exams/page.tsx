@@ -580,7 +580,7 @@ export default async function ExamsPage({
               <span className="mx-auto mb-3 flex size-14 items-center justify-center rounded-full bg-brand-50 text-brand-600" aria-hidden>
                 <ClipboardList className="size-6" />
               </span>
-              <p className="font-bold">{t('exams.planningEmpty', lang)}</p>
+              <p className="font-bold">{t(upcomingList.length ? 'exams.planningEmpty' : 'exams.noneUpcoming', lang)}</p>
               <p className="mx-auto mt-1 max-w-sm text-sm text-muted">{t('exams.planningHint', lang)}</p>
             </div>
           )}
