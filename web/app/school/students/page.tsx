@@ -291,11 +291,16 @@ export default async function StudentsPage({
           const dueOrPartial = fees.get(s.id)?.standing === 'due' || fees.get(s.id)?.standing === 'partial'
           const next =
             canSms && dueOrPartial
-              ? { state: 'next' as const, href: `/school/sms?students=${s.id}`, label: t('students.remind', lang) }
-              : { state: 'default' as const, href: `/school/students/${s.id}`, label: t('students.view', lang) }
+              ? { state: 'next' as const, href: `/school/sms?students=${s.id}`, label: t('students.remind', lang), scroll: true }
+              : {
+                  state: 'default' as const,
+                  href: withParams(params, { view: s.id }),
+                  label: t('students.view', lang),
+                  scroll: false,
+                }
           return (
             <div className="flex items-center justify-end gap-1">
-              <RowActionPill state={next.state} href={next.href} label={next.label} />
+              <RowActionPill state={next.state} href={next.href} label={next.label} scroll={next.scroll} />
               <RowMore label={`${t('students.moreActions', lang)}: ${s.full_name}`}>
                 <div className="flex flex-wrap items-center justify-end gap-2">
                   <PrintTrigger

@@ -33,22 +33,31 @@ export function RowActionPill({
   href,
   label,
   reason,
+  scroll,
+  className,
 }: {
   state: RowActionState
   href: string
   label: string
   reason?: string
+  /** false for a same-page `?view=` link (record drawer), matching the name
+   *  link's own `scroll={false}` — no jump-to-top for a query-only change. */
+  scroll?: boolean
+  /** Extra classes appended to the pill's own — e.g. the exams row's
+   *  `max-md:flex-1` so it fills the phone card's action row instead of
+   *  sitting shrink-wrapped beside the ⋮ (map 013 mobile sweep). */
+  className?: string
 }) {
   if (reason) {
     return (
-      <button type="button" disabled title={reason} className={rowActionPillClass.locked}>
+      <button type="button" disabled title={reason} className={`${rowActionPillClass.locked} ${className ?? ''}`}>
         <Lock className="size-3" aria-hidden="true" />
         {label}
       </button>
     )
   }
   return (
-    <Link href={href} className={rowActionPillClass[state]}>
+    <Link href={href} scroll={scroll} className={`${rowActionPillClass[state]} ${className ?? ''}`}>
       {state === 'done' && <Check className="size-3" aria-hidden="true" />}
       {label}
     </Link>
