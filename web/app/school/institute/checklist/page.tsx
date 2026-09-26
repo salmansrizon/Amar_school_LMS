@@ -1,14 +1,14 @@
 import Form from 'next/form'
-import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { completedCount, checklistStatus, filterChecklistRange, type ActivityChecklistItem, type ChecklistRow } from '@/lib/institute'
+import { schoolCrumbs } from '@/lib/school-crumbs'
 import { InstituteTabs } from '../tabs'
 import { ChecklistForm } from './checklist-form'
 import { ChecklistItemsManager } from './checklist-items-manager'
 import { dateInputClass } from '@/components/ui/field'
-import { railClass, type Tone } from '@/components/ui/page'
+import { PageHeader, railClass, type Tone } from '@/components/ui/page'
 
 // Administrative daily checklist + date-range report (issue #39, PRD §5.11)
 // per ui/school-owner/activity-checklist.html.
@@ -63,10 +63,10 @@ export default async function ChecklistPage({
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-extrabold">{t('institute.title', lang)}</h1>
-        <Link href="/school" aria-label={t('common.back', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
-      </div>
+      <PageHeader
+        title={t('institute.tabChecklist', lang)}
+        crumbs={schoolCrumbs('/school/institute/checklist', lang, { label: t('institute.tabChecklist', lang) })}
+      />
 
       <InstituteTabs active="/school/institute/checklist" lang={lang} />
 

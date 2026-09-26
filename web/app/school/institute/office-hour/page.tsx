@@ -12,6 +12,8 @@ import {
 } from '@/lib/office-hours'
 import { dayLabel } from '@/lib/routine'
 import { ACADEMIC_SHIFT_LABEL_KEY } from '@/lib/institute'
+import { schoolCrumbs } from '@/lib/school-crumbs'
+import { PageHeader } from '@/components/ui/page'
 import { InstituteTabs } from '../tabs'
 import { OfficeHourForm } from './office-hour-form'
 import { OfficeHourCell } from './office-hour-cell'
@@ -55,18 +57,10 @@ export default async function OfficeHourPage({
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-extrabold">{t('officeHour.title', lang)}</h1>
-        <Link
-          href="/school"
-          aria-label={t('common.back', lang)}
-          className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true">
-            <path d="m15 18-6-6 6-6" />
-          </svg>
-        </Link>
-      </div>
+      <PageHeader
+        title={t('officeHour.title', lang)}
+        crumbs={schoolCrumbs('/school/institute/office-hour', lang, { label: t('officeHour.title', lang) })}
+      />
 
       <InstituteTabs active="/school/institute/office-hour" lang={lang} />
 

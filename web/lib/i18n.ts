@@ -519,6 +519,10 @@ const dict = {
   'dash.raAdmissionDesc': { bn: 'নতুন ভর্তি', en: 'New admission' },
   'dash.raFeedbackDesc': { bn: 'নতুন মতামত', en: 'New feedback' },
   'staff.title': { bn: 'স্টাফ অনুমতি', en: 'Staff Permissions' },
+  'staff.pageSubtitle': {
+    bn: 'স্টাফ লগইন ও তাদের স্ক্রিনভিত্তিক অ্যাক্সেস অনুমতি পরিচালনা করুন',
+    en: 'Manage staff logins and their screen-level access permissions',
+  },
   'staff.create': { bn: 'নতুন স্টাফ লগইন', en: 'New staff login' },
   'staff.fullName': { bn: 'পূর্ণ নাম', en: 'Full name' },
   'staff.createBtn': { bn: 'স্টাফ তৈরি করুন', en: 'Create staff' },
@@ -2752,6 +2756,10 @@ const dict = {
 
   // Institute Setup & Misc (issue #39, PRD §5.11)
   'institute.title': { bn: 'প্রতিষ্ঠান সেটআপ', en: 'Institute Setup' },
+  'institute.pageSubtitle': {
+    bn: 'প্রতিষ্ঠানের পরিচয়, শিক্ষাবর্ষ, যোগাযোগ ও ব্র্যান্ডিং সেটিংস পরিচালনা করুন',
+    en: 'Manage institute identity, academic year, contact and branding settings',
+  },
   'institute.tabProfile': { bn: 'প্রতিষ্ঠান প্রোফাইল', en: 'Institute Profile' },
   'institute.tabChecklist': { bn: 'দৈনিক চেকলিস্ট', en: 'Activity Checklist' },
   'institute.tabLogistics': { bn: 'লজিস্টিক্স ইনডেক্স', en: 'Logistics Index' },
