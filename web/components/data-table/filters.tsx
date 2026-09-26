@@ -47,7 +47,7 @@ export function DataTableFilters({
           defaultValue={params.get(searchParam) ?? ''}
           placeholder={search.placeholder}
           aria-label={search.placeholder}
-          className="w-72"
+          className="w-full md:w-72"
           onKeyDown={(e) => {
             if (e.key === 'Enter') apply(searchParam, e.currentTarget.value)
           }}
@@ -62,7 +62,7 @@ export function DataTableFilters({
           <Select key={f.param} value={value} onValueChange={(v) => apply(f.param, v as string | null)}>
             <SelectTrigger
               id={i === 0 ? 'data-table-filter' : undefined}
-              className="min-w-44"
+              className="w-full md:w-auto md:min-w-44"
               aria-label={f.label}
             >
               <SelectValue>

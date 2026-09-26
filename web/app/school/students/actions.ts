@@ -1,5 +1,6 @@
 'use server'
 
+import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { currentActor } from '@/lib/school/actor'
@@ -438,4 +439,18 @@ export async function sendBehaviourSms(entryId: string): Promise<{ error?: strin
     behaviourSmsBody(student.full_name, entry.note, entry.rating),
   )
   return result.ok ? {} : { error: result.error }
+}
+
+// ponytail: no server-side canSms re-check here — the bulk bar (students/
+// page.tsx) already omits this action for a role that lacks the `sms` grant,
+// same trust boundary the single-row Remind pill already relies on (it's a
+// Link, not gated server-side either). Add a check here if the SMS Center
+// itself ever stops being the enforcement point.
+/** The directory's bulk "Remind" action (map 013, new_ui/02-people): a plain
+ *  redirect to SMS Center prefilled with every selected Student, the same
+ *  `?students=<id,id,…>` the single-row Remind pill and the fee workflow
+ *  card's "Remind all" link already use — no new sending path. */
+export async function bulkRemindStudents(formData: FormData): Promise<void> {
+  const ids = formData.getAll('ids').map(String).slice(0, 200)
+  redirect(`/school/sms?students=${ids.join(',')}`)
 }

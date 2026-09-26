@@ -482,7 +482,12 @@ export default async function ExamsPage({
           // row on Back even while the six actions sit closed behind ⋮.
           return (
             <div data-exam-row={e.id} className="flex items-center justify-end gap-1">
-              <RowActionPill state="next" href={next.href} label={next.label} />
+              <RowActionPill
+                state="next"
+                href={next.href}
+                label={next.label}
+                className="max-md:flex-1 max-md:justify-center"
+              />
               <RowMore label={`${t('exams.moreActions', lang)}: ${e.name}`}>
                 <ExamRowActions exam={e} origin={originFor(e.id)} lang={lang} />
               </RowMore>
