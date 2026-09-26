@@ -16,6 +16,8 @@ test.describe('@crud @school exams-deep', () => {
     const name = `E2E Exam ${Date.now()}`
     await page.goto('/school/exams')
 
+    // Map 013 A3: the create form lives in the header's "New exam" modal.
+    await page.getByRole('button', { name: '+ নতুন পরীক্ষা' }).click()
     await page.locator('#exam_name').fill(name)
     await page.locator('input[name="exam_year"]').fill('2026')
     await page.locator('form:has(#exam_name) button').first().click()

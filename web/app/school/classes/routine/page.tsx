@@ -6,6 +6,8 @@ import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
 import { applyGlobalYearFilterToOfferings } from '@/lib/school/year-filter'
 import { excludeArchivedOfferings } from '@/lib/school/archived-offerings-filter'
 import { ROUTINE_DAYS, ROUTINE_PERIODS, dayLabel, indexSlots, type RoutineSlot } from '@/lib/routine'
+import { schoolCrumbs } from '@/lib/school-crumbs'
+import { PageHeader } from '@/components/ui/page'
 import { SlotCell, PublishButton, ClassPicker, type Option } from './routine-cell'
 
 // Layout per ui/school-owner/class-routine-builder.html: toolbar (class picker
@@ -43,39 +45,50 @@ export default async function RoutinePage({
   )
 
   return (
-    <div>
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-extrabold">{t('routine.title', lang)}</h1>
-        <Link href="/school/classes" aria-label={t('classes.title', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
-      </div>
+    <>
+      <PageHeader
+        title={t('routine.title', lang)}
+        backHref="/school/classes"
+        backLabel={t('classes.title', lang)}
+        crumbs={schoolCrumbs(
+          '/school/classes',
+          lang,
+          { label: t('classes.title', lang), href: '/school/classes' },
+          { label: t('routine.title', lang) },
+        )}
+        actions={
+          selectedClass && classes?.length ? (
+            <>
+              {/* ponytail: not PrintTrigger — its frame-ready check wants
+                  '/print/' in the path, and this route ends in '/print'. */}
+              <a
+                href={`/school/classes/routine/print?class=${selectedClass}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex h-11 items-center rounded-full border border-line-strong px-4 text-xs font-semibold hover:bg-paper-muted"
+              >
+                {t('routine.print', lang)}
+              </a>
+              <Link
+                href="/school/classes"
+                className="inline-flex h-11 items-center rounded-full border border-line-strong px-4 text-xs font-semibold hover:bg-paper-muted"
+              >
+                {t('routine.cancel', lang)}
+              </Link>
+              <PublishGate classId={selectedClass} lang={lang} />
+            </>
+          ) : undefined
+        }
+      />
 
       {!classes?.length ? (
-        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted">
+        <p className="rounded-2xl border border-line bg-paper p-card text-sm text-muted">
           {t('routine.noClasses', lang)}
         </p>
       ) : (
         <>
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <ClassPicker classes={classes} selected={selectedClass} lang={lang} showYear={showYear} />
-            {selectedClass && (
-              <span className="flex items-center gap-2">
-                <a
-                  href={`/school/classes/routine/print?class=${selectedClass}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="rounded-full border border-line-strong px-3 py-1.5 text-xs font-semibold hover:bg-paper-muted"
-                >
-                  {t('routine.print', lang)}
-                </a>
-                <Link
-                  href="/school/classes"
-                  className="rounded-full border border-line-strong px-3 py-1.5 text-xs font-semibold hover:bg-paper-muted"
-                >
-                  {t('routine.cancel', lang)}
-                </Link>
-                <PublishGate classId={selectedClass} lang={lang} />
-              </span>
-            )}
           </div>
 
           {selectedClass ? (
@@ -85,7 +98,7 @@ export default async function RoutinePage({
           )}
         </>
       )}
-    </div>
+    </>
   )
 }
 
@@ -118,29 +131,29 @@ async function RoutineGrid({ classId, lang }: { classId: string; lang: Lang }) {
   const roomOpts: Option[] = (rooms ?? []).map((r) => ({ id: r.id, label: r.name }))
 
   return (
-    <section className="rounded-lg border border-line bg-paper p-4">
+    <section className="overflow-hidden rounded-2xl border border-line bg-paper">
       <div className="overflow-x-auto">
         <table className="w-full min-w-160 table-fixed border-collapse text-xs">
-          <thead>
+          <thead className="bg-paper-muted">
             <tr>
-              <th className="w-16 border border-line bg-paper-muted p-1.5 font-semibold">
+              <th className="w-16 px-4 py-3 text-sm font-semibold text-muted">
                 {t('routine.period', lang)}
               </th>
               {ROUTINE_DAYS.map((d) => (
-                <th key={d} className="border border-line bg-paper-muted p-1.5 font-semibold">
+                <th key={d} className="border-l border-line px-4 py-3 text-left text-sm font-semibold text-muted">
                   {dayLabel(d, lang)}
                 </th>
               ))}
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-line">
             {ROUTINE_PERIODS.map((p) => (
               <tr key={p}>
-                <td className="border border-line bg-paper-muted p-1.5 text-center font-semibold">
+                <td className="bg-paper-muted px-4 py-3 text-center text-sm font-semibold">
                   {p}
                 </td>
                 {ROUTINE_DAYS.map((d) => (
-                  <td key={d} className="border border-line align-top">
+                  <td key={d} className="border-l border-line align-top">
                     <SlotCell
                       classId={classId}
                       day={d}
@@ -158,7 +171,7 @@ async function RoutineGrid({ classId, lang }: { classId: string; lang: Lang }) {
           </tbody>
         </table>
       </div>
-      <p className="mt-3 text-xs text-muted">{t('routine.conflictNote', lang)}</p>
+      <p className="border-t border-line px-4 py-3 text-xs text-muted">{t('routine.conflictNote', lang)}</p>
     </section>
   )
 }

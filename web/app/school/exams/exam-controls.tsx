@@ -1,16 +1,15 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useEffect, useMemo, useState, useTransition } from 'react'
+import { useEffect, useState, useTransition } from 'react'
 import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
-import { examBasicInfoComplete, examHasClass, filterExams } from '@/lib/exam-setup'
+import { examBasicInfoComplete, examHasClass } from '@/lib/exam-setup'
 import { withOrigin } from '@/lib/back-nav'
 import { t, type Lang } from '@/lib/i18n'
 import { addExam, closeExam } from './actions'
 import { ExamAction, examActionClass } from './exam-action'
 import { ExamDocumentsModal } from './exam-documents-modal'
-import { selectClass } from '@/components/ui/field'
-import { classCatalogueLabel, type ClassCatalogueRow } from '@/lib/class-catalogue'
+import { Modal } from '@/components/modal'
 
 // Exams II (issue #47) repurposes this file for the exams-list.html toolbar +
 // row (search/class/status filter) — per-exam rename now lives on the Exam
@@ -147,146 +146,29 @@ export interface ExamListItem {
   start_date: string | null
 }
 
-/** Search + class/status filter toolbar over an already-fetched page of
- * exams, per exams-list.html — filtering happens client-side (filterExams). */
-export function ExamsListClient({
-  exams,
-  classes,
-  pickerClasses,
-  showYear = false,
-  initialQuery = '',
-  initialClassId = '',
-  initialStatus = '',
-  anchorExamId,
-  lang,
-}: {
-  exams: ExamListItem[]
-  /** Every Offering — the class-label map for existing exam rows, keyed by
-   *  class_id. Unfiltered on purpose: an exam in a deselected year keeps its
-   *  label. */
-  classes: ClassCatalogueRow[]
-  /** The Offerings the class-filter dropdown offers — `classes` narrowed to the
-   *  Global Academic Year Selection (map #609, T6/#615). Defaults to `classes`. */
-  pickerClasses?: ClassCatalogueRow[]
-  /** Append ` — {year}` to Offering labels when the School spans more than one
-   *  started Academic Year (map #609, T6/#615). */
-  showYear?: boolean
-  /** Filter state to restore, from the `from` URL a destination came back to. */
-  initialQuery?: string
-  initialClassId?: string
-  initialStatus?: string
-  /** The row that launched the destination being returned from. */
-  anchorExamId?: string
-  lang: Lang
-}) {
-  const [query, setQuery] = useState(initialQuery)
-  const [classId, setClassId] = useState(initialClassId)
-  const [status, setStatus] = useState(initialStatus)
-  const pickerOptions = pickerClasses ?? classes
-  const classById = new Map(classes.map((c) => [c.id, c]))
-  const filtered = useMemo(() => filterExams(exams, query, classId, status), [exams, query, classId, status])
-  // #550: every matching exam used to render at once — 570 rows and 934 controls
-  // under 44px on a phone, because each row carries six actions. Show a page at
-  // a time. The cap resets when the filters change, so "show more" never leaks
-  // a previous filter's depth into a new result.
-  const PAGE_SIZE = 25
-  const [visible, setVisible] = useState(PAGE_SIZE)
-  useEffect(() => setVisible(PAGE_SIZE), [query, classId, status])
-  const shown = filtered.slice(0, visible)
-
-  // Bring the row that launched the destination back into view. A row anchor,
-  // not a pixel offset (§5): it survives the list re-rendering or an exam
-  // changing status, which an offset does not. Runs once per arrival — the
-  // dependency is the anchor, so typing in the search box does not re-fire it
-  // and yank the page around. If the anchored exam is not in the filtered set
-  // the lookup simply misses and the list stays put, rather than fighting the
-  // user's own filter. `scrollIntoView` deliberately does not move focus.
-  useEffect(() => {
-    if (!anchorExamId) return
-    document.getElementById(examRowAnchorId(anchorExamId))?.scrollIntoView({ block: 'center' })
-  }, [anchorExamId])
-
-  // The address a destination should come back to: this list, with the filters
-  // as they stand right now and the row that was clicked. Snapshotted per link
-  // rather than synced to the URL on every keystroke — in the App Router that
-  // would mean a server round-trip per character (map #373).
-  const originFor = (examId: string) => {
-    const params = new URLSearchParams()
-    if (query) params.set('q', query)
-    if (classId) params.set('class', classId)
-    if (status) params.set('status', status)
-    params.set('exam', examId)
-    return `/school/exams?${params.toString()}`
-  }
-
+/** Wraps AddExamForm in the header's "New exam" modal (map 013 A3). Composed
+ *  here, in the client module, because Modal's children is a render prop. */
+export function AddExamModal({ lang, triggerClassName }: { lang: Lang; triggerClassName: string }) {
   return (
-    <>
-      <div className="mb-4 flex flex-wrap items-center gap-2">
-        <input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder={t('exams.searchPlaceholder', lang)}
-          className={`${inputClass} max-w-xs`}
-        />
-        <select value={classId} onChange={(e) => setClassId(e.target.value)} className={`${selectClass({ size: 'md', fullWidth: true })} max-w-48`}>
-          <option value="">{t('exams.allClasses', lang)}</option>
-          {pickerOptions.map((c) => (
-            <option key={c.id} value={c.id}>
-              {classCatalogueLabel(c, showYear)}
-            </option>
-          ))}
-        </select>
-        <select value={status} onChange={(e) => setStatus(e.target.value)} className={`${selectClass({ size: 'md', fullWidth: true })} max-w-40`}>
-          <option value="">{t('exams.allStatus', lang)}</option>
-          <option value="open">{t('exams.open', lang)}</option>
-          <option value="closed">{t('exams.closed', lang)}</option>
-        </select>
-      </div>
-
-      {!filtered.length ? (
-        <p className="text-sm text-muted">{t('exams.none', lang)}</p>
-      ) : (
-        <ul className="divide-y divide-line">
-          {shown.map((exam) => (
-            <li key={exam.id} className="py-3">
-              <ExamListRow
-                exam={exam}
-                classLabel={classLabelOf(classById.get(exam.class_id ?? ''), showYear)}
-                origin={originFor(exam.id)}
-                lang={lang}
-              />
-            </li>
-          ))}
-        </ul>
-      )}
-      {filtered.length > shown.length && (
-        <div className="mt-3 flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => setVisible((n) => n + PAGE_SIZE)}
-            className="inline-flex h-11 cursor-pointer items-center rounded-full border border-line-strong px-4 text-xs font-semibold hover:bg-paper-muted sm:h-9"
-          >
-            {t('exams.showMore', lang)}
-          </button>
-          <span className="text-xs text-muted">
-            {shown.length} / {filtered.length}
-          </span>
-        </div>
-      )}
-    </>
+    <Modal lang={lang} triggerLabel={`+ ${t('exams.add', lang)}`} triggerClassName={triggerClassName} title={t('exams.add', lang)}>
+      {() => <AddExamForm lang={lang} />}
+    </Modal>
   )
 }
 
-function classLabelOf(cls: ClassCatalogueRow | undefined, showYear = false): string | null {
-  return cls ? classCatalogueLabel(cls, showYear) : null
-}
-
-/** DOM id of an exam row. Returning from a destination scrolls this back into
- *  view rather than landing at the top of a long list (docs/010_exam_module.md
- *  §5, which prefers a row anchor over a pixel offset — an anchor survives the
- *  list re-rendering or the exam changing status; an offset does not). */
-function examRowAnchorId(examId: string): string {
-  return `exam-${examId}`
+/** Returning from a destination brings the row that launched it back into
+ *  view (docs/010_exam_module.md §5) — a row anchor, not a pixel offset. The
+ *  DataTable renders a phone card and a desktop row from one list, so the
+ *  anchor is whichever of the two is actually displayed. Does not move focus. */
+export function ScrollToExam({ examId }: { examId?: string }) {
+  useEffect(() => {
+    if (!examId) return
+    const shown = Array.from(document.querySelectorAll<HTMLElement>(`[data-exam-row="${examId}"]`)).find(
+      (el) => el.offsetParent !== null,
+    )
+    shown?.scrollIntoView({ block: 'center' })
+  }, [examId])
+  return null
 }
 
 /** Map #366 cut every exam row to the same four actions; map #373 restores Seat
@@ -299,78 +181,39 @@ function examRowAnchorId(examId: string): string {
  * Gating is not uniform, and deliberately so. Marks Entry and the documents
  * need a class *and* a grading scheme; Co-Curricular, Seat Plan and Routine
  * need only the class, because that is all their pages ever read (subjects-for-
- * class, roll ranges). #366 gated Seat Plan and Routine on the grading scheme
- * too and knowingly filed the contradiction as "revisit if it bites" — putting
- * them on the row is what made it bite, since a routine has to exist *before*
- * an exam runs, long before grading matters.
+ * class, roll ranges).
  *
- * Every action carries the row's own address as `?from=`, snapshotting the
- * live filters and this exam's id, so Back returns here rather than unwinding
- * through Basic Info (§4, §5). Closing an exam does not hide the actions:
- * every destination renders read-only when closed, and CONTEXT.md keeps
- * "aggregate result viewing" available. */
-function ExamListRow({
-  exam,
-  classLabel,
-  origin,
-  lang,
-}: {
-  exam: ExamListItem
-  classLabel: string | null
-  origin: string
-  lang: Lang
-}) {
-  const closed = exam.status === 'closed'
+ * Every action carries the row's own address as `?from=` (`origin`, built by
+ * the page from the live filters and this exam's id), so Back returns here
+ * rather than unwinding through Basic Info (§4, §5). Closing an exam does not
+ * hide the actions: every destination renders read-only when closed. */
+export function ExamRowActions({ exam, origin, lang }: { exam: ExamListItem; origin: string; lang: Lang }) {
   const complete = examBasicInfoComplete(exam)
   const needsBasicInfo = complete ? undefined : t('exams.completeBasicInfoFirst', lang)
   const needsClass = examHasClass(exam) ? undefined : t('exams.selectClassFirst', lang)
-  const examLabel = `${exam.name} (${exam.exam_year})`
   const action = (path: string) => withOrigin(`/school/exams/${exam.id}${path}`, origin)
 
   return (
-    // Anchored so returning from a destination can scroll this row back into
-    // view instead of dumping the user at the top of a long list (§5).
-    <div id={examRowAnchorId(exam.id)} className="flex flex-wrap items-center justify-between gap-2">
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="text-sm font-medium">
-          {exam.name} <span className="text-muted">({exam.exam_year})</span>
-        </span>
-        {classLabel && <span className="text-xs text-muted">{classLabel}</span>}
-        {exam.start_date && <span className="text-xs text-muted">{exam.start_date}</span>}
-        <span
-          className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
-            closed ? 'bg-paper-muted text-muted' : 'bg-mint-soft text-mint-deep'
-          }`}
-        >
-          {closed ? `🔒 ${t('exams.closed', lang)}` : t('exams.open', lang)}
-        </span>
-      </div>
-
-      <div className="flex flex-col items-end gap-1">
-        <span className="flex flex-wrap items-center justify-end gap-2">
-          <ExamAction href={action('')} label={t('examSetup.basicInfo', lang)} />
-          <ExamAction href={action('/marks-entry')} label={t('exams.markEntry', lang)} reason={needsBasicInfo} />
-          <ExamAction href={action('/cocurricular')} label={t('exams.cocurricular', lang)} reason={needsClass} />
-          <ExamAction href={action('/seat-plan')} label={t('exams.generateSeatPlan', lang)} reason={needsClass} />
-          <ExamAction href={action('/routine')} label={t('exams.makeRoutine', lang)} reason={needsClass} />
-          {/* Delete is NOT here. docs/010_exam_module.md §1 fixes six actions on
-              this row, in this order, and an e2e test asserts it — a destructive
-              control does not belong among six navigations anyway. It lives on
-              Basic Info next to Close (#551). */}
-          {complete ? (
-            <ExamDocumentsModal
-              examId={exam.id}
-              examLabel={examLabel}
-              origin={origin}
-              lang={lang}
-              triggerClassName={`cursor-pointer ${examActionClass()}`}
-            />
-          ) : (
-            <ExamAction href="" label={t('examDocs.title', lang)} reason={needsBasicInfo} />
-          )}
-        </span>
-        {!complete && <span className="text-xs text-muted">{t('exams.completeBasicInfoFirst', lang)}</span>}
-      </div>
+    // data-exam-row: the anchor ScrollToExam restores, and the row e2e scopes to.
+    <div data-exam-row={exam.id} className="flex flex-wrap items-center justify-end gap-2">
+      <ExamAction href={action('')} label={t('examSetup.basicInfo', lang)} />
+      <ExamAction href={action('/marks-entry')} label={t('exams.markEntry', lang)} reason={needsBasicInfo} />
+      <ExamAction href={action('/cocurricular')} label={t('exams.cocurricular', lang)} reason={needsClass} />
+      <ExamAction href={action('/seat-plan')} label={t('exams.generateSeatPlan', lang)} reason={needsClass} />
+      <ExamAction href={action('/routine')} label={t('exams.makeRoutine', lang)} reason={needsClass} />
+      {/* Delete is NOT here: docs/010_exam_module.md §1 fixes six actions on
+          this row, in this order. It lives on Basic Info next to Close (#551). */}
+      {complete ? (
+        <ExamDocumentsModal
+          examId={exam.id}
+          examLabel={`${exam.name} (${exam.exam_year})`}
+          origin={origin}
+          lang={lang}
+          triggerClassName={`cursor-pointer ${examActionClass()}`}
+        />
+      ) : (
+        <ExamAction href="" label={t('examDocs.title', lang)} reason={needsBasicInfo} />
+      )}
     </div>
   )
 }

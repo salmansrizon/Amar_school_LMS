@@ -1,18 +1,19 @@
 import { t, type Lang } from '@/lib/i18n'
 import { navGroupFor } from '@/lib/school-nav'
+import type { Crumb } from '@/components/ui/page'
 
 // Breadcrumb trail for a School Owner page (map 013): Dashboard › <sidebar
-// group> › …items. The group label comes from the nav, so a page never names
-// its own section by hand.
+// group> › …tail. The group label comes from the nav, so a page never names
+// its own section by hand. Tail crumbs may be passed as an array or spread.
 
-export function schoolCrumbs(pathname: string, lang: Lang, items: { label: string; href?: string }[]) {
+export function schoolCrumbs(pathname: string, lang: Lang, ...tail: (Crumb | Crumb[])[]): { lang: Lang; items: Crumb[] } {
   const group = navGroupFor(pathname)?.group
   return {
     lang,
     items: [
       { label: t('dash.dashboard', lang), href: '/school' },
       ...(group ? [{ label: t(group.labelKey, lang) }] : []),
-      ...items,
+      ...tail.flat(),
     ],
   }
 }

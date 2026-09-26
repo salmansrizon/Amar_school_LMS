@@ -1,4 +1,6 @@
 import { notFound } from 'next/navigation'
+import { schoolCrumbs } from '@/lib/school-crumbs'
+import { PageHeader } from '@/components/ui/page'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
@@ -6,7 +8,6 @@ import { subjectsForClass } from '@/lib/students'
 import { loadGradingScheme } from '@/lib/grading-scheme-loader'
 import { enrolledStudentIds, enrolledIdFilter } from '@/lib/school/offering-roster'
 import { MarksEntryTable, SubjectPicker, type MarkStudentRow, type SubjectOption } from './marks-entry-controls'
-import { BackLink } from '@/components/back-link'
 import { resolveBackHref } from '@/lib/back-nav'
 
 // Layout per ui/school-owner/marks-entry.html: subject-picker toolbar over
@@ -41,19 +42,19 @@ export default async function MarksEntryPage({
   const examLabel = `${exam.name} (${exam.exam_year})`
 
   const header = (
-    <div className="mb-4 flex items-center justify-between">
-      <h1 className="text-2xl font-extrabold">
-        {t('markEntry.title', lang)} — {examLabel}
-      </h1>
-      <BackLink href={backHref} label={t('common.back', lang)} />
-    </div>
+    <PageHeader
+      title={`${t('markEntry.title', lang)} — ${examLabel}`}
+      crumbs={schoolCrumbs('/school/exams', lang, { label: t('exams.title', lang), href: '/school/exams' }, { label: `${t('markEntry.title', lang)} — ${examLabel}` })}
+      backHref={backHref}
+      backLabel={t('common.back', lang)}
+    />
   )
 
   if (!exam.class_id) {
     return (
       <div>
         {header}
-        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted">
+        <p className="rounded-2xl border border-line bg-paper p-card text-sm text-muted">
           {t('markEntry.noClassSet', lang)}
         </p>
       </div>
@@ -70,7 +71,7 @@ export default async function MarksEntryPage({
     return (
       <div>
         {header}
-        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted">
+        <p className="rounded-2xl border border-line bg-paper p-card text-sm text-muted">
           {t('markEntry.noSubjects', lang)}
         </p>
       </div>
@@ -106,7 +107,7 @@ export default async function MarksEntryPage({
     return (
       <div>
         {header}
-        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted">
+        <p className="rounded-2xl border border-line bg-paper p-card text-sm text-muted">
           {t('markEntry.noStudents', lang)}
         </p>
       </div>
@@ -139,7 +140,7 @@ export default async function MarksEntryPage({
 
       {!exam.grading_scheme_id && <p className="mb-3 text-xs text-muted">{t('markEntry.noScheme', lang)}</p>}
 
-      <section className="rounded-lg border border-line bg-paper p-4">
+      <section className="rounded-2xl border border-line bg-paper p-card">
         <MarksEntryTable
           examId={exam.id}
           subject={selectedSubject}

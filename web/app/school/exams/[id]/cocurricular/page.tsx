@@ -1,4 +1,6 @@
 import Link from 'next/link'
+import { schoolCrumbs } from '@/lib/school-crumbs'
+import { PageHeader } from '@/components/ui/page'
 import { notFound } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
@@ -6,7 +8,6 @@ import { getSchoolContext } from '@/lib/school/context'
 import { sortCocurricularItems } from '@/lib/cocurricular'
 import { enrolledStudentIds, enrolledIdFilter } from '@/lib/school/offering-roster'
 import { CocurricularEntryTable, type ChecklistStudentRow } from './controls'
-import { BackLink } from '@/components/back-link'
 import { resolveBackHref } from '@/lib/back-nav'
 
 // Per-exam entry grid for the co-curricular checklist (issue #33, migration
@@ -36,19 +37,19 @@ export default async function CocurricularEntryPage({
   const examLabel = `${exam.name} (${exam.exam_year})`
 
   const header = (
-    <div className="mb-4 flex items-center justify-between">
-      <h1 className="text-2xl font-extrabold">
-        {t('cocurricular.entryTitle', lang)} — {examLabel}
-      </h1>
-      <BackLink href={backHref} label={t('common.back', lang)} />
-    </div>
+    <PageHeader
+      title={`${t('cocurricular.entryTitle', lang)} — ${examLabel}`}
+      crumbs={schoolCrumbs('/school/exams', lang, { label: t('exams.title', lang), href: '/school/exams' }, { label: `${t('cocurricular.entryTitle', lang)} — ${examLabel}` })}
+      backHref={backHref}
+      backLabel={t('common.back', lang)}
+    />
   )
 
   if (!exam.class_id) {
     return (
       <div>
         {header}
-        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted">
+        <p className="rounded-2xl border border-line bg-paper p-card text-sm text-muted">
           {t('markEntry.noClassSet', lang)}
         </p>
       </div>
@@ -62,7 +63,7 @@ export default async function CocurricularEntryPage({
     return (
       <div>
         {header}
-        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted">
+        <p className="rounded-2xl border border-line bg-paper p-card text-sm text-muted">
           {t('cocurricular.noItemsHint', lang)}{' '}
           <Link href="/school/exams/cocurricular-items" className="text-brand-600 hover:underline">
             {t('cocurricular.itemsTitle', lang)}
@@ -91,7 +92,7 @@ export default async function CocurricularEntryPage({
     return (
       <div>
         {header}
-        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted">
+        <p className="rounded-2xl border border-line bg-paper p-card text-sm text-muted">
           {t('markEntry.noStudents', lang)}
         </p>
       </div>
@@ -117,7 +118,7 @@ export default async function CocurricularEntryPage({
     <div>
       {header}
       {closed && <p className="mb-3 text-xs text-alert-deep">{t('markEntry.closedNote', lang)}</p>}
-      <section className="rounded-lg border border-line bg-paper p-4">
+      <section className="rounded-2xl border border-line bg-paper p-card">
         <CocurricularEntryTable examId={exam.id} items={sortedItems} rows={rows} disabled={closed} lang={lang} />
       </section>
     </div>

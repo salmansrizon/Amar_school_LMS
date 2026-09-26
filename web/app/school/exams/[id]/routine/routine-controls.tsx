@@ -49,28 +49,28 @@ export function RoutineTable({
   return (
     <div className="overflow-x-auto">
       <table className="w-full min-w-160 text-sm">
-        <thead>
-          <tr className="border-b border-line text-left text-xs font-semibold text-muted">
-            <th className="py-2 pr-2">{t('examRoutine.date', lang)}</th>
-            <th className="py-2 pr-2">{t('examRoutine.day', lang)}</th>
-            <th className="py-2 pr-2">{t('examRoutine.time', lang)}</th>
-            <th className="py-2 pr-2">{t('examRoutine.subject', lang)}</th>
-            <th className="py-2 pr-2">{t('examRoutine.room', lang)}</th>
-            {!disabled && <th className="py-2 text-right">{t('examRoutine.delete', lang)}</th>}
+        <thead className="bg-paper-muted">
+          <tr className="text-left text-sm text-muted">
+            <th className="px-4 py-3">{t('examRoutine.date', lang)}</th>
+            <th className="px-4 py-3">{t('examRoutine.day', lang)}</th>
+            <th className="px-4 py-3">{t('examRoutine.time', lang)}</th>
+            <th className="px-4 py-3">{t('examRoutine.subject', lang)}</th>
+            <th className="px-4 py-3">{t('examRoutine.room', lang)}</th>
+            {!disabled && <th className="px-4 py-3 text-right">{t('examRoutine.delete', lang)}</th>}
           </tr>
         </thead>
         <tbody className="divide-y divide-line">
           {sorted.map((e) => (
             <tr key={e.id}>
-              <td className="py-2 pr-2">{e.exam_date}</td>
-              <td className="py-2 pr-2">{dayLabel(dateToDayOfWeek(e.exam_date), lang)}</td>
-              <td className="py-2 pr-2">
+              <td className="px-4 py-3">{e.exam_date}</td>
+              <td className="px-4 py-3">{dayLabel(dateToDayOfWeek(e.exam_date), lang)}</td>
+              <td className="px-4 py-3">
                 {e.start_time.slice(0, 5)} - {e.end_time.slice(0, 5)}
               </td>
-              <td className="py-2 pr-2">{subjectName.get(e.subject_id) ?? '—'}</td>
-              <td className="py-2 pr-2">{e.room_id ? (roomName.get(e.room_id) ?? '—') : '—'}</td>
+              <td className="px-4 py-3">{subjectName.get(e.subject_id) ?? '—'}</td>
+              <td className="px-4 py-3">{e.room_id ? (roomName.get(e.room_id) ?? '—') : '—'}</td>
               {!disabled && (
-                <td className="py-2 text-right">
+                <td className="px-4 py-3 text-right">
                   <button
                     type="button"
                     disabled={pending}

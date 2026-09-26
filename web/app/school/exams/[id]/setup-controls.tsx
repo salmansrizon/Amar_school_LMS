@@ -288,14 +288,14 @@ export function SubjectTeacherTable({
   return (
     <div className="overflow-x-auto">
       <table className="w-full min-w-140 text-sm">
-        <thead>
-          <tr className="border-b border-line text-left text-xs font-semibold text-muted">
-            <th className="py-2 pr-2">{t('examSetup.subject', lang)}</th>
-            <th className="py-2 pr-2">{t('examSetup.assignedTeacher', lang)}</th>
-            <th className="py-2 pr-2 text-right">{t('examSetup.theory', lang)}</th>
-            <th className="py-2 pr-2 text-right">{t('examSetup.mcq', lang)}</th>
-            <th className="py-2 pr-2 text-right">{t('examSetup.practical', lang)}</th>
-            <th className="py-2 text-right">{t('examSetup.fullMarks', lang)}</th>
+        <thead className="bg-paper-muted">
+          <tr className="text-left text-sm text-muted">
+            <th className="px-4 py-3">{t('examSetup.subject', lang)}</th>
+            <th className="px-4 py-3">{t('examSetup.assignedTeacher', lang)}</th>
+            <th className="px-4 py-3 text-right">{t('examSetup.theory', lang)}</th>
+            <th className="px-4 py-3 text-right">{t('examSetup.mcq', lang)}</th>
+            <th className="px-4 py-3 text-right">{t('examSetup.practical', lang)}</th>
+            <th className="px-4 py-3 text-right">{t('examSetup.fullMarks', lang)}</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-line">
@@ -327,8 +327,8 @@ function SubjectTeacherRow({
 
   return (
     <tr>
-      <td className="py-2 pr-2 font-medium">{subject.name}</td>
-      <td className="py-2 pr-2">
+      <td className="px-4 py-3 font-medium">{subject.name}</td>
+      <td className="px-4 py-3">
         <select
           defaultValue={subject.teacher_id ?? ''}
           disabled={disabled || pending}
@@ -353,10 +353,10 @@ function SubjectTeacherRow({
         </select>
         {error && <p className="mt-1 text-xs text-alert-deep">{error}</p>}
       </td>
-      <td className="py-2 pr-2 text-right">{subject.theory_marks || '—'}</td>
-      <td className="py-2 pr-2 text-right">{subject.mcq_marks || '—'}</td>
-      <td className="py-2 pr-2 text-right">{subject.practical_marks || '—'}</td>
-      <td className="py-2 text-right font-semibold">{subjectFullMarks(subject)}</td>
+      <td className="px-4 py-3 text-right">{subject.theory_marks || '—'}</td>
+      <td className="px-4 py-3 text-right">{subject.mcq_marks || '—'}</td>
+      <td className="px-4 py-3 text-right">{subject.practical_marks || '—'}</td>
+      <td className="px-4 py-3 text-right font-semibold">{subjectFullMarks(subject)}</td>
     </tr>
   )
 }

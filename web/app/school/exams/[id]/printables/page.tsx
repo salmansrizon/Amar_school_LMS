@@ -1,10 +1,11 @@
 import Link from 'next/link'
+import { schoolCrumbs } from '@/lib/school-crumbs'
+import { PageHeader } from '@/components/ui/page'
 import { notFound } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { enrolledStudentIds, enrolledIdFilter } from '@/lib/school/offering-roster'
-import { BackLink } from '@/components/back-link'
 import { resolveBackHref, selfOrigin, withOrigin } from '@/lib/back-nav'
 
 // Roster picker for the single-student printables (issue #33, PRD §5.5) —
@@ -39,19 +40,19 @@ export default async function ExamPrintablesPage({
   const examLabel = `${exam.name} (${exam.exam_year})`
 
   const header = (
-    <div className="mb-4 flex items-center justify-between">
-      <h1 className="text-2xl font-extrabold">
-        {t('printables.title', lang)} — {examLabel}
-      </h1>
-      <BackLink href={backHref} label={t('common.back', lang)} />
-    </div>
+    <PageHeader
+      title={`${t('printables.title', lang)} — ${examLabel}`}
+      crumbs={schoolCrumbs('/school/exams', lang, { label: t('exams.title', lang), href: '/school/exams' }, { label: `${t('printables.title', lang)} — ${examLabel}` })}
+      backHref={backHref}
+      backLabel={t('common.back', lang)}
+    />
   )
 
   if (!exam.class_id) {
     return (
       <div>
         {header}
-        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted">
+        <p className="rounded-2xl border border-line bg-paper p-card text-sm text-muted">
           {t('markEntry.noClassSet', lang)}
         </p>
       </div>
@@ -72,7 +73,7 @@ export default async function ExamPrintablesPage({
     return (
       <div>
         {header}
-        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted">
+        <p className="rounded-2xl border border-line bg-paper p-card text-sm text-muted">
           {t('markEntry.noStudents', lang)}
         </p>
       </div>
@@ -82,27 +83,27 @@ export default async function ExamPrintablesPage({
   return (
     <div>
       {header}
-      <section className="rounded-lg border border-line bg-paper p-4">
+      <section className="overflow-x-auto rounded-2xl border border-line bg-paper">
         <table className="w-full border-collapse text-sm">
-          <thead>
-            <tr className="border-b border-line-strong text-left text-xs uppercase tracking-wide text-muted">
-              <th className="py-2 pr-2 font-semibold">{t('students.roll', lang)}</th>
-              <th className="py-2 pr-2 font-semibold">{t('students.name', lang)}</th>
-              <th className="py-2 pr-2 font-semibold">{t('markSheet.docWord', lang)}</th>
-              <th className="py-2 font-semibold">{t('progressReport.docWord', lang)}</th>
+          <thead className="bg-paper-muted">
+            <tr className="text-left text-sm text-muted">
+              <th className="px-4 py-3 font-semibold">{t('students.roll', lang)}</th>
+              <th className="px-4 py-3 font-semibold">{t('students.name', lang)}</th>
+              <th className="px-4 py-3 font-semibold">{t('markSheet.docWord', lang)}</th>
+              <th className="px-4 py-3 font-semibold">{t('progressReport.docWord', lang)}</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-line">
             {students.map((s) => (
-              <tr key={s.id} className="border-b border-line">
-                <td className="py-2 pr-2">{s.roll_number ?? '—'}</td>
-                <td className="py-2 pr-2">{s.full_name}</td>
-                <td className="py-2 pr-2">
+              <tr key={s.id}>
+                <td className="px-4 py-3">{s.roll_number ?? '—'}</td>
+                <td className="px-4 py-3">{s.full_name}</td>
+                <td className="px-4 py-3">
                   <Link href={withOrigin(`/school/exams/${exam.id}/mark-sheet/${s.id}`, deeper)} className="text-brand-600 hover:underline">
                     {t('markSheet.docWord', lang)}
                   </Link>
                 </td>
-                <td className="py-2">
+                <td className="px-4 py-3">
                   <Link
                     href={withOrigin(`/school/exams/${exam.id}/progress-report/${s.id}`, deeper)}
                     className="text-brand-600 hover:underline"

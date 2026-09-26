@@ -34,7 +34,10 @@ const EXAM = 'ZZ Map366 Verify Exam'
 // keep its fixture alive. Both exams are seeded now (supabase/seed-test.sql).
 const OTHER_EXAM = 'ZZ Map366 Gate Exam'
 
-const row = (page: Page, name: string) => page.locator('div[id^="exam-"]').filter({ hasText: name }).first()
+// Map 013 A3: the list is a DataTable (a <tr> on desktop, an <li> card on a
+// phone, one of them displayed). The row's six actions sit in [data-exam-row].
+const row = (page: Page, name: string) =>
+  page.locator('tr, li').filter({ hasText: name }).filter({ visible: true }).first().locator('[data-exam-row]')
 
 /** The list, already filtered to one exam by name.
  *
@@ -168,6 +171,7 @@ test.describe('@crud @school exams back-navigation (map #373)', () => {
     await page.goto('/school/exams')
 
     await page.getByPlaceholder('পরীক্ষার নাম খুঁজুন').fill('ZZ Map366')
+    await page.getByPlaceholder('পরীক্ষার নাম খুঁজুন').press('Enter')
     const target = row(page, EXAM)
     await expect(target).toBeVisible()
 
@@ -189,11 +193,12 @@ test.describe('@crud @school exams back-navigation (map #373)', () => {
     // nothing. Take the last row that still has a live Routine action, so the
     // list genuinely has to be scrolled for it to be reachable.
     const withRoutine = page
-      .locator('div[id^="exam-"]')
+      .locator('[data-exam-row]')
+      .filter({ visible: true })
       .filter({ has: page.getByRole('link', { name: MAKE_ROUTINE }) })
     const target = withRoutine.last()
-    const anchorId = (await target.getAttribute('id'))!
-    const anchor = page.locator(`[id="${anchorId}"]`)
+    const anchorId = (await target.getAttribute('data-exam-row'))!
+    const anchor = page.locator(`[data-exam-row="${anchorId}"]`).filter({ visible: true })
 
     // Position, not window.scrollY: the shell scrolls an inner container
     // (app-shell.tsx:364 `overflow-y-auto`), so window.scrollY is always 0 and

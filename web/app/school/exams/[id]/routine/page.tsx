@@ -1,10 +1,11 @@
 import { notFound } from 'next/navigation'
+import { schoolCrumbs } from '@/lib/school-crumbs'
+import { PageHeader } from '@/components/ui/page'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { subjectsForClass } from '@/lib/students'
 import { AddRoutineEntryForm, RoutineTable, type Option, type RoutineEntryRow } from './routine-controls'
-import { BackLink } from '@/components/back-link'
 import { resolveBackHref } from '@/lib/back-nav'
 
 // Layout per ui/school-owner/exam-routine.html: toolbar (exam label + Exam
@@ -49,10 +50,12 @@ export default async function ExamRoutinePage({
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-extrabold">{t('examRoutine.title', lang)}</h1>
-        <BackLink href={backHref} label={t('common.back', lang)} />
-      </div>
+      <PageHeader
+        title={`${t('examRoutine.title', lang)}`}
+        crumbs={schoolCrumbs('/school/exams', lang, { label: t('exams.title', lang), href: '/school/exams' }, { label: `${t('examRoutine.title', lang)}` })}
+        backHref={backHref}
+        backLabel={t('common.back', lang)}
+      />
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <span className="text-sm text-muted">{examLabel}</span>
@@ -66,7 +69,7 @@ export default async function ExamRoutinePage({
         </a>
       </div>
 
-      <section className="rounded-lg border border-line bg-paper p-4">
+      <section className="rounded-2xl border border-line bg-paper p-card">
         {!entries?.length ? (
           <p className="mb-4 text-sm text-muted">{t('examRoutine.none', lang)}</p>
         ) : (
