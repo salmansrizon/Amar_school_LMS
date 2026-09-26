@@ -5,6 +5,8 @@ import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { t, type Lang, type MessageKey } from '@/lib/i18n'
 import { withOrigin } from '@/lib/back-nav'
+import { PrintTrigger } from '@/components/print/print-trigger'
+import { isPrintPath } from '@/lib/print-path'
 
 // Map #366 moves the Exam Documents index (issue #99) out of the Basic Info
 // page's bottom card and into a modal, so it is reachable from the exam row
@@ -79,22 +81,35 @@ export function ExamDocumentsModal({
           >
             <h3 className="font-bold">{t('examDocs.title', lang)}</h3>
             <p className="mb-3 text-sm text-muted">{examLabel}</p>
-            <ul className="-mx-1 flex-1 divide-y divide-line overflow-y-auto px-1">
-              {EXAM_DOCUMENTS.map((doc) => (
-                <li key={doc.href} className="flex items-start justify-between gap-4 py-2">
-                  <div>
-                    <p className="text-sm font-semibold">{t(doc.label, lang)}</p>
-                    <p className="text-xs text-muted">{t(doc.hint, lang)}</p>
-                  </div>
-                  <Link
-                    href={docHref(examId, doc.href, origin)}
-                    onClick={() => setOpen(false)}
-                    className="shrink-0 text-sm text-brand-600 hover:underline"
-                  >
-                    {t('examDocs.open', lang)}
-                  </Link>
-                </li>
-              ))}
+            {/* A printable (href has a /print segment, ADR 0007's isPrintPath) opens
+                in the shared PrintTrigger preview instead of navigating away — the
+                origin/back-nav machinery below only matters for the destinations
+                that are still real pages (roster pickers etc.). Either action closes
+                this popup on click, same delegated-click idiom as row-more.tsx. */}
+            <ul
+              onClick={(e) => {
+                if ((e.target as HTMLElement).closest('a,button')) setOpen(false)
+              }}
+              className="-mx-1 flex-1 divide-y divide-line overflow-y-auto px-1"
+            >
+              {EXAM_DOCUMENTS.map((doc) => {
+                const href = docHref(examId, doc.href, origin)
+                return (
+                  <li key={doc.href} className="flex items-start justify-between gap-4 py-2">
+                    <div>
+                      <p className="text-sm font-semibold">{t(doc.label, lang)}</p>
+                      <p className="text-xs text-muted">{t(doc.hint, lang)}</p>
+                    </div>
+                    {isPrintPath(doc.href) ? (
+                      <PrintTrigger iconOnly href={href} label={`${t('print.print', lang)} ${t(doc.label, lang)}`} />
+                    ) : (
+                      <Link href={href} className="shrink-0 text-sm text-brand-600 hover:underline">
+                        {t('examDocs.open', lang)}
+                      </Link>
+                    )}
+                  </li>
+                )
+              })}
             </ul>
             <div className="mt-4 flex justify-end">
               <button

@@ -4,7 +4,7 @@ import { currentLang } from '@/lib/i18n-server'
 import { t, numberFmt, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { canOpenScreen } from '@/lib/auth/screens'
-import { employeeOfficeTimeNames, EMPLOYEE_CATEGORY_LABEL_KEY, isKnownEmployeeCategory } from '@/lib/employees'
+import { employeeOfficeTimeNames, employeeCategoryLabel } from '@/lib/employees'
 import { ACADEMIC_SHIFT_LABEL_KEY, isKnownAcademicShift } from '@/lib/institute'
 import { schoolToday } from '@/lib/school-time'
 import { selectAllRows } from '@/lib/supabase/select-all'
@@ -169,8 +169,7 @@ export default async function EmployeesPage({
   const pendingLeaveRows = (pendingLeaves ?? []).map((l) => ({ ...l, name: nameById.get(l.employee_id) ?? '—' }))
   const pendingCount = pendingLeaveCount ?? 0
 
-  const categoryLabel = (c: string) =>
-    isKnownEmployeeCategory(c) ? t(EMPLOYEE_CATEGORY_LABEL_KEY[c as keyof typeof EMPLOYEE_CATEGORY_LABEL_KEY], lang) : c
+  const categoryLabel = (c: string) => employeeCategoryLabel(c, lang)
   const shiftLabel = (s: string) => (isKnownAcademicShift(s) ? t(ACADEMIC_SHIFT_LABEL_KEY[s], lang) : s)
   const distinct = (xs: (string | null)[]) => [...new Set(xs.filter((x): x is string => Boolean(x)))].sort()
   const time = new Intl.DateTimeFormat(lang === 'bn' ? 'bn-BD' : 'en-GB', {
@@ -376,18 +375,28 @@ export default async function EmployeesPage({
           { param: 'presence', value: 'not_in', label: `${t('employees.notInYet', lang)} (${fmt.format(notIn)})` },
         ]}
         rowActions={(e) => {
-          const attendanceHref = `/school/attendance/employee?q=${encodeURIComponent(e.full_name)}`
+          // A dedicated per-employee path (map 013), not /school/attendance/employee
+          // itself — that URL is also AttendanceTabs' own tab target, and the @modal
+          // slot is global to /school/**, so intercepting it there would turn every
+          // tab switch into a popup too. See app/school/employees/[id]/attendance.
+          const attendanceHref = `/school/employees/${e.id}/attendance`
           const next =
             e.presence === 'not_in' && canAttendance
-              ? { state: 'next' as const, href: attendanceHref, label: t('employees.viewAttendance', lang) }
-              : { state: 'default' as const, href: `/school/employees/${e.id}`, label: t('employees.view', lang) }
+              ? { state: 'next' as const, href: attendanceHref, label: t('employees.viewAttendance', lang), scroll: true }
+              : {
+                  state: 'default' as const,
+                  href: withParams(params, { view: e.id }),
+                  label: t('employees.view', lang),
+                  scroll: false,
+                }
           return (
             <div className="flex items-center justify-end gap-1">
-              <RowActionPill state={next.state} href={next.href} label={next.label} />
+              <RowActionPill state={next.state} href={next.href} label={next.label} scroll={next.scroll} />
               <RowMore label={`${t('employees.moreActions', lang)}: ${e.full_name}`}>
                 <div className="flex flex-wrap items-center justify-end gap-2">
                   <Link
-                    href={`/school/employees/${e.id}`}
+                    href={withParams(params, { view: e.id })}
+                    scroll={false}
                     className="inline-flex h-9 items-center rounded-full border border-line-strong px-4 text-xs font-semibold hover:bg-paper-muted"
                   >
                     {t('employees.view', lang)}
@@ -444,7 +453,7 @@ export default async function EmployeesPage({
                   {canAttendance && (
                     <RowActionPill
                       state="next"
-                      href={`/school/attendance/employee?q=${encodeURIComponent(e.full_name)}`}
+                      href={`/school/employees/${e.id}/attendance`}
                       label={t('employees.viewAttendance', lang)}
                     />
                   )}
@@ -483,7 +492,7 @@ export default async function EmployeesPage({
                   {canAttendance && (
                     <RowActionPill
                       state="next"
-                      href={`/school/attendance/leave/employee?status=pending&view=${l.id}`}
+                      href={`/school/employees/leave/${l.id}`}
                       label={t('employees.reviewLeave', lang)}
                     />
                   )}

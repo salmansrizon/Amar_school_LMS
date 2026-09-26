@@ -22,6 +22,8 @@ import { withParams } from '@/lib/url-params'
 import { IdCard, UserPlus, Users, Wallet, HandCoins } from 'lucide-react'
 import { getStudent, StudentProfile } from './[id]/student-profile'
 import { RowMore } from '@/components/data-table/row-more'
+import { bulkRemindStudents } from './actions'
+import type { BulkAction } from '@/components/data-table/selection'
 
 // Layout per Design System/new_ui/02-people/student-directory (map 013, P1),
 // following the exam landing pattern (013 A3): header + subtitle, a one-line
@@ -69,6 +71,13 @@ export default async function StudentsPage({
   const { role, grants } = await getSchoolContext()
   // The Remind row action opens SMS Center, which rides the `sms` grant.
   const canSms = canOpenScreen(role, grants, 'sms')
+  // new_ui/02-people: the directory's checkbox + bulk-action bar (map 013),
+  // wired to the one bulk action that already has somewhere to go — SMS
+  // Center's existing `?students=` prefill (bulkRemindStudents). Bulk ID-card
+  // print isn't here: unlike this, it needs the PrintTrigger popup opened
+  // from the CURRENT client selection, which the bulk bar's plain
+  // <form action> shape can't drive without a components/data-table change.
+  const bulkActions: BulkAction[] = canSms ? [{ label: t('students.remind', lang), action: bulkRemindStudents }] : []
   const [{ roster, fees, rows, showYear, admittedThisMonth }, viewed] = await Promise.all([
     loadDirectoryRows({ q, classSection, fee, admitted }),
     view ? getStudent(view) : Promise.resolve(null),
@@ -274,6 +283,7 @@ export default async function StudentsPage({
         params={params}
         caption={t('students.listTitle', lang)}
         search={{ placeholder: t('students.search', lang) }}
+        bulkActions={bulkActions}
         filters={[
           { param: 'classSection', label: t('students.classSection', lang), options: roster.combos },
           {
@@ -291,11 +301,16 @@ export default async function StudentsPage({
           const dueOrPartial = fees.get(s.id)?.standing === 'due' || fees.get(s.id)?.standing === 'partial'
           const next =
             canSms && dueOrPartial
-              ? { state: 'next' as const, href: `/school/sms?students=${s.id}`, label: t('students.remind', lang) }
-              : { state: 'default' as const, href: `/school/students/${s.id}`, label: t('students.view', lang) }
+              ? { state: 'next' as const, href: `/school/sms?students=${s.id}`, label: t('students.remind', lang), scroll: true }
+              : {
+                  state: 'default' as const,
+                  href: withParams(params, { view: s.id }),
+                  label: t('students.view', lang),
+                  scroll: false,
+                }
           return (
             <div className="flex items-center justify-end gap-1">
-              <RowActionPill state={next.state} href={next.href} label={next.label} />
+              <RowActionPill state={next.state} href={next.href} label={next.label} scroll={next.scroll} />
               <RowMore label={`${t('students.moreActions', lang)}: ${s.full_name}`}>
                 <div className="flex flex-wrap items-center justify-end gap-2">
                   <PrintTrigger

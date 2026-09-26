@@ -16,8 +16,13 @@ const COCURRICULAR = 'সহ-শিক্ষা' // exams.cocurricular
 const GENERATE_SEAT_PLAN = 'সিট প্ল্যান তৈরি' // exams.generateSeatPlan
 const MAKE_ROUTINE = 'রুটিন তৈরি' // exams.makeRoutine
 const DOCUMENTS = 'পরীক্ষার কাগজপত্র' // examDocs.title
-const OPEN = 'খুলুন' // examDocs.open
 const BACK = 'ফিরে যান' // common.back
+// map 013: Routine/Seat Plan are printables (isPrintPath), so their "Open"
+// in the Documents popup is a PrintTrigger icon button (aria-label
+// "print.print" + the doc's own label), not a Link to a `/…/print` page —
+// see exam-documents-modal.tsx.
+const PRINT_ROUTINE = 'প্রিন্ট করুন পরীক্ষার রুটিন' // print.print + examDocs.routine
+const PRINT_SEAT_PLAN = 'প্রিন্ট করুন আসন বিন্যাস' // print.print + examDocs.seatPlan
 const EXAM_SETUP_TITLE = 'পরীক্ষা সেটআপ' // examSetup.title
 const ATTENDANCE_SHEET = 'পরীক্ষার হাজিরা শিট' // examAttendanceSheet.title
 
@@ -134,7 +139,7 @@ test.describe('@crud @school exams back-navigation (map #373)', () => {
     await page.context().close()
   })
 
-  test('C+D: Documents → Exam Routine closes the popup, and Back lands on the row', async ({ browser }) => {
+  test('C+D: Documents → Exam Routine opens the print preview, closes the popup, and the list/row never left', async ({ browser }) => {
     const page = await asRole(browser, 'owner')
     await openList(page)
     await (await row(page, EXAM)).getByRole('button', { name: DOCUMENTS }).click()
@@ -142,25 +147,35 @@ test.describe('@crud @school exams back-navigation (map #373)', () => {
     const dialog = page.getByRole('dialog', { name: DOCUMENTS })
     await expect(dialog).toBeVisible()
 
-    await dialog.locator('li').filter({ hasText: 'রুটিন' }).first().getByRole('link', { name: OPEN }).click()
-    await expect(page).toHaveURL(/\/routine\/print\?from=/)
-    // C: the popup is gone, not merely hidden behind the new page.
+    await dialog.locator('li').filter({ hasText: 'রুটিন' }).first().getByRole('button', { name: PRINT_ROUTINE }).click()
+    // D, revised for the print-popup path (map 013): a printable never
+    // navigates the page away at all, so there is nothing to unwind — the
+    // exam list (and its row) was never left in the first place.
+    const preview = page.getByRole('dialog', { name: PRINT_ROUTINE })
+    await expect(preview).toBeVisible()
+    await expect(page).toHaveURL(/\/school\/exams(\?|$)/)
+    // C: the Documents popup is gone, not merely hidden behind the preview.
     await expect(dialog).toHaveCount(0)
 
-    await clickBack(page)
+    await page.keyboard.press('Escape')
+    await expect(preview).toHaveCount(0)
     await expectBackOnRow(page, EXAM)
     await page.context().close()
   })
 
-  test('E: Documents → Seat Plan → Back lands on the row', async ({ browser }) => {
+  test('E: Documents → Seat Plan opens the print preview; the list/row never left', async ({ browser }) => {
     const page = await asRole(browser, 'owner')
     await openList(page)
     await (await row(page, EXAM)).getByRole('button', { name: DOCUMENTS }).click()
     const dialog = page.getByRole('dialog', { name: DOCUMENTS })
-    // examDocs.seatPlan — the modal calls it 'আসন বিন্যাস', not the row's 'সিট প্ল্যান তৈরি'.
-    await dialog.locator('li').filter({ hasText: 'আসন বিন্যাস' }).first().getByRole('link', { name: OPEN }).click()
-    await expect(page).toHaveURL(/\/seat-plan\/print\?from=/)
-    await clickBack(page)
+    await dialog.locator('li').filter({ hasText: 'আসন বিন্যাস' }).first().getByRole('button', { name: PRINT_SEAT_PLAN }).click()
+    const preview = page.getByRole('dialog', { name: PRINT_SEAT_PLAN })
+    await expect(preview).toBeVisible()
+    await expect(page).toHaveURL(/\/school\/exams(\?|$)/)
+    await expect(dialog).toHaveCount(0)
+
+    await page.keyboard.press('Escape')
+    await expect(preview).toHaveCount(0)
     await expectBackOnRow(page, EXAM)
     await page.context().close()
   })

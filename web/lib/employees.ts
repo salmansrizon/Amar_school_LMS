@@ -1,7 +1,7 @@
 // Employees I helpers (issue #28): list filtering, kept pure for unit testing.
 
 import { pgConstraintMessage } from '@/lib/crud/pg-error'
-import type { MessageKey } from '@/lib/i18n'
+import { t, type Lang, type MessageKey } from '@/lib/i18n'
 
 export interface EmployeeListRow {
   id: string
@@ -138,6 +138,18 @@ export const EMPLOYEE_CATEGORY_LABEL_KEY: Record<(typeof EMPLOYEE_CATEGORIES)[nu
  *  membership test and its `as readonly string[]` cast exist in one place. */
 export function isKnownEmployeeCategory(category: string): boolean {
   return (EMPLOYEE_CATEGORIES as readonly string[]).includes(category)
+}
+
+/** The translated category label everywhere a category is shown to a user —
+ *  the directory list, its record drawer's subtitle, and the drawer's own
+ *  profile body (map 013 fix: the profile used to render the raw DB value,
+ *  "Teacher" never translated, while the list beside it already was). A
+ *  legacy pre-#567 value outside the fixed list (this DB has lowercase
+ *  "admin"/"staff"/"teacher" rows) falls back to itself, unchanged. */
+export function employeeCategoryLabel(category: string, lang: Lang): string {
+  return isKnownEmployeeCategory(category)
+    ? t(EMPLOYEE_CATEGORY_LABEL_KEY[category as keyof typeof EMPLOYEE_CATEGORY_LABEL_KEY], lang)
+    : category
 }
 
 /** Validates the `category` field against the fixed list (issue #567).
