@@ -2317,7 +2317,7 @@ const dict = {
   'status.late_entry': { bn: 'দেরিতে প্রবেশ', en: 'Late entry' },
   'status.exit_early': { bn: 'আগে প্রস্থান', en: 'Early exit' },
   'status.late_exit_early': { bn: 'দেরিতে প্রবেশ ও আগে প্রস্থান', en: 'Late entry & early exit' },
-  'sms.title': { bn: 'এসএমএস সেটিংস', en: 'SMS Settings' },
+  'sms.title': { bn: 'এসএমএস সেন্টার', en: 'SMS Center' },
   'sms.rules': { bn: 'অনুপস্থিতি এসএমএস নিয়ম', en: 'Absence SMS rules' },
   'sms.exactRule': { bn: 'ঠিক N দিন', en: 'Exactly N days' },
   'sms.rangeRule': { bn: 'X–Y দিনের মধ্যে', en: 'Between X and Y days' },
