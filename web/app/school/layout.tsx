@@ -19,7 +19,9 @@ import { daysUntilExpiry, shouldShowReminder } from '@/lib/subscription'
 // 7 days of lapsing shows a dismissible reminder banner under the nav. Status is
 // computed on read via school_subscription_status — no deactivated_at write
 // (that hard block is a separate, manual super-admin switch, #161).
-export default async function SchoolLayout({ children }: { children: React.ReactNode }) {
+// `modal` is the @modal slot (map 013): a row action's task page, intercepted on
+// soft navigation and shown as a popup over the list — see components/route-modal.tsx.
+export default async function SchoolLayout({ children, modal }: { children: React.ReactNode; modal: React.ReactNode }) {
   const lang = await currentLang()
   const collapsed = await sidebarCollapsed()
   const theme = await themePreference()
@@ -72,6 +74,7 @@ export default async function SchoolLayout({ children }: { children: React.React
   return (
     <SchoolShell {...shellProps} banner={banner}>
       {children}
+      {modal}
     </SchoolShell>
   )
 }
