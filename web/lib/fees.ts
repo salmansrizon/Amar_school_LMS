@@ -60,3 +60,12 @@ export function buildFeeStructureCopy(
     fine_per_absent_day: source.fine_per_absent_day,
   }
 }
+
+/** Monthly Fee Standing (CONTEXT.md) for one Fee Collection Record; null when
+ *  the month has no record yet — not billed is not unpaid. */
+export type FeeStanding = 'paid' | 'partial' | 'due'
+export function feeStanding(record: { pay_amount: number; due_amount: number } | undefined): FeeStanding | null {
+  if (!record) return null
+  if (record.due_amount <= 0) return 'paid'
+  return record.pay_amount > 0 ? 'partial' : 'due'
+}

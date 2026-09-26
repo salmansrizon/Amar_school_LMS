@@ -104,6 +104,15 @@ describe('searchRoster', () => {
   it('an empty term is not a filter', () => {
     expect(searchRoster(roster, '   ')).toHaveLength(2)
   })
+
+  it('also finds a Student by Student Number or guardian mobile', () => {
+    const withIds = [
+      student({ id: 'c', full_name: 'Chaity', student_no: 'S0042', guardian_mobile: '01712850000' }),
+      ...roster,
+    ]
+    expect(searchRoster(withIds, 's0042').map((s) => s.id)).toEqual(['c'])
+    expect(searchRoster(withIds, '0171285').map((s) => s.id)).toEqual(['c'])
+  })
 })
 
 describe('latestMark and markedByOf', () => {

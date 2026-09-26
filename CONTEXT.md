@@ -68,6 +68,14 @@ _Avoid_: Free tier, demo mode (imply something time-boxed or feature-limited, wh
 The single record of a Student's fee status for one month, holding cumulative `pay_amount`/`fine_amount`/`adjust_amount`/`due_amount`. Exactly one exists per Student per month (preserve legacy exactly) — a second payment toward the same month **edits this same record's totals in place**, it does not append a new payment-history line. There is intentionally no per-payment-event audit trail underneath it; only the current cumulative totals are retained — so what a Student can be shown is a *statement*, never a transaction receipt. Corresponds to the legacy `student_fee_collection` table. Its `adjust_amount` (*ছাড়/বৃত্তি*) conflates two different things — a scholarship the child earned and a hardship waiver the family had to ask for — and nothing distinguishes them, which is why a Student sees the net figure and never the adjustment itself (ADR 0015).
 _Avoid_: Payment, transaction (implies an individual event/line item, which this is not — it's a cumulative monthly total)
 
+**Monthly Fee Standing**:
+Where a Student stands on the current month's **Fee Collection Record**: **Paid** (nothing due — including a month fully waived), **Partial** (something received, something still due) or **Due** (nothing received, something due). A month with no Fee Collection Record yet has no standing — not billed is not the same as unpaid. Always one month; arrears from earlier months are a separate question.
+_Avoid_: Fee status (already means the Fee Collection Record itself), payment status
+
+**Attendance Rate**:
+A Student's present days as a share of recorded attendance days in the current Academic Year so far. Banded for display: **Regular** (90% and above), **Irregular** (75–89%), **At risk** (below 75%). The band is always shown as text beside its colour.
+_Avoid_: Attendance status (reads like one day's present/absent)
+
 **Behaviour Log Entry**:
 An incident note + numeric rating + remind date recorded against a Student. Becomes read-only 3 days after it was **created** (not 3 days after the incident date it describes, which is free-text and not a trustworthy anchor) — preserves the legacy rule against retroactively rewriting a Student's recorded history.
 _Avoid_: Incident report (implies something more formal/investigative than this lightweight rating+note record)

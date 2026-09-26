@@ -6,18 +6,14 @@ import { schoolRoster } from '@/lib/school/roster-source'
 import { behaviourAverages } from '@/lib/students'
 import { classCatalogueLabel } from '@/lib/class-catalogue'
 import type { RosterStudent } from '@/lib/school/roster'
-import { Badge } from '@/components/ui/badge'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
-import { Card, PageHeader, Toolbar, railClass } from '@/components/ui/page'
+import { PageHeader } from '@/components/ui/page'
 import { EmptyState } from '@/components/ui/states'
-import { StudentFilters } from './student-filters'
+import { paginate, pageSizeFrom } from '@/components/pager'
+import { EntityAvatar } from '@/components/entity-avatar'
+import { DataTable, Pill, type Column } from '@/components/data-table/data-table'
+import { RecordDrawer } from '@/components/data-table/record-drawer'
+import { ViewLink } from '@/components/data-table/view-link'
+import { getStudent, StudentProfile } from './[id]/student-profile'
 
 // Layout per ui/school-owner/students-list.html: search (name/roll/guardian) +
 // class/section filters, table Roll | Name | Class | Guardian |
@@ -46,30 +42,97 @@ function classLabelFor(s: RosterStudent, showYear: boolean): string | null {
 
 function avgBadge(avg: number | undefined) {
   if (avg === undefined) return <span className="text-muted">—</span>
-  const tone =
-    avg >= 4 ? 'bg-mint-soft text-mint-deep' : avg >= 3 ? 'bg-sun-soft text-sun-deep' : 'bg-alert-soft text-alert-deep'
-  return <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${tone}`}>{avg}</span>
+  return <Pill tone={avg >= 4 ? 'mint' : avg >= 3 ? 'sun' : 'alert'}>{avg}</Pill>
 }
+
+const PAGE_SIZE = 20
 
 export default async function StudentsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; classSection?: string }>
+  searchParams: Promise<{ q?: string; classSection?: string; page?: string; size?: string; view?: string }>
 }) {
-  const { q = '', classSection = '' } = await searchParams
+  const params = await searchParams
+  const { q = '', classSection = '', page, size, view } = params
+  const pageSize = pageSizeFrom(size, PAGE_SIZE)
   const lang: Lang = await currentLang()
   const { supabase, role, shiftSelection, startedAcademicYears, academicYearSelection } = await getSchoolContext()
   // Started-year history is the signal (#609/#612), same boolean T6/#615
   // threaded into the Fee Structures Offering picker.
   const showYear = startedAcademicYears.length > 1
 
-  const [roster, { data: ratings }] = await Promise.all([
+  const [roster, { data: ratings }, viewed] = await Promise.all([
     schoolRoster(supabase, { classSection, q, shiftSelection, showYear, academicYearSelection }),
     // ponytail: whole-table scan capped at 10k rows, mirrors the classes page.
     supabase.from('behaviour_log_entries').select('student_id, rating').limit(10000),
+    view ? getStudent(view) : Promise.resolve(null),
   ])
-  const visible = roster.students
   const avgs = behaviourAverages(ratings ?? [])
+  const pageData = paginate(roster.students, page, pageSize)
+
+  const columns: Column<RosterStudent>[] = [
+    {
+      key: 'name',
+      header: t('students.name', lang),
+      card: 'title',
+      cell: (s) => (
+        <div className="flex items-center gap-3">
+          <EntityAvatar name={s.full_name} id={s.id} />
+          <div className="min-w-0">
+            <div className="truncate font-semibold">{s.full_name}</div>
+            <div className="text-xs text-muted">
+              {t('students.roll', lang)} {s.roll_number ?? '—'}
+            </div>
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: 'class',
+      header: t('students.classSection', lang),
+      cell: (s) => classLabelFor(s, showYear) ?? <span className="text-muted">—</span>,
+    },
+    {
+      key: 'guardian',
+      header: t('students.guardian', lang),
+      cell: (s) => s.guardian_name ?? <span className="text-muted">—</span>,
+    },
+    { key: 'behaviour', header: t('students.behaviourAvg', lang), cell: (s) => avgBadge(avgs.get(s.id)) },
+    {
+      key: 'status',
+      header: t('students.status', lang),
+      card: 'badge',
+      cell: () => <Pill tone="mint">{t('students.active', lang)}</Pill>,
+    },
+  ]
+
+  // #538: an empty list says which kind of empty it is and offers the one
+  // action that changes it (lib/school/roster.ts decides which).
+  const empty =
+    roster.empty === 'unassigned' ? (
+      <EmptyState
+        title={t('students.noClassAssigned', lang)}
+        body={t('students.noClassAssignedHelp', lang)}
+        action={{ href: '/school', label: t('denied.back', lang) }}
+        lang={lang}
+      />
+    ) : roster.empty === 'no-match' ? (
+      <EmptyState
+        title={t('students.noMatch', lang)}
+        body={t('students.noMatchHelp', lang)}
+        action={{ href: '/school/students', label: t('students.clearFilters', lang) }}
+        lang={lang}
+      />
+    ) : (
+      <EmptyState
+        title={t('students.none', lang)}
+        action={{ href: '/school/students/new', label: t('students.newAdmission', lang) }}
+        lang={lang}
+      />
+    )
+
+  const secondary =
+    'inline-flex h-11 items-center rounded-full border border-line-strong px-4 text-xs font-semibold hover:bg-paper-muted'
 
   return (
     <>
@@ -77,18 +140,12 @@ export default async function StudentsPage({
         title={t('students.listTitle', lang)}
         actions={
           <>
-            <Link
-              href="/school/students/archive"
-              className="inline-flex h-11 items-center rounded-full border border-line-strong px-4 text-xs font-semibold hover:bg-paper-muted"
-            >
+            <Link href="/school/students/archive" className={secondary}>
               {t('students.oldStudents', lang)}
             </Link>
             {/* Issuing logins is owner-only (#442) — the screen redirects Staff. */}
             {role === 'school_owner' && (
-              <Link
-                href="/school/students/logins"
-                className="inline-flex h-11 items-center rounded-full border border-line-strong px-4 text-xs font-semibold hover:bg-paper-muted"
-              >
+              <Link href="/school/students/logins" className={secondary}>
                 {t('students.loginBulk', lang)}
               </Link>
             )}
@@ -102,111 +159,37 @@ export default async function StudentsPage({
         }
       />
 
-      <Toolbar
-        filters={
-          <StudentFilters q={q} classSection={classSection} combos={roster.combos} lang={lang} />
-        }
+      <DataTable
+        rows={pageData.items}
+        rowId={(s) => s.id}
+        rowLabel={(s) => s.full_name}
+        columns={columns}
+        lang={lang}
+        params={params}
+        caption={t('students.listTitle', lang)}
+        search={{ placeholder: t('students.search', lang) }}
+        filters={[{ param: 'classSection', label: t('students.classSection', lang), options: roster.combos }]}
+        rowActions={(s) => (
+          <ViewLink id={s.id} params={params} label={t('table.profile', lang)} name={s.full_name} />
+        )}
+        rowMenu={(s) => [
+          { label: t('students.view', lang), href: `/school/students/${s.id}` },
+          { label: t('students.transfer', lang), href: `/school/students/${s.id}/transfer` },
+        ]}
+        pagination={{ page: pageData.page, totalPages: pageData.totalPages, total: pageData.total, pageSize }}
+        empty={empty}
       />
 
-      <Card padded={!visible.length}>
-        {/* #538: an empty list says which kind of empty it is and offers the one
-            action that changes it. Three kinds, and the model decides which
-            (lib/school/roster.ts) — this page only renders the answer.
-            An unassigned Employee is not sent to the admission form: she cannot
-            admit anyone (ADR 0021), and her way out is an Owner assigning her a
-            class, which is not a button she has. A filter that matched nothing
-            is not sent there either — the school HAS students, and offering to
-            admit another is the conflation #538 exists to forbid. */}
-        {roster.empty ? (
-          roster.empty === 'unassigned' ? (
-            <EmptyState
-              title={t('students.noClassAssigned', lang)}
-              body={t('students.noClassAssignedHelp', lang)}
-              action={{ href: '/school', label: t('denied.back', lang) }}
-              lang={lang}
-            />
-          ) : roster.empty === 'no-match' ? (
-            <EmptyState
-              title={t('students.noMatch', lang)}
-              body={t('students.noMatchHelp', lang)}
-              action={{ href: '/school/students', label: t('students.clearFilters', lang) }}
-              lang={lang}
-            />
-          ) : (
-            <EmptyState
-              title={t('students.none', lang)}
-              action={{ href: '/school/students/new', label: t('students.newAdmission', lang) }}
-              lang={lang}
-            />
-          )
-        ) : (
-          <>
-          {/* Phone: cards, no horizontal scroll for the one action that matters
-              (#540). Desktop keeps the seven-column grid. */}
-          <ul className="flex flex-col gap-2 md:hidden">
-            {visible.map((s) => (
-              <li key={s.id} className="rounded-lg border border-line bg-paper p-3">
-                <div className="flex items-baseline justify-between gap-2">
-                  <span className="font-medium">{s.full_name}</span>
-                  <span className="text-xs text-muted">
-                    {t('students.roll', lang)} {s.roll_number ?? '—'}
-                  </span>
-                </div>
-                <p className="mt-0.5 text-xs text-muted">
-                  {classLabelFor(s, showYear) ?? '—'}
-                  {s.guardian_name ? ` · ${s.guardian_name}` : ''}
-                </p>
-                <Link
-                  href={`/school/students/${s.id}`}
-                  className="mt-2 inline-flex h-11 w-full items-center justify-center rounded-full border border-line-strong text-sm font-semibold hover:bg-paper-muted"
-                >
-                  {t('students.view', lang)}
-                </Link>
-              </li>
-            ))}
-          </ul>
-
-          <Table className="hidden md:table">
-            <TableHeader>
-              <TableRow>
-                <TableHead className={railClass(undefined)}>{t('students.roll', lang)}</TableHead>
-                <TableHead>{t('students.name', lang)}</TableHead>
-                <TableHead>{t('students.classSection', lang)}</TableHead>
-                <TableHead>{t('students.guardian', lang)}</TableHead>
-                <TableHead>{t('students.behaviourAvg', lang)}</TableHead>
-                <TableHead>{t('students.status', lang)}</TableHead>
-                <TableHead className="text-right">{t('students.view', lang)}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {visible.map((s) => (
-                <TableRow key={s.id}>
-                  {/* Rail carries "active" visually; the Status cell still spells
-                      it out, so colour is never the only signal. */}
-                  <TableCell className={railClass('mint')}>
-                    {s.roll_number ?? <span className="text-muted">—</span>}
-                  </TableCell>
-                  <TableCell className="font-medium">{s.full_name}</TableCell>
-                  <TableCell>
-                    {classLabelFor(s, showYear) ?? <span className="text-muted">—</span>}
-                  </TableCell>
-                  <TableCell>{s.guardian_name ?? <span className="text-muted">—</span>}</TableCell>
-                  <TableCell>{avgBadge(avgs.get(s.id))}</TableCell>
-                  <TableCell>
-                    <Badge variant="secondary">{t('students.active', lang)}</Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Link href={`/school/students/${s.id}`} className="text-brand-600 hover:underline">
-                      {t('students.view', lang)}
-                    </Link>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-          </>
-        )}
-      </Card>
+      <RecordDrawer
+        open={Boolean(viewed)}
+        title={viewed?.full_name ?? ''}
+        subtitle={viewed?.roll_number != null ? `${t('students.roll', lang)} ${viewed.roll_number}` : undefined}
+        fullPageHref={viewed ? `/school/students/${viewed.id}` : undefined}
+        fullPageLabel={t('table.openFullPage', lang)}
+        closeLabel={t('common.close', lang)}
+      >
+        {viewed && <StudentProfile id={viewed.id} lang={lang} />}
+      </RecordDrawer>
     </>
   )
 }

@@ -47,7 +47,7 @@ import {
  *  ever point at an OPEN Enrollment by construction (`set_student_enrollment`
  *  closes the old one and repoints it atomically in the same transaction), so
  *  there is no separate `closed_at` to filter here. */
-const ROSTER_COLUMNS = `id, full_name, guardian_name,
+const ROSTER_COLUMNS = `id, full_name, guardian_name, student_no, guardian_mobile, created_at,
   student_enrollments!students_current_enrollment_id_fkey(roll_number, class_offering_id,
     class_offerings(name, section, group_department, shift, academic_year))`
 
@@ -67,6 +67,9 @@ interface StudentRow {
   id: string
   full_name: string
   guardian_name: string | null
+  student_no: string | null
+  guardian_mobile: string | null
+  created_at: string
   student_enrollments: EnrollmentEmbed[]
 }
 
@@ -77,6 +80,9 @@ function toRosterStudent(row: StudentRow): RosterStudent {
     id: row.id,
     full_name: row.full_name,
     guardian_name: row.guardian_name,
+    student_no: row.student_no,
+    guardian_mobile: row.guardian_mobile,
+    created_at: row.created_at,
     roll_number: enrollment?.roll_number ?? null,
     class_offering_id: enrollment?.class_offering_id ?? null,
     class_name: offering?.name ?? null,
@@ -93,6 +99,8 @@ export interface RosterView {
   section: string
   /** Filtered and ordered — what the screen renders. */
   students: RosterStudent[]
+  /** Every Student the caller may read, before the class filter and search. */
+  readableCount: number
   /** Null when `students` is non-empty; otherwise WHY it is empty. */
   empty: RosterEmptyReason | null
   classes: ClassCatalogueRow[]
@@ -192,6 +200,7 @@ export async function schoolRoster(
     className,
     section,
     students: matched,
+    readableCount: readable.length,
     empty: rosterEmptyReason({ readable: readable.length, matched: matched.length, scope }),
     classes: (classes ?? []) as ClassCatalogueRow[],
   }

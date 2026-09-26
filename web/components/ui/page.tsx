@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { t, type Lang } from '@/lib/i18n'
 
 // Page archetype kit (map #370, gate #372).
 //
@@ -22,44 +23,82 @@ import Link from 'next/link'
 // Density comes from the tokens (`--spacing-card` / `-grid` / `-section` / `-row`),
 // so a change to the rhythm is one edit, not 121.
 
+export type Crumb = { label: string; href?: string }
+
 export function PageHeader({
   title,
   backHref,
   backLabel,
   actions,
+  crumbs,
+  badge,
 }: {
   title: string
   /** Omit on a top-level page; the sidebar is the way back from there. */
   backHref?: string
   backLabel?: string
   actions?: React.ReactNode
+  /** Trail above the title; the last crumb is the current page. */
+  crumbs?: { lang: Lang; items: Crumb[] }
+  /** Short count/status pill beside the title, e.g. "Total: 1,485". */
+  badge?: string
 }) {
   return (
-    <div className="mb-section flex flex-wrap items-center justify-between gap-3">
-      <div className="flex min-w-0 items-center gap-2">
-        {backHref && (
-          <Link
-            href={backHref}
-            aria-label={backLabel}
-            className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"
-          >
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="size-5"
-              aria-hidden="true"
+    <div className="mb-section">
+      {crumbs && (
+        <nav aria-label={t('page.breadcrumb', crumbs.lang)} className="mb-2">
+          <ol className="flex flex-wrap items-center gap-1.5 text-sm text-muted">
+            {crumbs.items.map((c, i) => {
+              const last = i === crumbs.items.length - 1
+              return (
+                <li key={`${c.label}-${i}`} className="flex items-center gap-1.5">
+                  {c.href && !last ? (
+                    <Link href={c.href} className="hover:text-ink hover:underline">
+                      {c.label}
+                    </Link>
+                  ) : (
+                    <span aria-current={last ? 'page' : undefined} className={last ? 'font-semibold text-ink' : ''}>
+                      {c.label}
+                    </span>
+                  )}
+                  {!last && <span aria-hidden>›</span>}
+                </li>
+              )
+            })}
+          </ol>
+        </nav>
+      )}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-2">
+          {backHref && (
+            <Link
+              href={backHref}
+              aria-label={backLabel}
+              className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"
             >
-              <path d="m15 18-6-6 6-6" />
-            </svg>
-          </Link>
-        )}
-        <h1 className="truncate text-2xl font-extrabold">{title}</h1>
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="size-5"
+                aria-hidden="true"
+              >
+                <path d="m15 18-6-6 6-6" />
+              </svg>
+            </Link>
+          )}
+          <h1 className="truncate text-2xl font-extrabold">{title}</h1>
+          {badge && (
+            <span className="shrink-0 rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700">
+              {badge}
+            </span>
+          )}
+        </div>
+        {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
       </div>
-      {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
     </div>
   )
 }
@@ -173,29 +212,13 @@ export const cellCapClass = 'max-w-64 truncate'
  * whole point of the archetype rule for forms: legibility comes from the *field*
  * measure, which each control sets for itself, not from squeezing the page.
  */
-export function FormGrid({
-  children,
-  className = '',
-}: {
-  children: React.ReactNode
-  className?: string
-}) {
-  return (
-    <div className={`grid gap-grid sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 ${className}`}>
-      {children}
-    </div>
-  )
+export function FormGrid({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+  return <div className={`grid gap-grid sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 ${className}`}>{children}</div>
 }
 
 /** A labelled group inside a form, spanning the full grid so its own fields can
  *  subdivide the width. */
-export function FormSection({
-  title,
-  children,
-}: {
-  title: string
-  children: React.ReactNode
-}) {
+export function FormSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <Card className="mb-grid">
       <h2 className="mb-grid font-bold">{title}</h2>

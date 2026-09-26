@@ -31,6 +31,12 @@ export interface RosterStudent {
   class_name: string | null
   section: string | null
   guardian_name: string | null
+  /** Student Number (CONTEXT.md) — optional so screens that build rosters by
+   *  hand need not carry it. */
+  student_no?: string | null
+  guardian_mobile?: string | null
+  /** Admission time — the Student row's own created_at. */
+  created_at?: string
   /** The Offering this Student's current Enrollment points at, or null when
    *  unplaced. What `rosterFor` actually filters on — never the text pair. */
   class_offering_id: string | null
@@ -92,7 +98,7 @@ export function searchRoster(students: readonly RosterStudent[], q: string): Ros
   const term = q.trim().toLowerCase()
   if (!term) return [...students]
   return students.filter((s) =>
-    [s.full_name, s.guardian_name ?? '', s.roll_number?.toString() ?? ''].some((f) =>
+    [s.full_name, s.guardian_name ?? '', s.roll_number?.toString() ?? '', s.student_no ?? '', s.guardian_mobile ?? ''].some((f) =>
       f.toLowerCase().includes(term),
     ),
   )

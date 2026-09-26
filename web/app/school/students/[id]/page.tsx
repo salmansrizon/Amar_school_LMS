@@ -2,14 +2,12 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { averageRating, isEntryLocked } from '@/lib/behaviour'
 import { currentLang } from '@/lib/i18n-server'
-import { t, type Lang, type MessageKey } from '@/lib/i18n'
-import { genderLabel, guardianRelationLabel, religionLabel } from '@/lib/students/stored-labels'
+import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { classSectionLabel } from '@/lib/students'
-import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
-import { applyGlobalYearFilterToOfferings } from '@/lib/school/year-filter'
 import { AddEntryForm, EditableEntry } from './behaviour-controls'
-import { ArchiveToggle, PhotoControl, ProfileEditor } from './profile-controls'
+import { ArchiveToggle } from './profile-controls'
+import { StudentProfile, getStudent } from './student-profile'
 import { StudentSubjects, type AssignedSubject } from './subject-controls'
 import { StudentLoginPanel, type StudentLoginStatus } from './login-controls'
 import { PrintTrigger } from '@/components/print/print-trigger'
@@ -20,24 +18,6 @@ import { PrintTrigger } from '@/components/print/print-trigger'
 // assignment (issue #46), and the behaviour log (issue #22) at the bottom.
 // Edit reuses the admission sections.
 
-function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
-  return (
-    <div>
-      <dt className="text-xs font-semibold text-muted">{label}</dt>
-      <dd className="text-sm">{value ?? <span className="text-muted">—</span>}</dd>
-    </div>
-  )
-}
-
-function InfoCard({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <section className="mb-4 rounded-lg border border-line bg-paper p-5">
-      <h3 className="mb-3 font-bold">{title}</h3>
-      <dl className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">{children}</dl>
-    </section>
-  )
-}
-
 export default async function StudentDetailPage({
   params,
 }: {
@@ -45,35 +25,22 @@ export default async function StudentDetailPage({
 }) {
   const { id } = await params
   const lang: Lang = await currentLang()
-  const { supabase, role, shiftSelection, startedAcademicYears, academicYearSelection } = await getSchoolContext()
-  // Started-year history is the signal (#609/#612), same boolean T6/#615
-  // threaded into the Fee Structures Offering picker.
-  const showYear = startedAcademicYears.length > 1
+  const { supabase, role } = await getSchoolContext()
 
-  const { data: student } = await supabase.from('students').select('*').eq('id', id).single()
+  const student = await getStudent(id)
   if (!student) notFound()
 
   // Login status is owner-only (#442) — issuing and resetting a child's password
   // is not a Staff-User act, and the RPCs reject them regardless.
   const isOwner = role === 'school_owner'
 
-  const [{ data: entries }, { data: classes }, { data: subjects }, { data: assignments }, loginRes] =
+  const [{ data: entries }, { data: subjects }, { data: assignments }, loginRes] =
     await Promise.all([
       supabase
         .from('behaviour_log_entries')
         .select('id, note, rating, remind_date, created_at')
         .eq('student_id', id)
         .order('created_at', { ascending: false }),
-      applyGlobalYearFilterToOfferings(
-        applyGlobalShiftFilterToOfferings(
-          supabase
-            .from('class_offerings')
-            .select('id, name, section, group_department, shift, academic_year')
-            .order('created_at'),
-          shiftSelection,
-        ),
-        academicYearSelection,
-      ),
       supabase.from('subjects').select('id, name').order('name'),
       supabase.from('student_subjects').select('subject_id, is_optional').eq('student_id', id),
       isOwner
@@ -95,17 +62,6 @@ export default async function StudentDetailPage({
   const now = new Date()
   const avg = averageRating((entries ?? []).map((e) => e.rating))
   const archived = student.archived_at !== null
-  const locale = lang === 'bn' ? 'bn-BD' : 'en-GB'
-  const flag = (on: boolean, onKey: MessageKey, offKey: MessageKey) => (
-    <span
-      className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
-        on ? 'bg-sky-soft text-sky-deep' : 'bg-paper-muted text-muted'
-      }`}
-    >
-      {t(on ? onKey : offKey, lang)}
-    </span>
-  )
-
   return (
     <div>
       <div className="mb-4 flex items-center justify-between">
@@ -150,75 +106,7 @@ export default async function StudentDetailPage({
         </div>
       </div>
 
-      <div className="mb-6 grid gap-4 sm:grid-cols-[10rem_1fr]">
-        <div className="rounded-lg border border-line bg-paper p-4 self-start">
-          <PhotoControl lang={lang} studentId={id} hasPhoto={student.photo_path !== null} />
-        </div>
-
-        <ProfileEditor lang={lang} student={student} classes={classes ?? []} showYear={showYear}>
-          <InfoCard title={t('students.identity', lang)}>
-            <InfoRow label={t('students.name', lang)} value={student.full_name} />
-            <InfoRow
-              label={t('students.dob', lang)}
-              value={
-                student.date_of_birth ? new Date(student.date_of_birth).toLocaleDateString(locale) : null
-              }
-            />
-            <InfoRow
-              label={t('students.gender', lang)}
-              value={genderLabel(student.gender, lang)}
-            />
-            <InfoRow label={t('students.bloodGroup', lang)} value={student.blood_group} />
-            <InfoRow label={t('students.studentNo', lang)} value={student.student_no} />
-            {/* Read-only — unique_id is server-assigned and immutable (#564),
-                never editable via ProfileFields. */}
-            <InfoRow label={t('students.uniqueId', lang)} value={student.unique_id} />
-            <InfoRow label={t('students.rfidCardNumber', lang)} value={student.rfid_card_number} />
-            <InfoRow
-              label={t('students.classSection', lang)}
-              value={classSectionLabel(student.class_name, student.section)}
-            />
-            <InfoRow label={t('students.roll', lang)} value={student.roll_number} />
-            <InfoRow label={t('students.religion', lang)} value={religionLabel(student.religion, lang)} />
-            <InfoRow label={t('students.studentMobile', lang)} value={student.student_mobile} />
-          </InfoCard>
-
-          <InfoCard title={t('students.address', lang)}>
-            <InfoRow label={t('students.address', lang)} value={student.address} />
-          </InfoCard>
-
-          <InfoCard title={t('students.guardianInfo', lang)}>
-            <InfoRow label={t('students.guardianName', lang)} value={student.guardian_name} />
-            <InfoRow
-              label={t('students.relation', lang)}
-              value={guardianRelationLabel(student.guardian_relation, lang)}
-            />
-            <InfoRow label={t('students.guardianMobile', lang)} value={student.guardian_mobile} />
-            <InfoRow label={t('students.guardianNid', lang)} value={student.guardian_nid} />
-          </InfoCard>
-
-          <section className="mb-4 rounded-lg border border-line bg-paper p-5">
-            <h3 className="mb-3 font-bold">{t('students.benefitFlags', lang)}</h3>
-            <div className="flex flex-wrap gap-2">
-              {flag(
-                student.is_freedom_fighter_child,
-                'students.freedomFighterChild',
-                'students.notFreedomFighterChild',
-              )}
-              {flag(student.is_indigenous, 'students.indigenous', 'students.notIndigenous')}
-            </div>
-          </section>
-
-          <InfoCard title={t('students.previousInstitute', lang)}>
-            <InfoRow label={t('students.previousInstituteName', lang)} value={student.previous_institute} />
-            <InfoRow label={t('students.previousClass', lang)} value={student.previous_class} />
-          </InfoCard>
-
-          <InfoCard title={t('students.siblingInfo', lang)}>
-            <InfoRow label={t('students.siblingDetails', lang)} value={student.sibling_info} />
-          </InfoCard>
-        </ProfileEditor>
-      </div>
+      <StudentProfile id={id} lang={lang} />
 
       {isOwner && (
         <StudentLoginPanel
