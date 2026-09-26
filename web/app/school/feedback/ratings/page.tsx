@@ -1,7 +1,8 @@
-import Link from 'next/link'
+import { Star, MessageCircleReply, Percent } from 'lucide-react'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
+import { schoolCrumbs } from '@/lib/school-crumbs'
 import {
   averageRating,
   ratingDistribution,
@@ -10,6 +11,9 @@ import {
   CATEGORY_KEYS,
   type CategoryKey,
 } from '@/lib/feedback'
+import { Card, PageHeader } from '@/components/ui/page'
+import { StatCard, StatGrid } from '@/components/ui/widgets'
+import { SectionTabs } from '@/components/ui/section-tabs'
 import { LogRatingForm } from './rating-controls'
 import { AddDetails } from '@/components/add-details'
 
@@ -63,38 +67,38 @@ export default async function FeedbackRatingsPage() {
   const rate = responseRate(totalMessages ?? 0, answeredMessages ?? 0)
 
   return (
-    <div>
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-extrabold">{t('feedback.tabRatings', lang)}</h1>
-        <Link href="/school" aria-label={t('common.back', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
-      </div>
+    <>
+      <PageHeader
+        title={t('feedback.tabRatings', lang)}
+        crumbs={schoolCrumbs('/school/feedback/ratings', lang, [
+          { label: t('feedback.title', lang), href: '/school/feedback' },
+          { label: t('feedback.tabRatings', lang) },
+        ])}
+      />
 
-      <nav className="mb-5 flex gap-1 border-b border-line text-sm font-semibold">
-        <Link href="/school/feedback" className="rounded-t-md px-4 py-2 text-muted hover:bg-paper hover:text-ink">
-          {t('feedback.tabInbox', lang)}
-        </Link>
-        <span className="rounded-t-md bg-paper px-4 py-2 text-ink">{t('feedback.tabRatings', lang)}</span>
-      </nav>
+      <SectionTabs
+        label={t('feedback.title', lang)}
+        active="/school/feedback/ratings"
+        lang={lang}
+        tabs={[
+          { href: '/school/feedback', labelKey: 'feedback.tabInbox' },
+          { href: '/school/feedback/ratings', labelKey: 'feedback.tabRatings' },
+        ]}
+      />
 
-      <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <div className="rounded-lg border border-line bg-paper p-4">
-          <div className="text-xs font-semibold uppercase tracking-wide text-muted">{t('feedback.avgRating', lang)}</div>
-          <div className="mt-1 text-2xl font-extrabold">{avg === null ? '—' : `${avg} / 5`}</div>
-        </div>
-        <div className="rounded-lg border border-line bg-paper p-4">
-          <div className="text-xs font-semibold uppercase tracking-wide text-muted">{t('feedback.totalResponses', lang)}</div>
-          <div className="mt-1 text-2xl font-extrabold">{rows.length}</div>
-        </div>
-        <div className="rounded-lg border border-line bg-paper p-4">
-          <div className="text-xs font-semibold uppercase tracking-wide text-muted">{t('feedback.responseRate', lang)}</div>
-          <div className="mt-1 text-2xl font-extrabold">{rate}%</div>
-          {/* Distinct source from the two KPIs to its left (satisfaction_ratings):
-              this is the share of inbox messages the School has answered. */}
-          <div className="mt-1 text-xs text-muted">{t('feedback.responseRateHint', lang)}</div>
-        </div>
-      </div>
+      <StatGrid>
+        <StatCard icon={<Star className="size-5" />} tone="sun" label={t('feedback.avgRating', lang)} value={avg === null ? '—' : `${avg} / 5`} />
+        <StatCard icon={<MessageCircleReply className="size-5" />} label={t('feedback.totalResponses', lang)} value={String(rows.length)} />
+        <StatCard
+          icon={<Percent className="size-5" />}
+          tone="mint"
+          label={t('feedback.responseRate', lang)}
+          value={`${rate}%`}
+          note={t('feedback.responseRateHint', lang)}
+        />
+      </StatGrid>
 
-      <section className="mb-4 rounded-lg border border-line bg-paper p-5">
+      <Card className="mb-grid">
         <h3 className="mb-3 mt-0 font-bold">{t('feedback.distribution', lang)}</h3>
         {rows.length === 0 ? (
           <p className="text-sm text-muted">{t('feedback.noRatings', lang)}</p>
@@ -103,9 +107,9 @@ export default async function FeedbackRatingsPage() {
             <Bar key={b.star} label={`${b.star} ${t('feedback.star', lang)}`} pct={b.pct} valueLabel={`${b.pct}%`} />
           ))
         )}
-      </section>
+      </Card>
 
-      <section className="mb-4 rounded-lg border border-line bg-paper p-5">
+      <Card className="mb-grid">
         <h3 className="mb-3 mt-0 font-bold">{t('feedback.byCategory', lang)}</h3>
         {CATEGORY_KEYS.map((key) => {
           const value = byCategory[key]
@@ -118,13 +122,13 @@ export default async function FeedbackRatingsPage() {
             />
           )
         })}
-      </section>
+      </Card>
 
-      <section className="rounded-lg border border-line bg-paper p-5">
+      <Card>
         <AddDetails label={t('feedback.logRating', lang)}>
           <LogRatingForm lang={lang} />
         </AddDetails>
-      </section>
-    </div>
+      </Card>
+    </>
   )
 }

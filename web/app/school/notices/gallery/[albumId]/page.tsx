@@ -1,8 +1,9 @@
-import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
+import { schoolCrumbs } from '@/lib/school-crumbs'
+import { PageHeader } from '@/components/ui/page'
 import { DeleteAlbumButton } from '../gallery-controls'
 import { PhotoGrid } from './photo-controls'
 
@@ -31,14 +32,16 @@ export default async function AlbumDetailPage({
     .order('created_at')
 
   return (
-    <div>
-      <p className="mb-4">
-        <Link href="/school/notices/gallery" aria-label={t('gallery.allAlbums', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
-      </p>
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-xl font-extrabold">{album.title}</h1>
-        <DeleteAlbumButton albumId={album.id} lang={lang} />
-      </div>
+    <>
+      <PageHeader
+        title={album.title}
+        crumbs={schoolCrumbs(`/school/notices/gallery/${albumId}`, lang, [
+          { label: t('notices.title', lang), href: '/school/notices' },
+          { label: t('notices.tabGallery', lang), href: '/school/notices/gallery' },
+          { label: album.title },
+        ])}
+        actions={<DeleteAlbumButton albumId={album.id} lang={lang} />}
+      />
       <PhotoGrid
         albumId={album.id}
         maxImages={album.max_images}
@@ -46,6 +49,6 @@ export default async function AlbumDetailPage({
         photos={photos ?? []}
         lang={lang}
       />
-    </div>
+    </>
   )
 }
