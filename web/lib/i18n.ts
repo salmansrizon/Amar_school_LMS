@@ -512,6 +512,10 @@ const dict = {
   'dash.raAdmissionDesc': { bn: 'নতুন ভর্তি', en: 'New admission' },
   'dash.raFeedbackDesc': { bn: 'নতুন মতামত', en: 'New feedback' },
   'staff.title': { bn: 'স্টাফ অনুমতি', en: 'Staff Permissions' },
+  'staff.pageSubtitle': {
+    bn: 'স্টাফ লগইন ও তাদের স্ক্রিনভিত্তিক অ্যাক্সেস অনুমতি পরিচালনা করুন',
+    en: 'Manage staff logins and their screen-level access permissions',
+  },
   'staff.create': { bn: 'নতুন স্টাফ লগইন', en: 'New staff login' },
   'staff.fullName': { bn: 'পূর্ণ নাম', en: 'Full name' },
   'staff.createBtn': { bn: 'স্টাফ তৈরি করুন', en: 'Create staff' },

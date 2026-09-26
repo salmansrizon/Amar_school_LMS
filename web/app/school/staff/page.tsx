@@ -4,10 +4,10 @@ import { KeyRound, ShieldCheck, ShieldOff, Users } from 'lucide-react'
 import { currentLang } from '@/lib/i18n-server'
 import { t, numberFmt, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
-import { navGroupFor } from '@/lib/school-nav'
 import { GRANTABLE_SCREENS } from '@/lib/auth/screens'
 import { selectAllRows } from '@/lib/supabase/select-all'
 import { withParams } from '@/lib/url-params'
+import { schoolCrumbs } from '@/lib/school-crumbs'
 import { Card, PageHeader } from '@/components/ui/page'
 import { StatCard, StatGrid } from '@/components/ui/widgets'
 import { EmptyState } from '@/components/ui/states'
@@ -75,7 +75,6 @@ export default async function StaffPage({
   const withAccess = all.filter((r) => r.screens.length > 0).length
   const noAccess = all.length - withAccess
   const date = new Intl.DateTimeFormat(lang === 'bn' ? 'bn-BD' : 'en-GB', { dateStyle: 'medium', timeZone: 'Asia/Dhaka' })
-  const group = navGroupFor('/school/staff')?.group
   const viewed = view && view !== NEW ? all.find((r) => r.id === view) : undefined
 
   const columns: Column<Row>[] = [
@@ -136,14 +135,8 @@ export default async function StaffPage({
     <>
       <PageHeader
         title={t('staff.title', lang)}
-        crumbs={{
-          lang,
-          items: [
-            { label: t('dash.dashboard', lang), href: '/school' },
-            ...(group ? [{ label: t(group.labelKey, lang) }] : []),
-            { label: t('staff.title', lang) },
-          ],
-        }}
+        subtitle={t('staff.pageSubtitle', lang)}
+        crumbs={schoolCrumbs('/school/staff', lang, { label: t('staff.title', lang) })}
         badge={`${t('pager.total', lang)}: ${fmt.format(all.length)}`}
         actions={
           <Link
