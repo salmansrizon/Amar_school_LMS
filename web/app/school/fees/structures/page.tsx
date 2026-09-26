@@ -1,41 +1,52 @@
-import Form from 'next/form'
-import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
-import { t, type Lang } from '@/lib/i18n'
+import { t, numberFmt, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
 import { applyGlobalYearFilterToOfferings } from '@/lib/school/year-filter'
 import { excludeArchivedOfferings } from '@/lib/school/archived-offerings-filter'
+import { schoolCrumbs } from '@/lib/school-crumbs'
 import { AccountingTabs } from '../accounting-tabs'
 import { FeeStructureForm, CopyFeeStructureForm } from './structure-controls'
 import { classCatalogueLabel, type ClassCatalogueRow } from '@/lib/class-catalogue'
+import { Card, PageHeader } from '@/components/ui/page'
+import { EmptyState } from '@/components/ui/states'
+import { paginate, pageSizeFrom } from '@/components/pager'
+import { DataTable, Pill, type Column } from '@/components/data-table/data-table'
+import { RecordDrawer } from '@/components/data-table/record-drawer'
+import { ViewLink } from '@/components/data-table/view-link'
 
-// Layout per ui/school-owner/fee-structures.html: toolbar (+ New Fee Structure)
-// over a Class | Year | Fee Type | Amount | Action table; the mockup's
-// copy-to-another-class/year dialog is reproduced as a per-row disclosure
-// (this app's established pattern — see classes.AddDetails — rather than a
-// client-side modal component, per the ADR 0007 "no extra client machinery"
-// spirit already used for print).
+// Fee Structures (map 013 FC1): new-structure form, then the structures as a
+// DataTable (search by Class label, Fee Type filter). Edit and copy — once
+// per-row disclosures — open in the record drawer (`?view=<id>`), same forms.
 
-const thClass = 'px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted'
-const tdClass = 'px-3 py-2 text-sm'
+type LabelRow = {
+  name: string
+  section: string | null
+  group_department?: string | null
+  shift?: string | null
+  academic_year?: number | null
+} | null
 
-function feeTypeBadge(feeType: string, lang: Lang) {
-  const isMonthly = feeType === 'monthly'
-  const tone = isMonthly ? 'bg-brand-100 text-brand-700' : 'bg-paper-muted text-muted'
-  return (
-    <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${tone}`}>
-      {t(isMonthly ? 'fees.monthly' : 'fees.oneTimeYearly', lang)}
-    </span>
-  )
+type Row = {
+  id: string
+  label: string
+  academic_year: number
+  fee_type: 'monthly' | 'one_time_yearly'
+  amount: number
+  fine_per_absent_day: number
+  class_id: string
 }
+
+const PAGE_SIZE = 20
 
 export default async function FeeStructuresPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string }>
+  searchParams: Promise<{ q?: string; type?: string; page?: string; size?: string; view?: string }>
 }) {
-  const { q = '' } = await searchParams
+  const params = await searchParams
+  const { q = '', type = '', page, size, view } = params
+  const pageSize = pageSizeFrom(size, PAGE_SIZE)
   const lang: Lang = await currentLang()
   const { supabase, shiftSelection, startedAcademicYears, academicYearSelection } = await getSchoolContext()
 
@@ -74,126 +85,128 @@ export default async function FeeStructuresPage({
   // Offering set — the same boolean the Classes list threads as `showYear`.
   const showYear = startedAcademicYears.length > 1
   const classOptions: ClassCatalogueRow[] = classes ?? []
-  type LabelRow = {
-    name: string
-    section: string | null
-    group_department?: string | null
-    shift?: string | null
-    academic_year?: number | null
-  } | null
   const classLabel = (c: LabelRow) => (c ? classCatalogueLabel(c, showYear) : '—')
 
-  // Search box per ui/school-owner/fee-structures.html ("শ্রেণি খুঁজুন · Search
+  const all: Row[] = (allStructures ?? []).map((s) => ({
+    id: s.id,
+    label: classLabel(s.class_offerings as unknown as LabelRow),
+    academic_year: s.academic_year,
+    fee_type: s.fee_type as Row['fee_type'],
+    amount: Number(s.amount),
+    fine_per_absent_day: Number(s.fine_per_absent_day),
+    class_id: s.class_id,
+  }))
+  // Search per ui/school-owner/fee-structures.html ("শ্রেণি খুঁজুন · Search
   // class") — filters the (typically small) structures list by Class label.
-  const query = q.trim().toLowerCase()
-  const structures = query
-    ? (allStructures ?? []).filter((s) =>
-        classLabel(s.class_offerings as unknown as LabelRow)
-          .toLowerCase()
-          .includes(query),
-      )
-    : allStructures
+  const needle = q.trim().toLowerCase()
+  const visible = all.filter((s) => (!needle || s.label.toLowerCase().includes(needle)) && (!type || s.fee_type === type))
+  const pageData = paginate(visible, page, pageSize)
+  const viewed = view ? (all.find((s) => s.id === view) ?? null) : null
+
+  const fmt = numberFmt(lang)
+  const typeLabel = (ft: Row['fee_type']) => t(ft === 'monthly' ? 'fees.monthly' : 'fees.oneTimeYearly', lang)
+
+  const columns: Column<Row>[] = [
+    { key: 'class', header: t('fees.class', lang), card: 'title', cell: (s) => <span className="font-semibold">{s.label}</span> },
+    { key: 'year', header: t('fees.academicYear', lang), cell: (s) => s.academic_year },
+    {
+      key: 'type',
+      header: t('fees.feeType', lang),
+      card: 'badge',
+      cell: (s) => <Pill tone={s.fee_type === 'monthly' ? 'brand' : 'muted'}>{typeLabel(s.fee_type)}</Pill>,
+    },
+    { key: 'amount', header: t('fees.amount', lang), align: 'right', cell: (s) => `৳${fmt.format(s.amount)}` },
+    {
+      key: 'fine',
+      header: t('fees.finePerDay', lang),
+      align: 'right',
+      cell: (s) => `৳${fmt.format(s.fine_per_absent_day)}`,
+    },
+  ]
 
   return (
-    <div>
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-extrabold">{t('fees.tabStructures', lang)}</h1>
-        <Link href="/school" aria-label={t('common.back', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
-      </div>
+    <>
+      <PageHeader
+        title={t('fees.tabStructures', lang)}
+        crumbs={schoolCrumbs('/school/fees', lang, [
+          { label: t('fees.title', lang), href: '/school/fees' },
+          { label: t('fees.tabStructures', lang) },
+        ])}
+        badge={`${t('pager.total', lang)}: ${fmt.format(all.length)}`}
+      />
 
       <AccountingTabs active="structures" lang={lang} />
 
-      <section className="mb-6 rounded-lg border border-line bg-paper p-5">
+      <Card className="mb-section">
         <h2 className="mb-3 font-bold">{t('fees.newStructure', lang)}</h2>
         {!classOptions.length ? (
           <p className="text-sm text-muted">{t('routine.noClasses', lang)}</p>
         ) : (
           <FeeStructureForm classes={classOptions} lang={lang} showYear={showYear} />
         )}
-      </section>
+      </Card>
 
-      <section className="overflow-x-auto rounded-lg border border-line bg-paper p-5">
-        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-          <h2 className="font-bold">{t('fees.tabStructures', lang)}</h2>
-          <Form className="flex items-center gap-2" action="/school/fees/structures">
-            <input
-              name="q"
-              defaultValue={q}
-              placeholder={t('fees.searchClass', lang)}
-              className="w-48 rounded-md border border-line bg-paper px-3 py-1.5 text-sm"
-            />
-            <button
-              type="submit"
-              className="cursor-pointer rounded-full border border-line px-3 py-1 text-xs font-semibold hover:bg-paper-muted"
-            >
-              {t('classes.filter', lang)}
-            </button>
-          </Form>
-        </div>
-        {!structures?.length ? (
-          <p className="text-sm text-muted">{t('fees.noStructures', lang)}</p>
-        ) : (
-          <table className="w-full border-collapse">
-            <thead>
-              <tr className="border-b border-line-strong">
-                <th className={thClass}>{t('fees.class', lang)}</th>
-                <th className={thClass}>{t('fees.academicYear', lang)}</th>
-                <th className={thClass}>{t('fees.feeType', lang)}</th>
-                <th className={thClass}>{t('fees.amount', lang)}</th>
-                <th className={thClass}>{t('fees.finePerDay', lang)}</th>
-                <th className={thClass}>{t('fees.action', lang)}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {structures.map((s) => {
-                const cls = s.class_offerings as unknown as LabelRow
-                return (
-                  <tr key={s.id} className="border-b border-line align-top">
-                    <td className={`${tdClass} font-medium`}>{classLabel(cls)}</td>
-                    <td className={tdClass}>{s.academic_year}</td>
-                    <td className={tdClass}>{feeTypeBadge(s.fee_type, lang)}</td>
-                    <td className={tdClass}>৳{Number(s.amount)}</td>
-                    <td className={tdClass}>৳{Number(s.fine_per_absent_day)}</td>
-                    <td className={tdClass}>
-                      <div className="flex flex-wrap gap-2">
-                        <details className="group">
-                          <summary className="inline-flex cursor-pointer list-none rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted">
-                            {t('fees.edit', lang)}
-                          </summary>
-                          <div className="mt-3 min-w-72 rounded-md border border-line bg-paper-muted p-4">
-                            <FeeStructureForm
-                              classes={classOptions}
-                              lang={lang}
-                              showYear={showYear}
-                              editing={{
-                                id: s.id,
-                                class_id: s.class_id,
-                                academic_year: s.academic_year,
-                                fee_type: s.fee_type as 'monthly' | 'one_time_yearly',
-                                amount: Number(s.amount),
-                                fine_per_absent_day: Number(s.fine_per_absent_day),
-                              }}
-                            />
-                          </div>
-                        </details>
-                        <details className="group">
-                          <summary className="inline-flex cursor-pointer list-none rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted">
-                            {t('fees.copy', lang)}
-                          </summary>
-                          <div className="mt-3 min-w-72 rounded-md border border-line bg-paper-muted p-4">
-                            <p className="mb-3 text-xs text-muted">{t('fees.copyTitle', lang)}</p>
-                            <CopyFeeStructureForm sourceId={s.id} classes={classOptions} lang={lang} showYear={showYear} />
-                          </div>
-                        </details>
-                      </div>
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
+      <DataTable
+        rows={pageData.items}
+        rowId={(s) => s.id}
+        rowLabel={(s) => s.label}
+        columns={columns}
+        lang={lang}
+        params={params}
+        caption={t('fees.tabStructures', lang)}
+        search={{ placeholder: t('fees.searchClass', lang) }}
+        filters={[
+          {
+            param: 'type',
+            label: t('fees.feeType', lang),
+            options: (['monthly', 'one_time_yearly'] as const).map((v) => ({ value: v, label: typeLabel(v) })),
+          },
+        ]}
+        rowActions={(s) => <ViewLink id={s.id} params={params} label={t('fees.edit', lang)} name={s.label} />}
+        pagination={{ page: pageData.page, totalPages: pageData.totalPages, total: pageData.total, pageSize }}
+        empty={
+          <EmptyState
+            title={t('fees.noStructures', lang)}
+            action={{ href: '/school/fees/structures', label: t('students.clearFilters', lang) }}
+            lang={lang}
+          />
+        }
+      />
+
+      <RecordDrawer
+        open={Boolean(viewed)}
+        title={viewed?.label ?? ''}
+        subtitle={viewed ? `${viewed.academic_year} · ${typeLabel(viewed.fee_type)}` : undefined}
+        fullPageLabel={t('table.openFullPage', lang)}
+        closeLabel={t('common.close', lang)}
+      >
+        {viewed && (
+          <div className="space-y-section">
+            <section>
+              <h3 className="mb-3 font-bold">{t('fees.edit', lang)}</h3>
+              <FeeStructureForm
+                key={viewed.id}
+                classes={classOptions}
+                lang={lang}
+                showYear={showYear}
+                editing={{
+                  id: viewed.id,
+                  class_id: viewed.class_id,
+                  academic_year: viewed.academic_year,
+                  fee_type: viewed.fee_type,
+                  amount: viewed.amount,
+                  fine_per_absent_day: viewed.fine_per_absent_day,
+                }}
+              />
+            </section>
+            <section className="border-t border-line pt-section">
+              <h3 className="mb-1 font-bold">{t('fees.copy', lang)}</h3>
+              <p className="mb-3 text-xs text-muted">{t('fees.copyTitle', lang)}</p>
+              <CopyFeeStructureForm key={viewed.id} sourceId={viewed.id} classes={classOptions} lang={lang} showYear={showYear} />
+            </section>
+          </div>
         )}
-      </section>
-    </div>
+      </RecordDrawer>
+    </>
   )
 }
