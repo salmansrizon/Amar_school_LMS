@@ -112,6 +112,8 @@ const dict = {
   'search.hint': { bn: 'নেভিগেট করতে ↑↓, খুলতে Enter', en: '↑↓ to navigate, Enter to open' },
   'dash.viewAll': { bn: 'সব দেখুন', en: 'View All' },
   'activity.title': { bn: 'সকল কার্যক্রম', en: 'All Activity' },
+  'activity.search': { bn: 'কার্যক্রম খুঁজুন', en: 'Search activity' },
+  'activity.noMatch': { bn: 'কোনো মিল পাওয়া যায়নি', en: 'No matching activity' },
   'dash.checklist': { bn: 'কার্যক্রম চেকলিস্ট', en: 'Activity Checklist' },
   'dash.checklistDue': { bn: 'বাকি', en: 'Due' },
   'dash.checklistAllDone': { bn: 'সব সম্পন্ন', en: 'All done' },
