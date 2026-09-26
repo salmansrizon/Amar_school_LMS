@@ -20,7 +20,7 @@ import { RowActionPill } from '@/components/data-table/row-action-pill'
 import { withParams } from '@/lib/url-params'
 import { AddExamModal, ExamRowActions, ScrollToExam, type ExamListItem } from './exam-controls'
 import { ExamsTabs } from './exams-tabs'
-import { ProgressBar, WarningBanner, WorkflowCard } from './exam-lifecycle-cards'
+import { ProgressBar, WarningBanner, WorkflowCard } from '@/components/ui/widgets'
 import { ExamRowMore } from './exam-row-more'
 import { PublishResults } from './[id]/publish-results'
 
