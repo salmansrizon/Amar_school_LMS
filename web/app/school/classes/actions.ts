@@ -156,7 +156,7 @@ export async function copySubjectsToClass(
  *  ids with the visible Subjects, and the RPC stays the authority. */
 export async function stageSubjectCopy(formData: FormData): Promise<void> {
   const ids = formData.getAll('ids').map(String).filter(Boolean)
-  redirect(`${PAGE}?tab=subjects${ids.length ? `&copy=${ids.join(',')}` : ''}`)
+  redirect(`${PAGE}?tab=subjects${ids.length ? `&copy=${encodeURIComponent(ids.join(','))}` : ''}`)
 }
 
 export async function addSubject(formData: FormData): Promise<{ error?: string }> {

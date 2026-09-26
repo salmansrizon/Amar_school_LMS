@@ -2050,6 +2050,7 @@ const dict = {
   'students.idCardBulk': { bn: 'আইডি কার্ড প্রিন্ট', en: 'Print ID cards' },
   'students.exportCsv': { bn: 'এক্সপোর্ট', en: 'Export' },
   'students.more': { bn: 'আরও', en: 'More' },
+  'students.idCardCapped': { bn: 'একবারে সর্বোচ্চ ৫০০টি — ফিল্টার দিয়ে ছোট করুন', en: 'max 500 at once — narrow the filter' },
   'students.idCard': { bn: 'আইডি কার্ড', en: 'ID card' },
   'students.remind': { bn: 'তাগাদা', en: 'Remind' },
   'students.contact': { bn: 'অভিভাবক ও যোগাযোগ', en: 'Guardian & contact' },

@@ -14,6 +14,8 @@ import { loadDirectoryRows, type DirectoryParams } from '../../directory-rows'
 // Bulk ID cards for the directory's current filter (map 013, P1): the same
 // rows the list shows, the same card the single print page uses.
 const CHUNK = 200 // keeps the `in (...)` list well under URL limits
+// One request renders at most this many cards (QR each); narrow the filter for more.
+const MAX_CARDS = 500
 
 export default async function BulkIdCardsPage({ searchParams }: { searchParams: Promise<DirectoryParams> }) {
   const params = await searchParams
@@ -22,7 +24,8 @@ export default async function BulkIdCardsPage({ searchParams }: { searchParams: 
   const [institute, { rows }] = await Promise.all([loadInstitutePrintHeader(supabase, lang), loadDirectoryRows(params)])
   if (!institute) notFound()
 
-  const ids = rows.map((r) => r.id)
+  const capped = rows.length > MAX_CARDS
+  const ids = rows.slice(0, MAX_CARDS).map((r) => r.id)
   const students: IdCardStudent[] = []
   for (let i = 0; i < ids.length; i += CHUNK) {
     const { data } = await supabase.from('students').select(ID_CARD_COLUMNS).in('id', ids.slice(i, i + CHUNK))
@@ -41,7 +44,10 @@ export default async function BulkIdCardsPage({ searchParams }: { searchParams: 
         <Link href="/school/students" className="text-sm font-semibold text-brand-600 hover:underline">
           ‹ {t('students.listTitle', lang)}
         </Link>
-        <span className="text-sm text-muted">{students.length}</span>
+        <span className="text-sm text-muted">
+          {students.length}
+          {capped && ` / ${rows.length} — ${t('students.idCardCapped', lang)}`}
+        </span>
         <PrintButton label={t('print.print', lang)} />
       </div>
       <PrintPage>

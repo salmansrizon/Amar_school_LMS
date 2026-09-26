@@ -14,4 +14,9 @@ describe('csvCell', () => {
     expect(csvCell('+8801712')).toBe(`"'+8801712"`)
     expect(csvCell('@cmd')).toBe(`"'@cmd"`)
   })
+  it('sees through leading whitespace and full-width forms', () => {
+    expect(csvCell(' =HYPERLINK("x")')).toBe(`"' =HYPERLINK(""x"")"`)
+    expect(csvCell('＝1+1')).toBe(`"'＝1+1"`)
+    expect(csvCell('Rahim')).toBe('"Rahim"')
+  })
 })
