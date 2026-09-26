@@ -1,38 +1,28 @@
-import Form from 'next/form'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { schoolRoster } from '@/lib/school/roster-source'
 import { AttendanceTabs } from '../../attendance-tabs'
 import { RequestStudentLeaveForm, LeaveActions } from '../leave-controls'
-import { ClassSectionSelect } from '@/components/ui/class-section-select'
-import { PageHeader, railClass, type Tone } from '@/components/ui/page'
+import { LeaveDetail, LeaveStatusPill, leaveStatusChips, leaveStatusLabel } from '../leave-shared'
+import { PageHeader } from '@/components/ui/page'
 import { schoolCrumbs } from '@/lib/school-crumbs'
-import { Pill } from '@/components/data-table/data-table'
+import { DataTable, type Column } from '@/components/data-table/data-table'
+import { RecordDrawer } from '@/components/data-table/record-drawer'
+import { ViewLink } from '@/components/data-table/view-link'
+import { paginate, pageSizeFrom } from '@/components/pager'
 
 // Split off the Students half of the old unified Leave Management page (map
 // #664): search is now Class (schoolRoster's own picker) + name/roll text,
 // resolved into a Supabase query scoped to the matched students' ids rather
 // than fetching a flat 200-row cap and filtering in memory — a filter that
 // matches students outside that cap can no longer silently disappear.
-const STATUS_TONE: Record<string, 'sun' | 'mint' | 'alert'> = {
-  pending: 'sun',
-  approved: 'mint',
-  rejected: 'alert',
-}
-const STATUS_RAIL: Record<string, Tone> = {
-  pending: 'sun',
-  approved: 'mint',
-  rejected: 'alert',
-}
-const STATUS_KEY: Record<string, 'attendance.leavePending' | 'attendance.leaveApproved' | 'attendance.leaveRejected'> = {
-  pending: 'attendance.leavePending',
-  approved: 'attendance.leaveApproved',
-  rejected: 'attendance.leaveRejected',
-}
+// Map 013: the list is the shared DataTable (status chips, pagination); a
+// row's Details opens a drawer carrying the same approve/reject actions.
 
 const DEFAULT_VIEW_LIMIT = 100
 const FILTERED_VIEW_LIMIT = 500
+const PAGE_SIZE = 20
 
 interface StudentLeaveRow {
   id: string
@@ -46,9 +36,11 @@ interface StudentLeaveRow {
 export default async function StudentLeaveManagementPage({
   searchParams,
 }: {
-  searchParams: Promise<{ classSection?: string; q?: string }>
+  searchParams: Promise<{ classSection?: string; q?: string; status?: string; page?: string; size?: string; view?: string }>
 }) {
-  const { classSection = '', q = '' } = await searchParams
+  const params = await searchParams
+  const { classSection = '', q = '', status = '', page, size, view } = params
+  const pageSize = pageSizeFrom(size, PAGE_SIZE)
   const lang: Lang = await currentLang()
   const { supabase, shiftSelection, startedAcademicYears, academicYearSelection } = await getSchoolContext()
   const showYear = startedAcademicYears.length > 1
@@ -91,11 +83,38 @@ export default async function StudentLeaveManagementPage({
     : { data: [] }
   const infoById = new Map((leaveStudents ?? []).map((s) => [s.id, s]))
   const rows = leaves.map((l) => ({ ...l, student: infoById.get(l.student_id) ?? null }))
+  type Row = (typeof rows)[number]
 
-  const counts = leaves.reduce(
-    (acc, l) => ({ ...acc, [l.status]: (acc[l.status] ?? 0) + 1 }),
-    {} as Record<string, number>,
-  )
+  const visible = status ? rows.filter((l) => l.status === status) : rows
+  const pageData = paginate(visible, page, pageSize)
+  const viewed = view ? rows.find((l) => l.id === view) : undefined
+
+  const dash = <span className="text-muted">—</span>
+  const classOf = (s: Row['student']) => (s?.class_name ? `${s.class_name}${s.section ? ` / ${s.section}` : ''}` : null)
+
+  const columns: Column<Row>[] = [
+    { key: 'roll', header: t('attendance.rollCol', lang), cell: (l) => l.student?.roll_number ?? dash },
+    {
+      key: 'name',
+      header: t('attendance.leaveName', lang),
+      card: 'title',
+      cell: (l) => <span className="font-semibold">{l.student?.full_name ?? '—'}</span>,
+    },
+    { key: 'class', header: t('attendance.classSection', lang), cell: (l) => classOf(l.student) ?? dash },
+    { key: 'from', header: t('attendance.leaveFromCol', lang), cell: (l) => l.from_day },
+    { key: 'to', header: t('attendance.leaveToCol', lang), cell: (l) => l.to_day },
+    {
+      key: 'reason',
+      header: t('attendance.leaveReasonCol', lang),
+      cell: (l) => (l.reason ? <span className="line-clamp-2">{l.reason}</span> : dash),
+    },
+    {
+      key: 'status',
+      header: t('attendance.leaveStatusCol', lang),
+      card: 'badge',
+      cell: (l) => <LeaveStatusPill status={l.status} lang={lang} />,
+    },
+  ]
 
   return (
     <div>
@@ -111,90 +130,49 @@ export default async function StudentLeaveManagementPage({
         <RequestStudentLeaveForm students={allStudents ?? []} lang={lang} />
       </section>
 
-      <Form className="mb-4 flex flex-wrap items-end gap-2 rounded-2xl border border-line bg-paper p-card" action="/school/attendance/leave/student">
-        <div>
-          <label className="mb-1 block text-xs font-semibold text-muted">{t('attendance.classSection', lang)}</label>
-          <ClassSectionSelect
-            combos={combos}
-            value={classSection}
-            ariaLabel={t('attendance.classSection', lang)}
-            allLabel={t('attendance.allClasses', lang)}
-          />
-        </div>
-        <div>
-          <label className="mb-1 block text-xs font-semibold text-muted">{t('attendance.leaveSearchStudent', lang)}</label>
-          <input
-            name="q"
-            defaultValue={q}
-            placeholder={t('attendance.leaveSearchStudent', lang)}
-            className="w-64 rounded-md border border-line bg-paper px-3 py-1.5 text-sm"
-          />
-        </div>
-        <button
-          type="submit"
-          className="h-9 cursor-pointer rounded-full border border-line px-3 py-1 text-xs font-semibold hover:bg-paper-muted"
-        >
-          {t('classes.filter', lang)}
-        </button>
-      </Form>
-
-      {leaves.length > 0 && (
-        <div className="mb-4 flex flex-wrap items-center gap-2">
-          <span className="text-xs font-semibold uppercase tracking-wide text-muted">
-            {t('attendance.leaveStatusSummary', lang)}:
-          </span>
-          {(['pending', 'approved', 'rejected'] as const).map(
-            (status) =>
-              counts[status] > 0 && (
-                <Pill key={status} tone={STATUS_TONE[status]}>
-                  {t(STATUS_KEY[status], lang)}: {counts[status]}
-                </Pill>
-              ),
-          )}
-        </div>
-      )}
-
-      <section className="overflow-hidden rounded-2xl border border-line bg-paper">
-        {!rows.length ? (
-          <p className="p-card text-sm text-muted">{t('attendance.none', lang)}</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead className="bg-paper-muted">
-                <tr>
-                  <th className="whitespace-nowrap px-4 py-3 text-left text-sm font-semibold text-muted">{t('attendance.rollCol', lang)}</th>
-                  <th className="whitespace-nowrap px-4 py-3 text-left text-sm font-semibold text-muted">{t('attendance.leaveName', lang)}</th>
-                  <th className="whitespace-nowrap px-4 py-3 text-left text-sm font-semibold text-muted">{t('attendance.classSection', lang)}</th>
-                  <th className="whitespace-nowrap px-4 py-3 text-left text-sm font-semibold text-muted">{t('attendance.leaveFromCol', lang)}</th>
-                  <th className="whitespace-nowrap px-4 py-3 text-left text-sm font-semibold text-muted">{t('attendance.leaveToCol', lang)}</th>
-                  <th className="whitespace-nowrap px-4 py-3 text-left text-sm font-semibold text-muted">{t('attendance.leaveReasonCol', lang)}</th>
-                  <th className="whitespace-nowrap px-4 py-3 text-left text-sm font-semibold text-muted">{t('attendance.leaveStatusCol', lang)}</th>
-                  <th className="whitespace-nowrap px-4 py-3 text-left text-sm font-semibold text-muted" />
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-line">
-                {rows.map((l) => (
-                  <tr key={l.id}>
-                    <td className={`px-4 py-3 text-sm ${railClass(STATUS_RAIL[l.status])}`}>{l.student?.roll_number ?? '—'}</td>
-                    <td className="px-4 py-3 text-sm font-medium">{l.student?.full_name ?? '—'}</td>
-                    <td className="px-4 py-3 text-sm">
-                      {l.student?.class_name ?? '—'}
-                      {l.student?.section ? ` / ${l.student.section}` : ''}
-                    </td>
-                    <td className="px-4 py-3 text-sm">{l.from_day}</td>
-                    <td className="px-4 py-3 text-sm">{l.to_day}</td>
-                    <td className="px-4 py-3 text-sm">{l.reason ?? <span className="text-muted">—</span>}</td>
-                    <td className="px-4 py-3 text-sm">
-                      <Pill tone={STATUS_TONE[l.status]}>{t(STATUS_KEY[l.status], lang)}</Pill>
-                    </td>
-                    <td className="px-4 py-3 text-sm">{l.status === 'pending' && <LeaveActions kind="student" id={l.id} lang={lang} />}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+      <DataTable
+        rows={pageData.items}
+        rowId={(l) => l.id}
+        rowLabel={(l) => l.student?.full_name ?? '—'}
+        columns={columns}
+        lang={lang}
+        params={params}
+        caption={t('attendance.studentLeaveTitle', lang)}
+        search={{ placeholder: t('attendance.leaveSearchStudent', lang) }}
+        filters={[{ param: 'classSection', label: t('attendance.classSection', lang), options: combos }]}
+        chips={leaveStatusChips(leaves, lang)}
+        rowActions={(l) => (
+          <>
+            {l.status === 'pending' && <LeaveActions kind="student" id={l.id} lang={lang} />}
+            <ViewLink id={l.id} params={params} label={t('attendance.leaveDetails', lang)} name={l.student?.full_name ?? '—'} />
+          </>
         )}
-      </section>
+        pagination={{ page: pageData.page, totalPages: pageData.totalPages, total: pageData.total, pageSize }}
+        empty={<p className="rounded-2xl border border-line bg-paper p-card text-sm text-muted">{t('attendance.none', lang)}</p>}
+      />
+
+      <RecordDrawer
+        open={Boolean(viewed)}
+        title={viewed?.student?.full_name ?? '—'}
+        subtitle={viewed ? leaveStatusLabel(viewed.status, lang) : undefined}
+        fullPageLabel=""
+        closeLabel={t('common.close', lang)}
+      >
+        {viewed && (
+          <LeaveDetail
+            kind="student"
+            leave={viewed}
+            facts={[
+              {
+                label: t('attendance.rollCol', lang),
+                value: viewed.student?.roll_number != null ? String(viewed.student.roll_number) : '—',
+              },
+              { label: t('attendance.classSection', lang), value: classOf(viewed.student) ?? '—' },
+            ]}
+            lang={lang}
+          />
+        )}
+      </RecordDrawer>
     </div>
   )
 }

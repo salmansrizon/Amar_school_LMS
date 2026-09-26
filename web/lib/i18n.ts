@@ -2482,6 +2482,7 @@ const dict = {
   'attendance.leaveRequestTitle': { bn: 'নতুন ছুটির আবেদন', en: 'Request Leave' },
   'attendance.leavePerson': { bn: 'ব্যক্তি', en: 'Person' },
   'attendance.leaveSubmit': { bn: 'আবেদন জমা দিন', en: 'Submit Request' },
+  'attendance.leaveDetails': { bn: 'বিস্তারিত', en: 'Details' },
 
   'attendance.offDayTitle': { bn: 'ছুটির দিন ক্যালেন্ডার', en: 'Off-Day Calendar' },
   'attendance.offDayLegendRegular': { bn: 'সাধারণ ছুটি', en: 'Regular Off-Day' },
