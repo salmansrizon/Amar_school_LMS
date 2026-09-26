@@ -31,6 +31,8 @@ export interface AppNavItem {
   /** Root/home items match the path exactly; section items match by prefix. */
   matchExact?: boolean
   children?: AppNavItem[]
+  /** Sidebar group heading; one is drawn wherever this changes between items. */
+  section?: string
 }
 
 export interface AppShellBrand {
@@ -98,8 +100,14 @@ function NavLinks({
 
   return (
     <nav className="flex flex-col gap-1" aria-label={t('shell.nav', lang)}>
-      {nav.map((item) => (
+      {nav.map((item, i) => (
         <div key={item.href} className="flex flex-col gap-1">
+          {item.section && item.section !== nav[i - 1]?.section &&
+            (collapsed ? (
+              i > 0 && <hr className="mx-2 my-1 border-line/70" />
+            ) : (
+              <div className={`px-3 pb-1 text-xs font-bold text-muted ${i > 0 ? 'pt-3' : ''}`}>{item.section}</div>
+            ))}
           {renderLink(item)}
           {item.children?.map((child) => renderLink(child))}
         </div>
@@ -191,9 +199,11 @@ export function AppShell({
   search,
   bell,
   notificationsHref,
+  topbarLead,
   topbarExtras,
   banner,
   footerCta,
+  bottomNav,
   contentContainer = true,
   children,
 }: {
@@ -212,12 +222,17 @@ export function AppShell({
   bell?: React.ReactNode
   /** Inbox route for the default bell's "view all", when the group has its own. */
   notificationsHref?: string
+  /** Topbar control left of search (e.g. the year/shift switcher chip). */
+  topbarLead?: React.ReactNode
   /** Extra topbar controls before the bell (e.g. SMS balance badge). */
   topbarExtras?: React.ReactNode
   /** Strip under the topbar (e.g. subscription reminder). */
   banner?: React.ReactNode
   /** Sidebar footer CTA (e.g. Add Student). */
   footerCta?: React.ReactNode
+  /** Phone-only bottom tab bar (school owner portal). Sits in the column under
+   *  the scroll frame, so it never covers content; the node hides itself ≥ md. */
+  bottomNav?: React.ReactNode
   /** True = shell provides the <main> + max-w container (school pages render bare
    *  content). False = each page owns its own <main>; the shell only scrolls, so
    *  no nested <main> / double gutter (super-admin, distributor, agent, gov). */
@@ -326,6 +341,8 @@ export function AppShell({
               <Icon name="menu" className="size-5" />
             </button>
 
+            {topbarLead}
+
             {hasSearch ? (
               <>
                 <button
@@ -386,6 +403,7 @@ export function AppShell({
                   {avatarInitials(profile.fullName)}
                 </span>
               )}
+              <span className="hidden max-w-36 truncate text-sm font-bold text-ink xl:block">{profile.fullName}</span>
               <LogoutButton
                 label={<span className="hidden sm:inline">{t('shell.logout', lang)}</span>}
                 icon={<Icon name="logout" className="size-4 shrink-0" />}
@@ -417,6 +435,8 @@ export function AppShell({
             )}
           </div>
         </div>
+
+        {bottomNav && <div className="shrink-0 print:hidden">{bottomNav}</div>}
       </div>
 
       {hasSearch &&
