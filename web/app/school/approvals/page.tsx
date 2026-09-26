@@ -10,7 +10,8 @@ import { DataTable, type Column } from '@/components/data-table/data-table'
 import { RecordDrawer } from '@/components/data-table/record-drawer'
 import { RowActionPill } from '@/components/data-table/row-action-pill'
 import { withParams } from '@/lib/url-params'
-import { DecideControls } from './decide-controls'
+import { DrawerFooter, DrawerHeader } from '@/components/data-table/drawer-parts'
+import { ApprovalDrawerBody, approvalDrawerCancelHref } from './approval-drawer'
 
 type Labelled = { label?: { en?: string; bn?: string } | null }
 type Instance = { id: string; definition_key: string; entity_type: string; entity_id: string; current_seq: number; created_at: string }
@@ -173,11 +174,20 @@ export default async function ApprovalsPage({
       <RecordDrawer
         open={Boolean(viewed)}
         title={viewed ? name(viewed) : ''}
-        subtitle={viewed ? `${viewed.entity_type} · ${t('approvals.colStage', lang)} ${fmt.format(viewed.current_seq)} · ${date(viewed)}` : undefined}
+        header={viewed && <DrawerHeader name={name(viewed)} avatarId={viewed.id} subtitle={date(viewed)} />}
+        footer={viewed && <DrawerFooter cancelHref={approvalDrawerCancelHref(params)} cancelLabel={t('routine.cancel', lang)} />}
         fullPageLabel={t('table.openFullPage', lang)}
         closeLabel={t('common.close', lang)}
       >
-        {viewed && <DecideControls instanceId={viewed.id} lang={lang} />}
+        {viewed && (
+          <ApprovalDrawerBody
+            entityType={viewed.entity_type}
+            stage={viewed.current_seq}
+            date={date(viewed)}
+            instanceId={viewed.id}
+            lang={lang}
+          />
+        )}
       </RecordDrawer>
     </>
   )

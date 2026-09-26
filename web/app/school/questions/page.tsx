@@ -16,6 +16,8 @@ import { RowActionPill } from '@/components/data-table/row-action-pill'
 import { withParams } from '@/lib/url-params'
 import { HubTabs } from '../messages-hub-tabs'
 import { ReplyForm } from './reply-form'
+import { DrawerFooter, DrawerHeader } from '@/components/data-table/drawer-parts'
+import { QuestionDrawerBody, questionDrawerCancelHref } from './question-drawer'
 
 // The Questions tab of বার্তা ও অনুরোধ (#454 inbox, #509 section), following
 // the exam-landing pattern (013 FC4/013 A3): a one-line late-question warning
@@ -302,33 +304,41 @@ export default async function SchoolQuestionsPage({
       <RecordDrawer
         open={Boolean(viewed)}
         title={viewed?.subject ?? ''}
-        subtitle={viewed ? [viewed.student_name, who(viewed)].filter(Boolean).join(' · ') : undefined}
+        header={
+          viewed && (
+            <DrawerHeader
+              name={viewed.student_name}
+              avatarId={viewed.id}
+              subtitle={[viewed.subject, who(viewed)].filter(Boolean).join(' · ')}
+              status={statusPill(viewed)}
+            />
+          )
+        }
+        footer={viewed && <DrawerFooter cancelHref={questionDrawerCancelHref(params)} cancelLabel={t('routine.cancel', lang)} />}
         fullPageLabel={t('table.openFullPage', lang)}
         closeLabel={t('common.close', lang)}
       >
         {viewed && (
-          <div className="space-y-4">
-            <div className="flex flex-wrap items-center gap-2 text-xs text-muted">
-              {statusPill(viewed)}
-              <span>{topicLabel(viewed)}</span>
-              <span>· {new Date(viewed.created_at).toLocaleString(locale)}</span>
-            </div>
-            <Card>
-              <p className="whitespace-pre-wrap text-sm">{viewed.body}</p>
-            </Card>
-            {viewed.reply_body ? (
-              <div className="rounded-md bg-mint-soft p-3">
-                <span className="text-xs font-semibold text-mint-deep">{t('questions.replied', lang)}</span>
-                <p className="mt-1 whitespace-pre-wrap text-sm">{viewed.reply_body}</p>
-              </div>
-            ) : answerable === null || answerable.has(viewed.id) ? (
-              <ReplyForm lang={lang} messageId={viewed.id} />
-            ) : (
-              // Visible to him, not his to answer. Said once, here, rather than
-              // after he has written a reply.
-              <p className="text-xs italic text-muted">{t('questions.notYours', lang)}</p>
-            )}
-          </div>
+          <QuestionDrawerBody
+            topic={topicLabel(viewed)}
+            askedAt={new Date(viewed.created_at).toLocaleString(locale)}
+            body={viewed.body}
+            lang={lang}
+            replyArea={
+              viewed.reply_body ? (
+                <div className="rounded-md bg-mint-soft p-3">
+                  <span className="text-xs font-semibold text-mint-deep">{t('questions.replied', lang)}</span>
+                  <p className="mt-1 whitespace-pre-wrap text-sm">{viewed.reply_body}</p>
+                </div>
+              ) : answerable === null || answerable.has(viewed.id) ? (
+                <ReplyForm lang={lang} messageId={viewed.id} />
+              ) : (
+                // Visible to him, not his to answer. Said once, here, rather than
+                // after he has written a reply.
+                <p className="text-xs italic text-muted">{t('questions.notYours', lang)}</p>
+              )
+            }
+          />
         )}
       </RecordDrawer>
     </>

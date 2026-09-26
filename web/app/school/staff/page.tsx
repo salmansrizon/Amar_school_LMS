@@ -17,7 +17,8 @@ import { DataTable, Pill, type Column } from '@/components/data-table/data-table
 import { RecordDrawer } from '@/components/data-table/record-drawer'
 import { ViewLink } from '@/components/data-table/view-link'
 import { CreateStaffForm } from './create-staff-form'
-import { GrantList } from './[id]/grant-list'
+import { DrawerFooter, DrawerHeader } from '@/components/data-table/drawer-parts'
+import { StaffDrawerBody, staffDrawerCancelHref } from './staff-drawer'
 
 // Staff permissions (map 013, AD2), per new_ui/05-administration/staff-permissions:
 // header + stat cards + DataTable with a per-row grant summary. The row's
@@ -224,13 +225,27 @@ export default async function StaffPage({
       <RecordDrawer
         open={view === NEW || Boolean(viewed)}
         title={viewed ? viewed.name : t('staff.create', lang)}
-        subtitle={viewed ? t('staff.screens', lang) : undefined}
-        fullPageHref={viewed ? `/school/staff/${viewed.id}` : undefined}
+        header={viewed && <DrawerHeader name={viewed.name} avatarId={viewed.id} subtitle={t('staff.screens', lang)} />}
+        footer={
+          viewed && (
+            <DrawerFooter
+              cancelHref={staffDrawerCancelHref(params)}
+              cancelLabel={t('routine.cancel', lang)}
+              primary={{ href: `/school/staff/${viewed.id}`, label: t('table.openFullPage', lang) }}
+            />
+          )
+        }
         fullPageLabel={t('table.openFullPage', lang)}
         closeLabel={t('common.close', lang)}
       >
         {viewed ? (
-          <GrantList staffUserId={viewed.id} granted={new Set(viewed.screens)} lang={lang} />
+          <StaffDrawerBody
+            joinedLabel={date.format(new Date(viewed.createdAt))}
+            screenCount={viewed.screens.length}
+            staffUserId={viewed.id}
+            granted={new Set(viewed.screens)}
+            lang={lang}
+          />
         ) : view === NEW ? (
           <CreateStaffForm lang={lang} />
         ) : null}
