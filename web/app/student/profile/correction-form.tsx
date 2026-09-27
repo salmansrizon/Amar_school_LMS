@@ -6,6 +6,7 @@ import { t, type Lang, type MessageKey } from '@/lib/i18n'
 import { uploadWithSignedToken } from '@/lib/storage/upload-client'
 import { CORRECTABLE_FIELDS } from '@/lib/student/corrections'
 import { pendingPhotoUploadTicket, requestCorrection } from '@/lib/student/corrections-source'
+import { ComboboxField } from '@/components/ui/combobox-field'
 
 const ERRORS: Record<string, MessageKey> = {
   field: 'student.correctionFieldBad',
@@ -86,18 +87,12 @@ export function CorrectionForm({
     >
       <label className="text-xs font-semibold text-muted">
         <span className="mb-1 block">{t('student.correctionField', lang)}</span>
-        <select
+        <ComboboxField
           name="field"
           value={field}
-          onChange={(e) => setField(e.target.value)}
-          className="h-9 w-full rounded-sm border border-line-strong bg-paper px-2 text-sm"
-        >
-          {CORRECTABLE_FIELDS.map((f) => (
-            <option key={f} value={f}>
-              {labels[f] ?? f}
-            </option>
-          ))}
-        </select>
+          onValueChange={setField}
+          options={CORRECTABLE_FIELDS.map((f) => ({ value: f, label: labels[f] ?? f }))}
+        />
       </label>
 
       <label className="text-xs font-semibold text-muted">
