@@ -25,6 +25,34 @@ import { t, type Lang } from '@/lib/i18n'
 
 export type Crumb = { label: string; href?: string }
 
+/** The breadcrumb trail on its own, for pages whose title lives elsewhere
+ *  (the profile header card). The last crumb is the current page. */
+export function Crumbs({ lang, items }: { lang: Lang; items: Crumb[] }) {
+  return (
+    <nav data-page-crumbs aria-label={t('page.breadcrumb', lang)} className="mb-2">
+      <ol className="flex flex-wrap items-center gap-1.5 text-sm text-muted">
+        {items.map((c, i) => {
+          const last = i === items.length - 1
+          return (
+            <li key={`${c.label}-${i}`} className="flex items-center gap-1.5">
+              {c.href && !last ? (
+                <Link href={c.href} className="hover:text-ink hover:underline">
+                  {c.label}
+                </Link>
+              ) : (
+                <span aria-current={last ? 'page' : undefined} className={last ? 'font-semibold text-ink' : ''}>
+                  {c.label}
+                </span>
+              )}
+              {!last && <span aria-hidden>›</span>}
+            </li>
+          )
+        })}
+      </ol>
+    </nav>
+  )
+}
+
 export function PageHeader({
   title,
   backHref,
@@ -48,29 +76,7 @@ export function PageHeader({
 }) {
   return (
     <div className="mb-section">
-      {crumbs && (
-        <nav data-page-crumbs aria-label={t('page.breadcrumb', crumbs.lang)} className="mb-2">
-          <ol className="flex flex-wrap items-center gap-1.5 text-sm text-muted">
-            {crumbs.items.map((c, i) => {
-              const last = i === crumbs.items.length - 1
-              return (
-                <li key={`${c.label}-${i}`} className="flex items-center gap-1.5">
-                  {c.href && !last ? (
-                    <Link href={c.href} className="hover:text-ink hover:underline">
-                      {c.label}
-                    </Link>
-                  ) : (
-                    <span aria-current={last ? 'page' : undefined} className={last ? 'font-semibold text-ink' : ''}>
-                      {c.label}
-                    </span>
-                  )}
-                  {!last && <span aria-hidden>›</span>}
-                </li>
-              )
-            })}
-          </ol>
-        </nav>
-      )}
+      {crumbs && <Crumbs lang={crumbs.lang} items={crumbs.items} />}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-2">
           {backHref && (

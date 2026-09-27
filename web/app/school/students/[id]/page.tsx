@@ -7,7 +7,7 @@ import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { classSectionLabel } from '@/lib/students'
 import { schoolCrumbs } from '@/lib/school-crumbs'
-import { PageHeader } from '@/components/ui/page'
+import { Crumbs } from '@/components/ui/page'
 import { ProfileHeader } from '@/components/ui/profile'
 import { Pill } from '@/components/data-table/data-table'
 import { AddEntryForm, EditableEntry } from './behaviour-controls'
@@ -70,17 +70,12 @@ export default async function StudentDetailPage({
   const classSection = classSectionLabel(student.class_name, student.section)
   return (
     <div>
-      <PageHeader
-        title={student.full_name}
-        backHref="/school/students"
-        backLabel={t('students.listTitle', lang)}
-        crumbs={schoolCrumbs(
+      <Crumbs {...schoolCrumbs(
           '/school/students',
           lang,
           { label: t('students.listTitle', lang), href: '/school/students' },
           { label: student.full_name },
-        )}
-      />
+        )} />
 
       <ProfileHeader
         name={student.full_name}

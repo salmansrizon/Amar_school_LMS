@@ -29,7 +29,7 @@ export function ProfileHeader({
     <Card className="mb-4">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
-          <h2 className="truncate text-2xl font-extrabold">{name}</h2>
+          <h1 className="truncate text-2xl font-extrabold">{name}</h1>
           <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-muted">
             {status}
             {meta && <span className="truncate">{meta}</span>}

@@ -3,7 +3,7 @@ import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { schoolCrumbs } from '@/lib/school-crumbs'
-import { PageHeader, railClass } from '@/components/ui/page'
+import { Crumbs, railClass } from '@/components/ui/page'
 import { ProfileHeader } from '@/components/ui/profile'
 import { Pill } from '@/components/data-table/data-table'
 import { LoginLinkPicker } from '../employee-controls'
@@ -78,17 +78,12 @@ export default async function EmployeeDetailPage({
 
   return (
     <div>
-      <PageHeader
-        title={employee.full_name}
-        backHref="/school/employees"
-        backLabel={t('employees.title', lang)}
-        crumbs={schoolCrumbs(
+      <Crumbs {...schoolCrumbs(
           '/school/employees',
           lang,
           { label: t('employees.title', lang), href: '/school/employees' },
           { label: employee.full_name },
-        )}
-      />
+        )} />
 
       {/* Carries a partial-creation failure (issue #566) across the redirect
           from the create form: the employee record exists, but a later step
