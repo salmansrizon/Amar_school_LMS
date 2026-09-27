@@ -5,7 +5,7 @@ import { t, type Lang } from '@/lib/i18n'
 import { canOpenScreen, type ScreenKey } from '@/lib/auth/screens'
 import { getSchoolContext } from '@/lib/school/context'
 import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
-import { SCHOOL_MODULES, SCHOOL_QUICK_ACTIONS, flattenSchoolModules } from '@/lib/school-nav'
+import { SCHOOL_MODULES, SCHOOL_QUICK_ACTIONS, flattenSchoolModules, schoolNavGroupForScreen } from '@/lib/school-nav'
 import { Icon } from '@/components/school-icons'
 import { UpcomingList } from '@/components/upcoming-list'
 import { DashboardChecklist } from '@/components/dashboard-checklist'
@@ -232,12 +232,28 @@ export default async function SchoolHome() {
     action: { href: a.href, label: t(ALERT_TEXT[a.kind].action, lang) },
   }))
 
-  const quickActions: QuickAction[] = SCHOOL_QUICK_ACTIONS.filter((q) => can(q.screen)).map((q, i) => ({
-    href: q.href,
-    label: t(q.labelKey, lang),
-    icon: <Icon name={q.screen} className="size-4" />,
-    primary: i === 0,
-  }))
+  // Honesty: only screens the dashboard already loads a number for get a meta
+  // line — the same figures already shown in the StatCards above, not a new
+  // fetch. fees/notices have no such number loaded on this page, so they omit it.
+  const QA_META: Partial<Record<ScreenKey, string>> = {
+    students: `+${fmt(newThisMonth ?? 0)} ${t('dash.newThisMonth', lang)}`,
+    employees: `${fmt(employeeCount ?? 0)} ${t('dash.teachersStaff', lang)}`,
+    attendance: presentToday
+      ? `${fmt(presentToday)} ${t('dash.presentToday', lang)}`
+      : t('dash.noAttendanceToday', lang),
+  }
+
+  const quickActions: QuickAction[] = SCHOOL_QUICK_ACTIONS.filter((q) => can(q.screen)).map((q, i) => {
+    const group = schoolNavGroupForScreen(q.screen)
+    return {
+      href: q.href,
+      label: t(q.labelKey, lang),
+      icon: <Icon name={q.screen} className="size-4" />,
+      primary: i === 0,
+      category: group ? t(group.labelKey, lang) : undefined,
+      meta: QA_META[q.screen],
+    }
+  })
   if (can('approvals'))
     quickActions.push({
       href: '/school/approvals',
@@ -337,7 +353,11 @@ export default async function SchoolHome() {
         />
       </StatGrid>
 
-      <QuickActions title={t('dash.todaySteps', lang)} actions={quickActions} />
+      <QuickActions
+        title={t('dash.todaySteps', lang)}
+        actions={quickActions}
+        openLabel={t('dash.openModule', lang)}
+      />
 
       {/* Activity Checklist (issue #117, template #150). */}
       <DashboardChecklist lang={lang} date={today} items={checklistItems} ticks={todayTicks} />
