@@ -1,5 +1,6 @@
 import { BookOpen, CalendarClock, ClipboardList, FileText, Layers } from 'lucide-react'
 import { getSchoolContext } from '@/lib/school/context'
+import { selectAllRows } from '@/lib/supabase/select-all'
 import { examBasicInfoComplete } from '@/lib/exam-setup'
 import { t, numberFmt, type Lang } from '@/lib/i18n'
 import { withParams, type Params } from '@/lib/url-params'
@@ -31,16 +32,17 @@ export type SubjectProgress = { id: string; name: string; entered: number; targe
 
 /** Per-subject marks-entry progress for one exam — fetched only for the open
  *  `view` id, independent of exams/page.tsx's own activeItems/closed-items
- *  split (a closed exam's class may not be in that map). Roster × subject
- *  stays far under PostgREST's 1,000-row cap, same bound exams/page.tsx's own
- *  aggregate count already relies on. */
+ *  split (a closed exam's class may not be in that map). Marks are paged:
+ *  roster × subjects passes PostgREST's 1,000-row cap on a big class. */
 export async function loadExamDrawerData(examId: string, classId: string | null): Promise<{ subjects: SubjectProgress[] }> {
   if (!classId) return { subjects: [] }
   const { supabase } = await getSchoolContext()
-  const [{ data: subjectRows }, { count: rosterCount }, { data: markRows }] = await Promise.all([
+  const [{ data: subjectRows }, { count: rosterCount }, { rows: markRows }] = await Promise.all([
     supabase.from('subjects').select('id, name').eq('class_id', classId).order('created_at'),
     supabase.from('student_enrollments').select('student_id', { count: 'exact', head: true }).eq('class_offering_id', classId).is('closed_at', null),
-    supabase.from('exam_marks').select('subject_id').eq('exam_id', examId),
+    selectAllRows<{ subject_id: string }>((from, to) =>
+      supabase.from('exam_marks').select('subject_id').eq('exam_id', examId).order('id').range(from, to),
+    ),
   ])
   const enteredBySubject = new Map<string, number>()
   for (const r of markRows ?? []) enteredBySubject.set(r.subject_id, (enteredBySubject.get(r.subject_id) ?? 0) + 1)
