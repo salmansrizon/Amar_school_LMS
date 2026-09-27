@@ -2,7 +2,8 @@
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { useTransition } from 'react'
-import { Input } from '@/components/ui/input'
+import { inputBaseClass } from '@/components/ui/input'
+import { cn } from '@/lib/utils'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { t, type Lang } from '@/lib/i18n'
 import { withParams } from '@/lib/url-params'
@@ -41,13 +42,17 @@ export function DataTableFilters({
   return (
     <div className={`flex flex-wrap items-center gap-2 ${pending ? 'opacity-70' : ''}`}>
       {search && (
-        <Input
+        // A plain <input>, not the base-ui Input: its default tracks the URL, and
+        // opening a row's route popup swaps the URL under the still-mounted list.
+        // base-ui logs an error when an uncontrolled control's default changes;
+        // React just keeps what's typed.
+        <input
           id="data-table-search"
           type="search"
           defaultValue={params.get(searchParam) ?? ''}
           placeholder={search.placeholder}
           aria-label={search.placeholder}
-          className="w-full md:w-72"
+          className={cn(inputBaseClass, 'w-full md:w-72')}
           onKeyDown={(e) => {
             if (e.key === 'Enter') apply(searchParam, e.currentTarget.value)
           }}

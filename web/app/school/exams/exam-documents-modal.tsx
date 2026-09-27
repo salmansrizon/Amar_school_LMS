@@ -49,6 +49,9 @@ export function ExamDocumentsModal({
   triggerClassName: string
 }) {
   const [open, setOpen] = useState(false)
+  // A print click only hides this popup: the preview it opens lives in this
+  // subtree (portalled out), so unmounting here would kill it on the spot.
+  const [hidden, setHidden] = useState(false)
 
   useEffect(() => {
     if (!open) return
@@ -61,7 +64,14 @@ export function ExamDocumentsModal({
 
   return (
     <>
-      <button type="button" onClick={() => setOpen(true)} className={triggerClassName}>
+      <button
+        type="button"
+        onClick={() => {
+          setOpen(true)
+          setHidden(false)
+        }}
+        className={triggerClassName}
+      >
         {t('examDocs.title', lang)}
       </button>
       {/* Portalled: opened from a row's ⋮ or the record drawer, both of which
@@ -70,6 +80,7 @@ export function ExamDocumentsModal({
         createPortal(
         <div
           role="dialog"
+          hidden={hidden}
           aria-modal="true"
           aria-label={t('examDocs.title', lang)}
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
@@ -84,11 +95,13 @@ export function ExamDocumentsModal({
             {/* A printable (href has a /print segment, ADR 0007's isPrintPath) opens
                 in the shared PrintTrigger preview instead of navigating away — the
                 origin/back-nav machinery below only matters for the destinations
-                that are still real pages (roster pickers etc.). Either action closes
-                this popup on click, same delegated-click idiom as row-more.tsx. */}
+                that are still real pages (roster pickers etc.). A link closes this
+                popup; a print button hides it (see `hidden`). */}
             <ul
               onClick={(e) => {
-                if ((e.target as HTMLElement).closest('a,button')) setOpen(false)
+                const el = (e.target as HTMLElement).closest('a,button')
+                if (el?.tagName === 'A') setOpen(false)
+                else if (el) setHidden(true)
               }}
               className="-mx-1 flex-1 divide-y divide-line overflow-y-auto px-1"
             >

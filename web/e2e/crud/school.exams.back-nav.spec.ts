@@ -17,6 +17,7 @@ const GENERATE_SEAT_PLAN = 'সিট প্ল্যান তৈরি' // exa
 const MAKE_ROUTINE = 'রুটিন তৈরি' // exams.makeRoutine
 const DOCUMENTS = 'পরীক্ষার কাগজপত্র' // examDocs.title
 const BACK = 'ফিরে যান' // common.back
+const CLOSE = 'বন্ধ করুন' // common.close
 // map 013: Routine/Seat Plan are printables (isPrintPath), so their "Open"
 // in the Documents popup is a PrintTrigger icon button (aria-label
 // "print.print" + the doc's own label), not a Link to a `/…/print` page —
@@ -83,6 +84,14 @@ async function openFromRow(page: Page, name: string, action: string, url: RegExp
  *  like a product failure. */
 async function clickBack(page: Page) {
   await page.waitForLoadState('domcontentloaded')
+  // Opened from a row, the destination is a route popup (map 013): its way
+  // back is ✕, and the page's own chevron is hidden in there (test H).
+  const close = page.getByRole('dialog').getByRole('button', { name: CLOSE })
+  if (await close.isVisible()) {
+    await close.click()
+    await expect(page).toHaveURL(/\/school\/exams(\?|$)/, { timeout: 20_000 })
+    return
+  }
   const back = page.getByRole('link', { name: BACK })
   await back.waitFor({ state: 'visible' })
   await back.click()
