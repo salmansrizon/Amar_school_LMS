@@ -1,10 +1,15 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { ArrowRightLeft, FileText, IdCard } from 'lucide-react'
 import { averageRating, isEntryLocked } from '@/lib/behaviour'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { classSectionLabel } from '@/lib/students'
+import { schoolCrumbs } from '@/lib/school-crumbs'
+import { PageHeader } from '@/components/ui/page'
+import { ProfileHeader } from '@/components/ui/profile'
+import { Pill } from '@/components/data-table/data-table'
 import { AddEntryForm, EditableEntry } from './behaviour-controls'
 import { ArchiveToggle } from './profile-controls'
 import { StudentProfile, getStudent } from './student-profile'
@@ -62,49 +67,57 @@ export default async function StudentDetailPage({
   const now = new Date()
   const avg = averageRating((entries ?? []).map((e) => e.rating))
   const archived = student.archived_at !== null
+  const classSection = classSectionLabel(student.class_name, student.section)
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-extrabold">{student.full_name}</h1>
-        <Link href="/school/students" aria-label={t('students.listTitle', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
-      </div>
+      <PageHeader
+        title={student.full_name}
+        backHref="/school/students"
+        backLabel={t('students.listTitle', lang)}
+        crumbs={schoolCrumbs(
+          '/school/students',
+          lang,
+          { label: t('students.listTitle', lang), href: '/school/students' },
+          { label: student.full_name },
+        )}
+      />
 
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2 text-sm text-muted">
-          <span
-            className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
-              archived ? 'bg-paper-muted text-muted' : 'bg-mint-soft text-mint-deep'
-            }`}
-          >
+      <ProfileHeader
+        name={student.full_name}
+        status={
+          <Pill tone={archived ? 'muted' : 'mint'} live={!archived}>
             {t(archived ? 'students.oldStudent' : 'students.active', lang)}
-          </span>
-          <span>
-            {[
-              student.roll_number !== null ? `${t('students.roll', lang)} ${student.roll_number}` : null,
-              classSectionLabel(student.class_name, student.section),
-            ]
-              .filter(Boolean)
-              .join(' · ')}
-          </span>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <PrintTrigger
-            href={`/school/students/${id}/print/admission`}
-            label={t('students.printAdmission', lang)}
-          />
-          <PrintTrigger
-            href={`/school/students/${id}/print/id-card`}
-            label={t('students.printIdCard', lang)}
-          />
-          <Link
-            href={`/school/students/${id}/transfer`}
-            className="rounded-full border border-line-strong px-4 py-1.5 text-xs font-semibold hover:bg-paper-muted"
-          >
-            {t('students.transfer', lang)}
-          </Link>
-          <ArchiveToggle lang={lang} studentId={id} archived={archived} />
-        </div>
-      </div>
+          </Pill>
+        }
+        meta={[
+          classSection ? `${t('students.classSection', lang)}: ${classSection}` : null,
+          student.roll_number !== null ? `${t('students.roll', lang)}: ${student.roll_number}` : null,
+        ]
+          .filter(Boolean)
+          .join('   |   ')}
+        actions={
+          <>
+            <PrintTrigger
+              href={`/school/students/${id}/print/admission`}
+              label={t('students.printAdmission', lang)}
+              icon={<FileText className="size-4" aria-hidden />}
+            />
+            <PrintTrigger
+              href={`/school/students/${id}/print/id-card`}
+              label={t('students.printIdCard', lang)}
+              icon={<IdCard className="size-4" aria-hidden />}
+            />
+            <Link
+              href={`/school/students/${id}/transfer`}
+              className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-full border border-line-strong px-4 text-xs font-semibold hover:bg-paper-muted sm:min-h-9"
+            >
+              <ArrowRightLeft className="size-4" aria-hidden />
+              {t('students.transfer', lang)}
+            </Link>
+            <ArchiveToggle lang={lang} studentId={id} archived={archived} />
+          </>
+        }
+      />
 
       <StudentProfile id={id} lang={lang} />
 
