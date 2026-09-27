@@ -108,7 +108,7 @@ export function ExamDrawerBody({
                   key={s.id}
                   icon={<BookOpen className="size-4" aria-hidden />}
                   title={s.name}
-                  meta={[`${fmt.format(s.entered)} / ${fmt.format(s.target)}`, `${fmt.format(pct)}%`]}
+                  meta={[`${fmt.format(s.entered)} / ${fmt.format(s.target)}`]}
                   status={
                     <Pill tone={pct >= 100 ? 'mint' : pct > 0 ? 'sun' : 'muted'}>
                       {pct >= 100 ? t('exams.stageReady', lang) : `${fmt.format(pct)}%`}
