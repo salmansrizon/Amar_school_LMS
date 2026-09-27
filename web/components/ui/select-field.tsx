@@ -9,10 +9,12 @@ import type { ComboboxFieldOption } from './combobox-field'
 // The tiny-fixed-list twin of `ComboboxField` (≤5 static options: yes/no,
 // present/absent, ...) — no type-to-filter, since there's nothing worth
 // filtering, but styled with the exact same tokens so a page mixing both
-// wrappers reads as one control family. Built on @base-ui/react/select
-// rather than the shadcn-flavoured `ui/select.tsx` (that one's tokens —
-// `border-input`, `bg-popover`, ring-foreground/10 — are a different design
-// language, kept as-is for its one existing caller, `data-table/filters.tsx`).
+// wrappers reads as one control family. Built directly on
+// @base-ui/react/select (its own shadcn-flavoured wrapper, `ui/select.tsx` —
+// `border-input`, `bg-popover`, ring-foreground/10 tokens — was a different
+// design language with exactly one caller, `data-table/filters.tsx`; that
+// caller now uses `ComboboxField` instead, so `ui/select.tsx` was deleted
+// rather than kept around unused).
 //
 // Same hidden-input-for-form-submission story as ComboboxField: the
 // primitive renders it itself for `name`, keyed off `{ value, label }`

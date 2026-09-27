@@ -4,7 +4,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { useTransition } from 'react'
 import { inputBaseClass } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { ComboboxField } from '@/components/ui/combobox-field'
 import { t, type Lang } from '@/lib/i18n'
 import { withParams } from '@/lib/url-params'
 
@@ -64,25 +64,18 @@ export function DataTableFilters({
       {filters.map((f, i) => {
         const value = params.get(f.param) || ALL
         return (
-          <Select key={f.param} value={value} onValueChange={(v) => apply(f.param, v as string | null)}>
-            <SelectTrigger
-              id={i === 0 ? 'data-table-filter' : undefined}
-              className="w-full md:w-auto md:min-w-44"
-              aria-label={f.label}
-            >
-              <SelectValue>
-                {(v) => (v === ALL ? `${t('table.all', lang)} ${f.label}` : f.options.find((o) => o.value === v)?.label ?? String(v))}
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={ALL}>{`${t('table.all', lang)} ${f.label}`}</SelectItem>
-              {f.options.map((o) => (
-                <SelectItem key={o.value} value={o.value}>
-                  {o.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <ComboboxField
+            key={f.param}
+            id={i === 0 ? 'data-table-filter' : undefined}
+            className="w-full md:w-auto md:min-w-44"
+            aria-label={f.label}
+            value={value}
+            onValueChange={(v) => apply(f.param, v)}
+            options={[
+              { value: ALL, label: `${t('table.all', lang)} ${f.label}` },
+              ...f.options,
+            ]}
+          />
         )
       })}
     </div>
