@@ -9,6 +9,7 @@ import { Pill } from '@/components/data-table/data-table'
 import { LoginLinkPicker } from '../employee-controls'
 import { ArchiveToggle } from './profile-controls'
 import { EmployeeProfile, getEmployee } from './employee-profile'
+import { employeeCategoryLabel } from '@/lib/employees'
 
 // Profile sections live in employee-profile.tsx (shared with the list's drawer).
 // Layout per ui/school-owner/employee-detail.html: status header with
@@ -105,7 +106,7 @@ export default async function EmployeeDetailPage({
           </Pill>
         }
         meta={[
-          employee.category ? `${t('employees.category', lang)}: ${employee.category}` : null,
+          employee.category ? `${t('employees.category', lang)}: ${employeeCategoryLabel(employee.category, lang)}` : null,
           employee.unique_id ? `${t('employees.uniqueId', lang)}: ${employee.unique_id}` : null,
         ]
           .filter(Boolean)
