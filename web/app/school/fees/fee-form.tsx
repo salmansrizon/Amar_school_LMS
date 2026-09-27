@@ -6,7 +6,7 @@ import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
 import { t, type Lang } from '@/lib/i18n'
 import { totalPayable, dueAmount } from '@/lib/fees'
 import { saveFeeRecord, calculateAbsentFine } from './actions'
-import { selectClass } from '@/components/ui/field'
+import { SelectField } from '@/components/ui/select-field'
 
 export interface CollectStudent {
   id: string
@@ -207,16 +207,16 @@ export function FeeForm({
         <label className={labelClass} htmlFor="payment_method">
           {t('fees.method', lang)}
         </label>
-        <select
+        <SelectField
           id="payment_method"
           value={method}
-          onChange={(e) => setMethod(e.target.value)}
-          className={selectClass({ size: 'md', fullWidth: true })}
-        >
-          <option value="cash">{t('fees.cash', lang)}</option>
-          <option value="cheque">{t('fees.cheque', lang)}</option>
-          <option value="bank">{t('fees.bank', lang)}</option>
-        </select>
+          onValueChange={setMethod}
+          options={[
+            { value: 'cash', label: t('fees.cash', lang) },
+            { value: 'cheque', label: t('fees.cheque', lang) },
+            { value: 'bank', label: t('fees.bank', lang) },
+          ]}
+        />
       </div>
       <div>
         <label className={labelClass} htmlFor="received_amount">

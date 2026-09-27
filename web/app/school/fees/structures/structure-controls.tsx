@@ -4,7 +4,8 @@ import { useState, useTransition } from 'react'
 import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
 import { t, type Lang } from '@/lib/i18n'
 import { saveFeeStructure, copyFeeStructure } from './actions'
-import { selectClass } from '@/components/ui/field'
+import { ComboboxField } from '@/components/ui/combobox-field'
+import { SelectField } from '@/components/ui/select-field'
 import { classCatalogueLabel, type ClassCatalogueRow } from '@/lib/class-catalogue'
 
 export interface FeeStructureEditing {
@@ -35,16 +36,16 @@ function ClassSelect({
   showYear?: boolean
 }) {
   return (
-    <select id={id} name={name} required defaultValue={defaultValue} className={selectClass({ size: 'md', fullWidth: true })}>
-      <option value="" disabled>
-        {t('fees.pickClass', lang)}
-      </option>
-      {classes.map((c) => (
-        <option key={c.id} value={c.id}>
-          {classCatalogueLabel(c, showYear)}
-        </option>
-      ))}
-    </select>
+    <ComboboxField
+      id={id}
+      name={name}
+      required
+      defaultValue={defaultValue}
+      options={[
+        { value: '', label: t('fees.pickClass', lang), disabled: true },
+        ...classes.map((c) => ({ value: c.id, label: classCatalogueLabel(c, showYear) })),
+      ]}
+    />
   )
 }
 
@@ -117,15 +118,15 @@ export function FeeStructureForm({
         <label className={labelClass} htmlFor={`fs_type_${editing?.id ?? 'new'}`}>
           {t('fees.feeType', lang)}
         </label>
-        <select
+        <SelectField
           id={`fs_type_${editing?.id ?? 'new'}`}
           name="fee_type"
           defaultValue={editing?.fee_type ?? 'monthly'}
-          className={selectClass({ size: 'md', fullWidth: true })}
-        >
-          <option value="monthly">{t('fees.monthly', lang)}</option>
-          <option value="one_time_yearly">{t('fees.oneTimeYearly', lang)}</option>
-        </select>
+          options={[
+            { value: 'monthly', label: t('fees.monthly', lang) },
+            { value: 'one_time_yearly', label: t('fees.oneTimeYearly', lang) },
+          ]}
+        />
       </div>
       <div>
         <label className={labelClass} htmlFor={`fs_amount_${editing?.id ?? 'new'}`}>

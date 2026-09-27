@@ -6,7 +6,9 @@ import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
 import { t, type Lang } from '@/lib/i18n'
 import { AttachmentPicker, type AttachmentMeta } from '../attachment-picker'
 import { saveVoucher, saveVoucherCategory } from './actions'
-import { dateInputClass, selectClass } from '@/components/ui/field'
+import { dateInputClass } from '@/components/ui/field'
+import { ComboboxField } from '@/components/ui/combobox-field'
+import { SelectField } from '@/components/ui/select-field'
 
 export interface CategoryOption {
   id: string
@@ -58,16 +60,19 @@ export function NewVoucherForm({ categories, lang }: { categories: CategoryOptio
         <label className={labelClass} htmlFor="category_id">
           {t('vouchers.category', lang)}
         </label>
-        <select id="category_id" name="category_id" required defaultValue="" className={selectClass({ size: 'md', fullWidth: true })}>
-          <option value="" disabled>
-            {t('vouchers.pickCategory', lang)}
-          </option>
-          {categories.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name} ({t(c.type === 'income' ? 'vouchers.income' : 'vouchers.expense', lang)})
-            </option>
-          ))}
-        </select>
+        <ComboboxField
+          id="category_id"
+          name="category_id"
+          required
+          defaultValue=""
+          options={[
+            { value: '', label: t('vouchers.pickCategory', lang), disabled: true },
+            ...categories.map((c) => ({
+              value: c.id,
+              label: `${c.name} (${t(c.type === 'income' ? 'vouchers.income' : 'vouchers.expense', lang)})`,
+            })),
+          ]}
+        />
       </div>
       <div>
         <label className={labelClass} htmlFor="txn_date">
@@ -137,10 +142,16 @@ export function NewVoucherCategoryForm({ lang }: { lang: Lang }) {
         <label className={labelClass} htmlFor="cat_type">
           {t('vouchers.type', lang)}
         </label>
-        <select id="cat_type" name="type" required defaultValue="income" className={selectClass({ size: 'md', fullWidth: true })}>
-          <option value="income">{t('vouchers.income', lang)}</option>
-          <option value="expense">{t('vouchers.expense', lang)}</option>
-        </select>
+        <SelectField
+          id="cat_type"
+          name="type"
+          required
+          defaultValue="income"
+          options={[
+            { value: 'income', label: t('vouchers.income', lang) },
+            { value: 'expense', label: t('vouchers.expense', lang) },
+          ]}
+        />
       </div>
       <button
         type="submit"
