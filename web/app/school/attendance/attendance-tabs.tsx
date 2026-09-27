@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { t, type Lang } from '@/lib/i18n'
+import { ATTENDANCE_GROUPS as GROUPS, attendanceGroupHref } from '@/lib/attendance-nav'
 
 // RFID card assignment tab intentionally removed — RFID is disabled for now, so
 // attendance is manual only (mark/book/employee/leave/off-days).
@@ -9,27 +10,10 @@ import { t, type Lang } from '@/lib/i18n'
 // stays shared/common. This is a routing/UI grouping only — every href below
 // is unchanged from the old flat tab bar, and `attendance` remains a single
 // Permission Grant (web/lib/auth/screens.ts) regardless of grouping.
-const STUDENT_TABS = [
-  { href: '/school/attendance/mark', key: 'attendance.tabMark' as const },
-  { href: '/school/attendance/book', key: 'attendance.tabBook' as const },
-  { href: '/school/attendance/student-log', key: 'attendance.tabStudentLog' as const },
-  { href: '/school/attendance/leave/student', key: 'attendance.tabLeave' as const },
-]
-
-// Leave Management is two independent routes/pages since #664 — each parent
-// group's Leave tab points at its own audience-specific page, so no
-// disambiguation query param is needed any more (see #663's original fix,
-// no longer required now that the routes themselves differ).
-const EMPLOYEE_TABS = [
-  { href: '/school/attendance/employee', key: 'attendance.tabEmployee' as const },
-  { href: '/school/attendance/leave/employee', key: 'attendance.tabLeave' as const },
-]
-
-const GROUPS = [
-  { id: 'students', labelKey: 'attendance.groupStudents' as const, tabs: STUDENT_TABS },
-  { id: 'employees', labelKey: 'attendance.groupEmployees' as const, tabs: EMPLOYEE_TABS },
-  { id: 'off-days', labelKey: 'attendance.tabOffDays' as const, tabs: null, href: '/school/attendance/off-days' },
-]
+//
+// The group/tab data itself lives in lib/attendance-nav.ts (map #667), so the
+// sidebar (lib/school-nav.ts) can read each group's default route without a
+// lib -> app import.
 
 function tabClass(isActive: boolean) {
   return `shrink-0 whitespace-nowrap rounded-t-md px-3 py-2 text-sm font-semibold ${
@@ -46,7 +30,7 @@ export function AttendanceTabs({ active, lang }: { active: string; lang: Lang })
         {GROUPS.map((group) => (
           <Link
             key={group.id}
-            href={group.tabs ? group.tabs[0].href : group.href}
+            href={attendanceGroupHref(group.id)}
             className={tabClass(group.id === activeGroup?.id)}
           >
             {t(group.labelKey, lang)}

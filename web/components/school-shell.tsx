@@ -25,9 +25,14 @@ const SMS_BADGE_STYLE = {
 
 // School route-group chrome. Now a thin adapter over the shared AppShell (#285):
 // it builds the grant/feature-gated school nav and passes the school-specific
-// slots (SMS badge, notification bell, global search, Add-Student CTA). Nesting
-// is grouping only (same row style at both levels, ui.md issue 1), so the tree is
-// flattened in visible order — behaviour-preserving vs the previous bespoke shell.
+// slots (SMS badge, notification bell, global search, Add-Student CTA). Classes
+// -> Attendance nesting is grouping only (same row style at both levels, ui.md
+// issue 1), so that one level is flattened into visible order — unchanged,
+// behaviour-preserving vs the previous bespoke shell. Attendance's OWN children
+// (Off-Day Calendar/Students/Employees, map #667) are a second, different kind
+// of nesting: they're attached as real `AppNavItem.children` instead, so
+// AppShell's NavLinks renders them indented and always-visible under Attendance
+// specifically, never flattened into more top-level-styled rows.
 function buildSchoolNav(
   role: Role,
   grants: readonly string[],
@@ -50,6 +55,7 @@ function buildSchoolNav(
     href: string
     titleKey: Parameters<typeof t>[0]
     icon?: string
+    matchPrefixes?: string[]
   }): AppNavItem => ({
     href: it.href,
     label: t(it.titleKey, lang),
@@ -57,6 +63,7 @@ function buildSchoolNav(
     // would wear the dashboard's (lib/school-nav.ts).
     icon: <Icon name={(it.icon ?? it.screen) as Parameters<typeof Icon>[0]['name']} className="size-5" />,
     matchExact: it.href === '/school',
+    matchPrefixes: it.matchPrefixes,
   })
 
   const src = [
@@ -67,7 +74,9 @@ function buildSchoolNav(
   for (const it of src) {
     if (allow(it.screen)) out.push(toItem(it))
     for (const child of 'children' in it ? (it.children ?? []) : []) {
-      if (allow(child.screen)) out.push(toItem(child))
+      if (!allow(child.screen)) continue
+      const grandchildren = (child.children ?? []).filter((gc) => allow(gc.screen)).map(toItem)
+      out.push(grandchildren.length ? { ...toItem(child), children: grandchildren } : toItem(child))
     }
   }
   return out
