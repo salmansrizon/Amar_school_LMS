@@ -4,7 +4,8 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
 import { t, type Lang } from '@/lib/i18n'
 import { makeOldStudents, promoteStudents, setClassFinal } from './actions'
-import { selectClass } from '@/components/ui/field'
+import { ComboboxField } from '@/components/ui/combobox-field'
+import { SelectField } from '@/components/ui/select-field'
 import { classCatalogueLabel, type ClassCatalogueRow } from '@/lib/class-catalogue'
 
 export interface CombinationOption {
@@ -36,22 +37,30 @@ export function ResultControlsBar({
   return (
     <div className="mb-4 flex flex-wrap items-center gap-2">
       <div>
-        <label className="mb-1 block text-xs font-semibold text-muted">{t('promotion.resultSource', lang)}</label>
-        <select value={source} onChange={(e) => navigate(e.target.value, basis)} className={`${selectClass({ size: 'md', fullWidth: true })} min-w-56`}>
-          <option value="exam">{t('promotion.thisExamOnly', lang)}</option>
-          {combinations.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
-        </select>
+        <label htmlFor="promotion_source" className="mb-1 block text-xs font-semibold text-muted">{t('promotion.resultSource', lang)}</label>
+        <ComboboxField
+          id="promotion_source"
+          value={source}
+          onValueChange={(v) => navigate(v, basis)}
+          className="min-w-56"
+          options={[
+            { value: 'exam', label: t('promotion.thisExamOnly', lang) },
+            ...combinations.map((c) => ({ value: c.id, label: c.name })),
+          ]}
+        />
       </div>
       <div>
-        <label className="mb-1 block text-xs font-semibold text-muted">{t('promotion.rankBasis', lang)}</label>
-        <select value={basis} onChange={(e) => navigate(source, e.target.value)} className={`${selectClass({ size: 'md', fullWidth: true })} min-w-40`}>
-          <option value="grade">{t('promotion.rankByGrade', lang)}</option>
-          <option value="mark">{t('promotion.rankByMark', lang)}</option>
-        </select>
+        <label htmlFor="promotion_basis" className="mb-1 block text-xs font-semibold text-muted">{t('promotion.rankBasis', lang)}</label>
+        <SelectField
+          id="promotion_basis"
+          value={basis}
+          onValueChange={(v) => navigate(source, v)}
+          className="min-w-40"
+          options={[
+            { value: 'grade', label: t('promotion.rankByGrade', lang) },
+            { value: 'mark', label: t('promotion.rankByMark', lang) },
+          ]}
+        />
       </div>
     </div>
   )
@@ -98,15 +107,16 @@ export function PromotionTable({
   return (
     <>
       <div className="mb-3 max-w-sm">
-        <label className="mb-1 block text-xs font-semibold text-muted">{t('promotion.promoteTo', lang)}</label>
-        <select value={toClassId} onChange={(e) => setToClassId(e.target.value)} className={selectClass({ size: 'md', fullWidth: true })}>
-          <option value="">—</option>
-          {classes.map((c) => (
-            <option key={c.id} value={c.id}>
-              {classCatalogueLabel(c, showYear)}
-            </option>
-          ))}
-        </select>
+        <label htmlFor="promotion_to_class" className="mb-1 block text-xs font-semibold text-muted">{t('promotion.promoteTo', lang)}</label>
+        <ComboboxField
+          id="promotion_to_class"
+          value={toClassId}
+          onValueChange={setToClassId}
+          options={[
+            { value: '', label: '—' },
+            ...classes.map((c) => ({ value: c.id, label: classCatalogueLabel(c, showYear) })),
+          ]}
+        />
       </div>
 
       <div className="overflow-x-auto">

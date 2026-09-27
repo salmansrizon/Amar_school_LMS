@@ -8,7 +8,7 @@ import { getSchoolContext } from '@/lib/school/context'
 import { classSectionLabel } from '@/lib/students'
 import { loadExamRosterResults } from '@/lib/exam-print-data'
 import { Pill } from '@/components/data-table/data-table'
-import { selectClass } from '@/components/ui/field'
+import { ComboboxField } from '@/components/ui/combobox-field'
 import { railClass, PageHeader } from '@/components/ui/page'
 
 // Result Inquiry (issue #48, PRD §5.5), per ui/school-owner/result-inquiry.html
@@ -64,25 +64,25 @@ export default async function ResultInquiryPage({
   const form = (
     <Form className="card mb-4 grid gap-3 rounded-2xl border border-line bg-paper p-card sm:grid-cols-4" action="/school/exams/result-inquiry">
       <div>
-        <label className="mb-1 block text-xs font-semibold text-muted">{t('resultInquiry.exam', lang)}</label>
-        <select name="exam" defaultValue={examId} className={selectClass({ fullWidth: true })}>
-          {exams.map((e) => (
-            <option key={e.id} value={e.id}>
-              {e.name} {e.exam_year}
-            </option>
-          ))}
-        </select>
+        <label htmlFor="result_inquiry_exam" className="mb-1 block text-xs font-semibold text-muted">{t('resultInquiry.exam', lang)}</label>
+        <ComboboxField
+          id="result_inquiry_exam"
+          name="exam"
+          defaultValue={examId}
+          options={exams.map((e) => ({ value: e.id, label: `${e.name} ${e.exam_year}` }))}
+        />
       </div>
       <div>
-        <label className="mb-1 block text-xs font-semibold text-muted">{t('resultInquiry.subject', lang)}</label>
-        <select name="subject" defaultValue={subjectParam} className={selectClass({ fullWidth: true })}>
-          <option value="">{t('resultInquiry.allSubjects', lang)}</option>
-          {(roster?.subjects ?? []).map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.name}
-            </option>
-          ))}
-        </select>
+        <label htmlFor="result_inquiry_subject" className="mb-1 block text-xs font-semibold text-muted">{t('resultInquiry.subject', lang)}</label>
+        <ComboboxField
+          id="result_inquiry_subject"
+          name="subject"
+          defaultValue={subjectParam}
+          options={[
+            { value: '', label: t('resultInquiry.allSubjects', lang) },
+            ...(roster?.subjects ?? []).map((s) => ({ value: s.id, label: s.name })),
+          ]}
+        />
       </div>
       <div>
         <label className="mb-1 block text-xs font-semibold text-muted">{t('resultInquiry.roll', lang)}</label>
