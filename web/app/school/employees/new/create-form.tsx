@@ -9,6 +9,7 @@ import { dateInputClass } from '@/components/ui/field'
 import { reachSentences } from '@/lib/school/teacher-reach'
 import { EMPLOYEE_CATEGORIES, EMPLOYEE_CATEGORY_LABEL_KEY, isKnownEmployeeCategory } from '@/lib/employees'
 import { ACADEMIC_SHIFT_LABEL_KEY, type AcademicShift } from '@/lib/institute'
+import { ComboboxField } from '@/components/ui/combobox-field'
 
 export const fieldClass =
   'w-full rounded-md border border-line bg-paper px-3 py-2 text-sm focus:border-brand-500 focus:outline-none'
@@ -23,10 +24,20 @@ export function Card({ title, children }: { title: string; children: React.React
   )
 }
 
-export function Field({ label, children }: { label: string; children: React.ReactNode }) {
+export function Field({
+  label,
+  htmlFor,
+  children,
+}: {
+  label: string
+  /** Wires the label to a field with no native association of its own (e.g. a
+   *  ComboboxField, which isn't wrapped by this label). */
+  htmlFor?: string
+  children: React.ReactNode
+}) {
   return (
     <div>
-      <label className={fieldLabelClass}>{label}</label>
+      <label className={fieldLabelClass} htmlFor={htmlFor}>{label}</label>
       {children}
     </div>
   )
@@ -120,25 +131,24 @@ export function ProfileFields({
 
       <Card title={t('employees.categoryQualification', lang)}>
         <div className="grid gap-3 sm:grid-cols-2">
-          <Field label={t('employees.category', lang)}>
-            <select name="category" defaultValue={d('category')} className={fieldClass}>
-              <option value="">{t('employees.categoryUnset', lang)}</option>
-              {EMPLOYEE_CATEGORIES.map((c) => (
-                <option key={c} value={c}>
-                  {t(EMPLOYEE_CATEGORY_LABEL_KEY[c], lang)}
-                </option>
-              ))}
-              {/* A category that predates the fixed list (issue #567) — the
-                  seed data itself has "Head Teacher" — stays selectable and
-                  selected, so opening the edit form doesn't blank or change
-                  it just because it isn't one of the four. Never appears on
-                  the create form: `defaults` is empty there. */}
-              {d('category') && !isKnownEmployeeCategory(d('category')) && (
-                <option value={d('category')}>
-                  {d('category')} — {t('employees.categoryLegacy', lang)}
-                </option>
-              )}
-            </select>
+          <Field label={t('employees.category', lang)} htmlFor="employee_category">
+            {/* A category that predates the fixed list (issue #567) — the
+                seed data itself has "Head Teacher" — stays selectable and
+                selected, so opening the edit form doesn't blank or change
+                it just because it isn't one of the four. Never appears on
+                the create form: `defaults` is empty there. */}
+            <ComboboxField
+              id="employee_category"
+              name="category"
+              defaultValue={d('category')}
+              options={[
+                { value: '', label: t('employees.categoryUnset', lang) },
+                ...EMPLOYEE_CATEGORIES.map((c) => ({ value: c, label: t(EMPLOYEE_CATEGORY_LABEL_KEY[c], lang) })),
+                ...(d('category') && !isKnownEmployeeCategory(d('category'))
+                  ? [{ value: d('category'), label: `${d('category')} — ${t('employees.categoryLegacy', lang)}` }]
+                  : []),
+              ]}
+            />
           </Field>
           <Field label={t('employees.qualification', lang)}>
             <input name="qualification" defaultValue={d('qualification')} className={fieldClass} />
@@ -213,20 +223,18 @@ function LoginAndClassFields({
 
       <Card title={t('teacher.stepClass', lang)}>
         <p className="mb-3 text-xs text-muted">{t('teacher.stepClassHelp', lang)}</p>
-        <select
+        <ComboboxField
           name="class_id"
           value={classId}
-          onChange={(e) => onClassChange(e.target.value)}
-          className={fieldClass}
-        >
-          <option value="">{t('teacher.noClassYet', lang)}</option>
-          {classes.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.label}
-              {c.taken ? ` — ${t('teacher.classAlreadyHasTeacher', lang)}` : ''}
-            </option>
-          ))}
-        </select>
+          onValueChange={onClassChange}
+          options={[
+            { value: '', label: t('teacher.noClassYet', lang) },
+            ...classes.map((c) => ({
+              value: c.id,
+              label: `${c.label}${c.taken ? ` — ${t('teacher.classAlreadyHasTeacher', lang)}` : ''}`,
+            })),
+          ]}
+        />
       </Card>
     </>
   )
