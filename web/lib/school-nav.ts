@@ -164,6 +164,13 @@ export function navGroupFor(pathname: string): { group: SchoolNavGroup; item: Sc
   return found
 }
 
+/** The sidebar group a screen's nav entry lives under (parent or child), for
+ *  surfaces that want to show it as a category tag (e.g. the dashboard's
+ *  Quick Actions cards) without inventing a new taxonomy. */
+export function schoolNavGroupForScreen(screen: ScreenKey): SchoolNavGroup | undefined {
+  return SCHOOL_NAV_GROUPS.find((g) => flattenSchoolModules(g.items).some((it) => it.screen === screen))
+}
+
 export interface SchoolQuickAction {
   screen: ScreenKey
   href: string

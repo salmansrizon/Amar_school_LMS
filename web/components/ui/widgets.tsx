@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import type { ReactNode } from 'react'
+import { cloneElement, isValidElement, type ReactElement, type ReactNode } from 'react'
 import { TriangleAlert } from 'lucide-react'
 
 // Dashboard/list widgets from the new_ui reference (map 013, F4). Server
@@ -107,33 +107,134 @@ export function AlertStrip({ title, alerts }: { title: string; alerts: Alert[] }
   )
 }
 
-export type QuickAction = { href: string; label: string; icon?: ReactNode; primary?: boolean; count?: number }
+export type QuickActionTone = 'brand' | 'sun' | 'sky' | 'mint'
 
-/** The page's most frequent actions, one click each. */
-export function QuickActions({ title, actions }: { title: string; actions: QuickAction[] }) {
+// Course-card gradient tiles (restyle of the shortcut/quick-action grid to the
+// reference: bold hue, giant ghost icon, category/meta/footer text). `brand`
+// is dark enough for white text at every stop, in both themes. The other
+// three tones stay light-to-bright in dark mode too (app/globals.css's
+// --dk-sun/-dk-sky/-dk-mint never darken — that's deliberate, so their soft
+// badges elsewhere keep working), so their text is a literal dark, not
+// `text-ink` — `ink` flips to near-white under `data-theme=dark` and would
+// go unreadable against a background that hasn't actually darkened.
+// Ratios (WCAG relative luminance, checked against both gradient stops and
+// their midpoint, light + dark): brand/white >=5.12, sun|sky|mint/black >=6.3.
+// `alert` (pink-ish) is deliberately not in the rotation: its red already
+// means "urgent" elsewhere in this file (AlertStrip, StatCard), and white
+// text on it sits at ~3.8-4.4:1 — under the 4.5 small-text floor.
+const TONE_BG: Record<QuickActionTone, string> = {
+  brand: 'bg-gradient-to-br from-brand-600 to-brand-700',
+  sun: 'bg-gradient-to-br from-sun to-sun-deep',
+  sky: 'bg-gradient-to-br from-sky to-sky-deep',
+  mint: 'bg-gradient-to-br from-mint to-mint-deep',
+}
+const TONE_TEXT: Record<QuickActionTone, string> = {
+  brand: 'text-white',
+  sun: 'text-black/85',
+  sky: 'text-black/85',
+  mint: 'text-black/85',
+}
+const TONE_MUTED: Record<QuickActionTone, string> = {
+  brand: 'text-white/75',
+  sun: 'text-black/60',
+  sky: 'text-black/60',
+  mint: 'text-black/60',
+}
+const TONE_GHOST: Record<QuickActionTone, string> = {
+  brand: 'text-white/20',
+  sun: 'text-black/10',
+  sky: 'text-black/10',
+  mint: 'text-black/10',
+}
+/** brand -> sun -> sky -> mint, so neighbours in the grid always differ. */
+const AUTO_TONES: QuickActionTone[] = ['brand', 'sun', 'sky', 'mint']
+
+export type QuickAction = {
+  href: string
+  label: string
+  icon?: ReactNode
+  primary?: boolean
+  count?: number
+  /** The sidebar group/section this action belongs to, when the caller already
+   *  knows it (e.g. via schoolNavGroupForScreen) — omitted, never invented. */
+  category?: string
+  /** A count or description the caller already loaded for this page (e.g. a
+   *  dashboard stat shown elsewhere on the same page) — never fetched fresh. */
+  meta?: string
+  /** Forces the gradient hue; otherwise `primary` gets brand, the rest rotate
+   *  through AUTO_TONES by grid position. */
+  tone?: QuickActionTone
+}
+
+/** The action's own icon, blown up to illustration size for the card's
+ *  bottom-right corner — cloned (not re-picked), so it's still the same icon
+ *  as the small label, just how the reference's 3D renders sit in-frame. */
+function ghostIcon(icon: ReactNode | undefined, tone: QuickActionTone) {
+  if (!isValidElement(icon)) return null
+  return cloneElement(icon as ReactElement<{ className?: string }>, {
+    className: `size-28 ${TONE_GHOST[tone]} motion-safe:transition-transform motion-safe:duration-200 motion-safe:group-hover:scale-110`,
+  })
+}
+
+/** The page's most frequent actions, one gradient tile each. `openLabel` is
+ *  pre-translated by the caller, like `title` and every action's `label`. */
+export function QuickActions({
+  title,
+  actions,
+  openLabel = 'Open',
+}: {
+  title: string
+  actions: QuickAction[]
+  openLabel?: string
+}) {
   if (!actions.length) return null
   return (
     <section className="mb-section rounded-2xl border border-line bg-paper p-card">
       <h2 className="mb-3 font-bold">{title}</h2>
-      <ul className="flex flex-wrap gap-2">
-        {actions.map((a) => (
-          <li key={a.href}>
-            <Link
-              href={a.href}
-              className={`inline-flex h-11 items-center gap-2 rounded-xl px-4 text-sm font-semibold transition ${
-                a.primary
-                  ? 'bg-brand-500 text-white hover:bg-brand-600'
-                  : 'border border-line bg-paper-muted text-ink hover:bg-line'
-              }`}
-            >
-              {a.icon && <span aria-hidden>{a.icon}</span>}
-              {a.label}
-              {a.count ? (
-                <span className="rounded-full bg-brand-500 px-2 text-xs text-white">{a.count}</span>
-              ) : null}
-            </Link>
-          </li>
-        ))}
+      <ul className="grid grid-cols-1 gap-grid sm:grid-cols-2 lg:grid-cols-3">
+        {actions.map((a, i) => {
+          const tone = a.tone ?? (a.primary ? 'brand' : AUTO_TONES[i % AUTO_TONES.length])
+          return (
+            <li key={a.href}>
+              <Link
+                href={a.href}
+                className={`group relative flex h-full min-h-36 flex-col overflow-hidden rounded-3xl p-card shadow-md outline-none transition-shadow motion-safe:transition-[transform,box-shadow] motion-safe:duration-200 hover:shadow-lg motion-safe:hover:-translate-y-1 focus-visible:ring-2 focus-visible:ring-brand-300 focus-visible:ring-offset-2 sm:min-h-52 lg:min-h-60 ${TONE_BG[tone]} ${TONE_TEXT[tone]}`}
+              >
+                <span
+                  aria-hidden
+                  className="pointer-events-none absolute -right-4 -bottom-4 rotate-6 select-none"
+                >
+                  {ghostIcon(a.icon, tone)}
+                </span>
+                <span className="relative z-10 flex h-full flex-col">
+                  {(a.category || a.count != null) && (
+                    <span className="flex items-start justify-between gap-2">
+                      {a.category ? (
+                        <span className={`text-[11px] font-bold tracking-wider uppercase ${TONE_MUTED[tone]}`}>
+                          {a.category}
+                        </span>
+                      ) : (
+                        <span />
+                      )}
+                      {a.count != null && (
+                        <span className="inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-black/80 px-1.5 text-[11px] font-bold text-white">
+                          {a.count}
+                        </span>
+                      )}
+                    </span>
+                  )}
+                  <span className="mt-2 line-clamp-2 text-lg leading-tight font-extrabold text-balance">
+                    {a.label}
+                  </span>
+                  {a.meta && <span className={`mt-1 line-clamp-2 text-xs font-medium ${TONE_MUTED[tone]}`}>{a.meta}</span>}
+                  <span className={`mt-auto inline-flex items-center gap-1 pt-4 text-xs font-semibold ${TONE_MUTED[tone]}`}>
+                    {openLabel} <span aria-hidden>→</span>
+                  </span>
+                </span>
+              </Link>
+            </li>
+          )
+        })}
       </ul>
     </section>
   )

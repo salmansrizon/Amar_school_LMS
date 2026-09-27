@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { navGroupFor, SCHOOL_NAV_GROUPS } from '@/lib/school-nav'
+import { navGroupFor, schoolNavGroupForScreen, SCHOOL_NAV_GROUPS } from '@/lib/school-nav'
 
 describe('navGroupFor (map 013 F5)', () => {
   it.each([
@@ -32,5 +32,23 @@ describe('navGroupFor (map 013 F5)', () => {
       'financeComms',
       'administration',
     ])
+  })
+})
+
+// Backs the dashboard Quick Actions cards' category tag — proves the lookup
+// finds a nested child screen (attendance lives under classes) and returns
+// undefined rather than guessing for a screen with no sidebar entry.
+describe('schoolNavGroupForScreen', () => {
+  it.each([
+    ['students', 'people'],
+    ['attendance', 'academics'],
+    ['fees', 'financeComms'],
+    ['staff', 'administration'],
+  ] as const)('%s -> %s', (screen, group) => {
+    expect(schoolNavGroupForScreen(screen)?.key).toBe(group)
+  })
+
+  it('returns undefined for a screen with no sidebar entry', () => {
+    expect(schoolNavGroupForScreen('approvals')).toBeUndefined()
   })
 })
