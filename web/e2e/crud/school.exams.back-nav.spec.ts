@@ -86,15 +86,12 @@ async function clickBack(page: Page) {
   await page.waitForLoadState('domcontentloaded')
   // Opened from a row, the destination is a route popup (map 013): its way
   // back is ✕, and the page's own chevron is hidden in there (test H).
+  // Wait for whichever exit renders: the popup may still be mounting.
   const close = page.getByRole('dialog').getByRole('button', { name: CLOSE })
-  if (await close.isVisible()) {
-    await close.click()
-    await expect(page).toHaveURL(/\/school\/exams(\?|$)/, { timeout: 20_000 })
-    return
-  }
   const back = page.getByRole('link', { name: BACK })
-  await back.waitFor({ state: 'visible' })
-  await back.click()
+  const exit = close.or(back).first()
+  await exit.waitFor({ state: 'visible' })
+  await exit.click()
   await expect(page).toHaveURL(/\/school\/exams(\?|$)/, { timeout: 20_000 })
 }
 
