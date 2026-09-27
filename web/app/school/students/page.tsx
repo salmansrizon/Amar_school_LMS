@@ -19,11 +19,13 @@ import { PrintTrigger } from '@/components/print/print-trigger'
 import { StatCard, StatGrid, WarningBanner, WorkflowCard } from '@/components/ui/widgets'
 import { RowActionPill } from '@/components/data-table/row-action-pill'
 import { withParams } from '@/lib/url-params'
-import { IdCard, UserPlus, Users, Wallet, HandCoins } from 'lucide-react'
+import { IdCard, SquarePen, UserPlus, Users, Wallet, HandCoins } from 'lucide-react'
 import { getStudent, StudentProfile } from './[id]/student-profile'
 import { RowMore } from '@/components/data-table/row-more'
 import { bulkRemindStudents } from './actions'
 import type { BulkAction } from '@/components/data-table/selection'
+import { DrawerFooter, DrawerHeader } from '@/components/data-table/drawer-parts'
+import { StudentDrawerBody, loadStudentDrawerData, studentDrawerCancelHref } from './student-drawer'
 
 // Layout per Design System/new_ui/02-people/student-directory (map 013, P1),
 // following the exam landing pattern (013 A3): header + subtitle, a one-line
@@ -78,10 +80,12 @@ export default async function StudentsPage({
   // from the CURRENT client selection, which the bulk bar's plain
   // <form action> shape can't drive without a components/data-table change.
   const bulkActions: BulkAction[] = canSms ? [{ label: t('students.remind', lang), action: bulkRemindStudents }] : []
-  const [{ roster, fees, rows, showYear, admittedThisMonth }, viewed] = await Promise.all([
+  const [{ roster, fees, rows, showYear, admittedThisMonth }, viewed, studentDrawerData] = await Promise.all([
     loadDirectoryRows({ q, classSection, fee, admitted }),
     view ? getStudent(view) : Promise.resolve(null),
+    view ? loadStudentDrawerData(view) : Promise.resolve(null),
   ])
+  const viewedRoster = view ? (roster.students.find((s) => s.id === view) ?? null) : null
   const pageData = paginate(rows, page, pageSize)
   const fmt = numberFmt(lang)
   const n = (x: number) => fmt.format(x)
@@ -415,12 +419,43 @@ export default async function StudentsPage({
       <RecordDrawer
         open={Boolean(viewed)}
         title={viewed?.full_name ?? ''}
-        subtitle={viewed?.roll_number != null ? `${t('students.roll', lang)} ${viewed.roll_number}` : undefined}
-        fullPageHref={viewed ? `/school/students/${viewed.id}` : undefined}
+        header={
+          viewed && (
+            <DrawerHeader
+              name={viewed.full_name}
+              avatarId={viewed.id}
+              subtitle={viewed.roll_number != null ? `${t('students.roll', lang)} ${viewed.roll_number}` : undefined}
+            />
+          )
+        }
+        footer={
+          viewed && (
+            <DrawerFooter
+              cancelHref={studentDrawerCancelHref(params)}
+              cancelLabel={t('routine.cancel', lang)}
+              primary={{
+                href: `/school/students/${viewed.id}`,
+                label: t('students.editProfile', lang),
+                icon: <SquarePen className="size-4" aria-hidden />,
+              }}
+            />
+          )
+        }
         fullPageLabel={t('table.openFullPage', lang)}
         closeLabel={t('common.close', lang)}
       >
-        {viewed && <StudentProfile id={viewed.id} lang={lang} />}
+        {viewed &&
+          (viewedRoster ? (
+            <StudentDrawerBody
+              student={viewedRoster}
+              currentFee={fees.get(viewed.id)}
+              data={studentDrawerData ?? { recentFees: [], recentLeaves: [] }}
+              showYear={showYear}
+              lang={lang}
+            />
+          ) : (
+            <StudentProfile id={viewed.id} lang={lang} />
+          ))}
       </RecordDrawer>
     </>
   )

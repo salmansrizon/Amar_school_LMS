@@ -24,6 +24,8 @@ import { RecordDrawer } from '@/components/data-table/record-drawer'
 import { RowActionPill } from '@/components/data-table/row-action-pill'
 import { withParams } from '@/lib/url-params'
 import { classCatalogueLabel } from '@/lib/class-catalogue'
+import { DrawerFooter, DrawerHeader } from '@/components/data-table/drawer-parts'
+import { FeeDrawerBody, loadFeeDrawerData, feeDrawerCancelHref } from './fee-drawer'
 
 // Fees & finance (map 013 FC1, new_ui/04-finance-communication/fees-finance),
 // following the exam-landing pattern (013 A3): header + subtitle, one-line
@@ -208,6 +210,7 @@ export default async function FeesPage({
   )
   const pageData = paginate(visible, page, pageSize)
   const viewed = view ? (all.find((r) => r.id === view) ?? null) : null
+  const feeDrawerData = viewed ? await loadFeeDrawerData(viewed.student_id, viewed.id) : null
 
   const fmt = numberFmt(lang)
   const tk = (n: number) => `৳${fmt.format(n)}`
@@ -575,49 +578,20 @@ export default async function FeesPage({
       <RecordDrawer
         open={Boolean(viewed)}
         title={viewed?.name ?? ''}
-        subtitle={viewed ? period : undefined}
-        fullPageHref={viewed ? `/school/fees/receipt/${viewed.id}` : undefined}
+        header={viewed && <DrawerHeader name={viewed.name} avatarId={viewed.student_id} subtitle={period} />}
+        footer={
+          viewed && (
+            <DrawerFooter
+              cancelHref={feeDrawerCancelHref(params)}
+              cancelLabel={t('routine.cancel', lang)}
+              primary={{ href: nextStepFor(viewed).href, label: nextStepFor(viewed).label }}
+            />
+          )
+        }
         fullPageLabel={t('table.openFullPage', lang)}
         closeLabel={t('common.close', lang)}
       >
-        {viewed && (
-          <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <Pill tone={STANDING_TONE[viewed.standing]} pulse={viewed.standing === 'due'}>
-                {t(STANDING_LABEL[viewed.standing], lang)}
-              </Pill>
-            </div>
-            <dl className="flex flex-col gap-2 text-sm">
-              <div className="flex justify-between gap-3">
-                <dt className="text-muted">{t('fees.pay', lang)}</dt>
-                <dd>{tk(viewed.pay)}</dd>
-              </div>
-              <div className="flex justify-between gap-3">
-                <dt className="text-muted">{t('fees.fine', lang)}</dt>
-                <dd>{tk(viewed.fine)}</dd>
-              </div>
-              <div className="flex justify-between gap-3">
-                <dt className="text-muted">{t('fees.adjust', lang)}</dt>
-                <dd>{tk(viewed.adjust)}</dd>
-              </div>
-              <div className="flex justify-between gap-3 border-t border-line pt-2 font-bold">
-                <dt>{t('fees.due', lang)}</dt>
-                <dd>{tk(viewed.due)}</dd>
-              </div>
-              <div className="flex justify-between gap-3">
-                <dt className="text-muted">{t('fees.method', lang)}</dt>
-                <dd>{methodLabel(viewed.method)}</dd>
-              </div>
-            </dl>
-            {viewed.standing !== 'paid' && canSms && (
-              <RowActionPill
-                state="next"
-                href={`/school/sms?students=${viewed.student_id}`}
-                label={t('students.remind', lang)}
-              />
-            )}
-          </div>
-        )}
+        {viewed && <FeeDrawerBody record={viewed} data={feeDrawerData ?? { history: [] }} lang={lang} />}
       </RecordDrawer>
     </>
   )

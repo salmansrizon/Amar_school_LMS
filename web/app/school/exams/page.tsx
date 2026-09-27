@@ -23,6 +23,8 @@ import { ExamsTabs } from './exams-tabs'
 import { ProgressBar, WarningBanner, WorkflowCard } from '@/components/ui/widgets'
 import { RowMore } from '@/components/data-table/row-more'
 import { PublishResults } from './[id]/publish-results'
+import { DrawerFooter, DrawerHeader } from '@/components/data-table/drawer-parts'
+import { ExamDrawerBody, loadExamDrawerData, examDrawerCancelHref } from './exam-drawer'
 
 // Exams & Results (map 013 A3), laid out as new_ui/03-academics/exams-results:
 // header, one-line warning banner, four lifecycle stat cards, the stage-chipped
@@ -195,6 +197,7 @@ export default async function ExamsPage({
   const pageSize = pageSizeFrom(params.size, PAGE_SIZE)
   const paged = paginate(shown, params.page, pageSize)
   const viewed = view ? (all.find((e) => e.id === view) ?? null) : null
+  const examDrawerData = viewed ? await loadExamDrawerData(viewed.id, viewed.class_id) : null
 
   // The address a destination comes back to: this list, filters as they stand,
   // plus the row that was clicked (map #373).
@@ -608,31 +611,32 @@ export default async function ExamsPage({
       <RecordDrawer
         open={Boolean(viewed)}
         title={viewed ? viewed.name : ''}
-        subtitle={viewed ? String(viewed.exam_year) : undefined}
-        fullPageHref={viewed ? `/school/exams/${viewed.id}` : undefined}
+        header={
+          viewed && (
+            <DrawerHeader name={viewed.name} avatarId={viewed.id} subtitle={String(viewed.exam_year)} status={publishPill(viewed)} />
+          )
+        }
+        footer={
+          viewed && (
+            <DrawerFooter
+              cancelHref={examDrawerCancelHref(params)}
+              cancelLabel={t('routine.cancel', lang)}
+              primary={{ href: nextStep(viewed).href, label: nextStep(viewed).label }}
+            />
+          )
+        }
         fullPageLabel={t('table.openFullPage', lang)}
         closeLabel={t('common.close', lang)}
       >
         {viewed && (
-          <div className="space-y-5">
-            <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
-              {(
-                [
-                  [t('exams.year', lang), viewed.exam_year],
-                  [t('exams.colPublish', lang), publishPill(viewed)],
-                  [t('exams.class', lang), classLabel(viewed.class_id) ?? dash],
-                  [t('exams.startDate', lang), viewed.start_date ?? dash],
-                  [t('examSetup.gradingScheme', lang), viewed.grading_scheme_id ? t('exams.schemeSet', lang) : dash],
-                ] as [string, React.ReactNode][]
-              ).map(([k, v]) => (
-                <div key={k}>
-                  <dt className="text-xs text-muted">{k}</dt>
-                  <dd className="font-medium">{v}</dd>
-                </div>
-              ))}
-            </dl>
-            <ExamRowActions exam={viewed} origin={originFor(viewed.id)} lang={lang} />
-          </div>
+          <ExamDrawerBody
+            exam={viewed}
+            classLabel={classLabel(viewed.class_id)}
+            lastExamDate={lastExamDateByExam.get(viewed.id) ?? null}
+            subjects={examDrawerData?.subjects ?? []}
+            origin={originFor(viewed.id)}
+            lang={lang}
+          />
         )}
       </RecordDrawer>
     </>

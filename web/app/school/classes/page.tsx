@@ -37,10 +37,12 @@ import { RecordDrawer } from '@/components/data-table/record-drawer'
 import { ViewLink } from '@/components/data-table/view-link'
 import { RowMenu } from '@/components/data-table/row-menu'
 import { RowActionPill } from '@/components/data-table/row-action-pill'
-import { AddClassModal, AddSubjectModal, ArchiveOrDeleteButton, CopyClassesControl, DeleteButton } from './class-controls'
+import { AddClassModal, AddSubjectModal, CopyClassesControl, DeleteButton } from './class-controls'
 import { ClassTeacherPicker } from './class-teacher-picker'
 import { CopySubjectsBar, type SubjectListRow } from './subject-list-table'
 import { stageSubjectCopy } from './actions'
+import { DrawerFooter, DrawerHeader } from '@/components/data-table/drawer-parts'
+import { ClassDrawerBody, classDrawerCancelHref } from './class-drawer'
 
 // Class & Curriculum (map 013 A1, new_ui/03-academics/classes-curriculum),
 // laid out as the exam landing pattern: header + one-line warning banner +
@@ -378,9 +380,6 @@ export default async function ClassesPage({
       ))}
     </dl>
   )
-  const linkPill =
-    'inline-flex h-9 items-center rounded-full border border-line-strong px-3 text-xs font-semibold hover:bg-paper-muted'
-
   return (
     <>
       <PageHeader
@@ -685,49 +684,36 @@ export default async function ClassesPage({
       <RecordDrawer
         open={Boolean(viewedClass || viewedSubject)}
         title={viewedClass?.name ?? viewedSubject?.name ?? ''}
-        subtitle={
-          viewedClass
-            ? classCatalogueLabel(viewedClass, showYearColumn)
-            : viewedSubject?.code ?? undefined
+        header={
+          viewedClass ? (
+            <DrawerHeader name={viewedClass.name} avatarId={viewedClass.id} subtitle={classCatalogueLabel(viewedClass, showYearColumn)} />
+          ) : viewedSubject ? (
+            <DrawerHeader name={viewedSubject.name} avatarId={viewedSubject.id} subtitle={viewedSubject.code ?? undefined} />
+          ) : undefined
+        }
+        footer={
+          viewedClass ? (
+            <DrawerFooter
+              cancelHref={classDrawerCancelHref(tabParams)}
+              cancelLabel={t('routine.cancel', lang)}
+              primary={{ href: classNextStep(viewedClass).href, label: classNextStep(viewedClass).label }}
+            />
+          ) : undefined
         }
         fullPageLabel={t('table.openFullPage', lang)}
         closeLabel={t('common.close', lang)}
       >
         {viewedClass && (
-          <div className="grid gap-5">
-            {detail([
-              [t('classes.section', lang), viewedClass.section ?? '—'],
-              [t('classes.educationLevel', lang), viewedClass.education_level ?? '—'],
-              [t('classes.groupDept', lang), viewedClass.group_department ?? '—'],
-              [t('classes.shift', lang), shiftLabel(viewedClass.shift) ?? '—'],
-              [t('classes.academicYear', lang), viewedClass.academic_year ?? '—'],
-              [t('classes.students', lang), fmt.format(countFor(counts, viewedClass.id))],
-            ])}
-            <div>
-              <p className="mb-1 text-xs text-muted">{t('classes.classTeacher', lang)}</p>
-              <ClassTeacherPicker
-                key={viewedClass.id}
-                lang={lang}
-                classId={viewedClass.id}
-                teachers={teachers ?? []}
-                current={viewedClass.class_teacher_id}
-              />
-            </div>
-            <div className="flex flex-wrap items-center gap-2 border-t border-line pt-4">
-              <Link href={`/school/classes/routine?class=${viewedClass.id}`} className={linkPill}>
-                {t('classes.routine', lang)}
-              </Link>
-              <Link href="/school/classes/syllabus" className={linkPill}>
-                {t('classes.syllabus', lang)}
-              </Link>
-              <Link href={`/school/students/subject-assignment?class=${viewedClass.id}`} className={linkPill}>
-                {t('classes.subjects', lang)}
-              </Link>
-              <span className="ml-auto">
-                <ArchiveOrDeleteButton classOfferingId={viewedClass.id} used={usedIds.has(viewedClass.id)} lang={lang} />
-              </span>
-            </div>
-          </div>
+          <ClassDrawerBody
+            cls={viewedClass}
+            studentCount={countFor(counts, viewedClass.id)}
+            hasRoutine={routinedClassIds.has(viewedClass.id)}
+            subjects={subjectsInSelection.filter((s) => s.class_id === viewedClass.id)}
+            teachers={teachers ?? []}
+            usedIds={usedIds}
+            showYear={showYearColumn}
+            lang={lang}
+          />
         )}
         {viewedSubject && (
           <div className="grid gap-5">

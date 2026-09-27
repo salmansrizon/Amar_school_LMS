@@ -26,7 +26,9 @@ import { RecordDrawer } from '@/components/data-table/record-drawer'
 import { RowActionPill } from '@/components/data-table/row-action-pill'
 import { withParams } from '@/lib/url-params'
 import { NoticeTabs } from './notice-tabs'
-import { getNotice, noticeMeta, NoticeDetail } from './[id]/notice-detail'
+import { getNotice, noticeMeta } from './[id]/notice-detail'
+import { DrawerFooter, DrawerHeader } from '@/components/data-table/drawer-parts'
+import { NoticeDrawerBody, noticeDrawerCancelHref } from './notice-drawer'
 
 // Notices (map 013 FC3, new_ui/04-finance-communication/notices), following
 // the exam-landing pattern (013 A3): header + subtitle, a one-line urgent-
@@ -249,12 +251,20 @@ export default async function NoticesPage({
       <RecordDrawer
         open={Boolean(viewed)}
         title={viewed?.row.title ?? ''}
-        subtitle={viewed ? noticeMeta(viewed, lang) : undefined}
-        fullPageHref={viewed ? `/school/notices/${viewed.row.id}` : undefined}
+        header={viewed && <DrawerHeader name={viewed.row.title} avatarId={viewed.row.id} subtitle={noticeMeta(viewed, lang)} />}
+        footer={
+          viewed && (
+            <DrawerFooter
+              cancelHref={noticeDrawerCancelHref(params)}
+              cancelLabel={t('routine.cancel', lang)}
+              primary={{ href: `/school/notices/${viewed.row.id}`, label: t('table.openFullPage', lang) }}
+            />
+          )
+        }
         fullPageLabel={t('table.openFullPage', lang)}
         closeLabel={t('common.close', lang)}
       >
-        {viewed && <NoticeDetail notice={viewed} lang={lang} />}
+        {viewed && <NoticeDrawerBody notice={viewed} lang={lang} />}
       </RecordDrawer>
     </>
   )
