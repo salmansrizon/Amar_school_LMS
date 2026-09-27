@@ -28,7 +28,20 @@ const TEXT: Record<WidgetTone, string> = {
 
 export type WidgetAction = { href: string; label: string }
 
-/** One headline number: icon tile, label, value, a toned note, one action. */
+/** Course-card look for the status summary row (user reference, map 013):
+ *  a light wash of the tone, not a solid fill, so ink text keeps its contrast
+ *  in both themes (the -soft tokens flip dark). */
+const WASH: Record<WidgetTone, string> = {
+  brand: 'from-brand-50 to-brand-500/20',
+  mint: 'from-mint-soft to-mint/25',
+  sun: 'from-sun-soft to-sun/30',
+  alert: 'from-alert-soft to-alert/20',
+  sky: 'from-sky-soft to-sky/25',
+  muted: 'from-paper-muted to-line/60',
+}
+
+/** One headline number: tone wash, small label, value, a toned note, one
+ *  action; the icon is drawn large and cropped bottom-right as the card's art. */
 export function StatCard({
   icon,
   tone = 'brand',
@@ -47,21 +60,24 @@ export function StatCard({
   action?: WidgetAction
 }) {
   return (
-    <section className="flex flex-col rounded-2xl border border-line bg-paper p-card">
-      <div className="flex items-start justify-between gap-2">
-        <h2 className="text-sm text-muted">{label}</h2>
-        {icon && (
-          <span className={`flex size-9 shrink-0 items-center justify-center rounded-xl ${SOFT[tone]}`} aria-hidden>
-            {icon}
-          </span>
-        )}
-      </div>
-      <p className="mt-1 text-2xl font-extrabold tracking-tight">{value}</p>
-      {note && <p className={`mt-0.5 text-xs font-medium ${TEXT[noteTone ?? tone]}`}>{note}</p>}
+    <section
+      className={`relative flex min-h-36 flex-col overflow-hidden rounded-3xl bg-gradient-to-br p-card shadow-sm ring-1 ring-line/60 motion-safe:transition motion-safe:hover:-translate-y-0.5 motion-safe:hover:shadow-md ${WASH[tone]}`}
+    >
+      {icon && (
+        <span
+          className={`pointer-events-none absolute -bottom-5 -right-4 rotate-[-12deg] opacity-25 [&>svg]:size-28 ${TEXT[tone]}`}
+          aria-hidden
+        >
+          {icon}
+        </span>
+      )}
+      <h2 className={`relative text-xs font-bold uppercase tracking-wider ${TEXT[tone]}`}>{label}</h2>
+      <p className="relative mt-2 text-3xl font-extrabold tracking-tight text-ink">{value}</p>
+      {note && <p className={`relative mt-1 text-xs font-semibold ${TEXT[noteTone ?? tone]}`}>{note}</p>}
       {action && (
         <Link
           href={action.href}
-          className="mt-auto self-end pt-3 text-right text-xs font-semibold text-brand-600 hover:underline"
+          className="relative mt-auto self-start pt-4 text-xs font-bold text-ink/80 hover:underline"
         >
           {action.label} <span aria-hidden>→</span>
         </Link>
