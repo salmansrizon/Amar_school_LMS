@@ -5,88 +5,103 @@ import { useRouter } from 'next/navigation'
 import { inputClass, labelClass } from '@/components/auth-card'
 import { t, type Lang } from '@/lib/i18n'
 import { requestLeave, approveLeave, rejectLeave } from '../manual-actions'
-import { dateInputClass, selectClass } from '@/components/ui/field'
+import { dateInputClass } from '@/components/ui/field'
+import { Modal } from '@/components/modal'
 
-// Split from the old combined Student+Employee picker (map #664): each
-// audience gets its own single-purpose dropdown rather than one `<select>`
-// with two `<optgroup>`s, but both still submit the same `holder`
-// ("student:<id>" | "employee:<id>") shape `requestLeave` already expects —
-// only the picker UI is audience-specific, not the server action.
-function RequestLeaveFormShell({
+// Replaces the old dropdown-of-every-person-in-the-institute form (map #668)
+// — a row action on an already-filtered roster instead, so the person is
+// implicit (whichever row's button was clicked) rather than picked from a
+// list of everyone. Still submits the same `holder` ("student:<id>" |
+// "employee:<id>") shape `requestLeave` already expects — only the trigger
+// changed, not the server action.
+export function RequestLeaveButton({
   kind,
-  people,
+  personId,
+  personLabel,
   lang,
 }: {
   kind: 'student' | 'employee'
-  people: { id: string; full_name: string }[]
+  personId: string
+  personLabel: string
   lang: Lang
 }) {
+  const router = useRouter()
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
 
   return (
-    <form
-      className="flex flex-wrap items-end gap-2"
-      onSubmit={(e) => {
-        e.preventDefault()
-        const form = e.currentTarget
-        const data = new FormData(form)
-        startTransition(async () => {
-          setError(null)
-          const result = await requestLeave(data)
-          if (result.error) setError(result.error)
-          else form.reset()
-        })
+    <Modal
+      lang={lang}
+      triggerLabel={t('attendance.leaveRequestTitle', lang)}
+      triggerClassName="cursor-pointer rounded-full border border-line px-3 py-1 text-xs font-semibold hover:bg-paper-muted"
+      title={t('attendance.leaveRequestTitle', lang)}
+      onOpenChange={(open) => {
+        if (!open) setError(null)
       }}
     >
-      <div>
-        <label className={labelClass} htmlFor="holder">
-          {t('attendance.leavePerson', lang)}
-        </label>
-        <select id="holder" name="holder" required className={selectClass({ size: 'md', fullWidth: true })}>
-          {people.map((p) => (
-            <option key={p.id} value={`${kind}:${p.id}`}>
-              {p.full_name}
-            </option>
-          ))}
-        </select>
-      </div>
-      <div>
-        <label className={labelClass} htmlFor="from_day">
-          {t('attendance.leaveFromCol', lang)}
-        </label>
-        <input id="from_day" name="from_day" type="date" required className={dateInputClass({ size: 'md', fullWidth: true })} />
-      </div>
-      <div>
-        <label className={labelClass} htmlFor="to_day">
-          {t('attendance.leaveToCol', lang)}
-        </label>
-        <input id="to_day" name="to_day" type="date" required className={dateInputClass({ size: 'md', fullWidth: true })} />
-      </div>
-      <div>
-        <label className={labelClass} htmlFor="reason">
-          {t('attendance.leaveReasonCol', lang)}
-        </label>
-        <input id="reason" name="reason" className={inputClass} />
-      </div>
-      <button
-        type="submit"
-        disabled={pending}
-        className="h-10 cursor-pointer rounded-full bg-brand-500 px-5 text-sm font-semibold text-white hover:bg-brand-600 disabled:opacity-50"
-      >
-        {t('attendance.leaveSubmit', lang)}
-      </button>
-      {error && <p className="w-full text-sm text-alert-deep">{error}</p>}
-    </form>
+      {(close) => (
+        <form
+          className="grid gap-3"
+          onSubmit={(e) => {
+            e.preventDefault()
+            const data = new FormData(e.currentTarget)
+            data.set('holder', `${kind}:${personId}`)
+            startTransition(async () => {
+              setError(null)
+              const result = await requestLeave(data)
+              if (result.error) setError(result.error)
+              else {
+                close()
+                router.refresh()
+              }
+            })
+          }}
+        >
+          <p className="text-sm text-muted">
+            {t('attendance.leavePerson', lang)}: <span className="font-semibold text-ink">{personLabel}</span>
+          </p>
+          <div>
+            <label className={labelClass} htmlFor={`from_day-${kind}-${personId}`}>
+              {t('attendance.leaveFromCol', lang)}
+            </label>
+            <input
+              id={`from_day-${kind}-${personId}`}
+              name="from_day"
+              type="date"
+              required
+              className={dateInputClass({ size: 'md', fullWidth: true })}
+            />
+          </div>
+          <div>
+            <label className={labelClass} htmlFor={`to_day-${kind}-${personId}`}>
+              {t('attendance.leaveToCol', lang)}
+            </label>
+            <input
+              id={`to_day-${kind}-${personId}`}
+              name="to_day"
+              type="date"
+              required
+              className={dateInputClass({ size: 'md', fullWidth: true })}
+            />
+          </div>
+          <div>
+            <label className={labelClass} htmlFor={`reason-${kind}-${personId}`}>
+              {t('attendance.leaveReasonCol', lang)}
+            </label>
+            <input id={`reason-${kind}-${personId}`} name="reason" className={inputClass} />
+          </div>
+          <button
+            type="submit"
+            disabled={pending}
+            className="h-10 cursor-pointer rounded-full bg-brand-500 px-5 text-sm font-semibold text-white hover:bg-brand-600 disabled:opacity-50"
+          >
+            {t('attendance.leaveSubmit', lang)}
+          </button>
+          {error && <p className="text-sm text-alert-deep">{error}</p>}
+        </form>
+      )}
+    </Modal>
   )
-}
-
-export function RequestStudentLeaveForm({ students, lang }: { students: { id: string; full_name: string }[]; lang: Lang }) {
-  return <RequestLeaveFormShell kind="student" people={students} lang={lang} />
-}
-
-export function RequestEmployeeLeaveForm({ employees, lang }: { employees: { id: string; full_name: string }[]; lang: Lang }) {
-  return <RequestLeaveFormShell kind="employee" people={employees} lang={lang} />
 }
 
 export function LeaveActions({ kind, id, lang }: { kind: 'student' | 'employee'; id: string; lang: Lang }) {

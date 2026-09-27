@@ -98,6 +98,103 @@ export interface RosterView {
   classes: ClassCatalogueRow[]
 }
 
+export interface SchoolRosterRead {
+  readable: RosterStudent[]
+  classes: ClassCatalogueRow[]
+}
+
+/**
+ * The roster's raw read — every readable Student plus every Class Offering —
+ * before any class/search filter is applied. Split out of `schoolRoster`
+ * (map #668) so a page needing the SAME roster filtered two different ways
+ * at once (a class/search picker for one purpose, a different class/search
+ * filter for another, on the same page) can fetch once and filter twice via
+ * `filterSchoolRoster`, instead of paying for the students + class_offerings
+ * round trip again per filter.
+ */
+export async function schoolRosterRead(
+  supabase: SupabaseClient,
+  {
+    shiftSelection = [],
+    academicYearSelection = [],
+  }: {
+    shiftSelection?: readonly string[]
+    academicYearSelection?: readonly number[]
+  } = {},
+): Promise<SchoolRosterRead> {
+  // Shift (issue #579, Wave 5/#590): only narrows which classes appear as
+  // picker OPTIONS below — orthogonal to the roster's own filter, which is
+  // now the Enrollment's class_offering_id (see ROSTER_COLUMNS). Caller
+  // passes its own getSchoolContext().shiftSelection — already resolved once
+  // per request, no re-fetch needed here.
+  //
+  // Academic Year is NOT the same kind of filter (issue #621's own
+  // follow-up decision, deliberately diverging from Shift's precedent here):
+  // it narrows the Student read itself, not just the picker's Offering list
+  // below — a Student whose current Enrollment sits in a deselected year is
+  // excluded from the roster outright (see applyGlobalYearFilterToStudents's
+  // own doc comment for the accepted promotion-lag consequence). That
+  // resolution needs its own two round trips before the Students read can
+  // run, so it sits outside the Promise.all below rather than inside it.
+  const studentsQuery = await applyGlobalYearFilterToStudents(
+    supabase,
+    supabase.from('students').select(ROSTER_COLUMNS).is('archived_at', null).order('full_name'),
+    academicYearSelection,
+  )
+  const [{ data: students }, { data: classes }] = await Promise.all([
+    studentsQuery,
+    applyGlobalYearFilterToOfferings(
+      applyGlobalShiftFilterToOfferings(
+        supabase
+          .from('class_offerings')
+          .select('id, name, section, group_department, shift, academic_year')
+          .order('created_at'),
+        shiftSelection,
+      ),
+      academicYearSelection,
+    ),
+  ])
+
+  return {
+    readable: ((students ?? []) as StudentRow[]).map(toRosterStudent),
+    classes: (classes ?? []) as ClassCatalogueRow[],
+  }
+}
+
+/** The synchronous half of `schoolRoster` — applies a class/search filter to
+ *  an already-fetched `schoolRosterRead()` result. No `empty` reason here
+ *  (that needs `classScopeFor`'s RPC round trip, only worth paying for when a
+ *  caller actually renders a "why is this empty" message — see
+ *  `schoolRoster` below for the caller that does). */
+export function filterSchoolRoster(
+  read: SchoolRosterRead,
+  {
+    classSection = '',
+    q = '',
+    showYear = false,
+  }: {
+    classSection?: string
+    q?: string
+    showYear?: boolean
+  } = {},
+): Pick<RosterView, 'combos' | 'className' | 'section' | 'students' | 'classes'> {
+  // classSection IS the picked Class Offering's id already (classCatalogueOptions'
+  // own `value`) — rosterFor filters on it directly, no text round-trip.
+  // combos/className/section stay purely for display (picker options, print
+  // headings) via the one canonical helper (class-catalogue.ts), not a second
+  // one duplicating it (map #568/#582, Wave 4a Part B).
+  const { combos, className, section } = resolveClassSection(read.classes, classSection, showYear)
+  // An id that doesn't match any current Offering (deleted, mistyped, a stale
+  // bookmark/printout) must degrade to "All classes", same as an absent
+  // filter — resolveClassCatalogueSelection's own documented contract, which
+  // filtering on the raw classSection directly would silently break (caught
+  // by code review): a non-matching id would filter to zero students instead
+  // of falling back, even though the picker still reads as "All" selected.
+  const resolvedOfferingId = combos.some((c) => c.value === classSection) ? classSection : ''
+  const matched = searchRoster(rosterFor(read.readable, resolvedOfferingId), q)
+  return { combos, className, section, students: matched, classes: read.classes }
+}
+
 /**
  * The roster behind a School screen: students the caller may read, narrowed by
  * the screen's class filter and search box, plus the reason it is empty.
@@ -133,67 +230,25 @@ export async function schoolRoster(
     academicYearSelection?: readonly number[]
   } = {},
 ): Promise<RosterView> {
-  // Shift (issue #579, Wave 5/#590): only narrows which classes appear as
-  // picker OPTIONS below — orthogonal to the roster's own filter, which is
-  // now the Enrollment's class_offering_id (see ROSTER_COLUMNS). Caller
-  // passes its own getSchoolContext().shiftSelection — already resolved once
-  // per request, no re-fetch needed here.
-  //
-  // Academic Year is NOT the same kind of filter (issue #621's own
-  // follow-up decision, deliberately diverging from Shift's precedent here):
-  // it narrows the Student read itself, not just the picker's Offering list
-  // below — a Student whose current Enrollment sits in a deselected year is
-  // excluded from the roster outright (see applyGlobalYearFilterToStudents's
-  // own doc comment for the accepted promotion-lag consequence). That
-  // resolution needs its own two round trips before the Students read can
-  // run, so it sits outside the Promise.all below rather than inside it.
-  const studentsQuery = await applyGlobalYearFilterToStudents(
-    supabase,
-    supabase.from('students').select(ROSTER_COLUMNS).is('archived_at', null).order('full_name'),
-    academicYearSelection,
-  )
-  const [{ data: students }, { data: classes }] = await Promise.all([
-    studentsQuery,
-    applyGlobalYearFilterToOfferings(
-      applyGlobalShiftFilterToOfferings(
-        supabase
-          .from('class_offerings')
-          .select('id, name, section, group_department, shift, academic_year')
-          .order('created_at'),
-        shiftSelection,
-      ),
-      academicYearSelection,
-    ),
-  ])
-
-  const readable = ((students ?? []) as StudentRow[]).map(toRosterStudent)
-  // classSection IS the picked Class Offering's id already (classCatalogueOptions'
-  // own `value`) — rosterFor filters on it directly, no text round-trip.
-  // combos/className/section stay purely for display (picker options, print
-  // headings) via the one canonical helper (class-catalogue.ts), not a second
-  // one duplicating it (map #568/#582, Wave 4a Part B).
-  const { combos, className, section } = resolveClassSection((classes ?? []) as ClassCatalogueRow[], classSection, showYear)
-  // An id that doesn't match any current Offering (deleted, mistyped, a stale
-  // bookmark/printout) must degrade to "All classes", same as an absent
-  // filter — resolveClassCatalogueSelection's own documented contract, which
-  // filtering on the raw classSection directly would silently break (caught
-  // by code review): a non-matching id would filter to zero students instead
-  // of falling back, even though the picker still reads as "All" selected.
-  const resolvedOfferingId = combos.some((c) => c.value === classSection) ? classSection : ''
-  const matched = searchRoster(rosterFor(readable, resolvedOfferingId), q)
+  const read = await schoolRosterRead(supabase, { shiftSelection, academicYearSelection })
+  const { combos, className, section, students: matched, classes } = filterSchoolRoster(read, {
+    classSection,
+    q,
+    showYear,
+  })
 
   // 0160 narrows this read to the caller's class attachment, so an Employee with
   // no attachment gets nothing back. Ask why only when the answer matters — the
   // RPC is a round-trip, and a non-empty roster has already answered it.
-  const scope = matched.length || readable.length ? 'attached' : await classScopeFor(supabase)
+  const scope = matched.length || read.readable.length ? 'attached' : await classScopeFor(supabase)
 
   return {
     combos,
     className,
     section,
     students: matched,
-    empty: rosterEmptyReason({ readable: readable.length, matched: matched.length, scope }),
-    classes: (classes ?? []) as ClassCatalogueRow[],
+    empty: rosterEmptyReason({ readable: read.readable.length, matched: matched.length, scope }),
+    classes,
   }
 }
 

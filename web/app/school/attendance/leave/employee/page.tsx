@@ -4,7 +4,7 @@ import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { AttendanceTabs } from '../../attendance-tabs'
-import { RequestEmployeeLeaveForm, LeaveActions } from '../leave-controls'
+import { RequestLeaveButton, LeaveActions } from '../leave-controls'
 
 // Split off the Employees half of the old unified Leave Management page (map
 // #664). Employee search follows the same name-substring-over-the-full-roster
@@ -38,9 +38,9 @@ interface EmployeeLeaveRow {
 export default async function EmployeeLeaveManagementPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string }>
+  searchParams: Promise<{ q?: string; rosterQ?: string }>
 }) {
-  const { q = '' } = await searchParams
+  const { q = '', rosterQ = '' } = await searchParams
   const lang: Lang = await currentLang()
   const { supabase } = await getSchoolContext()
 
@@ -51,11 +51,20 @@ export default async function EmployeeLeaveManagementPage({
     .order('full_name')
   const allEmployees = employees ?? []
 
+  const matchByName = (query: string) => {
+    const needle = query.trim().toLowerCase()
+    return needle ? allEmployees.filter((e) => e.full_name.toLowerCase().includes(needle)) : allEmployees
+  }
+
   const filterActive = Boolean(q.trim())
-  const matched = filterActive
-    ? allEmployees.filter((e) => e.full_name.toLowerCase().includes(q.trim().toLowerCase()))
-    : allEmployees
+  const matched = matchByName(q)
   const matchedIds = matched.map((e) => e.id)
+
+  // Independent from `q`/`matched` above (map #668): the "who can I request
+  // leave for" roster browser has its own search, kept separate from the
+  // leave-records filter so submitting one doesn't reset the other. Same
+  // matchByName helper, so the two search boxes can't silently drift apart.
+  const rosterMatched = matchByName(rosterQ)
 
   let leaves: EmployeeLeaveRow[] = []
   if (filterActive) {
@@ -96,10 +105,54 @@ export default async function EmployeeLeaveManagementPage({
 
       <section className="mb-6 rounded-lg border border-line bg-paper p-5">
         <h3 className="mb-3 font-bold">{t('attendance.leaveRequestTitle', lang)}</h3>
-        <RequestEmployeeLeaveForm employees={allEmployees} lang={lang} />
+        <Form className="mb-4 flex flex-wrap items-end gap-2" action="/school/attendance/leave/employee">
+          {/* Preserves the leave-records filter below across this form's own submit. */}
+          <input type="hidden" name="q" value={q} />
+          <div>
+            <label className="mb-1 block text-xs font-semibold text-muted">{t('attendance.employeeSearch', lang)}</label>
+            <input
+              name="rosterQ"
+              defaultValue={rosterQ}
+              placeholder={t('attendance.employeeSearch', lang)}
+              className="w-64 rounded-md border border-line bg-paper px-3 py-1.5 text-sm"
+            />
+          </div>
+          <button
+            type="submit"
+            className="h-9 cursor-pointer rounded-full border border-line px-3 py-1 text-xs font-semibold hover:bg-paper-muted"
+          >
+            {t('classes.filter', lang)}
+          </button>
+        </Form>
+        {!rosterMatched.length ? (
+          <p className="text-sm text-muted">{t('attendance.none', lang)}</p>
+        ) : (
+          <div className="overflow-x-auto rounded-lg border border-line">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="border-b border-line-strong">
+                  <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">{t('attendance.leaveName', lang)}</th>
+                  <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted" />
+                </tr>
+              </thead>
+              <tbody>
+                {rosterMatched.map((e) => (
+                  <tr key={e.id} className="border-b border-line last:border-0">
+                    <td className="px-3 py-2 text-sm font-medium">{e.full_name}</td>
+                    <td className="px-3 py-2 text-sm">
+                      <RequestLeaveButton kind="employee" personId={e.id} personLabel={e.full_name} lang={lang} />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </section>
 
       <Form className="mb-4 flex flex-wrap items-end gap-2 rounded-lg border border-line bg-paper p-5" action="/school/attendance/leave/employee">
+        {/* Preserves the roster-browser filter above across this form's own submit. */}
+        <input type="hidden" name="rosterQ" value={rosterQ} />
         <div>
           <label className="mb-1 block text-xs font-semibold text-muted">{t('attendance.employeeSearch', lang)}</label>
           <input
