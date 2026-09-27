@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation'
 import { inputClass, labelClass } from '@/components/auth-card'
 import { t, type Lang } from '@/lib/i18n'
 import { requestLeave, approveLeave, rejectLeave } from '../manual-actions'
-import { dateInputClass, selectClass } from '@/components/ui/field'
+import { dateInputClass } from '@/components/ui/field'
+import { ComboboxField } from '@/components/ui/combobox-field'
 
 // Split from the old combined Student+Employee picker (map #664): each
 // audience gets its own single-purpose dropdown rather than one `<select>`
@@ -43,13 +44,13 @@ function RequestLeaveFormShell({
         <label className={labelClass} htmlFor="holder">
           {t('attendance.leavePerson', lang)}
         </label>
-        <select id="holder" name="holder" required className={selectClass({ size: 'md', fullWidth: true })}>
-          {people.map((p) => (
-            <option key={p.id} value={`${kind}:${p.id}`}>
-              {p.full_name}
-            </option>
-          ))}
-        </select>
+        <ComboboxField
+          id="holder"
+          name="holder"
+          required
+          className="w-full"
+          options={people.map((p) => ({ value: `${kind}:${p.id}`, label: p.full_name }))}
+        />
       </div>
       <div>
         <label className={labelClass} htmlFor="from_day">
