@@ -14,7 +14,7 @@ import { pgConstraintMessage } from '@/lib/crud/pg-error'
 // school_id, shift, employee_category, day_of_week) is the real authority on
 // conflicts; these actions validate shape and translate its errors.
 
-const PAGE = '/school/institute/office-hour'
+const PAGE = '/school/attendance/employee/office-hour'
 
 interface ParsedSelections {
   shift: string | null

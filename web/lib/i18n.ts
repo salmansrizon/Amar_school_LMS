@@ -2241,6 +2241,9 @@ const dict = {
   // Two-level nav grouping (map #663): Students / Employees / Off-Days Calendar.
   'attendance.groupStudents': { bn: 'শিক্ষার্থী', en: 'Students' },
   'attendance.groupEmployees': { bn: 'কর্মচারী', en: 'Employees' },
+  // Office Hour moved here from Institute Setup (map #669, ADR 0029) —
+  // same label text as the retired institute.tabOfficeHour key.
+  'attendance.tabOfficeHour': { bn: 'অফিস আওয়ার', en: 'Office Hour' },
 
   'attendance.markTitle': { bn: 'শিক্ষার্থী উপস্থিতি — হাজিরা নিন', en: 'Student Attendance — Mark' },
   'attendance.class': { bn: 'শ্রেণি', en: 'Class' },
@@ -2395,7 +2398,6 @@ const dict = {
   'institute.tabChecklist': { bn: 'দৈনিক চেকলিস্ট', en: 'Activity Checklist' },
   'institute.tabLogistics': { bn: 'লজিস্টিক্স ইনডেক্স', en: 'Logistics Index' },
   'institute.tabTemplates': { bn: 'খালি টেমপ্লেট', en: 'Blank Templates' },
-  'institute.tabOfficeHour': { bn: 'অফিস আওয়ার', en: 'Office Hour' },
   'institute.tabVenues': { bn: 'ভবন ও কক্ষ', en: 'Venues' },
   // Venues master data (issue #93, docs/improvement.md §2A).
   'venues.intro': {

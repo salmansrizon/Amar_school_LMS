@@ -4,9 +4,10 @@ import { t, type Lang, type MessageKey } from '@/lib/i18n'
 // Shared tab bar per the mockups (institute-profile.html, activity-checklist.html,
 // logistics-index.html, blank-templates.html) — real routes, not anchors, since
 // each tab has its own data/forms (unlike the single-page classes anchors).
+// Office Hour moved to Attendance > Employees (issue #669, ADR 0029) — not a
+// tab here any more, no duplicate route/link left behind.
 const TABS: { href: string; key: MessageKey }[] = [
   { href: '/school/institute', key: 'institute.tabProfile' },
-  { href: '/school/institute/office-hour', key: 'institute.tabOfficeHour' },
   { href: '/school/institute/venues', key: 'institute.tabVenues' },
   { href: '/school/institute/checklist', key: 'institute.tabChecklist' },
   { href: '/school/institute/logistics', key: 'institute.tabLogistics' },

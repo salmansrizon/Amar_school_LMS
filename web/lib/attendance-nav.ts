@@ -20,10 +20,13 @@ export const ATTENDANCE_STUDENT_TABS: AttendanceTab[] = [
   { href: '/school/attendance/leave/student', key: 'attendance.tabLeave' },
 ]
 
-// Office Hour becomes the Employees group's first tab (map #669) — the
-// group's default sidebar route (attendanceGroupHref('employees')) follows
-// automatically since it always reads tabs[0].
+// Office Hour moved here from Institute Setup (issue #669, ADR 0029) as the
+// Employees group's first tab — the group's default sidebar route
+// (attendanceGroupHref('employees')) follows automatically since it always
+// reads tabs[0]. This route move is itself the Permission Grant change (see
+// ADR 0029): Office Hour is now gated by `attendance`, not `institute`.
 export const ATTENDANCE_EMPLOYEE_TABS: AttendanceTab[] = [
+  { href: '/school/attendance/employee/office-hour', key: 'attendance.tabOfficeHour' },
   { href: '/school/attendance/employee', key: 'attendance.tabEmployee' },
   { href: '/school/attendance/leave/employee', key: 'attendance.tabLeave' },
 ]
