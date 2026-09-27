@@ -7,7 +7,7 @@ import { countRollsInRange, overlappingRowIds } from '@/lib/exam-setup'
 import { t, type Lang } from '@/lib/i18n'
 import { withOrigin } from '@/lib/back-nav'
 import { generateSeatPlanFor, publishSeatPlan, removeSeatPlanRow, saveSeatPlanRow } from './actions'
-import { selectClass } from '@/components/ui/field'
+import { ComboboxField } from '@/components/ui/combobox-field'
 
 export interface RoomOption {
   id: string
@@ -240,16 +240,16 @@ export function AddSeatPlanRowForm({ examId, rooms, lang }: { examId: string; ro
     >
       <div>
         <label className={labelClass} htmlFor="room_id">{t('seatPlan.room', lang)}</label>
-        <select id="room_id" name="room_id" required defaultValue="" className={selectClass({ size: 'md', fullWidth: true })}>
-          <option value="" disabled>
-            {t('seatPlan.pickRoom', lang)}
-          </option>
-          {rooms.map((r) => (
-            <option key={r.id} value={r.id}>
-              {r.name} ({r.capacity})
-            </option>
-          ))}
-        </select>
+        <ComboboxField
+          id="room_id"
+          name="room_id"
+          required
+          defaultValue=""
+          options={[
+            { value: '', label: t('seatPlan.pickRoom', lang), disabled: true },
+            ...rooms.map((r) => ({ value: r.id, label: `${r.name} (${r.capacity})` })),
+          ]}
+        />
       </div>
       <div>
         <label className={labelClass} htmlFor="roll_start">{t('seatPlan.rollStart', lang)}</label>
