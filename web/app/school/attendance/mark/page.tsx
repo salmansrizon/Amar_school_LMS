@@ -213,7 +213,6 @@ export default async function MarkAttendancePage({
 
       <QuickActions
         title={t('dash.quickActions', lang)}
-        openLabel={t('dash.openModule', lang)}
         actions={[
           { href: '/school/attendance/book', label: t('attendance.tabBook', lang), icon: <BookOpen className="size-4" /> },
           {
