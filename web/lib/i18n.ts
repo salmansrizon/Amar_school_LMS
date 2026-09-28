@@ -2660,6 +2660,30 @@ const dict = {
   'attendance.leaveSubmit': { bn: 'আবেদন জমা দিন', en: 'Submit Request' },
   'attendance.leaveDetails': { bn: 'বিস্তারিত', en: 'Details' },
 
+  // Per-employee attendance calendar (employees/[id]/attendance) and the two
+  // new school-wide calendars (off-days Leave Calendar, employee Attendance
+  // Calendar). Shared across all three so "Calendar"/month-nav read the same
+  // everywhere; view-toggle labels stay distinct (List vs Table) because the
+  // two pages keep different existing views underneath.
+  'attendance.calendarPrevMonth': { bn: 'পূর্ববর্তী মাস', en: 'Previous month' },
+  'attendance.calendarNextMonth': { bn: 'পরবর্তী মাস', en: 'Next month' },
+  'attendance.calendarUpcoming': { bn: 'আসন্ন', en: 'Upcoming' },
+  'attendance.presentRateCard': { bn: 'উপস্থিতির হার', en: 'Present Rate' },
+  'attendance.absentDaysCard': { bn: 'অনুপস্থিত দিন', en: 'Absent Days' },
+  'attendance.leaveDaysCard': { bn: 'ছুটির দিন', en: 'Leave Days' },
+  'attendance.viewCalendar': { bn: 'ক্যালেন্ডার', en: 'Calendar' },
+  'attendance.viewList': { bn: 'তালিকা', en: 'List' },
+  'attendance.viewTable': { bn: 'টেবিল', en: 'Table' },
+  'attendance.offDayRemoveTitle': { bn: 'ছুটির দিন সরান', en: 'Remove this off-day' },
+  'attendance.dayStatusTitle': { bn: 'কর্মচারীদের অবস্থা', en: 'Employee status' },
+  // Attendance Rate band names (CONTEXT.md: >=90 Regular, 75-89 Irregular, <75
+  // At risk — lib/dashboard.ts's attendanceBand), spelled out for the
+  // Employee Attendance Calendar's legend; the day cells themselves always
+  // carry the percent number too; colour is never the only signal.
+  'attendance.regular': { bn: 'নিয়মিত', en: 'Regular' },
+  'attendance.irregular': { bn: 'অনিয়মিত', en: 'Irregular' },
+  'attendance.atRisk': { bn: 'ঝুঁকিপূর্ণ', en: 'At risk' },
+
   'attendance.offDayTitle': { bn: 'ছুটির দিন ক্যালেন্ডার', en: 'Off-Day Calendar' },
   'attendance.offDayLegendRegular': { bn: 'সাধারণ ছুটি', en: 'Regular Off-Day' },
   'attendance.offDayLegendSignificant': { bn: 'গুরুত্বপূর্ণ দিন', en: 'Significant Day' },
