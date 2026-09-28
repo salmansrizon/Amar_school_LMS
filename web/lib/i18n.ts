@@ -486,6 +486,18 @@ const dict = {
   'dash.subExpired': { bn: 'মেয়াদোত্তীর্ণ', en: 'Expired' },
   'dash.subExpires': { bn: 'মেয়াদ শেষ', en: 'expires' },
   'dash.subNoExpiry': { bn: 'কোনো মেয়াদ নির্ধারিত নেই', en: 'no expiry set' },
+  // Dashboard subscription-card countdown (days-left in the School's own
+  // calendar day, Asia/Dhaka). English needs singular/plural; Bangla numerals
+  // don't inflect, so both branches share one suffix.
+  'dash.subDayLeft': { bn: 'দিন বাকি', en: 'day left' },
+  'dash.subDaysLeft': { bn: 'দিন বাকি', en: 'days left' },
+  'dash.subExpiresToday': { bn: 'আজ মেয়াদ শেষ হচ্ছে', en: 'expires today' },
+  // "expired" leads in English ("expired 3 days ago") but Bangla's natural
+  // order puts the number first ("৩ দিন আগে মেয়াদ শেষ হয়েছে"), so the prefix
+  // is empty for bn and the count+suffix carries the whole meaning there.
+  'dash.subExpiredPrefix': { bn: '', en: 'expired' },
+  'dash.subExpiredDayAgo': { bn: 'দিন আগে মেয়াদ শেষ হয়েছে', en: 'day ago' },
+  'dash.subExpiredDaysAgo': { bn: 'দিন আগে মেয়াদ শেষ হয়েছে', en: 'days ago' },
   'dash.modules': { bn: 'সকল মডিউল', en: 'All Modules' },
   'dash.openModule': { bn: 'খুলুন', en: 'Open' },
   'dash.quickActions': { bn: 'দ্রুত পদক্ষেপ', en: 'Quick Actions' },

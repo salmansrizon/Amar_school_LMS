@@ -17,6 +17,7 @@ import {
   unmarkedOfferings,
   type DashAlertKind,
 } from '@/lib/dashboard'
+import { daysLeft, isDaysLeftDanger, countdownKind } from '@/lib/subscription'
 import { hubSummary } from '@/lib/student/hub-source'
 import { loadSchoolSmsCredit } from '@/lib/sms/credit'
 import type { ActivityChecklistItem, ChecklistTicks } from '@/lib/institute'
@@ -253,6 +254,32 @@ export default async function SchoolHome() {
   const subLabel =
     subState === 'trial' ? t('dash.subTrial', lang) : subState === 'expired' ? t('dash.subExpired', lang) : t('dash.subActive', lang)
 
+  // Days-left countdown (issue: dashboard subscription card), in the School's
+  // own calendar day (Asia/Dhaka) rather than the server's UTC clock. `null`
+  // when no expiry is on record at all (an open-ended trial).
+  const subDaysLeft = subscriptionExpiresAt ? daysLeft(subscriptionExpiresAt, now) : null
+  const subDanger = subState === 'expired' || (subDaysLeft !== null && isDaysLeftDanger(subDaysLeft))
+  const subTone = subDanger ? 'alert' : 'mint'
+  const subCountdown =
+    subDaysLeft === null
+      ? null
+      : countdownKind(subDaysLeft) === 'left'
+        ? `${fmt(subDaysLeft)} ${t(subDaysLeft === 1 ? 'dash.subDayLeft' : 'dash.subDaysLeft', lang)}`
+        : countdownKind(subDaysLeft) === 'today'
+          ? t('dash.subExpiresToday', lang)
+          : [
+              t('dash.subExpiredPrefix', lang),
+              fmt(-subDaysLeft),
+              t(subDaysLeft === -1 ? 'dash.subExpiredDayAgo' : 'dash.subExpiredDaysAgo', lang),
+            ]
+              .filter(Boolean)
+              .join(' ')
+  const subNote = subscriptionExpiresAt
+    ? [subCountdown, `${t('dash.subExpires', lang)} ${shortDateFmt.format(new Date(subscriptionExpiresAt + 'T00:00:00Z'))}`]
+        .filter(Boolean)
+        .join(' · ')
+    : t('dash.subNoExpiry', lang)
+
   // My Classes (#443) is not grant-gated: being the class teacher is the
   // authorization, so the dashboard is where a Class Teacher finds it.
   const { data: myEmployeeId } = await supabase.rpc('app_current_employee_id')
@@ -321,19 +348,15 @@ export default async function SchoolHome() {
           noteTone="muted"
           action={can('attendance') ? { href: '/school/attendance', label: t('dash.attendanceReport', lang) } : undefined}
         />
-        {/* No plan name and no subscription page exist yet, so this card shows
-            the status + expiry and carries no action link. */}
+        {/* No subscription page exists yet, so this card carries no action
+            link — the countdown (note) turns alert-red in the last 7 days
+            or once lapsed, sharing the reminder banner's threshold. */}
         <StatCard
           icon={<Icon name="staff" className="size-5" />}
-          tone={subState === 'expired' ? 'alert' : 'mint'}
+          tone={subTone}
           label={t('dash.subscription', lang)}
           value={subLabel}
-          note={
-            subscriptionExpiresAt
-              ? `${t('dash.subExpires', lang)} ${shortDateFmt.format(new Date(subscriptionExpiresAt + 'T00:00:00Z'))}`
-              : t('dash.subNoExpiry', lang)
-          }
-          noteTone="muted"
+          note={subNote}
         />
       </StatGrid>
 
