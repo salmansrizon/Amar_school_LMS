@@ -1,5 +1,5 @@
 import { test, expect, asRole } from '../fixtures/roles'
-import { expectInlineError, expectNoError } from '../helpers'
+import { expectInlineError, expectNoError, pickOption } from '../helpers'
 import { signedIn } from '../../tests/helpers/auth'
 import { formatTaka } from '@/lib/money'
 
@@ -18,13 +18,19 @@ test.describe('@crud @super-admin settlements', () => {
     await page.goto(PATH)
     await expect(page.getByRole('heading', { name: 'Settlements' })).toBeVisible()
     await expect(page.getByRole('columnheader', { name: 'Unsettled' })).toBeVisible()
-    await expect(page.locator('select[name="distributor"] option').nth(1)).toBeAttached()
+    // The distributor picker's options only exist in the DOM while its popup
+    // is open (ComboboxField, ui/combobox-field.tsx).
+    await page.getByRole('combobox').first().click()
+    await expect(page.getByRole('option').nth(1)).toBeAttached()
     await expectNoError(page)
   })
 
   test('run with an invalid period → inline error', async ({ superAdminPage: page }) => {
     await page.goto(PATH)
-    await page.locator('select[name="distributor"]').selectOption({ index: 1 })
+    // No id/aria-label (bare grid form) but the only combobox on the page;
+    // index 0 is the disabled "Distributor…" placeholder.
+    await page.getByRole('combobox').first().click()
+    await page.getByRole('option').nth(1).click()
     await page.locator('input[name="period_start"]').fill('2020-12-31')
     await page.locator('input[name="period_end"]').fill('2020-01-01')
     await page.getByRole('button', { name: 'Run settlement' }).click()
@@ -47,8 +53,13 @@ test.describe('@crud @super-admin settlements', () => {
     const { data: c } = await sup.from('commissions').select('commission_amount').eq('id', cid as string).single()
     const amtStr = formatTaka(c!.commission_amount) // the settlement total to find
 
+    // The picker is type-to-filter now (ComboboxField) and matches by visible
+    // label, not the raw id — look the distributor's display name up so the
+    // UI interaction stays a real "type/select by name" rather than an id.
+    const { data: dealer } = await sup.from('distributors').select('name').eq('id', DEALER).single()
+
     await page.goto(PATH)
-    await page.locator('select[name="distributor"]').selectOption(DEALER)
+    await pickOption(page, page.getByRole('combobox').first(), dealer!.name)
     const today = new Date().toISOString().slice(0, 10)
     await page.locator('input[name="period_start"]').fill(today)
     await page.locator('input[name="period_end"]').fill(today)

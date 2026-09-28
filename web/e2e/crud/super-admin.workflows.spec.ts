@@ -1,5 +1,5 @@
 import { test, expect, asRole } from '../fixtures/roles'
-import { expectNoError } from '../helpers'
+import { expectNoError, pickOption } from '../helpers'
 
 // Super-admin Workflows (map #329, ticket #352, playwright-crud-plan §3).
 // Create a definition + stages (auto-seq), activate/deactivate, delete. Inbox is
@@ -27,7 +27,7 @@ test.describe('@crud @super-admin workflows', () => {
     // Add two stages → auto-sequenced (stages render as "seq. name · role").
     const addStage = async (nm: string, expectSeq: number) => {
       await card.locator('input[name="name_en"]').fill(nm)
-      await card.locator('select[name="approver_role"]').selectOption('super_admin')
+      await pickOption(page, card.getByRole('combobox', { name: 'approver role' }), 'super_admin')
       await card.getByRole('button', { name: 'Add stage' }).click()
       await expect(card.locator('ol > li').filter({ hasText: 'super_admin' })).toHaveCount(expectSeq)
     }
