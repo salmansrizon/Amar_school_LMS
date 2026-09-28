@@ -149,24 +149,9 @@ export function ProfileFields({
         </div>
       </Card>
 
-      <Card title={t('employees.subjectOfficeTime', lang)}>
+      <Card title={t('employees.subjectTitle', lang)}>
         <Field label={t('employees.subjectTaught', lang)}>
           <input name="subject_taught" defaultValue={d('subject_taught')} className={fieldClass} />
-        </Field>
-        <p className="mt-2 text-xs text-muted">{t('employees.officeTimeAssignHint', lang)}</p>
-      </Card>
-
-      <Card title={t('employees.graceOverrideTitle', lang)}>
-        <p className="mb-3 text-sm text-muted">{t('grace.hint', lang)}</p>
-        <Field label={t('employees.override', lang)}>
-          <input
-            name="grace_override"
-            type="number"
-            min={0}
-            defaultValue={d('grace_override_minutes')}
-            className={fieldClass}
-            placeholder="e.g. 20"
-          />
         </Field>
       </Card>
     </>

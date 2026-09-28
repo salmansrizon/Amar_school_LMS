@@ -116,7 +116,9 @@ describe('RFID Attendance Event ingestion + reconciliation (issue #10)', () => {
     expect(data).toHaveLength(1)
     expect(data![0].entry_at).toBe(`${DAY}T07:58:00+00:00`)
     expect(data![0].exit_at).toBe(`${DAY}T13:00:00+00:00`)
-    // Entry 07:58 ≤ 08:00+20m grace; exit 13:00 < 14:00 → early exit only.
+    // Entry 07:58 is before office_start 08:00 regardless of grace (Office
+    // Time's own grace level was retired by #671/ADR 0030 — no grace is
+    // configured here at all); exit 13:00 < 14:00 → early exit only.
     expect(data![0].status).toBe('exit_early')
   })
 

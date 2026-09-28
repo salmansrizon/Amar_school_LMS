@@ -844,10 +844,7 @@ const dict = {
   'employees.add': { bn: 'নতুন কর্মচারী', en: 'New employee' },
   'employees.name': { bn: 'পূর্ণ নাম', en: 'Full name' },
   'employees.category': { bn: 'ক্যাটাগরি', en: 'Category' },
-  'employees.override': { bn: 'ব্যক্তিগত গ্রেস (মিনিট)', en: 'Individual grace (min)' },
   'employees.none': { bn: 'এখনো কোনো কর্মচারী নেই', en: 'No employees yet' },
-  'employees.effective': { bn: 'কার্যকর গ্রেস', en: 'Effective grace' },
-  'employees.officeTimes': { bn: 'অফিস সময়', en: 'Office Times' },
   // Employee multi-shift assignment (issue #580, Wave 5/#590) — a permanent
   // fact about the Employee, worded to be unmistakably distinct from Global
   // Shift Selection's view-preference control elsewhere in the chrome.
@@ -900,16 +897,10 @@ const dict = {
   'employees.categoryLegacy': { bn: 'বিদ্যমান মান', en: 'existing value' },
   'employees.qualification': { bn: 'যোগ্যতা', en: 'Qualification' },
   'employees.department': { bn: 'ডিপার্টমেন্ট', en: 'Department' },
-  'employees.subjectOfficeTime': { bn: 'বিষয় ও অফিস সময়', en: 'Subject & Office Time' },
+  // Renamed from subjectOfficeTime (issue #671) — Office Time assignment is
+  // gone, only Subject Taught remains under this card.
+  'employees.subjectTitle': { bn: 'বিষয়', en: 'Subject' },
   'employees.subjectTaught': { bn: 'পাঠদানকৃত বিষয়', en: 'Subject Taught' },
-  'employees.officeTimeAssignHint': {
-    bn: 'সংরক্ষণের পর প্রোফাইল পৃষ্ঠা থেকে অফিস সময় নির্ধারণ করুন (একাধিক অফিস সময় সম্ভব)।',
-    en: 'Assign office times from the profile page after saving (multiple office times allowed).',
-  },
-  'employees.graceOverrideTitle': {
-    bn: 'ব্যক্তিগত গ্রেস উইন্ডো ওভাররাইড (ঐচ্ছিক)',
-    en: 'Individual Grace Window Override (optional)',
-  },
   'employees.saveEmployee': { bn: 'কর্মচারী সংরক্ষণ করুন', en: 'Save Employee' },
   'employees.editProfile': { bn: 'প্রোফাইল সম্পাদনা', en: 'Edit Profile' },
   'employees.archive': { bn: 'আর্কাইভ করুন', en: 'Archive' },
@@ -930,24 +921,37 @@ const dict = {
   'employees.allCategories': { bn: 'সকল বিভাগ', en: 'All Categories' },
   'employees.status': { bn: 'অবস্থা', en: 'Status' },
   'employees.view': { bn: 'দেখুন', en: 'View' },
-  'employees.gradeLevel': { bn: 'স্তর', en: 'Level' },
-  'employees.gradeLevelCategory': { bn: 'বিভাগ', en: 'Category' },
-  'employees.gradeLevelOfficeTime': { bn: 'অফিস সময়', en: 'Office Time' },
-  'employees.graceMinutes': { bn: 'গ্রেস মিনিট', en: 'Grace Minutes' },
-  'employees.graceWindowTitle': {
-    bn: 'অফিস-টাইম ও কনসিডারেবল গ্রেস উইন্ডো',
-    en: 'Office-Time & Considerable Grace Window',
-  },
-  'employees.winningValue': { bn: 'জয়ী (সর্বোচ্চ মান)', en: 'Winning (max value)' },
   'grace.global': { bn: 'স্কুল ডিফল্ট গ্রেস (মিনিট)', en: 'School default grace (min)' },
-  'grace.hint': {
-    bn: 'কার্যকর গ্রেস = সব প্রযোজ্য মানের সর্বোচ্চ (গ্লোবাল, ক্যাটাগরি, অফিস সময়, ব্যক্তিগত)',
-    en: 'Effective grace = MAX across all applicable values (global, category, office time, individual)',
-  },
-  'officeTimes.add': { bn: 'নতুন অফিস সময়', en: 'New office time' },
-  'officeTimes.name': { bn: 'অফিস সময়ের নাম', en: 'Office time name' },
-  'officeTimes.grace': { bn: 'গ্রেস (মিনিট)', en: 'Grace (min)' },
   'categoryGrace.add': { bn: 'ক্যাটাগরি গ্রেস', en: 'Category grace' },
+
+  // Grace Time (issue #671, ADR 0030): Attendance > Employees tab replacing
+  // the removed Employees-module grace UI and retired per-Employee Office
+  // Time. Two sections — standing rules, and dated Ad-Hoc Grace Exemptions.
+  'graceTime.hint': {
+    bn: 'কার্যকর গ্রেস = সব প্রযোজ্য মানের সর্বোচ্চ (স্কুল ডিফল্ট, ক্যাটাগরি, নামাজ ও টিফিন উইন্ডো, নির্দিষ্ট তারিখের বিশেষ ছাড়)',
+    en: 'Effective grace = MAX across all applicable values (School default, Category, Prayer & Tiffin Window, that date\'s Ad-Hoc Exemption)',
+  },
+  'graceTime.minutesLabel': { bn: 'গ্রেস (মিনিট)', en: 'Grace (min)' },
+  'graceTime.standingTitle': { bn: 'নিয়মিত নিয়মাবলী', en: 'Standing Rules' },
+  'graceTime.prayerTiffinLabel': { bn: 'নামাজ ও টিফিন উইন্ডো (মিনিট)', en: 'Prayer & Tiffin Window (min)' },
+  'graceTime.prayerTiffinHint': {
+    bn: 'নির্দেশনা: ১৫-২০ মিনিট। কোনো সিস্টেম সীমা নেই।',
+    en: 'Guidance: 15–20 minutes. No system-enforced bound.',
+  },
+  'graceTime.categoryTableTitle': { bn: 'ক্যাটাগরি অনুযায়ী গ্রেস', en: 'Grace by Category' },
+  'graceTime.prayerTiffinCol': { bn: 'নামাজ ও টিফিন (মিনিট)', en: 'Prayer & Tiffin (min)' },
+  'graceTime.adHocTitle': { bn: 'বিশেষ ছাড় (নির্দিষ্ট তারিখ)', en: 'Ad-Hoc Grace Exemptions' },
+  'graceTime.adHocHint': {
+    bn: 'প্রাতিষ্ঠানিক সভা বা অতিথি আপ্যায়নের মতো নির্দিষ্ট তারিখের ঘটনার জন্য একবারের ছাড়।',
+    en: 'A one-off exemption for a specific date — an institutional meeting, VIP visit, or similar.',
+  },
+  'graceTime.exemptionDate': { bn: 'তারিখ', en: 'Date' },
+  'graceTime.exemptionDetails': { bn: 'বিবরণ', en: 'Details' },
+  'graceTime.exemptionDuration': { bn: 'সময়কাল (মিনিট)', en: 'Duration (min)' },
+  'graceTime.exemptionCategories': { bn: 'ক্যাটাগরি', en: 'Categories' },
+  'graceTime.filterFrom': { bn: 'শুরুর তারিখ', en: 'From' },
+  'graceTime.filterTo': { bn: 'শেষ তারিখ', en: 'To' },
+  'graceTime.noExemptions': { bn: 'কোনো বিশেষ ছাড় নেই', en: 'No Ad-Hoc Grace Exemptions' },
   'exams.title': { bn: 'পরীক্ষা ও ফলাফল', en: 'Exams & Results' },
   'exams.add': { bn: 'নতুন পরীক্ষা', en: 'New exam' },
   'exams.name': { bn: 'পরীক্ষার নাম', en: 'Exam name' },
@@ -2339,6 +2343,7 @@ const dict = {
   // per-school manual-attendance override switch.
   'attendance.tabBook': { bn: 'হাজিরা খাতা', en: 'Attendance Book' },
   'attendance.tabEmployee': { bn: 'কর্মচারী উপস্থিতি', en: 'Employee Attendance' },
+  'attendance.tabGraceTime': { bn: 'গ্রেস টাইম', en: 'Grace Time' },
 
   'attendance.employeeTitle': { bn: 'কর্মচারী উপস্থিতি', en: 'Employee Attendance' },
   'attendance.employeeSearch': { bn: 'নাম দিয়ে খুঁজুন', en: 'Search by name' },
@@ -2349,14 +2354,14 @@ const dict = {
   'attendance.graceMinutesSuffix': { bn: 'মিনিট', en: 'min' },
   'attendance.graceSourceGlobal': { bn: 'গ্লোবাল ডিফল্ট', en: 'global default' },
   'attendance.graceSourceCategory': { bn: 'বিভাগ', en: 'category' },
-  'attendance.graceSourceOfficeTime': { bn: 'অফিস সময়', en: 'Office time' },
-  'attendance.graceSourceOverride': { bn: 'ব্যক্তিগত ওভাররাইড', en: 'individual override' },
+  'attendance.graceSourcePrayerTiffin': { bn: 'নামাজ ও টিফিন উইন্ডো', en: 'Prayer & Tiffin Window' },
+  'attendance.graceSourceAdHoc': { bn: 'বিশেষ ছাড়', en: 'Ad-Hoc Exemption' },
   'status.absent': { bn: 'অনুপস্থিত', en: 'Absent' },
   'status.on_leave': { bn: 'ছুটিতে', en: 'On Leave' },
   'status.holiday': { bn: 'ছুটির দিন', en: 'Holiday / Off Day' },
   'attendance.employeeGraceNote': {
-    bn: 'প্রযোজ্য গ্রেস সবসময় গ্লোবাল, বিভাগ, অফিস সময় ও ব্যক্তিগত ওভাররাইডের মধ্যে সর্বোচ্চটি — কখনোই কড়া/ছোট মান নয়।',
-    en: 'The applied grace is always the MAX of global, category, office time and individual override — never the stricter/smaller value.',
+    bn: 'প্রযোজ্য গ্রেস সবসময় স্কুল ডিফল্ট, ক্যাটাগরি, নামাজ ও টিফিন উইন্ডো এবং সেই তারিখের বিশেষ ছাড়ের মধ্যে সর্বোচ্চটি — কখনোই কড়া/ছোট মান নয়। কনফিগার করুন উপস্থিতি → কর্মচারী → গ্রেস টাইম থেকে।',
+    en: 'The applied grace is always the MAX of School default, Category, Prayer & Tiffin Window, and that date\'s Ad-Hoc Exemption — never the stricter/smaller value. Configure it from Attendance → Employees → Grace Time.',
   },
   'attendance.employeeRfidNote': {
     bn: 'RFID দিয়ে হাজিরা নেওয়া কর্মচারীদের জন্যও একই দিনে একাধিক ট্যাপ একটি রেকর্ডে একত্রিত হয় — প্রথম ট্যাপ প্রবেশ, শেষ ট্যাপ প্রস্থান।',

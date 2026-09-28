@@ -25,8 +25,12 @@ export const ATTENDANCE_STUDENT_TABS: AttendanceTab[] = [
 // (attendanceGroupHref('employees')) follows automatically since it always
 // reads tabs[0]. This route move is itself the Permission Grant change (see
 // ADR 0029): Office Hour is now gated by `attendance`, not `institute`.
+// Grace Time (issue #671, ADR 0030) follows immediately after — the
+// Employees-module grace UI and retired per-Employee Office Time both moved
+// here.
 export const ATTENDANCE_EMPLOYEE_TABS: AttendanceTab[] = [
   { href: '/school/attendance/employee/office-hour', key: 'attendance.tabOfficeHour' },
+  { href: '/school/attendance/employee/grace-time', key: 'attendance.tabGraceTime' },
   { href: '/school/attendance/employee', key: 'attendance.tabEmployee' },
   { href: '/school/attendance/leave/employee', key: 'attendance.tabLeave' },
 ]

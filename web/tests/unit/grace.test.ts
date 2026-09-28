@@ -1,65 +1,63 @@
 import { describe, it, expect } from 'vitest'
 import { effectiveGrace, effectiveGraceWithSource } from '@/lib/grace'
 
-// The Considerable Grace Window rule (issue #9, PRD §5.2): the effective grace
-// is the MAX across every applicable configured value — never the stricter one.
+// The Considerable Grace Window rule (issue #9, redesigned by #671): the
+// effective grace is the MAX across every applicable configured value —
+// never the stricter one. Office Time and the individual override were
+// retired (ADR 0030); Prayer & Tiffin Window and Ad-Hoc Grace Exemption
+// (both Employee-Category based, the latter date-scoped) took their place.
 describe('effectiveGrace', () => {
   it('takes the max across all applicable levels', () => {
-    expect(effectiveGrace({ global: 5, category: 15, officeTimes: [10], override: 8 })).toBe(15)
+    expect(effectiveGrace({ global: 5, category: 15, prayerTiffin: 10, adHoc: 8 })).toBe(15)
   })
 
-  it('multi-officeTime workers get the larger officeTime value', () => {
-    expect(effectiveGrace({ global: null, category: null, officeTimes: [10, 25], override: null })).toBe(25)
+  it('a smaller Prayer & Tiffin Window never forces a stricter result', () => {
+    expect(effectiveGrace({ global: null, category: null, prayerTiffin: 5, adHoc: 20 })).toBe(20)
   })
 
-  it('a per-individual override smaller than an applicable value never forces stricter', () => {
-    // Override 5, officeTime 20 → 20. The override widens, never narrows.
-    expect(effectiveGrace({ global: null, category: null, officeTimes: [20], override: 5 })).toBe(20)
-  })
-
-  it('an override larger than everything else wins', () => {
-    expect(effectiveGrace({ global: 5, category: 10, officeTimes: [15], override: 45 })).toBe(45)
+  it('an Ad-Hoc Grace Exemption larger than everything else wins', () => {
+    expect(effectiveGrace({ global: 5, category: 10, prayerTiffin: 15, adHoc: 45 })).toBe(45)
   })
 
   it('unconfigured levels are ignored; nothing configured means zero grace', () => {
-    expect(effectiveGrace({ global: null, category: null, officeTimes: [], override: null })).toBe(0)
-    expect(effectiveGrace({ global: 7, category: null, officeTimes: [], override: null })).toBe(7)
+    expect(effectiveGrace({ global: null, category: null, prayerTiffin: null, adHoc: null })).toBe(0)
+    expect(effectiveGrace({ global: 7, category: null, prayerTiffin: null, adHoc: null })).toBe(7)
   })
 })
 
-// Issue #30 (Attendance II): the employee-attendance screen annotates each
-// row with which level won — same MAX rule, plus the source label.
+// Issue #30 (Attendance II), extended by #671: the employee-attendance screen
+// annotates each row with which level won — same MAX rule, plus the source.
 describe('effectiveGraceWithSource', () => {
-  it('reports the winning level for the mockup example (global 10, category 15, officeTime 12, override 20 -> 20/override)', () => {
-    expect(effectiveGraceWithSource({ global: 10, category: 15, officeTimes: [12], override: 20 })).toEqual({
+  it('reports the winning level (global 10, category 15, prayerTiffin 12, adHoc 20 -> 20/adHoc)', () => {
+    expect(effectiveGraceWithSource({ global: 10, category: 15, prayerTiffin: 12, adHoc: 20 })).toEqual({
       minutes: 20,
-      source: 'override',
+      source: 'adHoc',
     })
   })
 
-  it('multi-officeTime workers report the larger officeTime value as the officeTime source', () => {
-    expect(effectiveGraceWithSource({ global: 5, category: null, officeTimes: [10, 25], override: null })).toEqual({
-      minutes: 25,
-      source: 'officeTime',
-    })
-  })
-
-  it('a smaller override never wins the label even though it is configured', () => {
-    expect(effectiveGraceWithSource({ global: null, category: null, officeTimes: [20], override: 5 })).toEqual({
+  it('a smaller adHoc never wins the label even though it is configured', () => {
+    expect(effectiveGraceWithSource({ global: null, category: null, prayerTiffin: 20, adHoc: 5 })).toEqual({
       minutes: 20,
-      source: 'officeTime',
+      source: 'prayerTiffin',
     })
   })
 
-  it('ties resolve to the more specific level (override over officeTime over category over global)', () => {
-    expect(effectiveGraceWithSource({ global: 15, category: 15, officeTimes: [15], override: 15 })).toEqual({
+  it('ties resolve to the more specific level (adHoc over prayerTiffin over category over global)', () => {
+    expect(effectiveGraceWithSource({ global: 15, category: 15, prayerTiffin: 15, adHoc: 15 })).toEqual({
       minutes: 15,
-      source: 'override',
+      source: 'adHoc',
+    })
+  })
+
+  it('a category tie without an adHoc value resolves to prayerTiffin over category', () => {
+    expect(effectiveGraceWithSource({ global: 10, category: 10, prayerTiffin: 10, adHoc: null })).toEqual({
+      minutes: 10,
+      source: 'prayerTiffin',
     })
   })
 
   it('nothing configured -> zero minutes and no source', () => {
-    expect(effectiveGraceWithSource({ global: null, category: null, officeTimes: [], override: null })).toEqual({
+    expect(effectiveGraceWithSource({ global: null, category: null, prayerTiffin: null, adHoc: null })).toEqual({
       minutes: 0,
       source: null,
     })

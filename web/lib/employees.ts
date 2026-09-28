@@ -29,19 +29,6 @@ export function filterEmployees<T extends EmployeeListRow>(
   )
 }
 
-/** Comma-joined assigned officeTime names for an employee, "—" via null when none. */
-export function employeeOfficeTimeNames(
-  employeeId: string,
-  assignments: { employee_id: string; office_time_id: string }[],
-  officeTimes: { id: string; name: string }[],
-): string | null {
-  const officeTimeMap = new Map(officeTimes.map((s) => [s.id, s.name]))
-  const names = assignments
-    .filter((a) => a.employee_id === employeeId)
-    .map((a) => officeTimeMap.get(a.office_time_id))
-    .filter((n): n is string => Boolean(n))
-  return names.length ? names.join(', ') : null
-}
 
 /** Turns the one DB constraint an operator can plausibly hit while filling in
  *  the profile form — a duplicate RFID Card Number within the school (issue

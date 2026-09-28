@@ -3,16 +3,15 @@ import { notFound } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
-import { LoginLinkPicker, OfficeTimeToggle, ShiftToggle } from '../employee-controls'
+import { LoginLinkPicker, ShiftToggle } from '../employee-controls'
 import { isKnownAcademicShift, ACADEMIC_SHIFT_LABEL_KEY } from '@/lib/institute'
 import { ArchiveToggle, ProfileEditor } from './profile-controls'
-import { railClass } from '@/components/ui/page'
 
 // Layout per ui/school-owner/employee-detail.html: status header with
 // Archive/Restore action, carded profile sections (Identity / Bank Info /
-// Category & Qualification / Subject & OfficeTime), and the Office-Time &
-// Considerable Grace Window breakdown table (max-across-levels rule, shipped
-// in the MVP as issue #9) at the bottom.
+// Category & Qualification / Subject). Grace/Office-Time configuration moved
+// to Attendance > Employees > Grace Time (issue #671, ADR 0030) — this page
+// no longer shows any per-Employee grace breakdown.
 
 function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -42,25 +41,12 @@ export default async function EmployeeDetailPage({
   const { id } = await params
   const { error: createError } = await searchParams
   const lang: Lang = await currentLang()
-  const { supabase, schoolId, role, configuredShifts: rawConfiguredShifts } = await getSchoolContext()
+  const { supabase, role, configuredShifts: rawConfiguredShifts } = await getSchoolContext()
 
   const { data: employee } = await supabase.from('employees').select('*').eq('id', id).single()
   if (!employee) notFound()
 
-  const [
-    { data: school },
-    { data: officeTimes },
-    { data: assignments },
-    { data: categories },
-    { data: effective },
-    { data: logins },
-    { data: shiftAssignments },
-  ] = await Promise.all([
-    supabase.from('schools').select('default_grace_minutes').eq('id', schoolId).single(),
-    supabase.from('office_times').select('id, name, grace_minutes').order('name'),
-    supabase.from('employee_office_times').select('employee_id, office_time_id').eq('employee_id', id),
-    supabase.from('category_grace_minutes').select('category, grace_minutes').order('category'),
-    supabase.rpc('effective_grace_minutes', { emp: id }),
+  const [{ data: logins }, { data: shiftAssignments }] = await Promise.all([
     // The Staff User logins this Employee could be linked to (#443). profiles
     // RLS only lets a School Owner list them, so this is empty for Staff.
     role === 'school_owner'
@@ -75,25 +61,8 @@ export default async function EmployeeDetailPage({
 
   const archived = employee.archived_at !== null
   const locale = lang === 'bn' ? 'bn-BD' : 'en-GB'
-  const assignedOfficeTimeIds = new Set((assignments ?? []).map((a) => a.office_time_id))
   const assignedShifts = new Set((shiftAssignments ?? []).map((a) => a.shift))
   const configuredShifts = rawConfiguredShifts.filter(isKnownAcademicShift)
-  const categoryGrace = categories?.find((c) => c.category === employee.category)?.grace_minutes ?? null
-  // null unless at least one assigned officeTime has grace configured — an
-  // assigned-but-unconfigured officeTime must read "—", the same as the other
-  // unconfigured levels, not a misleading "0".
-  const configuredOfficeTimeGraces = (officeTimes ?? [])
-    .filter((s) => assignedOfficeTimeIds.has(s.id))
-    .map((s) => s.grace_minutes)
-    .filter((g): g is number => g !== null && g !== undefined)
-  const officeTimeGrace = configuredOfficeTimeGraces.length ? Math.max(...configuredOfficeTimeGraces) : null
-  const effectiveGrace = typeof effective === 'number' ? effective : 0
-  const levels: { label: string; minutes: number | null }[] = [
-    { label: t('grace.global', lang), minutes: school?.default_grace_minutes ?? null },
-    { label: t('employees.gradeLevelCategory', lang), minutes: categoryGrace },
-    { label: t('employees.gradeLevelOfficeTime', lang), minutes: officeTimeGrace },
-    { label: t('employees.override', lang), minutes: employee.grace_override_minutes },
-  ]
 
   return (
     <div>
@@ -182,71 +151,10 @@ export default async function EmployeeDetailPage({
           <InfoRow label={t('employees.department', lang)} value={employee.department} />
         </InfoCard>
 
-        <section className="mb-4 rounded-lg border border-line bg-paper p-5">
-          <h3 className="mb-3 font-bold">{t('employees.subjectOfficeTime', lang)}</h3>
-          <dl className="mb-3 grid gap-3 sm:grid-cols-2">
-            <InfoRow label={t('employees.subjectTaught', lang)} value={employee.subject_taught} />
-          </dl>
-          <p className="mb-2 text-xs font-semibold text-muted">{t('employees.officeTimes', lang)}</p>
-          <div className="flex flex-wrap items-center gap-2">
-            {!officeTimes?.length && <span className="text-sm text-muted">{t('employees.none', lang)}</span>}
-            {officeTimes?.map((s) => (
-              <OfficeTimeToggle
-                key={s.id}
-                employeeId={id}
-                officeTimeId={s.id}
-                label={s.name}
-                assigned={assignedOfficeTimeIds.has(s.id)}
-              />
-            ))}
-          </div>
-        </section>
+        <InfoCard title={t('employees.subjectTitle', lang)}>
+          <InfoRow label={t('employees.subjectTaught', lang)} value={employee.subject_taught} />
+        </InfoCard>
       </ProfileEditor>
-
-      <section className="rounded-lg border border-line bg-paper p-5">
-        <h3 className="mb-2 font-bold">{t('employees.graceWindowTitle', lang)}</h3>
-        <p className="mb-3 text-sm text-muted">{t('grace.hint', lang)}</p>
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse">
-            <thead>
-              <tr className="border-b border-line-strong">
-                <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">
-                  {t('employees.gradeLevel', lang)}
-                </th>
-                <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">
-                  {t('employees.graceMinutes', lang)}
-                </th>
-                <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted" />
-              </tr>
-            </thead>
-            <tbody>
-              {levels.map((l) => {
-                // Highlight every configured level tied with the effective value — including
-                // when every applicable level is 0, which is still a legitimate MAX result.
-                const winning = l.minutes !== null && l.minutes === effectiveGrace
-                return (
-                  <tr key={l.label} className="border-b border-line">
-                    <td className={`px-3 py-2 text-sm ${winning ? 'font-semibold' : ''} ${railClass(winning ? 'sky' : 'muted')}`}>{l.label}</td>
-                    <td className="px-3 py-2 text-sm">
-                      {l.minutes ?? <span className="text-muted">—</span>}
-                    </td>
-                    <td className="px-3 py-2 text-sm">
-                      {winning && (
-                        <span className="rounded-full bg-sky-soft px-2 py-0.5 text-xs font-semibold text-sky-deep">
-                          {t('employees.winningValue', lang)}
-                        </span>
-                      )}
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
-        <p className="mt-3 text-xs text-muted">
-          {t('employees.effective', lang)}: {effectiveGrace}m
-        </p>
-      </section>
     </div>
   )
 }

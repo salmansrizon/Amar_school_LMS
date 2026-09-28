@@ -5,6 +5,7 @@ import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { effectiveGraceWithSource, type GraceSource } from '@/lib/grace'
 import { resolveEmployeeDisplayStatus, type EmployeeDisplayStatus } from '@/lib/attendance'
+import { exemptionCategoriesByExemptionId } from '@/lib/school/ad-hoc-grace'
 import { AttendanceTabs } from '../attendance-tabs'
 import { dateInputClass } from '@/components/ui/field'
 
@@ -28,11 +29,11 @@ const STATUS_BADGE: Record<EmployeeDisplayStatus, string> = {
   on_leave: 'bg-sky-soft text-sky-deep',
 }
 
-const GRACE_SOURCE_KEY: Record<GraceSource, 'attendance.graceSourceGlobal' | 'attendance.graceSourceCategory' | 'attendance.graceSourceOfficeTime' | 'attendance.graceSourceOverride'> = {
+const GRACE_SOURCE_KEY: Record<GraceSource, 'attendance.graceSourceGlobal' | 'attendance.graceSourceCategory' | 'attendance.graceSourcePrayerTiffin' | 'attendance.graceSourceAdHoc'> = {
   global: 'attendance.graceSourceGlobal',
   category: 'attendance.graceSourceCategory',
-  officeTime: 'attendance.graceSourceOfficeTime',
-  override: 'attendance.graceSourceOverride',
+  prayerTiffin: 'attendance.graceSourcePrayerTiffin',
+  adHoc: 'attendance.graceSourceAdHoc',
 }
 
 function hhmm(iso: string | null): string {
@@ -49,26 +50,24 @@ export default async function EmployeeAttendancePage({
   const lang: Lang = await currentLang()
   const { supabase, schoolId } = await getSchoolContext()
 
-  const [{ data: school }, { data: employees }, { data: officeTimes }, { data: categories }] = await Promise.all([
+  const [{ data: school }, { data: employees }, { data: categories }, { data: adHocExemptions }] = await Promise.all([
     supabase.from('schools').select('default_grace_minutes').eq('id', schoolId).single(),
-    supabase
-      .from('employee_card')
-      .select('id, full_name, category, grace_override_minutes')
-      .is('archived_at', null)
-      .order('full_name'),
-    supabase.from('office_times').select('id, grace_minutes, starts_at, ends_at'),
-    supabase.from('category_grace_minutes').select('category, grace_minutes'),
+    supabase.from('employee_card').select('id, full_name, category').is('archived_at', null).order('full_name'),
+    supabase.from('category_grace_minutes').select('category, grace_minutes, prayer_tiffin_minutes'),
+    // Ad-Hoc Grace Exemptions active on this specific date (issue #671).
+    supabase.from('ad_hoc_grace_exemptions').select('id, duration_minutes').eq('exemption_date', date),
   ])
+  const categoriesByExemptionId = await exemptionCategoriesByExemptionId(
+    supabase,
+    (adHocExemptions ?? []).map((ex) => ex.id),
+  )
 
   const roster = (employees ?? []).filter(
     (e) => !q.trim() || e.full_name.toLowerCase().includes(q.trim().toLowerCase()),
   )
   const employeeIds = roster.map((e) => e.id)
 
-  const [{ data: assignments }, { data: records }, { data: leaves }] = await Promise.all([
-    employeeIds.length
-      ? supabase.from('employee_office_times').select('employee_id, office_time_id').in('employee_id', employeeIds)
-      : Promise.resolve({ data: [] as { employee_id: string; office_time_id: string }[] }),
+  const [{ data: records }, { data: leaves }] = await Promise.all([
     employeeIds.length
       ? supabase
           .from('attendance_records')
@@ -88,34 +87,30 @@ export default async function EmployeeAttendancePage({
       : Promise.resolve({ data: [] as { employee_id: string; from_day: string; to_day: string }[] }),
   ])
 
-  const categoryGraceByName = new Map((categories ?? []).map((c) => [c.category, c.grace_minutes]))
-  const officeTimeById = new Map((officeTimes ?? []).map((s) => [s.id, s]))
-  const officeTimeIdsByEmployee = new Map<string, string[]>()
-  for (const a of assignments ?? []) {
-    const list = officeTimeIdsByEmployee.get(a.employee_id) ?? []
-    list.push(a.office_time_id)
-    officeTimeIdsByEmployee.set(a.employee_id, list)
+  const graceByCategory = new Map(
+    (categories ?? []).map((c) => [c.category, { grace: c.grace_minutes, prayerTiffin: c.prayer_tiffin_minutes }]),
+  )
+  const durationByExemptionId = new Map((adHocExemptions ?? []).map((ex) => [ex.id, ex.duration_minutes]))
+  const adHocByCategory = new Map<string, number>()
+  for (const [exemptionId, categoriesForExemption] of categoriesByExemptionId) {
+    const duration = durationByExemptionId.get(exemptionId) ?? 0
+    for (const category of categoriesForExemption) {
+      // At most one exemption per category per date in practice; MAX matches
+      // this MAX-across-levels rule's own philosophy if it ever weren't.
+      adHocByCategory.set(category, Math.max(adHocByCategory.get(category) ?? 0, duration))
+    }
   }
   const recordByEmployee = new Map((records ?? []).map((r) => [r.person_id, r]))
   const onLeaveEmployees = new Set((leaves ?? []).map((l) => l.employee_id))
 
   const rows = roster.map((e) => {
-    const assignedOfficeTimeIds = officeTimeIdsByEmployee.get(e.id) ?? []
-    const assignedOfficeTimes = assignedOfficeTimeIds.map((id) => officeTimeById.get(id)).filter((s): s is NonNullable<typeof s> => !!s)
-    const officeTimeGraces = assignedOfficeTimes.map((s) => s.grace_minutes).filter((g): g is number => g !== null && g !== undefined)
+    const categoryGrace = e.category ? graceByCategory.get(e.category) : undefined
     const { minutes: grace, source } = effectiveGraceWithSource({
       global: school?.default_grace_minutes ?? null,
-      category: e.category ? (categoryGraceByName.get(e.category) ?? null) : null,
-      officeTimes: officeTimeGraces,
-      override: e.grace_override_minutes,
+      category: categoryGrace?.grace ?? null,
+      prayerTiffin: categoryGrace?.prayerTiffin ?? null,
+      adHoc: e.category ? (adHocByCategory.get(e.category) ?? null) : null,
     })
-    // Multi-officeTime assignment mirrors reconcile_attendance's simplification
-    // (migration 0017): earliest starts_at, latest ends_at across all
-    // assigned officeTimes — not fixed here, out of scope for this ticket.
-    const starts = assignedOfficeTimes.map((s) => s.starts_at).filter((v): v is string => !!v)
-    const ends = assignedOfficeTimes.map((s) => s.ends_at).filter((v): v is string => !!v)
-    const officeStart = starts.length ? starts.sort()[0] : null
-    const officeEnd = ends.length ? ends.sort().slice(-1)[0] : null
 
     const record = recordByEmployee.get(e.id)
     const status = resolveEmployeeDisplayStatus({
@@ -123,8 +118,13 @@ export default async function EmployeeAttendancePage({
       onApprovedLeave: onLeaveEmployees.has(e.id),
       entry: record ? new Date(record.entry_at) : null,
       exit: record?.exit_at ? new Date(record.exit_at) : null,
-      officeStart,
-      officeEnd,
+      // Office Time (the sole source of an expected start/end window) was
+      // retired (issue #671, ADR 0030) with no replacement — every Employee
+      // now reads 'present' rather than late/on-time/early whenever a record
+      // exists, an accepted consequence since RFID (the only thing that ever
+      // populated a real entry/exit time) is already disabled School-wide.
+      officeStart: null,
+      officeEnd: null,
       graceMinutes: grace,
     })
 

@@ -175,7 +175,14 @@ begin
     end loop;
   end;
 
-  -- Employees: present with statuses
+  -- Employees: present with statuses. NOTE (issue #671, ADR 0030): the
+  -- Employee Attendance page never reads this stored `status` column — it
+  -- always recomputes on_time/late/early from entry_at/exit_at against
+  -- officeStart/officeEnd, which are now hardcoded null (per-Employee Office
+  -- Time was retired). So these seeded employees will display "Present"
+  -- regardless of the 'on_time' value written here, and regardless of the
+  -- office_times/employee_office_times fixtures above — both are accepted as
+  -- dormant infrastructure, not a seeding bug to fix.
   declare
     att_eid uuid;
   begin
