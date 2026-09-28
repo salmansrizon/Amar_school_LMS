@@ -16,7 +16,8 @@ import {
   schoolLogoUploadTicket,
   updateInstituteProfile,
 } from './actions'
-import { selectClass } from '@/components/ui/field'
+import { ComboboxField } from '@/components/ui/combobox-field'
+import { SelectField } from '@/components/ui/select-field'
 import { removeUploadedObject } from '@/lib/storage/remove-object'
 import { uploadWithSignedToken } from '@/lib/storage/upload-client'
 import { SectionCard } from './section-card'
@@ -196,15 +197,15 @@ export function ProfileForm({
               <label className={labelClass} htmlFor="mpo_enlisted">
                 {t('institute.mpoEnlisted', lang)}
               </label>
-              <select
+              <SelectField
                 id="mpo_enlisted"
                 name="mpo_enlisted"
                 defaultValue={String(school.mpo_enlisted)}
-                className={selectClass({ size: 'md', fullWidth: true })}
-              >
-                <option value="true">{t('institute.yes', lang)}</option>
-                <option value="false">{t('institute.no', lang)}</option>
-              </select>
+                options={[
+                  { value: 'true', label: t('institute.yes', lang) },
+                  { value: 'false', label: t('institute.no', lang) },
+                ]}
+              />
             </div>
             <div>
               <label className={labelClass} htmlFor="mpo_code">
@@ -227,14 +228,15 @@ export function ProfileForm({
               <label className={labelClass} htmlFor="cluster_id">
                 {t('institute.cluster', lang)}
               </label>
-              <select id="cluster_id" name="cluster_id" defaultValue={school.cluster_id ?? ''} className={selectClass({ size: 'md', fullWidth: true })}>
-                <option value="">{t('institute.clusterNone', lang)}</option>
-                {clusters.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
+              <ComboboxField
+                id="cluster_id"
+                name="cluster_id"
+                defaultValue={school.cluster_id ?? ''}
+                options={[
+                  { value: '', label: t('institute.clusterNone', lang) },
+                  ...clusters.map((c) => ({ value: c.id, label: c.name })),
+                ]}
+              />
             </div>
           </div>
         </SectionCard>
@@ -302,79 +304,67 @@ export function ProfileForm({
         >
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
-              <label className={labelClass}>{t('institute.division', lang)}</label>
-              <select
-                className={selectClass({ size: 'md', fullWidth: true })}
+              <label className={labelClass} htmlFor="division_id">{t('institute.division', lang)}</label>
+              <ComboboxField
+                id="division_id"
                 value={divisionId}
-                onChange={(e) => {
-                  setDivisionId(e.target.value)
+                onValueChange={(v) => {
+                  setDivisionId(v)
                   setDistrictId('')
                   setUpazilaId('')
                   setUnionId('')
                 }}
-              >
-                <option value="">{t('institute.selectOne', lang)}</option>
-                {divisions.map((d) => (
-                  <option key={d.id} value={d.id}>
-                    {d.name}
-                  </option>
-                ))}
-              </select>
+                options={[
+                  { value: '', label: t('institute.selectOne', lang) },
+                  ...divisions.map((d) => ({ value: d.id, label: d.name })),
+                ]}
+              />
             </div>
             <div>
-              <label className={labelClass}>{t('institute.district', lang)}</label>
-              <select
-                className={selectClass({ size: 'md', fullWidth: true })}
+              <label className={labelClass} htmlFor="district_id">{t('institute.district', lang)}</label>
+              <ComboboxField
+                id="district_id"
                 value={districtId}
                 disabled={!divisionId}
-                onChange={(e) => {
-                  setDistrictId(e.target.value)
+                onValueChange={(v) => {
+                  setDistrictId(v)
                   setUpazilaId('')
                   setUnionId('')
                 }}
-              >
-                <option value="">{t('institute.selectOne', lang)}</option>
-                {districts.map((d) => (
-                  <option key={d.id} value={d.id}>
-                    {d.name}
-                  </option>
-                ))}
-              </select>
+                options={[
+                  { value: '', label: t('institute.selectOne', lang) },
+                  ...districts.map((d) => ({ value: d.id, label: d.name })),
+                ]}
+              />
             </div>
             <div>
-              <label className={labelClass}>{t('institute.upazila', lang)}</label>
-              <select
-                className={selectClass({ size: 'md', fullWidth: true })}
+              <label className={labelClass} htmlFor="upazila_id">{t('institute.upazila', lang)}</label>
+              <ComboboxField
+                id="upazila_id"
                 value={upazilaId}
                 disabled={!districtId}
-                onChange={(e) => {
-                  setUpazilaId(e.target.value)
+                onValueChange={(v) => {
+                  setUpazilaId(v)
                   setUnionId('')
                 }}
-              >
-                <option value="">{t('institute.selectOne', lang)}</option>
-                {upazilas.map((d) => (
-                  <option key={d.id} value={d.id}>
-                    {d.name}
-                  </option>
-                ))}
-              </select>
+                options={[
+                  { value: '', label: t('institute.selectOne', lang) },
+                  ...upazilas.map((d) => ({ value: d.id, label: d.name })),
+                ]}
+              />
             </div>
             <div>
-              <label className={labelClass}>{t('institute.union', lang)}</label>
-              <select
-                className={selectClass({ size: 'md', fullWidth: true })}
+              <label className={labelClass} htmlFor="union_id">{t('institute.union', lang)}</label>
+              <ComboboxField
+                id="union_id"
                 value={unionId}
                 disabled={!upazilaId}
-                onChange={(e) => setUnionId(e.target.value)}
-              >
-                <option value="">{t('institute.selectOne', lang)}</option>
-                {unions.map((d) => (
-                  <option key={d.id} value={d.id}>
-                    {d.name}
-                  </option>
-                ))}
-              </select>
+                onValueChange={setUnionId}
+                options={[
+                  { value: '', label: t('institute.selectOne', lang) },
+                  ...unions.map((d) => ({ value: d.id, label: d.name })),
+                ]}
+              />
             </div>
           </div>
         </SectionCard>
@@ -621,12 +611,11 @@ function ThemeControl({ lang, isOwner, selected }: { lang: Lang; isOwner: boolea
         {t('admitCard.theme', lang)}
       </label>
       <div className="flex flex-wrap items-center gap-3">
-        <select
+        <ComboboxField
           id="admit_card_theme"
           value={value}
           disabled={!isOwner || pending}
-          onChange={(e) => {
-            const next = e.target.value
+          onValueChange={(next) => {
             setValue(next)
             startTransition(async () => {
               setError(null)
@@ -635,14 +624,9 @@ function ThemeControl({ lang, isOwner, selected }: { lang: Lang; isOwner: boolea
               else router.refresh()
             })
           }}
-          className={`${selectClass({ size: 'md', fullWidth: true })} max-w-56`}
-        >
-          {PRINT_THEMES.map((theme) => (
-            <option key={theme.key} value={theme.key}>
-              {theme.label[lang]}
-            </option>
-          ))}
-        </select>
+          className="max-w-56"
+          options={PRINT_THEMES.map((theme) => ({ value: theme.key, label: theme.label[lang] }))}
+        />
         {/* Swatch: the preset as it will actually print. */}
         {PRINT_THEMES.filter((theme) => theme.key === value).map((theme) => (
           <span
