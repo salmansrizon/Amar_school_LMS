@@ -3,7 +3,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { signedIn } from '../helpers/auth'
 
 // Seam: employees profile columns + soft-archive/restore (issue #28). The
-// grace machinery (category grace, effective_grace_*, redesigned by #671)
+// grace machinery (Standing Grace Rules, effective_grace_*, redesigned by #673)
 // predates this ticket and is exercised by
 // tests/integration/employees-grace.test.ts.
 

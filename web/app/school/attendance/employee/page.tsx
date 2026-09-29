@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
-import { effectiveGraceWithSource, type GraceSource } from '@/lib/grace'
+import { effectiveGraceWithSource, isGraceDetail, GRACE_DETAIL_LABEL_KEY, type GraceSource, type StandingGraceCandidate } from '@/lib/grace'
 import { resolveEmployeeDisplayStatus, type EmployeeDisplayStatus } from '@/lib/attendance'
 import { exemptionCategoriesByExemptionId } from '@/lib/school/ad-hoc-grace'
 import { AttendanceTabs } from '../attendance-tabs'
@@ -29,11 +29,11 @@ const STATUS_BADGE: Record<EmployeeDisplayStatus, string> = {
   on_leave: 'bg-sky-soft text-sky-deep',
 }
 
-const GRACE_SOURCE_KEY: Record<GraceSource, 'attendance.graceSourceGlobal' | 'attendance.graceSourceCategory' | 'attendance.graceSourcePrayerTiffin' | 'attendance.graceSourceAdHoc'> = {
-  global: 'attendance.graceSourceGlobal',
-  category: 'attendance.graceSourceCategory',
-  prayerTiffin: 'attendance.graceSourcePrayerTiffin',
-  adHoc: 'attendance.graceSourceAdHoc',
+// The winning rule's Grace Detail is the reason shown (issue #673), e.g.
+// "30 min (Lunch Hour)"; an Ad-Hoc Grace Exemption reads as such.
+function graceSourceLabel(source: GraceSource, lang: Lang): string {
+  if (source.kind === 'adHoc') return t('attendance.graceSourceAdHoc', lang)
+  return isGraceDetail(source.detail) ? t(GRACE_DETAIL_LABEL_KEY[source.detail], lang) : source.detail
 }
 
 function hhmm(iso: string | null): string {
@@ -48,12 +48,12 @@ export default async function EmployeeAttendancePage({
 }) {
   const { q = '', date = todayIso() } = await searchParams
   const lang: Lang = await currentLang()
-  const { supabase, schoolId } = await getSchoolContext()
+  const { supabase } = await getSchoolContext()
 
-  const [{ data: school }, { data: employees }, { data: categories }, { data: adHocExemptions }] = await Promise.all([
-    supabase.from('schools').select('default_grace_minutes').eq('id', schoolId).single(),
+  const [{ data: employees }, { data: standingRules }, { data: adHocExemptions }] = await Promise.all([
     supabase.from('employee_card').select('id, full_name, category').is('archived_at', null).order('full_name'),
-    supabase.from('category_grace_minutes').select('category, grace_minutes, prayer_tiffin_minutes'),
+    // Every Standing Grace Rule, any Shift — Shift is display-only (ADR 0032).
+    supabase.from('standing_grace_rules').select('grace_detail, grace_minutes, standing_grace_rule_categories(category)'),
     // Ad-Hoc Grace Exemptions active on this specific date (issue #671).
     supabase.from('ad_hoc_grace_exemptions').select('id, duration_minutes').eq('exemption_date', date),
   ])
@@ -87,9 +87,14 @@ export default async function EmployeeAttendancePage({
       : Promise.resolve({ data: [] as { employee_id: string; from_day: string; to_day: string }[] }),
   ])
 
-  const graceByCategory = new Map(
-    (categories ?? []).map((c) => [c.category, { grace: c.grace_minutes, prayerTiffin: c.prayer_tiffin_minutes }]),
-  )
+  const standingByCategory = new Map<string, StandingGraceCandidate[]>()
+  for (const rule of standingRules ?? []) {
+    for (const { category } of rule.standing_grace_rule_categories ?? []) {
+      const list = standingByCategory.get(category) ?? []
+      list.push({ detail: rule.grace_detail, minutes: rule.grace_minutes })
+      standingByCategory.set(category, list)
+    }
+  }
   const durationByExemptionId = new Map((adHocExemptions ?? []).map((ex) => [ex.id, ex.duration_minutes]))
   const adHocByCategory = new Map<string, number>()
   for (const [exemptionId, categoriesForExemption] of categoriesByExemptionId) {
@@ -104,11 +109,8 @@ export default async function EmployeeAttendancePage({
   const onLeaveEmployees = new Set((leaves ?? []).map((l) => l.employee_id))
 
   const rows = roster.map((e) => {
-    const categoryGrace = e.category ? graceByCategory.get(e.category) : undefined
     const { minutes: grace, source } = effectiveGraceWithSource({
-      global: school?.default_grace_minutes ?? null,
-      category: categoryGrace?.grace ?? null,
-      prayerTiffin: categoryGrace?.prayerTiffin ?? null,
+      standing: e.category ? (standingByCategory.get(e.category) ?? []) : [],
       adHoc: e.category ? (adHocByCategory.get(e.category) ?? null) : null,
     })
 
@@ -206,7 +208,7 @@ export default async function EmployeeAttendancePage({
                       ) : (
                         <>
                           {r.grace} {t('attendance.graceMinutesSuffix', lang)}
-                          {r.graceSource && <> ({t(GRACE_SOURCE_KEY[r.graceSource], lang)})</>}
+                          {r.graceSource && <> ({graceSourceLabel(r.graceSource, lang)})</>}
                         </>
                       )}
                     </td>

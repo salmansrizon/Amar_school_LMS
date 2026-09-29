@@ -15,9 +15,9 @@ const DAY = '2026-08-01' // fixed historical date, isolated from other runs
 // A canonical Employee Category (issue #666's fixed, global, seeded list) —
 // employee_categories is Super-Admin-write-only (ADR 0028), so a test can't
 // insert its own category; it must use one of the 20 already there. Only
-// this test's own Employee/exemption rows touch it, never
-// category_grace_minutes for this category, so there's no shared-state risk
-// with other integration tests that do configure Teacher's category grace.
+// this test's own Employee/exemption rows touch it, and no other
+// integration test gives Teacher a Standing Grace Rule, so there's no
+// shared-state risk.
 const TEST_CATEGORY = 'Teacher'
 
 describe('Ad-Hoc Grace Exemption (issue #671)', () => {
@@ -104,6 +104,24 @@ describe('Ad-Hoc Grace Exemption (issue #671)', () => {
       .insert({ exemption_id: exemption!.id, category: 'not-a-real-category' })
     expect(error).not.toBeNull()
     await ownerA.from('ad_hoc_grace_exemptions').delete().eq('id', exemption!.id)
+  })
+
+  it('an exemption carries a Shift, and deleting it removes its category rows (issue #673)', async () => {
+    const { data: exemption, error } = await ownerA
+      .from('ad_hoc_grace_exemptions')
+      .insert({ exemption_date: DAY, duration_minutes: 5, details: 'Shift test', shift: 'Morning' })
+      .select('id, shift')
+      .single()
+    expect(error).toBeNull()
+    expect(exemption!.shift).toBe('Morning')
+    await ownerA.from('ad_hoc_grace_exemption_categories').insert({ exemption_id: exemption!.id, category: TEST_CATEGORY })
+
+    await ownerA.from('ad_hoc_grace_exemptions').delete().eq('id', exemption!.id)
+    const { data: orphans } = await ownerA
+      .from('ad_hoc_grace_exemption_categories')
+      .select('category')
+      .eq('exemption_id', exemption!.id)
+    expect(orphans).toEqual([])
   })
 
   it("another School's Owner cannot see the exemption once created", async () => {

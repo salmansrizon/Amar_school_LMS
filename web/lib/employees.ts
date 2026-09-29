@@ -64,7 +64,7 @@ export function validateOptionalLogin(email: string, password: string): { error?
 
 /** The fixed set an Employee's `category` is locked to (issue #567) — the
  *  canonical English strings, matched against whatever's actually stored
- *  (seed data, and every cross-referencing table: category_grace_minutes,
+ *  (seed data, and every cross-referencing table: standing_grace_rule_categories,
  *  SMS recipient filters, satisfaction-rating breakdowns) regardless of the
  *  UI's current language. Both entry forms render a `<select>` restricted
  *  to these; this list is what the server checks a submission against so a

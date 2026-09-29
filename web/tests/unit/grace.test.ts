@@ -1,65 +1,76 @@
 import { describe, it, expect } from 'vitest'
-import { effectiveGrace, effectiveGraceWithSource } from '@/lib/grace'
+import { effectiveGrace, effectiveGraceWithSource, isGraceDetail, GRACE_DETAILS } from '@/lib/grace'
 
-// The Considerable Grace Window rule (issue #9, redesigned by #671): the
-// effective grace is the MAX across every applicable configured value —
-// never the stricter one. Office Time and the individual override were
-// retired (ADR 0030); Prayer & Tiffin Window and Ad-Hoc Grace Exemption
-// (both Employee-Category based, the latter date-scoped) took their place.
+// The Considerable Grace Window rule (issue #9, redesigned by #671 and #673):
+// the effective grace is the MAX across every Standing Grace Rule covering the
+// Employee's Category (any Shift — ADR 0032) and that date's Ad-Hoc Grace
+// Exemption — never the stricter one, never summed.
 describe('effectiveGrace', () => {
-  it('takes the max across all applicable levels', () => {
-    expect(effectiveGrace({ global: 5, category: 15, prayerTiffin: 10, adHoc: 8 })).toBe(15)
+  it('takes the max across every applicable rule', () => {
+    expect(
+      effectiveGrace({
+        standing: [
+          { detail: 'Prayer', minutes: 20 },
+          { detail: 'Lunch Hour', minutes: 30 },
+        ],
+        adHoc: 8,
+      }),
+    ).toBe(30)
   })
 
-  it('a smaller Prayer & Tiffin Window never forces a stricter result', () => {
-    expect(effectiveGrace({ global: null, category: null, prayerTiffin: 5, adHoc: 20 })).toBe(20)
+  it('an Ad-Hoc Grace Exemption larger than every standing rule wins', () => {
+    expect(effectiveGrace({ standing: [{ detail: 'General', minutes: 10 }], adHoc: 45 })).toBe(45)
   })
 
-  it('an Ad-Hoc Grace Exemption larger than everything else wins', () => {
-    expect(effectiveGrace({ global: 5, category: 10, prayerTiffin: 15, adHoc: 45 })).toBe(45)
-  })
-
-  it('unconfigured levels are ignored; nothing configured means zero grace', () => {
-    expect(effectiveGrace({ global: null, category: null, prayerTiffin: null, adHoc: null })).toBe(0)
-    expect(effectiveGrace({ global: 7, category: null, prayerTiffin: null, adHoc: null })).toBe(7)
+  it('nothing configured means zero grace', () => {
+    expect(effectiveGrace({ standing: [], adHoc: null })).toBe(0)
   })
 })
 
-// Issue #30 (Attendance II), extended by #671: the employee-attendance screen
-// annotates each row with which level won — same MAX rule, plus the source.
 describe('effectiveGraceWithSource', () => {
-  it('reports the winning level (global 10, category 15, prayerTiffin 12, adHoc 20 -> 20/adHoc)', () => {
-    expect(effectiveGraceWithSource({ global: 10, category: 15, prayerTiffin: 12, adHoc: 20 })).toEqual({
+  it('credits the winning Grace Detail', () => {
+    expect(
+      effectiveGraceWithSource({
+        standing: [
+          { detail: 'Prayer', minutes: 20 },
+          { detail: 'Lunch Hour', minutes: 30 },
+        ],
+        adHoc: null,
+      }),
+    ).toEqual({ minutes: 30, source: { kind: 'standing', detail: 'Lunch Hour' } })
+  })
+
+  it('a smaller Ad-Hoc value never wins the label', () => {
+    expect(effectiveGraceWithSource({ standing: [{ detail: 'Tiffin', minutes: 20 }], adHoc: 5 })).toEqual({
       minutes: 20,
-      source: 'adHoc',
+      source: { kind: 'standing', detail: 'Tiffin' },
     })
   })
 
-  it('a smaller adHoc never wins the label even though it is configured', () => {
-    expect(effectiveGraceWithSource({ global: null, category: null, prayerTiffin: 20, adHoc: 5 })).toEqual({
-      minutes: 20,
-      source: 'prayerTiffin',
-    })
-  })
-
-  it('ties resolve to the more specific level (adHoc over prayerTiffin over category over global)', () => {
-    expect(effectiveGraceWithSource({ global: 15, category: 15, prayerTiffin: 15, adHoc: 15 })).toEqual({
+  it('ties resolve to Ad-Hoc first, then Grace Detail list order', () => {
+    expect(effectiveGraceWithSource({ standing: [{ detail: 'General', minutes: 15 }], adHoc: 15 })).toEqual({
       minutes: 15,
-      source: 'adHoc',
+      source: { kind: 'adHoc' },
     })
-  })
-
-  it('a category tie without an adHoc value resolves to prayerTiffin over category', () => {
-    expect(effectiveGraceWithSource({ global: 10, category: 10, prayerTiffin: 10, adHoc: null })).toEqual({
-      minutes: 10,
-      source: 'prayerTiffin',
-    })
+    expect(
+      effectiveGraceWithSource({
+        standing: [
+          { detail: 'Meeting', minutes: 15 },
+          { detail: 'Prayer', minutes: 15 },
+        ],
+        adHoc: null,
+      }),
+    ).toEqual({ minutes: 15, source: { kind: 'standing', detail: 'Prayer' } })
   })
 
   it('nothing configured -> zero minutes and no source', () => {
-    expect(effectiveGraceWithSource({ global: null, category: null, prayerTiffin: null, adHoc: null })).toEqual({
-      minutes: 0,
-      source: null,
-    })
+    expect(effectiveGraceWithSource({ standing: [], adHoc: null })).toEqual({ minutes: 0, source: null })
+  })
+})
+
+describe('isGraceDetail', () => {
+  it('accepts only the fixed list', () => {
+    for (const d of GRACE_DETAILS) expect(isGraceDetail(d)).toBe(true)
+    expect(isGraceDetail('Coffee Break')).toBe(false)
   })
 })
