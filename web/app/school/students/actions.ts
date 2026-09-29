@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { currentActor } from '@/lib/school/actor'
 import { sendStudentSms } from '@/lib/sms/student-sms'
+import { recordBehaviourTriage } from '@/lib/behaviour-triage-service'
 import { photoExtension, behaviourSmsBody, parseRollNumber, rollScopeChanged, friendlyStudentError } from '@/lib/students'
 import { createSignedUpload, type SignedUpload } from '@/lib/storage/signed-upload'
 
@@ -377,13 +378,19 @@ export async function addBehaviourEntry(formData: FormData): Promise<{ error?: s
   if (rating === null) return { error: 'Rating must be between 0 and 10' }
 
   const supabase = await createClient()
-  const { error } = await supabase.from('behaviour_log_entries').insert({
-    student_id: studentId,
-    note,
-    rating,
-    remind_date: String(formData.get('remind_date') ?? '') || null,
-  })
+  const { data, error } = await supabase
+    .from('behaviour_log_entries')
+    .insert({
+      student_id: studentId,
+      note,
+      rating,
+      remind_date: String(formData.get('remind_date') ?? '') || null,
+    })
+    .select('id')
+    .single()
   if (error) return { error: error.message }
+  // Advisory only, after the entry is saved; never fails the save (#672).
+  await recordBehaviourTriage(supabase, { id: data.id, studentId, note })
   revalidatePath(`/school/students/${studentId}`)
   return {}
 }
@@ -409,6 +416,8 @@ export async function updateBehaviourEntry(formData: FormData): Promise<{ error?
     .select('id')
   if (error) return { error: error.message }
   if (!data?.length) return { error: 'entry not updated' }
+  // Re-judge the edited note so the advice matches it (#672).
+  await recordBehaviourTriage(supabase, { id, studentId, note })
   revalidatePath(`/school/students/${studentId}`)
   return {}
 }
