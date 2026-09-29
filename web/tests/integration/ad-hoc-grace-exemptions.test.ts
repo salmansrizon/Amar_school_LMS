@@ -140,6 +140,14 @@ describe('Ad-Hoc Grace Exemption (issue #671)', () => {
   it("re-reconciling the same date now reads on_time — the exemption widened that category's grace", async () => {
     // 45 minutes of Ad-Hoc grace on top of office_start 08:00 covers the
     // 08:30 entry that read late_entry before the exemption existed.
+    // reconcile_attendance only picks up unprocessed taps, so re-tap at the
+    // same time to give it something to recompute (merged with the existing
+    // record, entry stays 08:30).
+    await anonClient().rpc('ingest_attendance_events', {
+      school: schoolId,
+      token: ingestToken,
+      events: [{ card_number: 'ADHOC-CARD-1', tapped_at: `${DAY}T08:30:00Z` }],
+    })
     await anonClient().rpc('reconcile_attendance', { job_secret: RECONCILE_SECRET, target_date: DAY })
 
     const { data } = await ownerA
