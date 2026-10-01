@@ -4,11 +4,19 @@ import { createClient } from '@supabase/supabase-js'
 // Dual-path ingest endpoint (ADR 0001): accepts a single device push
 // ({card_number, tapped_at}) or a bridge-agent batch ({events: [...]}).
 // Auth is the per-School ingest token — no user session (hardware caller).
+// Both ids are uuids in the database; anything else is rejected here so a
+// malformed value never reaches Postgres and its raw cast error never reaches
+// the caller.
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
 export async function POST(request: Request, ctx: { params: Promise<{ schoolId: string }> }) {
   const { schoolId } = await ctx.params
   const token = request.headers.get('x-ingest-token')
   if (!token) {
     return NextResponse.json({ error: 'missing x-ingest-token header' }, { status: 401 })
+  }
+  if (!UUID.test(schoolId) || !UUID.test(token)) {
+    return NextResponse.json({ error: 'invalid ingest token' }, { status: 401 })
   }
 
   let body: unknown
