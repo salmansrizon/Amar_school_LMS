@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { signedIn, anonClient } from '../helpers/auth'
+import { enrollCard, unenrollCards } from '../helpers/machine-enroll'
 
 // Seam: ad_hoc_grace_exemptions/ad_hoc_grace_exemption_categories (issue
 // #671, ADR 0030) — a dated, one-off addition to the Considerable Grace
@@ -46,7 +47,7 @@ describe('Ad-Hoc Grace Exemption (issue #671)', () => {
     await ownerA.from('attendance_records').delete().eq('att_date', DAY)
     await ownerA.from('employees').delete().eq('full_name', 'Ad-Hoc Grace Test Employee')
     await ownerA.from('office_times').delete().eq('name', 'AdHoc-Day')
-    await ownerA.from('rfid_cards').delete().eq('card_number', 'ADHOC-CARD-1')
+    await unenrollCards(ownerA, ['ADHOC-CARD-1'])
 
     officeTimeId = (
       await ownerA
@@ -63,12 +64,12 @@ describe('Ad-Hoc Grace Exemption (issue #671)', () => {
         .single()
     ).data!.id
     await ownerA.from('employee_office_times').insert({ employee_id: employeeId, office_time_id: officeTimeId })
-    await ownerA.from('rfid_cards').insert({ card_number: 'ADHOC-CARD-1', employee_id: employeeId })
+    await enrollCard(ownerA, { employee_id: employeeId }, 'ADHOC-CARD-1')
   })
 
   afterAll(async () => {
     await ownerA.from('attendance_records').delete().eq('att_date', DAY)
-    await ownerA.from('rfid_cards').delete().eq('card_number', 'ADHOC-CARD-1')
+    await unenrollCards(ownerA, ['ADHOC-CARD-1'])
     await ownerA.from('employees').delete().eq('id', employeeId)
     await ownerA.from('employee_office_times').delete().eq('employee_id', employeeId)
     await ownerA.from('office_times').delete().eq('id', officeTimeId)

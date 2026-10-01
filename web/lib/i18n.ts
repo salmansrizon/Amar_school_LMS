@@ -855,13 +855,6 @@ const dict = {
   // Attendance-machine data-model prep (ticket #564) — unique_id is
   // server-assigned, shown read-only.
   'employees.uniqueId': { bn: 'মেশিন আইডি', en: 'Machine ID' },
-  // rfid_card_number field (ticket #565) — see the matching students.* keys
-  // for why this is separate from the Attendance module's card assignment.
-  'employees.rfidCardNumber': { bn: 'আরএফআইডি কার্ড নম্বর', en: 'RFID Card Number' },
-  'employees.rfidCardNumberHint': {
-    bn: 'উপস্থিতি মডিউলের কার্ড বরাদ্দের সাথে সম্পর্কিত নয় — সেটি পরিচালনা করুন উপস্থিতি → RFID কার্ড থেকে।',
-    en: 'Separate from card assignment in the Attendance module — manage that via Attendance → RFID cards.',
-  },
   'employees.mobile': { bn: 'মোবাইল', en: 'Mobile' },
   'employees.dob': { bn: 'জন্ম তারিখ', en: 'Date of Birth' },
   'employees.joiningDate': { bn: 'যোগদানের তারিখ', en: 'Joining Date' },
@@ -2059,16 +2052,6 @@ const dict = {
   // Attendance-machine data-model prep (ticket #564) — unique_id is
   // server-assigned, shown read-only.
   'students.uniqueId': { bn: 'মেশিন আইডি', en: 'Machine ID' },
-  // rfid_card_number field (ticket #565) — plain editable text, no format
-  // constraint (leading zeros preserved). The hint points at the Attendance
-  // module's own card-assignment screen (web/school/attendance/card-controls.tsx,
-  // a separate rfid_cards table) so the two don't read as unrelated features
-  // that happen to share a name — see #565 for why both exist.
-  'students.rfidCardNumber': { bn: 'আরএফআইডি কার্ড নম্বর', en: 'RFID Card Number' },
-  'students.rfidCardNumberHint': {
-    bn: 'উপস্থিতি মডিউলের কার্ড বরাদ্দের সাথে সম্পর্কিত নয় — সেটি পরিচালনা করুন উপস্থিতি → RFID কার্ড থেকে।',
-    en: 'Separate from card assignment in the Attendance module — manage that via Attendance → RFID cards.',
-  },
   // Student login management, owner side (map #434, #442).
   'students.studentNo': { bn: 'শিক্ষার্থী নম্বর', en: 'Student Number' },
   'students.login': { bn: 'শিক্ষার্থী লগইন', en: 'Student login' },
@@ -2180,10 +2163,6 @@ const dict = {
   'common.back': { bn: 'ফিরে যান', en: 'Back' },
   'common.remove': { bn: 'সরান', en: 'Remove' },
   'attendance.title': { bn: 'উপস্থিতি', en: 'Attendance' },
-  'attendance.cards': { bn: 'RFID কার্ড', en: 'RFID cards' },
-  'attendance.assign': { bn: 'কার্ড বরাদ্দ', en: 'Assign card' },
-  'attendance.cardNumber': { bn: 'কার্ড নম্বর', en: 'Card number' },
-  'attendance.holder': { bn: 'কার্ডধারী', en: 'Holder' },
   'attendance.records': { bn: 'ফাইনাল উপস্থিতি রেকর্ড', en: 'Finalized attendance records' },
   'attendance.date': { bn: 'তারিখ', en: 'Date' },
   'attendance.entry': { bn: 'প্রবেশ', en: 'Entry' },
@@ -2193,7 +2172,6 @@ const dict = {
     bn: 'ডিভাইস/ব্রিজ এজেন্ট এই এন্ডপয়েন্টে POST করবে (x-ingest-token হেডারসহ):',
     en: 'Devices/bridge agents POST to this endpoint (with the x-ingest-token header):',
   },
-  'attendance.remove': { bn: 'মুছুন', en: 'Remove' },
   'status.present': { bn: 'উপস্থিত', en: 'Present' },
   'status.on_time': { bn: 'সময়মতো', en: 'On time' },
   'status.late_entry': { bn: 'দেরিতে প্রবেশ', en: 'Late entry' },
@@ -2286,7 +2264,6 @@ const dict = {
   'attendance.tabMark': { bn: 'শিক্ষার্থী হাজিরা', en: 'Mark Attendance' },
   'attendance.tabLeave': { bn: 'ছুটি ব্যবস্থাপনা', en: 'Leave Management' },
   'attendance.tabOffDays': { bn: 'ছুটির দিন ক্যালেন্ডার', en: 'Off-Day Calendar' },
-  'attendance.tabCards': { bn: 'RFID কার্ড', en: 'RFID Card' },
   // Two-level nav grouping (map #663): Students / Employees / Off-Days Calendar.
   'attendance.groupStudents': { bn: 'শিক্ষার্থী', en: 'Students' },
   'attendance.groupEmployees': { bn: 'কর্মচারী', en: 'Employees' },

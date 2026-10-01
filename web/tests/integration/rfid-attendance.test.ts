@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { signedIn, anonClient } from '../helpers/auth'
+import { enrollCard, unenrollCards } from '../helpers/machine-enroll'
 
 // Seam: attendance_events ingest RPC (token-gated, ADR 0001) + the daily
 // reconciliation collapse (issue #10).
@@ -48,11 +49,9 @@ describe('RFID Attendance Event ingestion + reconciliation (issue #10)', () => {
       await ownerA.from('students').insert({ full_name: 'RFID Test Student' }).select('id').single()
     ).data!.id
 
-    await ownerA.from('rfid_cards').delete().in('card_number', ['EMP-CARD-1', 'STU-CARD-1', 'LATE-CARD-9'])
-    await ownerA.from('rfid_cards').insert([
-      { card_number: 'EMP-CARD-1', employee_id: employeeId },
-      { card_number: 'STU-CARD-1', student_id: studentId },
-    ])
+    await unenrollCards(ownerA, ['EMP-CARD-1', 'STU-CARD-1', 'LATE-CARD-9'])
+    await enrollCard(ownerA, { employee_id: employeeId }, 'EMP-CARD-1')
+    await enrollCard(ownerA, { student_id: studentId }, 'STU-CARD-1')
   })
 
   afterAll(async () => {
@@ -161,7 +160,7 @@ describe('RFID Attendance Event ingestion + reconciliation (issue #10)', () => {
       .insert({ full_name: 'RFID Late Card Student' })
       .select('id')
       .single()
-    await ownerA.from('rfid_cards').insert({ card_number: 'LATE-CARD-9', student_id: lateStudent!.id })
+    await enrollCard(ownerA, { student_id: lateStudent!.id }, 'LATE-CARD-9')
     await anonClient().rpc('reconcile_attendance', { job_secret: RECONCILE_SECRET, target_date: DAY })
 
     const { data: record } = await ownerA
@@ -205,13 +204,20 @@ describe('RFID Attendance Event ingestion + reconciliation (issue #10)', () => {
       .select('id')
       .single()
 
-    await ownerA.from('rfid_cards').delete().eq('card_number', 'XT-CARD-1')
-    const { error } = await ownerA
-      .from('rfid_cards')
-      .insert({ card_number: 'XT-CARD-1', student_id: victim!.id })
+    const { data: victimId } = await ownerB.from('students').select('unique_id').eq('id', victim!.id).single()
+
+    await unenrollCards(ownerA, ['XT-CARD-1'])
+    // The composite FK pins (school_id, student_id, unique_id) to the
+    // student's own row, so ownerA's school_id can't point at ownerB's student.
+    const { error } = await ownerA.from('machine_enroll_infos').insert({
+      type: 'student',
+      student_id: victim!.id,
+      unique_id: victimId!.unique_id,
+      rfid_card_number: 'XT-CARD-1',
+    })
 
     // Clean up BEFORE asserting so a failing run never strands a cross-tenant row.
-    await ownerA.from('rfid_cards').delete().eq('card_number', 'XT-CARD-1')
+    await unenrollCards(ownerA, ['XT-CARD-1'])
     await ownerB.from('students').delete().eq('id', victim!.id)
     expect(error).not.toBeNull()
   })

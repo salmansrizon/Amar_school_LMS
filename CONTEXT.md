@@ -168,6 +168,13 @@ _Avoid_: Locked, archived (imply reversibility that doesn't exist here)
 A single raw RFID/biometric card-tap record ingested via the dual-path pipeline (device push or bridge agent — see ADR 0001), staged before reconciliation. Multiple Attendance Events for the same person on the same day collapse to one finalized attendance record: the **earliest tap is entry, the latest tap is exit**; any taps in between are discarded as noise (e.g. a forgotten lunch tap-out/back-in). One finalized record per person per day, not one per in/out pair.
 _Avoid_: Punch, tap (fine informally, but the record type is "Attendance Event")
 
+**Machine ID**:
+A Student's or Employee's attendance-machine User ID (`students.unique_id` / `employees.unique_id`): a plain positive integer, auto-assigned at insert from one sequence shared by both tables, globally unique across every School, and immutable. Numeric-only because a ZKTeco machine needs a numeric User ID, so it never encodes whether it belongs to a Student or an Employee — that is what the Machine Enrollment's `type` is for (migration 0211 replaced the earlier `stu########` / `emp########` form).
+_Avoid_: Student Number, roll (both are different identifiers)
+
+**Machine Enrollment**:
+One person's enrollment on attendance machines (`machine_enroll_infos`): their Machine ID, their `type` (`student` / `employee`), a direct reference to that Student or Employee (the database keeps the three consistent with each other and with the person's School), and an optional RFID card number, unique within the School. A person can be enrolled with no card and still sign in by fingerprint. It is the only place an RFID card number is stored (the profile `rfid_card_number` columns and the legacy `rfid_cards` table were retired in 0211/0212), the source reconciliation uses to turn an Attendance Event's card into a person, and the source a future machine sync will read. It has no UI yet.
+
 **Absence SMS Rule**:
 A School-configured trigger ("exactly N working-days absent" or "absent within an X–Y working-day range") that automatically sends an SMS about a Student. Uses the same "working days" definition as the absent-fine formula (§5.6: total days minus off-days, approved leave, and present days) — one definition, not redefined per feature. Evaluated by a once-daily scheduled job after that day's attendance is finalized, not triggered instantly on each attendance mark.
 _Avoid_: Alert (implies real-time urgency this rule doesn't have)
