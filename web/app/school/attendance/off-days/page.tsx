@@ -1,9 +1,13 @@
+import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { monthGrid, type OffDay } from '@/lib/attendance-manual'
+import { schoolToday } from '@/lib/school-time'
+import { parseMonthParam, shiftYearMonth, formatMonthYear, buildLeaveCalendarMonth } from '@/lib/employee-attendance-calendar'
 import { AttendanceTabs } from '../attendance-tabs'
 import { AddOffDayForm, DeleteOffDayButton, ImportCentralButton, WeeklyOffDayForm } from './off-day-controls'
+import { LeaveCalendarGrid } from './leave-calendar'
 import { schoolCrumbs } from '@/lib/school-crumbs'
 import { PageHeader } from '@/components/ui/page'
 
@@ -42,9 +46,9 @@ function currentYear(): number {
 export default async function OffDayCalendarPage({
   searchParams,
 }: {
-  searchParams: Promise<{ year?: string }>
+  searchParams: Promise<{ year?: string; month?: string; view?: string }>
 }) {
-  const { year: yearParam } = await searchParams
+  const { year: yearParam, month: monthParam, view } = await searchParams
   const year = Number(yearParam) || currentYear()
   const lang: Lang = await currentLang()
   const { supabase, weeklyOffDays, role } = await getSchoolContext()
@@ -56,6 +60,49 @@ export default async function OffDayCalendarPage({
     .lte('day', `${year}-12-31`)
     .order('day')
   const offDays: OffDay[] = offDaysRaw ?? []
+
+  // Leave Calendar (map 013 follow-up): one active month, independent of the
+  // year-scoped 12-month List above so switching one view never resets the
+  // other's own navigation.
+  const today = schoolToday()
+  const { year: calYear, month0: calMonth0 } = parseMonthParam(monthParam, today)
+  const calPrefix = `${calYear}-${String(calMonth0 + 1).padStart(2, '0')}`
+  const calStart = `${calPrefix}-01`
+  const calEnd = `${calPrefix}-${String(new Date(Date.UTC(calYear, calMonth0 + 1, 0)).getUTCDate()).padStart(2, '0')}`
+
+  const [{ data: calOffDaysRaw }, { data: leaveRows }, { data: leaveEmployees }] = await Promise.all([
+    supabase.from('off_days').select('day, label, is_significant').gte('day', calStart).lte('day', calEnd),
+    supabase
+      .from('employee_leaves')
+      .select('employee_id, from_day, to_day, status')
+      .in('status', ['approved', 'pending'])
+      .lte('from_day', calEnd)
+      .gte('to_day', calStart),
+    supabase.from('employee_card').select('id, full_name').is('archived_at', null),
+  ])
+  const nameById = new Map((leaveEmployees ?? []).map((e) => [e.id, e.full_name]))
+  const leaveCalendarCells = buildLeaveCalendarMonth({
+    year: calYear,
+    month0: calMonth0,
+    offDays: calOffDaysRaw ?? [],
+    weeklyOffDays,
+    leaves: (leaveRows ?? []).map((l) => ({ ...l, employee_name: nameById.get(l.employee_id) ?? '—' })),
+  })
+
+  const listQuery = (extra: Record<string, string | undefined>) => {
+    const qp = new URLSearchParams()
+    if (yearParam) qp.set('year', yearParam)
+    if (monthParam) qp.set('month', monthParam)
+    for (const [k, v] of Object.entries(extra)) {
+      if (v) qp.set(k, v)
+      else qp.delete(k)
+    }
+    const qs = qp.toString()
+    return qs ? `?${qs}` : '?'
+  }
+  const calendarHref = listQuery({ view: undefined })
+  const listHref = listQuery({ view: 'list' })
+  const isListView = view === 'list'
 
   return (
     <div>
@@ -93,72 +140,109 @@ export default async function OffDayCalendarPage({
         </div>
       </section>
 
-      <div className="mb-4 flex flex-wrap items-center gap-4 text-sm">
-        <span className="flex items-center gap-2">
-          <span className="h-3 w-3 rounded-full bg-alert" /> {t('attendance.offDayLegendRegular', lang)}
-        </span>
-        <span className="flex items-center gap-2">
-          <span className="h-3 w-3 rounded-full bg-sky" /> {t('attendance.offDayLegendSignificant', lang)}
-        </span>
+      {/* Plain nav links, not an ARIA tablist — same convention as
+          AttendanceTabs (../attendance-tabs.tsx): each "tab" is its own URL,
+          not a JS-managed tabpanel switch, so a roving-tabindex tabs pattern
+          would promise keyboard behaviour this doesn't implement. */}
+      <div className="mb-grid flex gap-1 border-b border-line">
+        <Link
+          href={calendarHref}
+          aria-current={!isListView ? 'page' : undefined}
+          className={`rounded-t-md px-3 py-2 text-sm font-semibold ${!isListView ? 'border-b-2 border-brand-500 text-brand-600' : 'text-muted hover:text-ink'}`}
+        >
+          {t('attendance.viewCalendar', lang)}
+        </Link>
+        <Link
+          href={listHref}
+          aria-current={isListView ? 'page' : undefined}
+          className={`rounded-t-md px-3 py-2 text-sm font-semibold ${isListView ? 'border-b-2 border-brand-500 text-brand-600' : 'text-muted hover:text-ink'}`}
+        >
+          {t('attendance.viewList', lang)}
+        </Link>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {MONTH_NAMES.map((name, month) => {
-          const grid = monthGrid(year, month, offDays, weeklyOffDays)
-          return (
-            <div key={month} className="rounded-2xl border border-line bg-paper p-3">
-              <h4 className="mb-2 text-center text-sm font-bold">{name[lang]}</h4>
-              <div className="grid grid-cols-7 gap-0.5 text-xs">
-                {WEEKDAY_LABELS.map((w) => (
-                  <span key={w.en} className="rounded-sm px-0.5 py-0.5 text-center text-muted">
-                    {w[lang]}
-                  </span>
-                ))}
-                {grid.map((cell, i) => (
-                  <span
-                    key={i}
-                    title={cell.label ?? undefined}
-                    className={`rounded-sm px-0.5 py-0.5 text-center ${
-                      cell.isSignificant
-                        ? 'bg-sky-soft font-semibold text-sky-deep'
-                        : cell.isOff
-                          ? 'bg-alert-soft font-semibold text-alert-deep'
-                          : ''
-                    }`}
-                  >
-                    {cell.day ?? ''}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )
-        })}
-      </div>
+      {!isListView && (
+        <section className="rounded-2xl border border-line bg-paper p-card">
+          <LeaveCalendarGrid
+            cells={leaveCalendarCells}
+            monthLabel={formatMonthYear(calYear, calMonth0, lang)}
+            prevHref={listQuery({ month: shiftYearMonth(calPrefix, -1) })}
+            nextHref={listQuery({ month: shiftYearMonth(calPrefix, 1) })}
+            lang={lang}
+          />
+        </section>
+      )}
 
-      <p className="mt-4 text-xs text-muted">{t('attendance.offDayWeeklyNote', lang)}</p>
+      {isListView && (
+        <>
+          <div className="mb-4 flex flex-wrap items-center gap-4 text-sm">
+            <span className="flex items-center gap-2">
+              <span className="h-3 w-3 rounded-full bg-alert" /> {t('attendance.offDayLegendRegular', lang)}
+            </span>
+            <span className="flex items-center gap-2">
+              <span className="h-3 w-3 rounded-full bg-sky" /> {t('attendance.offDayLegendSignificant', lang)}
+            </span>
+          </div>
 
-      <section className="mt-6 rounded-2xl border border-line bg-paper p-card">
-        {!offDays.length ? (
-          <p className="text-sm text-muted">{t('attendance.none', lang)}</p>
-        ) : (
-          <ul className="divide-y divide-line text-sm">
-            {offDays.map((od) => (
-              <li key={od.day} className="flex items-center justify-between py-2">
-                <span>
-                  {od.day}
-                  {od.label ? ` — ${od.label}` : ''}
-                  {od.is_significant && (
-                    <span className="ml-2 rounded-full bg-sky-soft px-2 py-0.5 text-xs font-semibold text-sky-deep">
-                      {t('attendance.offDayLegendSignificant', lang)}
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {MONTH_NAMES.map((name, month) => {
+              const grid = monthGrid(year, month, offDays, weeklyOffDays)
+              return (
+                <div key={month} className="rounded-2xl border border-line bg-paper p-3">
+                  <h4 className="mb-2 text-center text-sm font-bold">{name[lang]}</h4>
+                  <div className="grid grid-cols-7 gap-0.5 text-xs">
+                    {WEEKDAY_LABELS.map((w) => (
+                      <span key={w.en} className="rounded-sm px-0.5 py-0.5 text-center text-muted">
+                        {w[lang]}
+                      </span>
+                    ))}
+                    {grid.map((cell, i) => (
+                      <span
+                        key={i}
+                        title={cell.label ?? undefined}
+                        className={`rounded-sm px-0.5 py-0.5 text-center ${
+                          cell.isSignificant
+                            ? 'bg-sky-soft font-semibold text-sky-deep'
+                            : cell.isOff
+                              ? 'bg-alert-soft font-semibold text-alert-deep'
+                              : ''
+                        }`}
+                      >
+                        {cell.day ?? ''}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+
+          <p className="mt-4 text-xs text-muted">{t('attendance.offDayWeeklyNote', lang)}</p>
+
+          <section className="mt-6 rounded-2xl border border-line bg-paper p-card">
+            {!offDays.length ? (
+              <p className="text-sm text-muted">{t('attendance.none', lang)}</p>
+            ) : (
+              <ul className="divide-y divide-line text-sm">
+                {offDays.map((od) => (
+                  <li key={od.day} className="flex items-center justify-between py-2">
+                    <span>
+                      {od.day}
+                      {od.label ? ` — ${od.label}` : ''}
+                      {od.is_significant && (
+                        <span className="ml-2 rounded-full bg-sky-soft px-2 py-0.5 text-xs font-semibold text-sky-deep">
+                          {t('attendance.offDayLegendSignificant', lang)}
+                        </span>
+                      )}
                     </span>
-                  )}
-                </span>
-                <DeleteOffDayButton day={od.day} lang={lang} />
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+                    <DeleteOffDayButton day={od.day} lang={lang} />
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        </>
+      )}
     </div>
   )
 }

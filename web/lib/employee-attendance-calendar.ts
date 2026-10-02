@@ -147,6 +147,15 @@ export interface LeaveCalendarPerson {
 export interface LeaveCalendarDayCell extends CalendarCell {
   approved: LeaveCalendarPerson[]
   pending: LeaveCalendarPerson[]
+  /** Whether an actual off_days row exists for this date — distinct from the
+   *  merged `isOff` (which also fires for the School's recurring Weekly
+   *  Off-Day, e.g. every Friday, with no row at all). The calendar's
+   *  Add/Remove click offers Remove only when there is a real row to delete;
+   *  a day that is off purely by the weekly rule still offers Add, because
+   *  labelling that particular Friday (e.g. "Eid") as a named/significant day
+   *  on top of the recurring rule is the same thing AddOffDayForm already
+   *  allows from the page's own always-visible copy. */
+  hasOffDayRow: boolean
 }
 
 export function buildLeaveCalendarMonth(args: {
@@ -157,13 +166,15 @@ export function buildLeaveCalendarMonth(args: {
   leaves: { employee_name: string; from_day: string; to_day: string; status: string }[]
 }): LeaveCalendarDayCell[] {
   const grid = monthGrid(args.year, args.month0, args.offDays, args.weeklyOffDays)
+  const offDayIsos = new Set(args.offDays.map((o) => o.day))
   return grid.map((cell) => {
-    if (!cell.iso) return { ...cell, approved: [], pending: [] }
+    if (!cell.iso) return { ...cell, approved: [], pending: [], hasOffDayRow: false }
     const onDay = args.leaves.filter((l) => l.from_day <= cell.iso! && l.to_day >= cell.iso!)
     return {
       ...cell,
       approved: onDay.filter((l) => l.status === 'approved').map((l) => ({ name: l.employee_name })),
       pending: onDay.filter((l) => l.status === 'pending').map((l) => ({ name: l.employee_name })),
+      hasOffDayRow: offDayIsos.has(cell.iso),
     }
   })
 }
