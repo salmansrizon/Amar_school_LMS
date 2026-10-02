@@ -98,8 +98,18 @@ export function ComboboxField({
           aria-label={ariaLabel}
           className={cn('h-full min-w-0 flex-1 rounded-l-md bg-transparent px-3 outline-none', inputClassName)}
         />
+        {/* Decorative mouse affordance only — the Input beside it already carries
+            the full ARIA combobox pattern (and, per base-ui's default
+            `openOnInputClick`, already opens the same popup on click). Base UI's
+            Trigger independently grows a `role="combobox"` of its own (its
+            "input inside popup" pattern's surface), which would otherwise give
+            this one logical field two same-named combobox landmarks — one
+            genuine, one a decoy that claims (wrongly, for this layout) to open
+            a dialog. aria-hidden + tabIndex=-1 keep it out of the accessibility
+            tree and tab order without touching its click handler. */}
         <ComboboxPrimitive.Trigger
-          aria-label={ariaLabel}
+          aria-hidden="true"
+          tabIndex={-1}
           className="flex shrink-0 cursor-pointer items-center rounded-r-md px-2 text-muted outline-none hover:text-ink data-disabled:cursor-not-allowed"
         >
           <ChevronDownIcon className="size-4" />
