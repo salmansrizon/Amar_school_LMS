@@ -3,7 +3,8 @@
 import { useState, useTransition } from 'react'
 import { t, type Lang } from '@/lib/i18n'
 import { addOffDay, deleteOffDay, addRule, deleteRule, addLeave, deleteLeave } from './actions'
-import { dateInputClass, selectClass } from '@/components/ui/field'
+import { dateInputClass } from '@/components/ui/field'
+import { ComboboxField } from '@/components/ui/combobox-field'
 
 export function AddOffDayForm({ lang }: { lang: Lang }) {
   const [error, setError] = useState<string | null>(null)
@@ -199,13 +200,17 @@ export function AddLeaveForm({ lang, students }: { lang: Lang; students: { id: s
         <input type="date" name="to_day" required className={dateInputClass()} />
       </div>
       <div>
-        <label className="block text-xs text-gray-500">{t('sms.leaveStudent', lang)}</label>
-        <select name="student_id" required className={selectClass()}>
-          <option value="">—</option>
-          {students.map((s) => (
-            <option key={s.id} value={s.id}>{s.full_name}</option>
-          ))}
-        </select>
+        <label htmlFor="leave_student" className="block text-xs text-gray-500">{t('sms.leaveStudent', lang)}</label>
+        <ComboboxField
+          id="leave_student"
+          name="student_id"
+          required
+          defaultValue=""
+          options={[
+            { value: '', label: '—' },
+            ...students.map((s) => ({ value: s.id, label: s.full_name })),
+          ]}
+        />
       </div>
       <button
         type="submit"

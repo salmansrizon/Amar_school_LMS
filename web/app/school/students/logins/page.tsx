@@ -7,6 +7,7 @@ import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
 import { applyGlobalYearFilterToOfferings } from '@/lib/school/year-filter'
 import { classCatalogueOptions } from '@/lib/class-catalogue'
 import { Card, PageHeader } from '@/components/ui/page'
+import { ComboboxField } from '@/components/ui/combobox-field'
 import { classLoginCandidates } from '../login-actions'
 import { BulkLoginControls } from './bulk-controls'
 
@@ -71,18 +72,11 @@ export default async function StudentLoginsPage({
         <form method="get" className="mb-4 flex flex-wrap items-end gap-2">
           <label className="text-xs font-semibold text-muted">
             <span className="mb-1 block">{t('students.classSection', lang)}</span>
-            <select
+            <ComboboxField
               name="classSection"
               defaultValue={classSection}
-              className="rounded-md border border-line-strong bg-paper px-3 py-1.5 text-sm"
-            >
-              <option value="">—</option>
-              {combos.map((c) => (
-                <option key={c.value} value={c.value}>
-                  {c.label}
-                </option>
-              ))}
-            </select>
+              options={[{ value: '', label: '—' }, ...combos.map((c) => ({ value: c.value, label: c.label }))]}
+            />
           </label>
           <button
             type="submit"

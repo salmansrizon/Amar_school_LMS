@@ -7,7 +7,7 @@ import { subjectFullMarks } from '@/lib/exam-setup'
 import { evaluateSubject, type GradingScheme } from '@/lib/grading'
 import { t, type Lang } from '@/lib/i18n'
 import { saveMarks } from './actions'
-import { selectClass } from '@/components/ui/field'
+import { ComboboxField } from '@/components/ui/combobox-field'
 
 export interface SubjectOption {
   id: string
@@ -33,20 +33,15 @@ export function SubjectPicker({
   const router = useRouter()
   const pathname = usePathname()
   return (
-    <select
+    <ComboboxField
       value={selectedId}
       aria-label={t('markEntry.pickSubject', lang)}
       // replace, not push: in the row-action popup, ✕ (router.back) must return
       // to the list, not to the previously picked subject.
-      onChange={(e) => router.replace(`${pathname}?subject=${e.target.value}`)}
-      className={`${selectClass({ size: 'md', fullWidth: true })} max-w-56`}
-    >
-      {subjects.map((s) => (
-        <option key={s.id} value={s.id}>
-          {s.name}
-        </option>
-      ))}
-    </select>
+      onValueChange={(v) => router.replace(`${pathname}?subject=${v}`)}
+      className="max-w-56"
+      options={subjects.map((s) => ({ value: s.id, label: s.name }))}
+    />
   )
 }
 

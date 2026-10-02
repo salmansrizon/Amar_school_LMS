@@ -5,7 +5,8 @@ import { useState, useTransition } from 'react'
 import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
 import { t, type Lang } from '@/lib/i18n'
 import { addCombination, addCombinationMember, removeCombination, removeCombinationMember } from './actions'
-import { selectClass } from '@/components/ui/field'
+import { ComboboxField } from '@/components/ui/combobox-field'
+import { SelectField } from '@/components/ui/select-field'
 import { classCatalogueLabel, type ClassCatalogueRow } from '@/lib/class-catalogue'
 
 export interface SchemeOption {
@@ -79,36 +80,43 @@ export function AddCombinationForm({
         <label className={labelClass} htmlFor="combination_class">
           {t('combinations.class', lang)}
         </label>
-        <select id="combination_class" name="class_id" defaultValue="" className={selectClass({ size: 'md', fullWidth: true })}>
-          <option value="">{t('combinations.anyClass', lang)}</option>
-          {classes.map((c) => (
-            <option key={c.id} value={c.id}>
-              {classCatalogueLabel(c, showYear)}
-            </option>
-          ))}
-        </select>
+        <ComboboxField
+          id="combination_class"
+          name="class_id"
+          defaultValue=""
+          options={[
+            { value: '', label: t('combinations.anyClass', lang) },
+            ...classes.map((c) => ({ value: c.id, label: classCatalogueLabel(c, showYear) })),
+          ]}
+        />
       </div>
       <div>
         <label className={labelClass} htmlFor="combination_strategy">
           {t('combinations.strategy', lang)}
         </label>
-        <select id="combination_strategy" name="strategy" defaultValue="sum" className={selectClass({ size: 'md', fullWidth: true })}>
-          <option value="sum">{t('combinations.strategySum', lang)}</option>
-          <option value="weighted_percentage">{t('combinations.strategyWeighted', lang)}</option>
-        </select>
+        <SelectField
+          id="combination_strategy"
+          name="strategy"
+          defaultValue="sum"
+          options={[
+            { value: 'sum', label: t('combinations.strategySum', lang) },
+            { value: 'weighted_percentage', label: t('combinations.strategyWeighted', lang) },
+          ]}
+        />
       </div>
       <div>
         <label className={labelClass} htmlFor="combination_scheme">
           {t('combinations.gradingScheme', lang)}
         </label>
-        <select id="combination_scheme" name="grading_scheme_id" defaultValue="" className={selectClass({ size: 'md', fullWidth: true })}>
-          <option value="">{t('examSetup.noScheme', lang)}</option>
-          {schemes.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.name}
-            </option>
-          ))}
-        </select>
+        <ComboboxField
+          id="combination_scheme"
+          name="grading_scheme_id"
+          defaultValue=""
+          options={[
+            { value: '', label: t('examSetup.noScheme', lang) },
+            ...schemes.map((s) => ({ value: s.id, label: s.name })),
+          ]}
+        />
       </div>
       {error && <p className="text-sm text-alert-deep sm:col-span-2">{error}</p>}
       <button type="submit" disabled={pending} className={`${primaryBtnClass} sm:col-span-2`}>
@@ -245,16 +253,17 @@ function AddMemberForm({ combinationId, exams, lang }: { combinationId: string; 
         <label className={labelClass} htmlFor={`member_exam_${combinationId}`}>
           {t('combinations.exam', lang)}
         </label>
-        <select id={`member_exam_${combinationId}`} name="exam_id" required defaultValue="" className={selectClass({ size: 'xs', fullWidth: true })}>
-          <option value="" disabled>
-            {t('combinations.exam', lang)}
-          </option>
-          {exams.map((e) => (
-            <option key={e.id} value={e.id}>
-              {e.name} ({e.exam_year})
-            </option>
-          ))}
-        </select>
+        <ComboboxField
+          id={`member_exam_${combinationId}`}
+          name="exam_id"
+          required
+          defaultValue=""
+          className="min-h-8 text-xs sm:min-h-8"
+          options={[
+            { value: '', label: t('combinations.exam', lang), disabled: true },
+            ...exams.map((e) => ({ value: e.id, label: `${e.name} (${e.exam_year})` })),
+          ]}
+        />
       </div>
       <div>
         <label className={labelClass} htmlFor={`member_weight_${combinationId}`}>

@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react'
 import { inputClass, labelClass } from '@/components/auth-card'
 import { t, type Lang } from '@/lib/i18n'
 import { assignCard, removeCard, setAutomaticAttendance } from './actions'
-import { selectClass } from '@/components/ui/field'
+import { ComboboxField } from '@/components/ui/combobox-field'
 
 // The live "assign a card" flow (issue #10): writes rfid_cards.card_number,
 // per-school unique, wired to ingest_attendance_events/reconcile_attendance.
@@ -50,18 +50,18 @@ export function AssignCardForm({
       </div>
       <div>
         <label className={labelClass} htmlFor="holder">{t('attendance.holder', lang)}</label>
-        <select id="holder" name="holder" required className={selectClass({ size: 'md', fullWidth: true })}>
-          <optgroup label={t('students.title', lang)}>
-            {students.map((s) => (
-              <option key={s.id} value={`student:${s.id}`}>{s.full_name}</option>
-            ))}
-          </optgroup>
-          <optgroup label={t('employees.title', lang)}>
-            {employees.map((e) => (
-              <option key={e.id} value={`employee:${e.id}`}>{e.full_name}</option>
-            ))}
-          </optgroup>
-        </select>
+        <ComboboxField
+          id="holder"
+          name="holder"
+          required
+          className="w-full"
+          options={[
+            { value: '__group_students__', label: t('students.title', lang), disabled: true },
+            ...students.map((s) => ({ value: `student:${s.id}`, label: s.full_name })),
+            { value: '__group_employees__', label: t('employees.title', lang), disabled: true },
+            ...employees.map((e) => ({ value: `employee:${e.id}`, label: e.full_name })),
+          ]}
+        />
       </div>
       <button
         type="submit"

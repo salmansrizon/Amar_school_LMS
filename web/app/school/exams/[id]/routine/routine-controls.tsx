@@ -7,7 +7,8 @@ import { dateToDayOfWeek, sortRoutineEntries } from '@/lib/exam-setup'
 import { dayLabel } from '@/lib/routine'
 import { t, type Lang } from '@/lib/i18n'
 import { addRoutineEntry, removeRoutineEntry } from './actions'
-import { dateInputClass, selectClass } from '@/components/ui/field'
+import { dateInputClass } from '@/components/ui/field'
+import { ComboboxField } from '@/components/ui/combobox-field'
 
 export interface Option {
   id: string
@@ -144,27 +145,28 @@ export function AddRoutineEntryForm({
       </div>
       <div>
         <label className={labelClass} htmlFor="subject_id">{t('examRoutine.subject', lang)}</label>
-        <select id="subject_id" name="subject_id" required defaultValue="" className={selectClass({ size: 'md', fullWidth: true })}>
-          <option value="" disabled>
-            {t('examRoutine.pickSubject', lang)}
-          </option>
-          {subjects.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.label}
-            </option>
-          ))}
-        </select>
+        <ComboboxField
+          id="subject_id"
+          name="subject_id"
+          required
+          defaultValue=""
+          options={[
+            { value: '', label: t('examRoutine.pickSubject', lang), disabled: true },
+            ...subjects.map((s) => ({ value: s.id, label: s.label })),
+          ]}
+        />
       </div>
       <div>
         <label className={labelClass} htmlFor="room_id">{t('examRoutine.room', lang)}</label>
-        <select id="room_id" name="room_id" defaultValue="" className={selectClass({ size: 'md', fullWidth: true })}>
-          <option value="">{t('examRoutine.pickRoom', lang)}</option>
-          {rooms.map((r) => (
-            <option key={r.id} value={r.id}>
-              {r.label}
-            </option>
-          ))}
-        </select>
+        <ComboboxField
+          id="room_id"
+          name="room_id"
+          defaultValue=""
+          options={[
+            { value: '', label: t('examRoutine.pickRoom', lang) },
+            ...rooms.map((r) => ({ value: r.id, label: r.label })),
+          ]}
+        />
       </div>
       {error && <p className="text-sm text-alert-deep sm:col-span-5">{error}</p>}
       <button type="submit" disabled={pending} className={`${primaryBtnClass} sm:col-span-5`}>

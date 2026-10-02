@@ -20,8 +20,17 @@ test('journey — School Owner admits a student', async ({ page }) => {
   await step(page, 'j-owner-2-form')
   try {
     await page.getByRole('textbox').first().fill('Journey Test শিক্ষার্থী')
+    // Native <select>s and the shared type-to-filter combobox/select controls
+    // (ui/combobox-field.tsx, ui/select-field.tsx) both expose role="combobox",
+    // but only a native <select> supports .selectOption() — arrow-down+enter
+    // picks "some non-empty option" on either kind without knowing its text.
     const combos = page.getByRole('combobox')
-    if (await combos.count()) await combos.first().selectOption({ index: 1 }).catch(() => {})
+    if (await combos.count()) {
+      const combo = combos.first()
+      await combo.click().catch(() => {})
+      await combo.press('ArrowDown').catch(() => {})
+      await combo.press('Enter').catch(() => {})
+    }
     await step(page, 'j-owner-3-filled')
     await page.getByRole('button', { name: /ভর্তি|সংরক্ষণ|save|যোগ|submit/i }).first().click({ timeout: 4000 })
     await page.waitForTimeout(1500)

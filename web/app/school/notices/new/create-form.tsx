@@ -17,7 +17,8 @@ import {
 } from '@/lib/publishing'
 import { classCatalogueOptions, type ClassCatalogueRow } from '@/lib/class-catalogue'
 import { createPublication, publicationImageUploadTicket } from '../actions'
-import { selectClass } from '@/components/ui/field'
+import { ComboboxField } from '@/components/ui/combobox-field'
+import { SelectField } from '@/components/ui/select-field'
 import { removeUploadedObject } from '@/lib/storage/remove-object'
 import { uploadWithSignedToken } from '@/lib/storage/upload-client'
 
@@ -144,32 +145,22 @@ export function CreateNoticeForm({
     <div className="rounded-lg border border-line bg-paper p-5 shadow-card">
       <form className="grid gap-4 sm:grid-cols-2" onSubmit={onSubmit}>
         <div>
-          <label className={labelClass}>{t('notices.type', lang)}</label>
-          <select
-            className={selectClass({ size: 'md', fullWidth: true })}
+          <label htmlFor="notice_kind" className={labelClass}>{t('notices.type', lang)}</label>
+          <SelectField
+            id="notice_kind"
             value={kind}
-            onChange={(e) => setKind(e.target.value as PublicationKind)}
-          >
-            {PUBLICATION_KINDS.map((k) => (
-              <option key={k.key} value={k.key}>
-                {k.label[lang]}
-              </option>
-            ))}
-          </select>
+            onValueChange={(v) => setKind(v as PublicationKind)}
+            options={PUBLICATION_KINDS.map((k) => ({ value: k.key, label: k.label[lang] }))}
+          />
         </div>
         <div>
-          <label className={labelClass}>{t('notices.importance', lang)}</label>
-          <select
-            className={selectClass({ size: 'md', fullWidth: true })}
+          <label htmlFor="notice_importance" className={labelClass}>{t('notices.importance', lang)}</label>
+          <SelectField
+            id="notice_importance"
             value={importance}
-            onChange={(e) => setImportance(e.target.value as Importance)}
-          >
-            {IMPORTANCE_LEVELS.map((i) => (
-              <option key={i.key} value={i.key}>
-                {i.label[lang]}
-              </option>
-            ))}
-          </select>
+            onValueChange={(v) => setImportance(v as Importance)}
+            options={IMPORTANCE_LEVELS.map((i) => ({ value: i.key, label: i.label[lang] }))}
+          />
         </div>
         <div className="sm:col-span-2">
           <label className={labelClass}>{t('notices.colTitle', lang)}</label>
@@ -181,96 +172,82 @@ export function CreateNoticeForm({
           />
         </div>
         <div>
-          <label className={labelClass}>{t('notices.colTarget', lang)}</label>
-          <select
-            className={selectClass({ size: 'md', fullWidth: true })}
+          <label htmlFor="notice_target_scope" className={labelClass}>{t('notices.colTarget', lang)}</label>
+          <SelectField
+            id="notice_target_scope"
             value={targetScope}
-            onChange={(e) => chooseScope(e.target.value as TargetScope)}
-          >
-            <option value="all">{t('notices.targetAll', lang)}</option>
-            <option value="offering">{t('notices.targetOffering', lang)}</option>
-            <option value="broadcast">{t('notices.targetBroadcast', lang)}</option>
-          </select>
+            onValueChange={(v) => chooseScope(v as TargetScope)}
+            options={[
+              { value: 'all', label: t('notices.targetAll', lang) },
+              { value: 'offering', label: t('notices.targetOffering', lang) },
+              { value: 'broadcast', label: t('notices.targetBroadcast', lang) },
+            ]}
+          />
         </div>
         <div />
         {targetScope === 'offering' && (
           <div className="sm:col-span-2">
-            <label className={labelClass}>{t('notices.classOffering', lang)}</label>
-            <select
-              className={selectClass({ size: 'md', fullWidth: true })}
+            <label htmlFor="notice_offering" className={labelClass}>{t('notices.classOffering', lang)}</label>
+            <ComboboxField
+              id="notice_offering"
               value={offeringId}
-              onChange={(e) => setOfferingId(e.target.value)}
-            >
-              <option value="">{t('notices.selectOffering', lang)}</option>
-              {offeringOptions.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.label}
-                </option>
-              ))}
-            </select>
+              onValueChange={setOfferingId}
+              options={[
+                { value: '', label: t('notices.selectOffering', lang) },
+                ...offeringOptions.map((o) => ({ value: o.value, label: o.label })),
+              ]}
+            />
           </div>
         )}
         {targetScope === 'broadcast' && (
           <div className="grid gap-4 sm:col-span-2 sm:grid-cols-2">
             <div>
-              <label className={labelClass}>{t('classes.class', lang)}</label>
-              <select
-                className={selectClass({ size: 'md', fullWidth: true })}
+              <label htmlFor="notice_target_class_name" className={labelClass}>{t('classes.class', lang)}</label>
+              <ComboboxField
+                id="notice_target_class_name"
                 value={targetClassName}
-                onChange={(e) => setTargetClassName(e.target.value)}
-              >
-                <option value="">{t('notices.selectClass', lang)}</option>
-                {classNameOptions.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
+                onValueChange={setTargetClassName}
+                options={[
+                  { value: '', label: t('notices.selectClass', lang) },
+                  ...classNameOptions.map((c) => ({ value: c, label: c })),
+                ]}
+              />
             </div>
             <div>
-              <label className={labelClass}>{t('sms.shift', lang)}</label>
-              <select
-                className={selectClass({ size: 'md', fullWidth: true })}
+              <label htmlFor="notice_target_shift" className={labelClass}>{t('sms.shift', lang)}</label>
+              <ComboboxField
+                id="notice_target_shift"
                 value={targetShift}
-                onChange={(e) => setTargetShift(e.target.value)}
-              >
-                <option value="">{t('sms.anyShift', lang)}</option>
-                {shiftOptions.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
-              </select>
+                onValueChange={setTargetShift}
+                options={[
+                  { value: '', label: t('sms.anyShift', lang) },
+                  ...shiftOptions.map((s) => ({ value: s, label: s })),
+                ]}
+              />
             </div>
             <div>
-              <label className={labelClass}>{t('sms.groupDepartment', lang)}</label>
-              <select
-                className={selectClass({ size: 'md', fullWidth: true })}
+              <label htmlFor="notice_target_group_department" className={labelClass}>{t('sms.groupDepartment', lang)}</label>
+              <ComboboxField
+                id="notice_target_group_department"
                 value={targetGroupDepartment}
-                onChange={(e) => setTargetGroupDepartment(e.target.value)}
-              >
-                <option value="">{t('sms.anyGroup', lang)}</option>
-                {groupOptions.map((g) => (
-                  <option key={g} value={g}>
-                    {g}
-                  </option>
-                ))}
-              </select>
+                onValueChange={setTargetGroupDepartment}
+                options={[
+                  { value: '', label: t('sms.anyGroup', lang) },
+                  ...groupOptions.map((g) => ({ value: g, label: g })),
+                ]}
+              />
             </div>
             <div>
-              <label className={labelClass}>{t('classes.section', lang)}</label>
-              <select
-                className={selectClass({ size: 'md', fullWidth: true })}
+              <label htmlFor="notice_target_section" className={labelClass}>{t('classes.section', lang)}</label>
+              <ComboboxField
+                id="notice_target_section"
                 value={targetSection}
-                onChange={(e) => setTargetSection(e.target.value)}
-              >
-                <option value="">{t('sms.anySection', lang)}</option>
-                {sectionOptions.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
-              </select>
+                onValueChange={setTargetSection}
+                options={[
+                  { value: '', label: t('sms.anySection', lang) },
+                  ...sectionOptions.map((s) => ({ value: s, label: s })),
+                ]}
+              />
             </div>
             <p className="text-xs text-muted sm:col-span-2">
               {t('sms.academicYearPinned', lang)}: {activeAcademicYear ?? '—'}

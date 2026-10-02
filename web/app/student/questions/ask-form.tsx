@@ -5,6 +5,7 @@ import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { t, type Lang, type MessageKey } from '@/lib/i18n'
 import { askQuestion } from '@/lib/student/messages-source'
+import { ComboboxField } from '@/components/ui/combobox-field'
 
 const ERRORS: Record<string, MessageKey> = {
   anchorRequired: 'student.anchorRequired',
@@ -31,6 +32,11 @@ export function AskForm({
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [sent, setSent] = useState(false)
+  // ComboboxField holds its picked item as its own internal state; unlike a
+  // native `<select>`, form.reset() below clears the hidden input but not
+  // that internal display state, so a remount (via key) is what actually
+  // clears the picker between one question and the next.
+  const [subjectFieldKey, setSubjectFieldKey] = useState(0)
 
   return (
     <form
@@ -48,6 +54,7 @@ export function AskForm({
           else {
             setSent(true)
             form.reset()
+            setSubjectFieldKey((k) => k + 1)
             router.refresh()
           }
         })
@@ -81,21 +88,16 @@ export function AskForm({
       {!publicationId && subjects && subjects.length > 0 && (
         <label className="text-xs font-semibold text-muted">
           <span className="mb-1 block">{t('student.pickSubject', lang)}</span>
-          <select
+          <ComboboxField
+            key={subjectFieldKey}
             name="subject_id"
             required
             defaultValue=""
-            className="h-9 w-full rounded-sm border border-line-strong bg-paper px-2 text-sm"
-          >
-            <option value="" disabled>
-              —
-            </option>
-            {subjects.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}
-              </option>
-            ))}
-          </select>
+            options={[
+              { value: '', label: '—', disabled: true },
+              ...subjects.map((s) => ({ value: s.id, label: s.name })),
+            ]}
+          />
         </label>
       )}
 

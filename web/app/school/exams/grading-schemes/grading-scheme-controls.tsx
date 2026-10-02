@@ -10,7 +10,7 @@ import {
   addGradeBand,
   removeGradeBand,
 } from './actions'
-import { selectClass } from '@/components/ui/field'
+import { SelectField } from '@/components/ui/select-field'
 
 function useSubmit(action: (data: FormData) => Promise<{ error?: string }>) {
   const [error, setError] = useState<string | null>(null)
@@ -39,11 +39,17 @@ export function AddGradingSchemeForm({ lang }: { lang: Lang }) {
       </div>
       <div>
         <label className={labelClass} htmlFor="scheme_type">{t('grading.schemeType', lang)}</label>
-        <select id="scheme_type" name="scheme_type" required defaultValue="grade_point" className={selectClass({ size: 'md', fullWidth: true })}>
-          <option value="grade_point">{t('grading.typeGradePoint', lang)}</option>
-          <option value="letter">{t('grading.typeLetter', lang)}</option>
-          <option value="numeric">{t('grading.typeNumeric', lang)}</option>
-        </select>
+        <SelectField
+          id="scheme_type"
+          name="scheme_type"
+          required
+          defaultValue="grade_point"
+          options={[
+            { value: 'grade_point', label: t('grading.typeGradePoint', lang) },
+            { value: 'letter', label: t('grading.typeLetter', lang) },
+            { value: 'numeric', label: t('grading.typeNumeric', lang) },
+          ]}
+        />
       </div>
       <div>
         <label className={labelClass} htmlFor="pass_mark_percent">{t('grading.passMark', lang)}</label>
@@ -61,17 +67,17 @@ export function AddGradingSchemeForm({ lang }: { lang: Lang }) {
       </div>
       <div>
         <label className={labelClass} htmlFor="pass_rule_strategy">{t('grading.passRule', lang)}</label>
-        <select
+        <SelectField
           id="pass_rule_strategy"
           name="pass_rule_strategy"
           required
           defaultValue="individual"
-          className={selectClass({ size: 'md', fullWidth: true })}
-        >
-          <option value="individual">{t('grading.ruleIndividual', lang)}</option>
-          <option value="combined_average">{t('grading.ruleCombinedAverage', lang)}</option>
-          <option value="optional_conditional">{t('grading.ruleOptionalConditional', lang)}</option>
-        </select>
+          options={[
+            { value: 'individual', label: t('grading.ruleIndividual', lang) },
+            { value: 'combined_average', label: t('grading.ruleCombinedAverage', lang) },
+            { value: 'optional_conditional', label: t('grading.ruleOptionalConditional', lang) },
+          ]}
+        />
       </div>
       <div className="flex items-center gap-2 sm:col-span-4">
         <input id="combine_subject_groups" name="combine_subject_groups" type="checkbox" className="size-4" />

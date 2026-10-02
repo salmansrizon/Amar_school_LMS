@@ -6,7 +6,8 @@ import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
 import { insufficientBalance } from '@/lib/accounting'
 import { t, type Lang } from '@/lib/i18n'
 import { recordBankTransaction, saveBankAccount } from './actions'
-import { dateInputClass, selectClass } from '@/components/ui/field'
+import { dateInputClass } from '@/components/ui/field'
+import { SelectField } from '@/components/ui/select-field'
 
 /** "+ New Account" form: Name, Type (Cash/Bank), Opening Balance. No
  *  dedicated mockup screen for this (bank-cash-accounts.html only shows the
@@ -46,10 +47,16 @@ export function NewAccountForm({ lang }: { lang: Lang }) {
         <label className={labelClass} htmlFor="acc_type">
           {t('bank.type', lang)}
         </label>
-        <select id="acc_type" name="type" required defaultValue="cash" className={selectClass({ size: 'md', fullWidth: true })}>
-          <option value="cash">{t('bank.cash', lang)}</option>
-          <option value="bank">{t('bank.bankType', lang)}</option>
-        </select>
+        <SelectField
+          id="acc_type"
+          name="type"
+          required
+          defaultValue="cash"
+          options={[
+            { value: 'cash', label: t('bank.cash', lang) },
+            { value: 'bank', label: t('bank.bankType', lang) },
+          ]}
+        />
       </div>
       <div>
         <label className={labelClass} htmlFor="opening_balance">
@@ -163,16 +170,16 @@ export function TransactionForm({
               <label className={labelClass} htmlFor="payment_method">
                 {t('bank.paymentMethod', lang)}
               </label>
-              <select
+              <SelectField
                 id="payment_method"
                 name="payment_method"
                 value={paymentMethod}
-                onChange={(e) => setPaymentMethod(e.target.value === 'cheque' ? 'cheque' : 'cash')}
-                className={selectClass({ size: 'md', fullWidth: true })}
-              >
-                <option value="cash">{t('fees.cash', lang)}</option>
-                <option value="cheque">{t('fees.cheque', lang)}</option>
-              </select>
+                onValueChange={(v) => setPaymentMethod(v === 'cheque' ? 'cheque' : 'cash')}
+                options={[
+                  { value: 'cash', label: t('fees.cash', lang) },
+                  { value: 'cheque', label: t('fees.cheque', lang) },
+                ]}
+              />
             </div>
             {paymentMethod === 'cheque' && (
               <>

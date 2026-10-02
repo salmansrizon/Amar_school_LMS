@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { t, type Lang } from '@/lib/i18n'
 import { classCatalogueOptions, type ClassCatalogueRow } from '@/lib/class-catalogue'
-import { selectClass } from '@/components/ui/field'
+import { ComboboxField } from '@/components/ui/combobox-field'
 import { primaryBtnClass } from '@/components/auth-card'
 import { Modal } from '@/components/modal'
 import { copySubjectsToClass } from './actions'
@@ -90,18 +90,15 @@ function CopySubjectsAction({
           />
         ) : (
           <div className="grid gap-3">
-            <select
+            <ComboboxField
               value={targetClassId}
-              onChange={(e) => setTargetClassId(e.target.value)}
-              className={selectClass({ size: 'md', fullWidth: true })}
-            >
-              <option value="">{t('institute.selectOne', lang)}</option>
-              {targetOptions.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.label}
-                </option>
-              ))}
-            </select>
+              onValueChange={setTargetClassId}
+              className="w-full"
+              options={[
+                { value: '', label: t('institute.selectOne', lang) },
+                ...targetOptions.map((o) => ({ value: o.value, label: o.label })),
+              ]}
+            />
             {error && <p className="text-sm text-alert-deep">{error}</p>}
             <button
               type="button"

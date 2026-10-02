@@ -6,7 +6,7 @@ import { t, type Lang } from '@/lib/i18n'
 import { classCatalogueOptions, type ClassCatalogueRow } from '@/lib/class-catalogue'
 import { fieldClass, fieldLabelClass } from '../../new/admission-form'
 import { transferStudent } from '../../actions'
-import { selectClass } from '@/components/ui/field'
+import { ComboboxField } from '@/components/ui/combobox-field'
 
 /** Class Offering picker (map #568/#582, issue #586) — the id-based analog
  *  of the old class-then-section text cascade. Submits class_offering_id,
@@ -60,21 +60,15 @@ export function TransferForm({
     >
       <div className="grid gap-3 sm:grid-cols-3">
         <div className="sm:col-span-2">
-          <label className={fieldLabelClass}>{t('students.newClass', lang)}</label>
-          <select
+          <label className={fieldLabelClass} htmlFor="transfer_class_offering">{t('students.newClass', lang)}</label>
+          <ComboboxField
+            id="transfer_class_offering"
             name="class_offering_id"
             required
             value={toOffering}
-            onChange={(e) => setToOffering(e.target.value)}
-            className={selectClass({ size: 'md', fullWidth: true })}
-          >
-            <option value="">—</option>
-            {options.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
-              </option>
-            ))}
-          </select>
+            onValueChange={setToOffering}
+            options={[{ value: '', label: '—' }, ...options.map((o) => ({ value: o.value, label: o.label }))]}
+          />
         </div>
         <div className="sm:col-span-3">
           <label className={fieldLabelClass}>{t('students.reason', lang)}</label>

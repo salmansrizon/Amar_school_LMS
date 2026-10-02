@@ -1,5 +1,14 @@
 import { test, expect, asRole } from '../fixtures/roles'
-import { expectInlineError, expectNoError } from '../helpers'
+import { expectInlineError, expectNoError, pickOption } from '../helpers'
+
+/** The Add Channel Route form's two dropdowns (channel, then template_key) —
+ * neither carries an id or aria-label (a bare compact-grid form), so they're
+ * addressed positionally; this is the only form on the page with any
+ * dropdown, so `nth()` is unambiguous. */
+function routeDropdowns(page: import('@playwright/test').Page) {
+  const combos = page.getByRole('combobox')
+  return { channel: combos.nth(0), templateKey: combos.nth(1) }
+}
 
 // Super-admin Notification templates + channel routing (map #329, ticket #346,
 // playwright-crud-plan §3). Upsert bn/en template (placeholder chips), route an
@@ -59,15 +68,15 @@ test.describe('@crud @super-admin notifications', () => {
 
     // Add a route to the new template.
     await page.locator('input[name="event_type"]').fill(evt)
-    await page.locator('select[name="channel"]').selectOption('in_app')
-    await page.locator('select[name="template_key"]').selectOption(key)
+    await pickOption(page, routeDropdowns(page).channel, 'in_app')
+    await pickOption(page, routeDropdowns(page).templateKey, key)
     await page.getByRole('button', { name: 'Add route' }).click()
     await expect(page.getByText(`${evt} · in_app`)).toBeVisible()
 
     // Duplicate event+channel → inline error.
     await page.locator('input[name="event_type"]').fill(evt)
-    await page.locator('select[name="channel"]').selectOption('in_app')
-    await page.locator('select[name="template_key"]').selectOption(key)
+    await pickOption(page, routeDropdowns(page).channel, 'in_app')
+    await pickOption(page, routeDropdowns(page).templateKey, key)
     await page.getByRole('button', { name: 'Add route' }).click()
     await expectInlineError(page, 'already routed')
 

@@ -23,10 +23,12 @@ import { firstRelation } from '@/lib/supabase/relation'
 import { admitStudent, studentPhotoUploadTicket, recordStudentPhoto } from '../actions'
 import { recentAdmissions, type RecentAdmissionRow } from '../recent-admissions-actions'
 import { saveAdmissionDraft, loadAdmissionDraft, clearAdmissionDraft } from './admission-draft'
-import { dateInputClass, selectClass } from '@/components/ui/field'
+import { dateInputClass } from '@/components/ui/field'
 import { uploadWithSignedToken } from '@/lib/storage/upload-client'
 import { knownVocabularyValue } from '@/lib/students/stored-labels'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { ComboboxField } from '@/components/ui/combobox-field'
+import { SelectField } from '@/components/ui/select-field'
 
 const MAX_PHOTO_BYTES = 2 * 1024 * 1024 // mirrors the bucket's server-enforced cap
 
@@ -72,10 +74,20 @@ export function Card({
   )
 }
 
-export function Field({ label, children }: { label: string; children: React.ReactNode }) {
+export function Field({
+  label,
+  htmlFor,
+  children,
+}: {
+  label: string
+  /** Wires the label to a field with no native association of its own (e.g. a
+   *  ComboboxField/SelectField, which isn't wrapped by this label). */
+  htmlFor?: string
+  children: React.ReactNode
+}) {
   return (
     <div>
-      <label className={fieldLabelClass}>{label}</label>
+      <label className={fieldLabelClass} htmlFor={htmlFor}>{label}</label>
       {children}
     </div>
   )
@@ -197,52 +209,51 @@ export function ProfileFields({
               className={dateInputClass({ size: 'md', fullWidth: true })}
             />
           </Field>
-          <Field label={t('students.gender', lang)}>
-            <select name="gender" defaultValue={d('gender')} className={selectClass({ size: 'md', fullWidth: true })}>
-              <option value="">—</option>
-              <option value="male">{t('students.male', lang)}</option>
-              <option value="female">{t('students.female', lang)}</option>
-              <option value="third_gender">{t('students.thirdGender', lang)}</option>
-            </select>
+          <Field label={t('students.gender', lang)} htmlFor="admission_gender">
+            <SelectField
+              id="admission_gender"
+              name="gender"
+              defaultValue={d('gender')}
+              options={[
+                { value: '', label: '—' },
+                { value: 'male', label: t('students.male', lang) },
+                { value: 'female', label: t('students.female', lang) },
+                { value: 'third_gender', label: t('students.thirdGender', lang) },
+              ]}
+            />
           </Field>
-          <Field label={t('students.bloodGroup', lang)}>
-            <select
+          <Field label={t('students.bloodGroup', lang)} htmlFor="admission_blood_group">
+            <ComboboxField
+              id="admission_blood_group"
               name="blood_group"
               defaultValue={d('blood_group')}
-              className={selectClass({ size: 'md', fullWidth: true })}
-            >
-              <option value="">—</option>
-              {BLOOD_GROUPS.map((bg) => (
-                <option key={bg} value={bg}>
-                  {bg}
-                </option>
-              ))}
-            </select>
+              options={[
+                { value: '', label: '—' },
+                ...BLOOD_GROUPS.map((bg) => ({ value: bg, label: bg })),
+              ]}
+            />
           </Field>
           {usingOfferings ? (
-            <Field label={t('students.class', lang)}>
+            <Field label={t('students.class', lang)} htmlFor="admission_class_offering">
               {/* Admission mode (map #568/#582, #586): one id-based select —
                   the Class Offering already carries its own section, so
                   there's no second cascade step. Submits class_offering_id,
                   read by admitStudent and passed straight into
                   admit_student_enrollment; class_name/section are no longer
                   part of this form's submission. */}
-              <select
+              <ComboboxField
+                id="admission_class_offering"
                 name="class_offering_id"
                 value={classOfferingId}
-                onChange={(e) => setClassOfferingId(e.target.value)}
-                className={selectClass({ size: 'md', fullWidth: true })}
-              >
-                <option value="">—</option>
-                {offeringOptions.map((o) => (
-                  <option key={o.value} value={o.value}>
-                    {o.label}
-                  </option>
-                ))}
-              </select>
+                onValueChange={setClassOfferingId}
+                options={[
+                  { value: '', label: '—' },
+                  ...offeringOptions.map((o) => ({ value: o.value, label: o.label })),
+                ]}
+              />
             </Field>
           ) : (
-            <Field label={t('students.class', lang)}>
+            <Field label={t('students.class', lang)} htmlFor="admission_class_edit">
               {/* Edit mode (grilled explicitly, option A): one Class
                   Catalogue-labelled select, same shape as every other
                   Offering picker in the app. Its own value is an id, purely
@@ -250,24 +261,20 @@ export function ProfileFields({
                   one resolves straight to the className/section hidden
                   inputs below, so updateStudent's payload is byte-identical
                   in shape to the two-select cascade this replaced. */}
-              <select
+              <ComboboxField
+                id="admission_class_edit"
                 value={editComboId}
-                onChange={(e) => {
-                  const id = e.target.value
+                onValueChange={(id) => {
                   setEditComboId(id)
                   const resolved = resolveClassCatalogueSelection(classCatalogue, id)
                   setClassName(resolved.className)
                   setSection(resolved.section)
                 }}
-                className={selectClass({ size: 'md', fullWidth: true })}
-              >
-                <option value="">—</option>
-                {classCatalogue.map((c) => (
-                  <option key={c.value} value={c.value}>
-                    {c.label}
-                  </option>
-                ))}
-              </select>
+                options={[
+                  { value: '', label: '—' },
+                  ...classCatalogue.map((c) => ({ value: c.value, label: c.label })),
+                ]}
+              />
               <input type="hidden" name="class_name" value={className} />
               <input type="hidden" name="section" value={section} />
             </Field>
@@ -322,19 +329,20 @@ export function ProfileFields({
               </p>
             )}
           </Field>
-          <Field label={t('students.religion', lang)}>
-            <select
+          <Field label={t('students.religion', lang)} htmlFor="admission_religion">
+            <ComboboxField
+              id="admission_religion"
               value={religion.choice}
-              onChange={(e) => setReligion({ choice: e.target.value, other: religion.other })}
-              className={selectClass({ size: 'md', fullWidth: true })}
-            >
-              <option value="">—</option>
-              <option value="islam">{t('students.islam', lang)}</option>
-              <option value="hinduism">{t('students.hinduism', lang)}</option>
-              <option value="christianity">{t('students.christianity', lang)}</option>
-              <option value="buddhism">{t('students.buddhism', lang)}</option>
-              <option value="other">{t('students.otherReligion', lang)}</option>
-            </select>
+              onValueChange={(v) => setReligion({ choice: v, other: religion.other })}
+              options={[
+                { value: '', label: '—' },
+                { value: 'islam', label: t('students.islam', lang) },
+                { value: 'hinduism', label: t('students.hinduism', lang) },
+                { value: 'christianity', label: t('students.christianity', lang) },
+                { value: 'buddhism', label: t('students.buddhism', lang) },
+                { value: 'other', label: t('students.otherReligion', lang) },
+              ]}
+            />
             {religion.choice === 'other' && (
               <input
                 value={religion.other}
@@ -385,23 +393,24 @@ export function ProfileFields({
           <Field label={t('students.guardianName', lang)}>
             <input name="guardian_name" defaultValue={d('guardian_name')} className={fieldClass} />
           </Field>
-          <Field label={t('students.relation', lang)}>
-            <select
+          <Field label={t('students.relation', lang)} htmlFor="admission_guardian_relation">
+            <ComboboxField
+              id="admission_guardian_relation"
               name="guardian_relation"
               defaultValue={d('guardian_relation')}
-              className={selectClass({ size: 'md', fullWidth: true })}
-            >
-              <option value="">—</option>
-              <option value="father">{t('students.father', lang)}</option>
-              <option value="mother">{t('students.mother', lang)}</option>
-              <option value="brother">{t('students.brother', lang)}</option>
-              <option value="sister">{t('students.sister', lang)}</option>
-              <option value="grandfather">{t('students.grandfather', lang)}</option>
-              <option value="grandmother">{t('students.grandmother', lang)}</option>
-              <option value="uncle">{t('students.uncle', lang)}</option>
-              <option value="aunty">{t('students.aunty', lang)}</option>
-              <option value="other">{t('students.otherRelation', lang)}</option>
-            </select>
+              options={[
+                { value: '', label: '—' },
+                { value: 'father', label: t('students.father', lang) },
+                { value: 'mother', label: t('students.mother', lang) },
+                { value: 'brother', label: t('students.brother', lang) },
+                { value: 'sister', label: t('students.sister', lang) },
+                { value: 'grandfather', label: t('students.grandfather', lang) },
+                { value: 'grandmother', label: t('students.grandmother', lang) },
+                { value: 'uncle', label: t('students.uncle', lang) },
+                { value: 'aunty', label: t('students.aunty', lang) },
+                { value: 'other', label: t('students.otherRelation', lang) },
+              ]}
+            />
           </Field>
           <Field label={t('students.guardianMobile', lang)}>
             <input

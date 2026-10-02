@@ -15,7 +15,8 @@ import {
 import { classCatalogueOptions, type ClassCatalogueRow } from '@/lib/class-catalogue'
 import type { TargetScope } from '@/lib/publishing'
 import { sendCompose } from './actions'
-import { selectClass } from '@/components/ui/field'
+import { ComboboxField } from '@/components/ui/combobox-field'
+import { SelectField } from '@/components/ui/select-field'
 
 // Themed to match the dashboard: rounded-2xl cards, brand-600 primary, rounded-lg
 // form controls with a visible focus ring.
@@ -183,27 +184,28 @@ export function ComposeForm({
         <h2 className="mb-3 text-lg font-bold">{t('sms.recipientGroup', lang)}</h2>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div>
-            <label className={labelClass}>{t('sms.buildBy', lang)}</label>
-            <select
-              className={selectClass({ size: 'md', fullWidth: true })}
+            <label htmlFor="sms_mode" className={labelClass}>{t('sms.buildBy', lang)}</label>
+            <SelectField
+              id="sms_mode"
               value={draft.mode}
-              onChange={(e) => update('mode', e.target.value as ComposeMode)}
-            >
-              <option value="class_section">{t('sms.modeClassSection', lang)}</option>
-              <option value="group">{t('sms.modeGroup', lang)}</option>
-              <option value="manual">{t('sms.modeManual', lang)}</option>
-            </select>
+              onValueChange={(v) => update('mode', v as ComposeMode)}
+              options={[
+                { value: 'class_section', label: t('sms.modeClassSection', lang) },
+                { value: 'group', label: t('sms.modeGroup', lang) },
+                { value: 'manual', label: t('sms.modeManual', lang) },
+              ]}
+            />
           </div>
 
           {draft.mode === 'class_section' && (
             <>
               <div>
-                <label className={labelClass}>{t('sms.target', lang)}</label>
-                <select
-                  className={selectClass({ size: 'md', fullWidth: true })}
+                <label htmlFor="sms_target_scope" className={labelClass}>{t('sms.target', lang)}</label>
+                <SelectField
+                  id="sms_target_scope"
                   value={draft.targetScope}
-                  onChange={(e) => {
-                    const scope = e.target.value as TargetScope
+                  onValueChange={(v) => {
+                    const scope = v as TargetScope
                     setDraftSaved(false)
                     setResult(null)
                     setDraft((d) => ({
@@ -214,92 +216,78 @@ export function ComposeForm({
                       className: scope === 'broadcast' && !d.className ? (classNameOptions[0] ?? '') : d.className,
                     }))
                   }}
-                >
-                  <option value="all">{t('sms.targetAll', lang)}</option>
-                  <option value="offering">{t('sms.targetOffering', lang)}</option>
-                  <option value="broadcast">{t('sms.targetBroadcast', lang)}</option>
-                </select>
+                  options={[
+                    { value: 'all', label: t('sms.targetAll', lang) },
+                    { value: 'offering', label: t('sms.targetOffering', lang) },
+                    { value: 'broadcast', label: t('sms.targetBroadcast', lang) },
+                  ]}
+                />
               </div>
 
               {draft.targetScope === 'offering' && (
                 <div className="sm:col-span-2">
-                  <label className={labelClass}>{t('sms.classOffering', lang)}</label>
-                  <select
-                    className={selectClass({ size: 'md', fullWidth: true })}
+                  <label htmlFor="sms_offering" className={labelClass}>{t('sms.classOffering', lang)}</label>
+                  <ComboboxField
+                    id="sms_offering"
                     value={draft.offeringId}
-                    onChange={(e) => update('offeringId', e.target.value)}
-                  >
-                    <option value="">{t('sms.selectOffering', lang)}</option>
-                    {offeringOptions.map((o) => (
-                      <option key={o.value} value={o.value}>
-                        {o.label}
-                      </option>
-                    ))}
-                  </select>
+                    onValueChange={(v) => update('offeringId', v)}
+                    options={[
+                      { value: '', label: t('sms.selectOffering', lang) },
+                      ...offeringOptions.map((o) => ({ value: o.value, label: o.label })),
+                    ]}
+                  />
                 </div>
               )}
 
               {draft.targetScope === 'broadcast' && (
                 <div className="grid gap-3 sm:col-span-2 sm:grid-cols-2">
                   <div>
-                    <label className={labelClass}>{t('sms.class', lang)}</label>
-                    <select
-                      className={selectClass({ size: 'md', fullWidth: true })}
+                    <label htmlFor="sms_target_class_name" className={labelClass}>{t('sms.class', lang)}</label>
+                    <ComboboxField
+                      id="sms_target_class_name"
                       value={draft.className}
-                      onChange={(e) => update('className', e.target.value)}
-                    >
-                      <option value="">{t('sms.selectClass', lang)}</option>
-                      {classNameOptions.map((c) => (
-                        <option key={c} value={c}>
-                          {c}
-                        </option>
-                      ))}
-                    </select>
+                      onValueChange={(v) => update('className', v)}
+                      options={[
+                        { value: '', label: t('sms.selectClass', lang) },
+                        ...classNameOptions.map((c) => ({ value: c, label: c })),
+                      ]}
+                    />
                   </div>
                   <div>
-                    <label className={labelClass}>{t('sms.shift', lang)}</label>
-                    <select
-                      className={selectClass({ size: 'md', fullWidth: true })}
+                    <label htmlFor="sms_target_shift" className={labelClass}>{t('sms.shift', lang)}</label>
+                    <ComboboxField
+                      id="sms_target_shift"
                       value={draft.shift}
-                      onChange={(e) => update('shift', e.target.value)}
-                    >
-                      <option value="">{t('sms.anyShift', lang)}</option>
-                      {shiftOptions.map((s) => (
-                        <option key={s} value={s}>
-                          {s}
-                        </option>
-                      ))}
-                    </select>
+                      onValueChange={(v) => update('shift', v)}
+                      options={[
+                        { value: '', label: t('sms.anyShift', lang) },
+                        ...shiftOptions.map((s) => ({ value: s, label: s })),
+                      ]}
+                    />
                   </div>
                   <div>
-                    <label className={labelClass}>{t('sms.groupDepartment', lang)}</label>
-                    <select
-                      className={selectClass({ size: 'md', fullWidth: true })}
+                    <label htmlFor="sms_target_group_department" className={labelClass}>{t('sms.groupDepartment', lang)}</label>
+                    <ComboboxField
+                      id="sms_target_group_department"
                       value={draft.groupDepartment}
-                      onChange={(e) => update('groupDepartment', e.target.value)}
-                    >
-                      <option value="">{t('sms.anyGroup', lang)}</option>
-                      {groupOptions.map((g) => (
-                        <option key={g} value={g}>
-                          {g}
-                        </option>
-                      ))}
-                    </select>
+                      onValueChange={(v) => update('groupDepartment', v)}
+                      options={[
+                        { value: '', label: t('sms.anyGroup', lang) },
+                        ...groupOptions.map((g) => ({ value: g, label: g })),
+                      ]}
+                    />
                   </div>
                   <div>
-                    <label className={labelClass}>{t('sms.section', lang)}</label>
-                    <select
-                      className={selectClass({ size: 'md', fullWidth: true })}
+                    <label htmlFor="sms_target_section" className={labelClass}>{t('sms.section', lang)}</label>
+                    <ComboboxField
+                      id="sms_target_section"
                       value={draft.section}
-                      onChange={(e) => update('section', e.target.value)}
-                    >
-                      <option value="">{t('sms.anySection', lang)}</option>
-                      {sectionOptions.map((s) => (
-                        <option key={s} value={s}>
-                          {s}
-                        </option>
-                      ))}
-                    </select>
+                      onValueChange={(v) => update('section', v)}
+                      options={[
+                        { value: '', label: t('sms.anySection', lang) },
+                        ...sectionOptions.map((s) => ({ value: s, label: s })),
+                      ]}
+                    />
                   </div>
                   <p className="text-xs text-muted sm:col-span-2">
                     {t('sms.academicYearPinned', lang)}: {activeAcademicYear ?? '—'}
@@ -311,15 +299,16 @@ export function ComposeForm({
 
           {draft.mode === 'group' && (
             <div>
-              <label className={labelClass}>{t('sms.category', lang)}</label>
-              <select className={selectClass({ size: 'md', fullWidth: true })} value={draft.category} onChange={(e) => update('category', e.target.value)}>
-                <option value="">—</option>
-                {categories.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
+              <label htmlFor="sms_category" className={labelClass}>{t('sms.category', lang)}</label>
+              <ComboboxField
+                id="sms_category"
+                value={draft.category}
+                onValueChange={(v) => update('category', v)}
+                options={[
+                  { value: '', label: '—' },
+                  ...categories.map((c) => ({ value: c, label: c })),
+                ]}
+              />
             </div>
           )}
 

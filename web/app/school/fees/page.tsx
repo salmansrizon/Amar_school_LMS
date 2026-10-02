@@ -14,6 +14,7 @@ import { schoolCrumbs, headerPrimary, headerSecondary } from '@/lib/school-crumb
 import { AccountingTabs } from './accounting-tabs'
 import { FeeForm, type CollectStudent, type ExistingFeeRecord } from './fee-form'
 import { selectClass } from '@/components/ui/field'
+import { ComboboxField } from '@/components/ui/combobox-field'
 import { Card } from '@/components/ui/page'
 import { PageHeader } from '@/components/ui/page'
 import { StatCard, StatGrid, WarningBanner, WorkflowCard } from '@/components/ui/widgets'
@@ -386,21 +387,21 @@ export default async function FeesPage({
         <Card className="mb-grid">
           <h2 className="mb-3 font-bold">{t('fees.tabCollection', lang)}</h2>
           <Form className="flex flex-wrap items-center gap-2" action="/school/fees">
-            <select name="class" defaultValue={selectedClass} className={selectClass()} aria-label={t('fees.class', lang)}>
-              <option value="">{t('fees.allClasses', lang)}</option>
-              {classes?.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {classCatalogueLabel(c, showYear)}
-                </option>
-              ))}
-            </select>
-            <select name="month" defaultValue={String(month)} className={selectClass()} aria-label={t('fees.month', lang)}>
-              {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
-                <option key={m} value={m}>
-                  {m}
-                </option>
-              ))}
-            </select>
+            <ComboboxField
+              name="class"
+              defaultValue={selectedClass}
+              aria-label={t('fees.class', lang)}
+              options={[
+                { value: '', label: t('fees.allClasses', lang) },
+                ...(classes ?? []).map((c) => ({ value: c.id, label: classCatalogueLabel(c, showYear) })),
+              ]}
+            />
+            <ComboboxField
+              name="month"
+              defaultValue={String(month)}
+              aria-label={t('fees.month', lang)}
+              options={Array.from({ length: 12 }, (_, i) => i + 1).map((m) => ({ value: String(m), label: String(m) }))}
+            />
             <input
               name="year"
               type="number"

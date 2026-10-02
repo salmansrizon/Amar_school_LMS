@@ -12,7 +12,8 @@ import { withOrigin } from '@/lib/back-nav'
 import { assignSubjectTeacher, setExamGradingScheme, updateExamBasicInfo } from './actions'
 import { deleteExam } from '../actions'
 import { ConfirmDialog } from '@/components/confirm-dialog'
-import { dateInputClass, selectClass } from '@/components/ui/field'
+import { dateInputClass } from '@/components/ui/field'
+import { ComboboxField } from '@/components/ui/combobox-field'
 import { classCatalogueLabel, type ClassCatalogueRow } from '@/lib/class-catalogue'
 
 export interface SchemeOption {
@@ -181,14 +182,16 @@ export function BasicInfoForm({
       </div>
       <div>
         <label className={labelClass} htmlFor="class_id">{t('exams.class', lang)}</label>
-        <select id="class_id" name="class_id" defaultValue={classId ?? ''} disabled={disabled} className={selectClass({ size: 'md', fullWidth: true })}>
-          <option value="">{t('exams.allClasses', lang)}</option>
-          {classes.map((c) => (
-            <option key={c.id} value={c.id}>
-              {classCatalogueLabel(c, showYear)}
-            </option>
-          ))}
-        </select>
+        <ComboboxField
+          id="class_id"
+          name="class_id"
+          defaultValue={classId ?? ''}
+          disabled={disabled}
+          options={[
+            { value: '', label: t('exams.allClasses', lang) },
+            ...classes.map((c) => ({ value: c.id, label: classCatalogueLabel(c, showYear) })),
+          ]}
+        />
       </div>
       <div>
         <label className={labelClass} htmlFor="exam_year">{t('exams.year', lang)}</label>
@@ -245,13 +248,12 @@ export function GradingSchemeSelect({
   return (
     <div className="max-w-sm">
       <label className={labelClass} htmlFor="grading_scheme_id">{t('examSetup.pickGradingScheme', lang)}</label>
-      <select
+      <ComboboxField
         id="grading_scheme_id"
         defaultValue={schemeId ?? ''}
         disabled={disabled || pending}
-        className={selectClass({ size: 'md', fullWidth: true })}
-        onChange={(e) => {
-          const value = e.target.value || null
+        onValueChange={(v) => {
+          const value = v || null
           startTransition(async () => {
             setError(null)
             const result = await setExamGradingScheme(examId, value)
@@ -259,14 +261,11 @@ export function GradingSchemeSelect({
             else router.refresh()
           })
         }}
-      >
-        <option value="">{t('examSetup.noScheme', lang)}</option>
-        {schemes.map((s) => (
-          <option key={s.id} value={s.id}>
-            {s.name}
-          </option>
-        ))}
-      </select>
+        options={[
+          { value: '', label: t('examSetup.noScheme', lang) },
+          ...schemes.map((s) => ({ value: s.id, label: s.name })),
+        ]}
+      />
       {error && <p className="mt-1 text-xs text-alert-deep">{error}</p>}
     </div>
   )
@@ -329,13 +328,13 @@ function SubjectTeacherRow({
     <tr>
       <td className="px-4 py-3 font-medium">{subject.name}</td>
       <td className="px-4 py-3">
-        <select
+        <ComboboxField
           defaultValue={subject.teacher_id ?? ''}
           disabled={disabled || pending}
           aria-label={t('examSetup.assignedTeacher', lang)}
-          className={selectClass({ size: 'xs', fullWidth: true })}
-          onChange={(e) => {
-            const teacherId = e.target.value || null
+          className="min-h-8 text-xs sm:min-h-8"
+          onValueChange={(v) => {
+            const teacherId = v || null
             startTransition(async () => {
               setError(null)
               const result = await assignSubjectTeacher(examId, subject.id, teacherId)
@@ -343,14 +342,11 @@ function SubjectTeacherRow({
               else router.refresh()
             })
           }}
-        >
-          <option value="">{t('examSetup.pickTeacher', lang)}</option>
-          {teachers.map((t2) => (
-            <option key={t2.id} value={t2.id}>
-              {t2.full_name}
-            </option>
-          ))}
-        </select>
+          options={[
+            { value: '', label: t('examSetup.pickTeacher', lang) },
+            ...teachers.map((t2) => ({ value: t2.id, label: t2.full_name })),
+          ]}
+        />
         {error && <p className="mt-1 text-xs text-alert-deep">{error}</p>}
       </td>
       <td className="px-4 py-3 text-right">{subject.theory_marks || '—'}</td>
