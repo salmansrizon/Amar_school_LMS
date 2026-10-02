@@ -102,6 +102,15 @@ export async function pickOption(
   const control = typeof labelOrLocator === 'string' ? page.getByRole('combobox', { name: labelOrLocator }) : labelOrLocator
   await control.click()
   const tagName = await control.evaluate((el) => el.tagName)
-  if (tagName === 'INPUT') await control.fill(optionText)
+  if (tagName === 'INPUT') {
+    await control.fill(optionText)
+  } else {
+    // SelectField's trigger (@base-ui/react/select): the popup deliberately
+    // ignores a mouseup-based item pick for ~400ms after opening (its own
+    // anti-misclick guard against the same press that opened the popup also
+    // landing on an item) — an automated click lands well inside that window,
+    // so wait it out first or the pick silently no-ops.
+    await page.waitForTimeout(700)
+  }
   await page.getByRole('option', { name: optionText, exact: false }).first().click()
 }

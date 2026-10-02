@@ -56,10 +56,15 @@ test.describe('@crud @super-admin settlements', () => {
     // The picker is type-to-filter now (ComboboxField) and matches by visible
     // label, not the raw id — look the distributor's display name up so the
     // UI interaction stays a real "type/select by name" rather than an id.
-    const { data: dealer } = await sup.from('distributors').select('name').eq('id', DEALER).single()
+    // Distributor rows live in `profiles` (role='distributor'), not a
+    // `distributors` table, and the display name column is `full_name` — the
+    // same `?? id.slice(0, 8)` fallback as settlements/page.tsx's
+    // distributorOptions mapping, since this seeded fixture has no full_name.
+    const { data: dealer } = await sup.from('profiles').select('full_name').eq('id', DEALER).single()
+    const dealerLabel = dealer?.full_name ?? DEALER.slice(0, 8)
 
     await page.goto(PATH)
-    await pickOption(page, page.getByRole('combobox').first(), dealer!.name)
+    await pickOption(page, page.getByRole('combobox').first(), dealerLabel)
     const today = new Date().toISOString().slice(0, 10)
     await page.locator('input[name="period_start"]').fill(today)
     await page.locator('input[name="period_end"]').fill(today)

@@ -25,9 +25,17 @@ test.describe('@crud @super-admin workflows', () => {
     await expect(card).toContainText('active')
 
     // Add two stages → auto-sequenced (stages render as "seq. name · role").
+    // The approver-role picker's accessible name ("approver role") repeats on
+    // every definition card on this page — harmless when there's only one, but
+    // this shared test DB accumulates stale "e2e_wf_…" fixtures from prior
+    // runs (test-fixture accumulation is a known non-regression here), and
+    // Chromium's headless accessibility tree has been observed to only expose
+    // that name on the most-recently-mounted instance once many duplicates
+    // exist. `card` already scopes to this exact definition's row and it has
+    // exactly one combobox, so match positionally instead of by name.
     const addStage = async (nm: string, expectSeq: number) => {
       await card.locator('input[name="name_en"]').fill(nm)
-      await pickOption(page, card.getByRole('combobox', { name: 'approver role' }), 'super_admin')
+      await pickOption(page, card.getByRole('combobox').first(), 'super_admin')
       await card.getByRole('button', { name: 'Add stage' }).click()
       await expect(card.locator('ol > li').filter({ hasText: 'super_admin' })).toHaveCount(expectSeq)
     }
