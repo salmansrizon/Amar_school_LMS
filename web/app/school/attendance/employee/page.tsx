@@ -1,10 +1,15 @@
+import Link from 'next/link'
 import Form from 'next/form'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { effectiveGraceWithSource, type GraceSource } from '@/lib/grace'
 import { resolveEmployeeDisplayStatus, type EmployeeDisplayStatus } from '@/lib/attendance'
+import { schoolToday } from '@/lib/school-time'
+import { selectAllRows } from '@/lib/supabase/select-all'
+import { parseMonthParam, shiftYearMonth, formatMonthYear, buildSchoolAttendanceMonth } from '@/lib/employee-attendance-calendar'
 import { AttendanceTabs } from '../attendance-tabs'
+import { EmployeeAttendanceCalendar } from './attendance-calendar'
 import { dateInputClass } from '@/components/ui/field'
 import { schoolCrumbs } from '@/lib/school-crumbs'
 import { PageHeader } from '@/components/ui/page'
@@ -45,11 +50,12 @@ function hhmm(iso: string | null): string {
 export default async function EmployeeAttendancePage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; date?: string }>
+  searchParams: Promise<{ q?: string; date?: string; month?: string; view?: string }>
 }) {
-  const { q = '', date = todayIso() } = await searchParams
+  const { q = '', date = todayIso(), month: monthParam, view } = await searchParams
   const lang: Lang = await currentLang()
-  const { supabase, schoolId } = await getSchoolContext()
+  const { supabase, schoolId, weeklyOffDays } = await getSchoolContext()
+  const isTableView = view === 'table'
 
   const [{ data: school }, { data: employees }, { data: officeTimes }, { data: categories }] = await Promise.all([
     supabase.from('schools').select('default_grace_minutes').eq('id', schoolId).single(),
@@ -141,6 +147,63 @@ export default async function EmployeeAttendancePage({
     }
   })
 
+  // Employee Attendance Calendar (map 013 follow-up): one active month, every
+  // employee (not the Table view's ?q= name filter — a whole-school day rate
+  // has no meaning scoped to one name), independent of the Table's own ?date.
+  // Only fetched for the view actually shown, same as the Table's own roster
+  // query staying scoped to `date`.
+  const today = schoolToday()
+  const { year: calYear, month0: calMonth0 } = parseMonthParam(monthParam, today)
+  const calPrefix = `${calYear}-${String(calMonth0 + 1).padStart(2, '0')}`
+  const calStart = `${calPrefix}-01`
+  const calEnd = `${calPrefix}-${String(new Date(Date.UTC(calYear, calMonth0 + 1, 0)).getUTCDate()).padStart(2, '0')}`
+
+  const calendarCells = isTableView
+    ? []
+    : await (async () => {
+        const [{ data: calOffDaysRaw }, { rows: calRecords }, { data: calApprovedLeaves }] = await Promise.all([
+          supabase.from('off_days').select('day, label, is_significant').gte('day', calStart).lte('day', calEnd),
+          selectAllRows((from, to) =>
+            supabase
+              .from('attendance_records')
+              .select('person_id, att_date, entry_at')
+              .eq('person_type', 'employee')
+              .gte('att_date', calStart)
+              .lte('att_date', calEnd)
+              .range(from, to),
+          ),
+          supabase
+            .from('employee_leaves')
+            .select('employee_id, from_day, to_day')
+            .eq('status', 'approved')
+            .lte('from_day', calEnd)
+            .gte('to_day', calStart),
+        ])
+        return buildSchoolAttendanceMonth({
+          year: calYear,
+          month0: calMonth0,
+          today,
+          offDays: calOffDaysRaw ?? [],
+          weeklyOffDays,
+          employees: employees ?? [],
+          records: calRecords,
+          approvedLeaves: calApprovedLeaves ?? [],
+        })
+      })()
+
+  const calQuery = (extra: Record<string, string | undefined>) => {
+    const qp = new URLSearchParams()
+    if (monthParam) qp.set('month', monthParam)
+    for (const [k, v] of Object.entries(extra)) {
+      if (v) qp.set(k, v)
+      else qp.delete(k)
+    }
+    const qs = qp.toString()
+    return qs ? `?${qs}` : '?'
+  }
+  const calendarHref = calQuery({ view: undefined })
+  const tableHref = calQuery({ view: 'table' })
+
   return (
     <div>
       <PageHeader
@@ -150,6 +213,40 @@ export default async function EmployeeAttendancePage({
 
       <AttendanceTabs active="/school/attendance/employee" lang={lang} />
 
+      {/* Plain nav links, not an ARIA tablist — same convention as
+          AttendanceTabs above: each "tab" is its own URL, not a JS-managed
+          tabpanel switch. */}
+      <div className="mb-grid flex gap-1 border-b border-line">
+        <Link
+          href={calendarHref}
+          aria-current={!isTableView ? 'page' : undefined}
+          className={`rounded-t-md px-3 py-2 text-sm font-semibold ${!isTableView ? 'border-b-2 border-brand-500 text-brand-600' : 'text-muted hover:text-ink'}`}
+        >
+          {t('attendance.viewCalendar', lang)}
+        </Link>
+        <Link
+          href={tableHref}
+          aria-current={isTableView ? 'page' : undefined}
+          className={`rounded-t-md px-3 py-2 text-sm font-semibold ${isTableView ? 'border-b-2 border-brand-500 text-brand-600' : 'text-muted hover:text-ink'}`}
+        >
+          {t('attendance.viewTable', lang)}
+        </Link>
+      </div>
+
+      {!isTableView && (
+        <section className="mb-4 rounded-2xl border border-line bg-paper p-card">
+          <EmployeeAttendanceCalendar
+            cells={calendarCells}
+            monthLabel={formatMonthYear(calYear, calMonth0, lang)}
+            prevHref={calQuery({ month: shiftYearMonth(calPrefix, -1) })}
+            nextHref={calQuery({ month: shiftYearMonth(calPrefix, 1) })}
+            lang={lang}
+          />
+        </section>
+      )}
+
+      {isTableView && (
+      <>
       <Form className="mb-4 flex flex-wrap items-center gap-2" action="/school/attendance/employee">
         <input
           name="q"
@@ -222,6 +319,8 @@ export default async function EmployeeAttendancePage({
         <p className="text-sm text-muted">{t('attendance.employeeGraceNote', lang)}</p>
         <p className="mt-2 text-sm text-muted">{t('attendance.employeeRfidNote', lang)}</p>
       </section>
+      </>
+      )}
     </div>
   )
 }
