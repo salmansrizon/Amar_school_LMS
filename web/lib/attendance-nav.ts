@@ -35,8 +35,16 @@ export const ATTENDANCE_EMPLOYEE_TABS: AttendanceTab[] = [
   { href: '/school/attendance/leave/employee', key: 'attendance.tabLeave' },
 ]
 
+// Machine Attendance (issue #675): attendance-machine configuration and the
+// RFID / employee enrollment data the future Windows sync service will upload.
+export const ATTENDANCE_MACHINE_TABS: AttendanceTab[] = [
+  { href: '/school/attendance/machine', key: 'attendance.tabMachineSetup' },
+  { href: '/school/attendance/machine/students', key: 'attendance.tabStudentRfid' },
+  { href: '/school/attendance/machine/employees', key: 'attendance.tabEmployeeEnrollment' },
+]
+
 export interface AttendanceGroup {
-  id: 'students' | 'employees' | 'off-days'
+  id: 'students' | 'employees' | 'off-days' | 'machine'
   labelKey: MessageKey
   tabs: AttendanceTab[] | null
   href?: string
@@ -46,6 +54,7 @@ export const ATTENDANCE_GROUPS: AttendanceGroup[] = [
   { id: 'students', labelKey: 'attendance.groupStudents', tabs: ATTENDANCE_STUDENT_TABS },
   { id: 'employees', labelKey: 'attendance.groupEmployees', tabs: ATTENDANCE_EMPLOYEE_TABS },
   { id: 'off-days', labelKey: 'attendance.tabOffDays', tabs: null, href: '/school/attendance/off-days' },
+  { id: 'machine', labelKey: 'attendance.groupMachine', tabs: ATTENDANCE_MACHINE_TABS },
 ]
 
 /** The route a sidebar/parent link for this Attendance group opens — its

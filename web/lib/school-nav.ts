@@ -62,6 +62,12 @@ export const SCHOOL_MODULES: SchoolNavItem[] = [
             titleKey: 'attendance.groupEmployees',
             matchPrefixes: attendanceGroupTabHrefs('employees'),
           },
+          {
+            screen: 'attendance',
+            href: attendanceGroupHref('machine'),
+            titleKey: 'attendance.groupMachine',
+            matchPrefixes: attendanceGroupTabHrefs('machine'),
+          },
         ],
       },
     ],
