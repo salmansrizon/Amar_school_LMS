@@ -58,6 +58,12 @@ export default async function DirectorCapitalPage({
   const fmt = numberFmt(lang)
   const tk = (n: number) => `৳${fmt.format(n)}`
   const sum = (k: string) => all.filter((x) => x.txn_type === k).reduce((s, x) => s + x.amount, 0)
+  // The balance is a running total kept by the insert trigger (0055); the list
+  // is whatever transaction rows exist (in the date range). When they disagree
+  // — rows before the range, or rows removed without the balance being reversed
+  // — the difference is shown as its own figure instead of leaving three
+  // numbers that do not add up.
+  const broughtForward = balance - (sum('invest') - sum('withdraw'))
   const typeLabel = (k: string) => t(k === 'invest' ? 'directorCapital.investType' : 'directorCapital.withdrawType', lang)
 
   const columns: Column<Txn>[] = [
@@ -101,7 +107,13 @@ export default async function DirectorCapitalPage({
       <AccountingTabs active="directorCapital" lang={lang} />
 
       <StatGrid>
-        <StatCard icon={<Wallet className="size-5" />} label={t('directorCapital.currentBalance', lang)} value={tk(balance)} />
+        <StatCard
+          icon={<Wallet className="size-5" />}
+          label={t('directorCapital.currentBalance', lang)}
+          value={tk(balance)}
+          note={broughtForward ? `${t('directorCapital.broughtForward', lang)}: ${tk(broughtForward)}` : undefined}
+          noteTone="muted"
+        />
         <StatCard
           icon={<ArrowDownCircle className="size-5" />}
           tone="sky"

@@ -1,7 +1,9 @@
 import { currentLang } from '@/lib/i18n-server'
 import { t } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
+import { notFound } from 'next/navigation'
 import { safeReturnPath } from '@/lib/auth/return-path'
+import { isSchoolPath, screenKeyForPath } from '@/lib/auth/screens'
 import { DeniedState } from '@/components/ui/states'
 
 // #538: a refusal is a designed state. It says what was refused, where to go
@@ -13,6 +15,14 @@ export default async function PermissionDeniedPage({
   searchParams: Promise<{ from?: string }>
 }) {
   const { from } = await searchParams
+  const destination = safeReturnPath(from)
+  // The proxy refuses a /school URL that names no Screen (fail closed, #515)
+  // and sends it here like any refusal. But nobody can grant a Screen that does
+  // not exist, so "permission denied — contact the owner" is the wrong answer,
+  // most of all to the Owner. It is a page that is not there: say that. Access
+  // is unchanged — the proxy still never serves the URL.
+  if (destination && isSchoolPath(destination) && !screenKeyForPath(destination)) notFound()
+
   const lang = await currentLang()
   const { supabase, schoolId } = await getSchoolContext()
 
@@ -28,7 +38,7 @@ export default async function PermissionDeniedPage({
 
   return (
     <DeniedState
-      destination={safeReturnPath(from)}
+      destination={destination}
       homeHref="/school"
       contactHref={contactHref}
       contactLabel={school?.mobile ? `${t('denied.contact', lang)} — ${school.mobile}` : null}

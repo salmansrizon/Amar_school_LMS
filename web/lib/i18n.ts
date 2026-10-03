@@ -2160,6 +2160,10 @@ const dict = {
   'directorCapital.investTitle': { bn: 'বিনিয়োগ করুন', en: 'Invest' },
   'directorCapital.withdrawTitle': { bn: 'উত্তোলন করুন', en: 'Withdraw' },
   'directorCapital.currentBalance': { bn: 'বর্তমান ব্যালেন্স', en: 'Current balance' },
+  'directorCapital.broughtForward': {
+    bn: 'তালিকার বাইরের লেনদেনের জের',
+    en: 'From transactions not in this list',
+  },
   'directorCapital.confirmInvest': { bn: 'বিনিয়োগ নিশ্চিত করুন', en: 'Confirm Invest' },
   'directorCapital.confirmWithdraw': { bn: 'উত্তোলন নিশ্চিত করুন', en: 'Confirm Withdraw' },
   'directorCapital.noTransactions': { bn: 'কোনো লেনদেন নেই', en: 'No transactions yet' },

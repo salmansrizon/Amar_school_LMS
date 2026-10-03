@@ -5,6 +5,7 @@ import { t, type Lang } from '@/lib/i18n'
 import { canOpenScreen, type ScreenKey } from '@/lib/auth/screens'
 import { getSchoolContext } from '@/lib/school/context'
 import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
+import { applyGlobalYearFilterToStudents } from '@/lib/school/year-filter'
 import { SCHOOL_MODULES, SCHOOL_QUICK_ACTIONS, flattenSchoolModules } from '@/lib/school-nav'
 import { Icon } from '@/components/school-icons'
 import { UpcomingList } from '@/components/upcoming-list'
@@ -73,6 +74,7 @@ export default async function SchoolHome() {
     grants,
     shiftSelection,
     weeklyOffDays,
+    academicYearSelection,
   } = await getSchoolContext()
   const can = (s: ScreenKey) => canOpenScreen(role, grants, s)
 
@@ -80,6 +82,26 @@ export default async function SchoolHome() {
   const today = now.toISOString().slice(0, 10)
   const monthStart = `${today.slice(0, 7)}-01`
   const todayDow = now.getUTCDay()
+
+  // Total students uses the Students page's definition: active Students inside
+  // the caller's Global Academic Year Selection (ADR 0023). Counting every
+  // active Student here made the card disagree with the list it links to.
+  const [studentCountQuery, newThisMonthQuery] = await Promise.all([
+    applyGlobalYearFilterToStudents(
+      supabase,
+      supabase.from('students').select('*', { count: 'exact', head: true }).is('archived_at', null),
+      academicYearSelection,
+    ),
+    applyGlobalYearFilterToStudents(
+      supabase,
+      supabase
+        .from('students')
+        .select('*', { count: 'exact', head: true })
+        .is('archived_at', null)
+        .gte('created_at', monthStart),
+      academicYearSelection,
+    ),
+  ])
 
   const [
     { count: studentCount },
@@ -97,12 +119,8 @@ export default async function SchoolHome() {
     hub,
     sms,
   ] = await Promise.all([
-    supabase.from('students').select('*', { count: 'exact', head: true }).is('archived_at', null),
-    supabase
-      .from('students')
-      .select('*', { count: 'exact', head: true })
-      .is('archived_at', null)
-      .gte('created_at', monthStart),
+    studentCountQuery,
+    newThisMonthQuery,
     supabase.from('employee_card').select('*', { count: 'exact', head: true }).is('archived_at', null),
     supabase
       .from('attendance_records')
