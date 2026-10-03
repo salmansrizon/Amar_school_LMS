@@ -13,6 +13,8 @@ interface Row {
   roll_number?: number | null
   present: boolean
   cause: string
+  /** Approved leave and nobody has marked them: neither toggle is pressed until chosen. */
+  onLeave?: boolean
 }
 
 /** When and by whom this date was last marked (0170), or null if never. */
@@ -49,9 +51,12 @@ export function MarkAttendanceForm({
   students,
   markedBy,
   rates = null,
+  isToday = true,
 }: {
   lang: Lang
   date: string
+  /** False for a past/other date, so copy says the date rather than "today". */
+  isToday?: boolean
   students: Row[]
   markedBy: MarkedBy | null
   /** Attendance Rate (YTD) per student id; null hides the column (0214 unapplied). */
@@ -69,27 +74,53 @@ export function MarkAttendanceForm({
   useEffect(() => {
     if (!dirty) return
     const warn = (e: BeforeUnloadEvent) => e.preventDefault()
+    // beforeunload only covers a tab close / hard reload. In-app links (the
+    // sub-nav pills) and the class/date filter form navigate client-side, so
+    // ask for those too, before React's own handlers see the event.
+    const ask = (e: Event) => {
+      const target = e.target as Element | null
+      const link = target?.closest?.('a[href]') as HTMLAnchorElement | null
+      const leaving =
+        e.type === 'submit' ||
+        (link && !link.target && link.origin === location.origin && link.pathname + link.search !== location.pathname + location.search)
+      if (leaving && !window.confirm(t('attendance.leaveUnsavedConfirm', lang))) {
+        e.preventDefault()
+        e.stopPropagation()
+      }
+    }
     window.addEventListener('beforeunload', warn)
-    return () => window.removeEventListener('beforeunload', warn)
-  }, [dirty])
+    document.addEventListener('click', ask, true)
+    document.addEventListener('submit', ask, true)
+    return () => {
+      window.removeEventListener('beforeunload', warn)
+      document.removeEventListener('click', ask, true)
+      document.removeEventListener('submit', ask, true)
+    }
+  }, [dirty, lang])
 
+  // Choosing Present/Absent for a leave student is the explicit choice.
   const setRow = (id: string, patch: Partial<Row>) => {
     setDirty(true)
-    setRows((prev) => prev.map((r) => (r.id === id ? { ...r, ...patch } : r)))
+    setRows((prev) => prev.map((r) => (r.id === id ? { ...r, ...patch, onLeave: false } : r)))
   }
 
+  // Bulk actions skip leave students: they need a deliberate choice, not a blanket one.
   const markAll = (present: boolean) => {
     setDirty(true)
-    setRows((prev) => prev.map((r) => ({ ...r, present, cause: present ? '' : r.cause })))
+    setRows((prev) => prev.map((r) => (r.onLeave ? r : { ...r, present, cause: present ? '' : r.cause })))
   }
 
   const save = () => {
     setError(null)
+    // Untouched leave students are left out entirely: no record, no note, so
+    // they stay "on leave" in the Book instead of becoming a present/absent mark.
+    const payload = rows.filter((r) => !r.onLeave).map((r) => ({ student_id: r.id, present: r.present, cause: r.cause }))
+    if (!payload.length) {
+      setDirty(false)
+      return
+    }
     startTransition(async () => {
-      const result = await saveStudentAttendance(
-        date,
-        rows.map((r) => ({ student_id: r.id, present: r.present, cause: r.cause })),
-      )
+      const result = await saveStudentAttendance(date, payload)
       if (result.error) {
         setError(result.error)
         return
@@ -99,7 +130,9 @@ export function MarkAttendanceForm({
     })
   }
 
-  const presentCount = rows.filter((r) => r.present).length
+  const marking = rows.filter((r) => !r.onLeave)
+  const leaveCount = rows.length - marking.length
+  const presentCount = marking.filter((r) => r.present).length
 
   return (
     <div>
@@ -107,16 +140,23 @@ export function MarkAttendanceForm({
           same roster, so the screen has to say which one it is (#540). */}
       {!saved && (
         <div className="mb-3 rounded-lg border border-sun-deep/30 bg-sun-soft p-3">
-          <p className="text-sm font-semibold text-sun-deep">{t('attendance.notTaken', lang)}</p>
+          <p className="text-sm font-semibold text-sun-deep">{t(isToday ? 'attendance.notTaken' : 'attendance.notTakenOn', lang)}</p>
           <p className="mt-0.5 text-xs text-sun-deep">{t('attendance.notTakenHelp', lang)}</p>
         </div>
+      )}
+
+      {leaveCount > 0 && (
+        <p className="mb-3 rounded-lg border border-sky-deep/30 bg-sky-soft p-3 text-xs font-semibold text-sky-deep">
+          {t('attendance.leaveRowHint', lang)}
+        </p>
       )}
 
       {/* Sticky so the bulk actions stay in reach while scrolling a long roster
           on a phone; the shell's header is 56px, hence top-14. */}
       <div className="sticky top-14 z-10 mb-3 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-line bg-paper/95 p-2 backdrop-blur">
         <div className="text-sm text-muted">
-          {presentCount}/{rows.length} {t('attendance.presentShort', lang)}
+          {presentCount}/{marking.length} {t('attendance.presentShort', lang)}
+          {leaveCount > 0 && ` · ${leaveCount} ${t('status.on_leave', lang)}`}
         </div>
         <div className="flex gap-2">
           <button
@@ -143,7 +183,10 @@ export function MarkAttendanceForm({
         {rows.map((r) => (
           <li key={r.id} className="rounded-lg border border-line bg-paper p-3">
             <div className="mb-2 flex items-baseline justify-between gap-2">
-              <span className="font-medium">{r.full_name}</span>
+              <span className="font-medium">
+                {r.full_name}
+                {r.onLeave && <Pill tone="sky">{t('status.on_leave', lang)}</Pill>}
+              </span>
               <span className="flex items-center gap-2 text-xs text-muted">
                 {t('attendance.rollCol', lang)} {r.roll_number ?? '—'}
                 {rates && <RatePill rate={rates[r.id]} />}
@@ -152,26 +195,26 @@ export function MarkAttendanceForm({
             <div className="flex gap-2">
               <button
                 type="button"
-                aria-pressed={r.present}
+                aria-pressed={r.present && !r.onLeave}
                 onClick={() => setRow(r.id, { present: true, cause: '' })}
                 className={`${toggleBase} ${
-                  r.present ? 'border-mint-deep bg-mint-soft text-mint-deep' : 'border-line text-muted'
+                  r.present && !r.onLeave ? 'border-mint-deep bg-mint-soft text-mint-deep' : 'border-line text-muted'
                 }`}
               >
                 {t('attendance.presentShort', lang)}
               </button>
               <button
                 type="button"
-                aria-pressed={!r.present}
+                aria-pressed={!r.present && !r.onLeave}
                 onClick={() => setRow(r.id, { present: false })}
                 className={`${toggleBase} ${
-                  !r.present ? 'border-alert-deep bg-alert-soft text-alert-deep' : 'border-line text-muted'
+                  !r.present && !r.onLeave ? 'border-alert-deep bg-alert-soft text-alert-deep' : 'border-line text-muted'
                 }`}
               >
                 {t('attendance.absentShort', lang)}
               </button>
             </div>
-            {!r.present && (
+            {!r.present && !r.onLeave && (
               <input
                 type="text"
                 value={r.cause}
@@ -200,10 +243,17 @@ export function MarkAttendanceForm({
           <tbody className="divide-y divide-line">
             {rows.map((r) => (
               <tr key={r.id}>
-                <td className={`${tdClass} ${railClass(r.present ? 'mint' : 'alert')}`}>
+                <td className={`${tdClass} ${railClass(r.onLeave ? 'sky' : r.present ? 'mint' : 'alert')}`}>
                   {r.roll_number ?? <span className="text-muted">—</span>}
                 </td>
-                <td className={`${tdClass} font-medium`}>{r.full_name}</td>
+                <td className={`${tdClass} font-medium`}>
+                  {r.full_name}
+                  {r.onLeave && (
+                    <span className="ml-2 align-middle">
+                      <Pill tone="sky">{t('status.on_leave', lang)}</Pill>
+                    </span>
+                  )}
+                </td>
                 {rates && (
                   <td className={tdClass}>
                     <RatePill rate={rates[r.id]} />
@@ -214,7 +264,7 @@ export function MarkAttendanceForm({
                     type="radio"
                     name={`att-${r.id}`}
                     aria-label={`${t('attendance.presentCol', lang)} — ${r.full_name}`}
-                    checked={r.present}
+                    checked={r.present && !r.onLeave}
                     onChange={() => setRow(r.id, { present: true, cause: '' })}
                   />
                 </td>
@@ -223,14 +273,14 @@ export function MarkAttendanceForm({
                     type="radio"
                     name={`att-${r.id}`}
                     aria-label={`${t('attendance.absentCol', lang)} — ${r.full_name}`}
-                    checked={!r.present}
+                    checked={!r.present && !r.onLeave}
                     onChange={() => setRow(r.id, { present: false })}
                   />
                 </td>
                 <td className={tdClass}>
                   <input
                     type="text"
-                    disabled={r.present}
+                    disabled={r.present || !!r.onLeave}
                     value={r.cause}
                     onChange={(e) => setRow(r.id, { cause: e.target.value })}
                     placeholder="—"
@@ -264,7 +314,7 @@ export function MarkAttendanceForm({
         </div>
         <button
           type="button"
-          disabled={pending}
+          disabled={pending || (!dirty && !!saved)}
           onClick={save}
           className="h-11 cursor-pointer rounded-full bg-brand-500 px-6 text-sm font-semibold text-white hover:bg-brand-600 disabled:opacity-50"
         >

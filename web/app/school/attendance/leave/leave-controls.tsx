@@ -4,7 +4,9 @@ import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { inputClass, labelClass } from '@/components/auth-card'
 import { t, type Lang } from '@/lib/i18n'
-import { requestLeave, approveLeave, rejectLeave } from '../manual-actions'
+import { toast } from 'sonner'
+import { requestLeave, approveLeave, rejectLeave, revertLeave } from '../manual-actions'
+import { ConfirmDialog } from '@/components/confirm-dialog'
 import { dateInputClass } from '@/components/ui/field'
 import { Modal } from '@/components/modal'
 
@@ -109,12 +111,24 @@ export function LeaveActions({ kind, id, lang }: { kind: 'student' | 'employee';
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
 
-  const act = (fn: typeof approveLeave) =>
+  const approve = () =>
     startTransition(async () => {
       setError(null)
-      const result = await fn(kind, id)
-      if (result.error) setError(result.error)
-      else router.refresh()
+      const result = await approveLeave(kind, id)
+      if (result.error) return setError(result.error)
+      router.refresh()
+      // One-click approve is easy to misfire, so offer a way back for a while.
+      toast.success(t('attendance.leaveApprovedToast', lang), {
+        duration: 8000,
+        action: {
+          label: t('attendance.leaveUndo', lang),
+          onClick: async () => {
+            const undone = await revertLeave(kind, id)
+            if (undone.error) toast.error(undone.error)
+            else router.refresh()
+          },
+        },
+      })
     })
 
   return (
@@ -122,19 +136,23 @@ export function LeaveActions({ kind, id, lang }: { kind: 'student' | 'employee';
       <button
         type="button"
         disabled={pending}
-        onClick={() => act(approveLeave)}
+        onClick={approve}
         className="cursor-pointer rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted disabled:opacity-50"
       >
         {t('attendance.leaveApprove', lang)}
       </button>
-      <button
-        type="button"
-        disabled={pending}
-        onClick={() => act(rejectLeave)}
-        className="cursor-pointer rounded-full border border-line-strong px-3 py-1 text-xs font-semibold text-alert-deep hover:bg-alert-soft disabled:opacity-50"
-      >
-        {t('attendance.leaveReject', lang)}
-      </button>
+      <ConfirmDialog
+        triggerLabel={t('attendance.leaveReject', lang)}
+        triggerClassName="cursor-pointer rounded-full border border-line-strong px-3 py-1 text-xs font-semibold text-alert-deep hover:bg-alert-soft"
+        title={t('attendance.leaveRejectConfirm', lang)}
+        confirmLabel={t('attendance.leaveReject', lang)}
+        cancelLabel={t('graceTime.cancel', lang)}
+        onConfirm={async () => {
+          const result = await rejectLeave(kind, id)
+          if (!result.error) router.refresh()
+          return result
+        }}
+      />
       {error && <span className="text-xs text-alert-deep">{error}</span>}
     </span>
   )

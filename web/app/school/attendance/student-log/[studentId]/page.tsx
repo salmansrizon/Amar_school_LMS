@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
-import { dateRangeDays, studentLogDayStatus, type OffDay, type StudentLogDayStatus } from '@/lib/attendance-manual'
+import { dateRangeDays, studentLogDayStatus, studentTrackingStart, type OffDay, type StudentLogDayStatus } from '@/lib/attendance-manual'
 import { firstRelation } from '@/lib/supabase/relation'
 import { dateInputClass, filterButtonClass } from '@/components/ui/field'
 import { PrintPage, InstituteHeader, PaginatedSheet, Badge } from '@/components/print/pieces'
@@ -76,7 +76,7 @@ export default async function StudentLogDetailPage({
     supabase
       .from('students')
       .select(
-        'id, full_name, student_enrollments!students_current_enrollment_id_fkey(roll_number, class_offerings(name, section))',
+        'id, full_name, created_at, student_enrollments!students_current_enrollment_id_fkey(roll_number, class_offerings(name, section))',
       )
       .eq('id', studentId)
       .maybeSingle(),
@@ -98,6 +98,7 @@ export default async function StudentLogDetailPage({
   }
 
   const today = todayIso()
+  const startDay = studentTrackingStart(studentRow.created_at)
   const [yearStr, monthStr] = monthParam.split('-')
   const year = Number(yearStr) || new Date().getUTCFullYear()
   const month = (Number(monthStr) || 1) - 1 // 0-indexed
@@ -157,6 +158,7 @@ export default async function StudentLogDetailPage({
         isOff: cell.isOff,
         onApprovedLeave: onApprovedLeave(cell.iso),
         hasRecord: presentDates.has(cell.iso),
+        startDay,
       }),
     }))
     .filter((row): row is { iso: string; status: StudentLogDayStatus } => row.status !== null)

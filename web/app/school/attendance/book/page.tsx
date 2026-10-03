@@ -6,7 +6,8 @@ import { getSchoolContext } from '@/lib/school/context'
 import { schoolRoster } from '@/lib/school/roster-source'
 import {
   monthGrid,
-  registerDayStatus,
+  studentLogDayStatus,
+  studentTrackingStart,
   type OffDay,
 } from '@/lib/attendance-manual'
 import { PrintPage, InstituteHeader, PaginatedSheet } from '@/components/print/pieces'
@@ -25,6 +26,8 @@ import { filterButtonClass, inputClass } from '@/components/ui/field'
 // printable composes). "Blank" mode is the paper-fallback: same roster/day
 // grid, no data, for hand-filling — same spirit as BlankRosterTable (#39)
 // but shaped as a day grid instead of a roll/name/present roster.
+
+const BOOK_SYMBOL = { present: 'P', absent: 'A', on_leave: 'L', holiday: 'H', none: '' } as const
 
 function todayIso(): string {
   return new Date().toISOString().slice(0, 10)
@@ -218,21 +221,24 @@ export default async function AttendanceBookPage({
                       if (mode === 'blank') {
                         return <td key={cell.iso} className="border border-line px-1.5 py-1 text-center">&nbsp;</td>
                       }
-                      const status = registerDayStatus({
+                      // The four-state sibling, so approved leave and holidays get
+                      // their own symbols instead of a blank an unmarked day shares.
+                      const status = studentLogDayStatus({
                         iso: cell.iso!,
                         today,
                         isOff: cell.isOff,
                         onApprovedLeave: onApprovedLeave(s.id, cell.iso!),
                         hasRecord: presentSet.has(`${s.id}:${cell.iso}`),
+                        startDay: studentTrackingStart(s.created_at),
                       })
                       return (
                         <td
                           key={cell.iso}
                           className={`border border-line px-1.5 py-1 text-center ${
-                            status === 'absent' ? 'font-semibold text-alert-deep' : ''
+                            status === 'absent' ? 'font-semibold text-alert-deep' : status === 'on_leave' ? 'font-semibold text-sky-deep' : 'text-muted'
                           }`}
                         >
-                          {status === 'present' ? 'P' : status === 'absent' ? 'A' : ''}
+                          {BOOK_SYMBOL[status ?? 'none']}
                         </td>
                       )
                     })}

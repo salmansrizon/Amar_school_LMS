@@ -59,7 +59,7 @@ export async function requestLeave(formData: FormData): Promise<{ error?: string
 async function setLeaveStatus(
   kind: string,
   id: string,
-  status: 'approved' | 'rejected',
+  status: 'pending' | 'approved' | 'rejected',
 ): Promise<{ error?: string }> {
   if ((kind !== 'student' && kind !== 'employee') || !id) return { error: 'Invalid leave' }
   const supabase = await createClient()
@@ -75,6 +75,11 @@ async function setLeaveStatus(
 
 export async function approveLeave(kind: string, id: string): Promise<{ error?: string }> {
   return setLeaveStatus(kind, id, 'approved')
+}
+
+/** Undo for approve/reject: puts a decided request back to pending. */
+export async function revertLeave(kind: string, id: string): Promise<{ error?: string }> {
+  return setLeaveStatus(kind, id, 'pending')
 }
 
 export async function rejectLeave(kind: string, id: string): Promise<{ error?: string }> {

@@ -300,7 +300,7 @@ export async function studentRegister(
   const ids = view.students.map((s) => s.id)
   if (!ids.length) return { ...view, rows: [], markedBy: null }
 
-  const [{ data: records }, { data: notes }] = await Promise.all([
+  const [{ data: records }, { data: notes }, { data: leaves }] = await Promise.all([
     supabase
       .from('attendance_records')
       .select('person_id, marked_by, marked_at')
@@ -313,6 +313,13 @@ export async function studentRegister(
       .eq('person_type', 'student')
       .eq('att_date', date)
       .in('person_id', ids),
+    supabase
+      .from('student_leaves')
+      .select('student_id')
+      .eq('status', 'approved')
+      .lte('from_day', date)
+      .gte('to_day', date)
+      .in('student_id', ids),
   ])
 
   const latest = latestMark([...(records ?? []), ...(notes ?? [])] as AttendanceMark[])
@@ -329,6 +336,7 @@ export async function studentRegister(
       view.students,
       new Set((records ?? []).map((r) => r.person_id as string)),
       new Map((notes ?? []).map((n) => [n.person_id as string, (n.cause as string | null) ?? ''])),
+      new Set((leaves ?? []).map((l) => l.student_id as string)),
     ),
     markedBy: markedByOf(latest, marker?.full_name ?? null, viewerId),
   }
