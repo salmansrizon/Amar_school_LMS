@@ -1,5 +1,7 @@
 import Link from 'next/link'
+import type { ReactNode } from 'react'
 import { t, type Lang } from '@/lib/i18n'
+import { SegmentedControl } from '@/components/ui/segmented-control'
 
 // RFID card assignment tab intentionally removed — RFID is disabled for now, so
 // attendance is manual only (mark/book/employee/leave/off-days).
@@ -37,8 +39,21 @@ function tabClass(isActive: boolean) {
   }`
 }
 
-export function AttendanceTabs({ active, lang }: { active: string; lang: Lang }) {
+export function AttendanceTabs({
+  active,
+  lang,
+  extra,
+}: {
+  active: string
+  lang: Lang
+  /** A calendar page's own toolbar (month nav + Today + view switch) — shares
+   *  this component's second row, at the right, beside the sub-nav (calendar
+   *  polish, map 013 follow-up: one toolbar row replaces what used to be a
+   *  second underline tab row plus a third Calendar/Table row). */
+  extra?: ReactNode
+}) {
   const activeGroup = GROUPS.find((g) => (g.tabs ? g.tabs.some((tab) => tab.href === active) : g.href === active))
+  const subItems = activeGroup?.tabs?.map((tab) => ({ href: tab.href, label: t(tab.key, lang) }))
 
   return (
     <div className="mb-4">
@@ -53,13 +68,12 @@ export function AttendanceTabs({ active, lang }: { active: string; lang: Lang })
           </Link>
         ))}
       </div>
-      {activeGroup?.tabs && (
-        <div className="flex flex-nowrap gap-1 overflow-x-auto border-b border-line pl-2">
-          {activeGroup.tabs.map((tab) => (
-            <Link key={tab.href} href={tab.href} className={tabClass(tab.href === active)}>
-              {t(tab.key, lang)}
-            </Link>
-          ))}
+      {(subItems || extra) && (
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+          <div>
+            {subItems && <SegmentedControl items={subItems} active={active} ariaLabel={t('attendance.subNavLabel', lang)} />}
+          </div>
+          {extra}
         </div>
       )}
     </div>

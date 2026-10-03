@@ -1,13 +1,15 @@
-import Link from 'next/link'
+import { CalendarDays, List as ListIcon } from 'lucide-react'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { monthGrid, type OffDay } from '@/lib/attendance-manual'
 import { schoolToday } from '@/lib/school-time'
-import { parseMonthParam, shiftYearMonth, formatMonthYear, buildLeaveCalendarMonth } from '@/lib/employee-attendance-calendar'
+import { parseMonthParam, shiftYearMonth, formatMonthYear, buildLeaveCalendarMonth, isWeekendColumn } from '@/lib/employee-attendance-calendar'
 import { AttendanceTabs } from '../attendance-tabs'
+import { CalendarToolbar, MonthGridFrame } from '../calendar-shell'
 import { AddOffDayForm, DeleteOffDayButton, ImportCentralButton, WeeklyOffDayForm } from './off-day-controls'
-import { LeaveCalendarGrid } from './leave-calendar'
+import { LeaveCalendarDayCell } from './leave-calendar'
+import { SegmentedControl } from '@/components/ui/segmented-control'
 import { schoolCrumbs } from '@/lib/school-crumbs'
 import { PageHeader } from '@/components/ui/page'
 
@@ -103,15 +105,42 @@ export default async function OffDayCalendarPage({
   const calendarHref = listQuery({ view: undefined })
   const listHref = listQuery({ view: 'list' })
   const isListView = view === 'list'
+  const calMonthLabel = formatMonthYear(calYear, calMonth0, lang)
+  // Calendar view titles by the month on screen, not the list's ?year=.
+  const titleYear = isListView ? year : calYear
 
   return (
     <div>
       <PageHeader
-        title={`${t('attendance.offDayTitle', lang)} — ${year}`}
-        crumbs={schoolCrumbs('/school/attendance', lang, { label: t('attendance.title', lang), href: '/school/attendance' }, { label: `${t('attendance.offDayTitle', lang)} — ${year}` })}
+        title={`${t('attendance.offDayTitle', lang)} — ${titleYear}`}
+        crumbs={schoolCrumbs('/school/attendance', lang, { label: t('attendance.title', lang), href: '/school/attendance' }, { label: `${t('attendance.offDayTitle', lang)} — ${titleYear}` })}
       />
 
-      <AttendanceTabs active="/school/attendance/off-days" lang={lang} />
+      <AttendanceTabs
+        active="/school/attendance/off-days"
+        lang={lang}
+        extra={
+          <div className="flex flex-wrap items-center gap-2">
+            {!isListView && (
+              <CalendarToolbar
+                monthLabel={calMonthLabel}
+                prevHref={listQuery({ month: shiftYearMonth(calPrefix, -1) })}
+                nextHref={listQuery({ month: shiftYearMonth(calPrefix, 1) })}
+                todayHref={listQuery({ month: undefined })}
+                lang={lang}
+              />
+            )}
+            <SegmentedControl
+              ariaLabel={t('attendance.viewSwitchLabel', lang)}
+              active={isListView ? listHref : calendarHref}
+              items={[
+                { href: calendarHref, label: t('attendance.viewCalendar', lang), icon: <CalendarDays className="size-4" />, iconOnlyOnMobile: true },
+                { href: listHref, label: t('attendance.viewList', lang), icon: <ListIcon className="size-4" />, iconOnlyOnMobile: true },
+              ]}
+            />
+          </div>
+        }
+      />
 
       <section className="mb-grid rounded-2xl border border-line bg-paper p-card">
         <h3 className="mb-3 font-bold">{t('attendance.weeklyOffDayTitle', lang)}</h3>
@@ -140,36 +169,25 @@ export default async function OffDayCalendarPage({
         </div>
       </section>
 
-      {/* Plain nav links, not an ARIA tablist — same convention as
-          AttendanceTabs (../attendance-tabs.tsx): each "tab" is its own URL,
-          not a JS-managed tabpanel switch, so a roving-tabindex tabs pattern
-          would promise keyboard behaviour this doesn't implement. */}
-      <div className="mb-grid flex gap-1 border-b border-line">
-        <Link
-          href={calendarHref}
-          aria-current={!isListView ? 'page' : undefined}
-          className={`rounded-t-md px-3 py-2 text-sm font-semibold ${!isListView ? 'border-b-2 border-brand-500 text-brand-600' : 'text-muted hover:text-ink'}`}
-        >
-          {t('attendance.viewCalendar', lang)}
-        </Link>
-        <Link
-          href={listHref}
-          aria-current={isListView ? 'page' : undefined}
-          className={`rounded-t-md px-3 py-2 text-sm font-semibold ${isListView ? 'border-b-2 border-brand-500 text-brand-600' : 'text-muted hover:text-ink'}`}
-        >
-          {t('attendance.viewList', lang)}
-        </Link>
-      </div>
-
       {!isListView && (
         <section className="rounded-2xl border border-line bg-paper p-card">
-          <LeaveCalendarGrid
-            cells={leaveCalendarCells}
-            monthLabel={formatMonthYear(calYear, calMonth0, lang)}
-            prevHref={listQuery({ month: shiftYearMonth(calPrefix, -1) })}
-            nextHref={listQuery({ month: shiftYearMonth(calPrefix, 1) })}
-            lang={lang}
-          />
+          <MonthGridFrame monthLabel={calMonthLabel} lang={lang} weeklyOffDays={weeklyOffDays}>
+            {leaveCalendarCells.map((cell, i) => (
+              <LeaveCalendarDayCell
+                key={cell.iso ?? `pad-${i}`}
+                cell={cell}
+                lang={lang}
+                isToday={cell.iso === today}
+                isWeekend={isWeekendColumn(i, weeklyOffDays)}
+              />
+            ))}
+          </MonthGridFrame>
+          <div className="mt-4 flex flex-wrap items-center gap-4 text-xs">
+            <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded-full bg-alert-soft" /> {t('attendance.offDayLegendRegular', lang)}</span>
+            <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded-full bg-sky-soft" /> {t('attendance.offDayLegendSignificant', lang)}</span>
+            <span className="flex items-center gap-1.5"><span className="size-2.5 rounded-full bg-mint" /> {t('status.on_leave', lang)}</span>
+            <span className="flex items-center gap-1.5"><span className="size-2.5 rounded-full border border-dashed border-sun-deep" /> {t('attendance.leavePending', lang)}</span>
+          </div>
         </section>
       )}
 
