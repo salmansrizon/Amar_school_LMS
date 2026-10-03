@@ -8,7 +8,6 @@ import {
   photoExtension,
   nextRollNumber,
   nextRollNumberForOffering,
-  classSectionLabel,
   type RollRow,
   type EnrollmentRollRow,
 } from '@/lib/students'
@@ -26,7 +25,9 @@ import { saveAdmissionDraft, loadAdmissionDraft, clearAdmissionDraft } from './a
 import { dateInputClass } from '@/components/ui/field'
 import { uploadWithSignedToken } from '@/lib/storage/upload-client'
 import { knownVocabularyValue } from '@/lib/students/stored-labels'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Card as PageCard } from '@/components/ui/page'
+import { DataTable, type Column } from '@/components/data-table/data-table'
+import { RowActionPill } from '@/components/data-table/row-action-pill'
 import { ComboboxField } from '@/components/ui/combobox-field'
 import { SelectField } from '@/components/ui/select-field'
 
@@ -50,26 +51,20 @@ export const fieldClass =
   'w-full rounded-md border border-line bg-paper px-3 py-2 text-sm focus:border-brand-500 focus:outline-none'
 export const fieldLabelClass = 'mb-1 block text-xs font-semibold text-muted'
 
-/** `padded={false}` for a Card whose only child is a Table — the table
- *  supplies its own cell padding and should reach the card's edges, same
- *  convention as the shared Card in `@/components/ui/page` (see its own doc
- *  comment). The heading keeps its padding either way. */
 export function Card({
   title,
   children,
-  padded = true,
   id,
 }: {
   title: string
   children: React.ReactNode
-  padded?: boolean
   /** Anchor for the admission form's step strip. */
   id?: string
 }) {
   return (
     <section id={id} className="mb-4 scroll-mt-24 rounded-2xl border border-line bg-paper shadow-card">
       <h3 className="mx-5 mb-4 border-b border-line py-4 font-bold">{title}</h3>
-      {padded ? <div className="px-5 pb-5">{children}</div> : children}
+      <div className="px-5 pb-5">{children}</div>
     </section>
   )
 }
@@ -495,16 +490,17 @@ function draftDefaults(draft: Record<string, string> | null): Record<string, str
 
 /** Recent Admissions' Class cell (issue #640): the full Class Catalogue
  *  label, same convention Students List already uses (`classLabelFor` in
- *  app/school/students/page.tsx) — not the legacy bare class_name/section
- *  join. Falls back to that legacy pair when a row has no current enrollment
- *  (offering null): unlike the full Students List, where "unplaced" is a
- *  real status worth showing as blank, this is a narrow "what did we just
- *  admit" list where every row should show something. */
+ *  app/school/students/page.tsx). Falls back to the legacy class_name/section
+ *  pair when a row has no current enrollment (offering null): unlike the full
+ *  Students List, where "unplaced" is a real status worth showing as blank,
+ *  this is a narrow "what did we just admit" list where every row should show
+ *  something. The fallback goes through classCatalogueLabel too, so both
+ *  paths read "Name - Section" rather than one of them "Name / Section". */
 function recentAdmissionClassLabel(row: RecentAdmissionRow, showYear: boolean): string | null {
   const enrollment = firstRelation(row.student_enrollments)
   const offering = enrollment ? firstRelation(enrollment.class_offerings) : null
   if (offering) return classCatalogueLabel(offering, showYear)
-  return classSectionLabel(row.class_name, row.section)
+  return row.class_name ? classCatalogueLabel({ name: row.class_name, section: row.section }) : null
 }
 
 export function AdmissionForm({
@@ -565,6 +561,18 @@ export function AdmissionForm({
   // initial render, replaced wholesale (never appended-to locally) after
   // each save so it's always the real last 10, not a session-local echo.
   const [recent, setRecent] = useState<RecentAdmissionRow[]>(initialRecent)
+  const dash = <span className="text-muted">—</span>
+  const recentColumns: Column<RecentAdmissionRow>[] = [
+    { key: 'roll', header: t('students.roll', lang), cell: (s) => s.roll_number ?? dash },
+    {
+      key: 'name',
+      header: t('students.name', lang),
+      card: 'title',
+      cell: (s) => <span className="font-semibold">{s.full_name}</span>,
+    },
+    { key: 'class', header: t('students.classSection', lang), cell: (s) => recentAdmissionClassLabel(s, showYear) ?? dash },
+    { key: 'guardian', header: t('students.guardian', lang), cell: (s) => s.guardian_name ?? dash },
+  ]
 
   // Section jump links styled as the reference's step strip. Layout only: the
   // form is still one page and one submit.
@@ -768,40 +776,29 @@ export function AdmissionForm({
         </aside>
       </div>
 
-      <Card title={t('students.recentAdmissions', lang)} padded={!recent.length}>
-        {!recent.length ? (
-          <p className="text-sm text-muted">{t('students.recentAdmissionsEmpty', lang)}</p>
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t('students.roll', lang)}</TableHead>
-                <TableHead>{t('students.name', lang)}</TableHead>
-                <TableHead>{t('students.classSection', lang)}</TableHead>
-                <TableHead>{t('students.guardian', lang)}</TableHead>
-                <TableHead className="text-right">{t('students.view', lang)}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {recent.map((s) => (
-                <TableRow key={s.id}>
-                  <TableCell>{s.roll_number ?? <span className="text-muted">—</span>}</TableCell>
-                  <TableCell className="font-medium">{s.full_name}</TableCell>
-                  <TableCell>
-                    {recentAdmissionClassLabel(s, showYear) ?? <span className="text-muted">—</span>}
-                  </TableCell>
-                  <TableCell>{s.guardian_name ?? <span className="text-muted">—</span>}</TableCell>
-                  <TableCell className="text-right">
-                    <Link href={`/school/students/${s.id}`} className="text-brand-600 hover:underline">
-                      {t('students.view', lang)}
-                    </Link>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
-      </Card>
+      {/* Same DataTable + heading shape as SMS Rules' read-only lists — phone
+          cards / desktop table come with it. No search/filters/pagination:
+          it's always the last 10. */}
+      <section>
+        <h2 className="mb-3 text-lg font-bold">{t('students.recentAdmissions', lang)}</h2>
+        <DataTable
+          rows={recent}
+          rowId={(s) => s.id}
+          rowLabel={(s) => s.full_name}
+          columns={recentColumns}
+          lang={lang}
+          params={{}}
+          caption={t('students.recentAdmissions', lang)}
+          rowActions={(s) => (
+            <RowActionPill state="default" href={`/school/students/${s.id}`} label={t('students.view', lang)} />
+          )}
+          empty={
+            <PageCard>
+              <p className="text-sm text-muted">{t('students.recentAdmissionsEmpty', lang)}</p>
+            </PageCard>
+          }
+        />
+      </section>
     </form>
   )
 }
