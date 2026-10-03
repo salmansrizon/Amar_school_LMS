@@ -4,6 +4,7 @@ import * as React from 'react'
 import { Combobox as ComboboxPrimitive } from '@base-ui/react/combobox'
 import { ChevronDownIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { FIELD_HEIGHT } from './field'
 
 // The "text dynamic" dropdown — type-to-filter replacement for a native
 // `<select>` wherever the option list is long or data-driven (classes,
@@ -31,12 +32,15 @@ export interface ComboboxFieldOption {
   disabled?: boolean
 }
 
-// Mirrors the app's mobile-tap-target convention (`min-h-11` down to the
-// desktop height at `sm:`, e.g. `components/ui/button.tsx`), styled with the
-// same "Family design system" tokens as the existing free-text Combobox so
-// every converted dropdown looks the same regardless of which wrapper it uses.
-const FIELD_BASE =
-  'flex min-h-11 w-full items-stretch rounded-md border border-line-strong bg-paper text-sm outline-none transition focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-300 data-disabled:cursor-not-allowed data-disabled:opacity-60 sm:min-h-10'
+// The shared field height (`FIELD_HEIGHT` in ./field: 44px tap target on
+// phones, 40px from `sm:`), styled with the same "Family design system"
+// tokens as the free-text Combobox so every dropdown looks the same regardless
+// of which wrapper it uses. The height is a fixed `h-*`, not `min-h-*`: the
+// Input's `h-full` only resolves against a definite parent height — under a
+// min-height it fell back to the input's intrinsic ~20px line box and sat at
+// the top of the box while the chevron stayed centred. Compact callers
+// override it with their own `h-*` (twMerge drops this one).
+const FIELD_BASE = `flex ${FIELD_HEIGHT} w-full items-stretch rounded-md border border-line-strong bg-paper text-sm outline-none transition focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-300 data-disabled:cursor-not-allowed data-disabled:opacity-60`
 
 export interface ComboboxFieldProps {
   name?: string
@@ -96,7 +100,7 @@ export function ComboboxField({
           id={id}
           placeholder={placeholder}
           aria-label={ariaLabel}
-          className={cn('h-full min-w-0 flex-1 rounded-l-md bg-transparent px-3 outline-none', inputClassName)}
+          className={cn('h-full min-w-0 flex-1 rounded-l-md bg-transparent px-3 outline-none placeholder:text-muted', inputClassName)}
         />
         {/* Decorative mouse affordance only — the Input beside it already carries
             the full ARIA combobox pattern (and, per base-ui's default

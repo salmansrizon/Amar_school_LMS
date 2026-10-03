@@ -6,11 +6,11 @@ import { schoolRoster } from '@/lib/school/roster-source'
 import { classSectionLabel } from '@/lib/students'
 import { enrollmentInfo, listMachines } from '@/lib/machine-enrollment-store'
 import { ClassSectionSelect } from '@/components/ui/class-section-select'
-import { inputClass } from '@/components/auth-card'
 import { AttendanceTabs } from '../../attendance-tabs'
 import { MachinePageHeader } from '../page-header'
 import { EnrollButton } from '../machine-ui'
 import { RfidEntryTable, type RfidRow } from '../rfid-entry-table'
+import { filterButtonClass, inputClass } from '@/components/ui/field'
 
 // Student RFID Enrollment (issue #675). The roster is the same one Mark
 // Attendance uses: the global Academic Year Selection narrows the students,
@@ -79,12 +79,12 @@ export default async function StudentRfidPage({
           <label htmlFor="q" className="mb-1 block text-xs font-semibold text-muted">
             {t('rfid.name', lang)}
           </label>
-          <input id="q" name="q" type="search" defaultValue={q} className={inputClass} />
+          <input id="q" name="q" type="search" defaultValue={q} className={inputClass({ fullWidth: true })} />
         </div>
         <div className="flex items-end">
           <button
             type="submit"
-            className="w-full cursor-pointer rounded-full border border-line px-4 py-2 text-xs font-semibold hover:bg-paper-muted"
+            className={filterButtonClass({ fullWidth: true })}
           >
             {t('classes.filter', lang)}
           </button>

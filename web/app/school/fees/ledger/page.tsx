@@ -9,7 +9,7 @@ import { PrintPage, InstituteHeader, PaginatedSheet, QrFooterRow } from '@/compo
 import { PrintButton } from '@/components/print/print-button'
 import { AccountingTabs } from '../accounting-tabs'
 import { loadInstitutePrintHeader } from '@/lib/institute-print'
-import { dateInputClass } from '@/components/ui/field'
+import { dateInputClass, filterButtonClass } from '@/components/ui/field'
 import { selectAllRows } from '@/lib/supabase/select-all'
 
 // Layout per ui/school-owner/general-ledger.html: a date-range toolbar over a
@@ -184,7 +184,7 @@ export default async function GeneralLedgerPage({
         <input name="to" type="date" defaultValue={to} className={dateInputClass()} />
         <button
           type="submit"
-          className="cursor-pointer rounded-full border border-line px-3 py-1 text-xs font-semibold hover:bg-paper-muted"
+          className={filterButtonClass()}
         >
           {t('ledger.apply', lang)}
         </button>

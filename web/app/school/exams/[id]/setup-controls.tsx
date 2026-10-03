@@ -332,7 +332,7 @@ function SubjectTeacherRow({
           defaultValue={subject.teacher_id ?? ''}
           disabled={disabled || pending}
           aria-label={t('examSetup.assignedTeacher', lang)}
-          className="min-h-8 text-xs sm:min-h-8"
+          className="h-8 text-xs sm:h-8"
           onValueChange={(v) => {
             const teacherId = v || null
             startTransition(async () => {

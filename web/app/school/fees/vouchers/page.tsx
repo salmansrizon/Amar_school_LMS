@@ -6,7 +6,7 @@ import { getSchoolContext } from '@/lib/school/context'
 import { schoolCrumbs } from '@/lib/school-crumbs'
 import { AccountingTabs } from '../accounting-tabs'
 import { NewVoucherCategoryForm, NewVoucherForm, type CategoryOption } from './voucher-controls'
-import { dateInputClass } from '@/components/ui/field'
+import { dateInputClass, filterButtonClass } from '@/components/ui/field'
 import { Card, PageHeader } from '@/components/ui/page'
 import { StatCard, StatGrid } from '@/components/ui/widgets'
 import { EmptyState } from '@/components/ui/states'
@@ -182,7 +182,7 @@ export default async function VouchersPage({
         <input name="to" type="date" defaultValue={to} aria-label={t('vouchers.to', lang)} className={dateInputClass()} />
         <button
           type="submit"
-          className="cursor-pointer rounded-full border border-line px-3 py-1 text-xs font-semibold hover:bg-paper-muted"
+          className={filterButtonClass()}
         >
           {t('vouchers.filter', lang)}
         </button>

@@ -6,7 +6,7 @@ import { ACADEMIC_SHIFT_LABEL_KEY, isKnownAcademicShift } from '@/lib/institute'
 import { EMPLOYEE_CATEGORIES, EMPLOYEE_CATEGORY_LABEL_KEY } from '@/lib/employees'
 import { employeeShifts, enrollmentInfo, listMachines } from '@/lib/machine-enrollment-store'
 import { filterEmployeesByShift, NO_SHIFT_FILTER as NO_SHIFT } from '@/lib/machine-attendance'
-import { selectClass } from '@/components/ui/field'
+import { selectClass, filterButtonClass } from '@/components/ui/field'
 import { AttendanceTabs } from '../../attendance-tabs'
 import { MachinePageHeader } from '../page-header'
 import { EnrollButton } from '../machine-ui'
@@ -90,7 +90,7 @@ export default async function EmployeeEnrollmentPage({
           </div>
           <button
             type="submit"
-            className="cursor-pointer rounded-full border border-line px-4 py-2 text-xs font-semibold hover:bg-paper-muted"
+            className={filterButtonClass()}
           >
             {t('classes.filter', lang)}
           </button>

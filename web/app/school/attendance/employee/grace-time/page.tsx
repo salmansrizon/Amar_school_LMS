@@ -10,7 +10,7 @@ import { EMPLOYEE_CATEGORIES, EMPLOYEE_CATEGORY_LABEL_KEY } from '@/lib/employee
 import { GRACE_DETAIL_LABEL_KEY, isGraceDetail } from '@/lib/grace'
 import { AttendanceTabs } from '../../attendance-tabs'
 import { AddStandingRuleForm, AddAdHocExemptionForm, DeleteGraceEntryButton } from './grace-time-controls'
-import { dateInputClass } from '@/components/ui/field'
+import { dateInputClass, filterButtonClass } from '@/components/ui/field'
 
 // Grace Time (issue #671, redesigned by #673 / ADR 0032). Two sections:
 // Standing Grace Rules (Grace Detail + Categories + minutes, one per Shift +
@@ -216,7 +216,7 @@ export default async function GraceTimePage({
           </div>
           <button
             type="submit"
-            className="h-9 cursor-pointer rounded-full border border-line px-3 py-1 text-xs font-semibold hover:bg-paper-muted"
+            className={filterButtonClass()}
           >
             {t('classes.filter', lang)}
           </button>

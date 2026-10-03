@@ -5,6 +5,7 @@ import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { matchesEmployeeQuery } from '@/lib/employees'
 import { RestoreButton } from './restore-button'
+import { filterButtonClass, inputClass } from '@/components/ui/field'
 
 // Layout per ui/school-owner/employees-archive.html: search + table Name |
 // Category | Department | Archived On | Status | actions (View, Restore).
@@ -44,11 +45,11 @@ export default async function EmployeesArchivePage({
           name="q"
           defaultValue={q}
           placeholder={t('employees.archiveSearch', lang)}
-          className="w-64 rounded-md border border-line bg-paper px-3 py-1.5 text-sm"
+          className={`${inputClass()} w-64`}
         />
         <button
           type="submit"
-          className="cursor-pointer rounded-full border border-line px-3 py-1 text-xs font-semibold hover:bg-paper-muted"
+          className={filterButtonClass()}
         >
           {t('classes.filter', lang)}
         </button>

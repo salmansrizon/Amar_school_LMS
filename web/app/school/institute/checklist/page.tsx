@@ -7,7 +7,7 @@ import { schoolCrumbs } from '@/lib/school-crumbs'
 import { InstituteTabs } from '../tabs'
 import { ChecklistForm } from './checklist-form'
 import { ChecklistItemsManager } from './checklist-items-manager'
-import { dateInputClass } from '@/components/ui/field'
+import { dateInputClass, filterButtonClass } from '@/components/ui/field'
 import { PageHeader, railClass, type Tone } from '@/components/ui/page'
 
 // Administrative daily checklist + date-range report (issue #39, PRD §5.11)
@@ -91,7 +91,7 @@ export default async function ChecklistPage({
             <input type="date" name="end" defaultValue={rangeEnd} className={dateInputClass()} />
             <button
               type="submit"
-              className="cursor-pointer rounded-full border border-line px-3 py-1 text-xs font-semibold hover:bg-paper-muted"
+              className={filterButtonClass()}
             >
               {t('institute.apply', lang)}
             </button>

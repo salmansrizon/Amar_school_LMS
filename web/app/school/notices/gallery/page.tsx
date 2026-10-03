@@ -10,6 +10,7 @@ import { Card, PageHeader } from '@/components/ui/page'
 import { StatCard, StatGrid } from '@/components/ui/widgets'
 import { NoticeTabs } from '../notice-tabs'
 import { CreateAlbumForm } from './gallery-controls'
+import { filterButtonClass, inputClass } from '@/components/ui/field'
 
 // Layout per ui/school-owner/gallery-albums.html: a 4-column album grid, each
 // card showing "N/max photos" and a "Full" badge once the album-level cap is
@@ -65,11 +66,11 @@ export default async function GalleryAlbumsPage({
             name="q"
             defaultValue={q}
             placeholder={t('gallery.search', lang)}
-            className="rounded-md border border-line bg-paper px-3 py-1.5 text-sm"
+            className={inputClass()}
           />
           <button
             type="submit"
-            className="cursor-pointer rounded-full border border-line px-3 py-1 text-xs font-semibold hover:bg-paper-muted"
+            className={filterButtonClass()}
           >
             {t('classes.filter', lang)}
           </button>

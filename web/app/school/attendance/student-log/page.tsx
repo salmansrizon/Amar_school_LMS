@@ -11,6 +11,7 @@ import { PageHeader } from '@/components/ui/page'
 import { EmptyState } from '@/components/ui/states'
 import { paginate, pageSizeFrom } from '@/components/pager'
 import { DataTable } from '@/components/data-table/data-table'
+import { filterButtonClass } from '@/components/ui/field'
 
 // Student Log finder (map #380, docs/011_student_module.md): Class -> Section
 // picker + roll-sorted roster, each row opening that student's attendance
@@ -73,7 +74,7 @@ export default async function StudentLogPage({
         <div className="flex items-end">
           <button
             type="submit"
-            className="w-full cursor-pointer rounded-full border border-line px-3 py-1.5 text-xs font-semibold hover:bg-paper-muted"
+            className={filterButtonClass({ fullWidth: true })}
           >
             {t('classes.filter', lang)}
           </button>

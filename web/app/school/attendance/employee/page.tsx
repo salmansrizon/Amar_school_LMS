@@ -13,7 +13,7 @@ import { AttendanceTabs } from '../attendance-tabs'
 import { CalendarToolbar, MonthGridFrame } from '../calendar-shell'
 import { EmployeeAttendanceDayCell } from './attendance-calendar'
 import { SegmentedControl } from '@/components/ui/segmented-control'
-import { dateInputClass } from '@/components/ui/field'
+import { dateInputClass, filterButtonClass, inputClass } from '@/components/ui/field'
 import { schoolCrumbs } from '@/lib/school-crumbs'
 import { PageHeader } from '@/components/ui/page'
 import { Pill } from '@/components/data-table/data-table'
@@ -281,12 +281,12 @@ export default async function EmployeeAttendancePage({
           name="q"
           defaultValue={q}
           placeholder={t('attendance.employeeSearch', lang)}
-          className="w-56 rounded-md border border-line bg-paper px-3 py-1.5 text-sm"
+          className={`${inputClass()} w-56`}
         />
         <input type="date" name="date" defaultValue={date} className={dateInputClass()} />
         <button
           type="submit"
-          className="cursor-pointer rounded-full border border-line px-3 py-1 text-xs font-semibold hover:bg-paper-muted"
+          className={filterButtonClass()}
         >
           {t('classes.filter', lang)}
         </button>

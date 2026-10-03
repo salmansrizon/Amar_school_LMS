@@ -4,6 +4,7 @@ import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { RestoreButton } from './restore-button'
+import { filterButtonClass, inputClass } from '@/components/ui/field'
 
 // Old Classes (ADR 0024) — mirrors Employees'/Students' own soft-archive
 // list exactly: search + table, Restore only (no per-class detail page to
@@ -56,11 +57,11 @@ export default async function ClassesArchivePage({
           name="q"
           defaultValue={q}
           placeholder={t('classes.archiveSearch', lang)}
-          className="w-64 rounded-md border border-line bg-paper px-3 py-1.5 text-sm"
+          className={`${inputClass()} w-64`}
         />
         <button
           type="submit"
-          className="cursor-pointer rounded-full border border-line px-3 py-1 text-xs font-semibold hover:bg-paper-muted"
+          className={filterButtonClass()}
         >
           {t('classes.filter', lang)}
         </button>

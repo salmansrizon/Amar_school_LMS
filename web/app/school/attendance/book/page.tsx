@@ -17,6 +17,7 @@ import { ClassSectionSelect } from '@/components/ui/class-section-select'
 import { selectAllRows } from '@/lib/supabase/select-all'
 import { schoolCrumbs } from '@/lib/school-crumbs'
 import { PageHeader } from '@/components/ui/page'
+import { filterButtonClass, inputClass } from '@/components/ui/field'
 
 // Layout per ui/school-owner/attendance-book.html: class/section + month
 // filter, Filled/Blank toggle, print button, monthly P/A register grid
@@ -141,12 +142,12 @@ export default async function AttendanceBookPage({
             type="month"
             name="month"
             defaultValue={monthParam}
-            className="rounded-md border border-line bg-paper px-3 py-1.5 text-sm"
+            className={inputClass()}
           />
           <input type="hidden" name="mode" value={mode} />
           <button
             type="submit"
-            className="cursor-pointer rounded-full border border-line px-3 py-1 text-xs font-semibold hover:bg-paper-muted"
+            className={filterButtonClass()}
           >
             {t('classes.filter', lang)}
           </button>

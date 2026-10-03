@@ -7,7 +7,7 @@ import { getSchoolContext } from '@/lib/school/context'
 import { schoolCrumbs, headerPrimary, headerSecondary } from '@/lib/school-crumbs'
 import { AccountingTabs } from '../accounting-tabs'
 import { TransactionForm } from './director-capital-controls'
-import { dateInputClass } from '@/components/ui/field'
+import { dateInputClass, filterButtonClass } from '@/components/ui/field'
 import { Card, PageHeader } from '@/components/ui/page'
 import { StatCard, StatGrid } from '@/components/ui/widgets'
 import { paginate, pageSizeFrom } from '@/components/pager'
@@ -124,7 +124,7 @@ export default async function DirectorCapitalPage({
         <input name="to" type="date" defaultValue={to} aria-label={t('vouchers.to', lang)} className={dateInputClass()} />
         <button
           type="submit"
-          className="cursor-pointer rounded-full border border-line px-3 py-1 text-xs font-semibold hover:bg-paper-muted"
+          className={filterButtonClass()}
         >
           {t('classes.filter', lang)}
         </button>

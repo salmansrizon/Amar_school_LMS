@@ -11,6 +11,7 @@ import { DataTable, type Column } from '@/components/data-table/data-table'
 import { RecordDrawer } from '@/components/data-table/record-drawer'
 import { ViewLink } from '@/components/data-table/view-link'
 import { paginate, pageSizeFrom } from '@/components/pager'
+import { filterButtonClass, inputClass } from '@/components/ui/field'
 
 // Split off the Employees half of the old unified Leave Management page (map
 // #664). Employee search follows the same name-substring-over-the-full-roster
@@ -138,12 +139,12 @@ export default async function EmployeeLeaveManagementPage({
               name="rosterQ"
               defaultValue={rosterQ}
               placeholder={t('attendance.employeeSearch', lang)}
-              className="w-64 rounded-md border border-line bg-paper px-3 py-1.5 text-sm"
+              className={`${inputClass()} w-64`}
             />
           </div>
           <button
             type="submit"
-            className="h-9 cursor-pointer rounded-full border border-line px-3 py-1 text-xs font-semibold hover:bg-paper-muted"
+            className={filterButtonClass()}
           >
             {t('classes.filter', lang)}
           </button>

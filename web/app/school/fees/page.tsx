@@ -13,7 +13,7 @@ import { feeStanding, summarizeMonthFees, type FeeStanding } from '@/lib/fees'
 import { schoolCrumbs, headerPrimary, headerSecondary } from '@/lib/school-crumbs'
 import { AccountingTabs } from './accounting-tabs'
 import { FeeForm, type CollectStudent, type ExistingFeeRecord } from './fee-form'
-import { selectClass } from '@/components/ui/field'
+import { selectClass, filterButtonClass } from '@/components/ui/field'
 import { ComboboxField } from '@/components/ui/combobox-field'
 import { Card } from '@/components/ui/page'
 import { PageHeader } from '@/components/ui/page'
@@ -413,7 +413,7 @@ export default async function FeesPage({
             />
             <button
               type="submit"
-              className="cursor-pointer rounded-full border border-line px-3 py-1 text-xs font-semibold hover:bg-paper-muted"
+              className={filterButtonClass()}
             >
               {t('classes.filter', lang)}
             </button>

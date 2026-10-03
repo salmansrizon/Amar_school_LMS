@@ -4,6 +4,7 @@ import * as React from 'react'
 import { Select as SelectPrimitive } from '@base-ui/react/select'
 import { ChevronDownIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { FIELD_HEIGHT } from './field'
 import type { ComboboxFieldOption } from './combobox-field'
 
 // The tiny-fixed-list twin of `ComboboxField` (≤5 static options: yes/no,
@@ -20,8 +21,7 @@ import type { ComboboxFieldOption } from './combobox-field'
 // primitive renders it itself for `name`, keyed off `{ value, label }`
 // auto-detection, so `isItemEqualToValue` is the one thing this file still
 // has to spell out (default comparison is `Object.is`).
-const FIELD_BASE =
-  'flex min-h-11 w-full items-center justify-between gap-2 rounded-md border border-line-strong bg-paper px-3 text-sm outline-none transition focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-300 data-disabled:cursor-not-allowed data-disabled:opacity-60 sm:min-h-10'
+const FIELD_BASE = `flex ${FIELD_HEIGHT} w-full items-center justify-between gap-2 rounded-md border border-line-strong bg-paper px-3 text-sm outline-none transition focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-300 data-disabled:cursor-not-allowed data-disabled:opacity-60`
 
 export interface SelectFieldProps {
   name?: string

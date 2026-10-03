@@ -14,7 +14,7 @@ import { QuickActions, StatCard, StatGrid, WarningBanner, WorkflowCard } from '@
 import { RowActionPill } from '@/components/data-table/row-action-pill'
 import { AttendanceTabs } from '../attendance-tabs'
 import { MarkAttendanceForm } from './mark-form'
-import { dateInputClass } from '@/components/ui/field'
+import { dateInputClass, filterButtonClass } from '@/components/ui/field'
 import { ClassSectionSelect } from '@/components/ui/class-section-select'
 import { EmptyState } from '@/components/ui/states'
 
@@ -250,7 +250,7 @@ export default async function MarkAttendancePage({
         <div className="flex items-end">
           <button
             type="submit"
-            className="w-full cursor-pointer rounded-full border border-line px-3 py-1.5 text-xs font-semibold hover:bg-paper-muted"
+            className={filterButtonClass({ fullWidth: true })}
           >
             {t('classes.filter', lang)}
           </button>

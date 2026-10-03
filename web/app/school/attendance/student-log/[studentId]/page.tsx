@@ -6,7 +6,7 @@ import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { dateRangeDays, studentLogDayStatus, type OffDay, type StudentLogDayStatus } from '@/lib/attendance-manual'
 import { firstRelation } from '@/lib/supabase/relation'
-import { dateInputClass } from '@/components/ui/field'
+import { dateInputClass, filterButtonClass } from '@/components/ui/field'
 import { PrintPage, InstituteHeader, PaginatedSheet, Badge } from '@/components/print/pieces'
 import { PrintTrigger } from '@/components/print/print-trigger'
 import { PageHeader } from '@/components/ui/page'
@@ -222,7 +222,7 @@ export default async function StudentLogDetailPage({
               <input type="hidden" name="classSection" value={classSection} />
               <input type="hidden" name="view" value="month" />
               <input type="month" name="month" defaultValue={monthParam} className={dateInputClass()} />
-              <button type="submit" className="cursor-pointer rounded-full border border-line px-3 py-1 text-xs font-semibold hover:bg-paper-muted">
+              <button type="submit" className={filterButtonClass()}>
                 {t('classes.filter', lang)}
               </button>
             </Form>
@@ -235,7 +235,7 @@ export default async function StudentLogDetailPage({
               <input type="date" name="from" defaultValue={fromParam} max={today} className={dateInputClass()} />
               <span className="text-sm text-muted">–</span>
               <input type="date" name="to" defaultValue={toParam} max={today} className={dateInputClass()} />
-              <button type="submit" className="cursor-pointer rounded-full border border-line px-3 py-1 text-xs font-semibold hover:bg-paper-muted">
+              <button type="submit" className={filterButtonClass()}>
                 {t('classes.filter', lang)}
               </button>
             </Form>

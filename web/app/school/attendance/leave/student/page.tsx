@@ -13,6 +13,7 @@ import { RecordDrawer } from '@/components/data-table/record-drawer'
 import { ViewLink } from '@/components/data-table/view-link'
 import { paginate, pageSizeFrom } from '@/components/pager'
 import { ClassSectionSelect } from '@/components/ui/class-section-select'
+import { filterButtonClass, inputClass } from '@/components/ui/field'
 
 // Split off the Students half of the old unified Leave Management page (map
 // #664): search is now Class (schoolRoster's own picker) + name/roll text,
@@ -156,12 +157,12 @@ export default async function StudentLeaveManagementPage({
               name="rosterQ"
               defaultValue={rosterQ}
               placeholder={t('attendance.leaveSearchStudent', lang)}
-              className="w-64 rounded-md border border-line bg-paper px-3 py-1.5 text-sm"
+              className={`${inputClass()} w-64`}
             />
           </div>
           <button
             type="submit"
-            className="h-9 cursor-pointer rounded-full border border-line px-3 py-1 text-xs font-semibold hover:bg-paper-muted"
+            className={filterButtonClass()}
           >
             {t('classes.filter', lang)}
           </button>

@@ -2,8 +2,7 @@
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { useTransition } from 'react'
-import { inputBaseClass } from '@/components/ui/input'
-import { cn } from '@/lib/utils'
+import { inputClass } from '@/components/ui/field'
 import { ComboboxField } from '@/components/ui/combobox-field'
 import { t, type Lang } from '@/lib/i18n'
 import { withParams } from '@/lib/url-params'
@@ -52,7 +51,7 @@ export function DataTableFilters({
           defaultValue={params.get(searchParam) ?? ''}
           placeholder={search.placeholder}
           aria-label={search.placeholder}
-          className={cn(inputBaseClass, 'w-full md:w-72')}
+          className={`${inputClass()} w-full md:w-80`}
           onKeyDown={(e) => {
             if (e.key === 'Enter') apply(searchParam, e.currentTarget.value)
           }}

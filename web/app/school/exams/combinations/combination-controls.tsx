@@ -258,7 +258,7 @@ function AddMemberForm({ combinationId, exams, lang }: { combinationId: string; 
           name="exam_id"
           required
           defaultValue=""
-          className="min-h-8 text-xs sm:min-h-8"
+          className="h-8 text-xs sm:h-8"
           options={[
             { value: '', label: t('combinations.exam', lang), disabled: true },
             ...exams.map((e) => ({ value: e.id, label: `${e.name} (${e.exam_year})` })),
