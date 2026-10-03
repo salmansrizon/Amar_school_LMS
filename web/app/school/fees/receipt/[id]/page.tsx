@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { takaInWords } from '@/lib/amount-words'
-import { totalPayable } from '@/lib/fees'
+import { totalPayable, feeGlRefPattern, FEE_GL_ORDER_COLUMN } from '@/lib/fees'
 import { currentLang } from '@/lib/i18n-server'
 import { t } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
@@ -36,11 +36,15 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
   // because an edit posts the delta rather than restating the total. Reading it
   // back here is what proves the payment reached the books; the ledger tab shows
   // the same money derived from the source tables instead.
-  const { data: glEntries } = await supabase
+  //
+  // A failed read is not "no entry": this ordered by a column gl_entries does
+  // not have, the read was rejected, and a paid record's receipt said nothing
+  // had reached the books. The error is now its own state.
+  const { data: glEntries, error: glError } = await supabase
     .from('gl_entries')
     .select('id, gl_lines(account_code, debit, credit)')
-    .like('ref', `fee:${id}:%`)
-    .order('created_at')
+    .like('ref', feeGlRefPattern(id))
+    .order(FEE_GL_ORDER_COLUMN)
   const glLines = (glEntries ?? []).flatMap(
     (e) => (e.gl_lines as unknown as { account_code: string; debit: number; credit: number }[]) ?? [],
   )
@@ -109,7 +113,9 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
 
         <section className="mt-4 rounded-md border border-line px-3 py-2 text-xs print:hidden">
           <h2 className="mb-1 font-semibold">{t('fees.ledgerImpact', lang)}</h2>
-          {!glLines.length ? (
+          {glError ? (
+            <p className="text-alert-deep">{t('fees.ledgerUnavailable', lang)}</p>
+          ) : !glLines.length ? (
             <p className="text-muted">{t('fees.ledgerNone', lang)}</p>
           ) : (
             <table className="w-full">

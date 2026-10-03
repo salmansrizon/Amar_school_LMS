@@ -2017,6 +2017,22 @@ const dict = {
   'fees.reviewHeading': { bn: 'নিশ্চিত করার আগে দেখে নিন', en: 'Check before you confirm' },
   'fees.confirmCollect': { bn: 'নিশ্চিত করুন ও রসিদ ছাপুন', en: 'Confirm & Print Receipt' },
   'fees.editAmounts': { bn: 'সংশোধন করুন', en: 'Change amounts' },
+  'fees.saved': { bn: 'ফি আদায় সংরক্ষিত হয়েছে', en: 'Fee collection saved' },
+  // Receiving more than the total payable is confirmed, not blocked: the extra
+  // stays on this month's record (nothing carries it to the next month).
+  'fees.overpayWarning': { bn: 'প্রদেয় মোটের চেয়ে বেশি নেওয়া হচ্ছে', en: 'Receiving more than the total payable' },
+  'fees.overpayHelp': {
+    bn: 'অতিরিক্ত টাকা এই মাসের রেকর্ডেই জমা থাকবে — পরের মাসের ফি-তে নিজে থেকে সমন্বয় হবে না।',
+    en: "The extra stays on this month's record — it is not carried to next month's fee automatically.",
+  },
+  'fees.overpayAck': {
+    bn: 'হ্যাঁ, অতিরিক্ত টাকা অগ্রিম হিসেবে নিচ্ছি',
+    en: 'Yes, I am taking the extra as an advance payment',
+  },
+  'fees.overpayNeedsAck': {
+    bn: 'প্রাপ্ত পরিমাণ প্রদেয় মোটের চেয়ে বেশি — অগ্রিম হিসেবে নিশ্চিত না করলে সংরক্ষণ হবে না।',
+    en: 'Received is more than the total payable — confirm it as an advance payment before saving.',
+  },
   'fees.ledgerImpact': { bn: 'খতিয়ানে প্রভাব', en: 'Ledger impact' },
   'fees.ledgerDebit': { bn: 'ডেবিট', en: 'Debit' },
   'fees.ledgerCredit': { bn: 'ক্রেডিট', en: 'Credit' },
@@ -2024,6 +2040,10 @@ const dict = {
   'fees.ledgerNone': {
     bn: 'এই রেকর্ডের জন্য কোনো খতিয়ান এন্ট্রি নেই — প্রাপ্ত পরিমাণ ও জরিমানা দুটোই শূন্য।',
     en: 'No ledger entry for this record — both the received amount and the fine are zero.',
+  },
+  'fees.ledgerUnavailable': {
+    bn: 'খতিয়ান এন্ট্রি এই মুহূর্তে দেখানো যাচ্ছে না — পাতাটি আবার খুলুন।',
+    en: 'The ledger entries could not be loaded right now — reopen this page.',
   },
   'fees.pickClassPrompt': {
     bn: 'শিক্ষার্থীদের তালিকা দেখতে একটি শ্রেণি নির্বাচন করুন।',
@@ -2207,6 +2227,7 @@ const dict = {
   'students.oldStudent': { bn: 'পুরাতন শিক্ষার্থী', en: 'Old Student' },
   'students.view': { bn: 'দেখুন', en: 'View' },
   'students.feeStanding': { bn: 'ফি (এই মাস)', en: 'Fee (this month)' },
+  'students.feeStandingFor': { bn: 'ফি', en: 'Fee' },
   'students.feePaid': { bn: 'পরিশোধিত', en: 'Paid' },
   'students.feePartial': { bn: 'আংশিক', en: 'Partial' },
   'students.feeDue': { bn: 'বকেয়া', en: 'Due' },

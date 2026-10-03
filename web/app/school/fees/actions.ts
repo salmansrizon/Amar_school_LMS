@@ -3,7 +3,9 @@
 import { revalidatePath } from 'next/cache'
 import { requireSchoolMember } from '@/lib/auth/require-role'
 import { createClient } from '@/lib/supabase/server'
-import { absentFineAmount } from '@/lib/fees'
+import { absentFineAmount, settleFee } from '@/lib/fees'
+import { currentLang } from '@/lib/i18n-server'
+import { t } from '@/lib/i18n'
 
 // One record per student per month is DB-enforced (unique constraint).
 // The action implements legacy's "already have a payment info, please edit":
@@ -21,15 +23,30 @@ export async function saveFeeRecord(formData: FormData): Promise<SaveFeeResult> 
   const month = Number(formData.get('month'))
   const year = Number(formData.get('year'))
   const editId = String(formData.get('edit_id') ?? '')
-  const amounts = {
+  const fee = amount(formData.get('fee_amount'))
+  const entered = {
     pay_amount: amount(formData.get('pay_amount')),
     fine_amount: amount(formData.get('fine_amount')),
     adjust_amount: amount(formData.get('adjust_amount')),
-    due_amount: amount(formData.get('due_amount')),
   }
-  if (Object.values(amounts).some(Number.isNaN)) {
+  if ([fee, ...Object.values(entered)].some(Number.isNaN)) {
     return { error: 'Amounts must be non-negative numbers' }
   }
+  // The due amount is worked out here from the same figures the form previewed
+  // (lib/fees.ts), not read from the request: the record posts to the ledger,
+  // and "due" was the one stored figure the browser alone decided. Receiving
+  // more than the total payable needs the operator's explicit advance-payment
+  // acknowledgement from the review step.
+  const { due, overpaid } = settleFee({
+    fee,
+    fine: entered.fine_amount,
+    adjust: entered.adjust_amount,
+    received: entered.pay_amount,
+  })
+  if (overpaid > 0 && formData.get('overpay_ack') !== '1') {
+    return { error: t('fees.overpayNeedsAck', await currentLang()) }
+  }
+  const amounts = { ...entered, due_amount: due }
   const method = String(formData.get('payment_method') ?? 'cash')
   // Optional free-text note (ui/school-owner/fee-collection.html); empty
   // string normalizes to null rather than storing a blank note.

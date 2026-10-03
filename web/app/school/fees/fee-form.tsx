@@ -2,9 +2,10 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
 import { t, type Lang } from '@/lib/i18n'
-import { totalPayable, dueAmount } from '@/lib/fees'
+import { billedFeeAmount, settleFee } from '@/lib/fees'
 import { saveFeeRecord, calculateAbsentFine } from './actions'
 import { SelectField } from '@/components/ui/select-field'
 
@@ -21,6 +22,7 @@ export interface ExistingFeeRecord {
   pay_amount: number
   fine_amount: number
   adjust_amount: number
+  due_amount: number
   payment_method: string
   note: string | null
 }
@@ -47,13 +49,20 @@ export function FeeForm({
   lang: Lang
 }) {
   const router = useRouter()
-  const [fee, setFee] = useState(prescribedFee)
+  // A saved record does not store its fee, so reopening one started from the
+  // class's prescribed fee — 0 for a school with no Fee Structure — and showed
+  // fee 0 / total 0 / due 0 for a record the list says still owes money. The
+  // record's own figures say what was billed.
+  const [fee, setFee] = useState(existingRecord ? billedFeeAmount(existingRecord) : prescribedFee)
   const [fine, setFine] = useState(existingRecord?.fine_amount ?? 0)
   const [adjust, setAdjust] = useState(existingRecord?.adjust_amount ?? 0)
   const [method, setMethod] = useState(existingRecord?.payment_method ?? 'cash')
-  const total = totalPayable(fee, fine, adjust)
-  const [received, setReceived] = useState(existingRecord?.pay_amount ?? total)
-  const due = dueAmount(total, received)
+  const [received, setReceived] = useState(existingRecord?.pay_amount ?? prescribedFee)
+  const { total, due, overpaid } = settleFee({ fee, fine, adjust, received })
+  // Taking more than is payable is allowed only as a stated advance: the extra
+  // sits on this month's record and nothing carries it forward, so the operator
+  // says so in the review step before the money is written.
+  const [overpayAck, setOverpayAck] = useState(false)
   const [note, setNote] = useState(existingRecord?.note ?? '')
 
   const [absentDays, setAbsentDays] = useState<number | null>(null)
@@ -76,18 +85,21 @@ export function FeeForm({
         e.preventDefault()
         if (!review) {
           setError(null)
+          setOverpayAck(false)
           setReview(true)
           return
         }
+        if (overpaid > 0 && !overpayAck) return
         const data = new FormData()
         data.set('student_id', student.id)
         data.set('month', String(month))
         data.set('year', String(year))
         if (existingRecord) data.set('edit_id', existingRecord.id)
+        data.set('fee_amount', String(fee))
         data.set('pay_amount', String(received))
         data.set('fine_amount', String(fine))
         data.set('adjust_amount', String(adjust))
-        data.set('due_amount', String(due))
+        if (overpayAck) data.set('overpay_ack', '1')
         data.set('payment_method', method)
         data.set('note', note)
         startSaving(async () => {
@@ -114,7 +126,10 @@ export function FeeForm({
             router.refresh()
             return
           }
-          if (result.savedId) router.push(`/school/fees/receipt/${result.savedId}`)
+          if (result.savedId) {
+            toast.success(t('fees.saved', lang))
+            router.push(`/school/fees/receipt/${result.savedId}`)
+          }
         })
       }}
     >
@@ -231,6 +246,11 @@ export function FeeForm({
           onChange={(e) => setReceived(Number(e.target.value) || 0)}
           className={inputClass}
         />
+        {overpaid > 0 && (
+          <p className="mt-1 text-xs font-semibold text-alert-deep">
+            {t('fees.overpayWarning', lang)}: ৳{overpaid.toFixed(2)}
+          </p>
+        )}
       </div>
       <div>
         <label className={labelClass} htmlFor="due_amount">
@@ -296,11 +316,33 @@ export function FeeForm({
               <dd>৳{due.toFixed(2)}</dd>
             </div>
           </dl>
+          {overpaid > 0 && (
+            <div role="alert" className="mt-3 rounded-lg border border-alert/40 bg-alert-soft p-3 text-sm">
+              <p className="font-bold text-alert-deep">
+                {t('fees.overpayWarning', lang)}: ৳{overpaid.toFixed(2)}
+              </p>
+              <p className="mt-1 text-xs text-alert-deep">{t('fees.overpayHelp', lang)}</p>
+              <label htmlFor="overpay_ack" className="mt-2 flex cursor-pointer items-center gap-2 font-semibold">
+                <input
+                  id="overpay_ack"
+                  type="checkbox"
+                  checked={overpayAck}
+                  onChange={(e) => setOverpayAck(e.target.checked)}
+                  className="size-4"
+                />
+                {t('fees.overpayAck', lang)}
+              </label>
+            </div>
+          )}
         </section>
       )}
 
       {error && <p className="text-sm text-alert-deep sm:col-span-4">{error}</p>}
-      <button type="submit" disabled={saving} className={`${primaryBtnClass} sm:col-span-4`}>
+      <button
+        type="submit"
+        disabled={saving || (review && overpaid > 0 && !overpayAck)}
+        className={`${primaryBtnClass} sm:col-span-4`}
+      >
         {review ? t('fees.confirmCollect', lang) : t('fees.reviewReceipt', lang)}
       </button>
       {review && (
