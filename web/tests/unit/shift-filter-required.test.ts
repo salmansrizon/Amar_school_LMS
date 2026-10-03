@@ -91,6 +91,10 @@ const EXEMPT: [file: string, reason: string][] = [
     'app/school/exams/[id]/promotion/page.tsx',
     ".in(id, enrolledIds) — already the enrolled roster of ONE chosen Offering",
   ],
+  [
+    'lib/exam-readiness.ts',
+    ".in(id, enrolledIds) — the enrolled roster of the exam's ONE Offering, the same roster marks-entry lists",
+  ],
 
   // --- students: no class dimension exists on these reads at all today —
   // adding Shift narrowing here means inventing a new join, not composing

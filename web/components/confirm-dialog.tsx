@@ -15,6 +15,9 @@ export function ConfirmDialog({
   confirmLabel,
   cancelLabel,
   onConfirm,
+  children,
+  confirmDisabled = false,
+  confirmTone = 'alert',
 }: {
   triggerLabel: React.ReactNode
   triggerClassName: string
@@ -23,6 +26,12 @@ export function ConfirmDialog({
   confirmLabel: string
   cancelLabel: string
   onConfirm: () => Promise<{ error?: string } | void>
+  /** Extra dialog content under the body — e.g. the publish readiness list. */
+  children?: React.ReactNode
+  /** The action cannot go ahead at all (the content says why). */
+  confirmDisabled?: boolean
+  /** `alert` for a destructive action (the default); `brand` otherwise. */
+  confirmTone?: 'alert' | 'brand'
 }) {
   const [open, setOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -42,6 +51,7 @@ export function ConfirmDialog({
           <div className="w-full max-w-md rounded-lg border border-line bg-paper p-6 shadow-card">
             <h3 className="mb-3 text-lg font-bold">{title}</h3>
             {body && <p className="mb-4 text-sm text-muted">{body}</p>}
+            {children}
             {error && <p className="mb-3 text-sm text-alert-deep">{error}</p>}
             <div className="flex justify-between gap-2">
               <button
@@ -54,7 +64,7 @@ export function ConfirmDialog({
               </button>
               <button
                 type="button"
-                disabled={pending}
+                disabled={pending || confirmDisabled}
                 onClick={() =>
                   startTransition(async () => {
                     setError(null)
@@ -63,7 +73,9 @@ export function ConfirmDialog({
                     else setOpen(false)
                   })
                 }
-                className="cursor-pointer rounded-full bg-alert px-4 py-1.5 text-sm font-semibold text-white disabled:opacity-50"
+                className={`cursor-pointer rounded-full px-4 py-1.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50 ${
+                  confirmTone === 'brand' ? 'bg-brand-500 hover:bg-brand-600' : 'bg-alert'
+                }`}
               >
                 {confirmLabel}
               </button>

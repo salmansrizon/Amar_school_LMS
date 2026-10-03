@@ -4,7 +4,9 @@ import { PageHeader } from '@/components/ui/page'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
-import { examBasicInfoComplete } from '@/lib/exam-setup'
+import { examBasicInfoComplete, examChip, examStage, publishMarksComplete, schemeHasUsableBands } from '@/lib/exam-setup'
+import { loadExamReadiness } from '@/lib/exam-readiness'
+import { schoolToday } from '@/lib/school-time'
 import { applyGlobalYearFilterToOfferings } from '@/lib/school/year-filter'
 import { excludeArchivedOfferings } from '@/lib/school/archived-offerings-filter'
 import { subjectsForClass } from '@/lib/students'
@@ -57,8 +59,15 @@ export default async function ExamSetupPage({
   if (!exam) notFound()
   const closed = exam.status === 'closed'
 
-  const [{ data: classes }, { data: schemes }, { data: allSubjects }, { data: assignments }, { data: teachers }] =
-    await Promise.all([
+  const [
+    { data: classes },
+    { data: schemes },
+    { data: allSubjects },
+    { data: assignments },
+    { data: teachers },
+    readiness,
+    { data: lastSitting },
+  ] = await Promise.all([
       // Basic Info's Class picker excludes archived Offerings for NEW picks
       // (ADR 0024) — the exam's own current selection is preserved below
       // regardless, so an exam already pointing at a since-archived class
@@ -72,11 +81,36 @@ export default async function ExamSetupPage({
         ),
         academicYearSelection,
       ),
-      supabase.from('grading_schemes').select('id, name').order('name'),
+      // The band count rides along so the picker can warn about a scheme that
+      // cannot grade (audit AC6) — one embedded count, not a query per scheme.
+      supabase.from('grading_schemes').select('id, name, scheme_type, grade_bands(count)').order('name'),
       supabase.from('subjects').select('id, name, class_id, theory_marks, mcq_marks, practical_marks').order('name'),
       supabase.from('exam_subject_teachers').select('subject_id, teacher_id').eq('exam_id', id),
       supabase.from('employee_card').select('id, full_name').is('archived_at', null).order('full_name'),
+      loadExamReadiness(supabase, exam),
+      supabase
+        .from('exam_routine_entries')
+        .select('exam_date')
+        .eq('exam_id', id)
+        .order('exam_date', { ascending: false })
+        .limit(1)
+        .maybeSingle(),
     ])
+
+  // The same stage the exams list shows for this exam — one classifier
+  // (examStage), fed the same two facts, so the two screens cannot disagree.
+  const chip = examChip(
+    examStage(exam, schoolToday(), {
+      marksComplete: publishMarksComplete(readiness),
+      lastExamDate: lastSitting?.exam_date ?? null,
+    }),
+    exam.results_published_at,
+  )
+  const schemeOptions: SchemeOption[] = (schemes ?? []).map((s) => ({
+    id: s.id,
+    name: s.name,
+    usable: schemeHasUsableBands(s.scheme_type, s.grade_bands[0]?.count ?? 0),
+  }))
 
   let classOptions = classes ?? []
   if (exam.class_id && !classOptions.some((c) => c.id === exam.class_id)) {
@@ -104,7 +138,7 @@ export default async function ExamSetupPage({
 
   return (
     <div>
-      <PublishResults lang={lang} examId={exam.id} publishedAt={exam.results_published_at} />
+      <PublishResults lang={lang} examId={exam.id} publishedAt={exam.results_published_at} facts={readiness} />
       <PageHeader
         title={`${t('examSetup.title', lang)} — ${examLabel}`}
         crumbs={schoolCrumbs('/school/exams', lang, { label: t('exams.title', lang), href: '/school/exams' }, { label: `${t('examSetup.title', lang)} — ${examLabel}` })}
@@ -116,6 +150,7 @@ export default async function ExamSetupPage({
         examId={exam.id}
         examLabel={examLabel}
         closed={closed}
+        chip={chip}
         basicInfoComplete={examBasicInfoComplete(exam)}
         selfHref={selfOrigin(`/school/exams/${id}`, from)}
         lang={lang}
@@ -141,7 +176,7 @@ export default async function ExamSetupPage({
         <GradingSchemeSelect
           examId={exam.id}
           schemeId={exam.grading_scheme_id}
-          schemes={(schemes ?? []) as SchemeOption[]}
+          schemes={schemeOptions}
           disabled={closed}
           lang={lang}
         />
