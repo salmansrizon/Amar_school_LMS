@@ -179,6 +179,7 @@ export async function EmployeeOwnAttendance({ params, searchParams, inModal }: E
     records: recordsRaw ?? [],
     approvedLeaves: approvedLeavesRaw ?? [],
     startDay: employeeTrackingStart(tenure?.joining_date, tenure?.created_at),
+    leaveBeatsOff: true,
   })
   const summary = summarizeEmployeeMonth(cells)
 

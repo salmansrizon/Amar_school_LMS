@@ -68,6 +68,9 @@ export function resolveEmployeeDisplayStatus(args: {
   /** The day is a School off-day: with no record the Employee is not absent
    *  (the calendar already says holiday), but a record still wins. */
   isOff?: boolean
+  /** Approved leave outranks the off-day verdict (as on the Leave Calendar).
+   *  Default false keeps holiday > leave. */
+  leaveBeatsOff?: boolean
   entry: Date | null
   exit: Date | null
   officeStart: string | null
@@ -75,6 +78,7 @@ export function resolveEmployeeDisplayStatus(args: {
   graceMinutes: number
 }): EmployeeDisplayStatus {
   if (!args.hasRecord) {
+    if (args.onApprovedLeave && args.leaveBeatsOff) return 'on_leave'
     if (args.isOff) return 'holiday'
     return args.onApprovedLeave ? 'on_leave' : 'absent'
   }

@@ -143,12 +143,18 @@ export function employeeDayStatus(args: {
   hasRecord: boolean
   /** Days before this (YYYY-MM-DD) are not absences — see employeeTrackingStart. */
   startDay?: string | null
+  /** Approved leave also outranks an off-day, as on the Leave Calendar (which
+   *  lists approved leave on off-days too). Default false keeps off > leave. */
+  leaveBeatsOff?: boolean
 }): EmployeeDayStatus {
   if (args.hasRecord) return 'present'
+  const beforeStart = !!args.startDay && args.iso < args.startDay
+  // Approved leave outranks absent and upcoming (a future approved leave is
+  // still leave); off-day only yields to it when leaveBeatsOff.
+  if (args.onApprovedLeave && !beforeStart && (args.leaveBeatsOff || !args.isOff)) return 'on_leave'
   if (args.iso > args.today) return 'future'
-  if (args.startDay && args.iso < args.startDay) return 'not_started'
+  if (beforeStart) return 'not_started'
   if (args.isOff) return 'off'
-  if (args.onApprovedLeave) return 'on_leave'
   return 'absent'
 }
 
@@ -168,6 +174,8 @@ export function buildEmployeeMonthCalendar(args: {
   approvedLeaves: { from_day: string; to_day: string }[]
   /** See employeeTrackingStart. */
   startDay?: string | null
+  /** See employeeDayStatus. */
+  leaveBeatsOff?: boolean
 }): EmployeeCalendarCell[] {
   const grid = monthGrid(args.year, args.month0, args.offDays, args.weeklyOffDays)
   const recordByDay = new Map(args.records.map((r) => [r.att_date, r]))
@@ -182,6 +190,7 @@ export function buildEmployeeMonthCalendar(args: {
       onApprovedLeave: onLeave,
       hasRecord: !!record,
       startDay: args.startDay,
+      leaveBeatsOff: args.leaveBeatsOff,
     })
     return { ...cell, status, entry: record?.entry_at ?? null, exit: record?.exit_at ?? null }
   })
@@ -277,6 +286,9 @@ export interface SchoolAttendanceDayCell extends CalendarCell {
    *  "not applicable". */
   rate: number | null
   employees: SchoolDayEmployeeRow[]
+  /** Employees on approved leave that day — lets a future day say "on leave"
+   *  instead of only "upcoming". Absent on older callers' cells. */
+  leaveCount?: number
 }
 
 export function buildSchoolAttendanceMonth(args: {
@@ -313,7 +325,7 @@ export function buildSchoolAttendanceMonth(args: {
     const totalCount = employees.length
     const isFuture = iso > args.today
     const rate = !isFuture && !cell.isOff && totalCount > 0 ? attendanceRate(presentCount, totalCount) : null
-    return { ...cell, isFuture, presentCount, totalCount, rate, employees }
+    return { ...cell, isFuture, presentCount, totalCount, rate, employees, leaveCount: employees.filter((e) => e.status === 'on_leave').length }
   })
   return withAdjacentMonthDays(cells, args.year, args.month0, () => ({
     isFuture: false,
