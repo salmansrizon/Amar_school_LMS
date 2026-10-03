@@ -1,6 +1,6 @@
 import Form from 'next/form'
 import Link from 'next/link'
-import { ArrowDownCircle, ArrowUpCircle, Wallet } from 'lucide-react'
+import { ArrowDownCircle, ArrowUpCircle, Landmark, Wallet } from 'lucide-react'
 import { currentLang } from '@/lib/i18n-server'
 import { t, numberFmt, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
@@ -12,6 +12,7 @@ import { Card, PageHeader } from '@/components/ui/page'
 import { StatCard, StatGrid } from '@/components/ui/widgets'
 import { paginate, pageSizeFrom } from '@/components/pager'
 import { DataTable, Pill, type Column } from '@/components/data-table/data-table'
+import { capitalSummary } from '@/lib/director-capital'
 
 // Director Capital (map 013 FC1): balance + invested/withdrawn stat cards,
 // Invest / Withdraw header actions (open the unchanged TransactionForm), date
@@ -57,7 +58,19 @@ export default async function DirectorCapitalPage({
   const locale = lang === 'bn' ? 'bn-BD' : 'en-GB'
   const fmt = numberFmt(lang)
   const tk = (n: number) => `৳${fmt.format(n)}`
-  const sum = (k: string) => all.filter((x) => x.txn_type === k).reduce((s, x) => s + x.amount, 0)
+  // #681: the stat cards must add up — opening + invested − withdrawn = the
+  // balance shown. With an end date the current balance also carries later
+  // transactions, so those are read too and the last card shows the closing
+  // balance of the range instead.
+  // ponytail: sums over the rows PostgREST returns (1000 max, same ceiling the
+  // list already had); move to a SQL aggregate if a school ever gets there.
+  let sinceFrom: { txn_type: string; amount: number }[] = all
+  if (to) {
+    let later = supabase.from('director_capital_transactions').select('txn_type, amount')
+    if (from) later = later.gte('txn_date', from)
+    sinceFrom = ((await later).data ?? []).map((x) => ({ txn_type: x.txn_type, amount: Number(x.amount) }))
+  }
+  const summary = capitalSummary(balance, all, sinceFrom)
   const typeLabel = (k: string) => t(k === 'invest' ? 'directorCapital.investType' : 'directorCapital.withdrawType', lang)
 
   const columns: Column<Txn>[] = [
@@ -101,18 +114,28 @@ export default async function DirectorCapitalPage({
       <AccountingTabs active="directorCapital" lang={lang} />
 
       <StatGrid>
-        <StatCard icon={<Wallet className="size-5" />} label={t('directorCapital.currentBalance', lang)} value={tk(balance)} />
+        <StatCard
+          icon={<Landmark className="size-5" />}
+          tone="muted"
+          label={t('directorCapital.openingBalance', lang)}
+          value={tk(summary.opening)}
+        />
         <StatCard
           icon={<ArrowDownCircle className="size-5" />}
           tone="sky"
           label={t('directorCapital.investType', lang)}
-          value={tk(sum('invest'))}
+          value={tk(summary.invested)}
         />
         <StatCard
           icon={<ArrowUpCircle className="size-5" />}
           tone="muted"
           label={t('directorCapital.withdrawType', lang)}
-          value={tk(sum('withdraw'))}
+          value={tk(summary.withdrawn)}
+        />
+        <StatCard
+          icon={<Wallet className="size-5" />}
+          label={t(to ? 'directorCapital.closingBalance' : 'directorCapital.currentBalance', lang)}
+          value={tk(summary.closing)}
         />
       </StatGrid>
 
