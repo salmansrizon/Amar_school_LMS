@@ -2,7 +2,7 @@ import { currentLang } from '@/lib/i18n-server'
 import { t } from '@/lib/i18n'
 import { getStudentContext } from '@/lib/student/context'
 import { NotificationInbox, type InboxRow } from '@/components/notification-inbox'
-import { pageTitle } from '@/lib/student/metadata'
+import { pageTitle } from '@/lib/page-title'
 
 // The Student's own notification inbox.
 //

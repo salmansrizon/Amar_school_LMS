@@ -5,6 +5,7 @@ import { t, type Lang, formatDate } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { RestoreButton } from './restore-button'
 import { filterButtonClass, inputClass } from '@/components/ui/field'
+import { pageTitle } from '@/lib/page-title'
 
 // Old Classes (ADR 0024) — mirrors Employees'/Students' own soft-archive
 // list exactly: search + table, Restore only (no per-class detail page to
@@ -14,6 +15,8 @@ import { filterButtonClass, inputClass } from '@/components/ui/field'
 
 const thClass = 'px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted'
 const tdClass = 'px-3 py-2 text-sm'
+
+export const generateMetadata = pageTitle('classes.oldClasses')
 
 export default async function ClassesArchivePage({
   searchParams,

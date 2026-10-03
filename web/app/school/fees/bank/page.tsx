@@ -9,6 +9,7 @@ import { NewAccountForm, TransactionForm } from './bank-controls'
 import { Card, PageHeader } from '@/components/ui/page'
 import { StatCard, StatGrid } from '@/components/ui/widgets'
 import { DataTable, Pill, type Column } from '@/components/data-table/data-table'
+import { pageTitle } from '@/lib/page-title'
 
 // Bank & Cash (map 013 FC1): balance stat cards, new-account form, accounts
 // DataTable with Deposit / Withdraw row actions. The chosen account's
@@ -16,6 +17,8 @@ import { DataTable, Pill, type Column } from '@/components/data-table/data-table
 // selection-via-searchParams pattern as the Fee Collection page.
 
 type Account = { id: string; name: string; type: string; balance: number }
+
+export const generateMetadata = pageTitle('bank.title')
 
 export default async function BankPage({
   searchParams,

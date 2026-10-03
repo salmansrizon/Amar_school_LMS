@@ -6,9 +6,12 @@ import { t, formatNumber } from '@/lib/i18n'
 import { formatTaka } from '@/lib/money'
 import { listSmsPackages } from '@/lib/sms/commerce'
 import { BuyButton } from './buy-button'
+import { pageTitle } from '@/lib/page-title'
 
 // School SMS package purchase (#300). Owner picks a package → issues an SMS-income
 // invoice + tops up the school SMS wallet (system-side). Balance shows on the SMS page.
+export const generateMetadata = pageTitle('sms.buyTitle')
+
 export default async function BuySmsPage() {
   const { supabase, role } = await getSchoolContext()
   const lang = await currentLang()

@@ -9,6 +9,7 @@ import { ChecklistForm } from './checklist-form'
 import { ChecklistItemsManager } from './checklist-items-manager'
 import { dateInputClass, filterButtonClass } from '@/components/ui/field'
 import { PageHeader, railClass, type Tone } from '@/components/ui/page'
+import { pageTitle } from '@/lib/page-title'
 
 // Administrative daily checklist + date-range report (issue #39, PRD §5.11)
 // per ui/school-owner/activity-checklist.html.
@@ -30,6 +31,8 @@ function daysAgoIso(days: number): string {
   d.setUTCDate(d.getUTCDate() - days)
   return d.toISOString().slice(0, 10)
 }
+
+export const generateMetadata = pageTitle('institute.tabChecklist')
 
 export default async function ChecklistPage({
   searchParams,

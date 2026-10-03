@@ -6,6 +6,7 @@ import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
 import { classCatalogueLabel } from '@/lib/class-catalogue'
 import { countFor, homeworkTargetsOffering, studentCounts } from '@/lib/classes'
 import { Card, PageHeader } from '@/components/ui/page'
+import { pageTitle } from '@/lib/page-title'
 
 // The Class Teacher's own view (#443): the classes they are responsible for.
 //
@@ -14,6 +15,8 @@ import { Card, PageHeader } from '@/components/ui/page'
 // then remember to grant them a screen, and the page is self-scoping: it shows
 // the caller's own classes and nothing else. screenKeyForPath returns null for
 // this route, so the proxy leaves it alone.
+
+export const generateMetadata = pageTitle('myClasses.title')
 
 export default async function MyClassesPage() {
   const lang: Lang = await currentLang()

@@ -11,6 +11,7 @@ import { StatCard, StatGrid } from '@/components/ui/widgets'
 import { EmptyState } from '@/components/ui/states'
 import { paginate, pageSizeFrom } from '@/components/pager'
 import { DataTable, Pill, type Column } from '@/components/data-table/data-table'
+import { pageTitle } from '@/lib/page-title'
 
 // Asset Register (map 013 FC1): stat cards, category panel + new-asset form
 // (unchanged), then the assets DataTable (search, Category filter). No per-row
@@ -29,6 +30,8 @@ type Row = {
 }
 
 const PAGE_SIZE = 20
+
+export const generateMetadata = pageTitle('assets.title')
 
 export default async function AssetsPage({
   searchParams,

@@ -5,6 +5,7 @@ import { getSchoolContext } from '@/lib/school/context'
 import { PrintPage, InstituteHeader, InfoGrid, BlankLine } from '@/components/print/pieces'
 import { PrintButton } from '@/components/print/print-button'
 import { loadInstitutePrintHeader } from '@/lib/institute-print'
+import { pageTitle } from '@/lib/page-title'
 
 // Blank Lesson Plan Sheet (issue #39, PRD §5.11) — paper-fallback template.
 
@@ -17,6 +18,8 @@ function RuledLines({ count }: { count: number }) {
     </div>
   )
 }
+
+export const generateMetadata = pageTitle('institute.templateLessonPlan')
 
 export default async function BlankLessonPlanPage() {
   const lang = await currentLang()

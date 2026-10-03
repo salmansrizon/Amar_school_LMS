@@ -15,6 +15,7 @@ import { RecordDrawer } from '@/components/data-table/record-drawer'
 import { ViewLink } from '@/components/data-table/view-link'
 import { HubTabs } from '../messages-hub-tabs'
 import { ResolveButtons } from './resolve-buttons'
+import { pageTitle } from '@/lib/page-title'
 
 // The Corrections tab of বার্তা ও অনুরোধ (#456 queue, #509 section), on the
 // DataTable (map 013 FC4) with a drawer to review and apply/reject.
@@ -55,6 +56,8 @@ function studentOf(row: { students?: RequestStudent | RequestStudent[] | null })
 }
 
 const PAGE_SIZE = 20
+
+export const generateMetadata = pageTitle('hub.title')
 
 export default async function CorrectionsQueuePage({
   searchParams,

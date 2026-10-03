@@ -6,12 +6,15 @@ import { ExamsTabs } from '../exams-tabs'
 import { getSchoolContext } from '@/lib/school/context'
 import { sortCocurricularItems } from '@/lib/cocurricular'
 import { AddCocurricularItemForm, CocurricularItemsList } from './controls'
+import { pageTitle } from '@/lib/page-title'
 
 // Settings screen for the school-defined co-curricular activity list backing
 // the progress report's Co-curricular Checklist section (issue #33,
 // migration 0052) — the mockups don't show a management screen for this (no
 // existing data model to reuse), so this follows the grading-schemes /
 // combinations settings-page pattern already established in this module.
+
+export const generateMetadata = pageTitle('cocurricular.itemsTitle')
 
 export default async function CocurricularItemsPage() {
   const lang = await currentLang()

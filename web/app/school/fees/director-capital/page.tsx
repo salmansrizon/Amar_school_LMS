@@ -13,6 +13,7 @@ import { StatCard, StatGrid } from '@/components/ui/widgets'
 import { paginate, pageSizeFrom } from '@/components/pager'
 import { DataTable, Pill, type Column } from '@/components/data-table/data-table'
 import { capitalSummary } from '@/lib/director-capital'
+import { pageTitle } from '@/lib/page-title'
 
 // Director Capital (map 013 FC1): balance + invested/withdrawn stat cards,
 // Invest / Withdraw header actions (open the unchanged TransactionForm), date
@@ -22,6 +23,8 @@ import { capitalSummary } from '@/lib/director-capital'
 type Txn = { id: string; txn_date: string; txn_type: string; amount: number; balance_after: number; note: string | null }
 
 const PAGE_SIZE = 20
+
+export const generateMetadata = pageTitle('directorCapital.title')
 
 export default async function DirectorCapitalPage({
   searchParams,

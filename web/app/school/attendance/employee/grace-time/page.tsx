@@ -11,6 +11,7 @@ import { GRACE_DETAIL_LABEL_KEY, isGraceDetail } from '@/lib/grace'
 import { AttendanceTabs } from '../../attendance-tabs'
 import { AddStandingRuleForm, AddAdHocExemptionForm, DeleteGraceEntryButton } from './grace-time-controls'
 import { dateInputClass, filterButtonClass } from '@/components/ui/field'
+import { pageTitle } from '@/lib/page-title'
 
 // Grace Time (issue #671, redesigned by #673 / ADR 0032). Two sections:
 // Standing Grace Rules (Grace Detail + Categories + minutes, one per Shift +
@@ -86,6 +87,8 @@ function ShiftFilter({
     </div>
   )
 }
+
+export const generateMetadata = pageTitle('attendance.tabGraceTime')
 
 export default async function GraceTimePage({
   searchParams,

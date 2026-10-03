@@ -14,6 +14,7 @@ import {
 } from './combination-controls'
 import { classCatalogueLabel, type ClassCatalogueRow } from '@/lib/class-catalogue'
 import { filterOfferingsByYearSelection } from '@/lib/school/year-filter'
+import { pageTitle } from '@/lib/page-title'
 
 // Multi-exam combination (issue #32, PRD §5.5): a named recipe for combining
 // several exams — 'sum' (raw marks add together) or 'weighted_percentage'
@@ -23,6 +24,8 @@ import { filterOfferingsByYearSelection } from '@/lib/school/year-filter'
 // mockup ships this screen (only marks-entry.html/promotion-transfer.html
 // are this ticket's strict references); it follows the same list+inline-form
 // pattern as grading-schemes (issue #31).
+
+export const generateMetadata = pageTitle('combinations.title')
 
 export default async function ExamCombinationsPage() {
   const lang = await currentLang()

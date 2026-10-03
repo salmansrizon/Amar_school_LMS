@@ -9,6 +9,7 @@ import { PageHeader } from '@/components/ui/page'
 import { EmptyState } from '@/components/ui/states'
 import { paginate, pageSizeFrom } from '@/components/pager'
 import { DataTable, Pill, type Column } from '@/components/data-table/data-table'
+import { pageTitle } from '@/lib/page-title'
 
 // Full activity log — reached from the dashboard's "View All" (map 013, S1).
 // Same three streams as the dashboard card (admissions / notices / feedback),
@@ -24,6 +25,8 @@ const TYPE_TONE: Record<ActivityType, 'mint' | 'sun' | 'alert'> = {
 }
 
 const PAGE_SIZE = 20
+
+export const generateMetadata = pageTitle('activity.title')
 
 export default async function ActivityLogPage({
   searchParams,

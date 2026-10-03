@@ -26,6 +26,7 @@ import { RowMore } from '@/components/data-table/row-more'
 import { PublishResults } from './[id]/publish-results'
 import { DrawerFooter, DrawerHeader } from '@/components/data-table/drawer-parts'
 import { ExamDrawerBody, loadExamDrawerData, examDrawerCancelHref } from './exam-drawer'
+import { pageTitle } from '@/lib/page-title'
 
 // Exams & Results (map 013 A3), laid out as new_ui/03-academics/exams-results:
 // header, one-line warning banner, four lifecycle stat cards, the stage-chipped
@@ -47,6 +48,8 @@ interface ExamRow extends ExamListItem {
   seat_plan_published_at: string | null
   results_published_at: string | null
 }
+
+export const generateMetadata = pageTitle('exams.pageTitle')
 
 export default async function ExamsPage({
   searchParams,

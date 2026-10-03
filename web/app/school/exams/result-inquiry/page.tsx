@@ -10,6 +10,7 @@ import { loadExamRosterResults } from '@/lib/exam-print-data'
 import { Pill } from '@/components/data-table/data-table'
 import { ComboboxField } from '@/components/ui/combobox-field'
 import { railClass, PageHeader } from '@/components/ui/page'
+import { pageTitle } from '@/lib/page-title'
 
 // Result Inquiry (issue #48, PRD §5.5), per ui/school-owner/result-inquiry.html
 // — plain GET-form search (mirrors ledger/page.tsx's date-range filter, no
@@ -23,6 +24,8 @@ import { railClass, PageHeader } from '@/components/ui/page'
 // for every roster student (0 when unmarked, grading.ts), so subject can't
 // mean "students not taking X" the way it might on a school with subject-
 // level opt-out; this is the closest real, queryable meaning.
+
+export const generateMetadata = pageTitle('resultInquiry.title')
 
 export default async function ResultInquiryPage({
   searchParams,

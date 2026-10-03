@@ -12,6 +12,7 @@ import { EmptyState } from '@/components/ui/states'
 import { paginate, pageSizeFrom } from '@/components/pager'
 import { DataTable } from '@/components/data-table/data-table'
 import { filterButtonClass } from '@/components/ui/field'
+import { pageTitle } from '@/lib/page-title'
 
 // Student Log finder (map #380, docs/011_student_module.md): Class -> Section
 // picker + roll-sorted roster, each row opening that student's attendance
@@ -19,6 +20,8 @@ import { filterButtonClass } from '@/components/ui/field'
 // book/page.tsx; filterRoster does the sort (roll number, unrolled students
 // falling back to name) so this page adds no new ordering logic.
 
+
+export const generateMetadata = pageTitle('attendance.studentLogTitle')
 
 export default async function StudentLogPage({
   searchParams,

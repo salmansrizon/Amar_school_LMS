@@ -14,6 +14,7 @@ import { paginate, pageSizeFrom } from '@/components/pager'
 import { DataTable, Pill, type Column } from '@/components/data-table/data-table'
 import { RecordDrawer } from '@/components/data-table/record-drawer'
 import { ViewLink } from '@/components/data-table/view-link'
+import { pageTitle } from '@/lib/page-title'
 
 // Vouchers (map 013 FC1): stat cards (income / expense over the listed range),
 // category panel + new-voucher form (unchanged), then the vouchers DataTable
@@ -31,6 +32,8 @@ type Row = {
 }
 
 const PAGE_SIZE = 20
+
+export const generateMetadata = pageTitle('vouchers.title')
 
 export default async function VouchersPage({
   searchParams,

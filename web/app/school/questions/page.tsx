@@ -18,6 +18,7 @@ import { HubTabs } from '../messages-hub-tabs'
 import { ReplyForm } from './reply-form'
 import { DrawerFooter, DrawerHeader } from '@/components/data-table/drawer-parts'
 import { QuestionDrawerBody, questionDrawerCancelHref } from './question-drawer'
+import { pageTitle } from '@/lib/page-title'
 
 // The Questions tab of বার্তা ও অনুরোধ (#454 inbox, #509 section), following
 // the exam-landing pattern (013 FC4/013 A3): a one-line late-question warning
@@ -35,6 +36,8 @@ import { QuestionDrawerBody, questionDrawerCancelHref } from './question-drawer'
 // classes and the Owner the school (ADR 0018).
 
 const PAGE_SIZE = 20
+
+export const generateMetadata = pageTitle('hub.title')
 
 export default async function SchoolQuestionsPage({
   searchParams,

@@ -12,6 +12,7 @@ import { RecordDrawer } from '@/components/data-table/record-drawer'
 import { ViewLink } from '@/components/data-table/view-link'
 import { AddDetails } from '@/components/add-details'
 import { LogFeedbackForm, FeedbackDetail } from './feedback-controls'
+import { pageTitle } from '@/lib/page-title'
 
 // Guardian feedback inbox (issue #38, PRD §5.9), on the DataTable (map 013
 // FC4) with a drawer to read/reply. Hidden from the nav under #510 — reachable
@@ -35,6 +36,8 @@ type Message = {
 }
 
 const PAGE_SIZE = 20
+
+export const generateMetadata = pageTitle('feedback.title')
 
 export default async function FeedbackInboxPage({
   searchParams,

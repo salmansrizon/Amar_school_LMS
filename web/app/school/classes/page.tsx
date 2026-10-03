@@ -43,6 +43,7 @@ import { CopySubjectsBar, type SubjectListRow } from './subject-list-table'
 import { stageSubjectCopy } from './actions'
 import { DrawerFooter, DrawerHeader } from '@/components/data-table/drawer-parts'
 import { ClassDrawerBody, classDrawerCancelHref } from './class-drawer'
+import { pageTitle } from '@/lib/page-title'
 
 // Class & Curriculum (map 013 A1, new_ui/03-academics/classes-curriculum),
 // laid out as the exam landing pattern: header + one-line warning banner +
@@ -65,6 +66,8 @@ const secondaryClass =
   'inline-flex h-11 items-center rounded-full border border-line-strong px-4 text-xs font-semibold hover:bg-paper-muted'
 
 type Tab = 'classes' | 'subjects'
+
+export const generateMetadata = pageTitle('classes.title')
 
 export default async function ClassesPage({
   searchParams,

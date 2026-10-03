@@ -12,6 +12,7 @@ import { AccountingTabs } from '../accounting-tabs'
 import { loadInstitutePrintHeader } from '@/lib/institute-print'
 import { dateInputClass, filterButtonClass } from '@/components/ui/field'
 import { selectAllRows } from '@/lib/supabase/select-all'
+import { pageTitle } from '@/lib/page-title'
 
 // Layout per ui/school-owner/general-ledger.html: a date-range toolbar over a
 // Date | Source | Description | Debit | Credit | Balance table, combining
@@ -53,6 +54,8 @@ function monthBounds(): { from: string; to: string } {
   const last = new Date(now.getFullYear(), now.getMonth() + 1, 0)
   return { from: first.toISOString().slice(0, 10), to: last.toISOString().slice(0, 10) }
 }
+
+export const generateMetadata = pageTitle('ledger.title')
 
 export default async function GeneralLedgerPage({
   searchParams,

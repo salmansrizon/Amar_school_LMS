@@ -16,6 +16,7 @@ import { StatCard, StatGrid } from '@/components/ui/widgets'
 import { SectionTabs } from '@/components/ui/section-tabs'
 import { LogRatingForm } from './rating-controls'
 import { AddDetails } from '@/components/add-details'
+import { pageTitle } from '@/lib/page-title'
 
 // Layout per ui/school-owner/feedback-ratings.html: 3 KPI cards, a rating
 // distribution bar chart, and an average-by-category bar chart (issue #38).
@@ -38,6 +39,8 @@ const categoryLabelKey: Record<CategoryKey, 'feedback.categoryTeaching' | 'feedb
   communication: 'feedback.categoryCommunication',
   safety: 'feedback.categorySafety',
 }
+
+export const generateMetadata = pageTitle('feedback.tabRatings')
 
 export default async function FeedbackRatingsPage() {
   const lang: Lang = await currentLang()

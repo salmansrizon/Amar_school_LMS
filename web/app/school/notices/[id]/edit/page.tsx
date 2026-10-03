@@ -7,10 +7,13 @@ import { getSchoolContext } from '@/lib/school/context'
 import type { Importance, PublicationKind, TargetScope } from '@/lib/publishing'
 import { CreateNoticeForm } from '../../new/create-form'
 import { getNotice } from '../notice-detail'
+import { pageTitle } from '@/lib/page-title'
 
 // Edit a published notice/homework/lesson row: the create form, prefilled, and
 // saved through updatePublication (same validation as create). The table has no
 // status column, so there is no unpublish here — only edit and delete.
+export const generateMetadata = pageTitle('notices.editTitle')
+
 export default async function EditNoticePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const lang: Lang = await currentLang()

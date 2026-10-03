@@ -8,6 +8,7 @@ import { PrintPage, InstituteHeader, InfoGrid, SignatureRow, QrFooterRow } from 
 import { PrintButton } from '@/components/print/print-button'
 import { loadInstitutePrintHeader } from '@/lib/institute-print'
 import { studentClassLabel } from '@/lib/students'
+import { pageTitle } from '@/lib/page-title'
 
 // Printable admission form (issue #46, PRD §5.1: "Printable admission/ID
 // templates"). ADR 0007: browser-native print, composed from the shared
@@ -15,6 +16,8 @@ import { studentClassLabel } from '@/lib/students'
 // the admission profile (#27) has filled in; a dash covers the rest.
 
 const dash = '—'
+
+export const generateMetadata = pageTitle('students.printAdmission')
 
 export default async function AdmissionPrintPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params

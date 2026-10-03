@@ -19,6 +19,7 @@ import { ViewLink } from '@/components/data-table/view-link'
 import { CreateStaffForm } from './create-staff-form'
 import { DrawerFooter, DrawerHeader } from '@/components/data-table/drawer-parts'
 import { StaffDrawerBody, staffDrawerCancelHref } from './staff-drawer'
+import { pageTitle } from '@/lib/page-title'
 
 // Staff permissions (map 013, AD2), per new_ui/05-administration/staff-permissions:
 // header + stat cards + DataTable with a per-row grant summary. The row's
@@ -30,6 +31,8 @@ type Row = { id: string; name: string; createdAt: string; screens: string[] }
 
 const PAGE_SIZE = 20
 const NEW = 'new'
+
+export const generateMetadata = pageTitle('staff.title')
 
 export default async function StaffPage({
   searchParams,

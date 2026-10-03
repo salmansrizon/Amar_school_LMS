@@ -7,12 +7,15 @@ import { PageHeader } from '@/components/ui/page'
 import { InstituteTabs } from './tabs'
 import { ProfileForm } from './profile-form'
 import { AcademicYearCard } from './academic-year-card'
+import { pageTitle } from '@/lib/page-title'
 
 // Institute Profile (issue #39, PRD §5.11) per ui/school-owner/institute-profile.html,
 // laid out as the sectioned settings page of new_ui/05-administration (map 013, AD1).
 // Address hierarchy + Cluster assignment reuse the existing schools.location_id /
 // cluster_id columns (issue #1/#3) — the new columns here are the Bangladesh
 // registration fields + education levels offered.
+
+export const generateMetadata = pageTitle('institute.title')
 
 export default async function InstituteProfilePage({
   searchParams,

@@ -14,6 +14,7 @@ import { ViewLink } from '@/components/data-table/view-link'
 import { paginate, pageSizeFrom } from '@/components/pager'
 import { ClassSectionSelect } from '@/components/ui/class-section-select'
 import { filterButtonClass, inputClass } from '@/components/ui/field'
+import { pageTitle } from '@/lib/page-title'
 
 // Split off the Students half of the old unified Leave Management page (map
 // #664): search is now Class (schoolRoster's own picker) + name/roll text,
@@ -35,6 +36,8 @@ interface StudentLeaveRow {
   reason: string | null
   status: string
 }
+
+export const generateMetadata = pageTitle('attendance.studentLeaveTitle')
 
 export default async function StudentLeaveManagementPage({
   searchParams,

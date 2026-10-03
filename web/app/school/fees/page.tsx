@@ -27,6 +27,7 @@ import { withParams } from '@/lib/url-params'
 import { classCatalogueLabel } from '@/lib/class-catalogue'
 import { DrawerFooter, DrawerHeader } from '@/components/data-table/drawer-parts'
 import { FeeDrawerBody, loadFeeDrawerData, feeDrawerCancelHref } from './fee-drawer'
+import { pageTitle } from '@/lib/page-title'
 
 // Fees & finance (map 013 FC1, new_ui/04-finance-communication/fees-finance),
 // following the exam-landing pattern (013 A3): header + subtitle, one-line
@@ -55,6 +56,8 @@ const STANDING_TONE = { paid: 'mint', partial: 'sun', due: 'alert' } as const
 const STANDING_LABEL = { paid: 'students.feePaid', partial: 'students.feePartial', due: 'students.feeDue' } as const
 const METHODS = ['cash', 'cheque', 'bank'] as const
 const PAGE_SIZE = 20
+
+export const generateMetadata = pageTitle('fees.title')
 
 export default async function FeesPage({
   searchParams,

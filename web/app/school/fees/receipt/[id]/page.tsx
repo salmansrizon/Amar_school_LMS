@@ -8,6 +8,9 @@ import { getSchoolContext } from '@/lib/school/context'
 import { PrintButton } from './print-button'
 import { loadInstitutePrintHeader } from '@/lib/institute-print'
 import { InstituteHeader } from '@/components/print/pieces'
+import { pageTitle } from '@/lib/page-title'
+
+export const generateMetadata = pageTitle('fees.receipt')
 
 export default async function ReceiptPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params

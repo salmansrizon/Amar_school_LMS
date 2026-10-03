@@ -7,6 +7,7 @@ import { SyllabusRow } from './syllabus-controls'
 import { classCatalogueLabel } from '@/lib/class-catalogue'
 import { schoolCrumbs } from '@/lib/school-crumbs'
 import { PageHeader } from '@/components/ui/page'
+import { pageTitle } from '@/lib/page-title'
 
 // Layout per ui/school-owner/syllabus-upload.html: the "Existing Syllabus
 // Files" table (Class | Current File | Uploaded On | Size | Actions), one row
@@ -15,6 +16,8 @@ import { PageHeader } from '@/components/ui/page'
 // its per-subject option — the schema (and ticket) are one syllabus per class.
 
 const thClass = 'whitespace-nowrap px-4 py-3 text-left text-sm font-semibold text-muted'
+
+export const generateMetadata = pageTitle('syllabus.title')
 
 export default async function SyllabusPage() {
   const lang: Lang = await currentLang()

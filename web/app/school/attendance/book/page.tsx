@@ -19,6 +19,7 @@ import { selectAllRows } from '@/lib/supabase/select-all'
 import { schoolCrumbs } from '@/lib/school-crumbs'
 import { PageHeader } from '@/components/ui/page'
 import { filterButtonClass, inputClass } from '@/components/ui/field'
+import { pageTitle } from '@/lib/page-title'
 
 // Layout per ui/school-owner/attendance-book.html: class/section + month
 // filter, Filled/Blank toggle, print button, monthly P/A register grid
@@ -41,6 +42,8 @@ function monthLabel(year: number, month: number, lang: Lang): string {
   const locale = lang === 'bn' ? 'bn-BD' : 'en-GB'
   return new Date(Date.UTC(year, month, 1)).toLocaleDateString(locale, { month: 'long', year: 'numeric' })
 }
+
+export const generateMetadata = pageTitle('attendance.bookTitle')
 
 export default async function AttendanceBookPage({
   searchParams,

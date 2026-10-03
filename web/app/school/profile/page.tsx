@@ -4,8 +4,11 @@ import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { LogoutButton } from '@/components/logout-button'
 import { Icon } from '@/components/school-icons'
+import { pageTitle } from '@/lib/page-title'
 
 // The logged-in user's account page, reached from the topbar avatar.
+export const generateMetadata = pageTitle('profile.title')
+
 export default async function ProfilePage() {
   const lang: Lang = await currentLang()
   const { fullName, email, role, schoolName } = await getSchoolContext()

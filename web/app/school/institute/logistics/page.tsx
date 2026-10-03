@@ -5,9 +5,12 @@ import { schoolCrumbs } from '@/lib/school-crumbs'
 import { PageHeader } from '@/components/ui/page'
 import { InstituteTabs } from '../tabs'
 import { LogisticsTable } from './logistics-controls'
+import { pageTitle } from '@/lib/page-title'
 
 // Logistics / physical-file index (issue #39, PRD §5.11) per
 // ui/school-owner/logistics-index.html.
+
+export const generateMetadata = pageTitle('institute.tabLogistics')
 
 export default async function LogisticsPage() {
   const lang: Lang = await currentLang()

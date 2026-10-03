@@ -5,6 +5,7 @@ import { getSchoolContext } from '@/lib/school/context'
 import { schoolCrumbs } from '@/lib/school-crumbs'
 import { PageHeader } from '@/components/ui/page'
 import { InstituteTabs } from '../tabs'
+import { pageTitle } from '@/lib/page-title'
 
 // Blank printable templates (issue #39, PRD §5.11) per
 // ui/school-owner/blank-templates.html: paper-based fallback for
@@ -24,6 +25,8 @@ const TEMPLATES: { href: string; nameKey: MessageKey }[] = [
 
 const thClass = 'px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted'
 const tdClass = 'px-3 py-2 text-sm'
+
+export const generateMetadata = pageTitle('institute.tabTemplates')
 
 export default async function TemplatesPage() {
   const lang: Lang = await currentLang()

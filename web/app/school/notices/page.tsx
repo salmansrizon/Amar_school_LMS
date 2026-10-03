@@ -29,6 +29,7 @@ import { NoticeTabs } from './notice-tabs'
 import { getNotice, noticeMeta } from './[id]/notice-detail'
 import { DrawerFooter, DrawerHeader } from '@/components/data-table/drawer-parts'
 import { NoticeDrawerBody, noticeDrawerCancelHref } from './notice-drawer'
+import { pageTitle } from '@/lib/page-title'
 
 // Notices (map 013 FC3, new_ui/04-finance-communication/notices), following
 // the exam-landing pattern (013 A3): header + subtitle, a one-line urgent-
@@ -54,6 +55,8 @@ type Row = {
 }
 
 const PAGE_SIZE = 20
+
+export const generateMetadata = pageTitle('notices.title')
 
 export default async function NoticesPage({
   searchParams,

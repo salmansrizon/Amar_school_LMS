@@ -14,6 +14,7 @@ import { paginate, pageSizeFrom } from '@/components/pager'
 import { DataTable, Pill, type Column } from '@/components/data-table/data-table'
 import { RecordDrawer } from '@/components/data-table/record-drawer'
 import { ViewLink } from '@/components/data-table/view-link'
+import { pageTitle } from '@/lib/page-title'
 
 // Fee Structures (map 013 FC1): new-structure form, then the structures as a
 // DataTable (search by Class label, Fee Type filter). Edit and copy — once
@@ -38,6 +39,8 @@ type Row = {
 }
 
 const PAGE_SIZE = 20
+
+export const generateMetadata = pageTitle('fees.tabStructures')
 
 export default async function FeeStructuresPage({
   searchParams,

@@ -8,6 +8,7 @@ import { excludeArchivedOfferings } from '@/lib/school/archived-offerings-filter
 import { classCatalogueLabel } from '@/lib/class-catalogue'
 import { isKnownAcademicShift } from '@/lib/institute'
 import { CreateEmployeeForm } from './create-form'
+import { pageTitle } from '@/lib/page-title'
 
 // Layout per ui/school-owner/employee-create-form.html: carded sections
 // Identity / Bank Info / Category & Qualification / Subject & OfficeTime /
@@ -18,6 +19,8 @@ import { CreateEmployeeForm } from './create-form'
 // "Add a teacher" flow (#533) — both optional, same submit. The class list
 // this page fetches is the same shape the now-deleted second entry point's
 // page used to build.
+export const generateMetadata = pageTitle('employees.createTitle')
+
 export default async function NewEmployeePage() {
   const lang: Lang = await currentLang()
   const { supabase, shiftSelection, configuredShifts, startedAcademicYears, academicYearSelection } =

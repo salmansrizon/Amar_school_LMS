@@ -8,10 +8,13 @@ import { excludeArchivedOfferings } from '@/lib/school/archived-offerings-filter
 import { subjectsForClass } from '@/lib/students'
 import { ClassPicker } from '../../classes/routine/routine-cell'
 import { BulkAssignForm } from './bulk-assign-form'
+import { pageTitle } from '@/lib/page-title'
 
 // Bulk "assign all" per class (issue #46, PRD §5.1 second half): pick a class,
 // check which subjects apply and which of those are optional, assign to every
 // student in that class. Per-student overrides live on the student detail page.
+
+export const generateMetadata = pageTitle('subjects.title')
 
 export default async function SubjectAssignmentPage({
   searchParams,

@@ -9,11 +9,14 @@ import { ROUTINE_DAYS, ROUTINE_PERIODS, dayLabel, indexSlots, type RoutineSlot }
 import { schoolCrumbs } from '@/lib/school-crumbs'
 import { PageHeader } from '@/components/ui/page'
 import { SlotCell, PublishButton, ClassPicker, type Option } from './routine-cell'
+import { pageTitle } from '@/lib/page-title'
 
 // Layout per ui/school-owner/class-routine-builder.html: toolbar (class picker
 // left; Cancel + Publish right) over a period×day grid. Conflicts are rejected
 // by the DB at save time, so instead of the mockup's post-hoc conflict badges
 // the cell shows the rejection in red immediately.
+
+export const generateMetadata = pageTitle('routine.title')
 
 export default async function RoutinePage({
   searchParams,

@@ -6,6 +6,7 @@ import { getSchoolContext } from '@/lib/school/context'
 import { employeeCategoryLabel, matchesEmployeeQuery } from '@/lib/employees'
 import { RestoreButton } from './restore-button'
 import { filterButtonClass, inputClass } from '@/components/ui/field'
+import { pageTitle } from '@/lib/page-title'
 
 // Layout per ui/school-owner/employees-archive.html: search + table Name |
 // Category | Department | Archived On | Status | actions (View, Restore).
@@ -13,6 +14,8 @@ import { filterButtonClass, inputClass } from '@/components/ui/field'
 
 const thClass = 'px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted'
 const tdClass = 'px-3 py-2 text-sm'
+
+export const generateMetadata = pageTitle('employees.archiveTitle')
 
 export default async function EmployeesArchivePage({
   searchParams,

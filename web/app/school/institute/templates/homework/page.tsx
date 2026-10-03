@@ -5,8 +5,11 @@ import { getSchoolContext } from '@/lib/school/context'
 import { PrintPage, InstituteHeader, InfoGrid, BlankLine, BlankRosterTable } from '@/components/print/pieces'
 import { PrintButton } from '@/components/print/print-button'
 import { loadInstitutePrintHeader } from '@/lib/institute-print'
+import { pageTitle } from '@/lib/page-title'
 
 // Blank Homework Collection Sheet (issue #39, PRD §5.11) — paper-fallback template.
+
+export const generateMetadata = pageTitle('institute.templateHomework')
 
 export default async function BlankHomeworkPage() {
   const lang = await currentLang()

@@ -27,6 +27,7 @@ import { bulkRemindStudents } from './actions'
 import type { BulkAction } from '@/components/data-table/selection'
 import { DrawerFooter, DrawerHeader } from '@/components/data-table/drawer-parts'
 import { StudentDrawerBody, loadStudentDrawerData, studentDrawerCancelHref } from './student-drawer'
+import { pageTitle } from '@/lib/page-title'
 
 // Layout per Design System/new_ui/02-people/student-directory (map 013, P1),
 // following the exam landing pattern (013 A3): header + subtitle, a one-line
@@ -61,6 +62,8 @@ const FEE_LABEL = { paid: 'students.feePaid', partial: 'students.feePartial', du
 const PAGE_SIZE = 20
 const primaryClass =
   'inline-flex h-11 items-center rounded-full bg-brand-500 px-4 text-xs font-semibold text-white hover:bg-brand-600'
+
+export const generateMetadata = pageTitle('students.listTitle')
 
 export default async function StudentsPage({
   searchParams,

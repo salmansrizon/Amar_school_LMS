@@ -14,6 +14,7 @@ import { paginate, pageSizeFrom } from '@/components/pager'
 import { DataTable, Pill, type Column } from '@/components/data-table/data-table'
 import { RecordDrawer } from '@/components/data-table/record-drawer'
 import { ViewLink } from '@/components/data-table/view-link'
+import { pageTitle } from '@/lib/page-title'
 
 // Send Log (issue #36, PRD §5.7 "send summary/log with date-range totals"),
 // map 013 FC2: range totals as stat cards, then one DataTable row per send
@@ -29,6 +30,8 @@ function daysAgoIso(days: number): string {
 }
 
 const PAGE_SIZE = 20
+
+export const generateMetadata = pageTitle('sms.log')
 
 export default async function SmsLogPage({
   searchParams,

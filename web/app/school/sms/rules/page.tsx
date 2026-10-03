@@ -9,6 +9,7 @@ import { StatCard, StatGrid } from '@/components/ui/widgets'
 import { DataTable, type Column } from '@/components/data-table/data-table'
 import { SmsTabs } from '../tabs'
 import { AddOffDayForm, DeleteOffDayButton, AddRuleForm, DeleteRuleButton, AddLeaveForm, DeleteLeaveButton } from '../sms-controls'
+import { pageTitle } from '@/lib/page-title'
 
 // Absence SMS Rules (issue #12) under the SMS tab strip (issue #36, PRD §5.7).
 // Map 013 FC2: counts as stat cards, each list on a DataTable with its delete
@@ -18,6 +19,8 @@ import { AddOffDayForm, DeleteOffDayButton, AddRuleForm, DeleteRuleButton, AddLe
 type OffDay = { day: string; label: string | null }
 type Rule = { id: string; exact_days: number | null; range_from: number | null; range_to: number | null }
 type Leave = { id: string; student_id: string; from_day: string; to_day: string }
+
+export const generateMetadata = pageTitle('sms.rules')
 
 export default async function SmsRulesPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const params = await searchParams

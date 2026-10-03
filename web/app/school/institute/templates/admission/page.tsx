@@ -5,10 +5,13 @@ import { getSchoolContext } from '@/lib/school/context'
 import { PrintPage, InstituteHeader, InfoGrid, BlankLine, SignatureRow } from '@/components/print/pieces'
 import { PrintButton } from '@/components/print/print-button'
 import { loadInstitutePrintHeader } from '@/lib/institute-print'
+import { pageTitle } from '@/lib/page-title'
 
 // Blank Admission Form (issue #39, PRD §5.11) — paper-fallback template.
 // Same seam as the filled admission printable (#46): shared print pieces,
 // browser-native print (ADR 0007). Unlike that one every value is blank.
+
+export const generateMetadata = pageTitle('institute.templateAdmission')
 
 export default async function BlankAdmissionPage() {
   const lang = await currentLang()

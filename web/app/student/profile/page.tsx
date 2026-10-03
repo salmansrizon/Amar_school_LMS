@@ -5,7 +5,7 @@ import { getStudentContext, isReadOnly } from '@/lib/student/context'
 import { sortRequests, isPhotoRequest, type CorrectionRequest } from '@/lib/student/corrections'
 import { classSectionLabel } from '@/lib/students'
 import { CorrectionForm } from './correction-form'
-import { pageTitle } from '@/lib/student/metadata'
+import { pageTitle } from '@/lib/page-title'
 
 // The Student's own profile (#456): strictly read-only, with a way to ask.
 //

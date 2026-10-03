@@ -7,6 +7,7 @@ import { schoolCrumbs } from '@/lib/school-crumbs'
 import { InstituteTabs } from '../tabs'
 import { BuildingForm, DeleteVenueButton, EditToggle, RoomForm } from './venue-controls'
 import { PageHeader, railClass } from '@/components/ui/page'
+import { pageTitle } from '@/lib/page-title'
 
 // Institute Seat Configuration (issue #93, docs/improvement.md §2A): buildings
 // and their rooms as institute master data, exam-independent. Lives under
@@ -16,6 +17,8 @@ import { PageHeader, railClass } from '@/components/ui/page'
 
 const thClass = 'px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted'
 const tdClass = 'px-3 py-2 text-sm'
+
+export const generateMetadata = pageTitle('institute.tabVenues')
 
 export default async function VenuesPage() {
   const lang: Lang = await currentLang()

@@ -17,6 +17,7 @@ import { PageHeader } from '@/components/ui/page'
 import { AttendanceTabs } from '../../attendance-tabs'
 import { OfficeHourForm } from './office-hour-form'
 import { OfficeHourCell } from './office-hour-cell'
+import { pageTitle } from '@/lib/page-title'
 
 // Office Hour (issue #643, ADR 0026; moved from Institute Setup to Attendance
 // > Employees by issue #669/ADR 0029 — see that ADR for why the route move
@@ -38,6 +39,8 @@ function dayColumnClass(day: number): string {
   if (day === 5 || day === 6) return 'bg-paper-muted text-muted'
   return day % 2 === 0 ? 'bg-sky-soft text-sky-deep' : 'bg-mint-soft text-mint-deep'
 }
+
+export const generateMetadata = pageTitle('officeHour.title')
 
 export default async function OfficeHourPage({
   searchParams,

@@ -10,6 +10,7 @@ import { studentClassLabel } from '@/lib/students'
 import { classCatalogueLabel } from '@/lib/class-catalogue'
 import { firstRelation } from '@/lib/supabase/relation'
 import { TransferForm } from './transfer-form'
+import { pageTitle } from '@/lib/page-title'
 
 // Layout per ui/school-owner/student-transfer-modal.html: the transfer form
 // (new class/section + optional note) above the full transfer-history
@@ -27,6 +28,8 @@ import { TransferForm } from './transfer-form'
 
 const thClass = 'px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted'
 const tdClass = 'px-3 py-2 text-sm'
+
+export const generateMetadata = pageTitle('students.transferTitle')
 
 export default async function StudentTransferPage({
   params,

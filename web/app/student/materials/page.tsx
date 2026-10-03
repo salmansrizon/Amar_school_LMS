@@ -2,7 +2,7 @@ import { currentLang } from '@/lib/i18n-server'
 import { t, type MessageKey } from '@/lib/i18n'
 import { getStudentContext } from '@/lib/student/context'
 import { groupMaterials, fileKind, isDownloadable, type StudentMaterial } from '@/lib/student/materials'
-import { pageTitle } from '@/lib/student/metadata'
+import { pageTitle } from '@/lib/page-title'
 
 // The kinds we have labels for. An unexpected kind still renders — groupMaterials
 // keeps it — so it falls back to its own name rather than throwing in t().
