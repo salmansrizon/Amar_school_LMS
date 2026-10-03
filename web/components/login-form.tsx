@@ -38,7 +38,7 @@ export function LoginForm({ brand }: { brand: SchoolBrand | null }) {
   }
 
   return (
-    <AuthCard lang={lang} title={brand ? brand.name : t('login.title', lang)} brand={brand}>
+    <AuthCard lang={lang} title={t('login.title', lang)} brand={brand} illustrated>
       <form onSubmit={onSubmit} className="flex flex-col gap-3">
         <div>
           <label className={labelClass} htmlFor="email">{t('login.email', lang)}</label>

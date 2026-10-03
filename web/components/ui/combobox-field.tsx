@@ -117,7 +117,7 @@ export function ComboboxField({
       </ComboboxPrimitive.InputGroup>
       <ComboboxPrimitive.Portal>
         <ComboboxPrimitive.Positioner sideOffset={4} className="z-50 outline-none">
-          <ComboboxPrimitive.Popup className="w-(--anchor-width) max-w-(--available-width) overflow-hidden rounded-md border border-line bg-paper shadow-card">
+          <ComboboxPrimitive.Popup className="min-w-(--anchor-width) w-max max-w-[min(var(--available-width),28rem)] overflow-hidden rounded-md border border-line bg-paper shadow-card">
             <ComboboxPrimitive.Empty className="px-3 py-2 text-sm text-muted">{emptyText}</ComboboxPrimitive.Empty>
             <ComboboxPrimitive.List className="max-h-[min(16rem,var(--available-height))] overflow-y-auto overscroll-contain py-1 empty:p-0">
               {(option: ComboboxFieldOption) => (

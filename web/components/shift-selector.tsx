@@ -53,15 +53,23 @@ export function ShiftSelector({
   const [open, setOpen] = useState(false)
   const [selection, setSelection] = useState<string[]>([...initialSelection])
   const [yearSelection, setYearSelection] = useState<number[]>([...academicYearSelection])
-  // Where the phone-width sheet starts: measured from the trigger as it
-  // opens, matching NotificationBell's issue #118 fix.
-  const [sheetTop, setSheetTop] = useState<number | null>(null)
+  const [popupStyle, setPopupStyle] = useState<React.CSSProperties>()
   const ref = useRef<HTMLDivElement>(null)
+
+  function measurePopup(): React.CSSProperties | undefined {
+    const trigger = ref.current?.getBoundingClientRect()
+    if (!trigger) return undefined
+    const gutter = 12
+    const top = Math.round(trigger.bottom + 8)
+    const width = Math.min(320, window.innerWidth - gutter * 2)
+    const left = Math.min(Math.max(gutter, trigger.left), window.innerWidth - width - gutter)
+    return { top, left: Math.round(left), width, maxHeight: Math.max(160, window.innerHeight - top - gutter) }
+  }
 
   function toggle() {
     const next = !open
     setOpen(next)
-    if (next) setSheetTop(ref.current ? Math.round(ref.current.getBoundingClientRect().bottom + 8) : null)
+    if (next) setPopupStyle(measurePopup())
   }
 
   useEffect(() => {
@@ -72,11 +80,16 @@ export function ShiftSelector({
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setOpen(false)
     }
+    const reposition = () => setPopupStyle(measurePopup())
     document.addEventListener('mousedown', onDown)
     document.addEventListener('keydown', onKey)
+    window.addEventListener('resize', reposition)
+    window.addEventListener('scroll', reposition, true)
     return () => {
       document.removeEventListener('mousedown', onDown)
       document.removeEventListener('keydown', onKey)
+      window.removeEventListener('resize', reposition)
+      window.removeEventListener('scroll', reposition, true)
     }
   }, [open])
 
@@ -122,6 +135,7 @@ export function ShiftSelector({
     if (selection.includes(shift) && selection.length === 1) return
     const next = selection.includes(shift) ? selection.filter((s) => s !== shift) : [...selection, shift]
     setSelection(next)
+    // eslint-disable-next-line react-hooks/immutability -- cookie is the persisted UI preference
     document.cookie = shiftSelectionCookieAssignment(next)
     router.refresh()
   }
@@ -132,6 +146,7 @@ export function ShiftSelector({
     if (year === activeAcademicYear) return
     const next = toggleAcademicYearSelection(yearSelection, year, activeAcademicYear)
     setYearSelection(next)
+    // eslint-disable-next-line react-hooks/immutability -- cookie is the persisted UI preference
     document.cookie = academicYearSelectionCookieAssignment(next)
     router.refresh()
   }
@@ -157,8 +172,8 @@ export function ShiftSelector({
 
       {open && (
         <div
-          style={sheetTop === null ? undefined : ({ '--sheet-top': `${sheetTop}px` } as React.CSSProperties)}
-          className="fixed inset-x-3 top-[var(--sheet-top,4rem)] z-50 flex max-h-[calc(100dvh-var(--sheet-top,4rem)-0.75rem)] flex-col overflow-hidden rounded-2xl border border-line bg-paper shadow-xl sm:absolute sm:inset-x-auto sm:right-0 sm:top-auto sm:mt-2 sm:max-h-none sm:w-64 sm:max-w-[calc(100vw-1.5rem)]"
+          style={popupStyle}
+          className="fixed z-50 flex flex-col overflow-hidden rounded-2xl border border-line bg-paper shadow-xl sm:!absolute sm:!left-0 sm:!top-full sm:!mt-2 sm:!w-full sm:!max-h-[min(70vh,28rem)]"
         >
           <div className="flex shrink-0 items-center justify-between border-b border-line px-4 py-3">
             <span className="text-sm font-bold uppercase tracking-wide text-muted">{t(headerKey, lang)}</span>
@@ -199,7 +214,7 @@ export function ShiftSelector({
                           disabled={isActive}
                           onChange={() => toggleYear(year)}
                         />
-                        {year}
+                        {yearFmt.format(year)}
                       </label>
                     </li>
                   )

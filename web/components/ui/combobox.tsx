@@ -76,7 +76,7 @@ export function ComboboxPopup({
       <Autocomplete.Positioner sideOffset={4} className="z-50 outline-none">
         <Autocomplete.Popup
           className={cn(
-            'w-(--anchor-width) max-w-(--available-width) overflow-hidden rounded-md border border-line bg-paper shadow-card',
+            'min-w-(--anchor-width) w-max max-w-[min(var(--available-width),28rem)] overflow-hidden rounded-md border border-line bg-paper shadow-card',
             className,
           )}
         >

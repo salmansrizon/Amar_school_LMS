@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Toaster } from 'sonner'
@@ -16,6 +16,7 @@ import { sidebarCookieAssignment } from '@/lib/ui-prefs'
 import { SearchPalette, type PaletteEntry } from '@/components/search-palette'
 import { NotificationsBell } from '@/components/notifications-bell'
 import { isPrintPath } from '@/lib/print-path'
+import { PoweredByFooter } from '@/components/powered-by-footer'
 
 // The single, config-driven application shell (#285, map #284). Every role group
 // renders THIS — one webframe: collapsible sidebar nav + topbar (search slot,
@@ -83,6 +84,9 @@ function NavLinks({
   collapsed: boolean
   onNavigate?: () => void
 }) {
+  const [closedSections, setClosedSections] = useState<Set<string>>(
+    () => new Set(nav.map((item) => item.section).filter((section): section is string => Boolean(section))),
+  )
   // `isChild` indents an always-visible nested item (map #667) — no
   // expand/collapse, just a smaller left-offset than its parent so the
   // grouping reads visually, same row style otherwise. Collapsed mode has no
@@ -97,7 +101,7 @@ function NavLinks({
         onClick={onNavigate}
         aria-current={active ? 'page' : undefined}
         title={collapsed ? item.label : undefined}
-        className={`flex min-h-11 items-center gap-3 rounded-xl py-2.5 text-sm font-semibold transition ${FOCUS_RING} ${
+        className={`flex min-h-11 items-center gap-3 rounded-xl py-2.5 text-sm font-semibold transition-[background-color,color,transform] duration-200 ease-out active:scale-[0.98] ${FOCUS_RING} ${
           collapsed ? 'justify-center px-0' : isChild ? 'pr-3 pl-8' : 'px-3'
         } ${active ? 'bg-brand-50 text-brand-700' : 'text-muted hover:bg-brand-50/60 hover:text-brand-600'}`}
       >
@@ -109,20 +113,68 @@ function NavLinks({
     )
   }
 
+  const groups = nav.reduce<{ section: string; items: AppNavItem[] }[]>((all, item) => {
+    const section = item.section ?? ''
+    const current = all.at(-1)
+    if (!current || current.section !== section) all.push({ section, items: [item] })
+    else current.items.push(item)
+    return all
+  }, [])
   return (
     <nav className="flex flex-col gap-1" aria-label={t('shell.nav', lang)}>
-      {nav.map((item, i) => (
-        <div key={item.href} className="flex flex-col gap-1">
-          {item.section && item.section !== nav[i - 1]?.section &&
-            (collapsed ? (
+      {groups.map((group, i) => {
+        const active = group.items.some((item) => isActive(pathname, item))
+        const open = active || !closedSections.has(group.section)
+        return (
+          <div
+            key={group.section || group.items[0].href}
+            className={`flex flex-col gap-1 transition-[background-color,border-color,padding] duration-300 ease-out ${!collapsed && active ? 'rounded-xl border border-dotted border-brand-300/70 bg-brand-50/50 p-1.5' : ''}`}
+          >
+            {collapsed ? (
               i > 0 && <hr className="mx-2 my-1 border-line/70" />
-            ) : (
-              <div className={`px-3 pb-1 text-xs font-bold text-muted ${i > 0 ? 'pt-3' : ''}`}>{item.section}</div>
-            ))}
-          {renderLink(item)}
-          {item.children?.map((child) => renderLink(child, true))}
-        </div>
-      ))}
+            ) : group.section ? (
+              <button
+                type="button"
+                aria-expanded={open}
+                disabled={active}
+                onClick={() =>
+                  setClosedSections((current) => {
+                    const next = new Set(current)
+                    if (next.has(group.section)) next.delete(group.section)
+                    else next.add(group.section)
+                    return next
+                  })
+                }
+                className={`flex min-h-8 w-full items-center justify-between gap-2 rounded-lg px-2 text-left text-xs font-bold transition ${FOCUS_RING} ${
+                  active ? 'text-brand-700' : 'text-muted hover:bg-brand-50 hover:text-brand-600'
+                }`}
+              >
+                <span>{group.section}</span>
+                <Icon
+                  name="chevronRight"
+                  className={`size-3.5 shrink-0 transition-transform ${open ? 'rotate-90' : ''}`}
+                />
+              </button>
+            ) : null}
+            <div
+              className={`grid transition-[grid-template-rows,opacity] duration-300 ease-out ${
+                collapsed || open ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
+              }`}
+            >
+              <div className="min-h-0 overflow-hidden">
+                <div className="flex flex-col gap-1">
+                  {group.items.map((item) => (
+                    <div key={item.href} className="flex flex-col gap-1">
+                      {renderLink(item)}
+                      {item.children?.map((child) => renderLink(child, true))}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )
+      })}
     </nav>
   )
 }
@@ -195,7 +247,11 @@ function SidebarBody({
       <div className="flex-1 overflow-y-auto">
         <NavLinks nav={nav} pathname={pathname} lang={lang} collapsed={collapsed} onNavigate={onNavigate} />
       </div>
-      {footerCta && <div className="mt-4">{footerCta}</div>}
+      {footerCta && (
+        <div className={`mt-4 ${collapsed ? '[&>a]:size-11 [&>a]:min-h-11 [&>a]:gap-0 [&>a]:p-0 [&>a>span]:hidden' : ''}`}>
+          {footerCta}
+        </div>
+      )}
     </>
   )
 }
@@ -253,7 +309,9 @@ export function AppShell({
   const pathname = usePathname()
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
+  const [profileOpen, setProfileOpen] = useState(false)
   const [collapsed, setCollapsed] = useState(initialCollapsed)
+  const profileRef = useRef<HTMLDivElement>(null)
 
   const toggleCollapsed = () =>
     setCollapsed((v) => {
@@ -282,6 +340,22 @@ export function AppShell({
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [hasSearch])
+
+  useEffect(() => {
+    if (!profileOpen) return
+    const closeOnOutsideClick = (event: MouseEvent) => {
+      if (profileRef.current && !profileRef.current.contains(event.target as Node)) setProfileOpen(false)
+    }
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setProfileOpen(false)
+    }
+    document.addEventListener('mousedown', closeOnOutsideClick)
+    document.addEventListener('keydown', closeOnEscape)
+    return () => {
+      document.removeEventListener('mousedown', closeOnOutsideClick)
+      document.removeEventListener('keydown', closeOnEscape)
+    }
+  }, [profileOpen])
 
   return (
     <div className="relative flex h-dvh overflow-hidden print:block print:h-auto print:overflow-visible">
@@ -396,30 +470,53 @@ export function AppShell({
                 <ThemeSwitch preference={theme} lang={lang} />
                 <LangSwitch lang={lang} />
               </div>
-              {profile.href ? (
-                <Link
-                  href={profile.href}
-                  title={profile.fullName}
+              <div ref={profileRef} className="relative">
+                <button
+                  type="button"
                   aria-label={profile.label}
-                  className={`flex size-9 shrink-0 items-center justify-center rounded-full bg-brand-100 text-xs font-bold text-brand-700 transition hover:bg-brand-300 hover:text-white ${FOCUS_RING}`}
+                  aria-haspopup="dialog"
+                  aria-expanded={profileOpen}
+                  onClick={() => setProfileOpen((open) => !open)}
+                  className={`group flex items-center gap-2 rounded-full ${FOCUS_RING}`}
                 >
-                  {avatarInitials(profile.fullName)}
-                </Link>
-              ) : (
-                <span
-                  title={profile.fullName}
-                  aria-label={profile.label}
-                  className="flex size-9 shrink-0 items-center justify-center rounded-full bg-brand-100 text-xs font-bold text-brand-700"
-                >
-                  {avatarInitials(profile.fullName)}
-                </span>
-              )}
-              <span className="hidden max-w-36 truncate text-sm font-bold text-ink xl:block">{profile.fullName}</span>
-              <LogoutButton
-                label={<span className="hidden sm:inline">{t('shell.logout', lang)}</span>}
-                icon={<Icon name="logout" className="size-4 shrink-0" />}
-                className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-full px-2 py-1.5 text-sm font-semibold text-muted transition hover:bg-brand-50 hover:text-brand-600 sm:px-2.5"
-              />
+                  <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-brand-100 text-xs font-bold text-brand-700 transition group-hover:bg-brand-300 group-hover:text-white">
+                    {avatarInitials(profile.fullName)}
+                  </span>
+                </button>
+
+                {profileOpen && (
+                  <div
+                    role="dialog"
+                    aria-label={t('shell.profile', lang)}
+                    className="absolute right-0 top-full z-50 mt-3 w-64 overflow-hidden rounded-2xl border border-line bg-paper p-5 shadow-xl"
+                  >
+                    <div className="flex flex-col items-center text-center">
+                      <span className="flex size-20 items-center justify-center rounded-full bg-brand-100 text-xl font-extrabold text-brand-700 ring-4 ring-brand-50">
+                        {avatarInitials(profile.fullName)}
+                      </span>
+                      <div className="mt-4 max-w-full break-words text-base font-extrabold text-ink">{profile.fullName}</div>
+                      <div className="mt-1 text-sm text-muted">{profile.label}</div>
+                    </div>
+                    <div className="mt-5 flex flex-col gap-1 border-t border-line pt-3">
+                      {profile.href && (
+                        <Link
+                          href={profile.href}
+                          onClick={() => setProfileOpen(false)}
+                          className={`flex min-h-10 items-center gap-2 rounded-xl px-3 text-sm font-semibold text-brand-600 transition hover:bg-brand-50 ${FOCUS_RING}`}
+                        >
+                          <Icon name="user" className="size-4" />
+                          {t('shell.profile', lang)}
+                        </Link>
+                      )}
+                      <LogoutButton
+                        label={t('shell.logout', lang)}
+                        icon={<Icon name="logout" className="size-4 shrink-0" />}
+                        className={`flex min-h-10 w-full cursor-pointer items-center gap-2 rounded-xl px-3 text-sm font-semibold text-muted transition hover:bg-brand-50 hover:text-brand-600 ${FOCUS_RING}`}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </header>
@@ -430,7 +527,7 @@ export function AppShell({
             inner container (contentContainer) or the page's own <main> (else). */}
         <div className="relative flex-1 overflow-hidden bg-paper-muted print:overflow-visible print:bg-transparent">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,color-mix(in_srgb,var(--color-brand-500)_6%,transparent),transparent_28%),radial-gradient(circle_at_top_right,color-mix(in_srgb,var(--color-mint)_6%,transparent),transparent_24%)] print:hidden" />
-          <div id="app-content" tabIndex={-1} className="relative h-full overflow-y-auto overflow-x-hidden print:h-auto print:overflow-visible">
+          <div id="app-content" tabIndex={-1} className="relative flex h-full flex-col overflow-y-auto overflow-x-hidden print:h-auto print:overflow-visible">
             {/* Fluid content (map #370). The old `max-w-7xl` capped every page at
                 1280px, so a 1920px screen wasted ~280px of dead gutter on each
                 side. ERP/CRM layouts fill the viewport instead; a page that needs
@@ -452,6 +549,7 @@ export function AppShell({
             ) : (
               children
             )}
+            <PoweredByFooter className="mt-auto shrink-0 border-t border-line/70 bg-paper/80 px-gutter py-3 print:hidden" />
           </div>
         </div>
 

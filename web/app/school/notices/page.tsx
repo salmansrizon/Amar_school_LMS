@@ -205,6 +205,7 @@ export default async function NoticesPage({
         rowActions={(r) => (
           <RowActionPill state="default" href={withParams(params, { view: r.id })} label={t('notices.view', lang)} />
         )}
+        desktopLayout="list"
         pagination={{ page: pageData.page, totalPages: pageData.totalPages, total: pageData.total, pageSize }}
         empty={
           <Card>

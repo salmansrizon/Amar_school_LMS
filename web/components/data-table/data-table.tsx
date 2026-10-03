@@ -92,6 +92,7 @@ export function DataTable<T>({
   rowActions,
   rowMenu,
   pagination,
+  desktopLayout = 'table',
   empty,
 }: {
   rows: T[]
@@ -112,6 +113,8 @@ export function DataTable<T>({
   rowActions?: (row: T) => ReactNode
   rowMenu?: (row: T) => RowMenuItem[]
   pagination?: { page: number; totalPages: number; total: number; pageSize?: number }
+  /** Rich horizontal rows for content-heavy lists; keep data comparison screens as tables. */
+  desktopLayout?: 'table' | 'list'
   /** Rendered in place of the table when `rows` is empty. */
   empty: ReactNode
 }) {
@@ -218,8 +221,44 @@ export function DataTable<T>({
           ))}
         </ul>
 
-        {/* Desktop: table. */}
-        <div className="hidden overflow-x-auto md:block">
+        {/* Desktop: rich content rows. */}
+        {desktopLayout === 'list' && (
+          <ul className="hidden divide-y divide-line md:block">
+            {rows.map((row) => (
+              <li key={rowId(row)} className="flex items-start gap-4 px-4 py-4 transition-colors hover:bg-paper-muted/60">
+                {selectable && (
+                  <div className="pt-1">
+                    <RowCheck id={rowId(row)} label={`${t('table.selectRow', lang)}: ${rowLabel(row)}`} />
+                  </div>
+                )}
+                <div className="grid min-w-0 flex-1 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(13rem,auto)]">
+                  <div className="min-w-0">
+                    {badgeCols.length > 0 && (
+                      <div className="mb-2 flex flex-wrap items-center gap-2">
+                        {badgeCols.map((c) => <span key={c.key}>{c.cell(row)}</span>)}
+                      </div>
+                    )}
+                    {titleCols.map((c) => <div key={c.key} className="text-base text-ink">{c.cell(row)}</div>)}
+                  </div>
+                  {metaCols.length > 0 && (
+                    <dl className="grid content-start gap-2 text-xs sm:grid-cols-2 lg:grid-cols-1">
+                      {metaCols.map((c) => (
+                        <div key={c.key} className="rounded-lg bg-paper-muted px-3 py-2">
+                          <dt className="text-muted">{c.header}</dt>
+                          <dd className="mt-0.5 font-semibold text-ink">{c.cell(row)}</dd>
+                        </div>
+                      ))}
+                    </dl>
+                  )}
+                </div>
+                {hasActions && <div className="shrink-0 pt-1">{actionsFor(row)}</div>}
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {/* Desktop: comparison table. */}
+        {desktopLayout === 'table' && <div className="hidden overflow-x-auto md:block">
           <table className="w-full border-collapse text-sm">
             <caption className="sr-only">{caption}</caption>
             <thead className="bg-paper-muted">
@@ -268,7 +307,7 @@ export function DataTable<T>({
               ))}
             </tbody>
           </table>
-        </div>
+        </div>}
 
         {pagination && (
           <div className="border-t border-line px-2 pb-3">

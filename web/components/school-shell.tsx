@@ -172,8 +172,8 @@ export function SchoolShell({
       title={t('shell.addStudent', lang)}
       className={`flex min-h-11 items-center justify-center gap-2 whitespace-nowrap rounded-2xl bg-brand-600 px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-brand-700 ${FOCUS_RING}`}
     >
-      <Icon name="plus" className="size-4" />
-      {t('shell.addStudent', lang)}
+      <Icon name="plus" className="size-5" />
+      <span>{t('shell.addStudent', lang)}</span>
     </Link>
   ) : undefined
 
