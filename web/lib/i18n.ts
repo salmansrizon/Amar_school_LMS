@@ -1677,6 +1677,7 @@ const dict = {
   },
   'classes.addRoom': { bn: '+ কক্ষ যোগ করুন', en: '+ Add Room' },
   'classes.addSubject': { bn: '+ বিষয় যোগ করুন', en: '+ Add Subject' },
+  'classes.subjectAdded': { bn: 'বিষয় যোগ হয়েছে', en: 'Subject added' },
   'classes.addSubjectTitle': { bn: 'বিষয় যোগ করুন', en: 'Add Subject' },
   'classes.class': { bn: 'শ্রেণি', en: 'Class' },
   'classes.name': { bn: 'নাম', en: 'Name' },
