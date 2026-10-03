@@ -201,10 +201,6 @@ export function MarksEntryTable({
       return
     }
     setError(null)
-    if (!dirty) {
-      toast.success(t('markEntry.saved', lang))
-      return
-    }
     const snapshot = marks
     startTransition(async () => {
       // Only the rows that changed: an untouched student is neither rewritten
@@ -296,7 +292,8 @@ export function MarksEntryTable({
           </p>
           <div className="flex items-center gap-3">
             {dirty && <span className="text-xs font-semibold text-sun-deep">{t('markEntry.unsaved', lang)}</span>}
-            <button type="button" disabled={pending} onClick={save} className={primaryBtnClass}>
+            {/* Nothing typed, nothing to save — and no toast claiming a save. */}
+            <button type="button" disabled={pending || !dirty} onClick={save} className={primaryBtnClass}>
               {t('markEntry.save', lang)}
             </button>
           </div>
