@@ -116,7 +116,6 @@ export function DataTable<T>({
   empty: ReactNode
 }) {
   const selectable = bulkActions.length > 0
-  const shortcuts = <DataTableShortcuts lang={lang} />
   const hasActions = Boolean(rowActions || rowMenu)
   const filterParams = [search?.param ?? 'q', ...filters.map((f) => f.param), ...chips.map((c) => c.param)]
   const filtered = filterParams.some((p) => params[p])
@@ -153,6 +152,8 @@ export function DataTable<T>({
       )}
     </Card>
   )
+  // `/` and `F` only have a target when there's a toolbar; without one the hint bar is noise.
+  const shortcuts = toolbar && <DataTableShortcuts lang={lang} />
 
   if (!rows.length) {
     return (
