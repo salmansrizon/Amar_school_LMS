@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import { takaInWords } from '@/lib/amount-words'
 import { totalPayable, feeGlRefPattern, FEE_GL_ORDER_COLUMN } from '@/lib/fees'
 import { currentLang } from '@/lib/i18n-server'
-import { t, formatMoney } from '@/lib/i18n'
+import { t, formatMoney, formatDate } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { PrintButton } from './print-button'
 import { loadInstitutePrintHeader } from '@/lib/institute-print'
@@ -141,7 +141,7 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
 
         <footer className="mt-6 text-center text-xs text-muted">
           {t('fees.method', lang)}: {t(`fees.${record.payment_method}` as 'fees.cash', lang)} ·{' '}
-          {new Date(record.updated_at).toLocaleDateString('en-GB')}
+          {formatDate(record.updated_at, lang, 'form')}
         </footer>
       </section>
     </main>

@@ -1,7 +1,7 @@
 import Form from 'next/form'
 import { AlertTriangle, Layers, Send } from 'lucide-react'
 import { currentLang } from '@/lib/i18n-server'
-import { t, numberFmt, type Lang } from '@/lib/i18n'
+import { t, numberFmt, formatDateTime, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { schoolCrumbs, rowAction } from '@/lib/school-crumbs'
 import { selectAllRows } from '@/lib/supabase/select-all'
@@ -69,7 +69,7 @@ export default async function SmsLogPage({
   )
   const pageData = paginate(shown, page, pageSizeFrom(size, PAGE_SIZE))
   const viewed = view ? (batches.find((b) => b.batchId === view) ?? null) : null
-  const when = (b: SmsLogBatch) => new Date(b.sentAt).toLocaleString(lang === 'bn' ? 'bn-BD' : 'en-GB')
+  const when = (b: SmsLogBatch) => formatDateTime(b.sentAt, lang)
   const statusPill = (b: SmsLogBatch) => (
     <Pill tone={b.failed ? 'alert' : 'mint'}>{b.failed ? t('sms.failed', lang) : t('sms.statusSent', lang)}</Pill>
   )

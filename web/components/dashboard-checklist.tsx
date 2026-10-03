@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useTransition } from 'react'
 import Link from 'next/link'
-import { t, type Lang } from '@/lib/i18n'
+import { t, formatNumber, type Lang } from '@/lib/i18n'
 import {
   applyTick,
   itemLabel,
@@ -43,8 +43,7 @@ export function DashboardChecklist({
   const done = total - dueSet.size
   const allDone = total > 0 && dueSet.size === 0
 
-  const numLocale = lang === 'bn' ? 'bn-BD' : 'en-US'
-  const fmt = (n: number) => n.toLocaleString(numLocale)
+  const fmt = (n: number) => formatNumber(n, lang)
 
   function toggle(id: string) {
     const next = !state[id]

@@ -1,5 +1,5 @@
 import { currentLang } from '@/lib/i18n-server'
-import { t, type Lang } from '@/lib/i18n'
+import { t, type Lang, formatDate } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
 import { formatBytes } from '@/lib/routine'
@@ -29,7 +29,6 @@ export default async function SyllabusPage() {
   ])
 
   const byClass = new Map((syllabi ?? []).map((s) => [s.class_id, s]))
-  const locale = lang === 'bn' ? 'bn-BD' : 'en-GB'
 
   return (
     <>
@@ -67,7 +66,7 @@ export default async function SyllabusPage() {
                       classLabel={classCatalogueLabel(c)}
                       fileName={s?.file_name ?? null}
                       uploadedOn={
-                        s?.uploaded_at ? new Date(s.uploaded_at).toLocaleDateString(locale) : null
+                        s?.uploaded_at ? formatDate(s.uploaded_at, lang) : null
                       }
                       size={formatBytes(s?.file_size)}
                       lang={lang}

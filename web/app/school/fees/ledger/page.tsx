@@ -2,7 +2,7 @@ import Form from 'next/form'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
-import { t, formatMoney, type Lang } from '@/lib/i18n'
+import { t, formatMoney, type Lang, formatDate } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { buildGeneralLedger, type LedgerSource, type LedgerSourceRow } from '@/lib/accounting'
 import { PrintPage, InstituteHeader, PaginatedSheet, QrFooterRow } from '@/components/print/pieces'
@@ -165,7 +165,6 @@ export default async function GeneralLedgerPage({
   }
 
   const entries = buildGeneralLedger(rows, from, to)
-  const locale = lang === 'bn' ? 'bn-BD' : 'en-GB'
 
   return (
     <div>
@@ -199,7 +198,7 @@ export default async function GeneralLedgerPage({
             <>
               <InstituteHeader institute={institute ?? undefined} docTitle={t('ledger.title', lang)} />
               <p className="mb-2 text-center text-xs text-muted">
-                {new Date(from).toLocaleDateString(locale)} – {new Date(to).toLocaleDateString(locale)}
+                {formatDate(from, lang)} – {formatDate(to, lang)}
               </p>
             </>
           }
@@ -223,7 +222,7 @@ export default async function GeneralLedgerPage({
             <tbody>
               {entries.map((e, idx) => (
                 <tr key={idx} className="border-b border-line">
-                  <td className={tdClass}>{new Date(e.date).toLocaleDateString(locale)}</td>
+                  <td className={tdClass}>{formatDate(e.date, lang)}</td>
                   <td className={tdClass}>
                     <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${SOURCE_BADGE[e.source]}`}>
                       {t(SOURCE_LABEL[e.source] as 'ledger.sourceVoucher', lang)}

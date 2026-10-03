@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
-import { t, formatMoney } from '@/lib/i18n'
+import { t, formatMoney, formatDate } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 
 /** The vouchers-list.html "View" action target: a read-only detail of one
@@ -22,7 +22,6 @@ export default async function VoucherDetailPage({ params }: { params: Promise<{ 
   if (!voucher) notFound()
 
   const category = voucher.voucher_categories as unknown as { name: string; type: string } | null
-  const locale = lang === 'bn' ? 'bn-BD' : 'en-GB'
 
   return (
     <div>
@@ -37,7 +36,7 @@ export default async function VoucherDetailPage({ params }: { params: Promise<{ 
         <dl className="flex flex-col gap-1.5 text-sm">
           <div className="flex justify-between">
             <dt className="text-muted">{t('vouchers.date', lang)}</dt>
-            <dd>{new Date(voucher.txn_date).toLocaleDateString(locale)}</dd>
+            <dd>{formatDate(voucher.txn_date, lang)}</dd>
           </div>
           <div className="flex justify-between">
             <dt className="text-muted">{t('vouchers.type', lang)}</dt>

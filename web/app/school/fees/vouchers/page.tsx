@@ -1,7 +1,7 @@
 import Form from 'next/form'
 import { ArrowDownCircle, ArrowUpCircle, FileText } from 'lucide-react'
 import { currentLang } from '@/lib/i18n-server'
-import { t, numberFmt, type Lang } from '@/lib/i18n'
+import { t, numberFmt, type Lang, formatDate } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { schoolCrumbs } from '@/lib/school-crumbs'
 import { AccountingTabs } from '../accounting-tabs'
@@ -73,8 +73,7 @@ export default async function VouchersPage({
   const sum = (kind: string) => inRange.filter((v) => v.category?.type === kind).reduce((s, v) => s + v.amount, 0)
   const income = sum('income')
   const expense = sum('expense')
-  const locale = lang === 'bn' ? 'bn-BD' : 'en-GB'
-  const date = (d: string) => new Date(d).toLocaleDateString(locale)
+  const date = (d: string) => formatDate(d, lang)
   const typeLabel = (v: Row) => t(v.category?.type === 'income' ? 'vouchers.income' : 'vouchers.expense', lang)
   const attachment = (v: Row) =>
     v.attachment_name ? (

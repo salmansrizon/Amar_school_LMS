@@ -1,7 +1,7 @@
 import Form from 'next/form'
 import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
-import { t, type Lang } from '@/lib/i18n'
+import { t, type Lang, formatDate } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { employeeCategoryLabel, matchesEmployeeQuery } from '@/lib/employees'
 import { RestoreButton } from './restore-button'
@@ -30,7 +30,6 @@ export default async function EmployeesArchivePage({
     .order('archived_at', { ascending: false })
 
   const visible = (employees ?? []).filter((e) => matchesEmployeeQuery(e, q))
-  const locale = lang === 'bn' ? 'bn-BD' : 'en-GB'
   const dash = <span className="text-muted">—</span>
 
   return (
@@ -78,7 +77,7 @@ export default async function EmployeesArchivePage({
                     <td className={tdClass}>{e.category ? employeeCategoryLabel(e.category, lang) : dash}</td>
                     <td className={tdClass}>{e.department ?? dash}</td>
                     <td className={tdClass}>
-                      {e.archived_at ? new Date(e.archived_at).toLocaleDateString(locale) : dash}
+                      {e.archived_at ? formatDate(e.archived_at, lang) : dash}
                     </td>
                     <td className={tdClass}>
                       <span className="rounded-full bg-paper-muted px-2 py-0.5 text-xs font-semibold text-muted">

@@ -1,6 +1,6 @@
 import { Boxes, TrendingDown, Wallet } from 'lucide-react'
 import { currentLang } from '@/lib/i18n-server'
-import { t, numberFmt, type Lang } from '@/lib/i18n'
+import { t, numberFmt, type Lang, formatDate } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { currentAssetValue } from '@/lib/accounting'
 import { schoolCrumbs } from '@/lib/school-crumbs'
@@ -69,7 +69,6 @@ export default async function AssetsPage({
 
   const fmt = numberFmt(lang)
   const tk = (n: number) => `৳${fmt.format(n)}`
-  const locale = lang === 'bn' ? 'bn-BD' : 'en-GB'
   const purchased = all.reduce((s, a) => s + a.purchase_value, 0)
   const current = all.reduce((s, a) => s + a.current, 0)
 
@@ -81,7 +80,7 @@ export default async function AssetsPage({
       cell: (a) => (
         <div>
           <div className="font-semibold">{a.name}</div>
-          <div className="text-xs text-muted">{new Date(a.purchase_date).toLocaleDateString(locale)}</div>
+          <div className="text-xs text-muted">{formatDate(a.purchase_date, lang)}</div>
         </div>
       ),
     },

@@ -1,7 +1,7 @@
 import Form from 'next/form'
 import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
-import { t, type Lang } from '@/lib/i18n'
+import { t, type Lang, formatDate } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { RestoreButton } from './restore-button'
 import { filterButtonClass, inputClass } from '@/components/ui/field'
@@ -34,7 +34,6 @@ export default async function ClassesArchivePage({
   const visible = (classes ?? []).filter(
     (c) => !query || c.name.toLowerCase().includes(query) || (c.section ?? '').toLowerCase().includes(query),
   )
-  const locale = lang === 'bn' ? 'bn-BD' : 'en-GB'
   const dash = <span className="text-muted">—</span>
 
   return (
@@ -92,7 +91,7 @@ export default async function ClassesArchivePage({
                     <td className={tdClass}>{c.education_level ?? dash}</td>
                     <td className={tdClass}>{c.group_department ?? dash}</td>
                     <td className={tdClass}>
-                      {c.archived_at ? new Date(c.archived_at).toLocaleDateString(locale) : dash}
+                      {c.archived_at ? formatDate(c.archived_at, lang) : dash}
                     </td>
                     <td className={tdClass}>
                       <span className="rounded-full bg-paper-muted px-2 py-0.5 text-xs font-semibold text-muted">

@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { Hourglass, ListChecks, Timer } from 'lucide-react'
 import { getSchoolContext } from '@/lib/school/context'
 import { currentLang } from '@/lib/i18n-server'
-import { t, numberFmt } from '@/lib/i18n'
+import { t, numberFmt, formatDate } from '@/lib/i18n'
 import { schoolCrumbs } from '@/lib/school-crumbs'
 import { Card, PageHeader } from '@/components/ui/page'
 import { StatCard, StatGrid, WorkflowCard } from '@/components/ui/widgets'
@@ -52,8 +52,7 @@ export default async function ApprovalsPage({
     }),
   )
   const name = (i: Instance) => label.get(i.definition_key) ?? i.definition_key
-  const locale = lang === 'bn' ? 'bn-BD' : 'en-GB'
-  const date = (i: Instance) => new Date(i.created_at).toLocaleDateString(locale)
+  const date = (i: Instance) => formatDate(i.created_at, lang)
   const viewed = params.view ? (instances.find((i) => i.id === params.view) ?? null) : null
   const shown = params.type ? instances.filter((i) => i.definition_key === params.type) : instances
 

@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
-import { t, type Lang } from '@/lib/i18n'
+import { t, type Lang, formatDate } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
 import { applyGlobalYearFilterToOfferings } from '@/lib/school/year-filter'
@@ -86,7 +86,6 @@ export default async function StudentTransferPage({
   }))
   history.reverse() // newest first, for display
 
-  const locale = lang === 'bn' ? 'bn-BD' : 'en-GB'
   const currentLabel = studentClassLabel(student.class_name, student.section)
   const headerBits = [
     student.roll_number !== null ? `${t('students.roll', lang)} ${student.roll_number}` : null,
@@ -128,7 +127,7 @@ export default async function StudentTransferPage({
               <tbody>
                 {history.map((h) => (
                   <tr key={h.id} className="border-b border-line">
-                    <td className={tdClass}>{new Date(h.date).toLocaleDateString(locale)}</td>
+                    <td className={tdClass}>{formatDate(h.date, lang)}</td>
                     <td className={tdClass}>
                       {h.from ? classCatalogueLabel(h.from) : <span className="text-muted">—</span>}
                     </td>

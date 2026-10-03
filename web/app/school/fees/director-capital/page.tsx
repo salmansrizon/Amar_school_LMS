@@ -2,7 +2,7 @@ import Form from 'next/form'
 import Link from 'next/link'
 import { ArrowDownCircle, ArrowUpCircle, Landmark, Wallet } from 'lucide-react'
 import { currentLang } from '@/lib/i18n-server'
-import { t, numberFmt, type Lang } from '@/lib/i18n'
+import { t, numberFmt, type Lang, formatDate } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { schoolCrumbs, headerPrimary, headerSecondary } from '@/lib/school-crumbs'
 import { AccountingTabs } from '../accounting-tabs'
@@ -55,7 +55,6 @@ export default async function DirectorCapitalPage({
   const pageData = paginate(visible, page, pageSize)
 
   const action = selectedAction === 'withdraw' ? 'withdraw' : selectedAction === 'invest' ? 'invest' : null
-  const locale = lang === 'bn' ? 'bn-BD' : 'en-GB'
   const fmt = numberFmt(lang)
   const tk = (n: number) => `৳${fmt.format(n)}`
   // #681: the stat cards must add up — opening + invested − withdrawn = the
@@ -78,7 +77,7 @@ export default async function DirectorCapitalPage({
       key: 'date',
       header: t('directorCapital.date', lang),
       card: 'title',
-      cell: (x) => <span className="font-semibold">{new Date(x.txn_date).toLocaleDateString(locale)}</span>,
+      cell: (x) => <span className="font-semibold">{formatDate(x.txn_date, lang)}</span>,
     },
     {
       key: 'type',

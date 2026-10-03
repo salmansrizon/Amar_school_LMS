@@ -3,7 +3,7 @@
 import { useEffect, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
-import { t, type Lang } from '@/lib/i18n'
+import { t, type Lang, formatDate } from '@/lib/i18n'
 import { logFeedbackMessage, markFeedbackRead, replyToFeedback } from './actions'
 
 export function LogFeedbackForm({ lang }: { lang: Lang }) {
@@ -86,7 +86,6 @@ export function FeedbackDetail({ message, lang }: { message: Message; lang: Lang
   const [error, setError] = useState<string | null>(null)
   const [warning, setWarning] = useState(false)
   const [pending, startTransition] = useTransition()
-  const locale = lang === 'bn' ? 'bn-BD' : 'en-GB'
 
   useEffect(() => {
     if (message.status !== 'unread') return
@@ -104,7 +103,7 @@ export function FeedbackDetail({ message, lang }: { message: Message; lang: Lang
         <p className="mb-1 text-xs font-semibold text-mint-deep">
           {t('feedback.replied', lang)}
           {message.replied_at && (
-            <> · {t('feedback.repliedOn', lang)}: {new Date(message.replied_at).toLocaleDateString(locale)}</>
+            <> · {t('feedback.repliedOn', lang)}: {formatDate(message.replied_at, lang)}</>
           )}
         </p>
         <p className="whitespace-pre-wrap text-sm">{message.reply_body}</p>

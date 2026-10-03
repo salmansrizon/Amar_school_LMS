@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useTransition } from 'react'
-import { t, type Lang } from '@/lib/i18n'
+import { t, formatTime, type Lang } from '@/lib/i18n'
 import { saveStudentAttendance } from '../manual-actions'
 import { railClass } from '@/components/ui/page'
 import { Pill } from '@/components/data-table/data-table'
@@ -40,10 +40,6 @@ function RatePill({ rate }: { rate: number | null | undefined }) {
 // #540: 44px is the floor for anything a thumb has to hit. h-11 is exactly that.
 const toggleBase =
   'inline-flex h-11 flex-1 cursor-pointer items-center justify-center rounded-full border px-4 text-sm font-semibold transition'
-
-function timeOf(iso: string): string {
-  return new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-}
 
 export function MarkAttendanceForm({
   lang,
@@ -305,7 +301,7 @@ export function MarkAttendanceForm({
           {!error && dirty && <span className="font-semibold text-sun-deep">{t('attendance.unsaved', lang)}</span>}
           {!error && !dirty && saved && (
             <span className="text-muted">
-              {t('attendance.savedAt', lang)} {timeOf(saved.at)}
+              {t('attendance.savedAt', lang)} {formatTime(saved.at, lang)}
               {saved.name || saved.isSelf
                 ? ` · ${t('attendance.savedBy', lang)} ${saved.name ?? t('attendance.savedByYou', lang)}`
                 : ''}

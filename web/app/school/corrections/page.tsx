@@ -1,6 +1,6 @@
 import { CheckCircle2, Clock, XCircle } from 'lucide-react'
 import { currentLang } from '@/lib/i18n-server'
-import { t, numberFmt, type Lang, type MessageKey } from '@/lib/i18n'
+import { t, numberFmt, type Lang, type MessageKey, formatDate, formatDateTime } from '@/lib/i18n'
 import { storedFieldLabel } from '@/lib/students/stored-labels'
 import { getSchoolContext } from '@/lib/school/context'
 import { schoolCrumbs } from '@/lib/school-crumbs'
@@ -79,7 +79,6 @@ export default async function CorrectionsQueuePage({
   const raw = (data ?? []) as unknown as (CorrectionRequest & { students?: RequestStudent | RequestStudent[] })[]
   const byId = new Map(raw.map((r) => [r.id, studentOf(r)]))
   const requests: Row[] = sortRequests(raw as CorrectionRequest[]).map((r) => ({ ...r, student: byId.get(r.id) }))
-  const locale = lang === 'bn' ? 'bn-BD' : 'en-GB'
   const count = (s: CorrectionRequest['status']) => requests.filter((r) => r.status === s).length
 
   const summary = await hubSummary(supabase, { skip: 'corrections', known: count('pending') })
@@ -146,7 +145,7 @@ export default async function CorrectionsQueuePage({
     {
       key: 'date',
       header: t('questions.colAsked', lang),
-      cell: (r) => new Date(r.created_at).toLocaleDateString(locale, { day: 'numeric', month: 'short' }),
+      cell: (r) => formatDate(r.created_at, lang),
     },
   ]
 
@@ -224,7 +223,7 @@ export default async function CorrectionsQueuePage({
           <div className="space-y-4">
             <div className="flex flex-wrap items-center gap-2 text-xs text-muted">
               {statusPill(viewed)}
-              <span>{new Date(viewed.created_at).toLocaleString(locale)}</span>
+              <span>{formatDateTime(viewed.created_at, lang)}</span>
             </div>
             <Card>
               <p className="text-sm">{change(viewed)}</p>

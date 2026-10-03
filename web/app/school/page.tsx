@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { CalendarClock, LayoutGrid } from 'lucide-react'
 import { currentLang } from '@/lib/i18n-server'
-import { t, type Lang } from '@/lib/i18n'
+import { t, formatNumber, formatDate, localeOf, type Lang } from '@/lib/i18n'
 import { canOpenScreen, type ScreenKey } from '@/lib/auth/screens'
 import { getSchoolContext } from '@/lib/school/context'
 import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
@@ -213,10 +213,9 @@ export default async function SchoolHome() {
     today,
   )
 
-  const numLocale = lang === 'bn' ? 'bn-BD' : 'en-US'
-  const fmt = (n: number) => n.toLocaleString(numLocale)
-  const dateLocale = lang === 'bn' ? 'bn-BD' : 'en-GB'
-  const shortDateFmt = new Intl.DateTimeFormat(dateLocale, { day: 'numeric', month: 'short', year: 'numeric' })
+  const fmt = (n: number) => formatNumber(n, lang)
+  const shortDate = (d: string) => formatDate(d, lang)
+  const dateLocale = localeOf(lang)
   const todayLabel = new Intl.DateTimeFormat(dateLocale, {
     weekday: 'long',
     day: 'numeric',
@@ -288,7 +287,7 @@ export default async function SchoolHome() {
               .filter(Boolean)
               .join(' ')
   const subNote = subscriptionExpiresAt
-    ? [subCountdown, `${t('dash.subExpires', lang)} ${shortDateFmt.format(new Date(subscriptionExpiresAt + 'T00:00:00Z'))}`]
+    ? [subCountdown, `${t('dash.subExpires', lang)} ${shortDate(subscriptionExpiresAt)}`]
         .filter(Boolean)
         .join(' · ')
     : t('dash.subNoExpiry', lang)
@@ -358,7 +357,7 @@ export default async function SchoolHome() {
           icon={<Icon name="attendance" className="size-5" />}
           tone={attToday?.rate != null ? (attToday.rate >= 85 ? 'mint' : 'alert') : 'muted'}
           label={t('dash.attendanceToday', lang)}
-          value={attToday?.rate != null ? `${attToday.rate.toLocaleString(numLocale)}%` : '—'}
+          value={attToday?.rate != null ? `${fmt(attToday.rate)}%` : '—'}
           note={
             attToday?.rate != null
               ? `${fmt(attToday.present)}/${fmt(attToday.total)} ${t('dash.presentToday', lang)}${
