@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { requireSchoolMember } from '@/lib/auth/require-role'
+import { screenGrantDenied } from '@/lib/auth/require-grant'
 import { createClient } from '@/lib/supabase/server'
 import { absentFineAmount } from '@/lib/fees'
 
@@ -38,6 +39,8 @@ export async function saveFeeRecord(formData: FormData): Promise<SaveFeeResult> 
 
   const supabase = await createClient()
   if (!(await requireSchoolMember(supabase))) return { error: 'Unauthorized' }
+  const denied = await screenGrantDenied(supabase, 'fees')
+  if (denied) return denied
 
   if (editId) {
     const { data, error } = await supabase
