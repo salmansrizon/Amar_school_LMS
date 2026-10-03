@@ -99,7 +99,9 @@ export default async function MarkSheetPage({
           label: r.result.label,
           gpa: r.result.gradePoint,
           passed: r.result.passed,
+          entered: r.entered,
         }))}
+        incomplete={ctx.marksMissing > 0}
         totalFull={ctx.subjectResults.reduce((s, r) => s + r.result.fullMarks, 0)}
         totalObtained={ctx.subjectResults.reduce((s, r) => s + r.result.obtainedMarks, 0)}
         overallGpa={ctx.overall.gpa}

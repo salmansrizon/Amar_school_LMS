@@ -149,20 +149,28 @@ export default async function ResultBookPage({
             <tbody className="divide-y divide-line">
               {roster.rows.map((row) => {
                 const passed = row.overall?.passed ?? false
+                // Marks still missing: the result is not known yet, so it is
+                // shown as incomplete — never as 0 / F / failed (audit AC4).
+                const incomplete = row.marksMissing > 0
+                const noMarks = row.marksMissing === row.subjectResults.length
                 return (
                   <tr key={row.studentId}>
-                    <td className={`px-4 py-3 ${railClass(passed ? 'mint' : 'alert')}`}>{row.rankPosition ?? '—'}</td>
+                    <td className={`px-4 py-3 ${railClass(incomplete ? undefined : passed ? 'mint' : 'alert')}`}>{row.rankPosition ?? '—'}</td>
                     <td className="px-4 py-3">{row.rollNumber ?? '—'}</td>
                     <td className="px-4 py-3 font-medium">{row.fullName}</td>
                     <td className="px-4 py-3">
-                      {row.totalObtained} / {row.totalFull}
+                      {noMarks ? '—' : `${row.totalObtained} / ${row.totalFull}`}
                     </td>
-                    <td className="px-4 py-3">{row.overall?.gpa !== null && row.overall?.gpa !== undefined ? row.overall.gpa.toFixed(2) : '—'}</td>
+                    <td className="px-4 py-3">{!incomplete && row.overall?.gpa !== null && row.overall?.gpa !== undefined ? row.overall.gpa.toFixed(2) : '—'}</td>
                     <td className="px-4 py-3">
-                      {row.overall?.label ? <Pill tone={gradeTone(passed, row.overall.gpa)}>{row.overall.label}</Pill> : '—'}
+                      {!incomplete && row.overall?.label ? <Pill tone={gradeTone(passed, row.overall.gpa)}>{row.overall.label}</Pill> : '—'}
                     </td>
                     <td className="px-4 py-3">
-                      <Pill tone={passed ? 'mint' : 'alert'}>{passed ? t('promotion.pass', lang) : t('promotion.fail', lang)}</Pill>
+                      {incomplete ? (
+                        <Pill tone="sun">{t(noMarks ? 'exams.marksNotEntered' : 'exams.incomplete', lang)}</Pill>
+                      ) : (
+                        <Pill tone={passed ? 'mint' : 'alert'}>{passed ? t('promotion.pass', lang) : t('promotion.fail', lang)}</Pill>
+                      )}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
