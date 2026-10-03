@@ -116,15 +116,19 @@ export default async function MarksEntryPage({
 
   const marksByStudent = new Map((marksRows ?? []).map((m) => [m.student_id, m]))
   const optionalByStudent = new Map((optionalRows ?? []).map((o) => [o.student_id, o.is_optional]))
+  // No exam_marks row means the mark was never entered: the cells start blank,
+  // not 0 (audit AC3). A component the subject does not have stays blank too.
+  const cell = (saved: number | string | undefined, max: number) =>
+    saved !== undefined && max > 0 ? String(Number(saved)) : ''
   const rows: MarkStudentRow[] = students.map((s) => {
     const m = marksByStudent.get(s.id)
     return {
       id: s.id,
       roll_number: s.roll_number,
       full_name: s.full_name,
-      theory: m ? Number(m.theory_obtained) : 0,
-      mcq: m ? Number(m.mcq_obtained) : 0,
-      practical: m ? Number(m.practical_obtained) : 0,
+      theory: cell(m?.theory_obtained, selectedSubject.theory_marks),
+      mcq: cell(m?.mcq_obtained, selectedSubject.mcq_marks),
+      practical: cell(m?.practical_obtained, selectedSubject.practical_marks),
       isOptional: optionalByStudent.get(s.id) ?? false,
     }
   })
@@ -142,6 +146,9 @@ export default async function MarksEntryPage({
 
       <section className="rounded-2xl border border-line bg-paper p-card">
         <MarksEntryTable
+          // One subject's grid per mount: its typed-but-unsaved state must not
+          // carry over to the next subject's students.
+          key={selectedSubject.id}
           examId={exam.id}
           subject={selectedSubject}
           rows={rows}
