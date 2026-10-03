@@ -1,10 +1,13 @@
 import Form from 'next/form'
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
 import { BookOpen, CalendarClock, CalendarOff, ClipboardList, TrendingUp, UserCheck, UserX, Users } from 'lucide-react'
 import { currentLang } from '@/lib/i18n-server'
 import { t, numberFmt, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { studentRegister } from '@/lib/school/roster-source'
+import { classScopeFor } from '@/lib/school/class-scope'
+import { isOffDayIso } from '@/lib/attendance-manual'
 import { studentAttendanceRates } from '@/lib/school/attendance-rate-source'
 import { attendanceRate, unmarkedOfferings } from '@/lib/dashboard'
 import { selectAllRows } from '@/lib/supabase/select-all'
@@ -53,7 +56,7 @@ export default async function MarkAttendancePage({
 }) {
   const { classSection = '', date = todayIso() } = await searchParams
   const lang: Lang = await currentLang()
-  const { supabase, userId, shiftSelection, startedAcademicYears, academicYearSelection } = await getSchoolContext()
+  const { supabase, userId, shiftSelection, startedAcademicYears, academicYearSelection, weeklyOffDays } = await getSchoolContext()
   // Started-year history is the signal (#609/#612), same boolean T6/#615
   // threaded into the Fee Structures Offering picker.
   const showYear = startedAcademicYears.length > 1
@@ -61,7 +64,7 @@ export default async function MarkAttendancePage({
   // One call, one model. This used to be ~60 lines of assembly: two Promise.all
   // waves, an .in(visibleIds) guard, a conditional profiles lookup for the
   // marker's name and three Map/Set joins — none of it reachable by a test.
-  const [register, rateMap, studentLeavePending, employeeLeavePending] = await Promise.all([
+  const [register, rateMap, scope, { data: dateOffRows }] = await Promise.all([
     studentRegister(supabase, {
       classSection,
       date,
@@ -73,25 +76,52 @@ export default async function MarkAttendancePage({
     // Attendance Rate (YTD, CONTEXT.md). Null while migration 0214 is
     // unapplied — the column and the card then hide rather than show zeros.
     studentAttendanceRates(supabase),
-    // Pending leave workflow card: a head-only count, so PostgREST's 1,000-row
-    // cap never enters into it (map 013, new_ui/03-academics/attendance).
-    supabase
-      .from('student_leaves')
-      .select('id', { count: 'exact', head: true })
-      .eq('status', 'pending')
-      .then((r) => r.count ?? 0),
-    supabase
-      .from('employee_leaves')
-      .select('id', { count: 'exact', head: true })
-      .eq('status', 'pending')
-      .then((r) => r.count ?? 0),
+    classScopeFor(supabase),
+    // Is `date` a weekly off-day or an off_days row? Marking it is accepted but
+    // the teacher should be told (audit F7).
+    supabase.from('off_days').select('day, label, is_significant').eq('day', date),
   ])
+
+  // Classes worth offering for marking: those with at least one student on the
+  // roster this caller can read. An empty class in the picker reads as work to
+  // do and then lands on "no students" (audit F24). The current pick always stays.
+  const placedOfferings = new Set(register.readable.map((s) => s.class_offering_id).filter(Boolean))
+  const markableCombos = register.combos.filter((c) => placedOfferings.has(c.value) || c.value === classSection)
+  // Exactly one class to mark: open straight on it, no picker round trip (audit F4).
+  if (!classSection && markableCombos.length === 1) {
+    redirect(`/school/attendance/mark?${new URLSearchParams({ classSection: markableCombos[0].value, date })}`)
+  }
+
+  // Pending-leave counts for the workflow card. A class teacher's RLS-narrowed
+  // roster is the scope: count only her students' requests and hide the
+  // school-wide employee queue, so the card matches what the leave page shows
+  // her (audit F24). Owner/office staff keep the head-only school counts.
+  const schoolWide = scope === 'school-wide'
+  const readableStudentIds = register.readable.map((s) => s.id)
+  const [studentLeavePending, employeeLeavePending] = await Promise.all([
+    schoolWide
+      ? supabase.from('student_leaves').select('id', { count: 'exact', head: true }).eq('status', 'pending').then((r) => r.count ?? 0)
+      : readableStudentIds.length
+        ? supabase
+            .from('student_leaves')
+            .select('id', { count: 'exact', head: true })
+            .eq('status', 'pending')
+            .in('student_id', readableStudentIds)
+            .then((r) => r.count ?? 0)
+        : Promise.resolve(0),
+    schoolWide
+      ? supabase.from('employee_leaves').select('id', { count: 'exact', head: true }).eq('status', 'pending').then((r) => r.count ?? 0)
+      : Promise.resolve(0),
+  ])
+
+  const dateIsOff = isOffDayIso(date, dateOffRows ?? [], weeklyOffDays)
+  const isToday = date === todayIso()
 
   const fmt = numberFmt(lang)
   const n = (x: number) => fmt.format(x)
   const total = register.rows.length
   const taken = Boolean(register.markedBy)
-  const present = register.rows.filter((r) => r.present).length
+  const present = register.rows.filter((r) => r.present && !r.onLeave).length
   const rates = rateMap
     ? Object.fromEntries(register.rows.map((r) => [r.id, rateMap.get(r.id)?.rate ?? null]))
     : null
@@ -183,62 +213,76 @@ export default async function MarkAttendancePage({
         />
       )}
 
-      {total > 0 && (
-        <StatGrid>
-          <StatCard icon={<Users className="size-5" />} label={t('attendance.statTotal', lang)} value={fmt.format(total)} />
-          <StatCard
-            icon={<UserCheck className="size-5" />}
-            tone={taken ? 'mint' : 'muted'}
-            label={t('attendance.statPresent', lang)}
-            value={taken ? fmt.format(present) : '—'}
-            note={taken ? `${fmt.format(attendanceRate(present, total))}%` : t('attendance.notTaken', lang)}
-          />
-          <StatCard
-            icon={<UserX className="size-5" />}
-            tone={taken ? 'alert' : 'muted'}
-            label={t('attendance.statAbsent', lang)}
-            value={taken ? fmt.format(total - present) : '—'}
-          />
-          {ytdRate != null && (
-            <StatCard
-              icon={<TrendingUp className="size-5" />}
-              tone={ytdRate >= 90 ? 'mint' : ytdRate >= 75 ? 'sun' : 'alert'}
-              label={t('attendance.statRateYtd', lang)}
-              value={`${fmt.format(ytdRate)}%`}
-              action={{ href: '/school/attendance/student-log', label: t('attendance.tabStudentLog', lang) }}
-            />
-          )}
-        </StatGrid>
+      {dateIsOff && (
+        <div role="alert" className="mb-grid rounded-lg border border-sun-deep/30 bg-sun-soft p-3 text-sm font-semibold text-sun-deep">
+          {t('attendance.offDayWarn', lang)}
+        </div>
       )}
 
-      <QuickActions
-        title={t('dash.quickActions', lang)}
-        actions={[
-          { href: '/school/attendance/book', label: t('attendance.tabBook', lang), icon: <BookOpen className="size-4" /> },
-          {
-            href: '/school/attendance/student-log',
-            label: t('attendance.tabStudentLog', lang),
-            icon: <ClipboardList className="size-4" />,
-          },
-          {
-            href: '/school/attendance/leave/student',
-            label: t('attendance.studentLeaveTitle', lang),
-            icon: <CalendarOff className="size-4" />,
-          },
-          { href: '/school/attendance/employee', label: t('attendance.tabEmployee', lang), icon: <UserCheck className="size-4" /> },
-        ]}
-      />
+      {/* Phone: the register is the job. The counters live in the sticky bar
+          above the roster and the shortcuts in the tab row, so these only take
+          up the first screen on a desk (audit F4). */}
+      {total > 0 && (
+        <div className="hidden md:block">
+          <StatGrid>
+            <StatCard icon={<Users className="size-5" />} label={t('attendance.statTotal', lang)} value={fmt.format(total)} />
+            <StatCard
+              icon={<UserCheck className="size-5" />}
+              tone={taken ? 'mint' : 'muted'}
+              label={t(isToday ? 'attendance.statPresent' : 'attendance.presentShort', lang)}
+              value={taken ? fmt.format(present) : '—'}
+              note={taken ? `${fmt.format(attendanceRate(present, total))}%` : t(isToday ? 'attendance.notTaken' : 'attendance.notTakenOn', lang)}
+            />
+            <StatCard
+              icon={<UserX className="size-5" />}
+              tone={taken ? 'alert' : 'muted'}
+              label={t(isToday ? 'attendance.statAbsent' : 'attendance.absentShort', lang)}
+              value={taken ? fmt.format(total - present - register.rows.filter((r) => r.onLeave).length) : '—'}
+            />
+            {ytdRate != null && (
+              <StatCard
+                icon={<TrendingUp className="size-5" />}
+                tone={ytdRate >= 90 ? 'mint' : ytdRate >= 75 ? 'sun' : 'alert'}
+                label={t('attendance.statRateYtd', lang)}
+                value={`${fmt.format(ytdRate)}%`}
+                action={{ href: '/school/attendance/student-log', label: t('attendance.tabStudentLog', lang) }}
+              />
+            )}
+          </StatGrid>
+        </div>
+      )}
+
+      <div className="hidden md:block">
+        <QuickActions
+          title={t('dash.quickActions', lang)}
+          actions={[
+            { href: '/school/attendance/book', label: t('attendance.tabBook', lang), icon: <BookOpen className="size-4" /> },
+            {
+              href: '/school/attendance/student-log',
+              label: t('attendance.tabStudentLog', lang),
+              icon: <ClipboardList className="size-4" />,
+            },
+            {
+              href: '/school/attendance/leave/student',
+              label: t('attendance.studentLeaveTitle', lang),
+              icon: <CalendarOff className="size-4" />,
+            },
+            { href: '/school/attendance/employee', label: t('attendance.tabEmployee', lang), icon: <UserCheck className="size-4" /> },
+          ]}
+        />
+      </div>
 
       <AttendanceTabs active="/school/attendance/mark" lang={lang} />
 
-      <Form className="mb-grid grid gap-3 rounded-2xl border border-line bg-paper p-card sm:grid-cols-4" action="/school/attendance/mark">
-        <div>
+      <Form className="mb-grid grid grid-cols-2 gap-2 rounded-2xl border border-line bg-paper p-3 sm:grid-cols-4 sm:gap-3 sm:p-card" action="/school/attendance/mark">
+        <div className="col-span-2 sm:col-span-1">
           <label className="mb-1 block text-xs font-semibold text-muted">{t('attendance.classSection', lang)}</label>
           <ClassSectionSelect
-            combos={register.combos}
+            combos={markableCombos}
             value={classSection}
             ariaLabel={t('attendance.classSection', lang)}
             allLabel={t('attendance.allClasses', lang)}
+            submitOnChange
             fullWidth
           />
         </div>
@@ -277,6 +321,7 @@ export default async function MarkAttendancePage({
           students={register.rows}
           markedBy={register.markedBy}
           rates={rates}
+          isToday={isToday}
         />
       )}
 
@@ -307,7 +352,9 @@ export default async function MarkAttendancePage({
               >
                 <CalendarClock className="size-6" />
               </span>
-              <p className="font-bold">{t('attendance.notMarkedEmpty', lang)}</p>
+              <p className="font-bold">
+                {register.readable.length ? t('attendance.notMarkedEmpty', lang) : t('students.none', lang)}
+              </p>
             </div>
           )}
         </WorkflowCard>

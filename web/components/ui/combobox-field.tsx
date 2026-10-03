@@ -57,6 +57,9 @@ export interface ComboboxFieldProps {
   id?: string
   className?: string
   inputClassName?: string
+  /** Submit the enclosing `<form>` as soon as an option is picked, so a
+   *  filter applies on the pick instead of needing a second tap on Filter. */
+  submitOnChange?: boolean
   /** Shown in the popup when typing matches nothing. */
   emptyText?: string
   'aria-label'?: string
@@ -74,9 +77,11 @@ export function ComboboxField({
   id,
   className,
   inputClassName,
+  submitOnChange,
   emptyText = 'No matches',
   'aria-label': ariaLabel,
 }: ComboboxFieldProps) {
+  const groupRef = React.useRef<HTMLDivElement>(null)
   const isControlled = value !== undefined
   const resolvedValue = isControlled ? (options.find((o) => o.value === value) ?? null) : undefined
   const resolvedDefault =
@@ -91,11 +96,17 @@ export function ComboboxField({
       value={resolvedValue}
       defaultValue={resolvedDefault}
       onValueChange={
-        onValueChange ? (item: ComboboxFieldOption | null) => onValueChange(item?.value ?? '') : undefined
+        onValueChange || submitOnChange
+          ? (item: ComboboxFieldOption | null) => {
+              onValueChange?.(item?.value ?? '')
+              // After React commits the hidden input's new value, not before.
+              if (submitOnChange) setTimeout(() => groupRef.current?.closest('form')?.requestSubmit(), 0)
+            }
+          : undefined
       }
       isItemEqualToValue={(a: ComboboxFieldOption, b: ComboboxFieldOption) => a?.value === b?.value}
     >
-      <ComboboxPrimitive.InputGroup className={cn(FIELD_BASE, className)}>
+      <ComboboxPrimitive.InputGroup ref={groupRef} className={cn(FIELD_BASE, className)}>
         <ComboboxPrimitive.Input
           id={id}
           placeholder={placeholder}

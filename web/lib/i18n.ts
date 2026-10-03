@@ -2779,6 +2779,19 @@ const dict = {
     bn: 'নিচের তালিকায় সবাইকে উপস্থিত ধরা হয়েছে — সংরক্ষণ করার আগে এটি কারও হাজিরা নয়।',
     en: 'The list below starts with everyone present. Until you save, this is nobody’s attendance.',
   },
+  'attendance.notTakenOn': { bn: 'এই তারিখের হাজিরা এখনো নেওয়া হয়নি', en: 'Attendance not taken yet for this date' },
+  'attendance.offDayWarn': {
+    bn: 'এই তারিখ ছুটির দিন (সাপ্তাহিক ছুটি বা ঘোষিত ছুটি)। এদিন হাজিরা নিলে তা রেকর্ডে থেকে যাবে।',
+    en: 'This date is a weekly off-day or holiday. Attendance saved today will be recorded anyway.',
+  },
+  'attendance.leaveRowHint': {
+    bn: 'ছুটিতে থাকা শিক্ষার্থীর উপস্থিত বা অনুপস্থিত বেছে না নিলে তার হাজিরা সংরক্ষণ হবে না — ছুটিই থাকবে।',
+    en: 'Students on approved leave are not saved unless you pick Present or Absent for them.',
+  },
+  'attendance.leaveUnsavedConfirm': {
+    bn: 'হাজিরার পরিবর্তন সংরক্ষণ করা হয়নি। সংরক্ষণ না করেই চলে যাবেন?',
+    en: 'Your attendance changes are not saved. Leave without saving?',
+  },
   'attendance.savedAt': { bn: 'সংরক্ষিত', en: 'Saved' },
   'attendance.savedBy': { bn: 'সংরক্ষণ করেছেন', en: 'by' },
   'attendance.savedByYou': { bn: 'আপনি', en: 'you' },

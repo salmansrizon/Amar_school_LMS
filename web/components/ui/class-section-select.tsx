@@ -18,6 +18,7 @@ export function ClassSectionSelect({
   ariaLabel,
   allLabel,
   name = 'classSection',
+  submitOnChange,
   fullWidth,
 }: {
   combos: ClassCatalogueOption[]
@@ -25,11 +26,14 @@ export function ClassSectionSelect({
   ariaLabel: string
   allLabel: string
   name?: string
+  /** Apply the pick immediately — see ComboboxField. */
+  submitOnChange?: boolean
 } & FieldOptions) {
   return (
     <ComboboxField
       name={name}
       defaultValue={value}
+      submitOnChange={submitOnChange}
       aria-label={ariaLabel}
       className={fullWidth ? 'w-full' : undefined}
       options={[
