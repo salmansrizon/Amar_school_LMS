@@ -207,12 +207,12 @@ export default async function GraceTimePage({
           {activeShift && <input type="hidden" name="shift" value={activeShift} />}
           {activeAdHocShift && <input type="hidden" name="adHocShift" value={activeAdHocShift} />}
           <div>
-            <label className="mb-1 block text-xs font-semibold text-muted">{t('graceTime.filterFrom', lang)}</label>
-            <input type="date" name="from" defaultValue={from} className={dateInputClass()} />
+            <label htmlFor="gt_from" className="mb-1 block text-xs font-semibold text-muted">{t('graceTime.filterFrom', lang)}</label>
+            <input id="gt_from" type="date" name="from" defaultValue={from} className={dateInputClass()} />
           </div>
           <div>
-            <label className="mb-1 block text-xs font-semibold text-muted">{t('graceTime.filterTo', lang)}</label>
-            <input type="date" name="to" defaultValue={to} className={dateInputClass()} />
+            <label htmlFor="gt_to" className="mb-1 block text-xs font-semibold text-muted">{t('graceTime.filterTo', lang)}</label>
+            <input id="gt_to" type="date" name="to" defaultValue={to} className={dateInputClass()} />
           </div>
           <button
             type="submit"

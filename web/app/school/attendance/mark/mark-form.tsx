@@ -280,6 +280,7 @@ export function MarkAttendanceForm({
                     value={r.cause}
                     onChange={(e) => setRow(r.id, { cause: e.target.value })}
                     placeholder="—"
+                    aria-label={`${t('attendance.causeCol', lang)} — ${r.full_name}`}
                     className="w-full rounded-md border border-line bg-paper px-2 py-1 text-sm disabled:bg-paper-muted disabled:text-muted"
                   />
                 </td>

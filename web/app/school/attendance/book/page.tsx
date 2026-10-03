@@ -144,6 +144,7 @@ export default async function AttendanceBookPage({
           <input
             type="month"
             name="month"
+            aria-label={t('attendance.bookMonth', lang)}
             defaultValue={monthParam}
             className={inputClass()}
           />

@@ -179,9 +179,9 @@ export default async function GeneralLedgerPage({
       </div>
 
       <Form className="mb-4 flex flex-wrap items-center gap-2 print:hidden" action="/school/fees/ledger">
-        <label className="text-xs text-muted">{t('ledger.dateRange', lang)}</label>
-        <input name="from" type="date" defaultValue={from} className={dateInputClass()} />
-        <input name="to" type="date" defaultValue={to} className={dateInputClass()} />
+        <label htmlFor="ledger_from" className="text-xs text-muted">{t('ledger.dateRange', lang)}</label>
+        <input id="ledger_from" name="from" type="date" defaultValue={from} className={dateInputClass()} />
+        <input aria-label={t('ledger.dateRange', lang)} name="to" type="date" defaultValue={to} className={dateInputClass()} />
         <button
           type="submit"
           className={filterButtonClass()}

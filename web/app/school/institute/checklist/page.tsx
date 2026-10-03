@@ -87,8 +87,8 @@ export default async function ChecklistPage({
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <h3 className="font-bold">{t('institute.dateRangeReport', lang)}</h3>
           <Form className="flex flex-wrap items-center gap-2" action="/school/institute/checklist">
-            <input type="date" name="start" defaultValue={rangeStart} className={dateInputClass()} />
-            <input type="date" name="end" defaultValue={rangeEnd} className={dateInputClass()} />
+            <input type="date" name="start" aria-label={t('graceTime.filterFrom', lang)} defaultValue={rangeStart} className={dateInputClass()} />
+            <input type="date" name="end" aria-label={t('graceTime.filterTo', lang)} defaultValue={rangeEnd} className={dateInputClass()} />
             <button
               type="submit"
               className={filterButtonClass()}

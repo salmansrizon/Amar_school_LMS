@@ -64,12 +64,14 @@ function ItemRow({
             name="label_en"
             defaultValue={item.label_en}
             placeholder={t('institute.checklistLabelEn', lang)}
+            aria-label={t('institute.checklistLabelEn', lang)}
             className={`${inputClass} min-w-40 flex-1`}
           />
           <input
             name="label_bn"
             defaultValue={item.label_bn}
             placeholder={t('institute.checklistLabelBn', lang)}
+            aria-label={t('institute.checklistLabelBn', lang)}
             className={`${inputClass} min-w-40 flex-1`}
           />
           <button
@@ -172,11 +174,13 @@ export function ChecklistItemsManager({ lang, items }: { lang: Lang; items: Acti
         <input
           name="label_en"
           placeholder={t('institute.checklistLabelEn', lang)}
+          aria-label={t('institute.checklistLabelEn', lang)}
           className={`${inputClass} min-w-40 flex-1`}
         />
         <input
           name="label_bn"
           placeholder={t('institute.checklistLabelBn', lang)}
+          aria-label={t('institute.checklistLabelBn', lang)}
           className={`${inputClass} min-w-40 flex-1`}
         />
         <button

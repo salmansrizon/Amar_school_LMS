@@ -3,6 +3,7 @@
 import { useMemo, useRef, useState, useTransition } from 'react'
 import Link from 'next/link'
 import { t, type Lang } from '@/lib/i18n'
+import { Field } from '@/components/ui/labeled-field'
 import { mobileInputProps } from '@/lib/bd-mobile'
 import { PERSON_NAME_MAX } from '@/lib/name'
 import { compressImage, IMAGE_PRESETS } from '@/lib/image/compress'
@@ -68,25 +69,6 @@ export function Card({
       <h3 className="mx-5 mb-4 border-b border-line py-4 font-bold">{title}</h3>
       <div className="px-5 pb-5">{children}</div>
     </section>
-  )
-}
-
-export function Field({
-  label,
-  htmlFor,
-  children,
-}: {
-  label: string
-  /** Wires the label to a field with no native association of its own (e.g. a
-   *  ComboboxField/SelectField, which isn't wrapped by this label). */
-  htmlFor?: string
-  children: React.ReactNode
-}) {
-  return (
-    <div>
-      <label className={fieldLabelClass} htmlFor={htmlFor}>{label}</label>
-      {children}
-    </div>
   )
 }
 

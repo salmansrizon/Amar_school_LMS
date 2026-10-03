@@ -288,8 +288,8 @@ export default async function MarkAttendancePage({
         </div>
 
         <div>
-          <label className="mb-1 block text-xs font-semibold text-muted">{t('attendance.date', lang)}</label>
-          <input type="date" name="date" defaultValue={date} className={dateInputClass({ fullWidth: true })} />
+          <label htmlFor="mark_date" className="mb-1 block text-xs font-semibold text-muted">{t('attendance.date', lang)}</label>
+          <input id="mark_date" type="date" name="date" defaultValue={date} className={dateInputClass({ fullWidth: true })} />
         </div>
         <div className="flex items-end">
           <button

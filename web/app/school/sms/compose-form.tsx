@@ -351,6 +351,7 @@ export function ComposeForm({
         <h2 className="mb-3 text-lg font-bold">{t('sms.messageCard', lang)}</h2>
         <textarea
           rows={5}
+          aria-label={t('sms.messageCard', lang)}
           className="w-full rounded-lg border border-line-strong bg-paper p-3 text-sm outline-none transition focus:border-brand-500 focus-visible:ring-2 focus-visible:ring-brand-300"
           value={draft.body}
           onChange={(e) => update('body', e.target.value)}

@@ -4,6 +4,7 @@ import { useRef, useState, useTransition } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { t, type Lang } from '@/lib/i18n'
+import { Field } from '@/components/ui/labeled-field'
 import { createEmployee } from '../actions'
 import { dateInputClass } from '@/components/ui/field'
 import { reachSentences } from '@/lib/school/teacher-reach'
@@ -23,25 +24,6 @@ export function Card({ title, children }: { title: string; children: React.React
       <h3 className="mb-3 font-bold">{title}</h3>
       {children}
     </section>
-  )
-}
-
-export function Field({
-  label,
-  htmlFor,
-  children,
-}: {
-  label: string
-  /** Wires the label to a field with no native association of its own (e.g. a
-   *  ComboboxField, which isn't wrapped by this label). */
-  htmlFor?: string
-  children: React.ReactNode
-}) {
-  return (
-    <div>
-      <label className={fieldLabelClass} htmlFor={htmlFor}>{label}</label>
-      {children}
-    </div>
   )
 }
 
@@ -205,6 +187,7 @@ function LoginAndClassFields({
         <p className="mb-3 text-xs text-muted">{t('teacher.stepClassHelp', lang)}</p>
         <ComboboxField
           name="class_id"
+          aria-label={t('teacher.stepClass', lang)}
           value={classId}
           onValueChange={onClassChange}
           options={[
