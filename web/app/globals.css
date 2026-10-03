@@ -13,7 +13,7 @@
   --color-paper-muted: #f4f4f6;
   --color-line: #ececec;
   --color-line-strong: #d8d8d8;
-  --color-muted: #767676;
+  --color-muted: #6b6b6b; /* 4.67:1 on brand-50, 4.85:1 on paper-muted (#767676 was 3.98 / 4.14) */
 
   --color-brand-50: #f1eefe;
   --color-brand-100: #e3dcfd;
@@ -26,13 +26,13 @@
   --color-mint-deep: #0a7a48;
   --color-mint-soft: #e6f9ef;
   --color-sun: #ffc94a;
-  --color-sun-deep: #c98a00;
+  --color-sun-deep: #8a5a00; /* 5.51:1 on sun-soft (#c98a00 was 2.74) */
   --color-sun-soft: #fff6e0;
   --color-alert: #ef4444;
-  --color-alert-deep: #dc2626;
+  --color-alert-deep: #c81e1e; /* 4.95:1 on alert-soft (#dc2626 was 4.17) */
   --color-alert-soft: #fdeaea;
   --color-sky: #00b2ff;
-  --color-sky-deep: #0077b8;
+  --color-sky-deep: #006ba6; /* 5.19:1 on sky-soft (#0077b8 was 4.38) */
   --color-sky-soft: #e5f6ff;
 
   /* Hairline-first surfaces (map #370). ERP/CRM interfaces separate surfaces with
@@ -86,9 +86,13 @@
   --dk-brand-50: #1a1430;
   --dk-brand-100: #241c45;
   --dk-brand-300: #6250c4;
-  --dk-brand-500: #7f63ff;
+  --dk-brand-500: #7253f9; /* white on it: 4.86:1 (#7f63ff was 4.09) */
   --dk-brand-600: #6d4dfb;
   --dk-brand-700: #5a37e8;
+  /* Brand as TEXT on dark surfaces. brand-600/700 are also button backgrounds,
+     so they cannot be lightened without breaking white-on-brand; text uses of
+     them are re-pointed here instead. 7.45:1 on paper, 7.3:1 on brand-50. */
+  --dk-brand-text: #a899ff;
 
   /* The solid status hues need lifting too, not just their deep/soft variants:
      they carry `bg-alert` buttons, the shell gradient and status dots, and
@@ -112,7 +116,7 @@
      custom property — the hex is baked into the data-URI. Keeping both variants
      here as one token means the rule below needs no dark counterpart, and the
      two hexes sit next to the `--color-muted` values they must match. */
-  --select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%23767676' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5.5 8 4.5 4.5L14.5 8'/%3E%3C/svg%3E");
+  --select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%236b6b6b' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5.5 8 4.5 4.5L14.5 8'/%3E%3C/svg%3E");
   --dk-select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%23a0a0aa' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5.5 8 4.5 4.5L14.5 8'/%3E%3C/svg%3E");
 }
 
@@ -183,6 +187,12 @@
   --shadow-modal: var(--dk-shadow-modal);
   --select-chevron: var(--dk-select-chevron);
 }
+
+/* Dark: brand-coloured text. See --dk-brand-text. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) :is(.text-brand-600, .text-brand-700, .hover\:text-brand-600:hover, .hover\:text-brand-700:hover, .group:hover .group-hover\:text-brand-600) { color: var(--dk-brand-text); }
+}
+:root[data-theme='dark'] :is(.text-brand-600, .text-brand-700, .hover\:text-brand-600:hover, .hover\:text-brand-700:hover, .group:hover .group-hover\:text-brand-600) { color: var(--dk-brand-text); }
 
 /* shadcn/ui compatibility layer (map #370).
    The Family tokens above stay the single source of truth; shadcn's vocabulary is
@@ -346,7 +356,7 @@ body {
     --color-paper-muted: #f4f4f6;
     --color-line: #ececec;
     --color-line-strong: #d8d8d8;
-    --color-muted: #767676;
+    --color-muted: #6b6b6b; /* 4.67:1 on brand-50, 4.85:1 on paper-muted (#767676 was 3.98 / 4.14) */
 
     --color-brand-50: #f1eefe;
     --color-brand-100: #e3dcfd;
@@ -359,16 +369,16 @@ body {
     --color-mint-deep: #0a7a48;
     --color-mint-soft: #e6f9ef;
     --color-sun: #ffc94a;
-    --color-sun-deep: #c98a00;
+    --color-sun-deep: #8a5a00; /* 5.51:1 on sun-soft (#c98a00 was 2.74) */
     --color-sun-soft: #fff6e0;
     --color-alert: #ef4444;
-    --color-alert-deep: #dc2626;
+    --color-alert-deep: #c81e1e; /* 4.95:1 on alert-soft (#dc2626 was 4.17) */
     --color-alert-soft: #fdeaea;
     --color-sky: #00b2ff;
-    --color-sky-deep: #0077b8;
+    --color-sky-deep: #006ba6; /* 5.19:1 on sky-soft (#0077b8 was 4.38) */
     --color-sky-soft: #e5f6ff;
 
-    --select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%23767676' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5.5 8 4.5 4.5L14.5 8'/%3E%3C/svg%3E");
+    --select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%236b6b6b' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5.5 8 4.5 4.5L14.5 8'/%3E%3C/svg%3E");
   }
 
   /* The app shell locks the document to one viewport height (html/body are
