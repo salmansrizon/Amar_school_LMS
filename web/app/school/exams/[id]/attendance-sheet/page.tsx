@@ -12,6 +12,7 @@ import { withParams } from '@/lib/url-params'
 import { embeddedBuildingName } from '@/lib/venues'
 import { BackLink } from '@/components/back-link'
 import { resolveBackHref } from '@/lib/back-nav'
+import { pageTitle } from '@/lib/page-title'
 
 // Exam attendance sheet (issue #97, docs/improvement.md §4; ADR 0007).
 //
@@ -23,6 +24,8 @@ import { resolveBackHref } from '@/lib/back-nav'
 // actually wants — invigilators are briefed together); adding `&room=<roomId>`
 // prints the single sheet. A separate batch page would duplicate this whole
 // loader for one query-string difference.
+
+export const generateMetadata = pageTitle('examAttendanceSheet.title')
 
 export default async function ExamAttendanceSheetPage({
   params,

@@ -7,6 +7,7 @@ import { excludeArchivedOfferings } from '@/lib/school/archived-offerings-filter
 import { PageHeader } from '@/components/ui/page'
 import { AdmissionForm } from './admission-form'
 import { recentAdmissions } from '../recent-admissions-actions'
+import { pageTitle } from '@/lib/page-title'
 
 // Layout per ui/school-owner/student-admission-form.html: carded sections
 // Identity / Address / Guardian Info / Photo / Benefit Flags / Previous
@@ -15,6 +16,8 @@ import { recentAdmissions } from '../recent-admissions-actions'
 // *placeholder*, not a submitted value — left blank, the field falls through
 // to assign_student_roll's advisory-locked assignment, same as before this
 // field existed; the operator can still type an explicit override (issue #503).
+
+export const generateMetadata = pageTitle('students.admissionTitle')
 
 export default async function NewAdmissionPage() {
   const lang: Lang = await currentLang()

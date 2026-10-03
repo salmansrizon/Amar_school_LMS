@@ -1,6 +1,6 @@
 import { CheckCircle2, Mail, MessageSquare } from 'lucide-react'
 import { currentLang } from '@/lib/i18n-server'
-import { t, numberFmt, type Lang } from '@/lib/i18n'
+import { t, numberFmt, type Lang, formatDate, formatDateTime } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { schoolCrumbs } from '@/lib/school-crumbs'
 import { Card, PageHeader } from '@/components/ui/page'
@@ -12,6 +12,7 @@ import { RecordDrawer } from '@/components/data-table/record-drawer'
 import { ViewLink } from '@/components/data-table/view-link'
 import { AddDetails } from '@/components/add-details'
 import { LogFeedbackForm, FeedbackDetail } from './feedback-controls'
+import { pageTitle } from '@/lib/page-title'
 
 // Guardian feedback inbox (issue #38, PRD §5.9), on the DataTable (map 013
 // FC4) with a drawer to read/reply. Hidden from the nav under #510 — reachable
@@ -36,6 +37,8 @@ type Message = {
 
 const PAGE_SIZE = 20
 
+export const generateMetadata = pageTitle('feedback.title')
+
 export default async function FeedbackInboxPage({
   searchParams,
 }: {
@@ -55,7 +58,6 @@ export default async function FeedbackInboxPage({
     .limit(500)
 
   const messages = (data ?? []) as Message[]
-  const locale = lang === 'bn' ? 'bn-BD' : 'en-GB'
   const count = (s: Message['status']) => messages.filter((m) => m.status === s).length
 
   const needle = q.trim().toLowerCase()
@@ -95,7 +97,7 @@ export default async function FeedbackInboxPage({
         </div>
       ),
     },
-    { key: 'date', header: t('feedback.date', lang), cell: (m) => new Date(m.created_at).toLocaleDateString(locale, { day: 'numeric', month: 'short' }) },
+    { key: 'date', header: t('feedback.date', lang), cell: (m) => formatDate(m.created_at, lang) },
   ]
 
   return (
@@ -170,7 +172,7 @@ export default async function FeedbackInboxPage({
           <div className="space-y-4">
             <div className="flex flex-wrap items-center gap-2 text-xs text-muted">
               <Pill tone={statusTone(viewed.status)}>{statusLabel(viewed.status)}</Pill>
-              <span>{new Date(viewed.created_at).toLocaleString(locale)}</span>
+              <span>{formatDateTime(viewed.created_at, lang)}</span>
             </div>
             <Card>
               <p className="whitespace-pre-wrap text-sm">{viewed.body}</p>

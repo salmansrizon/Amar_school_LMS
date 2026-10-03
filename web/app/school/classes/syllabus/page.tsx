@@ -1,5 +1,5 @@
 import { currentLang } from '@/lib/i18n-server'
-import { t, type Lang } from '@/lib/i18n'
+import { t, type Lang, formatDate } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
 import { formatBytes } from '@/lib/routine'
@@ -7,6 +7,7 @@ import { SyllabusRow } from './syllabus-controls'
 import { classCatalogueLabel } from '@/lib/class-catalogue'
 import { schoolCrumbs } from '@/lib/school-crumbs'
 import { PageHeader } from '@/components/ui/page'
+import { pageTitle } from '@/lib/page-title'
 
 // Layout per ui/school-owner/syllabus-upload.html: the "Existing Syllabus
 // Files" table (Class | Current File | Uploaded On | Size | Actions), one row
@@ -15,6 +16,8 @@ import { PageHeader } from '@/components/ui/page'
 // its per-subject option — the schema (and ticket) are one syllabus per class.
 
 const thClass = 'whitespace-nowrap px-4 py-3 text-left text-sm font-semibold text-muted'
+
+export const generateMetadata = pageTitle('syllabus.title')
 
 export default async function SyllabusPage() {
   const lang: Lang = await currentLang()
@@ -29,7 +32,6 @@ export default async function SyllabusPage() {
   ])
 
   const byClass = new Map((syllabi ?? []).map((s) => [s.class_id, s]))
-  const locale = lang === 'bn' ? 'bn-BD' : 'en-GB'
 
   return (
     <>
@@ -67,7 +69,7 @@ export default async function SyllabusPage() {
                       classLabel={classCatalogueLabel(c)}
                       fileName={s?.file_name ?? null}
                       uploadedOn={
-                        s?.uploaded_at ? new Date(s.uploaded_at).toLocaleDateString(locale) : null
+                        s?.uploaded_at ? formatDate(s.uploaded_at, lang) : null
                       }
                       size={formatBytes(s?.file_size)}
                       lang={lang}

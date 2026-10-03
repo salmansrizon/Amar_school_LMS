@@ -20,6 +20,7 @@ import { MarkAttendanceForm } from './mark-form'
 import { dateInputClass, filterButtonClass } from '@/components/ui/field'
 import { ClassSectionSelect } from '@/components/ui/class-section-select'
 import { EmptyState } from '@/components/ui/states'
+import { pageTitle } from '@/lib/page-title'
 
 // Layout per ui/school-owner/attendance-student-mark.html, chromed to the
 // exam-landing pattern (map 013, new_ui/03-academics/attendance): header +
@@ -48,6 +49,8 @@ const EMPTY_ACTION = {
   'no-students': { href: '/school/students/new', label: 'students.newAdmission' },
   'no-match': { href: '/school/attendance/mark', label: 'attendance.allClasses' },
 } as const
+
+export const generateMetadata = pageTitle('attendance.markTitle')
 
 export default async function MarkAttendancePage({
   searchParams,
@@ -288,8 +291,8 @@ export default async function MarkAttendancePage({
         </div>
 
         <div>
-          <label className="mb-1 block text-xs font-semibold text-muted">{t('attendance.date', lang)}</label>
-          <input type="date" name="date" defaultValue={date} className={dateInputClass({ fullWidth: true })} />
+          <label htmlFor="mark_date" className="mb-1 block text-xs font-semibold text-muted">{t('attendance.date', lang)}</label>
+          <input id="mark_date" type="date" name="date" defaultValue={date} className={dateInputClass({ fullWidth: true })} />
         </div>
         <div className="flex items-end">
           <button

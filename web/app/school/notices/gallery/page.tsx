@@ -11,10 +11,13 @@ import { StatCard, StatGrid } from '@/components/ui/widgets'
 import { NoticeTabs } from '../notice-tabs'
 import { CreateAlbumForm } from './gallery-controls'
 import { filterButtonClass, inputClass } from '@/components/ui/field'
+import { pageTitle } from '@/lib/page-title'
 
 // Layout per ui/school-owner/gallery-albums.html: a 4-column album grid, each
 // card showing "N/max photos" and a "Full" badge once the album-level cap is
 // reached (the cap itself is server-enforced — see migration 0041's trigger).
+export const generateMetadata = pageTitle('notices.tabGallery')
+
 export default async function GalleryAlbumsPage({
   searchParams,
 }: {

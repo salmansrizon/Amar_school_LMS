@@ -2,7 +2,7 @@ import Form from 'next/form'
 import Link from 'next/link'
 import { AlertTriangle, CheckCircle2, Receipt, Wallet } from 'lucide-react'
 import { currentLang } from '@/lib/i18n-server'
-import { t, numberFmt, localeOf, type Lang } from '@/lib/i18n'
+import { t, numberFmt, localeOf, type Lang, formatNumber } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { canOpenScreen } from '@/lib/auth/screens'
 import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
@@ -27,6 +27,7 @@ import { withParams } from '@/lib/url-params'
 import { classCatalogueLabel } from '@/lib/class-catalogue'
 import { DrawerFooter, DrawerHeader } from '@/components/data-table/drawer-parts'
 import { FeeDrawerBody, loadFeeDrawerData, feeDrawerCancelHref } from './fee-drawer'
+import { pageTitle } from '@/lib/page-title'
 
 // Fees & finance (map 013 FC1, new_ui/04-finance-communication/fees-finance),
 // following the exam-landing pattern (013 A3): header + subtitle, one-line
@@ -55,6 +56,8 @@ const STANDING_TONE = { paid: 'mint', partial: 'sun', due: 'alert' } as const
 const STANDING_LABEL = { paid: 'students.feePaid', partial: 'students.feePartial', due: 'students.feeDue' } as const
 const METHODS = ['cash', 'cheque', 'bank'] as const
 const PAGE_SIZE = 20
+
+export const generateMetadata = pageTitle('fees.title')
 
 export default async function FeesPage({
   searchParams,
@@ -249,12 +252,12 @@ export default async function FeesPage({
             href={withParams(params, { view: r.id })}
             scroll={false}
             data-view-link={r.id}
-            className="truncate font-semibold hover:text-brand-600 hover:underline"
+            className="truncate font-semibold hover:text-brand-600 hover:underline max-sm:-my-3 max-sm:block max-sm:py-3"
           >
             {r.name}
           </Link>
           <div className="text-xs text-muted">
-            {t('students.roll', lang)} {r.roll ?? '—'} · {period}
+            {t('students.roll', lang)} {r.roll != null ? formatNumber(r.roll, lang) : '—'} · {period}
           </div>
         </div>
       ),
@@ -302,7 +305,7 @@ export default async function FeesPage({
         <div className="min-w-0">
           <div className="truncate font-semibold">{s.full_name}</div>
           <div className="text-xs text-muted">
-            {t('students.roll', lang)} {s.roll_number ?? '—'} · {[s.class_name, s.section].filter(Boolean).join(' / ')}
+            {t('students.roll', lang)} {s.roll_number != null ? formatNumber(s.roll_number, lang) : '—'} · {[s.class_name, s.section].filter(Boolean).join(' / ')}
           </div>
         </div>
       ),

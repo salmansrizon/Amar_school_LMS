@@ -12,7 +12,7 @@ import Link from 'next/link'
 import { DayPlanCard } from './day-plan'
 import { LatestNotices, FeesDue } from './home-cards'
 import { sortFees, totalFees, type FeeRecord } from '@/lib/student/fees'
-import { pageTitle } from '@/lib/student/metadata'
+import { pageTitle } from '@/lib/page-title'
 
 // Student home (#444). Identity, then Today and Tomorrow.
 //

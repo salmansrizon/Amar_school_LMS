@@ -11,6 +11,7 @@ import { GRACE_DETAIL_LABEL_KEY, isGraceDetail } from '@/lib/grace'
 import { AttendanceTabs } from '../../attendance-tabs'
 import { AddStandingRuleForm, AddAdHocExemptionForm, DeleteGraceEntryButton } from './grace-time-controls'
 import { dateInputClass, filterButtonClass } from '@/components/ui/field'
+import { pageTitle } from '@/lib/page-title'
 
 // Grace Time (issue #671, redesigned by #673 / ADR 0032). Two sections:
 // Standing Grace Rules (Grace Detail + Categories + minutes, one per Shift +
@@ -87,6 +88,8 @@ function ShiftFilter({
   )
 }
 
+export const generateMetadata = pageTitle('attendance.tabGraceTime')
+
 export default async function GraceTimePage({
   searchParams,
 }: {
@@ -131,7 +134,7 @@ export default async function GraceTimePage({
     <div>
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold">{t('attendance.tabGraceTime', lang)}</h1>
-        <Link href="/school" aria-label={t('common.back', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
+        <Link href="/school" aria-label={t('common.back', lang)} className="inline-flex size-9 max-sm:size-11 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
       </div>
 
       <AttendanceTabs active="/school/attendance/employee/grace-time" lang={lang} />
@@ -207,12 +210,12 @@ export default async function GraceTimePage({
           {activeShift && <input type="hidden" name="shift" value={activeShift} />}
           {activeAdHocShift && <input type="hidden" name="adHocShift" value={activeAdHocShift} />}
           <div>
-            <label className="mb-1 block text-xs font-semibold text-muted">{t('graceTime.filterFrom', lang)}</label>
-            <input type="date" name="from" defaultValue={from} className={dateInputClass()} />
+            <label htmlFor="gt_from" className="mb-1 block text-xs font-semibold text-muted">{t('graceTime.filterFrom', lang)}</label>
+            <input id="gt_from" type="date" name="from" defaultValue={from} className={dateInputClass()} />
           </div>
           <div>
-            <label className="mb-1 block text-xs font-semibold text-muted">{t('graceTime.filterTo', lang)}</label>
-            <input type="date" name="to" defaultValue={to} className={dateInputClass()} />
+            <label htmlFor="gt_to" className="mb-1 block text-xs font-semibold text-muted">{t('graceTime.filterTo', lang)}</label>
+            <input id="gt_to" type="date" name="to" defaultValue={to} className={dateInputClass()} />
           </div>
           <button
             type="submit"

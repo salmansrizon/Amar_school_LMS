@@ -3,7 +3,7 @@ import { t, type MessageKey } from '@/lib/i18n'
 import { getStudentContext, isReadOnly } from '@/lib/student/context'
 import { schoolToday } from '@/lib/school-time'
 import { LeaveRequestForm, WithdrawLeaveButton } from './leave-form'
-import { pageTitle } from '@/lib/student/metadata'
+import { pageTitle } from '@/lib/page-title'
 
 const STATUS_LABEL: Record<string, MessageKey> = {
   pending: 'student.leavePending',

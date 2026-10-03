@@ -23,6 +23,7 @@ import { EmployeeProfile, getEmployee } from './[id]/employee-profile'
 import { RowMore } from '@/components/data-table/row-more'
 import { DrawerFooter, DrawerHeader } from '@/components/data-table/drawer-parts'
 import { EmployeeDrawerBody, loadEmployeeDrawerData, employeeDrawerCancelHref } from './employee-drawer'
+import { pageTitle } from '@/lib/page-title'
 
 // Employee directory (map 013, P3), per new_ui/02-people/employees-directory,
 // following the exam landing pattern (013 A3): header + subtitle, a one-line
@@ -50,6 +51,8 @@ type Row = {
 }
 
 const PAGE_SIZE = 20
+
+export const generateMetadata = pageTitle('employees.title')
 
 export default async function EmployeesPage({
   searchParams,
@@ -211,7 +214,7 @@ export default async function EmployeesPage({
               href={withParams(params, { view: e.id })}
               scroll={false}
               data-view-link={e.id}
-              className="truncate font-semibold hover:text-brand-600 hover:underline"
+              className="truncate font-semibold hover:text-brand-600 hover:underline max-sm:-my-3 max-sm:block max-sm:py-3"
             >
               {e.full_name}
             </Link>

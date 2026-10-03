@@ -4,8 +4,11 @@ import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { LogoutButton } from '@/components/logout-button'
 import { Icon } from '@/components/school-icons'
+import { pageTitle } from '@/lib/page-title'
 
 // The logged-in user's account page, reached from the topbar avatar.
+export const generateMetadata = pageTitle('profile.title')
+
 export default async function ProfilePage() {
   const lang: Lang = await currentLang()
   const { fullName, email, role, schoolName } = await getSchoolContext()
@@ -24,7 +27,7 @@ export default async function ProfilePage() {
         <Link
           href="/school"
           aria-label={t('common.back', lang)}
-          className="inline-flex size-9 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"
+          className="inline-flex size-9 max-sm:size-11 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"
         >
           <Icon name="chevronLeft" className="size-5" />
         </Link>

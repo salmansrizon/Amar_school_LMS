@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useTransition } from 'react'
 import Link from 'next/link'
-import { t, type Lang } from '@/lib/i18n'
+import { t, formatNumber, type Lang } from '@/lib/i18n'
 import {
   applyTick,
   itemLabel,
@@ -43,8 +43,7 @@ export function DashboardChecklist({
   const done = total - dueSet.size
   const allDone = total > 0 && dueSet.size === 0
 
-  const numLocale = lang === 'bn' ? 'bn-BD' : 'en-US'
-  const fmt = (n: number) => n.toLocaleString(numLocale)
+  const fmt = (n: number) => formatNumber(n, lang)
 
   function toggle(id: string) {
     const next = !state[id]
@@ -77,7 +76,7 @@ export function DashboardChecklist({
           {/* Source-module link (issue #117 Q5): the full checklist + date-range report. */}
           <Link
             href="/school/institute/checklist"
-            className="inline-flex items-center gap-1 rounded-md px-1 text-xs font-semibold text-brand-600 hover:text-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"
+            className="inline-flex items-center gap-1 rounded-md px-1 max-sm:min-h-11 text-xs font-semibold text-brand-600 hover:text-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"
           >
             {t('dash.viewAll', lang)}
             <Icon name="chevronRight" className="size-3.5" />

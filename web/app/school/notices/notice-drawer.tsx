@@ -1,5 +1,5 @@
 import { CalendarDays, MapPin, Tag } from 'lucide-react'
-import { t, type Lang } from '@/lib/i18n'
+import { t, type Lang, formatDate } from '@/lib/i18n'
 import { kindLabel, targetAudienceLabel } from '@/lib/publishing'
 import { withParams, type Params } from '@/lib/url-params'
 import { DrawerFacts, type DrawerFact } from '@/components/data-table/drawer-parts'
@@ -13,7 +13,6 @@ type Notice = NonNullable<Awaited<ReturnType<typeof getNotice>>>
 
 export function NoticeDrawerBody({ notice, lang }: { notice: Notice; lang: Lang }) {
   const { row, offering } = notice
-  const locale = lang === 'bn' ? 'bn-BD' : 'en-GB'
   const facts: DrawerFact[] = [
     { icon: <Tag className="size-3.5" aria-hidden />, label: t('notices.colType', lang), value: kindLabel(row.kind, lang) },
     {
@@ -32,7 +31,7 @@ export function NoticeDrawerBody({ notice, lang }: { notice: Notice; lang: Lang 
         offering,
       ),
     },
-    { icon: <CalendarDays className="size-3.5" aria-hidden />, label: t('notices.colDate', lang), value: new Date(row.created_at).toLocaleDateString(locale) },
+    { icon: <CalendarDays className="size-3.5" aria-hidden />, label: t('notices.colDate', lang), value: formatDate(row.created_at, lang) },
   ]
 
   return (

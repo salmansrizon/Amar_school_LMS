@@ -5,6 +5,9 @@ import { t } from '@/lib/i18n'
 import { ExamsTabs } from '../exams-tabs'
 import { getSchoolContext } from '@/lib/school/context'
 import { AddGradingSchemeForm, GradingSchemeCard, type GradingSchemeRow, type GradeBandRow } from './grading-scheme-controls'
+import { pageTitle } from '@/lib/page-title'
+
+export const generateMetadata = pageTitle('grading.title')
 
 export default async function GradingSchemesPage() {
   const lang = await currentLang()

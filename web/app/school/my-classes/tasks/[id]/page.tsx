@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
-import { t } from '@/lib/i18n'
+import { t, formatDate } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { Card, PageHeader } from '@/components/ui/page'
 import { ReviewForm } from './review-form'
@@ -45,7 +45,6 @@ export default async function TaskRosterPage({
     byStudent.set(s.student_id, [...(byStudent.get(s.student_id) ?? []), s])
   }
   const done = rows.filter((r) => r.completed_at)
-  const locale = lang === 'bn' ? 'bn-BD' : 'en-GB'
 
   return (
     <>
@@ -60,7 +59,7 @@ export default async function TaskRosterPage({
           {task.due_at && (
             <span className="ml-2 text-xs text-muted">
               {t('student.taskDue', lang)}:{' '}
-              {new Date(task.due_at).toLocaleDateString(locale, { day: 'numeric', month: 'short' })}
+              {formatDate(task.due_at, lang)}
             </span>
           )}
         </p>
@@ -80,7 +79,7 @@ export default async function TaskRosterPage({
                   </span>
                   {r.completed_at ? (
                     <span className="rounded-full bg-mint-soft px-2 py-0.5 text-xs font-semibold text-mint-deep">
-                      ✓ {new Date(r.completed_at).toLocaleDateString(locale, { day: 'numeric', month: 'short' })}
+                      ✓ {formatDate(r.completed_at, lang)}
                     </span>
                   ) : (
                     <span className="text-xs text-muted">—</span>
@@ -96,7 +95,7 @@ export default async function TaskRosterPage({
                       {f.file_name}
                     </a>
                     <span className="ml-2 text-xs text-muted">
-                      {new Date(f.submitted_at).toLocaleDateString(locale, { day: 'numeric', month: 'short' })}
+                      {formatDate(f.submitted_at, lang)}
                     </span>
                     <ReviewForm
                       lang={lang}

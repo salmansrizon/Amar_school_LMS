@@ -5,7 +5,7 @@ import { getStudentContext } from '@/lib/student/context'
 import { loadNoticeFeed } from '@/lib/student/notices-source'
 import { isForMyClass } from '@/lib/student/notices'
 import { importanceBadgeClass, importanceLabel } from '@/lib/publishing'
-import { pageTitle } from '@/lib/student/metadata'
+import { pageTitle } from '@/lib/page-title'
 
 // The Student's notice feed (#445). Urgent first, then newest — an urgent
 // notice from Monday still outranks a normal one from Friday, which is the

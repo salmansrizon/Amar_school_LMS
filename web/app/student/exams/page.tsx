@@ -3,7 +3,7 @@ import { t } from '@/lib/i18n'
 import { getStudentContext } from '@/lib/student/context'
 import { groupSchedule, type ExamRoutineRow, type SeatAssignment } from '@/lib/student/exam-schedule'
 import { PrintTrigger } from '@/components/print/print-trigger'
-import { pageTitle } from '@/lib/student/metadata'
+import { pageTitle } from '@/lib/page-title'
 
 // The Student's exam calendar (#450): dates, times, rooms, and their own seat.
 //

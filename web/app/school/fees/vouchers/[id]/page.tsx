@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
-import { t } from '@/lib/i18n'
+import { t, formatMoney, formatDate } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 
 /** The vouchers-list.html "View" action target: a read-only detail of one
@@ -22,12 +22,11 @@ export default async function VoucherDetailPage({ params }: { params: Promise<{ 
   if (!voucher) notFound()
 
   const category = voucher.voucher_categories as unknown as { name: string; type: string } | null
-  const locale = lang === 'bn' ? 'bn-BD' : 'en-GB'
 
   return (
     <div>
       <div className="mb-4 flex items-center justify-between">
-        <Link href="/school/fees/vouchers" aria-label={t('vouchers.title', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
+        <Link href="/school/fees/vouchers" aria-label={t('vouchers.title', lang)} className="inline-flex size-9 max-sm:size-11 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
       </div>
 
       <section className="rounded-lg border border-line bg-paper p-6">
@@ -37,7 +36,7 @@ export default async function VoucherDetailPage({ params }: { params: Promise<{ 
         <dl className="flex flex-col gap-1.5 text-sm">
           <div className="flex justify-between">
             <dt className="text-muted">{t('vouchers.date', lang)}</dt>
-            <dd>{new Date(voucher.txn_date).toLocaleDateString(locale)}</dd>
+            <dd>{formatDate(voucher.txn_date, lang)}</dd>
           </div>
           <div className="flex justify-between">
             <dt className="text-muted">{t('vouchers.type', lang)}</dt>
@@ -53,7 +52,7 @@ export default async function VoucherDetailPage({ params }: { params: Promise<{ 
           </div>
           <div className="flex justify-between border-t border-line pt-2 font-bold">
             <dt>{t('vouchers.amount', lang)}</dt>
-            <dd>৳{Number(voucher.amount).toLocaleString()}</dd>
+            <dd>{formatMoney(Number(voucher.amount), lang)}</dd>
           </div>
         </dl>
 

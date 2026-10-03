@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
-import { t, localeOf, type Lang } from '@/lib/i18n'
+import { t, localeOf, type Lang, formatNumber } from '@/lib/i18n'
 import { feePeriodLabel } from '@/lib/fees'
 import { getSchoolContext } from '@/lib/school/context'
 import { canOpenScreen } from '@/lib/auth/screens'
@@ -27,6 +27,7 @@ import { bulkRemindStudents } from './actions'
 import type { BulkAction } from '@/components/data-table/selection'
 import { DrawerFooter, DrawerHeader } from '@/components/data-table/drawer-parts'
 import { StudentDrawerBody, loadStudentDrawerData, studentDrawerCancelHref } from './student-drawer'
+import { pageTitle } from '@/lib/page-title'
 
 // Layout per Design System/new_ui/02-people/student-directory (map 013, P1),
 // following the exam landing pattern (013 A3): header + subtitle, a one-line
@@ -61,6 +62,8 @@ const FEE_LABEL = { paid: 'students.feePaid', partial: 'students.feePartial', du
 const PAGE_SIZE = 20
 const primaryClass =
   'inline-flex h-11 items-center rounded-full bg-brand-500 px-4 text-xs font-semibold text-white hover:bg-brand-600'
+
+export const generateMetadata = pageTitle('students.listTitle')
 
 export default async function StudentsPage({
   searchParams,
@@ -119,12 +122,12 @@ export default async function StudentsPage({
               href={withParams(params, { view: s.id })}
               scroll={false}
               data-view-link={s.id}
-              className="truncate font-semibold hover:text-brand-600 hover:underline"
+              className="truncate font-semibold hover:text-brand-600 hover:underline max-sm:-my-3 max-sm:block max-sm:py-3"
             >
               {s.full_name}
             </Link>
             <div className="text-xs text-muted">
-              {t('students.roll', lang)} {s.roll_number ?? '—'}
+              {t('students.roll', lang)} {s.roll_number != null ? formatNumber(s.roll_number, lang) : '—'}
               {s.student_no ? ` · ${s.student_no}` : ''}
             </div>
           </div>
@@ -440,7 +443,7 @@ export default async function StudentsPage({
             <DrawerHeader
               name={viewed.full_name}
               avatarId={viewed.id}
-              subtitle={viewed.roll_number != null ? `${t('students.roll', lang)} ${viewed.roll_number}` : undefined}
+              subtitle={viewed.roll_number != null ? `${t('students.roll', lang)} ${formatNumber(viewed.roll_number, lang)}` : undefined}
             />
           )
         }

@@ -62,7 +62,7 @@ export function PrintTrigger({
             </button>
             <Dialog.Close
               aria-label={t('common.close', lang)}
-              className="inline-flex size-9 items-center justify-center rounded-full text-muted hover:bg-paper-muted hover:text-ink"
+              className="inline-flex size-9 max-sm:size-11 items-center justify-center rounded-full text-muted hover:bg-paper-muted hover:text-ink"
             >
               <X className="size-4" aria-hidden />
             </Dialog.Close>

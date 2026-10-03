@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
-import { t, type Lang } from '@/lib/i18n'
+import { t, type Lang, formatDate } from '@/lib/i18n'
 import { addBehaviourEntry, updateBehaviourEntry, sendBehaviourSms } from '../actions'
 import { dateInputClass } from '@/components/ui/field'
 import type { TriageView } from '@/lib/behaviour-triage'
@@ -101,7 +101,7 @@ export function EditableEntry({
             {t('behaviour.rating', lang)}: <strong>{entry.rating}</strong>
             {entry.remind_date && <> · {t('behaviour.remind', lang)}: {entry.remind_date}</>}
             {' · '}
-            {new Date(entry.created_at).toLocaleDateString('en-GB')}
+            {formatDate(entry.created_at, lang)}
           </p>
           {triage && <TriageHints triage={triage} lang={lang} />}
           {error && <p className="mt-1 text-xs text-alert-deep">{error}</p>}

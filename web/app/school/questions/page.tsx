@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { CheckCircle2, Clock, MessageCircleQuestion, Tag } from 'lucide-react'
 import { currentLang } from '@/lib/i18n-server'
-import { t, numberFmt, type Lang } from '@/lib/i18n'
+import { t, numberFmt, formatNumber, type Lang, formatDate, formatDateTime } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { schoolCrumbs } from '@/lib/school-crumbs'
 import { groupByTopic, isAnswered, type InboxMessage } from '@/lib/student/messages'
@@ -18,6 +18,7 @@ import { HubTabs } from '../messages-hub-tabs'
 import { ReplyForm } from './reply-form'
 import { DrawerFooter, DrawerHeader } from '@/components/data-table/drawer-parts'
 import { QuestionDrawerBody, questionDrawerCancelHref } from './question-drawer'
+import { pageTitle } from '@/lib/page-title'
 
 // The Questions tab of বার্তা ও অনুরোধ (#454 inbox, #509 section), following
 // the exam-landing pattern (013 FC4/013 A3): a one-line late-question warning
@@ -35,6 +36,8 @@ import { QuestionDrawerBody, questionDrawerCancelHref } from './question-drawer'
 // classes and the Owner the school (ADR 0018).
 
 const PAGE_SIZE = 20
+
+export const generateMetadata = pageTitle('hub.title')
 
 export default async function SchoolQuestionsPage({
   searchParams,
@@ -56,7 +59,6 @@ export default async function SchoolQuestionsPage({
 
   const messages = (data ?? []) as InboxMessage[]
   const groups = groupByTopic(messages)
-  const locale = lang === 'bn' ? 'bn-BD' : 'en-GB'
 
   // This page is already holding every row the questions badge would count, so
   // it counts them here and buys only the corrections query.
@@ -101,12 +103,12 @@ export default async function SchoolQuestionsPage({
   const age = (m: InboxMessage) => {
     const hours = waitingHours(m)
     return m.replied_at
-      ? `${hours}${t('hub.answeredIn', lang)}`
+      ? `${formatNumber(hours, lang)}${t('hub.answeredIn', lang)}`
       : m.reply_body
         ? t('questions.replied', lang)
         : hours < 1
           ? t('hub.freshlyAsked', lang)
-          : `${hours}${t('hub.waitingHours', lang)}`
+          : `${formatNumber(hours, lang)}${t('hub.waitingHours', lang)}`
   }
   // The pill carries the waiting-age tone (no tone while fresh, sun past 24h,
   // alert past 72h, mint once answered), always paired with its text.
@@ -157,7 +159,7 @@ export default async function SchoolQuestionsPage({
     {
       key: 'date',
       header: t('questions.colAsked', lang),
-      cell: (m) => new Date(m.created_at).toLocaleDateString(locale, { day: 'numeric', month: 'short' }),
+      cell: (m) => formatDate(m.created_at, lang),
     },
   ]
 
@@ -321,7 +323,7 @@ export default async function SchoolQuestionsPage({
         {viewed && (
           <QuestionDrawerBody
             topic={topicLabel(viewed)}
-            askedAt={new Date(viewed.created_at).toLocaleString(locale)}
+            askedAt={formatDateTime(viewed.created_at, lang)}
             body={viewed.body}
             lang={lang}
             replyArea={

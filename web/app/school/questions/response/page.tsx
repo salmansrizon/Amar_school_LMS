@@ -18,6 +18,7 @@ import { Card, PageHeader } from '@/components/ui/page'
 import { StatCard, StatGrid } from '@/components/ui/widgets'
 import { DataTable, type Column } from '@/components/data-table/data-table'
 import { HubTabs } from '../../messages-hub-tabs'
+import { pageTitle } from '@/lib/page-title'
 
 // The Response tab of বার্তা ও অনুরোধ (#455 report, #509 section).
 //
@@ -34,6 +35,8 @@ import { HubTabs } from '../../messages-hub-tabs'
 // 0152 scopes her SELECT to her own classes, so her Σ has to come from
 // `school_question_timings`, which returns timestamps and nothing else. See the
 // comment at the call.
+export const generateMetadata = pageTitle('hub.title')
+
 export default async function ResponsePerformancePage({
   searchParams,
 }: {
@@ -140,7 +143,7 @@ export default async function ResponsePerformancePage({
   const perTeacher = visibleTeacherRows(report, { isOwner, employeeId: me })
 
   const fmt = numberFmt(lang)
-  const hours = (n: number | null) => (n === null ? '—' : `${n}${t('response.hours', lang)}`)
+  const hours = (n: number | null) => (n === null ? '—' : `${fmt.format(n)}${t('response.hours', lang)}`)
 
   // Same label rule as the old StatRow: "mine" for the caller's own row,
   // "owner" for the bucket a reply with no Employee record falls into,

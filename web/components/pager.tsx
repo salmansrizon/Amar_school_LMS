@@ -43,7 +43,10 @@ export function Pager({
   pageSize?: number
 }) {
   const fmt = numberFmt(lang)
-  const cell = 'flex h-8 min-w-8 items-center justify-center rounded-full px-2 text-sm font-semibold'
+  const cell = 'flex items-center justify-center rounded-full px-2 text-sm font-semibold'
+  // 44px hit area on a phone; the compact 32px / 28px pills from sm up.
+  const pageCell = 'h-11 min-w-11 sm:h-8 sm:min-w-8'
+  const sizeCell = 'h-11 min-w-11 text-xs sm:h-7 sm:min-w-7'
   const from = total ? (page - 1) * (pageSize ?? 0) + 1 : 0
   const to = pageSize ? Math.min(total, page * pageSize) : total
 
@@ -64,7 +67,7 @@ export function Pager({
           href={withParams(params, { size: String(n) })}
           scroll={false}
           aria-current={n === pageSize ? 'true' : undefined}
-          className={`${cell} h-7 min-w-7 text-xs ${n === pageSize ? 'bg-brand-50 text-brand-700' : 'hover:bg-paper-muted'}`}
+          className={`${cell} ${sizeCell} ${n === pageSize ? 'bg-brand-50 text-brand-700' : 'hover:bg-paper-muted'}`}
         >
           {fmt.format(n)}
         </Link>
@@ -81,7 +84,7 @@ export function Pager({
       aria-label={label}
       aria-disabled={disabled}
       tabIndex={disabled ? -1 : undefined}
-      className={`${cell} border border-line-strong ${disabled ? 'pointer-events-none opacity-40' : 'hover:bg-paper-muted'}`}
+      className={`${cell} ${pageCell} border border-line-strong ${disabled ? 'pointer-events-none opacity-40' : 'hover:bg-paper-muted'}`}
     >
       <span aria-hidden>{glyph}</span>
     </Link>
@@ -107,7 +110,7 @@ export function Pager({
                 href={withParams(params, { page: String(n) })}
                 scroll={false}
                 aria-current={n === page ? 'page' : undefined}
-                className={`${cell} ${n === page ? 'bg-brand-500 text-white' : 'hover:bg-paper-muted'}`}
+                className={`${cell} ${pageCell} ${n === page ? 'bg-brand-500 text-white' : 'hover:bg-paper-muted'}`}
               >
                 {fmt.format(n)}
               </Link>

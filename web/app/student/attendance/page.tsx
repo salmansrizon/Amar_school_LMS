@@ -4,7 +4,7 @@ import { t, localeOf, numberFmt } from '@/lib/i18n'
 import { getStudentContext } from '@/lib/student/context'
 import { schoolToday } from '@/lib/school-time'
 import { monthGrid, monthLeadIn, monthRange, shiftMonth, attendancePercent } from '@/lib/student/attendance'
-import { pageTitle } from '@/lib/student/metadata'
+import { pageTitle } from '@/lib/page-title'
 
 // The Student's own attendance (#451).
 //

@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useId, useState } from 'react'
+import { NativeDialog } from '@/components/native-dialog'
 import { t, type Lang } from '@/lib/i18n'
 
 /** Controlled-trigger modal/overlay (issue #632) — an alternative to
@@ -34,47 +35,44 @@ export function Modal({
     onOpenChange?.(next)
   }
   const close = () => setOpen(false)
+  const titleId = useId()
   return (
     <>
       <button type="button" onClick={() => setOpen(true)} className={triggerClassName}>
         {triggerLabel}
       </button>
-      {open && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 p-4 sm:items-center"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) close()
-          }}
-        >
-          <div className="max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-lg border border-line bg-paper p-4 shadow-card sm:p-6">
-            <div className="mb-4 flex items-center justify-between gap-4">
-              <h3 className="text-lg font-bold">{title}</h3>
-              <button
-                type="button"
-                onClick={close}
-                aria-label={t('common.close', lang)}
-                className="cursor-pointer rounded-full p-1 text-muted hover:bg-paper-muted hover:text-ink"
-              >
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="size-5"
-                  aria-hidden="true"
-                >
-                  <path d="M18 6 6 18M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            {children(close)}
-          </div>
+      <NativeDialog
+        open={open}
+        onRequestClose={close}
+        labelledBy={titleId}
+        className="max-h-[90vh] max-w-xl overflow-y-auto rounded-lg border border-line bg-paper p-4 text-ink shadow-card sm:p-6"
+      >
+        <div className="mb-4 flex items-center justify-between gap-4">
+          <h3 id={titleId} className="text-lg font-bold">
+            {title}
+          </h3>
+          <button
+            type="button"
+            onClick={close}
+            aria-label={t('common.close', lang)}
+            className="cursor-pointer rounded-full p-1 text-muted hover:bg-paper-muted hover:text-ink"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="size-5"
+              aria-hidden="true"
+            >
+              <path d="M18 6 6 18M6 6l12 12" />
+            </svg>
+          </button>
         </div>
-      )}
+        {children(close)}
+      </NativeDialog>
     </>
   )
 }

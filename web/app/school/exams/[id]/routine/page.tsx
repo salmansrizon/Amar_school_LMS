@@ -8,10 +8,13 @@ import { subjectsForClass } from '@/lib/students'
 import { AddRoutineEntryForm, RoutineTable, type Option, type RoutineEntryRow } from './routine-controls'
 import { resolveBackHref } from '@/lib/back-nav'
 import { PrintTrigger } from '@/components/print/print-trigger'
+import { pageTitle } from '@/lib/page-title'
 
 // Layout per ui/school-owner/exam-routine.html: toolbar (exam label + Exam
 // Setup / Print / Save) over a Date/Day/Time/Subject/Room table. Day is
 // derived from exam_date (dateToDayOfWeek), not stored.
+
+export const generateMetadata = pageTitle('examRoutine.title')
 
 export default async function ExamRoutinePage({
   params,

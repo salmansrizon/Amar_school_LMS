@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { BadgeCheck, CalendarClock, CircleCheck, ClipboardList, FileSearch, Lock, PencilLine, TriangleAlert } from 'lucide-react'
 import { currentLang } from '@/lib/i18n-server'
-import { t, numberFmt } from '@/lib/i18n'
+import { t, numberFmt, formatNumber } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { filterOfferingsByYearSelection } from '@/lib/school/year-filter'
 import { classCatalogueLabel } from '@/lib/class-catalogue'
@@ -26,6 +26,7 @@ import { RowMore } from '@/components/data-table/row-more'
 import { PublishResults } from './[id]/publish-results'
 import { DrawerFooter, DrawerHeader } from '@/components/data-table/drawer-parts'
 import { ExamDrawerBody, loadExamDrawerData, examDrawerCancelHref } from './exam-drawer'
+import { pageTitle } from '@/lib/page-title'
 
 // Exams & Results (map 013 A3), laid out as new_ui/03-academics/exams-results:
 // header, one-line warning banner, four lifecycle stat cards, the stage-chipped
@@ -47,6 +48,8 @@ interface ExamRow extends ExamListItem {
   seat_plan_published_at: string | null
   results_published_at: string | null
 }
+
+export const generateMetadata = pageTitle('exams.pageTitle')
 
 export default async function ExamsPage({
   searchParams,
@@ -279,7 +282,7 @@ export default async function ExamsPage({
               {e.name}
             </Link>
             <div className="text-xs text-muted">
-              {classLabel(e.class_id) ?? e.exam_year}
+              {classLabel(e.class_id) ?? formatNumber(e.exam_year, lang, { useGrouping: false })}
               {e.start_date ? ` · ${e.start_date}${last && last !== e.start_date ? ` – ${last}` : ''}` : ''}
             </div>
           </div>
@@ -435,7 +438,7 @@ export default async function ExamsPage({
       <DataTable
         rows={paged.items}
         rowId={(e) => e.id}
-        rowLabel={(e) => `${e.name} (${e.exam_year})`}
+        rowLabel={(e) => `${e.name} (${formatNumber(e.exam_year, lang, { useGrouping: false })})`}
         columns={columns}
         lang={lang}
         params={params}
@@ -507,7 +510,7 @@ export default async function ExamsPage({
                   <div className="min-w-0">
                     <p className="text-xs font-semibold text-brand-600">{t('exams.approvableExam', lang)}</p>
                     <p className="mt-1 font-bold">
-                      {toApprove.name} <span className="text-muted">({toApprove.exam_year})</span>
+                      {toApprove.name} <span className="text-muted">({formatNumber(toApprove.exam_year, lang, { useGrouping: false })})</span>
                     </p>
                     <p className="text-xs text-muted">{classLabel(toApprove.class_id) ?? dash}</p>
                   </div>
@@ -591,7 +594,7 @@ export default async function ExamsPage({
         title={viewed ? viewed.name : ''}
         header={
           viewed && (
-            <DrawerHeader name={viewed.name} avatarId={viewed.id} subtitle={String(viewed.exam_year)} status={publishPill(viewed)} />
+            <DrawerHeader name={viewed.name} avatarId={viewed.id} subtitle={formatNumber(viewed.exam_year, lang, { useGrouping: false })} status={publishPill(viewed)} />
           )
         }
         footer={

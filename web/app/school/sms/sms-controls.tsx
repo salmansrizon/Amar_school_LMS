@@ -25,10 +25,11 @@ export function AddOffDayForm({ lang }: { lang: Lang }) {
         })
       }}
     >
-      <input type="date" name="day" required className={dateInputClass()} />
+      <input type="date" name="day" aria-label={t('sms.offDayDate', lang)} required className={dateInputClass()} />
       <input
         type="text"
         name="label"
+        aria-label={t('sms.offDayLabel', lang)}
         placeholder={t('sms.offDayLabel', lang)}
         className="h-9 rounded-lg border border-line-strong bg-paper px-3 text-sm outline-none transition focus:border-brand-500 focus-visible:ring-2 focus-visible:ring-brand-300"
       />
@@ -97,6 +98,7 @@ export function AddRuleForm({ lang, ruleType }: { lang: Lang; ruleType: 'exact' 
             <input
               type="number"
               name="exact_days"
+              aria-label={t('sms.exactRule', lang)}
               min={1}
               required
               className="w-20 h-9 rounded-lg border border-line-strong bg-paper px-3 text-sm outline-none transition focus:border-brand-500 focus-visible:ring-2 focus-visible:ring-brand-300"
@@ -117,6 +119,7 @@ export function AddRuleForm({ lang, ruleType }: { lang: Lang; ruleType: 'exact' 
             <input
               type="number"
               name="range_from"
+              aria-label={`${t('sms.rangeRule', lang)} — ${t('sms.leaveFrom', lang)}`}
               min={1}
               required
               className="w-16 h-9 rounded-lg border border-line-strong bg-paper px-3 text-sm outline-none transition focus:border-brand-500 focus-visible:ring-2 focus-visible:ring-brand-300"
@@ -127,6 +130,7 @@ export function AddRuleForm({ lang, ruleType }: { lang: Lang; ruleType: 'exact' 
             <input
               type="number"
               name="range_to"
+              aria-label={`${t('sms.rangeRule', lang)} — ${t('sms.leaveTo', lang)}`}
               min={1}
               required
               className="w-16 h-9 rounded-lg border border-line-strong bg-paper px-3 text-sm outline-none transition focus:border-brand-500 focus-visible:ring-2 focus-visible:ring-brand-300"
@@ -192,12 +196,12 @@ export function AddLeaveForm({ lang, students }: { lang: Lang; students: { id: s
       }}
     >
       <div>
-        <label className="block text-xs text-gray-500">{t('sms.leaveFrom', lang)}</label>
-        <input type="date" name="from_day" required className={dateInputClass()} />
+        <label htmlFor="sms_from_day" className="block text-xs text-gray-500">{t('sms.leaveFrom', lang)}</label>
+        <input id="sms_from_day" type="date" name="from_day" required className={dateInputClass()} />
       </div>
       <div>
-        <label className="block text-xs text-gray-500">{t('sms.leaveTo', lang)}</label>
-        <input type="date" name="to_day" required className={dateInputClass()} />
+        <label htmlFor="sms_to_day" className="block text-xs text-gray-500">{t('sms.leaveTo', lang)}</label>
+        <input id="sms_to_day" type="date" name="to_day" required className={dateInputClass()} />
       </div>
       <div>
         <label htmlFor="leave_student" className="block text-xs text-gray-500">{t('sms.leaveStudent', lang)}</label>

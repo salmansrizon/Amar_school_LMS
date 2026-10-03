@@ -2,8 +2,9 @@ import Form from 'next/form'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
-import { t, type Lang } from '@/lib/i18n'
+import { t, formatMoney, type Lang, formatDate, localeOf } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
+import { feePeriodLabel } from '@/lib/fees'
 import { buildGeneralLedger, type LedgerSource, type LedgerSourceRow } from '@/lib/accounting'
 import { PrintPage, InstituteHeader, PaginatedSheet, QrFooterRow } from '@/components/print/pieces'
 import { PrintButton } from '@/components/print/print-button'
@@ -11,6 +12,7 @@ import { AccountingTabs } from '../accounting-tabs'
 import { loadInstitutePrintHeader } from '@/lib/institute-print'
 import { dateInputClass, filterButtonClass } from '@/components/ui/field'
 import { selectAllRows } from '@/lib/supabase/select-all'
+import { pageTitle } from '@/lib/page-title'
 
 // Layout per ui/school-owner/general-ledger.html: a date-range toolbar over a
 // Date | Source | Description | Debit | Credit | Balance table, combining
@@ -52,6 +54,8 @@ function monthBounds(): { from: string; to: string } {
   const last = new Date(now.getFullYear(), now.getMonth() + 1, 0)
   return { from: first.toISOString().slice(0, 10), to: last.toISOString().slice(0, 10) }
 }
+
+export const generateMetadata = pageTitle('ledger.title')
 
 export default async function GeneralLedgerPage({
   searchParams,
@@ -108,7 +112,7 @@ export default async function GeneralLedgerPage({
       date: new Date(r.updated_at).toISOString().slice(0, 10),
       sortKey: r.updated_at,
       source: 'fee_collection',
-      description: `${student?.full_name ?? '—'} — ${r.month}/${r.year}`,
+      description: `${student?.full_name ?? '—'} — ${feePeriodLabel(r.month, r.year, localeOf(lang))}`,
       debit: 0,
       credit: Number(r.pay_amount),
     })
@@ -165,13 +169,12 @@ export default async function GeneralLedgerPage({
   }
 
   const entries = buildGeneralLedger(rows, from, to)
-  const locale = lang === 'bn' ? 'bn-BD' : 'en-GB'
 
   return (
     <div>
       <div className="mb-4 flex items-center justify-between print:hidden">
         <h1 className="text-2xl font-extrabold">{t('ledger.title', lang)}</h1>
-        <Link href="/school" aria-label={t('common.back', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
+        <Link href="/school" aria-label={t('common.back', lang)} className="inline-flex size-9 max-sm:size-11 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
       </div>
 
       <div className="print:hidden">
@@ -179,9 +182,9 @@ export default async function GeneralLedgerPage({
       </div>
 
       <Form className="mb-4 flex flex-wrap items-center gap-2 print:hidden" action="/school/fees/ledger">
-        <label className="text-xs text-muted">{t('ledger.dateRange', lang)}</label>
-        <input name="from" type="date" defaultValue={from} className={dateInputClass()} />
-        <input name="to" type="date" defaultValue={to} className={dateInputClass()} />
+        <label htmlFor="ledger_from" className="text-xs text-muted">{t('ledger.dateRange', lang)}</label>
+        <input id="ledger_from" name="from" type="date" defaultValue={from} className={dateInputClass()} />
+        <input aria-label={t('ledger.dateRange', lang)} name="to" type="date" defaultValue={to} className={dateInputClass()} />
         <button
           type="submit"
           className={filterButtonClass()}
@@ -199,7 +202,7 @@ export default async function GeneralLedgerPage({
             <>
               <InstituteHeader institute={institute ?? undefined} docTitle={t('ledger.title', lang)} />
               <p className="mb-2 text-center text-xs text-muted">
-                {new Date(from).toLocaleDateString(locale)} – {new Date(to).toLocaleDateString(locale)}
+                {formatDate(from, lang)} – {formatDate(to, lang)}
               </p>
             </>
           }
@@ -223,16 +226,16 @@ export default async function GeneralLedgerPage({
             <tbody>
               {entries.map((e, idx) => (
                 <tr key={idx} className="border-b border-line">
-                  <td className={tdClass}>{new Date(e.date).toLocaleDateString(locale)}</td>
+                  <td className={tdClass}>{formatDate(e.date, lang)}</td>
                   <td className={tdClass}>
                     <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${SOURCE_BADGE[e.source]}`}>
                       {t(SOURCE_LABEL[e.source] as 'ledger.sourceVoucher', lang)}
                     </span>
                   </td>
                   <td className={tdClass}>{e.description}</td>
-                  <td className={tdClass}>{e.debit ? `৳${e.debit.toLocaleString()}` : '—'}</td>
-                  <td className={tdClass}>{e.credit ? `৳${e.credit.toLocaleString()}` : '—'}</td>
-                  <td className={`${tdClass} font-medium`}>৳{e.balance.toLocaleString()}</td>
+                  <td className={tdClass}>{e.debit ? formatMoney(e.debit, lang) : '—'}</td>
+                  <td className={tdClass}>{e.credit ? formatMoney(e.credit, lang) : '—'}</td>
+                  <td className={`${tdClass} font-medium`}>{formatMoney(e.balance, lang)}</td>
                 </tr>
               ))}
             </tbody>

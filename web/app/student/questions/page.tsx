@@ -2,7 +2,7 @@ import { currentLang } from '@/lib/i18n-server'
 import { t } from '@/lib/i18n'
 import { getStudentContext, isReadOnly } from '@/lib/student/context'
 import { AskForm } from './ask-form'
-import { pageTitle } from '@/lib/student/metadata'
+import { pageTitle } from '@/lib/page-title'
 
 // The Student's own questions (#454). One question, one reply — not a thread.
 export const generateMetadata = pageTitle('student.questionsTitle')

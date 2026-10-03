@@ -45,7 +45,7 @@ export function SegmentedControl({
             scroll={false}
             aria-current={current ? 'page' : undefined}
             aria-label={item.icon ? item.label : undefined}
-            className={`inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
+            className={`inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 max-sm:min-h-11 text-xs font-semibold transition-colors ${
               current ? 'bg-brand-500 text-white shadow-sm' : 'text-muted hover:bg-paper-muted hover:text-ink'
             }`}
           >

@@ -11,6 +11,7 @@ import { StatCard, StatGrid, WarningBanner } from '@/components/ui/widgets'
 import { SmsTabs } from './tabs'
 import { ComposeForm } from './compose-form'
 import { COMPOSE_STUDENT_COLUMNS, COMPOSE_EMPLOYEE_COLUMNS } from '@/lib/sms/recipients'
+import { pageTitle } from '@/lib/page-title'
 
 // SMS Center (map 013 FC2, new_ui/04-finance-communication/sms-center): header,
 // credit alert, stat cards (balance / sent today / failed today / active rules),
@@ -23,6 +24,8 @@ import { COMPOSE_STUDENT_COLUMNS, COMPOSE_EMPLOYEE_COLUMNS } from '@/lib/sms/rec
 
 // ponytail: cap on prefilled ids; a URL this long is already near browser limits.
 const PREFILL_MAX = 200
+
+export const generateMetadata = pageTitle('sms.centerTitle')
 
 export default async function SmsComposePage({ searchParams }: { searchParams: Promise<{ students?: string }> }) {
   const { students: prefillParam = '' } = await searchParams

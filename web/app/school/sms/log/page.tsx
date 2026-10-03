@@ -1,7 +1,7 @@
 import Form from 'next/form'
 import { AlertTriangle, Layers, Send } from 'lucide-react'
 import { currentLang } from '@/lib/i18n-server'
-import { t, numberFmt, type Lang } from '@/lib/i18n'
+import { t, numberFmt, formatDateTime, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { schoolCrumbs, rowAction } from '@/lib/school-crumbs'
 import { selectAllRows } from '@/lib/supabase/select-all'
@@ -14,6 +14,7 @@ import { paginate, pageSizeFrom } from '@/components/pager'
 import { DataTable, Pill, type Column } from '@/components/data-table/data-table'
 import { RecordDrawer } from '@/components/data-table/record-drawer'
 import { ViewLink } from '@/components/data-table/view-link'
+import { pageTitle } from '@/lib/page-title'
 
 // Send Log (issue #36, PRD §5.7 "send summary/log with date-range totals"),
 // map 013 FC2: range totals as stat cards, then one DataTable row per send
@@ -29,6 +30,8 @@ function daysAgoIso(days: number): string {
 }
 
 const PAGE_SIZE = 20
+
+export const generateMetadata = pageTitle('sms.log')
 
 export default async function SmsLogPage({
   searchParams,
@@ -69,7 +72,7 @@ export default async function SmsLogPage({
   )
   const pageData = paginate(shown, page, pageSizeFrom(size, PAGE_SIZE))
   const viewed = view ? (batches.find((b) => b.batchId === view) ?? null) : null
-  const when = (b: SmsLogBatch) => new Date(b.sentAt).toLocaleString(lang === 'bn' ? 'bn-BD' : 'en-GB')
+  const when = (b: SmsLogBatch) => formatDateTime(b.sentAt, lang)
   const statusPill = (b: SmsLogBatch) => (
     <Pill tone={b.failed ? 'alert' : 'mint'}>{b.failed ? t('sms.failed', lang) : t('sms.statusSent', lang)}</Pill>
   )

@@ -6,7 +6,7 @@ import { loadStudentRoutine } from '@/lib/student/routine-source'
 import { usedPeriods, weekPlan } from '@/lib/student/routine'
 import { dayOfWeek, schoolToday } from '@/lib/school-time'
 import { PrintTrigger } from '@/components/print/print-trigger'
-import { pageTitle } from '@/lib/student/metadata'
+import { pageTitle } from '@/lib/page-title'
 
 // The full weekly routine (#444). Sun–Thu across, periods down.
 //

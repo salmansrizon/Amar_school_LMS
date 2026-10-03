@@ -9,6 +9,7 @@ import { ChecklistForm } from './checklist-form'
 import { ChecklistItemsManager } from './checklist-items-manager'
 import { dateInputClass, filterButtonClass } from '@/components/ui/field'
 import { PageHeader, railClass, type Tone } from '@/components/ui/page'
+import { pageTitle } from '@/lib/page-title'
 
 // Administrative daily checklist + date-range report (issue #39, PRD §5.11)
 // per ui/school-owner/activity-checklist.html.
@@ -30,6 +31,8 @@ function daysAgoIso(days: number): string {
   d.setUTCDate(d.getUTCDate() - days)
   return d.toISOString().slice(0, 10)
 }
+
+export const generateMetadata = pageTitle('institute.tabChecklist')
 
 export default async function ChecklistPage({
   searchParams,
@@ -87,8 +90,8 @@ export default async function ChecklistPage({
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <h3 className="font-bold">{t('institute.dateRangeReport', lang)}</h3>
           <Form className="flex flex-wrap items-center gap-2" action="/school/institute/checklist">
-            <input type="date" name="start" defaultValue={rangeStart} className={dateInputClass()} />
-            <input type="date" name="end" defaultValue={rangeEnd} className={dateInputClass()} />
+            <input type="date" name="start" aria-label={t('graceTime.filterFrom', lang)} defaultValue={rangeStart} className={dateInputClass()} />
+            <input type="date" name="end" aria-label={t('graceTime.filterTo', lang)} defaultValue={rangeEnd} className={dateInputClass()} />
             <button
               type="submit"
               className={filterButtonClass()}

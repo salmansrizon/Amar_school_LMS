@@ -3598,10 +3598,59 @@ export function t(key: MessageKey, lang: Lang): string {
  *  out at every call site and one of them drifted: the printed fee statement
  *  kept Latin amounts beside Bangla months. */
 export function localeOf(lang: Lang): string {
-  return lang === 'bn' ? 'bn-BD' : 'en-GB'
+  // en-IN, not en-GB: the owner's decision is lakh grouping (13,95,000) in both languages.
+  return lang === 'bn' ? 'bn-BD' : 'en-IN'
 }
 
 /** Numbers in the reader's own digits — ৳৬০০, not ৳600. */
 export function numberFmt(lang: Lang, options?: Intl.NumberFormatOptions): Intl.NumberFormat {
   return new Intl.NumberFormat(localeOf(lang), options)
+}
+
+/** Taka amount: ৳ + lakh grouping, reader's digits, decimals only for paisa.
+ *  The one money formatter for the UI (amounts in taka, not poisha). */
+export function formatMoney(amount: number, lang: Lang): string {
+  return `৳${numberFmt(lang, { maximumFractionDigits: 2 }).format(amount)}`
+}
+
+/** A count / percentage / roll in the reader's digits. Not for identifiers.
+ *  Years pass `{ useGrouping: false }` so 2026 is not "2,026". */
+export function formatNumber(n: number, lang: Lang, options?: Intl.NumberFormatOptions): string {
+  return numberFmt(lang, options).format(n)
+}
+
+const SCHOOL_TZ = 'Asia/Dhaka'
+type DateInput = Date | string | number
+
+/** 'table': "৩ অক্টো ২০২৬" (day, short month, year). 'form': "০৩/১০/২০২৬" (dd/mm/yyyy, for forms and print).
+ *  Empty string for an unparseable value. Display only: never parse the result back. */
+export function formatDate(d: DateInput, lang: Lang, style: 'table' | 'form' = 'table'): string {
+  const date = d instanceof Date ? d : new Date(d)
+  if (Number.isNaN(date.getTime())) return ''
+  const opts: Intl.DateTimeFormatOptions =
+    style === 'form'
+      ? { day: '2-digit', month: '2-digit', year: 'numeric' }
+      : { day: 'numeric', month: 'short', year: 'numeric' }
+  return new Intl.DateTimeFormat(localeOf(lang), { ...opts, timeZone: SCHOOL_TZ })
+    .format(date)
+    .replace(',', '')
+}
+
+/** "৮:৫৮ AM" / "8:58 AM". */
+export function formatTime(d: DateInput, lang: Lang): string {
+  const date = d instanceof Date ? d : new Date(d)
+  if (Number.isNaN(date.getTime())) return ''
+  return new Intl.DateTimeFormat(localeOf(lang), {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+    timeZone: SCHOOL_TZ,
+  })
+    .format(date)
+    .replace(/\b(am|pm)\b/, (m) => m.toUpperCase())
+}
+
+export function formatDateTime(d: DateInput, lang: Lang): string {
+  const date = formatDate(d, lang)
+  return date && `${date}, ${formatTime(d, lang)}`
 }

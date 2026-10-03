@@ -77,14 +77,14 @@ export function RecordDrawer({
               {fullPageHref && (
                 <Link
                   href={fullPageHref}
-                  className="inline-flex h-9 shrink-0 items-center rounded-full border border-line-strong px-3 text-xs font-semibold hover:bg-paper-muted"
+                  className="inline-flex h-9 max-sm:h-11 shrink-0 items-center rounded-full border border-line-strong px-3 text-xs font-semibold hover:bg-paper-muted"
                 >
                   {fullPageLabel} <span aria-hidden>↗</span>
                 </Link>
               )}
               <Drawer.Close
                 aria-label={closeLabel}
-                className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-muted hover:bg-paper-muted hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"
+                className="inline-flex size-9 max-sm:size-11 shrink-0 items-center justify-center rounded-full text-muted hover:bg-paper-muted hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"
               >
                 <X className="size-4" aria-hidden />
               </Drawer.Close>

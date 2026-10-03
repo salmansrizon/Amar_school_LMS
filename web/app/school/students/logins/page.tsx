@@ -10,11 +10,14 @@ import { Card, PageHeader } from '@/components/ui/page'
 import { ComboboxField } from '@/components/ui/combobox-field'
 import { classLoginCandidates } from '../login-actions'
 import { BulkLoginControls } from './bulk-controls'
+import { pageTitle } from '@/lib/page-title'
 
 // Class-at-a-time login issue (#442). No owner provisions a 40-child roster one
 // student at a time, so this is the bulk surface: pick a class, see exactly who
 // would get a login, then commit. Idempotent — students who already have one are
 // never in the list, so re-running after an admission only fills the gap.
+
+export const generateMetadata = pageTitle('students.loginBulkTitle')
 
 export default async function StudentLoginsPage({
   searchParams,

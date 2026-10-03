@@ -1,7 +1,7 @@
 import Form from 'next/form'
 import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
-import { t, type Lang } from '@/lib/i18n'
+import { t, formatNumber, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { schoolRoster } from '@/lib/school/roster-source'
 import {
@@ -19,6 +19,7 @@ import { selectAllRows } from '@/lib/supabase/select-all'
 import { schoolCrumbs } from '@/lib/school-crumbs'
 import { PageHeader } from '@/components/ui/page'
 import { filterButtonClass, inputClass } from '@/components/ui/field'
+import { pageTitle } from '@/lib/page-title'
 
 // Layout per ui/school-owner/attendance-book.html: class/section + month
 // filter, Filled/Blank toggle, print button, monthly P/A register grid
@@ -41,6 +42,8 @@ function monthLabel(year: number, month: number, lang: Lang): string {
   const locale = lang === 'bn' ? 'bn-BD' : 'en-GB'
   return new Date(Date.UTC(year, month, 1)).toLocaleDateString(locale, { month: 'long', year: 'numeric' })
 }
+
+export const generateMetadata = pageTitle('attendance.bookTitle')
 
 export default async function AttendanceBookPage({
   searchParams,
@@ -144,6 +147,7 @@ export default async function AttendanceBookPage({
           <input
             type="month"
             name="month"
+            aria-label={t('attendance.bookMonth', lang)}
             defaultValue={monthParam}
             className={inputClass()}
           />
@@ -205,7 +209,7 @@ export default async function AttendanceBookPage({
                   </th>
                   {grid.map((cell) => (
                     <th key={cell.iso} className={`border border-line-strong px-1.5 py-1 text-center font-semibold ${cell.isOff ? 'text-alert-deep' : 'text-muted'}`}>
-                      {cell.day}
+                      {cell.day == null ? '' : formatNumber(cell.day, lang)}
                     </th>
                   ))}
                 </tr>
@@ -214,7 +218,7 @@ export default async function AttendanceBookPage({
                 {visible.map((s) => (
                   <tr key={s.id}>
                     <td className="border border-line px-2 py-1 text-left">
-                      {s.roll_number != null ? `${String(s.roll_number).padStart(2, '0')} ` : ''}
+                      {s.roll_number != null ? `${formatNumber(s.roll_number, lang, { minimumIntegerDigits: 2 })} ` : ''}
                       {s.full_name}
                     </td>
                     {grid.map((cell) => {

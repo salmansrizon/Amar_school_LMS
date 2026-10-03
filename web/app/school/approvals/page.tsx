@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { Hourglass, ListChecks, Timer } from 'lucide-react'
 import { getSchoolContext } from '@/lib/school/context'
 import { currentLang } from '@/lib/i18n-server'
-import { t, numberFmt } from '@/lib/i18n'
+import { t, numberFmt, formatDate } from '@/lib/i18n'
 import { schoolCrumbs } from '@/lib/school-crumbs'
 import { Card, PageHeader } from '@/components/ui/page'
 import { StatCard, StatGrid, WorkflowCard } from '@/components/ui/widgets'
@@ -12,6 +12,7 @@ import { RowActionPill } from '@/components/data-table/row-action-pill'
 import { withParams } from '@/lib/url-params'
 import { DrawerFooter, DrawerHeader } from '@/components/data-table/drawer-parts'
 import { ApprovalDrawerBody, approvalDrawerCancelHref } from './approval-drawer'
+import { pageTitle } from '@/lib/page-title'
 
 type Labelled = { label?: { en?: string; bn?: string } | null }
 type Instance = { id: string; definition_key: string; entity_type: string; entity_id: string; current_seq: number; created_at: string }
@@ -26,6 +27,8 @@ type Instance = { id: string; definition_key: string; entity_type: string; entit
 // scopes the list to the school. There is no meaningful sub-view to point a
 // warning banner at — the table below already is the whole queue — so this
 // page has none, unlike the other section landings.
+export const generateMetadata = pageTitle('approvals.title')
+
 export default async function ApprovalsPage({
   searchParams,
 }: {
@@ -52,8 +55,7 @@ export default async function ApprovalsPage({
     }),
   )
   const name = (i: Instance) => label.get(i.definition_key) ?? i.definition_key
-  const locale = lang === 'bn' ? 'bn-BD' : 'en-GB'
-  const date = (i: Instance) => new Date(i.created_at).toLocaleDateString(locale)
+  const date = (i: Instance) => formatDate(i.created_at, lang)
   const viewed = params.view ? (instances.find((i) => i.id === params.view) ?? null) : null
   const shown = params.type ? instances.filter((i) => i.definition_key === params.type) : instances
 

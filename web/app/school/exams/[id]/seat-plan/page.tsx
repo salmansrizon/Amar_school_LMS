@@ -20,6 +20,7 @@ import {
 } from './seat-plan-controls'
 import { embeddedBuildingName } from '@/lib/venues'
 import { resolveBackHref, selfOrigin, withOrigin } from '@/lib/back-nav'
+import { pageTitle } from '@/lib/page-title'
 
 // Layout per ui/school-owner/seat-plan.html: toolbar (exam label; Generate +
 // Publish) with an overlap-warning banner over the Room/Capacity/Assigned
@@ -27,6 +28,8 @@ import { resolveBackHref, selfOrigin, withOrigin } from '@/lib/back-nav'
 // constraint (enforce_exam_seat_plan_school); duplicate-range/overlap is
 // re-checked server-side by publish_seat_plan even though the client already
 // disables the button (migration 0039).
+
+export const generateMetadata = pageTitle('seatPlan.title')
 
 export default async function SeatPlanPage({
   params,

@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { AlertTriangle, CalendarDays, Megaphone, Star } from 'lucide-react'
 import { currentLang } from '@/lib/i18n-server'
-import { t, numberFmt, type Lang } from '@/lib/i18n'
+import { t, numberFmt, type Lang, formatDate } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { schoolCrumbs, headerPrimary, headerSecondary } from '@/lib/school-crumbs'
 import { selectAllRows } from '@/lib/supabase/select-all'
@@ -29,6 +29,7 @@ import { NoticeTabs } from './notice-tabs'
 import { getNotice, noticeMeta } from './[id]/notice-detail'
 import { DrawerFooter, DrawerHeader } from '@/components/data-table/drawer-parts'
 import { NoticeDrawerBody, noticeDrawerCancelHref } from './notice-drawer'
+import { pageTitle } from '@/lib/page-title'
 
 // Notices (map 013 FC3, new_ui/04-finance-communication/notices), following
 // the exam-landing pattern (013 A3): header + subtitle, a one-line urgent-
@@ -54,6 +55,8 @@ type Row = {
 }
 
 const PAGE_SIZE = 20
+
+export const generateMetadata = pageTitle('notices.title')
 
 export default async function NoticesPage({
   searchParams,
@@ -88,7 +91,6 @@ export default async function NoticesPage({
     (r) => !importance || r.importance === importance,
   )
   const pageData = paginate(visible, page, pageSize)
-  const locale = lang === 'bn' ? 'bn-BD' : 'en-GB'
   const monthStart = new Date().toISOString().slice(0, 7)
   const count = (pred: (r: Row) => boolean) => fmt.format(rows.filter(pred).length)
   // Newest-first is already the query's order, so the first N of a filter is
@@ -116,7 +118,7 @@ export default async function NoticesPage({
       cell: (r) =>
         targetAudienceLabel(r, lang, r.class_offering_id ? (offeringById.get(r.class_offering_id) ?? null) : null),
     },
-    { key: 'date', header: t('notices.colDate', lang), cell: (r) => new Date(r.created_at).toLocaleDateString(locale) },
+    { key: 'date', header: t('notices.colDate', lang), cell: (r) => formatDate(r.created_at, lang) },
   ]
 
   return (

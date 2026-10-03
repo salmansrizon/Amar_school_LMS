@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useTransition } from 'react'
-import { t, type Lang } from '@/lib/i18n'
+import { t, formatTime, type Lang, formatNumber } from '@/lib/i18n'
 import { saveStudentAttendance } from '../manual-actions'
 import { railClass } from '@/components/ui/page'
 import { Pill } from '@/components/data-table/data-table'
@@ -32,18 +32,14 @@ const tdClass = 'px-4 py-3 text-sm'
 const BAND_TONE = { regular: 'mint', irregular: 'sun', atRisk: 'alert' } as const
 
 /** Attendance Rate (YTD) pill; a dash when the school has no days yet. */
-function RatePill({ rate }: { rate: number | null | undefined }) {
+function RatePill({ rate, lang }: { rate: number | null | undefined; lang: Lang }) {
   if (rate == null) return <span className="text-muted">—</span>
-  return <Pill tone={BAND_TONE[attendanceBand(rate)]}>{rate}%</Pill>
+  return <Pill tone={BAND_TONE[attendanceBand(rate)]}>{formatNumber(rate, lang)}%</Pill>
 }
 
 // #540: 44px is the floor for anything a thumb has to hit. h-11 is exactly that.
 const toggleBase =
   'inline-flex h-11 flex-1 cursor-pointer items-center justify-center rounded-full border px-4 text-sm font-semibold transition'
-
-function timeOf(iso: string): string {
-  return new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-}
 
 export function MarkAttendanceForm({
   lang,
@@ -155,7 +151,7 @@ export function MarkAttendanceForm({
           on a phone; the shell's header is 56px, hence top-14. */}
       <div className="sticky top-14 z-10 mb-3 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-line bg-paper/95 p-2 backdrop-blur">
         <div className="text-sm text-muted">
-          {presentCount}/{marking.length} {t('attendance.presentShort', lang)}
+          {formatNumber(presentCount, lang)}/{formatNumber(marking.length, lang)} {t('attendance.presentShort', lang)}
           {leaveCount > 0 && ` · ${leaveCount} ${t('status.on_leave', lang)}`}
         </div>
         <div className="flex gap-2">
@@ -188,8 +184,8 @@ export function MarkAttendanceForm({
                 {r.onLeave && <Pill tone="sky">{t('status.on_leave', lang)}</Pill>}
               </span>
               <span className="flex items-center gap-2 text-xs text-muted">
-                {t('attendance.rollCol', lang)} {r.roll_number ?? '—'}
-                {rates && <RatePill rate={rates[r.id]} />}
+                {t('attendance.rollCol', lang)} {r.roll_number != null ? formatNumber(r.roll_number, lang) : '—'}
+                {rates && <RatePill lang={lang} rate={rates[r.id]} />}
               </span>
             </div>
             <div className="flex gap-2">
@@ -244,7 +240,7 @@ export function MarkAttendanceForm({
             {rows.map((r) => (
               <tr key={r.id}>
                 <td className={`${tdClass} ${railClass(r.onLeave ? 'sky' : r.present ? 'mint' : 'alert')}`}>
-                  {r.roll_number ?? <span className="text-muted">—</span>}
+                  {r.roll_number != null ? formatNumber(r.roll_number, lang) : <span className="text-muted">—</span>}
                 </td>
                 <td className={`${tdClass} font-medium`}>
                   {r.full_name}
@@ -256,7 +252,7 @@ export function MarkAttendanceForm({
                 </td>
                 {rates && (
                   <td className={tdClass}>
-                    <RatePill rate={rates[r.id]} />
+                    <RatePill lang={lang} rate={rates[r.id]} />
                   </td>
                 )}
                 <td className={tdClass}>
@@ -284,6 +280,7 @@ export function MarkAttendanceForm({
                     value={r.cause}
                     onChange={(e) => setRow(r.id, { cause: e.target.value })}
                     placeholder="—"
+                    aria-label={`${t('attendance.causeCol', lang)} — ${r.full_name}`}
                     className="w-full rounded-md border border-line bg-paper px-2 py-1 text-sm disabled:bg-paper-muted disabled:text-muted"
                   />
                 </td>
@@ -305,7 +302,7 @@ export function MarkAttendanceForm({
           {!error && dirty && <span className="font-semibold text-sun-deep">{t('attendance.unsaved', lang)}</span>}
           {!error && !dirty && saved && (
             <span className="text-muted">
-              {t('attendance.savedAt', lang)} {timeOf(saved.at)}
+              {t('attendance.savedAt', lang)} {formatTime(saved.at, lang)}
               {saved.name || saved.isSelf
                 ? ` · ${t('attendance.savedBy', lang)} ${saved.name ?? t('attendance.savedByYou', lang)}`
                 : ''}

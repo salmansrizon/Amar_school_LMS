@@ -12,6 +12,7 @@ import { RecordDrawer } from '@/components/data-table/record-drawer'
 import { ViewLink } from '@/components/data-table/view-link'
 import { paginate, pageSizeFrom } from '@/components/pager'
 import { filterButtonClass, inputClass } from '@/components/ui/field'
+import { pageTitle } from '@/lib/page-title'
 
 // Split off the Employees half of the old unified Leave Management page (map
 // #664). Employee search follows the same name-substring-over-the-full-roster
@@ -34,6 +35,8 @@ interface EmployeeLeaveRow {
   reason: string | null
   status: string
 }
+
+export const generateMetadata = pageTitle('attendance.employeeLeaveTitle')
 
 export default async function EmployeeLeaveManagementPage({
   searchParams,

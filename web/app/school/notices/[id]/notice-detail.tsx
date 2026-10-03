@@ -9,6 +9,7 @@ import {
   targetAudienceLabel,
 } from '@/lib/publishing'
 import { PublicationActions } from './detail-controls'
+import { formatDate } from '@/lib/i18n'
 
 // Shared detail body for notice/homework/lesson-plan/daily-lesson/exam-prep
 // rows (issue #37), rendered by the full page `[id]` and by the list's record
@@ -40,7 +41,6 @@ export const getNotice = cache(async (id: string) => {
 type Notice = NonNullable<Awaited<ReturnType<typeof getNotice>>>
 
 export function noticeMeta({ row, offering }: Notice, lang: Lang): string {
-  const locale = lang === 'bn' ? 'bn-BD' : 'en-GB'
   const target = targetAudienceLabel(
     {
       target_scope: row.target_scope,
@@ -53,7 +53,7 @@ export function noticeMeta({ row, offering }: Notice, lang: Lang): string {
     lang,
     offering,
   )
-  return `${target} · ${new Date(row.created_at).toLocaleDateString(locale)}`
+  return `${target} · ${formatDate(row.created_at, lang)}`
 }
 
 /** Badges, content, image, link, Edit and Delete. The caller renders the title. */

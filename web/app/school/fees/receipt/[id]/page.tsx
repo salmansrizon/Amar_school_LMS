@@ -1,13 +1,16 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { takaInWords } from '@/lib/amount-words'
-import { totalPayable, feeGlRefPattern, FEE_GL_ORDER_COLUMN } from '@/lib/fees'
+import { totalPayable, feePeriodLabel, feeGlRefPattern, FEE_GL_ORDER_COLUMN } from '@/lib/fees'
 import { currentLang } from '@/lib/i18n-server'
-import { t } from '@/lib/i18n'
+import { t, formatMoney, formatDate, localeOf } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { PrintButton } from './print-button'
 import { loadInstitutePrintHeader } from '@/lib/institute-print'
 import { InstituteHeader } from '@/components/print/pieces'
+import { pageTitle } from '@/lib/page-title'
+
+export const generateMetadata = pageTitle('fees.receipt')
 
 export default async function ReceiptPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -55,7 +58,7 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
   return (
     <main className="mx-auto w-full max-w-md flex-1 p-6">
       <div className="mb-4 flex items-center justify-between print:hidden">
-        <Link href="/school/fees" aria-label={t('fees.title', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
+        <Link href="/school/fees" aria-label={t('fees.title', lang)} className="inline-flex size-9 max-sm:size-11 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
         <PrintButton label={t('fees.print', lang)} />
       </div>
 
@@ -74,28 +77,28 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
           <div className="flex justify-between">
             <dt className="text-muted">{t('fees.month', lang)}</dt>
             <dd>
-              {record.month}/{record.year}
+              {feePeriodLabel(record.month, record.year, localeOf(lang))}
             </dd>
           </div>
           <div className="flex justify-between">
             <dt className="text-muted">{t('fees.receivedAmount', lang)}</dt>
-            <dd>৳{Number(record.pay_amount).toFixed(2)}</dd>
+            <dd>{formatMoney(Number(record.pay_amount), lang)}</dd>
           </div>
           <div className="flex justify-between">
             <dt className="text-muted">{t('fees.fine', lang)}</dt>
-            <dd>৳{Number(record.fine_amount).toFixed(2)}</dd>
+            <dd>{formatMoney(Number(record.fine_amount), lang)}</dd>
           </div>
           <div className="flex justify-between">
             <dt className="text-muted">{t('fees.adjust', lang)}</dt>
-            <dd>৳{Number(record.adjust_amount).toFixed(2)}</dd>
+            <dd>{formatMoney(Number(record.adjust_amount), lang)}</dd>
           </div>
           <div className="flex justify-between">
             <dt className="text-muted">{t('fees.due', lang)}</dt>
-            <dd>৳{Number(record.due_amount).toFixed(2)}</dd>
+            <dd>{formatMoney(Number(record.due_amount), lang)}</dd>
           </div>
           <div className="flex justify-between border-t border-line pt-2 font-bold">
             <dt>{t('fees.total', lang)}</dt>
-            <dd>৳{total.toFixed(2)}</dd>
+            <dd>{formatMoney(total, lang)}</dd>
           </div>
         </dl>
 
@@ -124,10 +127,10 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
                   <tr key={i}>
                     <td className="py-0.5">{l.account_code}</td>
                     <td className="py-0.5 text-right">
-                      {Number(l.debit) ? `${t('fees.ledgerDebit', lang)} ৳${(Number(l.debit) / 100).toFixed(2)}` : ''}
+                      {Number(l.debit) ? `${t('fees.ledgerDebit', lang)} ${formatMoney(Number(l.debit) / 100, lang)}` : ''}
                     </td>
                     <td className="py-0.5 text-right">
-                      {Number(l.credit) ? `${t('fees.ledgerCredit', lang)} ৳${(Number(l.credit) / 100).toFixed(2)}` : ''}
+                      {Number(l.credit) ? `${t('fees.ledgerCredit', lang)} ${formatMoney(Number(l.credit) / 100, lang)}` : ''}
                     </td>
                   </tr>
                 ))}
@@ -141,7 +144,7 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
 
         <footer className="mt-6 text-center text-xs text-muted">
           {t('fees.method', lang)}: {t(`fees.${record.payment_method}` as 'fees.cash', lang)} ·{' '}
-          {new Date(record.updated_at).toLocaleDateString('en-GB')}
+          {formatDate(record.updated_at, lang, 'form')}
         </footer>
       </section>
     </main>

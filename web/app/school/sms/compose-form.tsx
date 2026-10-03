@@ -4,7 +4,7 @@ import { useMemo, useState, useTransition } from 'react'
 import { labelClass } from '@/components/auth-card'
 import { Button, buttonClass } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/confirm-dialog'
-import { t, numberFmt, type Lang } from '@/lib/i18n'
+import { t, numberFmt, type Lang, formatNumber } from '@/lib/i18n'
 import { countSmsSegments } from '@/lib/sms/segments'
 import {
   classTargetFromInput,
@@ -351,13 +351,14 @@ export function ComposeForm({
         <h2 className="mb-3 text-lg font-bold">{t('sms.messageCard', lang)}</h2>
         <textarea
           rows={5}
+          aria-label={t('sms.messageCard', lang)}
           className="w-full rounded-lg border border-line-strong bg-paper p-3 text-sm outline-none transition focus:border-brand-500 focus-visible:ring-2 focus-visible:ring-brand-300"
           value={draft.body}
           onChange={(e) => update('body', e.target.value)}
         />
         <p className="mt-2 text-xs text-muted">
-          {segmentInfo.length}/{segmentInfo.encoding === 'gsm7' ? 160 : 70} {t('sms.characters', lang)} ·{' '}
-          {segmentInfo.segments} {t('sms.segments', lang)}
+          {formatNumber(segmentInfo.length, lang)}/{formatNumber(segmentInfo.encoding === 'gsm7' ? 160 : 70, lang)} {t('sms.characters', lang)} ·{' '}
+          {formatNumber(segmentInfo.segments, lang)} {t('sms.segments', lang)}
         </p>
         <p className="mt-1 text-xs text-muted">
           {t('sms.confirmCredits', lang)}: {fmt.format(creditsNeeded)} · {t('sms.balance', lang)}: {fmt.format(balance)}
@@ -377,7 +378,7 @@ export function ComposeForm({
             triggerLabel={t('sms.sendNow', lang)}
             triggerClassName={`${buttonClass({ variant: 'primary' })} ${actionBtn}`}
             triggerDisabled={pending || recipients.length === 0 || !draft.body.trim()}
-            confirmClassName="bg-brand-600"
+            confirmTone="brand"
             title={t('sms.confirmTitle', lang)}
             body={[
               `${t('sms.confirmRecipients', lang)}: ${fmt.format(recipients.length)}`,

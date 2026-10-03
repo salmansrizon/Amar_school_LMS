@@ -188,8 +188,8 @@ export function CreateNoticeForm({
           />
         </div>
         <div className="sm:col-span-2">
-          <label className={labelClass}>{t('notices.colTitle', lang)}</label>
-          <input
+          <label htmlFor="notice_f_1" className={labelClass}>{t('notices.colTitle', lang)}</label>
+          <input id="notice_f_1"
             className={inputClass}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
@@ -280,8 +280,8 @@ export function CreateNoticeForm({
           </div>
         )}
         <div className="sm:col-span-2">
-          <label className={labelClass}>{t('notices.content', lang)}</label>
-          <textarea
+          <label htmlFor="notice_f_2" className={labelClass}>{t('notices.content', lang)}</label>
+          <textarea id="notice_f_2"
             rows={5}
             className={textareaClass}
             value={content}
@@ -289,8 +289,8 @@ export function CreateNoticeForm({
           />
         </div>
         <div>
-          <label className={labelClass}>{t(initial?.hasImage ? 'notices.imageReplace' : 'notices.image', lang)}</label>
-          <input
+          <label htmlFor="notice_f_3" className={labelClass}>{t(initial?.hasImage ? 'notices.imageReplace' : 'notices.image', lang)}</label>
+          <input id="notice_f_3"
             type="file"
             accept="image/jpeg,image/png,image/webp"
             className="text-sm"
@@ -298,8 +298,8 @@ export function CreateNoticeForm({
           />
         </div>
         <div>
-          <label className={labelClass}>{t('notices.link', lang)}</label>
-          <input
+          <label htmlFor="notice_f_4" className={labelClass}>{t('notices.link', lang)}</label>
+          <input id="notice_f_4"
             className={inputClass}
             value={linkUrl}
             onChange={(e) => setLinkUrl(e.target.value)}

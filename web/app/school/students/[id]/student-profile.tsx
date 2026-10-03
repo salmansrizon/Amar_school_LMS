@@ -20,7 +20,7 @@ import {
   Users,
   VenusAndMars,
 } from 'lucide-react'
-import { t, type Lang, type MessageKey } from '@/lib/i18n'
+import { t, type Lang, type MessageKey, formatDate } from '@/lib/i18n'
 import { genderLabel, guardianRelationLabel, religionLabel } from '@/lib/students/stored-labels'
 import { getSchoolContext } from '@/lib/school/context'
 import { studentClassLabel } from '@/lib/students'
@@ -58,8 +58,7 @@ export async function StudentProfile({ id, lang }: { id: string; lang: Lang }) {
   ])
   if (!student) notFound()
 
-  const locale = lang === 'bn' ? 'bn-BD' : 'en-GB'
-  const dob = student.date_of_birth ? new Date(student.date_of_birth).toLocaleDateString(locale) : null
+  const dob = student.date_of_birth ? formatDate(student.date_of_birth, lang) : null
   const classSection = studentClassLabel(student.class_name, student.section)
   const flag = (on: boolean, onKey: MessageKey, offKey: MessageKey) => (
     <span

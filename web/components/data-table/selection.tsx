@@ -33,28 +33,34 @@ export function SelectionProvider({ ids, children }: { ids: string[]; children: 
 }
 
 const box = 'size-4 accent-brand-500'
+// A bare 16px checkbox is a 16px target. The label is the 44px hit area on a phone.
+const hit = 'inline-flex cursor-pointer items-center justify-center max-sm:size-11'
 
 export function SelectAll({ lang }: { lang: Lang }) {
   const { ids, selected, setAll } = useSelection()
   const all = ids.length > 0 && selected.size === ids.length
   return (
-    <input
-      type="checkbox"
-      className={box}
-      aria-label={t('table.selectAll', lang)}
-      checked={all}
-      ref={(el) => {
-        if (el) el.indeterminate = selected.size > 0 && !all
-      }}
-      onChange={(e) => setAll(e.target.checked)}
-    />
+    <label className={hit}>
+      <input
+        type="checkbox"
+        className={box}
+        aria-label={t('table.selectAll', lang)}
+        checked={all}
+        ref={(el) => {
+          if (el) el.indeterminate = selected.size > 0 && !all
+        }}
+        onChange={(e) => setAll(e.target.checked)}
+      />
+    </label>
   )
 }
 
 export function RowCheck({ id, label }: { id: string; label: string }) {
   const { selected, toggle } = useSelection()
   return (
-    <input type="checkbox" className={box} aria-label={label} checked={selected.has(id)} onChange={() => toggle(id)} />
+    <label className={hit}>
+      <input type="checkbox" className={box} aria-label={label} checked={selected.has(id)} onChange={() => toggle(id)} />
+    </label>
   )
 }
 

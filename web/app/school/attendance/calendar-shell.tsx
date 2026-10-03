@@ -15,7 +15,7 @@ import { WEEKDAY_SHORT, isWeekendColumn } from '@/lib/employee-attendance-calend
 // prop — these pages are Server Components, and a function can't cross to a
 // Client Component as a prop, only elements/children can.
 
-const navBtn = 'inline-flex size-9 items-center justify-center rounded-full text-muted hover:bg-paper-muted hover:text-ink'
+const navBtn = 'inline-flex size-9 max-sm:size-11 items-center justify-center rounded-full text-muted hover:bg-paper-muted hover:text-ink'
 
 export function CalendarToolbar({
   monthLabel,

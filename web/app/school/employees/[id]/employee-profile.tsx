@@ -15,7 +15,7 @@ import {
   ScanLine,
   User,
 } from 'lucide-react'
-import { t, type Lang } from '@/lib/i18n'
+import { t, type Lang, formatDate } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { isKnownAcademicShift, ACADEMIC_SHIFT_LABEL_KEY } from '@/lib/institute'
 import { employeeCategoryLabel } from '@/lib/employees'
@@ -47,11 +47,10 @@ export async function EmployeeProfile({ id, lang }: { id: string; lang: Lang }) 
   ])
   if (!employee) notFound()
 
-  const locale = lang === 'bn' ? 'bn-BD' : 'en-GB'
   const assignedShifts = new Set((shiftAssignments ?? []).map((a) => a.shift))
   const configuredShifts = rawConfiguredShifts.filter(isKnownAcademicShift)
-  const dob = employee.date_of_birth ? new Date(employee.date_of_birth).toLocaleDateString(locale) : null
-  const joiningDate = employee.joining_date ? new Date(employee.joining_date).toLocaleDateString(locale) : null
+  const dob = employee.date_of_birth ? formatDate(employee.date_of_birth, lang) : null
+  const joiningDate = employee.joining_date ? formatDate(employee.joining_date, lang) : null
 
   return (
     <div className="@container">

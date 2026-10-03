@@ -13,6 +13,7 @@ import { RecordDrawer } from '@/components/data-table/record-drawer'
 import { ViewLink } from '@/components/data-table/view-link'
 import { getStudent, StudentProfile } from '../[id]/student-profile'
 import { RestoreButton } from './restore-button'
+import { pageTitle } from '@/lib/page-title'
 
 // Old students (soft-archived) — DataTable + the same record drawer the active
 // directory uses (map 013, S1). Search and Restore are the only existing
@@ -20,6 +21,8 @@ import { RestoreButton } from './restore-button'
 // history/reports — restore just clears archived_at, same RPC as before.
 
 const PAGE_SIZE = 20
+
+export const generateMetadata = pageTitle('students.archiveTitle')
 
 export default async function StudentsArchivePage({
   searchParams,

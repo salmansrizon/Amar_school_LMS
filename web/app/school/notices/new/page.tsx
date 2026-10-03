@@ -5,11 +5,14 @@ import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { NoticeTabs } from '../notice-tabs'
 import { CreateNoticeForm } from './create-form'
+import { pageTitle } from '@/lib/page-title'
 
 // Layout per ui/school-owner/notice-create.html: Type/Importance/Title, a
 // Target Audience selector that reveals the Class-Catalogue-backed picker when
 // a non-"All" scope is chosen (map #598 Wave 6, #607 -- All / exact Class
 // Offering / broadcast), Content, and optional Image/Link.
+export const generateMetadata = pageTitle('notices.tabCreate')
+
 export default async function CreateNoticePage() {
   const lang: Lang = await currentLang()
   const { supabase, schoolId } = await getSchoolContext()

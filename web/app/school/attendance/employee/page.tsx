@@ -18,6 +18,7 @@ import { dateInputClass, filterButtonClass, inputClass } from '@/components/ui/f
 import { schoolCrumbs } from '@/lib/school-crumbs'
 import { PageHeader } from '@/components/ui/page'
 import { Pill } from '@/components/data-table/data-table'
+import { pageTitle } from '@/lib/page-title'
 
 // Layout per ui/school-owner/attendance-employee.html: search + date filter,
 // one row per employee with In/Out/Status/Applied-Grace, the 6-state status
@@ -51,6 +52,8 @@ function hhmm(iso: string | null): string {
   if (!iso) return '—'
   return new Date(iso).toISOString().slice(11, 16)
 }
+
+export const generateMetadata = pageTitle('attendance.employeeTitle')
 
 export default async function EmployeeAttendancePage({
   searchParams,

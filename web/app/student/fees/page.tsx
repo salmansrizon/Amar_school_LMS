@@ -3,7 +3,7 @@ import { t, numberFmt } from '@/lib/i18n'
 import { getStudentContext } from '@/lib/student/context'
 import { sortFees, totalFees, monthLabel, payableOf, type FeeRecord } from '@/lib/student/fees'
 import { PrintTrigger } from '@/components/print/print-trigger'
-import { pageTitle } from '@/lib/student/metadata'
+import { pageTitle } from '@/lib/page-title'
 
 // The Student's own fees (#453), bound by ADR 0015.
 //

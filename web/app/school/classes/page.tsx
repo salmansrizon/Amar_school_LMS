@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { BookOpen, CalendarClock, ClipboardList, GraduationCap, School, UserCog, UserX } from 'lucide-react'
 import { currentLang } from '@/lib/i18n-server'
-import { t, numberFmt, type Lang } from '@/lib/i18n'
+import { t, numberFmt, type Lang, formatNumber } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import {
   academicYearsOf,
@@ -43,6 +43,7 @@ import { CopySubjectsBar, type SubjectListRow } from './subject-list-table'
 import { stageSubjectCopy } from './actions'
 import { DrawerFooter, DrawerHeader } from '@/components/data-table/drawer-parts'
 import { ClassDrawerBody, classDrawerCancelHref } from './class-drawer'
+import { pageTitle } from '@/lib/page-title'
 
 // Class & Curriculum (map 013 A1, new_ui/03-academics/classes-curriculum),
 // laid out as the exam landing pattern: header + one-line warning banner +
@@ -65,6 +66,8 @@ const secondaryClass =
   'inline-flex h-11 items-center rounded-full border border-line-strong px-4 text-xs font-semibold hover:bg-paper-muted'
 
 type Tab = 'classes' | 'subjects'
+
+export const generateMetadata = pageTitle('classes.title')
 
 export default async function ClassesPage({
   searchParams,
@@ -312,7 +315,7 @@ export default async function ClassesPage({
       ? [{ key: 'shift', header: t('classes.shift', lang), cell: (c: ClassRow) => shiftLabel(c.shift) ?? dash }]
       : []),
     ...(showYearColumn
-      ? [{ key: 'year', header: t('classes.academicYear', lang), cell: (c: ClassRow) => c.academic_year ?? dash }]
+      ? [{ key: 'year', header: t('classes.academicYear', lang), cell: (c: ClassRow) => (c.academic_year != null ? formatNumber(c.academic_year, lang, { useGrouping: false }) : dash) }]
       : []),
     {
       key: 'teacher',
