@@ -377,7 +377,7 @@ export function ComposeForm({
             triggerLabel={t('sms.sendNow', lang)}
             triggerClassName={`${buttonClass({ variant: 'primary' })} ${actionBtn}`}
             triggerDisabled={pending || recipients.length === 0 || !draft.body.trim()}
-            confirmClassName="bg-brand-600"
+            confirmTone="brand"
             title={t('sms.confirmTitle', lang)}
             body={[
               `${t('sms.confirmRecipients', lang)}: ${fmt.format(recipients.length)}`,

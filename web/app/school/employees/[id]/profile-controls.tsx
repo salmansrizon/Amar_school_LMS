@@ -138,16 +138,6 @@ export function ArchiveToggle({
       triggerClassName={btnDanger}
       title={t('employees.archive', lang)}
       body={t('employees.archiveConfirm', lang)}
-      extra={
-        staffLoginId ? (
-          <p className="mb-4 rounded-md bg-sun-soft px-3 py-2 text-sm text-sun-deep">
-            {t('employees.archiveLoginWarning', lang)}{' '}
-            <Link href={`/school/staff/${staffLoginId}`} className="font-semibold underline">
-              {t('employees.archiveLoginLink', lang)}
-            </Link>
-          </p>
-        ) : null
-      }
       confirmLabel={t('employees.archive', lang)}
       cancelLabel={t('routine.cancel', lang)}
       onConfirm={async () => {
@@ -158,6 +148,15 @@ export function ArchiveToggle({
         }
         return res
       }}
-    />
+    >
+      {staffLoginId ? (
+        <p className="mb-4 rounded-md bg-sun-soft px-3 py-2 text-sm text-sun-deep">
+          {t('employees.archiveLoginWarning', lang)}{' '}
+          <Link href={`/school/staff/${staffLoginId}`} className="font-semibold underline">
+            {t('employees.archiveLoginLink', lang)}
+          </Link>
+        </p>
+      ) : null}
+    </ConfirmDialog>
   )
 }
