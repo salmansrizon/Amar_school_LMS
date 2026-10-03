@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
-import { t, type Lang } from '@/lib/i18n'
+import { t, formatMoney, type Lang } from '@/lib/i18n'
 import { billedFeeAmount, settleFee } from '@/lib/fees'
 import { saveFeeRecord, calculateAbsentFine } from './actions'
 import { SelectField } from '@/components/ui/select-field'
@@ -216,7 +216,7 @@ export function FeeForm({
         <label className={labelClass} htmlFor="total_payable">
           {t('fees.totalPayable', lang)}
         </label>
-        <input id="total_payable" type="text" disabled value={`৳${total.toFixed(2)}`} className={inputClass} />
+        <input id="total_payable" type="text" disabled value={formatMoney(total, lang)} className={inputClass} />
       </div>
       <div>
         <label className={labelClass} htmlFor="payment_method">
@@ -248,7 +248,7 @@ export function FeeForm({
         />
         {overpaid > 0 && (
           <p className="mt-1 text-xs font-semibold text-alert-deep">
-            {t('fees.overpayWarning', lang)}: ৳{overpaid.toFixed(2)}
+            {t('fees.overpayWarning', lang)}: {formatMoney(overpaid, lang)}
           </p>
         )}
       </div>
@@ -256,7 +256,7 @@ export function FeeForm({
         <label className={labelClass} htmlFor="due_amount">
           {t('fees.due', lang)}
         </label>
-        <input id="due_amount" type="text" disabled value={`৳${due.toFixed(2)}`} className={inputClass} />
+        <input id="due_amount" type="text" disabled value={formatMoney(due, lang)} className={inputClass} />
       </div>
       <div className="sm:col-span-4">
         <label className={labelClass} htmlFor="fee_note">
@@ -293,15 +293,15 @@ export function FeeForm({
             </div>
             <div className="flex justify-between">
               <dt className="text-muted">{t('fees.feeAmount', lang)}</dt>
-              <dd>৳{fee.toFixed(2)}</dd>
+              <dd>{formatMoney(fee, lang)}</dd>
             </div>
             <div className="flex justify-between">
               <dt className="text-muted">{t('fees.fine', lang)}</dt>
-              <dd>৳{fine.toFixed(2)}</dd>
+              <dd>{formatMoney(fine, lang)}</dd>
             </div>
             <div className="flex justify-between">
               <dt className="text-muted">{t('fees.adjust', lang)}</dt>
-              <dd>৳{adjust.toFixed(2)}</dd>
+              <dd>{formatMoney(adjust, lang)}</dd>
             </div>
             <div className="flex justify-between">
               <dt className="text-muted">{t('fees.method', lang)}</dt>
@@ -309,17 +309,17 @@ export function FeeForm({
             </div>
             <div className="flex justify-between border-t border-line pt-1 font-bold">
               <dt>{t('fees.receivedAmount', lang)}</dt>
-              <dd>৳{received.toFixed(2)}</dd>
+              <dd>{formatMoney(received, lang)}</dd>
             </div>
             <div className="flex justify-between">
               <dt className="text-muted">{t('fees.due', lang)}</dt>
-              <dd>৳{due.toFixed(2)}</dd>
+              <dd>{formatMoney(due, lang)}</dd>
             </div>
           </dl>
           {overpaid > 0 && (
             <div role="alert" className="mt-3 rounded-lg border border-alert/40 bg-alert-soft p-3 text-sm">
               <p className="font-bold text-alert-deep">
-                {t('fees.overpayWarning', lang)}: ৳{overpaid.toFixed(2)}
+                {t('fees.overpayWarning', lang)}: {formatMoney(overpaid, lang)}
               </p>
               <p className="mt-1 text-xs text-alert-deep">{t('fees.overpayHelp', lang)}</p>
               <label htmlFor="overpay_ack" className="mt-2 flex cursor-pointer items-center gap-2 font-semibold">

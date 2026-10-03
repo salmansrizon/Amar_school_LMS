@@ -2,7 +2,7 @@ import { PageHeader } from '@/components/ui/page'
 import { schoolCrumbs } from '@/lib/school-crumbs'
 import { getSchoolContext } from '@/lib/school/context'
 import { currentLang } from '@/lib/i18n-server'
-import { t } from '@/lib/i18n'
+import { t, formatNumber } from '@/lib/i18n'
 import { formatTaka } from '@/lib/money'
 import { listSmsPackages } from '@/lib/sms/commerce'
 import { BuyButton } from './buy-button'
@@ -35,10 +35,10 @@ export default async function BuySmsPage() {
           <section key={p.id} className="flex flex-col gap-2 rounded-lg border border-line bg-paper p-5">
             <div className="text-lg font-bold">{p.name.en ?? p.name.bn ?? 'SMS'}</div>
             <div className="text-2xl font-extrabold text-brand-700">
-              {p.segments.toLocaleString('en-US')}{' '}
+              {formatNumber(p.segments, lang)}{' '}
               <span className="text-sm font-medium text-muted">{t('sms.segments', lang)}</span>
             </div>
-            <div className="text-sm text-muted">{formatTaka(p.price)}</div>
+            <div className="text-sm text-muted">{formatTaka(p.price, lang)}</div>
             <div className="mt-auto">{role === 'school_owner' && <BuyButton packageId={p.id} lang={lang} />}</div>
           </section>
         ))}

@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
-import { t } from '@/lib/i18n'
+import { t, formatMoney } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 
 /** The vouchers-list.html "View" action target: a read-only detail of one
@@ -53,7 +53,7 @@ export default async function VoucherDetailPage({ params }: { params: Promise<{ 
           </div>
           <div className="flex justify-between border-t border-line pt-2 font-bold">
             <dt>{t('vouchers.amount', lang)}</dt>
-            <dd>৳{Number(voucher.amount).toLocaleString()}</dd>
+            <dd>{formatMoney(Number(voucher.amount), lang)}</dd>
           </div>
         </dl>
 

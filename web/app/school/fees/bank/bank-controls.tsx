@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
 import { insufficientBalance } from '@/lib/accounting'
-import { t, type Lang } from '@/lib/i18n'
+import { t, formatMoney, type Lang } from '@/lib/i18n'
 import { recordBankTransaction, saveBankAccount } from './actions'
 import { dateInputClass } from '@/components/ui/field'
 import { SelectField } from '@/components/ui/select-field'
@@ -120,7 +120,7 @@ export function TransactionForm({
         {accountName}
       </h3>
       <p className="mb-4 text-sm text-muted">
-        {t('bank.currentBalance', lang)}: ৳{balance.toLocaleString()}
+        {t('bank.currentBalance', lang)}: {formatMoney(balance, lang)}
       </p>
       <form
         className="grid gap-3 sm:grid-cols-2"

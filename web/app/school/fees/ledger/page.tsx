@@ -2,7 +2,7 @@ import Form from 'next/form'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
-import { t, type Lang } from '@/lib/i18n'
+import { t, formatMoney, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { buildGeneralLedger, type LedgerSource, type LedgerSourceRow } from '@/lib/accounting'
 import { PrintPage, InstituteHeader, PaginatedSheet, QrFooterRow } from '@/components/print/pieces'
@@ -230,9 +230,9 @@ export default async function GeneralLedgerPage({
                     </span>
                   </td>
                   <td className={tdClass}>{e.description}</td>
-                  <td className={tdClass}>{e.debit ? `৳${e.debit.toLocaleString()}` : '—'}</td>
-                  <td className={tdClass}>{e.credit ? `৳${e.credit.toLocaleString()}` : '—'}</td>
-                  <td className={`${tdClass} font-medium`}>৳{e.balance.toLocaleString()}</td>
+                  <td className={tdClass}>{e.debit ? formatMoney(e.debit, lang) : '—'}</td>
+                  <td className={tdClass}>{e.credit ? formatMoney(e.credit, lang) : '—'}</td>
+                  <td className={`${tdClass} font-medium`}>{formatMoney(e.balance, lang)}</td>
                 </tr>
               ))}
             </tbody>

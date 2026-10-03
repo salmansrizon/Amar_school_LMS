@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
 import { insufficientBalance } from '@/lib/accounting'
-import { t, type Lang } from '@/lib/i18n'
+import { t, formatMoney, type Lang } from '@/lib/i18n'
 import { recordDirectorCapitalTransaction } from './actions'
 import { dateInputClass } from '@/components/ui/field'
 
@@ -35,7 +35,7 @@ export function TransactionForm({
         {t(action === 'withdraw' ? 'directorCapital.withdrawTitle' : 'directorCapital.investTitle', lang)}
       </h3>
       <p className="mb-4 text-sm text-muted">
-        {t('directorCapital.currentBalance', lang)}: ৳{balance.toLocaleString()}
+        {t('directorCapital.currentBalance', lang)}: {formatMoney(balance, lang)}
       </p>
       <form
         className="grid gap-3 sm:grid-cols-2"

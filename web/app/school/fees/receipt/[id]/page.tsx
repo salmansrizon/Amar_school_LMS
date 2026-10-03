@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import { takaInWords } from '@/lib/amount-words'
 import { totalPayable, feeGlRefPattern, FEE_GL_ORDER_COLUMN } from '@/lib/fees'
 import { currentLang } from '@/lib/i18n-server'
-import { t } from '@/lib/i18n'
+import { t, formatMoney } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { PrintButton } from './print-button'
 import { loadInstitutePrintHeader } from '@/lib/institute-print'
@@ -79,23 +79,23 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
           </div>
           <div className="flex justify-between">
             <dt className="text-muted">{t('fees.receivedAmount', lang)}</dt>
-            <dd>৳{Number(record.pay_amount).toFixed(2)}</dd>
+            <dd>{formatMoney(Number(record.pay_amount), lang)}</dd>
           </div>
           <div className="flex justify-between">
             <dt className="text-muted">{t('fees.fine', lang)}</dt>
-            <dd>৳{Number(record.fine_amount).toFixed(2)}</dd>
+            <dd>{formatMoney(Number(record.fine_amount), lang)}</dd>
           </div>
           <div className="flex justify-between">
             <dt className="text-muted">{t('fees.adjust', lang)}</dt>
-            <dd>৳{Number(record.adjust_amount).toFixed(2)}</dd>
+            <dd>{formatMoney(Number(record.adjust_amount), lang)}</dd>
           </div>
           <div className="flex justify-between">
             <dt className="text-muted">{t('fees.due', lang)}</dt>
-            <dd>৳{Number(record.due_amount).toFixed(2)}</dd>
+            <dd>{formatMoney(Number(record.due_amount), lang)}</dd>
           </div>
           <div className="flex justify-between border-t border-line pt-2 font-bold">
             <dt>{t('fees.total', lang)}</dt>
-            <dd>৳{total.toFixed(2)}</dd>
+            <dd>{formatMoney(total, lang)}</dd>
           </div>
         </dl>
 
@@ -124,10 +124,10 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
                   <tr key={i}>
                     <td className="py-0.5">{l.account_code}</td>
                     <td className="py-0.5 text-right">
-                      {Number(l.debit) ? `${t('fees.ledgerDebit', lang)} ৳${(Number(l.debit) / 100).toFixed(2)}` : ''}
+                      {Number(l.debit) ? `${t('fees.ledgerDebit', lang)} ${formatMoney(Number(l.debit) / 100, lang)}` : ''}
                     </td>
                     <td className="py-0.5 text-right">
-                      {Number(l.credit) ? `${t('fees.ledgerCredit', lang)} ৳${(Number(l.credit) / 100).toFixed(2)}` : ''}
+                      {Number(l.credit) ? `${t('fees.ledgerCredit', lang)} ${formatMoney(Number(l.credit) / 100, lang)}` : ''}
                     </td>
                   </tr>
                 ))}
