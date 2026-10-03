@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 import { t, type Lang } from '@/lib/i18n'
 import { classCatalogueOptions, type ClassCatalogueRow } from '@/lib/class-catalogue'
 import { fieldClass, fieldLabelClass } from '../../new/admission-form'
@@ -52,6 +53,7 @@ export function TransferForm({
             setError(result.error)
             return
           }
+          toast.success(t('students.toastTransferred', lang))
           form.reset()
           setToOffering('')
           router.refresh()

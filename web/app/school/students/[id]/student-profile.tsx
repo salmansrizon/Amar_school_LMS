@@ -23,7 +23,7 @@ import {
 import { t, type Lang, type MessageKey } from '@/lib/i18n'
 import { genderLabel, guardianRelationLabel, religionLabel } from '@/lib/students/stored-labels'
 import { getSchoolContext } from '@/lib/school/context'
-import { classSectionLabel } from '@/lib/students'
+import { studentClassLabel } from '@/lib/students'
 import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
 import { applyGlobalYearFilterToOfferings } from '@/lib/school/year-filter'
 import { ProfileAside, ProfileField, ProfileSection } from '@/components/ui/profile'
@@ -60,7 +60,7 @@ export async function StudentProfile({ id, lang }: { id: string; lang: Lang }) {
 
   const locale = lang === 'bn' ? 'bn-BD' : 'en-GB'
   const dob = student.date_of_birth ? new Date(student.date_of_birth).toLocaleDateString(locale) : null
-  const classSection = classSectionLabel(student.class_name, student.section)
+  const classSection = studentClassLabel(student.class_name, student.section)
   const flag = (on: boolean, onKey: MessageKey, offKey: MessageKey) => (
     <span
       className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${

@@ -6,7 +6,7 @@ import { getSchoolContext } from '@/lib/school/context'
 import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
 import { applyGlobalYearFilterToOfferings } from '@/lib/school/year-filter'
 import { excludeArchivedOfferings } from '@/lib/school/archived-offerings-filter'
-import { classSectionLabel } from '@/lib/students'
+import { studentClassLabel } from '@/lib/students'
 import { classCatalogueLabel } from '@/lib/class-catalogue'
 import { firstRelation } from '@/lib/supabase/relation'
 import { TransferForm } from './transfer-form'
@@ -87,7 +87,7 @@ export default async function StudentTransferPage({
   history.reverse() // newest first, for display
 
   const locale = lang === 'bn' ? 'bn-BD' : 'en-GB'
-  const currentLabel = classSectionLabel(student.class_name, student.section)
+  const currentLabel = studentClassLabel(student.class_name, student.section)
   const headerBits = [
     student.roll_number !== null ? `${t('students.roll', lang)} ${student.roll_number}` : null,
     currentLabel,

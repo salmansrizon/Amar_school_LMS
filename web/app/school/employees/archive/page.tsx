@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
-import { matchesEmployeeQuery } from '@/lib/employees'
+import { employeeCategoryLabel, matchesEmployeeQuery } from '@/lib/employees'
 import { RestoreButton } from './restore-button'
 import { filterButtonClass, inputClass } from '@/components/ui/field'
 
@@ -75,7 +75,7 @@ export default async function EmployeesArchivePage({
                 {visible.map((e) => (
                   <tr key={e.id} className="border-b border-line">
                     <td className={`${tdClass} font-medium`}>{e.full_name}</td>
-                    <td className={tdClass}>{e.category ?? dash}</td>
+                    <td className={tdClass}>{e.category ? employeeCategoryLabel(e.category, lang) : dash}</td>
                     <td className={tdClass}>{e.department ?? dash}</td>
                     <td className={tdClass}>
                       {e.archived_at ? new Date(e.archived_at).toLocaleDateString(locale) : dash}

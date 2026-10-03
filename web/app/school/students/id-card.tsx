@@ -1,6 +1,7 @@
 import { t, type Lang } from '@/lib/i18n'
 import type { InstitutePrintHeader } from '@/lib/institute-print'
 import { firstRelation } from '@/lib/supabase/relation'
+import { studentClassLabel } from '@/lib/students'
 
 // One printable Student ID card (issue #46, PRD §5.1), shared by the single
 // card page and the directory's bulk print (map 013). ADR 0007: browser print.
@@ -58,7 +59,7 @@ export function StudentIdCard({
     </div>
     <div className="text-base font-extrabold">{student.full_name}</div>
     <div className="mb-3 text-xs text-muted">
-      {`${v(className)} ${section ?? ''}`.trim()}
+      {studentClassLabel(className, section) ?? dash}
     </div>
     <dl className="grid grid-cols-2 gap-y-1 text-left text-xs">
       <dt className="text-muted">{t('students.roll', lang)}</dt>

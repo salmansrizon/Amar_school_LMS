@@ -72,7 +72,12 @@ export default async function EmployeeDetailPage({
         ]
           .filter(Boolean)
           .join('   |   ')}
-        actions={<ArchiveToggle lang={lang} employeeId={id} archived={archived} />}
+        actions={<ArchiveToggle
+            lang={lang}
+            employeeId={id}
+            archived={archived}
+            staffLoginId={role === 'school_owner' ? employee.profile_id : null}
+          />}
       />
 
       {role === 'school_owner' && (

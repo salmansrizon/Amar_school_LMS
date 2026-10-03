@@ -28,11 +28,11 @@ export function ProfileHeader({
   return (
     <Card className="mb-4">
       <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="min-w-0">
-          <h1 className="truncate text-2xl font-extrabold">{name}</h1>
+        <div className="min-w-0 max-w-full">
+          <h1 className="break-words text-2xl font-extrabold">{name}</h1>
           <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-muted">
             {status}
-            {meta && <span className="truncate">{meta}</span>}
+            {meta && <span className="min-w-0 break-words">{meta}</span>}
           </div>
         </div>
         {actions && <div className="flex flex-wrap items-center justify-end gap-2">{actions}</div>}
@@ -131,7 +131,7 @@ export function ProfileField({
       )}
       <div className="min-w-0">
         <dt className="text-xs font-semibold text-muted">{label}</dt>
-        <dd className="truncate text-sm font-medium">{value ?? <span className="font-normal text-muted">—</span>}</dd>
+        <dd className="break-words text-sm font-medium">{value ?? <span className="font-normal text-muted">—</span>}</dd>
       </div>
     </div>
   )

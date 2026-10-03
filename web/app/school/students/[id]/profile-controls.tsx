@@ -2,6 +2,7 @@
 
 import { useRef, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 import { Camera, Pencil, RotateCcw, Trash2 } from 'lucide-react'
 import { t, type Lang } from '@/lib/i18n'
 import { ProfileFields, uploadStudentPhoto } from '../new/admission-form'
@@ -56,6 +57,7 @@ export function ProfileEditor({
 
   return (
     <form
+      noValidate // the server validates and answers in the UI language into the error line
       onSubmit={(e) => {
         e.preventDefault()
         const data = new FormData(e.currentTarget)
@@ -68,6 +70,7 @@ export function ProfileEditor({
             return
           }
           setEditing(false)
+          toast.success(t('students.toastSaved', lang))
           router.refresh()
         })
       }}
@@ -211,7 +214,10 @@ export function ArchiveToggle({
       cancelLabel={t('routine.cancel', lang)}
       onConfirm={async () => {
         const res = await archiveStudent(studentId)
-        if (!res.error) router.refresh()
+        if (!res.error) {
+          toast.success(t('students.toastArchived', lang))
+          router.push('/school/students/archive')
+        }
         return res
       }}
     />

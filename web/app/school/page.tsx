@@ -318,23 +318,29 @@ export default async function SchoolHome() {
       <AlertStrip title={t('dash.urgentTitle', lang)} alerts={alerts} />
 
       <StatGrid>
-        <StatCard
-          icon={<Icon name="students" className="size-5" />}
-          label={t('dash.totalStudents', lang)}
-          value={fmt(totalStudents)}
-          note={`+${fmt(newThisMonth ?? 0)} ${t('dash.newThisMonth', lang)}`}
-          noteTone="mint"
-          action={can('students') ? { href: '/school/students', label: t('dash.openList', lang) } : undefined}
-        />
-        <StatCard
-          icon={<Icon name="employees" className="size-5" />}
-          tone="sky"
-          label={t('dash.totalEmployees', lang)}
-          value={fmt(employeeCount ?? 0)}
-          note={t('dash.teachersStaff', lang)}
-          noteTone="muted"
-          action={can('employees') ? { href: '/school/employees', label: t('dash.staffDirectory', lang) } : undefined}
-        />
+        {/* Headcounts only for someone who can open the list behind them — a Staff
+            User with no grants must not read totals off the dashboard. */}
+        {can('students') && (
+          <StatCard
+            icon={<Icon name="students" className="size-5" />}
+            label={t('dash.totalStudents', lang)}
+            value={fmt(totalStudents)}
+            note={`+${fmt(newThisMonth ?? 0)} ${t('dash.newThisMonth', lang)}`}
+            noteTone="mint"
+            action={{ href: '/school/students', label: t('dash.openList', lang) }}
+          />
+        )}
+        {can('employees') && (
+          <StatCard
+            icon={<Icon name="employees" className="size-5" />}
+            tone="sky"
+            label={t('dash.totalEmployees', lang)}
+            value={fmt(employeeCount ?? 0)}
+            note={t('dash.teachersStaff', lang)}
+            noteTone="muted"
+            action={{ href: '/school/employees', label: t('dash.staffDirectory', lang) }}
+          />
+        )}
         <StatCard
           icon={<Icon name="attendance" className="size-5" />}
           tone={presentToday ? (attRate >= 85 ? 'mint' : 'alert') : 'muted'}

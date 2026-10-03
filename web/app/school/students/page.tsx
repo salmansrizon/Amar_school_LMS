@@ -6,7 +6,7 @@ import { canOpenScreen } from '@/lib/auth/screens'
 import { numberFmt } from '@/lib/i18n'
 import { loadDirectoryRows } from './directory-rows'
 import { classCatalogueLabel } from '@/lib/class-catalogue'
-import type { RosterStudent } from '@/lib/school/roster'
+import { isIncompleteProfile, type RosterStudent } from '@/lib/school/roster'
 import { schoolCrumbs } from '@/lib/school-crumbs'
 import { PageHeader } from '@/components/ui/page'
 import { EmptyState } from '@/components/ui/states'
@@ -64,10 +64,10 @@ const primaryClass =
 export default async function StudentsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; classSection?: string; fee?: string; admitted?: string; page?: string; size?: string; view?: string }>
+  searchParams: Promise<{ q?: string; classSection?: string; fee?: string; admitted?: string; incomplete?: string; page?: string; size?: string; view?: string }>
 }) {
   const params = await searchParams
-  const { q = '', classSection = '', fee, admitted, page, size, view } = params
+  const { q = '', classSection = '', fee, admitted, incomplete, page, size, view } = params
   const pageSize = pageSizeFrom(size, PAGE_SIZE)
   const lang: Lang = await currentLang()
   const { role, grants } = await getSchoolContext()
@@ -81,7 +81,7 @@ export default async function StudentsPage({
   // <form action> shape can't drive without a components/data-table change.
   const bulkActions: BulkAction[] = canSms ? [{ label: t('students.remind', lang), action: bulkRemindStudents }] : []
   const [{ roster, fees, rows, showYear, admittedThisMonth }, viewed, studentDrawerData] = await Promise.all([
-    loadDirectoryRows({ q, classSection, fee, admitted }),
+    loadDirectoryRows({ q, classSection, fee, admitted, incomplete }),
     view ? getStudent(view) : Promise.resolve(null),
     view ? loadStudentDrawerData(view) : Promise.resolve(null),
   ])
@@ -95,9 +95,7 @@ export default async function StudentsPage({
   const totalDueAmt = dueList.reduce((sum, s) => sum + (fees.get(s.id)?.due ?? 0), 0)
   const newThisMonthList = roster.readable.filter(admittedThisMonth)
   const newThisMonth = newThisMonthList.length
-  // "Complete" means a guardian's mobile is on file — the one contact field
-  // every downstream feature (Remind, SMS, ID card) actually depends on.
-  const incompleteProfiles = newThisMonthList.filter((s) => !s.guardian_mobile)
+  const incompleteProfiles = newThisMonthList.filter(isIncompleteProfile)
 
   const columns: Column<RosterStudent>[] = [
     {
@@ -273,7 +271,15 @@ export default async function StudentsPage({
             newThisMonth ? `${n(incompleteProfiles.length)} ${t('students.incompleteProfilesNote', lang)}` : undefined
           }
           noteTone={incompleteProfiles.length ? 'alert' : 'muted'}
-          action={newThisMonth ? { href: withParams({}, { admitted: 'month' }), label: t('students.statView', lang) } : undefined}
+          action={
+            newThisMonth
+              ? {
+                  // The note counts incomplete profiles, so "View" opens exactly those.
+                  href: withParams({}, incompleteProfiles.length ? { incomplete: '1' } : { admitted: 'month' }),
+                  label: t('students.statView', lang),
+                }
+              : undefined
+          }
         />
       </StatGrid>
 
@@ -300,6 +306,7 @@ export default async function StudentsPage({
           { param: 'fee', value: 'due', label: `${t('students.chipFeeDue', lang)} (${n(dueList.length)})` },
           { param: 'fee', value: 'partial', label: `${t('students.chipFeePartial', lang)} (${n(partialList.length)})` },
           { param: 'admitted', value: 'month', label: `${t('students.chipNewThisMonth', lang)} (${n(newThisMonth)})` },
+          { param: 'incomplete', value: '1', label: `${t('students.incompleteFilter', lang)} (${n(incompleteProfiles.length)})` },
         ]}
         rowActions={(s) => {
           const dueOrPartial = fees.get(s.id)?.standing === 'due' || fees.get(s.id)?.standing === 'partial'

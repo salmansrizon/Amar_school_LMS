@@ -6,7 +6,7 @@ import { BEHAVIOUR_TRIAGE_FLAG, triageView, type BehaviourTriage } from '@/lib/b
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
-import { classSectionLabel } from '@/lib/students'
+import { studentClassLabel } from '@/lib/students'
 import { schoolCrumbs } from '@/lib/school-crumbs'
 import { Crumbs } from '@/components/ui/page'
 import { ProfileHeader } from '@/components/ui/profile'
@@ -90,7 +90,7 @@ export default async function StudentDetailPage({
     ((triageRows ?? []) as (BehaviourTriage & { entry_id: string })[]).map((r) => [r.entry_id, r]),
   )
   const archived = student.archived_at !== null
-  const classSection = classSectionLabel(student.class_name, student.section)
+  const classSection = studentClassLabel(student.class_name, student.section)
   return (
     <div>
       <Crumbs {...schoolCrumbs(

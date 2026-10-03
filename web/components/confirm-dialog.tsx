@@ -12,6 +12,7 @@ export function ConfirmDialog({
   triggerClassName,
   title,
   body,
+  extra,
   confirmLabel,
   cancelLabel,
   onConfirm,
@@ -20,6 +21,8 @@ export function ConfirmDialog({
   triggerClassName: string
   title: string
   body?: string
+  /** Extra content under the body, e.g. a warning with a link. */
+  extra?: React.ReactNode
   confirmLabel: string
   cancelLabel: string
   onConfirm: () => Promise<{ error?: string } | void>
@@ -42,6 +45,7 @@ export function ConfirmDialog({
           <div className="w-full max-w-md rounded-lg border border-line bg-paper p-6 shadow-card">
             <h3 className="mb-3 text-lg font-bold">{title}</h3>
             {body && <p className="mb-4 text-sm text-muted">{body}</p>}
+            {extra}
             {error && <p className="mb-3 text-sm text-alert-deep">{error}</p>}
             <div className="flex justify-between gap-2">
               <button

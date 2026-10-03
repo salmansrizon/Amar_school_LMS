@@ -7,6 +7,7 @@ import { getSchoolContext } from '@/lib/school/context'
 import { PrintPage, InstituteHeader, InfoGrid, SignatureRow, QrFooterRow } from '@/components/print/pieces'
 import { PrintButton } from '@/components/print/print-button'
 import { loadInstitutePrintHeader } from '@/lib/institute-print'
+import { studentClassLabel } from '@/lib/students'
 
 // Printable admission form (issue #46, PRD §5.1: "Printable admission/ID
 // templates"). ADR 0007: browser-native print, composed from the shared
@@ -47,7 +48,7 @@ export default async function AdmissionPrintPage({ params }: { params: Promise<{
         <InfoGrid
           rows={[
             { label: t('students.name', lang), value: student.full_name },
-            { label: t('classes.class', lang), value: `${v(student.class_name)} ${student.section ?? ''}`.trim() },
+            { label: t('classes.class', lang), value: studentClassLabel(student.class_name, student.section) ?? dash },
             { label: t('students.roll', lang), value: v(student.roll_number) },
             { label: t('students.gender', lang), value: v(genderLabel(student.gender, lang)) },
             { label: t('students.dob', lang), value: v(student.date_of_birth) },
