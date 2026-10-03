@@ -359,6 +359,14 @@ export function AppShell({
 
   return (
     <div className="relative flex h-dvh overflow-hidden print:block print:h-auto print:overflow-visible">
+      {/* First focusable element on the page (before the sidebar), so a keyboard
+          user can jump past the whole nav. Visible only when focused. */}
+      <a
+        href="#app-content"
+        className={`sr-only z-30 focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:rounded-full focus:bg-brand-600 focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-white ${FOCUS_RING}`}
+      >
+        {t('shell.skipToContent', lang)}
+      </a>
       <aside
         className={`hidden h-full shrink-0 flex-col border-r border-line/70 bg-paper py-5 transition-[width] print:hidden lg:flex ${
           collapsed ? 'w-20 px-2' : 'w-64 px-4'
@@ -407,14 +415,6 @@ export function AppShell({
       )}
 
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden print:block print:overflow-visible">
-        {/* Keyboard users landed in a 12-item sidebar on every navigation with
-            no way past it. Visible only when focused. */}
-        <a
-          href="#app-content"
-          className={`sr-only z-30 focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:rounded-full focus:bg-brand-600 focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-white ${FOCUS_RING}`}
-        >
-          {t('shell.skipToContent', lang)}
-        </a>
         <header className="z-20 shrink-0 border-b border-line/70 bg-paper/90 px-4 py-3 backdrop-blur print:hidden">
           <div className="flex items-center gap-3">
             <button
