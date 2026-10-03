@@ -7,7 +7,52 @@
 
 import { monthGrid, type OffDay, type CalendarCell } from './attendance-manual'
 import { attendanceRate, attendanceBand, type AttendanceBand } from './dashboard'
-import type { Lang } from './i18n'
+import { numberFmt, type Lang } from './i18n'
+
+/** A day's digits in the reader's own script (৫ for bn, 5 for en) — one place
+ *  so every calendar's date numbers and counts agree, reusing the app's own
+ *  numberFmt (lib/i18n.ts) rather than a hand-rolled digit map. */
+export function localizeNumber(n: number, lang: Lang): string {
+  return numberFmt(lang).format(n)
+}
+
+/** Which of the 7 grid columns (0=Sun..6=Sat, monthGrid's own week start) is a
+ *  School's configured Weekly Off-Day — the soft column tint is independent
+ *  of any one day's `isOff` (which also fires for a one-off off_days row on a
+ *  working weekday), so it needs the column index, not a cell flag. */
+export function isWeekendColumn(columnIndex: number, weeklyOffDays: readonly number[]): boolean {
+  return weeklyOffDays.includes(columnIndex % 7)
+}
+
+/** Pads a monthGrid()-shaped grid to whole weeks and fills the leading and
+ *  trailing blank cells with the adjacent month's day numbers (iso stays
+ *  null, so callers keep telling a real day from a muted one by `iso`) —
+ *  turning monthGrid's ragged last row into the familiar full rectangle a
+ *  month calendar reads as. `blank` supplies the extra fields a specific
+ *  calendar's cell type carries beyond CalendarCell (e.g. status/entry/exit),
+ *  the same values each builder already uses for its own leading blanks. */
+export function withAdjacentMonthDays<T extends CalendarCell>(
+  cells: T[],
+  year: number,
+  month0: number,
+  blank: () => Omit<T, keyof CalendarCell>,
+): T[] {
+  const leadingCount = Math.max(cells.findIndex((c) => c.iso !== null), 0)
+  const daysInPrevMonth = new Date(Date.UTC(year, month0, 0)).getUTCDate()
+  const withLeading = cells.map((c, i) =>
+    i < leadingCount ? { ...c, day: daysInPrevMonth - leadingCount + 1 + i } : c,
+  )
+  const trailingCount = (7 - (withLeading.length % 7)) % 7
+  const trailing: T[] = Array.from({ length: trailingCount }, (_, i) => ({
+    day: i + 1,
+    iso: null,
+    isOff: false,
+    isSignificant: false,
+    label: null,
+    ...blank(),
+  })) as T[]
+  return [...withLeading, ...trailing]
+}
 
 /** Sun-first short weekday labels, matching monthGrid's own week start and
  *  off-days/page.tsx's existing WEEKDAY_LABELS convention. Shared by the two
@@ -31,6 +76,19 @@ export function formatMonthYear(year: number, month0: number, lang: Lang): strin
     year: 'numeric',
     timeZone: 'UTC',
   }).format(new Date(Date.UTC(year, month0, 1)))
+}
+
+/** One day as the reader says it ("৬ অক্টোবর, ২০২৬" / "October 6, 2026") —
+ *  for a day cell's accessible name and its popover title, where a bare
+ *  "2026-10-06" read out Latin digits in Bangla. Same Intl setup as
+ *  formatMonthYear, so the two never disagree on locale or script. */
+export function formatDayLong(iso: string, lang: Lang): string {
+  return new Intl.DateTimeFormat(lang === 'bn' ? 'bn-BD' : 'en-US', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }).format(new Date(`${iso}T00:00:00Z`))
 }
 
 /** "YYYY-MM" shifted by whole months, wrapping the year — the one place
@@ -97,7 +155,7 @@ export function buildEmployeeMonthCalendar(args: {
 }): EmployeeCalendarCell[] {
   const grid = monthGrid(args.year, args.month0, args.offDays, args.weeklyOffDays)
   const recordByDay = new Map(args.records.map((r) => [r.att_date, r]))
-  return grid.map((cell) => {
+  const cells = grid.map((cell) => {
     if (!cell.iso) return { ...cell, status: null, entry: null, exit: null }
     const record = recordByDay.get(cell.iso)
     const onLeave = args.approvedLeaves.some((l) => l.from_day <= cell.iso! && l.to_day >= cell.iso!)
@@ -110,6 +168,7 @@ export function buildEmployeeMonthCalendar(args: {
     })
     return { ...cell, status, entry: record?.entry_at ?? null, exit: record?.exit_at ?? null }
   })
+  return withAdjacentMonthDays(cells, args.year, args.month0, () => ({ status: null, entry: null, exit: null }))
 }
 
 export interface EmployeeMonthSummary {
@@ -167,7 +226,7 @@ export function buildLeaveCalendarMonth(args: {
 }): LeaveCalendarDayCell[] {
   const grid = monthGrid(args.year, args.month0, args.offDays, args.weeklyOffDays)
   const offDayIsos = new Set(args.offDays.map((o) => o.day))
-  return grid.map((cell) => {
+  const cells = grid.map((cell) => {
     if (!cell.iso) return { ...cell, approved: [], pending: [], hasOffDayRow: false }
     const onDay = args.leaves.filter((l) => l.from_day <= cell.iso! && l.to_day >= cell.iso!)
     return {
@@ -177,6 +236,7 @@ export function buildLeaveCalendarMonth(args: {
       hasOffDayRow: offDayIsos.has(cell.iso),
     }
   })
+  return withAdjacentMonthDays(cells, args.year, args.month0, () => ({ approved: [], pending: [], hasOffDayRow: false }))
 }
 
 // ---------------------------------------------------------------------------
@@ -219,7 +279,7 @@ export function buildSchoolAttendanceMonth(args: {
     recordsByDay.get(r.att_date)!.set(r.person_id, r.entry_at)
   }
 
-  return grid.map((cell) => {
+  const cells = grid.map((cell) => {
     if (!cell.iso) return { ...cell, isFuture: false, presentCount: 0, totalCount: 0, rate: null, employees: [] }
     const iso = cell.iso
     const dayRecords = recordsByDay.get(iso)
@@ -235,4 +295,11 @@ export function buildSchoolAttendanceMonth(args: {
     const rate = !isFuture && !cell.isOff && totalCount > 0 ? attendanceRate(presentCount, totalCount) : null
     return { ...cell, isFuture, presentCount, totalCount, rate, employees }
   })
+  return withAdjacentMonthDays(cells, args.year, args.month0, () => ({
+    isFuture: false,
+    presentCount: 0,
+    totalCount: 0,
+    rate: null,
+    employees: [],
+  }))
 }

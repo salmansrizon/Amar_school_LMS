@@ -8,7 +8,12 @@ import {
   shiftYearMonth,
   parseMonthParam,
   formatMonthYear,
+  withAdjacentMonthDays,
+  isWeekendColumn,
+  localizeNumber,
+  formatDayLong,
 } from '@/lib/employee-attendance-calendar'
+import type { CalendarCell } from '@/lib/attendance-manual'
 
 const NO_WEEKLY_OFF: number[] = []
 
@@ -200,5 +205,94 @@ describe('parseMonthParam', () => {
 describe('formatMonthYear', () => {
   it('renders an English month/year label', () => {
     expect(formatMonthYear(2026, 8, 'en')).toBe('September 2026')
+  })
+})
+
+describe('withAdjacentMonthDays', () => {
+  function cell(day: number | null, iso: string | null): CalendarCell {
+    return { day, iso, isOff: false, isSignificant: false, label: null }
+  }
+
+  it('fills leading blanks with the previous month\'s trailing day numbers', () => {
+    // 3 leading blanks + 7 real days (Sep 1..7) — daysInPrevMonth(Sep) = Aug 31.
+    const cells: CalendarCell[] = [
+      cell(null, null),
+      cell(null, null),
+      cell(null, null),
+      ...[1, 2, 3, 4, 5, 6, 7].map((d) => cell(d, `2026-09-0${d}`)),
+    ]
+    const result = withAdjacentMonthDays(cells, 2026, 8, () => ({}))
+    expect(result[0]).toMatchObject({ day: 29, iso: null })
+    expect(result[1]).toMatchObject({ day: 30, iso: null })
+    expect(result[2]).toMatchObject({ day: 31, iso: null })
+    expect(result[3]).toMatchObject({ day: 1, iso: '2026-09-01' })
+  })
+
+  it('pads the ragged last row out to a full week with the next month\'s leading days', () => {
+    const cells: CalendarCell[] = [
+      cell(null, null),
+      cell(null, null),
+      cell(null, null),
+      ...[1, 2, 3, 4, 5, 6, 7].map((d) => cell(d, `2026-09-0${d}`)),
+    ]
+    const result = withAdjacentMonthDays(cells, 2026, 8, () => ({}))
+    // 10 cells in, padded up to the next multiple of 7 -> 14.
+    expect(result).toHaveLength(14)
+    const trailing = result.slice(10)
+    expect(trailing.map((c) => c.day)).toEqual([1, 2, 3, 4])
+    expect(trailing.every((c) => c.iso === null)).toBe(true)
+  })
+
+  it('leaves an already week-aligned grid untouched', () => {
+    const cells: CalendarCell[] = [1, 2, 3, 4, 5, 6, 7].map((d) => cell(d, `2026-09-0${d}`))
+    const result = withAdjacentMonthDays(cells, 2026, 8, () => ({}))
+    expect(result).toHaveLength(7)
+    expect(result[0]).toMatchObject({ day: 1, iso: '2026-09-01' })
+  })
+
+  it('merges the blank() extra fields onto trailing cells', () => {
+    // Mirrors buildEmployeeMonthCalendar's own blank() — a cell type with
+    // fields beyond CalendarCell, filled in on the padding cells too.
+    interface TaggedCell extends CalendarCell {
+      tag: string | null
+    }
+    const cells: TaggedCell[] = [{ ...cell(1, '2026-09-01'), tag: 'present' }]
+    const result = withAdjacentMonthDays<TaggedCell>(cells, 2026, 8, () => ({ tag: null }))
+    expect(result).toHaveLength(7)
+    expect(result[1]).toMatchObject({ iso: null, tag: null })
+  })
+})
+
+describe('isWeekendColumn', () => {
+  it('matches a column index against the weekly off-days list', () => {
+    expect(isWeekendColumn(5, [5])).toBe(true)
+    expect(isWeekendColumn(0, [5])).toBe(false)
+  })
+  it('wraps the column index mod 7', () => {
+    expect(isWeekendColumn(12, [5])).toBe(true) // 12 % 7 = 5
+  })
+  it('is false when the school has no weekly off-day configured', () => {
+    expect(isWeekendColumn(0, [])).toBe(false)
+  })
+})
+
+describe('localizeNumber', () => {
+  it('renders Bangla digits for lang=bn', () => {
+    expect(localizeNumber(29, 'bn')).toBe('২৯')
+  })
+  it('renders Arabic digits for lang=en', () => {
+    expect(localizeNumber(29, 'en')).toBe('29')
+  })
+})
+
+describe('formatDayLong', () => {
+  it('spells the day out in English', () => {
+    expect(formatDayLong('2026-10-06', 'en')).toBe('October 6, 2026')
+  })
+  it('uses Bangla digits and month names for lang=bn', () => {
+    const s = formatDayLong('2026-10-06', 'bn')
+    expect(s).toContain('অক্টোবর')
+    expect(s).toContain('২০২৬')
+    expect(s).not.toMatch(/[0-9]/)
   })
 })

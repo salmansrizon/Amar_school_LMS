@@ -1,5 +1,5 @@
-import Link from 'next/link'
 import Form from 'next/form'
+import { CalendarDays, List } from 'lucide-react'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
@@ -7,9 +7,11 @@ import { effectiveGraceWithSource, type GraceSource } from '@/lib/grace'
 import { resolveEmployeeDisplayStatus, type EmployeeDisplayStatus } from '@/lib/attendance'
 import { schoolToday } from '@/lib/school-time'
 import { selectAllRows } from '@/lib/supabase/select-all'
-import { parseMonthParam, shiftYearMonth, formatMonthYear, buildSchoolAttendanceMonth } from '@/lib/employee-attendance-calendar'
+import { parseMonthParam, shiftYearMonth, formatMonthYear, buildSchoolAttendanceMonth, isWeekendColumn } from '@/lib/employee-attendance-calendar'
 import { AttendanceTabs } from '../attendance-tabs'
-import { EmployeeAttendanceCalendar } from './attendance-calendar'
+import { CalendarToolbar, MonthGridFrame } from '../calendar-shell'
+import { EmployeeAttendanceDayCell } from './attendance-calendar'
+import { SegmentedControl } from '@/components/ui/segmented-control'
 import { dateInputClass } from '@/components/ui/field'
 import { schoolCrumbs } from '@/lib/school-crumbs'
 import { PageHeader } from '@/components/ui/page'
@@ -203,6 +205,7 @@ export default async function EmployeeAttendancePage({
   }
   const calendarHref = calQuery({ view: undefined })
   const tableHref = calQuery({ view: 'table' })
+  const monthLabel = formatMonthYear(calYear, calMonth0, lang)
 
   return (
     <div>
@@ -211,43 +214,67 @@ export default async function EmployeeAttendancePage({
         crumbs={schoolCrumbs('/school/attendance', lang, { label: t('attendance.title', lang), href: '/school/attendance' }, { label: t('attendance.employeeTitle', lang) })}
       />
 
-      <AttendanceTabs active="/school/attendance/employee" lang={lang} />
-
-      {/* Plain nav links, not an ARIA tablist — same convention as
-          AttendanceTabs above: each "tab" is its own URL, not a JS-managed
-          tabpanel switch. */}
-      <div className="mb-grid flex gap-1 border-b border-line">
-        <Link
-          href={calendarHref}
-          aria-current={!isTableView ? 'page' : undefined}
-          className={`rounded-t-md px-3 py-2 text-sm font-semibold ${!isTableView ? 'border-b-2 border-brand-500 text-brand-600' : 'text-muted hover:text-ink'}`}
-        >
-          {t('attendance.viewCalendar', lang)}
-        </Link>
-        <Link
-          href={tableHref}
-          aria-current={isTableView ? 'page' : undefined}
-          className={`rounded-t-md px-3 py-2 text-sm font-semibold ${isTableView ? 'border-b-2 border-brand-500 text-brand-600' : 'text-muted hover:text-ink'}`}
-        >
-          {t('attendance.viewTable', lang)}
-        </Link>
-      </div>
+      <AttendanceTabs
+        active="/school/attendance/employee"
+        lang={lang}
+        extra={
+          <div className="flex flex-wrap items-center gap-2">
+            {!isTableView && (
+              <CalendarToolbar
+                monthLabel={monthLabel}
+                prevHref={calQuery({ month: shiftYearMonth(calPrefix, -1) })}
+                nextHref={calQuery({ month: shiftYearMonth(calPrefix, 1) })}
+                todayHref={calQuery({ month: undefined })}
+                lang={lang}
+              />
+            )}
+            <SegmentedControl
+              ariaLabel={t('attendance.viewSwitchLabel', lang)}
+              active={isTableView ? tableHref : calendarHref}
+              items={[
+                { href: calendarHref, label: t('attendance.viewCalendar', lang), icon: <CalendarDays className="size-4" />, iconOnlyOnMobile: true },
+                { href: tableHref, label: t('attendance.viewTable', lang), icon: <List className="size-4" />, iconOnlyOnMobile: true },
+              ]}
+            />
+          </div>
+        }
+      />
 
       {!isTableView && (
         <section className="mb-4 rounded-2xl border border-line bg-paper p-card">
-          <EmployeeAttendanceCalendar
-            cells={calendarCells}
-            monthLabel={formatMonthYear(calYear, calMonth0, lang)}
-            prevHref={calQuery({ month: shiftYearMonth(calPrefix, -1) })}
-            nextHref={calQuery({ month: shiftYearMonth(calPrefix, 1) })}
-            lang={lang}
-          />
+          <MonthGridFrame monthLabel={monthLabel} lang={lang} weeklyOffDays={weeklyOffDays}>
+            {calendarCells.map((cell, i) => (
+              <EmployeeAttendanceDayCell
+                key={cell.iso ?? `pad-${i}`}
+                cell={cell}
+                lang={lang}
+                isToday={cell.iso === today}
+                isWeekend={isWeekendColumn(i, weeklyOffDays)}
+              />
+            ))}
+          </MonthGridFrame>
+          <div className="mt-4 flex flex-wrap items-center gap-4 text-xs">
+            <span className="flex items-center gap-1.5">
+              <span className="h-3 w-3 rounded-full bg-mint-soft" /> {t('attendance.regular', lang)}
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="h-3 w-3 rounded-full bg-sun-soft" /> {t('attendance.irregular', lang)}
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="h-3 w-3 rounded-full bg-alert-soft" /> {t('attendance.atRisk', lang)}
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="h-3 w-3 rounded-full bg-paper-muted" /> {t('status.holiday', lang)} / {t('attendance.calendarUpcoming', lang)}
+            </span>
+          </div>
         </section>
       )}
 
       {isTableView && (
       <>
       <Form className="mb-4 flex flex-wrap items-center gap-2" action="/school/attendance/employee">
+        {/* Without it, Filter drops ?view and lands back on the Calendar view. */}
+        <input type="hidden" name="view" value="table" />
         <input
           name="q"
           defaultValue={q}

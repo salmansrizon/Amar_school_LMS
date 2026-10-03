@@ -66,13 +66,13 @@ test.describe('@crud @school attendance-calendars', () => {
     // Popover.Trigger — off-day/future cells are plain <div>s with no %.
     const dayWithRate = page.locator('button[aria-label*="%"]').first()
     await expect(dayWithRate).toBeVisible()
-    const targetIso = (await dayWithRate.getAttribute('aria-label'))!.split(',')[0]
+    const targetIso = (await dayWithRate.getAttribute('data-iso'))!
     await dayWithRate.click()
 
-    // The popup (a <div>) carries the same date as its own accessible name —
-    // `div[...]` rather than a bare attribute selector, so it can't also
-    // match the <button> trigger, which shares that aria-label for a bare day.
-    const popover = page.locator(`div[aria-label="${targetIso}"]`)
+    // Trigger and popup both carry the raw date as data-iso (their aria-labels
+    // are the spoken, localized date) — `div[...]` so it can't also match the
+    // <button> trigger.
+    const popover = page.locator(`div[data-iso="${targetIso}"]`)
     await expect(popover.getByText(DAY_STATUS_TITLE)).toBeVisible()
     // At least one employee row under the heading (the fixture school has a
     // seeded roster) — each row is `<name> — <status>`.
@@ -91,15 +91,14 @@ test.describe('@crud @school attendance-calendars', () => {
       // button (asserted next) exist at all.
       await expect(page.getByRole('grid').first()).toBeVisible()
 
-      const dayButton = page.locator(`button[aria-label^="${targetIso}"]`)
+      const dayButton = page.locator(`button[data-iso="${targetIso}"]`)
       await expect(dayButton).toBeVisible()
       await dayButton.click()
 
-      // The popup (a <div>) carries the same date as its own accessible name —
-      // `div[...]` rather than a bare attribute selector, so it can't also
-      // match the <button> trigger (same aria-label for a bare day) or the
+      // Popup found by its data-iso — `div[...]` so it can't also match the
+      // <button> trigger (same data-iso), and scoped so it can't match the
       // page's always-visible top form, which shares this heading's text.
-      const popover = page.locator(`div[aria-label="${targetIso}"]`)
+      const popover = page.locator(`div[data-iso="${targetIso}"]`)
       await expect(popover.getByText(ADD_TITLE)).toBeVisible()
       await popover.getByLabel(LABEL_FIELD).fill(label)
       await popover.getByRole('button', { name: ADD_SUBMIT }).click()

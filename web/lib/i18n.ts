@@ -2686,6 +2686,13 @@ const dict = {
   'attendance.viewCalendar': { bn: 'ক্যালেন্ডার', en: 'Calendar' },
   'attendance.viewList': { bn: 'তালিকা', en: 'List' },
   'attendance.viewTable': { bn: 'টেবিল', en: 'Table' },
+  // One combined calendar toolbar (nav/calendar-polish): the Today shortcut,
+  // the view-switch's own accessible group name, the sub-nav segmented
+  // control's group name, and the leave calendar's "+N more" chip overflow.
+  'attendance.calendarToday': { bn: 'আজ', en: 'Today' },
+  'attendance.viewSwitchLabel': { bn: 'দৃশ্য নির্বাচন', en: 'View switch' },
+  'attendance.subNavLabel': { bn: 'উপ-নেভিগেশন', en: 'Sub navigation' },
+  'attendance.moreCount': { bn: '+{n} আরও', en: '+{n} more' },
   'attendance.offDayRemoveTitle': { bn: 'ছুটির দিন সরান', en: 'Remove this off-day' },
   'attendance.dayStatusTitle': { bn: 'কর্মচারীদের অবস্থা', en: 'Employee status' },
   // Attendance Rate band names (CONTEXT.md: >=90 Regular, 75-89 Irregular, <75
