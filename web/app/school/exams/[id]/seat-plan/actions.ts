@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { examClassDenied } from '@/lib/school/exam-class-guard'
 
 // RLS + enforce_exam_seat_plan_school (same-school tenancy, room-capacity
 // check, Closed-exam guard) are the authority for row writes. Publishing goes
@@ -22,6 +23,8 @@ export async function saveSeatPlanRow(examId: string, formData: FormData): Promi
   if (!Number.isInteger(rollEnd) || rollEnd < rollStart) return { error: 'Roll end must be >= roll start' }
 
   const supabase = await createClient()
+  const denied = await examClassDenied(supabase, examId)
+  if (denied) return denied
   const { error } = await supabase.from('exam_seat_plans').upsert(
     { exam_id: examId, room_id: roomId, roll_start: rollStart, roll_end: rollEnd },
     // Mixed seating (issue #95): a room may hold several ranges, so the
@@ -35,7 +38,10 @@ export async function saveSeatPlanRow(examId: string, formData: FormData): Promi
 
 export async function removeSeatPlanRow(examId: string, rowId: string): Promise<{ error?: string }> {
   const supabase = await createClient()
-  const { error } = await supabase.from('exam_seat_plans').delete().eq('id', rowId)
+  const denied = await examClassDenied(supabase, examId)
+  if (denied) return denied
+  // Bound to the guarded exam: `examId` is no longer only a revalidation hint.
+  const { error } = await supabase.from('exam_seat_plans').delete().eq('id', rowId).eq('exam_id', examId)
   if (error) return { error: error.message }
   revalidatePath(pagePath(examId))
   return {}
@@ -43,6 +49,8 @@ export async function removeSeatPlanRow(examId: string, rowId: string): Promise<
 
 export async function generateSeatPlan(examId: string): Promise<{ error?: string }> {
   const supabase = await createClient()
+  const denied = await examClassDenied(supabase, examId)
+  if (denied) return denied
   const { error } = await supabase.rpc('generate_seat_plan', { exam: examId })
   if (error) return { error: error.message }
   revalidatePath(pagePath(examId))
@@ -61,6 +69,11 @@ export async function generateSeatPlanFor(
   if (!roomIds.length) return { error: 'noRoomsSelected' }
   const exams = Array.from(new Set([examId, ...examIds]))
   const supabase = await createClient()
+  // Every exam the RPC will clear and refill, not only this screen's.
+  for (const exam of exams) {
+    const denied = await examClassDenied(supabase, exam)
+    if (denied) return denied
+  }
   const { error } = await supabase.rpc('generate_seat_plan_for', {
     exam_ids: exams,
     room_ids: roomIds,
@@ -72,6 +85,8 @@ export async function generateSeatPlanFor(
 
 export async function publishSeatPlan(examId: string): Promise<{ error?: string }> {
   const supabase = await createClient()
+  const denied = await examClassDenied(supabase, examId)
+  if (denied) return denied
   const { error } = await supabase.rpc('publish_seat_plan', { exam: examId })
   if (error) return { error: error.message }
   revalidatePath(pagePath(examId))

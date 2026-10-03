@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { examMarksDenied } from '@/lib/school/exam-class-guard'
 import { markCellError, markRowState } from '@/lib/exam-setup'
 
 // RLS + enforce_exam_mark_school (same-school tenancy, Closed-exam guard,
@@ -41,6 +42,8 @@ export async function saveMarks(
 ): Promise<{ error?: string; invalid?: true }> {
   if (!rows.length) return {}
   const supabase = await createClient()
+  const denied = await examMarksDenied(supabase, examId, subjectId)
+  if (denied) return denied
 
   const { data: subject } = await supabase
     .from('subjects')

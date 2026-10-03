@@ -1,7 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { t } from '@/lib/i18n'
 import { currentLang } from '@/lib/i18n-server'
-import { classScopeFor } from '@/lib/school/class-scope'
 
 /** May the caller act on this exam, given the class it belongs to? (#676)
  *
@@ -29,11 +28,21 @@ export async function mayActOnExamClass(
   examId: string,
   targetClassId: string | null = null,
 ): Promise<boolean> {
-  if ((await classScopeFor(supabase)) === 'school-wide') return true
+  // Fail closed. `classScopeFor` reads an RPC error as 'school-wide' — right for
+  // explaining an empty list, wrong for a guard — so the RPC is asked directly
+  // and anything but its three known answers refuses.
+  const { data: scope, error: scopeError } = await supabase.rpc('app_class_scope')
+  if (scopeError) return false
+  if (scope === 'school-wide') return true
+  if (scope !== 'attached' && scope !== 'none') return false
 
   const { data: exam } = await supabase.from('exams').select('class_id').eq('id', examId).maybeSingle()
-  // Not found or not readable: the action's own query reports that, as today.
-  if (!exam) return true
+  // Not found, not readable, or the read failed: refuse. Allowing here was only
+  // safe while every guarded write hung off the exam row; promotion's writes go
+  // to enrollments, so an unreadable or made-up exam id would walk past the
+  // guard. Only narrowed callers reach this line — the Owner and office staff
+  // returned above and still get the action's own not-found.
+  if (!exam) return false
 
   for (const classId of new Set([exam.class_id as string | null, targetClassId])) {
     if (!classId) continue
@@ -53,5 +62,32 @@ export async function examClassDenied(
   targetClassId: string | null = null,
 ): Promise<{ error: string } | null> {
   if (await mayActOnExamClass(supabase, examId, targetClassId)) return null
+  return { error: t('exams.notYourClass', await currentLang()) }
+}
+
+/** Marks entry asks one thing more: the teacher the exam itself names for this
+ *  subject (`exam_subject_teachers`, set on Basic Info) may enter its marks even
+ *  when she is not in that class's routine. Her own employee id comes from the
+ *  definer function — `employees` is grant-gated, she cannot read her own row. */
+export async function mayEnterExamMarks(supabase: SupabaseClient, examId: string, subjectId: string): Promise<boolean> {
+  if (await mayActOnExamClass(supabase, examId)) return true
+  const { data: me } = await supabase.rpc('app_current_employee_id')
+  if (!me) return false
+  const { data: assigned } = await supabase
+    .from('exam_subject_teachers')
+    .select('id')
+    .eq('exam_id', examId)
+    .eq('subject_id', subjectId)
+    .eq('teacher_id', me)
+    .maybeSingle()
+  return Boolean(assigned)
+}
+
+export async function examMarksDenied(
+  supabase: SupabaseClient,
+  examId: string,
+  subjectId: string,
+): Promise<{ error: string } | null> {
+  if (await mayEnterExamMarks(supabase, examId, subjectId)) return null
   return { error: t('exams.notYourClass', await currentLang()) }
 }

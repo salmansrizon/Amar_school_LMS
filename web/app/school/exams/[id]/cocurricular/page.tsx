@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
+import { mayActOnExamClass } from '@/lib/school/exam-class-guard'
 import { sortCocurricularItems } from '@/lib/cocurricular'
 import { enrolledStudentIds, enrolledIdFilter } from '@/lib/school/offering-roster'
 import { CocurricularEntryTable, type ChecklistStudentRow } from './controls'
@@ -34,6 +35,10 @@ export default async function CocurricularEntryPage({
     .maybeSingle()
   if (!exam) notFound()
   const closed = exam.status === 'closed'
+  // #676: another class's exam is read-only to a class-attached teacher — the
+  // same answer the server actions give, asked once here.
+  const notMine = !(await mayActOnExamClass(supabase, exam.id))
+  const readOnly = closed || notMine
   const examLabel = `${exam.name} (${exam.exam_year})`
 
   const header = (
@@ -118,8 +123,9 @@ export default async function CocurricularEntryPage({
     <div>
       {header}
       {closed && <p className="mb-3 text-xs text-alert-deep">{t('markEntry.closedNote', lang)}</p>}
+      {notMine && <p className="mb-3 text-xs text-alert-deep">{t('exams.notYourClass', lang)}</p>}
       <section className="rounded-2xl border border-line bg-paper p-card">
-        <CocurricularEntryTable examId={exam.id} items={sortedItems} rows={rows} disabled={closed} lang={lang} />
+        <CocurricularEntryTable examId={exam.id} items={sortedItems} rows={rows} disabled={readOnly} lang={lang} />
       </section>
     </div>
   )

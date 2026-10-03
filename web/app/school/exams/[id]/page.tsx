@@ -4,6 +4,7 @@ import { PageHeader } from '@/components/ui/page'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
+import { mayActOnExamClass } from '@/lib/school/exam-class-guard'
 import { examBasicInfoComplete, examChip, examStage, publishMarksComplete, schemeHasUsableBands } from '@/lib/exam-setup'
 import { loadExamReadiness } from '@/lib/exam-readiness'
 import { schoolToday } from '@/lib/school-time'
@@ -58,6 +59,10 @@ export default async function ExamSetupPage({
     .maybeSingle()
   if (!exam) notFound()
   const closed = exam.status === 'closed'
+  // #676: another class's exam is read-only to a class-attached teacher — the
+  // same answer the server actions give, asked once here.
+  const notMine = !(await mayActOnExamClass(supabase, exam.id))
+  const readOnly = closed || notMine
 
   const [
     { data: classes },
@@ -138,7 +143,11 @@ export default async function ExamSetupPage({
 
   return (
     <div>
-      <PublishResults lang={lang} examId={exam.id} publishedAt={exam.results_published_at} facts={readiness} />
+      {notMine ? (
+        <p className="mb-3 text-xs text-alert-deep">{t('exams.notYourClass', lang)}</p>
+      ) : (
+        <PublishResults lang={lang} examId={exam.id} publishedAt={exam.results_published_at} facts={readiness} />
+      )}
       <PageHeader
         title={`${t('examSetup.title', lang)} — ${examLabel}`}
         crumbs={schoolCrumbs('/school/exams', lang, { label: t('exams.title', lang), href: '/school/exams' }, { label: `${t('examSetup.title', lang)} — ${examLabel}` })}
@@ -149,7 +158,7 @@ export default async function ExamSetupPage({
       <ExamHeader
         examId={exam.id}
         examLabel={examLabel}
-        closed={closed}
+        closed={readOnly}
         chip={chip}
         basicInfoComplete={examBasicInfoComplete(exam)}
         selfHref={selfOrigin(`/school/exams/${id}`, from)}
@@ -165,7 +174,7 @@ export default async function ExamSetupPage({
           classId={exam.class_id}
           startDate={exam.start_date}
           classes={classOptions as ClassCatalogueRow[]}
-          disabled={closed}
+          disabled={readOnly}
           lang={lang}
           showYear={showYear}
         />
@@ -177,7 +186,7 @@ export default async function ExamSetupPage({
           examId={exam.id}
           schemeId={exam.grading_scheme_id}
           schemes={schemeOptions}
-          disabled={closed}
+          disabled={readOnly}
           lang={lang}
         />
       </section>
@@ -193,7 +202,7 @@ export default async function ExamSetupPage({
             examId={exam.id}
             subjects={subjectRows}
             teachers={(teachers ?? []) as TeacherOption[]}
-            disabled={closed}
+            disabled={readOnly}
             lang={lang}
           />
         )}

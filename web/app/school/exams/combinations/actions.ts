@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { examClassDenied } from '@/lib/school/exam-class-guard'
 
 // RLS ("school members manage …") plus enforce_exam_combination_school /
 // enforce_exam_combination_member_school (tenancy + the "at most one blank
@@ -63,6 +64,8 @@ export async function addCombinationMember(formData: FormData): Promise<{ error?
   }
 
   const supabase = await createClient()
+  const denied = await examClassDenied(supabase, examId)
+  if (denied) return denied
   const { error } = await supabase.from('exam_combination_members').insert({
     combination_id: combinationId,
     exam_id: examId,
@@ -78,6 +81,10 @@ export async function addCombinationMember(formData: FormData): Promise<{ error?
 
 export async function removeCombinationMember(id: string): Promise<{ error?: string }> {
   const supabase = await createClient()
+  // The member row names its own exam; guard on that, not on anything passed in.
+  const { data: member } = await supabase.from('exam_combination_members').select('exam_id').eq('id', id).maybeSingle()
+  const denied = member && (await examClassDenied(supabase, member.exam_id))
+  if (denied) return denied
   const { data, error } = await supabase.from('exam_combination_members').delete().eq('id', id).select('id')
   if (error) return { error: error.message }
   if (!data?.length) return { error: 'Member not found or not accessible' }

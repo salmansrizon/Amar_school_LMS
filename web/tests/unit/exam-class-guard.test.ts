@@ -3,35 +3,49 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 
 vi.mock('@/lib/i18n-server', () => ({ currentLang: async () => 'en' }))
 
-import { examClassDenied, mayActOnExamClass } from '@/lib/school/exam-class-guard'
+import { examClassDenied, examMarksDenied, mayActOnExamClass, mayEnterExamMarks } from '@/lib/school/exam-class-guard'
 import { t } from '@/lib/i18n'
 
 // #676. A stand-in for the three things the guard asks the database: the
 // caller's class scope (app_class_scope), the exam's class, and the caller's
 // capacity over one Class Offering (staff_capacity_for_class_offering).
 function fakeClient(opts: {
-  scope: 'school-wide' | 'attached' | 'none'
+  scope: unknown
+  /** app_class_scope itself fails */
+  scopeError?: boolean
+  /** the caller's employees.id, and the teacher the exam names for the subject */
+  employeeId?: string | null
+  subjectTeacherId?: string | null
   examClassId?: string | null
   /** undefined = the exam row is not readable */
   examMissing?: boolean
   capacity?: Record<string, string | null>
 }) {
   const rpc = vi.fn(async (fn: string, args?: { p_offering?: string }) => {
-    if (fn === 'app_class_scope') return { data: opts.scope, error: null }
+    if (fn === 'app_class_scope')
+      return opts.scopeError ? { data: null, error: { message: 'boom' } } : { data: opts.scope, error: null }
+    if (fn === 'app_current_employee_id') return { data: opts.employeeId ?? null, error: null }
     if (fn === 'staff_capacity_for_class_offering')
       return { data: opts.capacity?.[args!.p_offering!] ?? null, error: null }
     throw new Error(`unexpected rpc ${fn}`)
   })
-  const from = vi.fn(() => ({
-    select: () => ({
-      eq: () => ({
-        maybeSingle: async () => ({
-          data: opts.examMissing ? null : { class_id: opts.examClassId ?? null },
-          error: null,
-        }),
-      }),
-    }),
-  }))
+  const from = vi.fn((table: string) => {
+    // exam_subject_teachers is filtered by teacher_id; the fake applies that one filter.
+    let teacher: unknown
+    const q = {
+      select: () => q,
+      eq: (col: string, v: unknown) => {
+        if (col === 'teacher_id') teacher = v
+        return q
+      },
+      maybeSingle: async () => {
+        if (table === 'exam_subject_teachers')
+          return { data: opts.subjectTeacherId && opts.subjectTeacherId === teacher ? { id: 'a' } : null, error: null }
+        return { data: opts.examMissing ? null : { class_id: opts.examClassId ?? null }, error: null }
+      },
+    }
+    return q
+  })
   return { client: { rpc, from } as unknown as SupabaseClient, rpc, from }
 }
 
@@ -80,9 +94,20 @@ describe('mayActOnExamClass', () => {
     expect(await mayActOnExamClass(client, 'exam-1', 'mine')).toBe(true)
   })
 
-  it('leaves an unreadable exam to the action’s own not-found handling', async () => {
+  it('refuses an exam a narrowed caller cannot read — nothing to check her class against', async () => {
     const { client } = fakeClient({ scope: 'attached', examMissing: true })
-    expect(await mayActOnExamClass(client, 'exam-1')).toBe(true)
+    expect(await mayActOnExamClass(client, 'exam-1')).toBe(false)
+  })
+
+  it('fails closed when app_class_scope errors', async () => {
+    const { client, from } = fakeClient({ scope: 'school-wide', scopeError: true, examClassId: null })
+    expect(await mayActOnExamClass(client, 'exam-1')).toBe(false)
+    expect(from).not.toHaveBeenCalled()
+  })
+
+  it.each([null, undefined, '', 'owner', 42])('fails closed on an unexpected scope (%s)', async (scope) => {
+    const { client } = fakeClient({ scope, examClassId: null })
+    expect(await mayActOnExamClass(client, 'exam-1')).toBe(false)
   })
 })
 
@@ -95,5 +120,37 @@ describe('examClassDenied', () => {
   it('returns the localized error result when refused — it does not throw', async () => {
     const { client } = fakeClient({ scope: 'attached', examClassId: 'other' })
     expect(await examClassDenied(client, 'exam-1')).toEqual({ error: t('exams.notYourClass', 'en') })
+  })
+})
+
+describe('mayEnterExamMarks', () => {
+  const otherClass = { scope: 'attached', examClassId: 'other' } as const
+
+  it('allows whoever may act on the exam’s class, without asking who she is', async () => {
+    const { client, rpc } = fakeClient({ scope: 'attached', examClassId: 'mine', capacity: { mine: 'class_teacher' } })
+    expect(await mayEnterExamMarks(client, 'exam-1', 'sub-1')).toBe(true)
+    expect(rpc).not.toHaveBeenCalledWith('app_current_employee_id')
+  })
+
+  it('allows the Subject Teacher the exam names for this subject, though the class is not hers', async () => {
+    const { client } = fakeClient({ ...otherClass, employeeId: 'emp-1', subjectTeacherId: 'emp-1' })
+    expect(await mayEnterExamMarks(client, 'exam-1', 'sub-1')).toBe(true)
+    expect(await examMarksDenied(client, 'exam-1', 'sub-1')).toBeNull()
+  })
+
+  it('refuses a teacher of another class the exam names somebody else for', async () => {
+    const { client } = fakeClient({ ...otherClass, employeeId: 'emp-2', subjectTeacherId: 'emp-1' })
+    expect(await mayEnterExamMarks(client, 'exam-1', 'sub-1')).toBe(false)
+    expect(await examMarksDenied(client, 'exam-1', 'sub-1')).toEqual({ error: t('exams.notYourClass', 'en') })
+  })
+
+  it('refuses when the caller has no employee id or the subject has no teacher', async () => {
+    expect(await mayEnterExamMarks(fakeClient({ ...otherClass, subjectTeacherId: 'emp-1' }).client, 'e', 's')).toBe(false)
+    expect(await mayEnterExamMarks(fakeClient({ ...otherClass, employeeId: 'emp-1' }).client, 'e', 's')).toBe(false)
+  })
+
+  it('fails closed with the class guard: a scope error is not rescued by an assignment lookup', async () => {
+    const { client } = fakeClient({ scope: 'attached', scopeError: true, examClassId: 'other' })
+    expect(await mayEnterExamMarks(client, 'exam-1', 'sub-1')).toBe(false)
   })
 })

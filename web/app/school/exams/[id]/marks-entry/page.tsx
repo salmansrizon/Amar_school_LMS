@@ -4,6 +4,7 @@ import { PageHeader } from '@/components/ui/page'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
+import { mayEnterExamMarks } from '@/lib/school/exam-class-guard'
 import { subjectsForClass } from '@/lib/students'
 import { loadGradingScheme } from '@/lib/grading-scheme-loader'
 import { enrolledStudentIds, enrolledIdFilter } from '@/lib/school/offering-roster'
@@ -133,6 +134,10 @@ export default async function MarksEntryPage({
     }
   })
 
+  // #676: read-only unless this is her class's exam or she is the teacher the
+  // exam names for this subject — the same answer saveMarks gives.
+  const notMine = !(await mayEnterExamMarks(supabase, exam.id, selectedSubject.id))
+
   return (
     <div>
       {header}
@@ -140,6 +145,7 @@ export default async function MarksEntryPage({
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <SubjectPicker subjects={subjects} selectedId={selectedSubject.id} lang={lang} />
         {closed && <span className="text-xs text-alert-deep">{t('markEntry.closedNote', lang)}</span>}
+        {notMine && <span className="text-xs text-alert-deep">{t('exams.notYourClass', lang)}</span>}
       </div>
 
       {!exam.grading_scheme_id && <p className="mb-3 text-xs text-muted">{t('markEntry.noScheme', lang)}</p>}
@@ -153,7 +159,7 @@ export default async function MarksEntryPage({
           subject={selectedSubject}
           rows={rows}
           scheme={scheme}
-          disabled={closed}
+          disabled={closed || notMine}
           lang={lang}
         />
       </section>
