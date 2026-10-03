@@ -362,6 +362,7 @@ export default async function PrintAllPage({
             obtained: r.result.obtainedMarks,
             label: r.result.label,
             passed: r.result.passed,
+            entered: r.entered,
           }))}
           behaviourRows={extras.behaviourRows}
           checklistItems={extras.checklistItems}

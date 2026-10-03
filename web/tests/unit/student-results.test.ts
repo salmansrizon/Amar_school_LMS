@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { subjectFullMarks, subjectObtained, groupByExam, toSubjectMark, type ResultRow } from '@/lib/student/results'
+import { subjectFullMarks, subjectObtained, groupByExam, toSubjectMark, missingSubjects, type ResultRow } from '@/lib/student/results'
 
 const row = (over: Partial<ResultRow> & { exam_id: string; subject_id: string }): ResultRow => ({
   exam_name: over.exam_id,
@@ -63,5 +63,36 @@ describe('groupByExam', () => {
     ])
     expect(exams.map((e) => e.examId)).toEqual(['new', 'old'])
     expect(exams[0].rows).toHaveLength(2)
+  })
+})
+
+// The portal's incomplete state: a subject of the Student's class the exam
+// holds no mark for. student_exam_result never carries such a subject.
+describe('missingSubjects', () => {
+  const classSubjects = [
+    { id: 'bn', name: 'Bangla' },
+    { id: 'en', name: 'English' },
+    { id: 'ma', name: 'Math' },
+  ]
+  const examWith = (...subjectIds: string[]) =>
+    groupByExam(subjectIds.map((subject_id) => row({ exam_id: 'e1', subject_id })))[0]
+
+  it('is empty when every subject of the class has a mark — a complete result is untouched', () => {
+    expect(missingSubjects(examWith('bn', 'en', 'ma'), classSubjects)).toEqual([])
+  })
+
+  it('names the subjects with no mark entered', () => {
+    expect(missingSubjects(examWith('bn'), classSubjects)).toEqual([
+      { id: 'en', name: 'English' },
+      { id: 'ma', name: 'Math' },
+    ])
+  })
+
+  it('does not judge an exam of an earlier class, whose subjects are not the current class\'s', () => {
+    expect(missingSubjects(examWith('old-bn', 'old-en'), classSubjects)).toEqual([])
+  })
+
+  it('is empty when the class subject list could not be read', () => {
+    expect(missingSubjects(examWith('bn'), [])).toEqual([])
   })
 })

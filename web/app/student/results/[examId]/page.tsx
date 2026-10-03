@@ -4,7 +4,7 @@ import { currentLang } from '@/lib/i18n-server'
 import { t } from '@/lib/i18n'
 import { getStudentContext } from '@/lib/student/context'
 import { loadGradingScheme } from '@/lib/grading-scheme-loader'
-import { groupByExam, evaluateExam, type ResultRow } from '@/lib/student/results'
+import { groupByExam, evaluateExam, missingSubjects, type ResultRow } from '@/lib/student/results'
 import { PrintTrigger } from '@/components/print/print-trigger'
 
 // One published exam's result (#449).
@@ -33,6 +33,11 @@ export default async function StudentResultPage({
   const rank = (rankRows as { rank: number; out_of: number }[] | null)?.[0] ?? null
 
   const evaluated = scheme ? evaluateExam(exam, scheme) : null
+  // A subject with no mark makes the result incomplete — the same reading as
+  // the school's Result Book and mark sheet: no GPA, no pass/fail, no position.
+  const { data: classSubjects } = await supabase.from('student_subject_option').select('id, name').order('name')
+  const missing = missingSubjects(exam, (classSubjects ?? []) as { id: string; name: string }[])
+  const incomplete = missing.length > 0
 
   return (
     <main className="w-full max-w-3xl p-6">
@@ -54,22 +59,22 @@ export default async function StudentResultPage({
         <section className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
           <div className="rounded-lg border border-line bg-paper p-4">
             <div className="text-xl font-extrabold text-brand-700">
-              {evaluated.overall.gpa ?? '—'}
+              {incomplete ? '—' : (evaluated.overall.gpa ?? '—')}
             </div>
             <div className="text-xs text-muted">{t('student.gpa', lang)}</div>
           </div>
           <div className="rounded-lg border border-line bg-paper p-4">
-            <div className="text-xl font-extrabold">{evaluated.overall.label ?? '—'}</div>
+            <div className="text-xl font-extrabold">{incomplete ? '—' : (evaluated.overall.label ?? '—')}</div>
             <div className="text-xs text-muted">{t('student.grade', lang)}</div>
           </div>
           <div className="rounded-lg border border-line bg-paper p-4">
             <div
-              className={`text-xl font-extrabold ${evaluated.overall.passed ? 'text-mint-deep' : 'text-alert-deep'}`}
+              className={`text-xl font-extrabold ${incomplete ? 'text-sun-deep' : evaluated.overall.passed ? 'text-mint-deep' : 'text-alert-deep'}`}
             >
-              {t(evaluated.overall.passed ? 'student.passed' : 'student.failed', lang)}
+              {t(incomplete ? 'exams.incomplete' : evaluated.overall.passed ? 'student.passed' : 'student.failed', lang)}
             </div>
           </div>
-          {rank && (
+          {rank && !incomplete && (
             <div className="rounded-lg border border-line bg-paper p-4">
               <div className="text-xl font-extrabold">
                 {rank.rank}
@@ -109,6 +114,14 @@ export default async function StudentResultPage({
                 </td>
               </tr>
             ))}
+            {evaluated &&
+              missing.map((s) => (
+                <tr key={s.id} className="border-b border-line last:border-0">
+                  <td className="px-3 py-2 text-sm font-medium">{s.name}</td>
+                  <td className="px-3 py-2 text-sm text-muted">—</td>
+                  <td className="px-3 py-2 text-sm text-sun-deep">{t('exams.marksNotEntered', lang)}</td>
+                </tr>
+              ))}
             {!evaluated && (
               <tr>
                 <td colSpan={3} className="px-3 py-4 text-sm text-muted">

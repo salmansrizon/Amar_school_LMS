@@ -27,6 +27,8 @@ export interface ProgressReportSubjectRow {
   obtained: number
   label: string | null
   passed: boolean
+  /** False when no mark was entered for this subject (default: entered). */
+  entered?: boolean
 }
 
 export interface BehaviourRow {
@@ -97,9 +99,18 @@ function SubjectTable({ rows, lang }: { rows: ProgressReportSubjectRow[]; lang: 
           <tr key={s.subjectId} className="border-b border-line">
             <td className="py-2 pr-2">{s.name}</td>
             <td className="py-2 pr-2">
-              {s.obtained} / {s.full}
+              {s.entered === false ? '—' : s.obtained} / {s.full}
             </td>
-            <td className="py-2">{s.label ? <Badge tone={s.passed ? 'success' : 'alert'}>{s.label}</Badge> : '—'}</td>
+            {/* No mark entered is not a 0 and not an F — the mark sheet's reading. */}
+            <td className="py-2">
+              {s.entered === false ? (
+                <Badge tone="neutral">{t('exams.marksNotEntered', lang)}</Badge>
+              ) : s.label ? (
+                <Badge tone={s.passed ? 'success' : 'alert'}>{s.label}</Badge>
+              ) : (
+                '—'
+              )}
+            </td>
           </tr>
         ))}
       </tbody>
