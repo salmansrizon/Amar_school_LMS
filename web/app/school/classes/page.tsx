@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { BookOpen, CalendarClock, ClipboardList, GraduationCap, School, UserCog, UserX } from 'lucide-react'
 import { currentLang } from '@/lib/i18n-server'
-import { t, numberFmt, type Lang } from '@/lib/i18n'
+import { t, numberFmt, type Lang, formatNumber } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import {
   academicYearsOf,
@@ -312,7 +312,7 @@ export default async function ClassesPage({
       ? [{ key: 'shift', header: t('classes.shift', lang), cell: (c: ClassRow) => shiftLabel(c.shift) ?? dash }]
       : []),
     ...(showYearColumn
-      ? [{ key: 'year', header: t('classes.academicYear', lang), cell: (c: ClassRow) => c.academic_year ?? dash }]
+      ? [{ key: 'year', header: t('classes.academicYear', lang), cell: (c: ClassRow) => (c.academic_year != null ? formatNumber(c.academic_year, lang, { useGrouping: false }) : dash) }]
       : []),
     {
       key: 'teacher',

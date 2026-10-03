@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { CheckCircle2, Clock, MessageCircleQuestion, Tag } from 'lucide-react'
 import { currentLang } from '@/lib/i18n-server'
-import { t, numberFmt, type Lang, formatDate, formatDateTime } from '@/lib/i18n'
+import { t, numberFmt, formatNumber, type Lang, formatDate, formatDateTime } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { schoolCrumbs } from '@/lib/school-crumbs'
 import { groupByTopic, isAnswered, type InboxMessage } from '@/lib/student/messages'
@@ -100,12 +100,12 @@ export default async function SchoolQuestionsPage({
   const age = (m: InboxMessage) => {
     const hours = waitingHours(m)
     return m.replied_at
-      ? `${hours}${t('hub.answeredIn', lang)}`
+      ? `${formatNumber(hours, lang)}${t('hub.answeredIn', lang)}`
       : m.reply_body
         ? t('questions.replied', lang)
         : hours < 1
           ? t('hub.freshlyAsked', lang)
-          : `${hours}${t('hub.waitingHours', lang)}`
+          : `${formatNumber(hours, lang)}${t('hub.waitingHours', lang)}`
   }
   // The pill carries the waiting-age tone (no tone while fresh, sun past 24h,
   // alert past 72h, mint once answered), always paired with its text.

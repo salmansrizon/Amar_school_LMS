@@ -2,7 +2,7 @@ import Form from 'next/form'
 import Link from 'next/link'
 import { AlertTriangle, CheckCircle2, Receipt, Wallet } from 'lucide-react'
 import { currentLang } from '@/lib/i18n-server'
-import { t, numberFmt, localeOf, type Lang } from '@/lib/i18n'
+import { t, numberFmt, localeOf, type Lang, formatNumber } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { canOpenScreen } from '@/lib/auth/screens'
 import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
@@ -254,7 +254,7 @@ export default async function FeesPage({
             {r.name}
           </Link>
           <div className="text-xs text-muted">
-            {t('students.roll', lang)} {r.roll ?? '—'} · {period}
+            {t('students.roll', lang)} {r.roll != null ? formatNumber(r.roll, lang) : '—'} · {period}
           </div>
         </div>
       ),
@@ -302,7 +302,7 @@ export default async function FeesPage({
         <div className="min-w-0">
           <div className="truncate font-semibold">{s.full_name}</div>
           <div className="text-xs text-muted">
-            {t('students.roll', lang)} {s.roll_number ?? '—'} · {[s.class_name, s.section].filter(Boolean).join(' / ')}
+            {t('students.roll', lang)} {s.roll_number != null ? formatNumber(s.roll_number, lang) : '—'} · {[s.class_name, s.section].filter(Boolean).join(' / ')}
           </div>
         </div>
       ),

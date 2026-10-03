@@ -2,7 +2,7 @@ import Form from 'next/form'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
-import { t, type Lang } from '@/lib/i18n'
+import { t, type Lang, formatNumber } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { dateRangeDays, studentLogDayStatus, studentTrackingStart, type OffDay, type StudentLogDayStatus } from '@/lib/attendance-manual'
 import { firstRelation } from '@/lib/supabase/relation'
@@ -261,7 +261,7 @@ export default async function StudentLogDetailPage({
               </div>
               <div>
                 <div className="text-xs font-semibold uppercase tracking-wide text-muted">{t('attendance.rollCol', lang)}</div>
-                <div className="text-sm font-semibold">{student.roll_number ?? '—'}</div>
+                <div className="text-sm font-semibold">{student.roll_number != null ? formatNumber(student.roll_number, lang) : '—'}</div>
               </div>
               <div>
                 <div className="text-xs font-semibold uppercase tracking-wide text-muted">{t('attendance.class', lang)}</div>

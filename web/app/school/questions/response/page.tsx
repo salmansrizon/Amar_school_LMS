@@ -140,7 +140,7 @@ export default async function ResponsePerformancePage({
   const perTeacher = visibleTeacherRows(report, { isOwner, employeeId: me })
 
   const fmt = numberFmt(lang)
-  const hours = (n: number | null) => (n === null ? '—' : `${n}${t('response.hours', lang)}`)
+  const hours = (n: number | null) => (n === null ? '—' : `${fmt.format(n)}${t('response.hours', lang)}`)
 
   // Same label rule as the old StatRow: "mine" for the caller's own row,
   // "owner" for the bucket a reply with no Employee record falls into,

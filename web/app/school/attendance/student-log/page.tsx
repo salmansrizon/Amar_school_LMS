@@ -1,7 +1,7 @@
 import Form from 'next/form'
 import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
-import { t, type Lang } from '@/lib/i18n'
+import { t, type Lang, formatNumber } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { schoolRoster } from '@/lib/school/roster-source'
 import { AttendanceTabs } from '../attendance-tabs'
@@ -86,7 +86,7 @@ export default async function StudentLogPage({
         rowId={(s) => s.id}
         rowLabel={(s) => s.full_name}
         columns={[
-          { key: 'roll', header: t('attendance.rollCol', lang), cell: (s) => s.roll_number ?? '—' },
+          { key: 'roll', header: t('attendance.rollCol', lang), cell: (s) => s.roll_number != null ? formatNumber(s.roll_number, lang) : '—' },
           { key: 'name', header: t('attendance.nameCol', lang), card: 'title', cell: (s) => <span className="font-semibold">{s.full_name}</span> },
           { key: 'class', header: t('attendance.class', lang), cell: (s) => s.class_name ?? '—' },
           { key: 'section', header: t('attendance.section', lang), cell: (s) => s.section ?? '—' },

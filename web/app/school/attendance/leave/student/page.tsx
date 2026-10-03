@@ -1,5 +1,5 @@
 import { currentLang } from '@/lib/i18n-server'
-import { t, type Lang } from '@/lib/i18n'
+import { t, type Lang, formatNumber } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { schoolRosterRead, filterSchoolRoster } from '@/lib/school/roster-source'
 import { AttendanceTabs } from '../../attendance-tabs'
@@ -99,7 +99,7 @@ export default async function StudentLeaveManagementPage({
   const classOf = (s: Row['student']) => (s?.class_name ? `${s.class_name}${s.section ? ` / ${s.section}` : ''}` : null)
 
   const columns: Column<Row>[] = [
-    { key: 'roll', header: t('attendance.rollCol', lang), cell: (l) => l.student?.roll_number ?? dash },
+    { key: 'roll', header: t('attendance.rollCol', lang), cell: (l) => l.student?.roll_number != null ? formatNumber(l.student?.roll_number, lang) : dash },
     {
       key: 'name',
       header: t('attendance.leaveName', lang),
@@ -177,7 +177,7 @@ export default async function StudentLeaveManagementPage({
               <tbody>
                 {rosterStudents.map((s) => (
                   <tr key={s.id} className="border-b border-line last:border-0">
-                    <td className="px-3 py-2 text-sm">{s.roll_number ?? '—'}</td>
+                    <td className="px-3 py-2 text-sm">{s.roll_number != null ? formatNumber(s.roll_number, lang) : '—'}</td>
                     <td className="px-3 py-2 text-sm font-medium">{s.full_name}</td>
                     <td className="px-3 py-2 text-sm">
                       {s.class_name ?? '—'}
@@ -229,7 +229,7 @@ export default async function StudentLeaveManagementPage({
             facts={[
               {
                 label: t('attendance.rollCol', lang),
-                value: viewed.student?.roll_number != null ? String(viewed.student.roll_number) : '—',
+                value: viewed.student?.roll_number != null ? formatNumber(viewed.student.roll_number, lang) : '—',
               },
               { label: t('attendance.classSection', lang), value: classOf(viewed.student) ?? '—' },
             ]}

@@ -1,9 +1,9 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { takaInWords } from '@/lib/amount-words'
-import { totalPayable, feeGlRefPattern, FEE_GL_ORDER_COLUMN } from '@/lib/fees'
+import { totalPayable, feePeriodLabel, feeGlRefPattern, FEE_GL_ORDER_COLUMN } from '@/lib/fees'
 import { currentLang } from '@/lib/i18n-server'
-import { t, formatMoney, formatDate } from '@/lib/i18n'
+import { t, formatMoney, formatDate, localeOf } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { PrintButton } from './print-button'
 import { loadInstitutePrintHeader } from '@/lib/institute-print'
@@ -74,7 +74,7 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
           <div className="flex justify-between">
             <dt className="text-muted">{t('fees.month', lang)}</dt>
             <dd>
-              {record.month}/{record.year}
+              {feePeriodLabel(record.month, record.year, localeOf(lang))}
             </dd>
           </div>
           <div className="flex justify-between">

@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
-import { t, localeOf, type Lang } from '@/lib/i18n'
+import { t, localeOf, type Lang, formatNumber } from '@/lib/i18n'
 import { feePeriodLabel } from '@/lib/fees'
 import { getSchoolContext } from '@/lib/school/context'
 import { canOpenScreen } from '@/lib/auth/screens'
@@ -124,7 +124,7 @@ export default async function StudentsPage({
               {s.full_name}
             </Link>
             <div className="text-xs text-muted">
-              {t('students.roll', lang)} {s.roll_number ?? '—'}
+              {t('students.roll', lang)} {s.roll_number != null ? formatNumber(s.roll_number, lang) : '—'}
               {s.student_no ? ` · ${s.student_no}` : ''}
             </div>
           </div>
@@ -440,7 +440,7 @@ export default async function StudentsPage({
             <DrawerHeader
               name={viewed.full_name}
               avatarId={viewed.id}
-              subtitle={viewed.roll_number != null ? `${t('students.roll', lang)} ${viewed.roll_number}` : undefined}
+              subtitle={viewed.roll_number != null ? `${t('students.roll', lang)} ${formatNumber(viewed.roll_number, lang)}` : undefined}
             />
           )
         }

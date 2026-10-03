@@ -4,7 +4,7 @@ import { useMemo, useState, useTransition } from 'react'
 import { labelClass } from '@/components/auth-card'
 import { Button, buttonClass } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/confirm-dialog'
-import { t, numberFmt, type Lang } from '@/lib/i18n'
+import { t, numberFmt, type Lang, formatNumber } from '@/lib/i18n'
 import { countSmsSegments } from '@/lib/sms/segments'
 import {
   classTargetFromInput,
@@ -356,8 +356,8 @@ export function ComposeForm({
           onChange={(e) => update('body', e.target.value)}
         />
         <p className="mt-2 text-xs text-muted">
-          {segmentInfo.length}/{segmentInfo.encoding === 'gsm7' ? 160 : 70} {t('sms.characters', lang)} ·{' '}
-          {segmentInfo.segments} {t('sms.segments', lang)}
+          {formatNumber(segmentInfo.length, lang)}/{formatNumber(segmentInfo.encoding === 'gsm7' ? 160 : 70, lang)} {t('sms.characters', lang)} ·{' '}
+          {formatNumber(segmentInfo.segments, lang)} {t('sms.segments', lang)}
         </p>
         <p className="mt-1 text-xs text-muted">
           {t('sms.confirmCredits', lang)}: {fmt.format(creditsNeeded)} · {t('sms.balance', lang)}: {fmt.format(balance)}

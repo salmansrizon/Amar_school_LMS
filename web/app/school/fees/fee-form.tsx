@@ -4,8 +4,8 @@ import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
-import { t, formatMoney, type Lang } from '@/lib/i18n'
-import { billedFeeAmount, settleFee } from '@/lib/fees'
+import { t, formatMoney, type Lang, localeOf, formatNumber } from '@/lib/i18n'
+import { billedFeeAmount, feePeriodLabel, settleFee } from '@/lib/fees'
 import { saveFeeRecord, calculateAbsentFine } from './actions'
 import { SelectField } from '@/components/ui/select-field'
 
@@ -135,10 +135,10 @@ export function FeeForm({
     >
       <h3 className="text-sm font-bold sm:col-span-4">
         {t('fees.collectAction', lang)} — {student.full_name}
-        {student.roll_number !== null ? ` (${t('students.roll', lang)} ${student.roll_number})` : ''}
+        {student.roll_number !== null ? ` (${t('students.roll', lang)} ${formatNumber(student.roll_number, lang)})` : ''}
       </h3>
       <p className="-mt-2 text-xs text-muted sm:col-span-4">
-        {classLabel || '—'} · {month}/{year}
+        {classLabel || '—'} · {feePeriodLabel(month, year, localeOf(lang))}
       </p>
 
       {/* `contents` keeps the grid intact while `disabled` freezes every field
@@ -288,7 +288,7 @@ export function FeeForm({
             <div className="flex justify-between">
               <dt className="text-muted">{t('fees.month', lang)}</dt>
               <dd>
-                {month}/{year}
+                {feePeriodLabel(month, year, localeOf(lang))}
               </dd>
             </div>
             <div className="flex justify-between">

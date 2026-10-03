@@ -2,8 +2,9 @@ import Form from 'next/form'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
-import { t, formatMoney, type Lang, formatDate } from '@/lib/i18n'
+import { t, formatMoney, type Lang, formatDate, localeOf } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
+import { feePeriodLabel } from '@/lib/fees'
 import { buildGeneralLedger, type LedgerSource, type LedgerSourceRow } from '@/lib/accounting'
 import { PrintPage, InstituteHeader, PaginatedSheet, QrFooterRow } from '@/components/print/pieces'
 import { PrintButton } from '@/components/print/print-button'
@@ -108,7 +109,7 @@ export default async function GeneralLedgerPage({
       date: new Date(r.updated_at).toISOString().slice(0, 10),
       sortKey: r.updated_at,
       source: 'fee_collection',
-      description: `${student?.full_name ?? '—'} — ${r.month}/${r.year}`,
+      description: `${student?.full_name ?? '—'} — ${feePeriodLabel(r.month, r.year, localeOf(lang))}`,
       debit: 0,
       credit: Number(r.pay_amount),
     })

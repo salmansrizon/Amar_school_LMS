@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { t, type Lang, type MessageKey } from '@/lib/i18n'
+import { t, formatNumber, type Lang, type MessageKey } from '@/lib/i18n'
 
 // One tab bar for a section whose tabs are real routes.
 //
@@ -61,7 +61,7 @@ export function SectionTabs({
                   current ? 'bg-brand-50 text-brand-600' : 'bg-paper-muted text-muted'
                 }`}
               >
-                {tab.count}
+                {formatNumber(tab.count, lang)}
               </span>
             ) : null}
           </Link>

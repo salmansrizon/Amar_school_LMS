@@ -3609,9 +3609,10 @@ export function formatMoney(amount: number, lang: Lang): string {
   return `৳${numberFmt(lang, { maximumFractionDigits: 2 }).format(amount)}`
 }
 
-/** A count / percentage / roll in the reader's digits. Not for identifiers. */
-export function formatNumber(n: number, lang: Lang): string {
-  return numberFmt(lang).format(n)
+/** A count / percentage / roll in the reader's digits. Not for identifiers.
+ *  Years pass `{ useGrouping: false }` so 2026 is not "2,026". */
+export function formatNumber(n: number, lang: Lang, options?: Intl.NumberFormatOptions): string {
+  return numberFmt(lang, options).format(n)
 }
 
 const SCHOOL_TZ = 'Asia/Dhaka'
