@@ -133,6 +133,7 @@ export default async function EmployeeAttendancePage({
       hasRecord: !!record,
       onApprovedLeave: onLeaveEmployees.has(e.id),
       isOff: dateIsOff,
+      leaveBeatsOff: true,
       entry: record ? new Date(record.entry_at) : null,
       exit: record?.exit_at ? new Date(record.exit_at) : null,
       // Office Time (the sole source of an expected start/end window) was

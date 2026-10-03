@@ -2996,6 +2996,10 @@ const dict = {
   'attendance.leaveDaysCard': { bn: 'ছুটির দিন', en: 'Leave Days' },
   'attendance.viewCalendar': { bn: 'ক্যালেন্ডার', en: 'Calendar' },
   'attendance.viewList': { bn: 'বছর', en: 'Year' },
+  'attendance.viewHolidays': { bn: 'তালিকা', en: 'List' },
+  'attendance.offDayWeekdayCol': { bn: 'বার', en: 'Weekday' },
+  'attendance.offDaySourceCol': { bn: 'উৎস', en: 'Source' },
+  'attendance.offDaySourceHoliday': { bn: 'স্কুলের ছুটি', en: 'School holiday' },
   'attendance.viewTable': { bn: 'টেবিল', en: 'Table' },
   // One combined calendar toolbar (nav/calendar-polish): the Today shortcut,
   // the view-switch's own accessible group name, the sub-nav segmented

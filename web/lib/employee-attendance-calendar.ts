@@ -143,12 +143,18 @@ export function employeeDayStatus(args: {
   hasRecord: boolean
   /** Days before this (YYYY-MM-DD) are not absences — see employeeTrackingStart. */
   startDay?: string | null
+  /** Approved leave also outranks an off-day, as on the Leave Calendar (which
+   *  lists approved leave on off-days too). Default false keeps off > leave. */
+  leaveBeatsOff?: boolean
 }): EmployeeDayStatus {
   if (args.hasRecord) return 'present'
+  const beforeStart = !!args.startDay && args.iso < args.startDay
+  // Approved leave outranks absent and upcoming (a future approved leave is
+  // still leave); off-day only yields to it when leaveBeatsOff.
+  if (args.onApprovedLeave && !beforeStart && (args.leaveBeatsOff || !args.isOff)) return 'on_leave'
   if (args.iso > args.today) return 'future'
-  if (args.startDay && args.iso < args.startDay) return 'not_started'
+  if (beforeStart) return 'not_started'
   if (args.isOff) return 'off'
-  if (args.onApprovedLeave) return 'on_leave'
   return 'absent'
 }
 
@@ -168,6 +174,8 @@ export function buildEmployeeMonthCalendar(args: {
   approvedLeaves: { from_day: string; to_day: string }[]
   /** See employeeTrackingStart. */
   startDay?: string | null
+  /** See employeeDayStatus. */
+  leaveBeatsOff?: boolean
 }): EmployeeCalendarCell[] {
   const grid = monthGrid(args.year, args.month0, args.offDays, args.weeklyOffDays)
   const recordByDay = new Map(args.records.map((r) => [r.att_date, r]))
@@ -182,6 +190,7 @@ export function buildEmployeeMonthCalendar(args: {
       onApprovedLeave: onLeave,
       hasRecord: !!record,
       startDay: args.startDay,
+      leaveBeatsOff: args.leaveBeatsOff,
     })
     return { ...cell, status, entry: record?.entry_at ?? null, exit: record?.exit_at ?? null }
   })
@@ -277,6 +286,9 @@ export interface SchoolAttendanceDayCell extends CalendarCell {
    *  "not applicable". */
   rate: number | null
   employees: SchoolDayEmployeeRow[]
+  /** Employees on approved leave that day — lets a future day say "on leave"
+   *  instead of only "upcoming". Absent on older callers' cells. */
+  leaveCount?: number
 }
 
 export function buildSchoolAttendanceMonth(args: {
@@ -313,7 +325,7 @@ export function buildSchoolAttendanceMonth(args: {
     const totalCount = employees.length
     const isFuture = iso > args.today
     const rate = !isFuture && !cell.isOff && totalCount > 0 ? attendanceRate(presentCount, totalCount) : null
-    return { ...cell, isFuture, presentCount, totalCount, rate, employees }
+    return { ...cell, isFuture, presentCount, totalCount, rate, employees, leaveCount: employees.filter((e) => e.status === 'on_leave').length }
   })
   return withAdjacentMonthDays(cells, args.year, args.month0, () => ({
     isFuture: false,
@@ -322,4 +334,39 @@ export function buildSchoolAttendanceMonth(args: {
     rate: null,
     employees: [],
   }))
+}
+
+// ---------------------------------------------------------------------------
+// Off-Day Calendar's dated list view (#692)
+
+export type OffDayListSource = 'holiday' | 'significant'
+
+export interface OffDayListRow {
+  iso: string
+  weekday: number // 0=Sun..6=Sat
+  label: string | null
+  /** off_days carries no "imported from central" marker (importCentralOffDays
+   *  copies rows as plain regular days), so only regular vs significant can be
+   *  told apart; the weekly rule is summarised separately, never listed. */
+  source: OffDayListSource
+}
+
+/** One row per dated off_days row of `year`, date-sorted. The recurring Weekly
+ *  Off-Day is returned once as `weekly` (sorted weekday indexes), not as 52
+ *  rows. */
+export function buildOffDayList(
+  offDays: readonly OffDay[],
+  weeklyOffDays: readonly number[],
+  year: number,
+): { weekly: number[]; rows: OffDayListRow[] } {
+  const rows = offDays
+    .filter((o) => o.day.startsWith(`${year}-`))
+    .map((o) => ({
+      iso: o.day,
+      weekday: new Date(`${o.day}T00:00:00Z`).getUTCDay(),
+      label: o.label,
+      source: (o.is_significant ? 'significant' : 'holiday') as OffDayListSource,
+    }))
+    .sort((a, b) => a.iso.localeCompare(b.iso))
+  return { weekly: [...new Set(weeklyOffDays)].sort((a, b) => a - b), rows }
 }

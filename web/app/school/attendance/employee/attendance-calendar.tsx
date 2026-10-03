@@ -24,7 +24,7 @@ function hhmm(iso: string | null): string {
 function dayAriaLabel(cell: SchoolAttendanceDayCell, lang: Lang): string {
   const parts = [formatDayLong(cell.iso as string, lang)]
   if (cell.isOff) parts.push(t('status.holiday', lang))
-  else if (cell.isFuture) parts.push(t('attendance.calendarUpcoming', lang))
+  else if (cell.isFuture) parts.push(cell.leaveCount ? `${localizeNumber(cell.leaveCount, lang)} ${t('status.on_leave', lang)}` : t('attendance.calendarUpcoming', lang))
   else if (cell.rate !== null) parts.push(
       `${localizeNumber(cell.rate, lang)}% (${localizeNumber(cell.presentCount, lang)}/${localizeNumber(cell.totalCount, lang)})`,
     )
@@ -103,7 +103,7 @@ export function EmployeeAttendanceDayCell({
       >
         <DayNumber cell={cell} lang={lang} isToday={isToday} />
         {cell.isOff && <span className="hidden truncate text-[10px] font-semibold text-alert-deep sm:block">{t('status.holiday', lang)}</span>}
-        {!cell.isOff && cell.isFuture && <span className="hidden truncate text-[10px] text-muted sm:block">{t('attendance.calendarUpcoming', lang)}</span>}
+        {!cell.isOff && cell.isFuture && <span className="hidden truncate text-[10px] text-muted sm:block">{cell.leaveCount ? `${t('status.on_leave', lang)} ${localizeNumber(cell.leaveCount, lang)}` : t('attendance.calendarUpcoming', lang)}</span>}
       </div>
     )
   }

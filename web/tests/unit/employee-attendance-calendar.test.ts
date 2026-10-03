@@ -46,6 +46,44 @@ describe('employeeDayStatus', () => {
   })
 })
 
+describe('employeeDayStatus: approved leave precedence (#694)', () => {
+  const base = { iso: '2026-10-04', today: '2026-10-03', isOff: false, hasRecord: false }
+  it('check-in beats leave', () => {
+    expect(employeeDayStatus({ ...base, onApprovedLeave: true, hasRecord: true })).toBe('present')
+  })
+  it('approved leave beats upcoming', () => {
+    expect(employeeDayStatus({ ...base, onApprovedLeave: true })).toBe('on_leave')
+  })
+  it('approved leave beats absent', () => {
+    expect(employeeDayStatus({ ...base, iso: '2026-10-01', onApprovedLeave: true })).toBe('on_leave')
+  })
+  it('no approved leave (pending/rejected are never passed in) stays upcoming / absent', () => {
+    expect(employeeDayStatus({ ...base, onApprovedLeave: false })).toBe('future')
+    expect(employeeDayStatus({ ...base, iso: '2026-10-01', onApprovedLeave: false })).toBe('absent')
+  })
+  it('off-day: off by default, leave when leaveBeatsOff', () => {
+    expect(employeeDayStatus({ ...base, iso: '2026-10-01', isOff: true, onApprovedLeave: true })).toBe('off')
+    expect(employeeDayStatus({ ...base, iso: '2026-10-01', isOff: true, onApprovedLeave: true, leaveBeatsOff: true })).toBe('on_leave')
+  })
+  it('leave before the tracking start is not leave', () => {
+    expect(employeeDayStatus({ ...base, iso: '2026-09-01', onApprovedLeave: true, startDay: '2026-09-15' })).toBe('not_started')
+  })
+  it('builder + school month carry approved leave on a future day', () => {
+    const args = { year: 2026, month0: 9, today: '2026-10-03', offDays: [], weeklyOffDays: [] as number[] }
+    const own = buildEmployeeMonthCalendar({ ...args, records: [], approvedLeaves: [{ from_day: '2026-10-04', to_day: '2026-10-05' }] })
+    expect(own.find((c) => c.iso === '2026-10-04')?.status).toBe('on_leave')
+    expect(own.find((c) => c.iso === '2026-10-06')?.status).toBe('future')
+    const school = buildSchoolAttendanceMonth({
+      ...args,
+      employees: [{ id: 'e1', full_name: 'A' }],
+      records: [],
+      approvedLeaves: [{ employee_id: 'e1', from_day: '2026-10-04', to_day: '2026-10-05' }],
+    })
+    expect(school.find((c) => c.iso === '2026-10-05')?.leaveCount).toBe(1)
+    expect(school.find((c) => c.iso === '2026-10-06')?.leaveCount).toBe(0)
+  })
+})
+
 describe('buildEmployeeMonthCalendar', () => {
   it('carries entry/exit times only for present days', () => {
     const cells = buildEmployeeMonthCalendar({
