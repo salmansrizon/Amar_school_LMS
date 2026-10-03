@@ -2,8 +2,9 @@
 
 import { useMemo, useState, useTransition } from 'react'
 import { labelClass } from '@/components/auth-card'
-import { Button } from '@/components/ui/button'
-import { t, type Lang } from '@/lib/i18n'
+import { Button, buttonClass } from '@/components/ui/button'
+import { ConfirmDialog } from '@/components/confirm-dialog'
+import { t, numberFmt, type Lang } from '@/lib/i18n'
 import { countSmsSegments } from '@/lib/sms/segments'
 import {
   classTargetFromInput,
@@ -69,6 +70,8 @@ export function ComposeForm({
   activeAcademicYear,
   categories,
   prefillNumbers,
+  balance,
+  metered,
 }: {
   lang: Lang
   students: ComposeStudentRow[]
@@ -79,6 +82,10 @@ export function ComposeForm({
   /** Guardian mobiles from `?students=` (the "Remind" action, map 013 FC2):
    *  opens in Manual Numbers mode with these, ignoring any saved draft. */
   prefillNumbers?: string
+  /** The school's SMS credit balance (0 when it has no credit record). */
+  balance: number
+  /** False when prepaid metering is off — sends are not deducted. */
+  metered: boolean
 }) {
   // Restore a locally-saved draft as the initial state (client-only; no
   // server draft storage exists for this screen — see "Save Draft" below).
@@ -98,6 +105,7 @@ export function ComposeForm({
   const [result, setResult] = useState<{ sent: number; failed: number } | null>(null)
   const [draftSaved, setDraftSaved] = useState(false)
   const [pending, startTransition] = useTransition()
+  const fmt = numberFmt(lang)
 
   const offeringOptions = useMemo(() => classCatalogueOptions(offerings), [offerings])
   const classNameOptions = useMemo(() => distinct(offerings.map((o) => o.name)), [offerings])
@@ -134,6 +142,9 @@ export function ComposeForm({
   )
 
   const segmentInfo = useMemo(() => countSmsSegments(draft.body), [draft.body])
+  // Same arithmetic sendCompose charges by: recipients × parts (at least one).
+  const parts = segmentInfo.segments || 1
+  const creditsNeeded = recipients.length * parts
 
   function update<K extends keyof Draft>(key: K, value: Draft[K]) {
     setDraft((d) => ({ ...d, [key]: value }))
@@ -150,7 +161,9 @@ export function ComposeForm({
     }
   }
 
-  function submit() {
+  // Resolves once the send has finished, so the confirm dialog stays open and
+  // shows the error on failure. The sending itself is unchanged.
+  function submit(): Promise<{ error?: string }> {
     setError(null)
     setResult(null)
     const formData = new FormData()
@@ -164,17 +177,20 @@ export function ComposeForm({
     formData.set('category', draft.category)
     formData.set('manual_numbers', draft.manualNumbers)
     formData.set('body', draft.body)
-    startTransition(async () => {
-      const res = await sendCompose(formData)
-      if (res.error) setError(res.error)
-      else {
-        setResult({ sent: res.sent ?? 0, failed: res.failed ?? 0 })
-        try {
-          window.localStorage.removeItem(DRAFT_KEY)
-        } catch {
-          // ignore
+    return new Promise((resolve) => {
+      startTransition(async () => {
+        const res = await sendCompose(formData)
+        if (res.error) setError(res.error)
+        else {
+          setResult({ sent: res.sent ?? 0, failed: res.failed ?? 0 })
+          try {
+            window.localStorage.removeItem(DRAFT_KEY)
+          } catch {
+            // ignore
+          }
         }
-      }
+        resolve({ error: res.error })
+      })
     })
   }
 
@@ -326,7 +342,7 @@ export function ComposeForm({
           )}
         </div>
         <p className="mt-3 text-xs text-muted">
-          {t('sms.estimatedRecipients', lang)}: {recipients.length}
+          {t('sms.estimatedRecipients', lang)}: {fmt.format(recipients.length)}
           {lang === 'bn' ? ' জন' : ''}
         </p>
       </div>
@@ -343,6 +359,9 @@ export function ComposeForm({
           {segmentInfo.length}/{segmentInfo.encoding === 'gsm7' ? 160 : 70} {t('sms.characters', lang)} ·{' '}
           {segmentInfo.segments} {t('sms.segments', lang)}
         </p>
+        <p className="mt-1 text-xs text-muted">
+          {t('sms.confirmCredits', lang)}: {fmt.format(creditsNeeded)} · {t('sms.balance', lang)}: {fmt.format(balance)}
+        </p>
         {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
         {result && (
           <p className="mt-2 text-sm text-mint-deep">
@@ -352,14 +371,27 @@ export function ComposeForm({
         )}
         {draftSaved && <p className="mt-2 text-sm text-muted">{t('sms.draftSaved', lang)}</p>}
         <div className="mt-3 flex flex-wrap gap-2">
-          <Button
-            variant="primary"
-            className={actionBtn}
-            disabled={pending || recipients.length === 0 || !draft.body.trim()}
-            onClick={submit}
-          >
-            {t('sms.sendNow', lang)}
-          </Button>
+          {/* One tap used to send to every recipient. The dialog states what the
+              send costs — recipients × parts = credits — against the balance. */}
+          <ConfirmDialog
+            triggerLabel={t('sms.sendNow', lang)}
+            triggerClassName={`${buttonClass({ variant: 'primary' })} ${actionBtn}`}
+            triggerDisabled={pending || recipients.length === 0 || !draft.body.trim()}
+            confirmClassName="bg-brand-600"
+            title={t('sms.confirmTitle', lang)}
+            body={[
+              `${t('sms.confirmRecipients', lang)}: ${fmt.format(recipients.length)}`,
+              `${t('sms.confirmParts', lang)}: ${fmt.format(parts)}`,
+              `${t('sms.confirmCredits', lang)}: ${fmt.format(recipients.length)} × ${fmt.format(parts)} = ${fmt.format(creditsNeeded)}`,
+              `${t('sms.balance', lang)}: ${fmt.format(balance)}`,
+              !metered ? t('sms.confirmUnmetered', lang) : creditsNeeded > balance ? t('sms.confirmShort', lang) : '',
+            ]
+              .filter(Boolean)
+              .join('\n')}
+            confirmLabel={t('sms.confirmSend', lang)}
+            cancelLabel={t('routine.cancel', lang)}
+            onConfirm={submit}
+          />
           <Button variant="secondary" className={actionBtn} onClick={saveDraft}>
             {t('sms.saveDraft', lang)}
           </Button>

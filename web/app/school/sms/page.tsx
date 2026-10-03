@@ -66,6 +66,12 @@ export default async function SmsComposePage({ searchParams }: { searchParams: P
       : Promise.resolve({ data: [] as { id: string; guardian_phone: string | null }[] }),
   ])
   const smsLedger = smsCredit ? await loadSchoolSmsLedger(supabase, schoolId) : []
+  // A school that is not on prepaid metering has no level to warn about, but
+  // the owner is still promised a balance: it reads 0 (no credit record) with a
+  // note that sends are not deducted, instead of the card vanishing.
+  const smsBalance = smsCredit
+    ? smsCredit.balance
+    : Number((await supabase.rpc('sms_balance_for', { sid: schoolId })).data ?? 0)
 
   const prefillPhones = (prefill.data ?? []).map((s) => s.guardian_phone?.trim()).filter((p): p is string => !!p)
   const prefillMissing = prefillIds.length - prefillPhones.length
@@ -107,16 +113,14 @@ export default async function SmsComposePage({ searchParams }: { searchParams: P
       )}
 
       <StatGrid>
-        {smsCredit && (
-          <StatCard
-            icon={<Wallet className="size-5" />}
-            tone={smsCredit.level === 'ok' ? 'brand' : smsCredit.level === 'empty' ? 'alert' : 'sun'}
-            label={t('sms.balance', lang)}
-            value={fmt.format(smsCredit.balance)}
-            note={t('sms.creditsLeft', lang)}
-            action={{ href: '/school/sms/buy', label: t('sms.buyMore', lang) }}
-          />
-        )}
+        <StatCard
+          icon={<Wallet className="size-5" />}
+          tone={!smsCredit ? 'muted' : smsCredit.level === 'ok' ? 'brand' : smsCredit.level === 'empty' ? 'alert' : 'sun'}
+          label={t('sms.balance', lang)}
+          value={fmt.format(smsBalance)}
+          note={t(smsCredit ? 'sms.creditsLeft' : 'sms.balanceUnmetered', lang)}
+          action={{ href: '/school/sms/buy', label: t('sms.buyMore', lang) }}
+        />
         <StatCard
           icon={<MessageSquare className="size-5" />}
           tone="mint"
@@ -164,6 +168,8 @@ export default async function SmsComposePage({ searchParams }: { searchParams: P
           activeAcademicYear={activeAcademicYear}
           categories={categories}
           prefillNumbers={prefillIds.length ? prefillPhones.join(', ') : undefined}
+          balance={smsBalance}
+          metered={smsCredit !== null}
         />
       </div>
 

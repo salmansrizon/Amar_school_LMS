@@ -71,6 +71,7 @@ test.describe('@crud @school sms', () => {
     await page.getByRole('textbox').first().fill('01700000000') // manual number
     await page.locator('textarea').first().fill('E2E hi') // 1-segment body
     await page.getByRole('button', { name: 'এখনই পাঠান' }).click() // sms.sendNow
+    await page.getByRole('button', { name: 'হ্যাঁ, পাঠান' }).click() // sms.confirmSend
 
     await expect(page.getByText('পাঠানো সম্পন্ন')).toBeVisible() // sms.sendComplete
     // LogSmsProvider "sent" it → one sms_log row + wallet debited one segment.
