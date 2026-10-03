@@ -2,6 +2,7 @@
 
 import { useMemo, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
 import { t, type Lang } from '@/lib/i18n'
 import { compressImage, IMAGE_PRESETS } from '@/lib/image/compress'
@@ -16,7 +17,7 @@ import {
   type TargetScope,
 } from '@/lib/publishing'
 import { classCatalogueOptions, type ClassCatalogueRow } from '@/lib/class-catalogue'
-import { createPublication, publicationImageUploadTicket } from '../actions'
+import { createPublication, updatePublication, publicationImageUploadTicket } from '../actions'
 import { ComboboxField } from '@/components/ui/combobox-field'
 import { SelectField } from '@/components/ui/select-field'
 import { removeUploadedObject } from '@/lib/storage/remove-object'
@@ -29,30 +30,52 @@ function distinct(values: (string | null | undefined)[]): string[] {
   return [...new Set(values.filter((v): v is string => !!v))].sort()
 }
 
+/** An existing row, when the form is editing rather than creating. */
+export interface NoticeFormInitial {
+  id: string
+  kind: PublicationKind
+  importance: Importance
+  title: string
+  content: string
+  targetScope: TargetScope
+  offeringId: string
+  targetClassName: string
+  targetShift: string
+  targetGroupDepartment: string
+  targetSection: string
+  linkUrl: string
+  hasImage: boolean
+}
+
 export function CreateNoticeForm({
   lang,
   offerings,
   activeAcademicYear,
+  initial,
 }: {
   lang: Lang
   offerings: ClassCatalogueRow[]
+  /** The Year a broadcast target is pinned to: the School's active year for a
+   *  new notice, the row's own for an edited broadcast. */
   activeAcademicYear: number | null
+  /** Present = edit this row (same fields, same validation); absent = create. */
+  initial?: NoticeFormInitial
 }) {
   const router = useRouter()
-  const [kind, setKind] = useState<PublicationKind>('notice')
-  const [importance, setImportance] = useState<Importance>('normal')
-  const [title, setTitle] = useState('')
-  const [content, setContent] = useState('')
+  const [kind, setKind] = useState<PublicationKind>(initial?.kind ?? 'notice')
+  const [importance, setImportance] = useState<Importance>(initial?.importance ?? 'normal')
+  const [title, setTitle] = useState(initial?.title ?? '')
+  const [content, setContent] = useState(initial?.content ?? '')
   // Targeting onto map #598's three-scope contract (#607): All / exact Class
   // Offering / broadcast predicate (Class + Any-or-specific Shift/Group/
   // Section, Year pinned to the School's active Academic Year).
-  const [targetScope, setTargetScope] = useState<TargetScope>('all')
-  const [offeringId, setOfferingId] = useState('')
-  const [targetClassName, setTargetClassName] = useState('')
-  const [targetShift, setTargetShift] = useState('')
-  const [targetGroupDepartment, setTargetGroupDepartment] = useState('')
-  const [targetSection, setTargetSection] = useState('')
-  const [linkUrl, setLinkUrl] = useState('')
+  const [targetScope, setTargetScope] = useState<TargetScope>(initial?.targetScope ?? 'all')
+  const [offeringId, setOfferingId] = useState(initial?.offeringId ?? '')
+  const [targetClassName, setTargetClassName] = useState(initial?.targetClassName ?? '')
+  const [targetShift, setTargetShift] = useState(initial?.targetShift ?? '')
+  const [targetGroupDepartment, setTargetGroupDepartment] = useState(initial?.targetGroupDepartment ?? '')
+  const [targetSection, setTargetSection] = useState(initial?.targetSection ?? '')
+  const [linkUrl, setLinkUrl] = useState(initial?.linkUrl ?? '')
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
@@ -114,7 +137,7 @@ export function CreateNoticeForm({
         }
         imagePath = upload.path
       }
-      const res = await createPublication({
+      const input = {
         kind,
         title,
         content,
@@ -127,7 +150,8 @@ export function CreateNoticeForm({
         targetSection,
         imagePath,
         linkUrl,
-      })
+      }
+      const res = initial ? await updatePublication(initial.id, input) : await createPublication(input)
       if (res.error) {
         // The row insert failed after the image was already uploaded — clean
         // up the now-orphaned object rather than leaving it unreferenced
@@ -136,6 +160,7 @@ export function CreateNoticeForm({
         setError(res.error)
         return
       }
+      toast.success(t(initial ? 'notices.updated' : 'notices.published', lang))
       router.push('/school/notices')
       router.refresh()
     })
@@ -264,7 +289,7 @@ export function CreateNoticeForm({
           />
         </div>
         <div>
-          <label className={labelClass}>{t('notices.image', lang)}</label>
+          <label className={labelClass}>{t(initial?.hasImage ? 'notices.imageReplace' : 'notices.image', lang)}</label>
           <input
             type="file"
             accept="image/jpeg,image/png,image/webp"
@@ -284,7 +309,11 @@ export function CreateNoticeForm({
         {error && <p className="text-sm text-alert-deep sm:col-span-2">{error}</p>}
         <div className="flex gap-2 sm:col-span-2">
           <button type="submit" disabled={pending} className={`${primaryBtnClass} w-auto px-6`}>
-            {pending ? t('notices.publishing', lang) : t('notices.publish', lang)}
+            {initial
+              ? t(pending ? 'notices.saving' : 'notices.saveChanges', lang)
+              : pending
+                ? t('notices.publishing', lang)
+                : t('notices.publish', lang)}
           </button>
         </div>
       </form>

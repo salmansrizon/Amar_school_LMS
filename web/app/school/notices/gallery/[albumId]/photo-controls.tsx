@@ -2,6 +2,7 @@
 
 import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { ConfirmDialog } from '@/components/confirm-dialog'
 import { formatBytes } from '@/lib/routine'
 import { albumCountLabel, albumIsFull, galleryImageExtension, photoExceedsCap } from '@/lib/publishing'
 import { t, type Lang } from '@/lib/i18n'
@@ -79,13 +80,12 @@ export function PhotoGrid({
   }
 
   async function onDelete(photoId: string) {
-    if (!window.confirm(t('gallery.confirmDeletePhoto', lang))) return
     setError(null)
     setBusy(true)
     const res = await deleteGalleryPhoto(photoId, albumId)
     setBusy(false)
-    if (res.error) setError(res.error)
-    else router.refresh()
+    if (res.error) return res
+    router.refresh()
   }
 
   return (
@@ -129,14 +129,19 @@ export function PhotoGrid({
                 loading="lazy"
                 className="h-24 w-full rounded-md border border-line object-cover"
               />
-              <button
-                type="button"
-                disabled={busy}
-                onClick={() => onDelete(p.id)}
-                className="absolute right-1 top-1 flex size-5 items-center justify-center rounded-sm border border-line-strong bg-paper text-xs text-alert-deep disabled:opacity-50"
-              >
-                ✕
-              </button>
+              <ConfirmDialog
+                triggerLabel={
+                  <span role="img" aria-label={`${t('common.delete', lang)}: ${p.file_name}`}>
+                    ✕
+                  </span>
+                }
+                triggerClassName="absolute right-1 top-1 flex size-5 cursor-pointer items-center justify-center rounded-sm border border-line-strong bg-paper text-xs text-alert-deep disabled:opacity-50"
+                triggerDisabled={busy}
+                title={t('gallery.confirmDeletePhoto', lang)}
+                confirmLabel={t('common.delete', lang)}
+                cancelLabel={t('routine.cancel', lang)}
+                onConfirm={() => onDelete(p.id)}
+              />
             </div>
           ))}
         </div>

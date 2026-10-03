@@ -1,7 +1,7 @@
 import { AlertTriangle, HandCoins, Receipt, Wallet } from 'lucide-react'
 import { getSchoolContext } from '@/lib/school/context'
-import { feeStanding, type FeeStanding } from '@/lib/fees'
-import { t, numberFmt, type Lang } from '@/lib/i18n'
+import { feeStanding, feePeriodLabel, type FeeStanding } from '@/lib/fees'
+import { t, numberFmt, localeOf, type Lang } from '@/lib/i18n'
 import { withParams, type Params } from '@/lib/url-params'
 import { Pill } from '@/components/data-table/data-table'
 import { DrawerFacts, DrawerSection, DrawerItemCard, type DrawerFact } from '@/components/data-table/drawer-parts'
@@ -81,7 +81,7 @@ export function FeeDrawerBody({ record, data, lang }: { record: FeeDrawerRecord;
               <DrawerItemCard
                 key={h.id}
                 icon={<Wallet className="size-4" aria-hidden />}
-                title={`${fmt.format(h.month)}/${h.year}`}
+                title={feePeriodLabel(h.month, h.year, localeOf(lang))}
                 meta={h.standing !== 'paid' ? [tk(h.due)] : []}
                 status={<Pill tone={STANDING_TONE[h.standing]}>{t(STANDING_LABEL[h.standing], lang)}</Pill>}
                 href={`/school/fees/receipt/${h.id}`}

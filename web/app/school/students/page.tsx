@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
-import { t, type Lang } from '@/lib/i18n'
+import { t, localeOf, type Lang } from '@/lib/i18n'
+import { feePeriodLabel } from '@/lib/fees'
 import { getSchoolContext } from '@/lib/school/context'
 import { canOpenScreen } from '@/lib/auth/screens'
 import { numberFmt } from '@/lib/i18n'
@@ -64,10 +65,10 @@ const primaryClass =
 export default async function StudentsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; classSection?: string; fee?: string; admitted?: string; incomplete?: string; page?: string; size?: string; view?: string }>
+  searchParams: Promise<{ q?: string; classSection?: string; fee?: string; admitted?: string; incomplete?: string; month?: string; year?: string; page?: string; size?: string; view?: string }>
 }) {
   const params = await searchParams
-  const { q = '', classSection = '', fee, admitted, incomplete, page, size, view } = params
+  const { q = '', classSection = '', fee, admitted, incomplete, month, year, page, size, view } = params
   const pageSize = pageSizeFrom(size, PAGE_SIZE)
   const lang: Lang = await currentLang()
   const { role, grants } = await getSchoolContext()
@@ -80,8 +81,8 @@ export default async function StudentsPage({
   // from the CURRENT client selection, which the bulk bar's plain
   // <form action> shape can't drive without a components/data-table change.
   const bulkActions: BulkAction[] = canSms ? [{ label: t('students.remind', lang), action: bulkRemindStudents }] : []
-  const [{ roster, fees, rows, showYear, admittedThisMonth }, viewed, studentDrawerData] = await Promise.all([
-    loadDirectoryRows({ q, classSection, fee, admitted, incomplete }),
+  const [{ roster, fees, rows, showYear, admittedThisMonth, feePeriod }, viewed, studentDrawerData] = await Promise.all([
+    loadDirectoryRows({ q, classSection, fee, admitted, incomplete, month, year }),
     view ? getStudent(view) : Promise.resolve(null),
     view ? loadStudentDrawerData(view) : Promise.resolve(null),
   ])
@@ -90,6 +91,14 @@ export default async function StudentsPage({
   const fmt = numberFmt(lang)
   const n = (x: number) => fmt.format(x)
   const dash = <span className="text-muted">—</span>
+  // Fee standings are for the current month unless the fees page's dues links
+  // sent a month along (`?month=&year=`). Then every fee figure, link and label
+  // on this page is for that month, and says so instead of "this month".
+  const feeParams = feePeriod.isCurrent ? {} : { month: String(feePeriod.month), year: String(feePeriod.year) }
+  const feePeriodText = feePeriodLabel(feePeriod.month, feePeriod.year, localeOf(lang))
+  const feeColumnLabel = feePeriod.isCurrent
+    ? t('students.feeStanding', lang)
+    : `${t('students.feeStandingFor', lang)} (${feePeriodText})`
   const dueList = roster.readable.filter((s) => fees.get(s.id)?.standing === 'due')
   const partialList = roster.readable.filter((s) => fees.get(s.id)?.standing === 'partial')
   const totalDueAmt = dueList.reduce((sum, s) => sum + (fees.get(s.id)?.due ?? 0), 0)
@@ -142,7 +151,7 @@ export default async function StudentsPage({
     },
     {
       key: 'fee',
-      header: t('students.feeStanding', lang),
+      header: feeColumnLabel,
       card: 'badge',
       cell: (s) => {
         const f = fees.get(s.id)
@@ -227,7 +236,7 @@ export default async function StudentsPage({
             .slice(0, 3)
             .map((s) => s.full_name)
             .join(', ')}${dueList.length > 3 ? ` +${n(dueList.length - 3)}` : ''}`}
-          href="/school/students?fee=due"
+          href={`/school/students${withParams(feeParams, { fee: 'due' })}`}
           linkLabel={t('students.viewDueList', lang)}
         />
       )}
@@ -249,7 +258,7 @@ export default async function StudentsPage({
           value={n(dueList.length)}
           note={dueList.length ? `৳${fmt.format(totalDueAmt)} ${t('students.statFeeDueNote', lang)}` : undefined}
           noteTone="alert"
-          action={dueList.length ? { href: withParams({}, { fee: 'due' }), label: t('students.statView', lang) } : undefined}
+          action={dueList.length ? { href: withParams(feeParams, { fee: 'due' }), label: t('students.statView', lang) } : undefined}
         />
         <StatCard
           icon={<HandCoins className="size-5" />}
@@ -259,7 +268,7 @@ export default async function StudentsPage({
           note={partialList.length ? `${n(partialList.length)} ${t('students.statFeePartialNote', lang)}` : undefined}
           noteTone="sun"
           action={
-            partialList.length ? { href: withParams({}, { fee: 'partial' }), label: t('students.statView', lang) } : undefined
+            partialList.length ? { href: withParams(feeParams, { fee: 'partial' }), label: t('students.statView', lang) } : undefined
           }
         />
         <StatCard
@@ -298,7 +307,7 @@ export default async function StudentsPage({
           { param: 'classSection', label: t('students.classSection', lang), options: roster.combos },
           {
             param: 'fee',
-            label: t('students.feeStanding', lang),
+            label: feeColumnLabel,
             options: (['paid', 'partial', 'due'] as const).map((v) => ({ value: v, label: t(FEE_LABEL[v], lang) })),
           },
         ]}
@@ -388,7 +397,7 @@ export default async function StudentsPage({
           </div>
         </WorkflowCard>
 
-        <WorkflowCard icon={<Wallet className="size-5" />} title={t('students.workflowFeeTitle', lang)} tag={t('students.thisMonthTag', lang)}>
+        <WorkflowCard icon={<Wallet className="size-5" />} title={t('students.workflowFeeTitle', lang)} tag={feePeriod.isCurrent ? t('students.thisMonthTag', lang) : feePeriodText}>
           {dueList.length === 0 ? (
             <p className="mb-4 rounded-xl border border-dashed border-line p-6 text-center text-sm text-muted">
               {t('students.workflowFeeEmpty', lang)}

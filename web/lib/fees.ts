@@ -92,3 +92,83 @@ export function summarizeMonthFees(rows: { pay_amount: number; due_amount: numbe
   }
   return out
 }
+
+// Money is compared in whole poisha so float noise (0.1 + 0.2) never reads as
+// a shortfall or an overpayment.
+function toPoisha(amount: number): number {
+  return Math.round(amount * 100)
+}
+
+/** What was billed for a saved Fee Collection Record. The record keeps only
+ *  pay/fine/adjust/due (CONTEXT.md), so the fee is read back out of the
+ *  identity the collection form saved it with: due = fee + fine − adjust − pay.
+ *  Exact while something is still due. Once due is 0 the record cannot tell an
+ *  exact payment from an overpayment, so this returns the fee that makes the
+ *  stored figures add up — never the misleading 0 the edit form used to show. */
+export function billedFeeAmount(record: {
+  pay_amount: number
+  fine_amount: number
+  adjust_amount: number
+  due_amount: number
+}): number {
+  return (
+    Math.max(0, toPoisha(record.pay_amount + record.due_amount - record.fine_amount + record.adjust_amount)) / 100
+  )
+}
+
+/** How much more than the total payable was received; 0 when not overpaid. */
+export function overpaidAmount(totalPayableAmount: number, receivedAmount: number): number {
+  return Math.max(0, toPoisha(receivedAmount) - toPoisha(totalPayableAmount)) / 100
+}
+
+/** One collection's figures from what the operator entered. The collection
+ *  form's live preview and saveFeeRecord both call this, so the due amount that
+ *  is stored is the one the server worked out — not a number the browser sent. */
+export function settleFee(entry: { fee: number; fine: number; adjust: number; received: number }): {
+  total: number
+  due: number
+  overpaid: number
+} {
+  const total = totalPayable(entry.fee, entry.fine, entry.adjust)
+  return { total, due: dueAmount(total, entry.received), overpaid: overpaidAmount(total, entry.received) }
+}
+
+// The general-ledger postings of one Fee Collection Record.
+
+/** `gl_entries.ref` LIKE pattern for one record's postings. The fee_gl_post
+ *  trigger (0097) writes `fee:<record id>:<seq>` — one entry per write. The
+ *  closing colon is what stops one id matching as a prefix of another ref. */
+export function feeGlRefPattern(recordId: string): string {
+  return `fee:${recordId}:%`
+}
+
+/** The column those postings are ordered by. `gl_entries` has no `created_at`
+ *  (0085): ordering by it made PostgREST reject the whole read, and the receipt
+ *  reported the missing rows as "no ledger entry" for a paid record. */
+export const FEE_GL_ORDER_COLUMN = 'posted_at'
+
+// The fee period (month/year) a screen is showing.
+
+/** Month and year from URL params, falling back to `today` for anything that
+ *  is not a real month / plausible year. Shared by the fees page and the
+ *  students directory's `?fee=` filter, so an "unpaid list" link lands on the
+ *  month it was clicked from. */
+export function feePeriodFromParams(
+  monthParam: string | undefined,
+  yearParam: string | undefined,
+  today: { month: number; year: number },
+): { month: number; year: number } {
+  const month = Number(monthParam)
+  const year = Number(yearParam)
+  return {
+    month: Number.isInteger(month) && month >= 1 && month <= 12 ? month : today.month,
+    year: Number.isInteger(year) && year >= MIN_YEAR && year <= MAX_YEAR ? year : today.year,
+  }
+}
+
+/** "৭/২০২৬" or "7/2026" — both halves in the reader's digits (`locale` from
+ *  localeOf), and the year never grouped into "২,০২৬". */
+export function feePeriodLabel(month: number, year: number, locale: string): string {
+  const fmt = new Intl.NumberFormat(locale, { useGrouping: false })
+  return `${fmt.format(month)}/${fmt.format(year)}`
+}

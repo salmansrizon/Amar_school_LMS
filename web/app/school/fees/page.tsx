@@ -2,14 +2,14 @@ import Form from 'next/form'
 import Link from 'next/link'
 import { AlertTriangle, CheckCircle2, Receipt, Wallet } from 'lucide-react'
 import { currentLang } from '@/lib/i18n-server'
-import { t, numberFmt, type Lang } from '@/lib/i18n'
+import { t, numberFmt, localeOf, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { canOpenScreen } from '@/lib/auth/screens'
 import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
 import { applyGlobalYearFilterToOfferings } from '@/lib/school/year-filter'
 import { enrolledStudentIds, enrolledIdFilter } from '@/lib/school/offering-roster'
 import { selectAllRows } from '@/lib/supabase/select-all'
-import { feeStanding, summarizeMonthFees, type FeeStanding } from '@/lib/fees'
+import { feeStanding, summarizeMonthFees, feePeriodFromParams, feePeriodLabel, type FeeStanding } from '@/lib/fees'
 import { schoolCrumbs, headerPrimary, headerSecondary } from '@/lib/school-crumbs'
 import { AccountingTabs } from './accounting-tabs'
 import { FeeForm, type CollectStudent, type ExistingFeeRecord } from './fee-form'
@@ -86,8 +86,10 @@ export default async function FeesPage({
     size,
     view,
   } = params
-  const month = Number(monthParam) || now.getMonth() + 1
-  const year = Number(yearParam) || now.getFullYear()
+  const { month, year } = feePeriodFromParams(monthParam, yearParam, {
+    month: now.getMonth() + 1,
+    year: now.getFullYear(),
+  })
   const pageSize = pageSizeFrom(size, PAGE_SIZE)
 
   const lang: Lang = await currentLang()
@@ -158,7 +160,7 @@ export default async function FeesPage({
     if (roster.length) {
       const { data: records } = await supabase
         .from('fee_collection_records')
-        .select('id, student_id, pay_amount, fine_amount, adjust_amount, payment_method, note')
+        .select('id, student_id, pay_amount, fine_amount, adjust_amount, due_amount, payment_method, note')
         .eq('month', month)
         .eq('year', year)
         .in(
@@ -173,6 +175,7 @@ export default async function FeesPage({
             pay_amount: Number(r.pay_amount),
             fine_amount: Number(r.fine_amount),
             adjust_amount: Number(r.adjust_amount),
+            due_amount: Number(r.due_amount),
             payment_method: r.payment_method,
             note: r.note,
           },
@@ -215,7 +218,10 @@ export default async function FeesPage({
 
   const fmt = numberFmt(lang)
   const tk = (n: number) => `৳${fmt.format(n)}`
-  const period = `${fmt.format(month)}/${year}`
+  const period = feePeriodLabel(month, year, localeOf(lang))
+  // The dues links open the students directory on THIS page's month — without
+  // it the directory shows the current month, where July's ten unpaid are zero.
+  const duesListHref = `/school/students?fee=due&month=${month}&year=${year}`
   const withDues = summary.partial + summary.unpaid
   const billed = summary.collected + summary.due
   const rate = billed ? Math.round((summary.collected / billed) * 100) : 0
@@ -343,7 +349,7 @@ export default async function FeesPage({
         <WarningBanner
           label={t('fees.attention', lang)}
           text={`${fmt.format(withDues)} ${t('fees.alertDues', lang)} · ${t('fees.due', lang)}: ${tk(summary.due)}`}
-          href="/school/students?fee=due"
+          href={duesListHref}
           linkLabel={t('fees.alertDuesAction', lang)}
         />
       )}
@@ -363,7 +369,7 @@ export default async function FeesPage({
           value={tk(summary.due)}
           note={`${t('students.feePartial', lang)} ${fmt.format(summary.partial)} · ${t('students.feeDue', lang)} ${fmt.format(summary.unpaid)}`}
           action={
-            canStudents ? { href: '/school/students?fee=due', label: t('fees.statDueList', lang) } : undefined
+            canStudents ? { href: duesListHref, label: t('fees.statDueList', lang) } : undefined
           }
         />
         <StatCard

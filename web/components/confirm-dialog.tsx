@@ -10,6 +10,8 @@ import { useState, useTransition } from 'react'
 export function ConfirmDialog({
   triggerLabel,
   triggerClassName,
+  triggerDisabled,
+  confirmClassName = 'bg-alert',
   title,
   body,
   extra,
@@ -19,6 +21,9 @@ export function ConfirmDialog({
 }: {
   triggerLabel: React.ReactNode
   triggerClassName: string
+  triggerDisabled?: boolean
+  /** Background of the confirm button — red by default (destructive). */
+  confirmClassName?: string
   title: string
   body?: string
   /** Extra content under the body, e.g. a warning with a link. */
@@ -33,7 +38,7 @@ export function ConfirmDialog({
 
   return (
     <>
-      <button type="button" onClick={() => setOpen(true)} className={triggerClassName}>
+      <button type="button" disabled={triggerDisabled} onClick={() => setOpen(true)} className={triggerClassName}>
         {triggerLabel}
       </button>
       {open && (
@@ -44,7 +49,7 @@ export function ConfirmDialog({
         >
           <div className="w-full max-w-md rounded-lg border border-line bg-paper p-6 shadow-card">
             <h3 className="mb-3 text-lg font-bold">{title}</h3>
-            {body && <p className="mb-4 text-sm text-muted">{body}</p>}
+            {body && <p className="mb-4 whitespace-pre-line text-sm text-muted">{body}</p>}
             {extra}
             {error && <p className="mb-3 text-sm text-alert-deep">{error}</p>}
             <div className="flex justify-between gap-2">
@@ -67,7 +72,7 @@ export function ConfirmDialog({
                     else setOpen(false)
                   })
                 }
-                className="cursor-pointer rounded-full bg-alert px-4 py-1.5 text-sm font-semibold text-white disabled:opacity-50"
+                className={`cursor-pointer rounded-full ${confirmClassName} px-4 py-1.5 text-sm font-semibold text-white disabled:opacity-50`}
               >
                 {confirmLabel}
               </button>

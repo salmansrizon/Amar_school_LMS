@@ -8,7 +8,7 @@ import {
   kindLabel,
   targetAudienceLabel,
 } from '@/lib/publishing'
-import { DeletePublicationButton } from './detail-controls'
+import { PublicationActions } from './detail-controls'
 
 // Shared detail body for notice/homework/lesson-plan/daily-lesson/exam-prep
 // rows (issue #37), rendered by the full page `[id]` and by the list's record
@@ -56,7 +56,7 @@ export function noticeMeta({ row, offering }: Notice, lang: Lang): string {
   return `${target} · ${new Date(row.created_at).toLocaleDateString(locale)}`
 }
 
-/** Badges, content, image, link and Delete. The caller renders the title. */
+/** Badges, content, image, link, Edit and Delete. The caller renders the title. */
 export function NoticeDetail({ notice, lang }: { notice: Notice; lang: Lang }) {
   const { row } = notice
   return (
@@ -81,7 +81,7 @@ export function NoticeDetail({ notice, lang }: { notice: Notice; lang: Lang }) {
           </a>
         </p>
       )}
-      <DeletePublicationButton id={row.id} lang={lang} />
+      <PublicationActions id={row.id} lang={lang} />
     </>
   )
 }
