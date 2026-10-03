@@ -39,26 +39,22 @@ interface StudentLeaveRow {
 export default async function StudentLeaveManagementPage({
   searchParams,
 }: {
-  searchParams: Promise<{ classSection?: string; q?: string; status?: string; page?: string; size?: string; view?: string; rosterClass?: string; rosterQ?: string }>
+  searchParams: Promise<{ classSection?: string; q?: string; status?: string; page?: string; size?: string; view?: string}>
 }) {
   const params = await searchParams
-  const { classSection = '', q = '', status = '', page, size, view, rosterClass = '', rosterQ = '' } = params
+  const { classSection = '', q = '', status = '', page, size, view } = params
   const pageSize = pageSizeFrom(size, PAGE_SIZE)
   const lang: Lang = await currentLang()
   const { supabase, shiftSelection, startedAcademicYears, academicYearSelection } = await getSchoolContext()
   const showYear = startedAcademicYears.length > 1
 
-  // One roster read, filtered two independent ways (map #668): the "who can I
-  // request leave for" browser below has its own class/search filter
-  // (rosterClass/rosterQ), kept separate from this filter (classSection/q,
-  // which scopes the leave-records table further down) so neither section's
-  // filter resets the other on submit — each Form below carries the other's
-  // current values as hidden fields for exactly that reason. Reading once via
-  // schoolRosterRead and filtering twice avoids paying for the students +
-  // class_offerings round trip a second time just to apply a second filter.
+  // One filter, two views of it: the roster browser ("who can I request leave
+  // for") and the leave-records table below share classSection/q, so searching
+  // a student narrows both and a ?classSection= link from another attendance
+  // page is honoured (audit F19).
   const read = await schoolRosterRead(supabase, { shiftSelection, academicYearSelection })
   const { combos, students: matched } = filterSchoolRoster(read, { classSection, q, showYear })
-  const { students: rosterStudents } = filterSchoolRoster(read, { classSection: rosterClass, q: rosterQ, showYear })
+  const rosterStudents = matched
 
   const filterActive = Boolean(classSection || q)
   const matchedIds = matched.map((s) => s.id)
@@ -138,15 +134,13 @@ export default async function StudentLeaveManagementPage({
       <section className="mb-grid rounded-2xl border border-line bg-paper p-card">
         <h3 className="mb-3 font-bold">{t('attendance.leaveRequestTitle', lang)}</h3>
         <Form className="mb-4 flex flex-wrap items-end gap-2" action="/school/attendance/leave/student">
-          {/* Preserves the leave-records filter below across this form's own submit. */}
-          <input type="hidden" name="classSection" value={classSection} />
-          <input type="hidden" name="q" value={q} />
+          {/* Same params as the records table's own bar, so the two never disagree. */}
+          {status && <input type="hidden" name="status" value={status} />}
           <div>
             <label className="mb-1 block text-xs font-semibold text-muted">{t('attendance.classSection', lang)}</label>
             <ClassSectionSelect
               combos={combos}
-              value={rosterClass}
-              name="rosterClass"
+              value={classSection}
               ariaLabel={t('attendance.classSection', lang)}
               allLabel={t('attendance.allClasses', lang)}
             />
@@ -154,8 +148,8 @@ export default async function StudentLeaveManagementPage({
           <div>
             <label className="mb-1 block text-xs font-semibold text-muted">{t('attendance.leaveSearchStudent', lang)}</label>
             <input
-              name="rosterQ"
-              defaultValue={rosterQ}
+              name="q"
+              defaultValue={q}
               placeholder={t('attendance.leaveSearchStudent', lang)}
               className={`${inputClass()} w-64`}
             />

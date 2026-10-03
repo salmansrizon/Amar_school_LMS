@@ -38,10 +38,10 @@ interface EmployeeLeaveRow {
 export default async function EmployeeLeaveManagementPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; status?: string; page?: string; size?: string; view?: string; rosterQ?: string }>
+  searchParams: Promise<{ q?: string; status?: string; page?: string; size?: string; view?: string}>
 }) {
   const params = await searchParams
-  const { q = '', status = '', page, size, view, rosterQ = '' } = params
+  const { q = '', status = '', page, size, view } = params
   const pageSize = pageSizeFrom(size, PAGE_SIZE)
   const lang: Lang = await currentLang()
   const { supabase } = await getSchoolContext()
@@ -62,11 +62,8 @@ export default async function EmployeeLeaveManagementPage({
   const matched = matchByName(q)
   const matchedIds = matched.map((e) => e.id)
 
-  // Independent from `q`/`matched` above (map #668): the "who can I request
-  // leave for" roster browser has its own search, kept separate from the
-  // leave-records filter so submitting one doesn't reset the other. Same
-  // matchByName helper, so the two search boxes can't silently drift apart.
-  const rosterMatched = matchByName(rosterQ)
+  // The roster browser and the records table share q (audit F19).
+  const rosterMatched = matched
 
   let leaves: EmployeeLeaveRow[] = []
   if (filterActive) {
@@ -131,13 +128,12 @@ export default async function EmployeeLeaveManagementPage({
       <section className="mb-grid rounded-2xl border border-line bg-paper p-card">
         <h3 className="mb-3 font-bold">{t('attendance.leaveRequestTitle', lang)}</h3>
         <Form className="mb-4 flex flex-wrap items-end gap-2" action="/school/attendance/leave/employee">
-          {/* Preserves the leave-records filter below across this form's own submit. */}
-          <input type="hidden" name="q" value={q} />
+          {status && <input type="hidden" name="status" value={status} />}
           <div>
             <label className="mb-1 block text-xs font-semibold text-muted">{t('attendance.employeeSearch', lang)}</label>
             <input
-              name="rosterQ"
-              defaultValue={rosterQ}
+              name="q"
+              defaultValue={q}
               placeholder={t('attendance.employeeSearch', lang)}
               className={`${inputClass()} w-64`}
             />
