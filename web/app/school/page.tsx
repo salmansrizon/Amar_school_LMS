@@ -10,11 +10,12 @@ import { Icon } from '@/components/school-icons'
 import { UpcomingList } from '@/components/upcoming-list'
 import { DashboardChecklist } from '@/components/dashboard-checklist'
 import {
-  attendanceRate,
+  attendanceToday,
   isSubscriptionActive,
   buildUpcoming,
   buildDashAlerts,
   unmarkedOfferings,
+  type AttendanceToday,
   type DashAlertKind,
 } from '@/lib/dashboard'
 import { daysLeft, isDaysLeftDanger, countdownKind } from '@/lib/subscription'
@@ -85,7 +86,6 @@ export default async function SchoolHome() {
     { count: studentCount },
     { count: newThisMonth },
     { count: employeeCount },
-    { count: presentCount },
     { count: approvalCount },
     { data: upcomingExams },
     { data: upcomingHolidays },
@@ -104,11 +104,6 @@ export default async function SchoolHome() {
       .is('archived_at', null)
       .gte('created_at', monthStart),
     supabase.from('employee_card').select('*', { count: 'exact', head: true }).is('archived_at', null),
-    supabase
-      .from('attendance_records')
-      .select('*', { count: 'exact', head: true })
-      .eq('person_type', 'student')
-      .eq('att_date', today),
     supabase.from('workflow_instances').select('*', { count: 'exact', head: true }).eq('status', 'in_progress'),
     supabase
       .from('exams')
@@ -136,14 +131,15 @@ export default async function SchoolHome() {
   const todayTicks = (checklistRow?.ticks as ChecklistTicks | undefined) ?? null
 
   const totalStudents = studentCount ?? 0
-  const presentToday = presentCount ?? 0
-  const attRate = attendanceRate(presentToday, totalStudents)
 
   // Classes with no attendance today — skipped on an off day, and for callers
-  // who cannot open attendance (the alert would have no way to fix it).
+  // who cannot open attendance (the alert would have no way to fix it). The
+  // card's present-rate reads the same data, but only over classes whose
+  // register was taken (attendanceToday), never over the whole school.
   const offToday = weeklyOffDays.includes(todayDow) || (upcomingHolidays ?? []).some((h) => h.day === today)
   let unmarked: string[] = []
-  if (!offToday && can('attendance')) {
+  let attToday: AttendanceToday | null = null
+  if (can('attendance')) {
     const [students, records, notes] = await Promise.all([
       allRows((from, to) =>
         supabase
@@ -173,16 +169,15 @@ export default async function SchoolHome() {
       ),
     ])
     if (students && records && notes) {
-      unmarked = unmarkedOfferings(
-        // The FK embed is to-one at runtime (an object), though typed as an array.
-        students.map((s) => ({
-          id: s.id as string,
-          offeringId:
-            (s.student_enrollments as unknown as { class_offering_id: string | null } | null)?.class_offering_id ??
-            null,
-        })),
-        new Set([...records, ...notes].map((r) => r.person_id)),
-      )
+      // The FK embed is to-one at runtime (an object), though typed as an array.
+      const placedStudents = students.map((s) => ({
+        id: s.id as string,
+        offeringId:
+          (s.student_enrollments as unknown as { class_offering_id: string | null } | null)?.class_offering_id ?? null,
+      }))
+      const markedIds = new Set([...records, ...notes].map((r) => r.person_id))
+      if (!offToday) unmarked = unmarkedOfferings(placedStudents, markedIds)
+      attToday = attendanceToday(placedStudents, new Set(records.map((r) => r.person_id)), markedIds)
     }
   }
 
@@ -337,13 +332,19 @@ export default async function SchoolHome() {
         />
         <StatCard
           icon={<Icon name="attendance" className="size-5" />}
-          tone={presentToday ? (attRate >= 85 ? 'mint' : 'alert') : 'muted'}
+          tone={attToday?.rate != null ? (attToday.rate >= 85 ? 'mint' : 'alert') : 'muted'}
           label={t('dash.attendanceToday', lang)}
-          value={presentToday ? `${attRate.toLocaleString(numLocale)}%` : '—'}
+          value={attToday?.rate != null ? `${attToday.rate.toLocaleString(numLocale)}%` : '—'}
           note={
-            presentToday
-              ? `${fmt(presentToday)} ${t('dash.presentToday', lang)}`
-              : t('dash.noAttendanceToday', lang)
+            attToday?.rate != null
+              ? `${fmt(attToday.present)}/${fmt(attToday.total)} ${t('dash.presentToday', lang)}${
+                  attToday.classesPlaced > attToday.classesTaken
+                    ? ` · ${fmt(attToday.classesPlaced - attToday.classesTaken)} ${t('dash.classesNotMarked', lang)}`
+                    : ''
+                }`
+              : offToday
+                ? t('status.holiday', lang)
+                : t('dash.noAttendanceToday', lang)
           }
           noteTone="muted"
           action={can('attendance') ? { href: '/school/attendance', label: t('dash.attendanceReport', lang) } : undefined}

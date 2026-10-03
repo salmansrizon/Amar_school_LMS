@@ -214,6 +214,20 @@ describe('registerRows', () => {
     ])
   })
 
+  it('approved leave on an unmarked day is flagged for an explicit choice (F20)', () => {
+    const rows = registerRows(roster, new Set(), new Map(), new Set(['a']))
+    expect(rows.map((r) => [r.id, r.onLeave])).toEqual([
+      ['a', true],
+      ['b', false],
+      ['c', false],
+    ])
+  })
+
+  it('a leave student who was already marked is not re-flagged', () => {
+    const rows = registerRows(roster, new Set(['a']), new Map([['b', 'sick']]), new Set(['a', 'b']))
+    expect(rows.map((r) => r.onLeave)).toEqual([false, false, false])
+  })
+
   it('an untaken register reads as everyone present — which is why the screen must say it is untaken', () => {
     const rows = registerRows(roster, new Set(), new Map())
     expect(rows.every((r) => r.present)).toBe(true)

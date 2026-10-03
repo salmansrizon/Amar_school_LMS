@@ -17,7 +17,7 @@ import { EmployeeProfile } from './[id]/employee-profile'
 type LeaveRow = { id: string; from_day: string; to_day: string; status: string; reason: string | null }
 export type EmployeeDrawerData = { recentLeaves: LeaveRow[] }
 
-export type EmployeePresence = 'present' | 'on_leave' | 'not_in'
+export type EmployeePresence = 'present' | 'on_leave' | 'not_in' | 'holiday'
 
 export type EmployeeDrawerRow = {
   id: string
@@ -57,6 +57,7 @@ function PresenceValue({ employee, lang }: { employee: EmployeeDrawerRow; lang: 
     )
   }
   if (employee.presence === 'on_leave') return <Pill tone="sky">{t('status.on_leave', lang)}</Pill>
+  if (employee.presence === 'holiday') return <Pill tone="muted">{t('status.holiday', lang)}</Pill>
   return (
     <Pill tone="muted" pulse>
       {t('employees.notInYet', lang)}

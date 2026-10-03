@@ -7,6 +7,7 @@ import { canOpenScreen } from '@/lib/auth/screens'
 import { employeeCategoryLabel } from '@/lib/employees'
 import { ACADEMIC_SHIFT_LABEL_KEY, isKnownAcademicShift } from '@/lib/institute'
 import { schoolToday } from '@/lib/school-time'
+import { isOffDayIso } from '@/lib/attendance-manual'
 import { selectAllRows } from '@/lib/supabase/select-all'
 import { schoolCrumbs } from '@/lib/school-crumbs'
 import { withParams } from '@/lib/url-params'
@@ -33,7 +34,7 @@ import { EmployeeDrawerBody, loadEmployeeDrawerData, employeeDrawerCancelHref } 
 // moved to Attendance > Employees > Grace Time (issue #671) — this page no
 // longer owns any grace UI.
 
-type Presence = 'present' | 'on_leave' | 'not_in'
+type Presence = 'present' | 'on_leave' | 'not_in' | 'holiday'
 
 type Row = {
   id: string
@@ -68,7 +69,7 @@ export default async function EmployeesPage({
   const { q = '', category = '', department = '', shift = '', presence = '', page, size, view } = params
   const pageSize = pageSizeFrom(size, PAGE_SIZE)
   const lang: Lang = await currentLang()
-  const { supabase, role, grants, configuredShifts } = await getSchoolContext()
+  const { supabase, role, grants, configuredShifts, weeklyOffDays } = await getSchoolContext()
   const today = schoolToday()
   const canAttendance = canOpenScreen(role, grants, 'attendance')
 
@@ -79,6 +80,7 @@ export default async function EmployeesPage({
     { rows: leaves },
     { count: pendingLeaveCount },
     { data: pendingLeaves },
+    { data: todayOffRows },
     viewed,
     employeeDrawerData,
   ] = await Promise.all([
@@ -119,10 +121,14 @@ export default async function EmployeesPage({
       .eq('status', 'pending')
       .order('created_at', { ascending: false })
       .limit(5),
+    supabase.from('off_days').select('day, label, is_significant').eq('day', today),
     view ? getEmployee(view) : Promise.resolve(null),
     view ? loadEmployeeDrawerData(view) : Promise.resolve(null),
   ])
 
+  // On an off-day nobody is "not in yet": same holiday verdict the attendance
+  // calendar gives (audit F10). A check-in or approved leave still wins.
+  const offToday = isOffDayIso(today, todayOffRows ?? [], weeklyOffDays)
   const entryBy = new Map(records.map((r) => [r.person_id, r.entry_at as string | null]))
   const onLeave = new Set(leaves.map((l) => l.employee_id))
   const shiftsBy = new Map<string, string[]>()
@@ -131,7 +137,7 @@ export default async function EmployeesPage({
   const all: Row[] = employees.map((e) => ({
     ...e,
     shifts: shiftsBy.get(e.id) ?? [],
-    presence: entryBy.has(e.id) ? 'present' : onLeave.has(e.id) ? 'on_leave' : 'not_in',
+    presence: entryBy.has(e.id) ? 'present' : onLeave.has(e.id) ? 'on_leave' : offToday ? 'holiday' : 'not_in',
     entryAt: entryBy.get(e.id) ?? null,
   }))
   const viewedRow = view ? (all.find((e) => e.id === view) ?? null) : null
@@ -184,6 +190,8 @@ export default async function EmployeesPage({
       </div>
     ) : e.presence === 'on_leave' ? (
       <Pill tone="sky">{t('status.on_leave', lang)}</Pill>
+    ) : e.presence === 'holiday' ? (
+      <Pill tone="muted">{t('status.holiday', lang)}</Pill>
     ) : (
       // Not checked in yet needs a look; on_leave/present are steady facts, no pulse.
       <Pill tone="muted" pulse>
@@ -305,7 +313,7 @@ export default async function EmployeesPage({
           tone="mint"
           label={t('employees.presentToday', lang)}
           value={`${n(present)} / ${n(all.length)}`}
-          note={`${n(rate)}% ${t('employees.presentRate', lang)}`}
+          note={offToday && !present ? t('status.holiday', lang) : `${n(rate)}% ${t('employees.presentRate', lang)}`}
           action={canAttendance ? { href: '/school/attendance/employee', label: t('employees.viewAttendance', lang) } : undefined}
         />
         <StatCard
@@ -426,11 +434,11 @@ export default async function EmployeesPage({
         <WorkflowCard
           icon={<UserCheck className="size-5" />}
           title={t('employees.workflowPresenceTitle', lang)}
-          tag={`${n(rate)}% · ${t('employees.todayTag', lang)}`}
+          tag={offToday && !present ? t('status.holiday', lang) : `${n(rate)}% · ${t('employees.todayTag', lang)}`}
         >
           {notInList.length === 0 ? (
             <p className="mb-4 rounded-xl border border-mint-100 bg-mint-soft p-4 text-center text-sm font-semibold text-mint-deep">
-              {t('employees.workflowPresenceAllIn', lang)}
+              {offToday && !present ? t('status.holiday', lang) : t('employees.workflowPresenceAllIn', lang)}
             </p>
           ) : (
             <ul className="mb-4 divide-y divide-line">

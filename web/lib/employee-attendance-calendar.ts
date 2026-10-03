@@ -8,6 +8,7 @@
 import { monthGrid, type OffDay, type CalendarCell } from './attendance-manual'
 import { attendanceRate, attendanceBand, type AttendanceBand } from './dashboard'
 import { numberFmt, type Lang } from './i18n'
+import { schoolToday } from './school-time'
 
 /** A day's digits in the reader's own script (৫ for bn, 5 for en) — one place
  *  so every calendar's date numbers and counts agree, reusing the app's own
@@ -115,7 +116,17 @@ export function parseMonthParam(param: string | undefined, todayIso: string): { 
 // ---------------------------------------------------------------------------
 // Part 1: one employee's own month (employees/[id]/attendance)
 
-export type EmployeeDayStatus = 'present' | 'absent' | 'on_leave' | 'off' | 'future'
+export type EmployeeDayStatus = 'present' | 'absent' | 'on_leave' | 'off' | 'future' | 'not_started'
+
+/** The first day an Employee's absence can be inferred: the later of their
+ *  joining date and the day they were entered in the system (a veteran added
+ *  today has no earlier attendance to be absent from). Null when neither is
+ *  known — then nothing is clipped. Days before it are not absences (audit F1). */
+export function employeeTrackingStart(joiningDate: string | null | undefined, createdAt: string | null | undefined): string | null {
+  const created = createdAt ? schoolToday(new Date(createdAt)) : null
+  const joined = joiningDate ? joiningDate.slice(0, 10) : null
+  return joined && created ? (joined > created ? joined : created) : (joined ?? created)
+}
 
 /** A day's status for one employee's own calendar. Precedence mirrors
  *  studentLogDayStatus's rule (lib/attendance-manual.ts) — an actual
@@ -130,9 +141,12 @@ export function employeeDayStatus(args: {
   isOff: boolean
   onApprovedLeave: boolean
   hasRecord: boolean
+  /** Days before this (YYYY-MM-DD) are not absences — see employeeTrackingStart. */
+  startDay?: string | null
 }): EmployeeDayStatus {
   if (args.hasRecord) return 'present'
   if (args.iso > args.today) return 'future'
+  if (args.startDay && args.iso < args.startDay) return 'not_started'
   if (args.isOff) return 'off'
   if (args.onApprovedLeave) return 'on_leave'
   return 'absent'
@@ -152,6 +166,8 @@ export function buildEmployeeMonthCalendar(args: {
   weeklyOffDays: readonly number[]
   records: { att_date: string; entry_at: string; exit_at: string | null }[]
   approvedLeaves: { from_day: string; to_day: string }[]
+  /** See employeeTrackingStart. */
+  startDay?: string | null
 }): EmployeeCalendarCell[] {
   const grid = monthGrid(args.year, args.month0, args.offDays, args.weeklyOffDays)
   const recordByDay = new Map(args.records.map((r) => [r.att_date, r]))
@@ -165,6 +181,7 @@ export function buildEmployeeMonthCalendar(args: {
       isOff: cell.isOff,
       onApprovedLeave: onLeave,
       hasRecord: !!record,
+      startDay: args.startDay,
     })
     return { ...cell, status, entry: record?.entry_at ?? null, exit: record?.exit_at ?? null }
   })
@@ -268,7 +285,9 @@ export function buildSchoolAttendanceMonth(args: {
   today: string
   offDays: OffDay[]
   weeklyOffDays: readonly number[]
-  employees: { id: string; full_name: string }[]
+  /** `startDay`: see employeeTrackingStart — an Employee not yet started on a
+   *  day is left out of that day's list and headcount, not counted absent. */
+  employees: { id: string; full_name: string; startDay?: string | null }[]
   records: { person_id: string; att_date: string; entry_at: string }[]
   approvedLeaves: { employee_id: string; from_day: string; to_day: string }[]
 }): SchoolAttendanceDayCell[] {
@@ -283,14 +302,15 @@ export function buildSchoolAttendanceMonth(args: {
     if (!cell.iso) return { ...cell, isFuture: false, presentCount: 0, totalCount: 0, rate: null, employees: [] }
     const iso = cell.iso
     const dayRecords = recordsByDay.get(iso)
-    const employees: SchoolDayEmployeeRow[] = args.employees.map((e) => {
+    const employees: SchoolDayEmployeeRow[] = args.employees.flatMap((e): SchoolDayEmployeeRow[] => {
       const entry = dayRecords?.get(e.id)
-      if (entry) return { name: e.full_name, status: 'present', entry }
+      if (entry) return [{ name: e.full_name, status: 'present', entry }]
+      if (e.startDay && iso < e.startDay) return []
       const onLeave = args.approvedLeaves.some((l) => l.employee_id === e.id && l.from_day <= iso && l.to_day >= iso)
-      return { name: e.full_name, status: onLeave ? 'on_leave' : 'absent', entry: null }
+      return [{ name: e.full_name, status: onLeave ? 'on_leave' : 'absent', entry: null }]
     })
     const presentCount = employees.filter((e) => e.status === 'present').length
-    const totalCount = args.employees.length
+    const totalCount = employees.length
     const isFuture = iso > args.today
     const rate = !isFuture && !cell.isOff && totalCount > 0 ? attendanceRate(presentCount, totalCount) : null
     return { ...cell, isFuture, presentCount, totalCount, rate, employees }

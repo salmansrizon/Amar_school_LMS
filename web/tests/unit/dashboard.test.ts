@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { attendanceBand, attendanceRate, mergeActivity, isSubscriptionActive, unmarkedOfferings, buildDashAlerts } from '@/lib/dashboard'
+import { attendanceBand, attendanceRate, mergeActivity, isSubscriptionActive, unmarkedOfferings, buildDashAlerts, attendanceToday } from '@/lib/dashboard'
 
 describe('attendanceRate', () => {
   it('returns a 1-dp percentage', () => {
@@ -111,5 +111,35 @@ describe('attendanceBand', () => {
     expect(attendanceBand(75)).toBe('irregular')
     expect(attendanceBand(74.9)).toBe('atRisk')
     expect(attendanceBand(0)).toBe('atRisk')
+  })
+})
+
+// Audit F2: the dashboard rate must divide by classes that were marked, not by
+// every student in the school.
+describe('attendanceToday', () => {
+  const students = [
+    { id: 'a1', offeringId: 'A' },
+    { id: 'a2', offeringId: 'A' },
+    { id: 'b1', offeringId: 'B' },
+    { id: 'b2', offeringId: 'B' },
+    { id: 'u1', offeringId: null },
+  ]
+
+  it('rates only classes where attendance was taken, and counts the rest as not yet marked', () => {
+    // Class A taken: a1 present, a2 absent (note). Class B untouched.
+    const r = attendanceToday(students, new Set(['a1']), new Set(['a1', 'a2']))
+    expect(r).toEqual({ present: 1, total: 2, classesTaken: 1, classesPlaced: 2, rate: 50 })
+  })
+
+  it('has no rate (not 0%) while nothing is marked', () => {
+    const r = attendanceToday(students, new Set(), new Set())
+    expect(r.rate).toBeNull()
+    expect(r.classesPlaced).toBe(2)
+    expect(r.classesTaken).toBe(0)
+  })
+
+  it('ignores unplaced students and counts every class when all are taken', () => {
+    const r = attendanceToday(students, new Set(['a1', 'a2', 'b1', 'u1']), new Set(['a1', 'a2', 'b1', 'u1']))
+    expect(r).toEqual({ present: 3, total: 4, classesTaken: 2, classesPlaced: 2, rate: 75 })
   })
 })

@@ -13,6 +13,7 @@ import {
   summarizeEmployeeMonth,
   isWeekendColumn,
   localizeNumber,
+  employeeTrackingStart,
   type EmployeeCalendarCell,
 } from '@/lib/employee-attendance-calendar'
 import { schoolCrumbs } from '@/lib/school-crumbs'
@@ -37,6 +38,7 @@ const CELL_TONE: Record<Exclude<EmployeeCalendarCell['status'], null>, string> =
   on_leave: 'bg-sky-soft text-sky-deep',
   off: 'bg-paper-muted text-muted',
   future: 'text-muted',
+  not_started: 'text-muted',
 }
 
 function hhmm(iso: string | null): string {
@@ -47,6 +49,7 @@ function hhmm(iso: string | null): string {
 function cellStatusLabel(status: Exclude<EmployeeCalendarCell['status'], null>, lang: Lang): string {
   if (status === 'off') return t('status.holiday', lang)
   if (status === 'future') return t('attendance.calendarUpcoming', lang)
+  if (status === 'not_started') return ''
   return t(`status.${status}` as 'status.present', lang)
 }
 
@@ -99,7 +102,7 @@ function EmployeeOwnDayCell({
           {hhmm(cell.entry)}
           {cell.exit ? `–${hhmm(cell.exit)}` : ''}
         </span>
-      ) : cell.status !== 'future' ? (
+      ) : cell.status !== 'future' && cell.status !== 'not_started' ? (
         <span className="hidden truncate text-[10px] font-semibold leading-tight sm:block">{cellStatusLabel(cell.status, lang)}</span>
       ) : null}
     </div>
@@ -137,7 +140,7 @@ export async function EmployeeOwnAttendance({ params, searchParams, inModal }: E
   const monthStart = `${monthPrefix}-01`
   const monthEnd = `${monthPrefix}-${String(new Date(Date.UTC(year, month0 + 1, 0)).getUTCDate()).padStart(2, '0')}`
 
-  const [{ data: offDaysRaw }, { data: recordsRaw }, { data: approvedLeavesRaw }, { data: recentLeaves }] = await Promise.all([
+  const [{ data: offDaysRaw }, { data: recordsRaw }, { data: approvedLeavesRaw }, { data: recentLeaves }, { data: tenure }] = await Promise.all([
     supabase.from('off_days').select('day, label, is_significant').gte('day', monthStart).lte('day', monthEnd),
     // One employee, one month: at most 31 rows — `.limit` keeps this bounded
     // per #546 even though the filter already pins it far under the cap.
@@ -162,6 +165,9 @@ export async function EmployeeOwnAttendance({ params, searchParams, inModal }: E
       .eq('employee_id', id)
       .order('created_at', { ascending: false })
       .limit(10),
+    // employee_card hides joining_date on purpose; the base table is readable
+    // by the Owner only, and a null here just means no start clip.
+    supabase.from('employees').select('joining_date, created_at').eq('id', id).maybeSingle(),
   ])
 
   const cells = buildEmployeeMonthCalendar({
@@ -172,6 +178,7 @@ export async function EmployeeOwnAttendance({ params, searchParams, inModal }: E
     weeklyOffDays,
     records: recordsRaw ?? [],
     approvedLeaves: approvedLeavesRaw ?? [],
+    startDay: employeeTrackingStart(tenure?.joining_date, tenure?.created_at),
   })
   const summary = summarizeEmployeeMonth(cells)
 

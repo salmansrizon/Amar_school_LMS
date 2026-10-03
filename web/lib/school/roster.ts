@@ -222,6 +222,10 @@ export interface RegisterRow {
   roll_number: number | null
   present: boolean
   cause: string
+  /** Approved leave covers the day and nobody has marked this Student yet:
+   *  the form shows "on leave" and asks for an explicit Present/Absent
+   *  rather than defaulting them to present (audit F20). */
+  onLeave: boolean
 }
 
 /**
@@ -236,6 +240,7 @@ export function registerRows(
   students: readonly RosterStudent[],
   presentIds: ReadonlySet<string>,
   causeByStudent: ReadonlyMap<string, string>,
+  leaveIds: ReadonlySet<string> = new Set(),
 ): RegisterRow[] {
   return students.map((s) => ({
     id: s.id,
@@ -243,5 +248,6 @@ export function registerRows(
     roll_number: s.roll_number,
     present: presentIds.has(s.id) || !causeByStudent.has(s.id),
     cause: causeByStudent.get(s.id) ?? '',
+    onLeave: leaveIds.has(s.id) && !presentIds.has(s.id) && !causeByStudent.has(s.id),
   }))
 }

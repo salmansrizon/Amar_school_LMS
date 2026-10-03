@@ -149,6 +149,50 @@ export function unmarkedOfferings(
   return [...placed].filter((id) => !done.has(id))
 }
 
+export interface AttendanceToday {
+  /** Present among the students of classes whose register was taken today. */
+  present: number
+  /** Students in those classes — the only honest denominator. */
+  total: number
+  classesTaken: number
+  classesPlaced: number
+  /** `present/total` as a percentage, null while no class has been marked. */
+  rate: number | null
+}
+
+/** Today's present-rate over classes whose register was actually taken (a
+ *  present row or an absence note for any of their students), the same
+ *  definition the mark page's landing uses. Dividing by every student while
+ *  most classes are unmarked read as an alarming 3.5% (audit F2). `present` =
+ *  ids with a present row; `marked` = ids with a row or an absence note. */
+export function attendanceToday(
+  students: { id: string; offeringId: string | null }[],
+  present: Set<string>,
+  marked: Set<string>,
+): AttendanceToday {
+  const placed = new Set<string>()
+  const taken = new Set<string>()
+  for (const s of students) {
+    if (!s.offeringId) continue
+    placed.add(s.offeringId)
+    if (marked.has(s.id)) taken.add(s.offeringId)
+  }
+  let total = 0
+  let presentCount = 0
+  for (const s of students) {
+    if (!s.offeringId || !taken.has(s.offeringId)) continue
+    total++
+    if (present.has(s.id)) presentCount++
+  }
+  return {
+    present: presentCount,
+    total,
+    classesTaken: taken.size,
+    classesPlaced: placed.size,
+    rate: total > 0 ? attendanceRate(presentCount, total) : null,
+  }
+}
+
 export type DashAlertKind = 'approvals' | 'corrections' | 'questions' | 'attendance' | 'sms'
 
 export interface DashAlert {

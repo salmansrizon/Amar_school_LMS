@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   employeeDayStatus,
+  employeeTrackingStart,
   buildEmployeeMonthCalendar,
   summarizeEmployeeMonth,
   buildLeaveCalendarMonth,
@@ -294,5 +295,62 @@ describe('formatDayLong', () => {
     expect(s).toContain('অক্টোবর')
     expect(s).toContain('২০২৬')
     expect(s).not.toMatch(/[0-9]/)
+  })
+})
+
+describe('employee tracking start (no absent before joining)', () => {
+  const base = { today: '2026-10-03', isOff: false, onApprovedLeave: false, hasRecord: false }
+
+  it('a working day before startDay is not_started, not absent', () => {
+    expect(employeeDayStatus({ ...base, iso: '2026-10-01', startDay: '2026-10-03' })).toBe('not_started')
+    expect(employeeDayStatus({ ...base, iso: '2026-10-03', startDay: '2026-10-03' })).toBe('absent')
+  })
+
+  it('a record before startDay still reads present; a future day stays future', () => {
+    expect(employeeDayStatus({ ...base, iso: '2026-10-01', startDay: '2026-10-03', hasRecord: true })).toBe('present')
+    expect(employeeDayStatus({ ...base, iso: '2026-10-09', startDay: '2026-10-03' })).toBe('future')
+  })
+
+  it('employeeTrackingStart takes the later of joining date and entry day', () => {
+    expect(employeeTrackingStart('2020-01-01', '2026-10-03T03:00:00Z')).toBe('2026-10-03')
+    expect(employeeTrackingStart('2026-11-01', '2026-10-03T03:00:00Z')).toBe('2026-11-01')
+    expect(employeeTrackingStart(null, '2026-10-03T03:00:00Z')).toBe('2026-10-03')
+    expect(employeeTrackingStart('2026-10-05', null)).toBe('2026-10-05')
+    expect(employeeTrackingStart(null, null)).toBeNull()
+  })
+
+  it('the month calendar leaves pre-start days out of the absent count', () => {
+    const cells = buildEmployeeMonthCalendar({
+      year: 2026,
+      month0: 9,
+      today: '2026-10-03',
+      offDays: [],
+      weeklyOffDays: NO_WEEKLY_OFF,
+      records: [],
+      approvedLeaves: [],
+      startDay: '2026-10-02',
+    })
+    expect(summarizeEmployeeMonth(cells).absentDays).toBe(2) // Oct 2 and 3 only
+    expect(cells.find((c) => c.iso === '2026-10-01')?.status).toBe('not_started')
+  })
+
+  it('the school calendar drops a not-yet-started employee from the day headcount', () => {
+    const cells = buildSchoolAttendanceMonth({
+      year: 2026,
+      month0: 9,
+      today: '2026-10-03',
+      offDays: [],
+      weeklyOffDays: NO_WEEKLY_OFF,
+      employees: [
+        { id: 'old', full_name: 'Old' },
+        { id: 'new', full_name: 'New', startDay: '2026-10-03' },
+      ],
+      records: [],
+      approvedLeaves: [],
+    })
+    const oct1 = cells.find((c) => c.iso === '2026-10-01')!
+    const oct3 = cells.find((c) => c.iso === '2026-10-03')!
+    expect(oct1.totalCount).toBe(1)
+    expect(oct3.totalCount).toBe(2)
   })
 })
