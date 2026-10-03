@@ -77,7 +77,7 @@ export function StatCard({
       {action && (
         <Link
           href={action.href}
-          className="relative mt-auto self-start pt-4 text-xs font-bold text-ink/80 hover:underline"
+          className="relative mt-auto self-start pt-4 max-sm:pb-3 text-xs font-bold text-ink/80 hover:underline"
         >
           {action.label} <span aria-hidden>→</span>
         </Link>
@@ -111,7 +111,7 @@ export function AlertStrip({ title, alerts }: { title: string; alerts: Alert[] }
             {a.action && (
               <Link
                 href={a.action.href}
-                className="inline-flex h-9 shrink-0 items-center rounded-full border border-line-strong bg-paper px-3 text-xs font-semibold hover:bg-paper-muted"
+                className="inline-flex h-9 max-sm:h-11 shrink-0 items-center rounded-full border border-line-strong bg-paper px-3 text-xs font-semibold hover:bg-paper-muted"
               >
                 {a.action.label}
               </Link>

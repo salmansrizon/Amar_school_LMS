@@ -138,7 +138,7 @@ export function DataTable<T>({
                 href={withParams(params, { [c.param]: active ? null : c.value })}
                 aria-current={active ? 'true' : undefined}
                 scroll={false}
-                className={`inline-flex h-8 items-center rounded-full px-3 text-xs font-semibold transition ${
+                className={`inline-flex h-8 max-sm:h-11 items-center rounded-full px-3 text-xs font-semibold transition ${
                   active ? 'bg-brand-500 text-white' : 'bg-paper-muted text-ink hover:bg-line'
                 }`}
               >

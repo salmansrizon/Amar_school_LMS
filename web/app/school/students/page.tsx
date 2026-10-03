@@ -122,7 +122,7 @@ export default async function StudentsPage({
               href={withParams(params, { view: s.id })}
               scroll={false}
               data-view-link={s.id}
-              className="truncate font-semibold hover:text-brand-600 hover:underline"
+              className="truncate font-semibold hover:text-brand-600 hover:underline max-sm:-my-3 max-sm:block max-sm:py-3"
             >
               {s.full_name}
             </Link>

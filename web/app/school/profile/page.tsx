@@ -27,7 +27,7 @@ export default async function ProfilePage() {
         <Link
           href="/school"
           aria-label={t('common.back', lang)}
-          className="inline-flex size-9 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"
+          className="inline-flex size-9 max-sm:size-11 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"
         >
           <Icon name="chevronLeft" className="size-5" />
         </Link>

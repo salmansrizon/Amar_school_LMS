@@ -36,7 +36,7 @@ export function Crumbs({ lang, items }: { lang: Lang; items: Crumb[] }) {
           return (
             <li key={`${c.label}-${i}`} className="flex items-center gap-1.5">
               {c.href && !last ? (
-                <Link href={c.href} className="hover:text-ink hover:underline">
+                <Link href={c.href} className="relative hover:text-ink hover:underline max-sm:after:absolute max-sm:after:-inset-y-3 max-sm:after:inset-x-0">
                   {c.label}
                 </Link>
               ) : (
@@ -84,7 +84,7 @@ export function PageHeader({
               data-page-back
               href={backHref}
               aria-label={backLabel}
-              className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"
+              className="inline-flex size-9 max-sm:size-11 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"
             >
               <svg
                 viewBox="0 0 24 24"

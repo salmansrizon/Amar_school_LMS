@@ -396,7 +396,7 @@ export default async function SchoolHome() {
             <div className="mt-auto border-t border-line pt-4 text-center">
               <Link
                 href="/school/activity"
-                className="inline-flex items-center gap-1 text-xs font-semibold text-brand-600 hover:underline"
+                className="inline-flex items-center gap-1 text-xs font-semibold text-brand-600 hover:underline max-sm:min-h-11"
               >
                 {t('dash.viewAll', lang)}
                 <Icon name="chevronRight" className="size-3.5" />

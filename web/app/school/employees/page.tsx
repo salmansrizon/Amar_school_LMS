@@ -214,7 +214,7 @@ export default async function EmployeesPage({
               href={withParams(params, { view: e.id })}
               scroll={false}
               data-view-link={e.id}
-              className="truncate font-semibold hover:text-brand-600 hover:underline"
+              className="truncate font-semibold hover:text-brand-600 hover:underline max-sm:-my-3 max-sm:block max-sm:py-3"
             >
               {e.full_name}
             </Link>

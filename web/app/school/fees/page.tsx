@@ -252,7 +252,7 @@ export default async function FeesPage({
             href={withParams(params, { view: r.id })}
             scroll={false}
             data-view-link={r.id}
-            className="truncate font-semibold hover:text-brand-600 hover:underline"
+            className="truncate font-semibold hover:text-brand-600 hover:underline max-sm:-my-3 max-sm:block max-sm:py-3"
           >
             {r.name}
           </Link>

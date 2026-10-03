@@ -477,7 +477,7 @@ export function AppShell({
                   aria-haspopup="dialog"
                   aria-expanded={profileOpen}
                   onClick={() => setProfileOpen((open) => !open)}
-                  className={`group flex items-center gap-2 rounded-full ${FOCUS_RING}`}
+                  className={`group flex items-center justify-center gap-2 rounded-full max-sm:min-h-11 max-sm:min-w-11 ${FOCUS_RING}`}
                 >
                   <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-brand-100 text-xs font-bold text-brand-700 transition group-hover:bg-brand-300 group-hover:text-white">
                     {avatarInitials(profile.fullName)}
