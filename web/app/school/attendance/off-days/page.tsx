@@ -1,10 +1,10 @@
-import { CalendarDays, List as ListIcon } from 'lucide-react'
+import { CalendarDays, List as ListIcon, Grid3x3 } from 'lucide-react'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { monthGrid, type OffDay } from '@/lib/attendance-manual'
 import { schoolToday } from '@/lib/school-time'
-import { parseMonthParam, shiftYearMonth, formatMonthYear, buildLeaveCalendarMonth, isWeekendColumn } from '@/lib/employee-attendance-calendar'
+import { parseMonthParam, shiftYearMonth, formatMonthYear, buildLeaveCalendarMonth, isWeekendColumn, buildOffDayList, formatDayLong, WEEKDAY_SHORT } from '@/lib/employee-attendance-calendar'
 import { AttendanceTabs } from '../attendance-tabs'
 import { CalendarToolbar, MonthGridFrame } from '../calendar-shell'
 import { AddOffDayForm, DeleteOffDayButton, ImportCentralButton, WeeklyOffDayForm } from './off-day-controls'
@@ -105,9 +105,12 @@ export default async function OffDayCalendarPage({
   const calendarHref = listQuery({ view: undefined })
   const listHref = listQuery({ view: 'list' })
   const isListView = view === 'list'
+  const isHolidayView = view === 'holidays'
+  const holidaysHref = listQuery({ view: 'holidays' })
+  const { weekly: weeklyDays, rows: holidayRows } = buildOffDayList(offDays, weeklyOffDays, year)
   const calMonthLabel = formatMonthYear(calYear, calMonth0, lang)
   // Calendar view titles by the month on screen, not the list's ?year=.
-  const titleYear = isListView ? year : calYear
+  const titleYear = isListView || isHolidayView ? year : calYear
 
   return (
     <div>
@@ -121,7 +124,7 @@ export default async function OffDayCalendarPage({
         lang={lang}
         extra={
           <div className="flex flex-wrap items-center gap-2">
-            {!isListView && (
+            {!isListView && !isHolidayView && (
               <CalendarToolbar
                 monthLabel={calMonthLabel}
                 prevHref={listQuery({ month: shiftYearMonth(calPrefix, -1) })}
@@ -132,10 +135,11 @@ export default async function OffDayCalendarPage({
             )}
             <SegmentedControl
               ariaLabel={t('attendance.viewSwitchLabel', lang)}
-              active={isListView ? listHref : calendarHref}
+              active={isHolidayView ? holidaysHref : isListView ? listHref : calendarHref}
               items={[
                 { href: calendarHref, label: t('attendance.viewCalendar', lang), icon: <CalendarDays className="size-4" />, iconOnlyOnMobile: true },
-                { href: listHref, label: t('attendance.viewList', lang), icon: <ListIcon className="size-4" />, iconOnlyOnMobile: true },
+                { href: holidaysHref, label: t('attendance.viewHolidays', lang), icon: <ListIcon className="size-4" />, iconOnlyOnMobile: true },
+                { href: listHref, label: t('attendance.viewList', lang), icon: <Grid3x3 className="size-4" />, iconOnlyOnMobile: true },
               ]}
             />
           </div>
@@ -169,7 +173,7 @@ export default async function OffDayCalendarPage({
         </div>
       </section>
 
-      {!isListView && (
+      {!isListView && !isHolidayView && (
         <section className="rounded-2xl border border-line bg-paper p-card">
           <MonthGridFrame monthLabel={calMonthLabel} lang={lang} weeklyOffDays={weeklyOffDays}>
             {leaveCalendarCells.map((cell, i) => (
@@ -188,6 +192,43 @@ export default async function OffDayCalendarPage({
             <span className="flex items-center gap-1.5"><span className="size-2.5 rounded-full bg-mint" /> {t('status.on_leave', lang)}</span>
             <span className="flex items-center gap-1.5"><span className="size-2.5 rounded-full border border-dashed border-sun-deep" /> {t('attendance.leavePending', lang)}</span>
           </div>
+        </section>
+      )}
+
+      {isHolidayView && (
+        <section className="rounded-2xl border border-line bg-paper p-card">
+          <p className="mb-3 text-sm">
+            <span className="font-semibold">{t('attendance.weeklyOffDayTitle', lang)}:</span>{' '}
+            {weeklyDays.length ? weeklyDays.map((d) => WEEKDAY_SHORT[d][lang]).join(', ') : t('attendance.none', lang)}
+          </p>
+          {!holidayRows.length ? (
+            <p className="text-sm text-muted">{t('attendance.none', lang)}</p>
+          ) : (
+            <table className="w-full border-collapse text-sm">
+              <thead>
+                <tr className="border-b border-line text-left text-muted">
+                  <th className="py-2 pr-2 font-semibold">{t('attendance.offDayDate', lang)}</th>
+                  <th className="py-2 pr-2 font-semibold">{t('attendance.offDayWeekdayCol', lang)}</th>
+                  <th className="py-2 pr-2 font-semibold">{t('attendance.offDayLabelField', lang)}</th>
+                  <th className="py-2 pr-2 font-semibold">{t('attendance.offDaySourceCol', lang)}</th>
+                  <th className="py-2" />
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-line">
+                {holidayRows.map((r) => (
+                  <tr key={r.iso} data-iso={r.iso}>
+                    <td className="py-2 pr-2">{formatDayLong(r.iso, lang)}</td>
+                    <td className="py-2 pr-2">{WEEKDAY_SHORT[r.weekday][lang]}</td>
+                    <td className="py-2 pr-2 break-words">{r.label ?? '—'}</td>
+                    <td className="py-2 pr-2">
+                      {r.source === 'significant' ? t('attendance.offDayLegendSignificant', lang) : t('attendance.offDaySourceHoliday', lang)}
+                    </td>
+                    <td className="py-2"><DeleteOffDayButton day={r.iso} lang={lang} /></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </section>
       )}
 

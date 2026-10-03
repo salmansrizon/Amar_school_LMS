@@ -50,7 +50,7 @@ describe('employeeStatus: applies officeTime window + Considerable Grace', () =>
 describe('resolveEmployeeDisplayStatus: adds absent/on_leave around employeeStatus', () => {
   const at = (time: string) => new Date(`2026-07-08T${time}:00Z`)
 
-  it('leaveBeatsOff: approved leave wins over holiday; a record still wins over both (#694)', () => {
+  it('leaveBeatsOff: approved leave wins over holiday, no leave stays holiday (#694)', () => {
     const none = { hasRecord: false, onApprovedLeave: true, isOff: true, leaveBeatsOff: true, entry: null, exit: null, officeStart: null, officeEnd: null, graceMinutes: 0 }
     expect(resolveEmployeeDisplayStatus(none)).toBe('on_leave')
     expect(resolveEmployeeDisplayStatus({ ...none, onApprovedLeave: false })).toBe('holiday')

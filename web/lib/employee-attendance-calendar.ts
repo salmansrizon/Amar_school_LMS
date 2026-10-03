@@ -335,3 +335,38 @@ export function buildSchoolAttendanceMonth(args: {
     employees: [],
   }))
 }
+
+// ---------------------------------------------------------------------------
+// Off-Day Calendar's dated list view (#692)
+
+export type OffDayListSource = 'holiday' | 'significant'
+
+export interface OffDayListRow {
+  iso: string
+  weekday: number // 0=Sun..6=Sat
+  label: string | null
+  /** off_days carries no "imported from central" marker (importCentralOffDays
+   *  copies rows as plain regular days), so only regular vs significant can be
+   *  told apart; the weekly rule is summarised separately, never listed. */
+  source: OffDayListSource
+}
+
+/** One row per dated off_days row of `year`, date-sorted. The recurring Weekly
+ *  Off-Day is returned once as `weekly` (sorted weekday indexes), not as 52
+ *  rows. */
+export function buildOffDayList(
+  offDays: readonly OffDay[],
+  weeklyOffDays: readonly number[],
+  year: number,
+): { weekly: number[]; rows: OffDayListRow[] } {
+  const rows = offDays
+    .filter((o) => o.day.startsWith(`${year}-`))
+    .map((o) => ({
+      iso: o.day,
+      weekday: new Date(`${o.day}T00:00:00Z`).getUTCDay(),
+      label: o.label,
+      source: (o.is_significant ? 'significant' : 'holiday') as OffDayListSource,
+    }))
+    .sort((a, b) => a.iso.localeCompare(b.iso))
+  return { weekly: [...new Set(weeklyOffDays)].sort((a, b) => a - b), rows }
+}
