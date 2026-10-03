@@ -4,6 +4,10 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { validateOptionalLogin, validateEmployeeCategory } from '@/lib/employees'
 import { isKnownAcademicShift } from '@/lib/institute'
+import { checkMobile } from '@/lib/bd-mobile'
+import { currentLang } from '@/lib/i18n-server'
+import { t } from '@/lib/i18n'
+import { pgConstraintMessage } from '@/lib/crud/pg-error'
 
 // RLS scopes all writes to the caller's School.
 
@@ -52,15 +56,19 @@ function profileFields(formData: FormData) {
 export async function createEmployee(
   formData: FormData,
 ): Promise<{ id?: string; error?: string }> {
+  const lang = await currentLang()
   const name = String(formData.get('full_name') ?? '').trim()
-  if (!name) return { error: 'Name is required' }
+  if (!name) return { error: t('employees.errNameRequired', lang) }
 
   const email = String(formData.get('email') ?? '').trim()
   const password = String(formData.get('password') ?? '')
-  const loginCheck = validateOptionalLogin(email, password)
+  const loginCheck = validateOptionalLogin(email, password, lang)
   if (loginCheck.error) return { error: loginCheck.error }
 
   const fields = profileFields(formData)
+  const mobile = checkMobile(fields.mobile)
+  if (mobile.invalid) return { error: t('people.errMobileInvalid', lang) }
+  fields.mobile = mobile.value
   // No `existing` value on create — there's no prior row to grandfather in,
   // so a category has to be one of the fixed four or blank (issue #567).
   const categoryCheck = validateEmployeeCategory(fields.category)
@@ -72,7 +80,7 @@ export async function createEmployee(
     .insert({ full_name: name, ...fields })
     .select('id')
     .single()
-  if (error) return { error: error.message }
+  if (error) return { error: t('employees.errSaveFailed', lang) }
   const employeeId = data.id as string
 
   if (email && password) {
@@ -123,8 +131,9 @@ export async function createEmployee(
 export async function updateEmployee(formData: FormData): Promise<{ error?: string }> {
   const id = String(formData.get('id') ?? '').trim()
   if (!id) return { error: 'Employee is required' }
+  const lang = await currentLang()
   const name = String(formData.get('full_name') ?? '').trim()
-  if (!name) return { error: 'Name is required' }
+  if (!name) return { error: t('employees.errNameRequired', lang) }
   const supabase = await createClient()
 
   const fields = profileFields(formData)
@@ -132,17 +141,21 @@ export async function updateEmployee(formData: FormData): Promise<{ error?: stri
   // before the field was locked down — the seed data itself has "Head
   // Teacher") stays valid as long as the submission didn't change it: fetched
   // here so re-saving an edit without touching Category never fails.
-  const { data: current } = await supabase.from('employees').select('category').eq('id', id).single()
+  const { data: current } = await supabase.from('employees').select('category, mobile').eq('id', id).single()
   const categoryCheck = validateEmployeeCategory(fields.category, current?.category ?? null)
   if (categoryCheck.error) return { error: categoryCheck.error }
+  // Same grandfathering as the category: only a changed mobile must be valid.
+  const mobile = checkMobile(fields.mobile, current?.mobile)
+  if (mobile.invalid) return { error: t('people.errMobileInvalid', lang) }
+  fields.mobile = mobile.value
 
   const { data, error } = await supabase
     .from('employees')
     .update({ full_name: name, ...fields })
     .eq('id', id)
     .select('id')
-  if (error) return { error: error.message }
-  if (!data?.length) return { error: 'Employee not found' }
+  if (error) return { error: t('employees.errSaveFailed', lang) }
+  if (!data?.length) return { error: t('employees.errNotFound', lang) }
   revalidatePath(PAGE)
   revalidatePath(`${PAGE}/${id}`)
   return {}
@@ -215,8 +228,9 @@ export async function setEmployeeLogin(
     .eq('id', employeeId)
     .select('id')
   if (error) {
-    if (error.code === '23505') return { error: 'That login is already linked to another employee' }
-    return { error: error.message }
+    const lang = await currentLang()
+    const linked = pgConstraintMessage(error, 'employees_profile_unique', t('employees.errLoginLinked', lang))
+    return { error: linked === error.message ? t('employees.errSaveFailed', lang) : linked }
   }
   if (!data?.length) return { error: 'Employee not found' }
   revalidatePath(`${PAGE}/${employeeId}`)

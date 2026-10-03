@@ -4,7 +4,7 @@ import { currentLang } from '@/lib/i18n-server'
 import { t, numberFmt, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { canOpenScreen } from '@/lib/auth/screens'
-import { employeeCategoryLabel } from '@/lib/employees'
+import { employeeCategoryLabel, matchesEmployeeDirectoryQuery } from '@/lib/employees'
 import { ACADEMIC_SHIFT_LABEL_KEY, isKnownAcademicShift } from '@/lib/institute'
 import { schoolToday } from '@/lib/school-time'
 import { selectAllRows } from '@/lib/supabase/select-all'
@@ -130,19 +130,18 @@ export default async function EmployeesPage({
 
   const all: Row[] = employees.map((e) => ({
     ...e,
+    // Postgres returns the machine id as a number (0211) — keep Row.unique_id a
+    // real string so nothing downstream has to guess.
+    unique_id: e.unique_id == null ? null : String(e.unique_id),
     shifts: shiftsBy.get(e.id) ?? [],
     presence: entryBy.has(e.id) ? 'present' : onLeave.has(e.id) ? 'on_leave' : 'not_in',
     entryAt: entryBy.get(e.id) ?? null,
   }))
   const viewedRow = view ? (all.find((e) => e.id === view) ?? null) : null
 
-  const needle = q.trim().toLowerCase()
   const visible = all.filter(
     (e) =>
-      (!needle ||
-        e.full_name.toLowerCase().includes(needle) ||
-        (e.mobile ?? '').includes(needle) ||
-        (e.unique_id ?? '').toLowerCase().includes(needle)) &&
+      matchesEmployeeDirectoryQuery(e, q) &&
       (!category || e.category === category) &&
       (!department || e.department === department) &&
       (!shift || e.shifts.includes(shift)) &&

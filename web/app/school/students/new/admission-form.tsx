@@ -3,6 +3,8 @@
 import { useMemo, useRef, useState, useTransition } from 'react'
 import Link from 'next/link'
 import { t, type Lang } from '@/lib/i18n'
+import { mobileInputProps } from '@/lib/bd-mobile'
+import { PERSON_NAME_MAX } from '@/lib/name'
 import { compressImage, IMAGE_PRESETS } from '@/lib/image/compress'
 import {
   photoExtension,
@@ -194,7 +196,7 @@ export function ProfileFields({
       <Card id="admission-student" title={t('students.identity', lang)}>
         <div className="grid gap-grid sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
           <Field label={t('students.name', lang)}>
-            <input name="full_name" required defaultValue={d('full_name')} className={fieldClass} />
+            <input name="full_name" required maxLength={PERSON_NAME_MAX} defaultValue={d('full_name')} className={fieldClass} />
           </Field>
           <Field label={t('students.dob', lang)}>
             <input
@@ -358,6 +360,7 @@ export function ProfileFields({
               defaultValue={d('student_mobile')}
               className={fieldClass}
               placeholder="01xxxxxxxxx"
+              {...mobileInputProps(d('student_mobile'), t('people.errMobileInvalid', lang))}
             />
           </Field>
         </div>
@@ -404,6 +407,7 @@ export function ProfileFields({
               defaultValue={d('guardian_mobile')}
               className={fieldClass}
               placeholder="01xxxxxxxxx"
+              {...mobileInputProps(d('guardian_mobile'), t('people.errMobileInvalid', lang))}
             />
           </Field>
           <Field label={t('students.guardianNid', lang)}>
@@ -594,6 +598,7 @@ export function AdmissionForm({
   return (
     <form
       ref={formRef}
+      noValidate // the server validates and answers in the UI language into the error line
       onChange={() => {
         // Silent autosave (issue #628) — every field change snapshots the
         // whole form to localStorage, so a nav-away (sidebar, browser back)

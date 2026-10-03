@@ -1,7 +1,9 @@
 // Students I/II helpers (issues #27, #46): list filtering, profile display,
 // subject assignment and behaviour SMS bits, kept pure for unit testing.
 
-import type { ClassCatalogueOption } from '@/lib/class-catalogue'
+import { classCatalogueLabel, type ClassCatalogueOption } from '@/lib/class-catalogue'
+import { pgConstraintMessage } from '@/lib/crud/pg-error'
+import { t, type Lang } from '@/lib/i18n'
 
 export interface StudentListRow {
   id: string
@@ -21,6 +23,15 @@ export function classSectionLabel(
 ): string | null {
   const parts = [className, section].filter(Boolean)
   return parts.length ? parts.join(' / ') : null
+}
+
+/** A student's class as the owner screens show it — the same `Class - Section`
+ *  shape the admission/transfer pickers and the transfer history use
+ *  (classCatalogueLabel), instead of the old `Class / Section` join. Null when
+ *  the student has no class. The student row only stores name + section, so
+ *  group/shift/year segments are absent here by construction. */
+export function studentClassLabel(className: string | null, section: string | null): string | null {
+  return className ? classCatalogueLabel({ name: className, section }) : null
 }
 
 /** Case-insensitive match on name, roll number or guardian name (list search). */
@@ -78,6 +89,19 @@ export function sectionsForClass(options: ClassCatalogueOption[], className: str
  *  now matches Admission's own Offering picker's order. */
 export function classNamesFor(options: ClassCatalogueOption[]): string[] {
   return [...new Set(options.map((o) => o.className))]
+}
+
+/** Friendly text for a Postgres error raised by a student write: the roll
+ *  uniqueness backstops (the legacy students row and the Enrollment's own) say
+ *  "that roll is taken" in the UI language instead of leaking the constraint
+ *  text. Anything else passes through unchanged. */
+export function friendlyStudentError(err: { code?: string | null; message: string }, lang: Lang): string {
+  const taken = t('students.errRollDuplicate', lang)
+  for (const constraint of ['students_roll_unique', 'student_enrollments_roll_unique']) {
+    const message = pgConstraintMessage(err, constraint, taken)
+    if (message !== err.message) return message
+  }
+  return err.message
 }
 
 /** Roll numbering (issue #503): rolls are scoped per class+section, so the

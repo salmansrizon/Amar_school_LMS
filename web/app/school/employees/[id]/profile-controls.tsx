@@ -1,7 +1,9 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 import { Pencil, RotateCcw, Trash2 } from 'lucide-react'
 import { t, type Lang } from '@/lib/i18n'
 import { ProfileFields } from '../new/create-form'
@@ -45,6 +47,7 @@ export function ProfileEditor({
 
   return (
     <form
+      noValidate // server answers in the UI language into the error line below
       onSubmit={(e) => {
         e.preventDefault()
         const data = new FormData(e.currentTarget)
@@ -57,6 +60,7 @@ export function ProfileEditor({
             return
           }
           setEditing(false)
+          toast.success(t('employees.toastSaved', lang))
           router.refresh()
         })
       }}
@@ -84,10 +88,15 @@ export function ArchiveToggle({
   lang,
   employeeId,
   archived,
+  staffLoginId,
 }: {
   lang: Lang
   employeeId: string
   archived: boolean
+  /** The linked Staff login's profile id, when there is one and the viewer may
+   *  open the Staff page — archiving the employee does NOT touch that login,
+   *  so the confirm says so and points at where to turn it off. */
+  staffLoginId?: string | null
 }) {
   const router = useRouter()
   const [pending, startTransition] = useTransition()
@@ -129,11 +138,24 @@ export function ArchiveToggle({
       triggerClassName={btnDanger}
       title={t('employees.archive', lang)}
       body={t('employees.archiveConfirm', lang)}
+      extra={
+        staffLoginId ? (
+          <p className="mb-4 rounded-md bg-sun-soft px-3 py-2 text-sm text-sun-deep">
+            {t('employees.archiveLoginWarning', lang)}{' '}
+            <Link href={`/school/staff/${staffLoginId}`} className="font-semibold underline">
+              {t('employees.archiveLoginLink', lang)}
+            </Link>
+          </p>
+        ) : null
+      }
       confirmLabel={t('employees.archive', lang)}
       cancelLabel={t('routine.cancel', lang)}
       onConfirm={async () => {
         const res = await archiveEmployee(employeeId)
-        if (!res.error) router.refresh()
+        if (!res.error) {
+          toast.success(t('employees.toastArchived', lang))
+          router.push('/school/employees/archive')
+        }
         return res
       }}
     />

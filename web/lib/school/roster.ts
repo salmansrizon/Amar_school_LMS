@@ -1,4 +1,5 @@
 import type { ClassScope } from '@/lib/school/class-scope'
+import { toLatinDigits } from '@/lib/bd-mobile'
 
 // The School-side roster, as a model rather than as a query repeated on every
 // screen that needs one.
@@ -156,13 +157,23 @@ export function rosterFor(students: readonly RosterStudent[], classOfferingId: s
     })
 }
 
+/** "Complete" means a guardian's mobile is on file — the one contact field every
+ *  downstream feature (Remind, SMS, ID card) depends on. The students page's
+ *  "profiles incomplete" card and the `incomplete=1` directory filter share
+ *  this one definition, so the number on the card is the length of the list. */
+export function isIncompleteProfile(s: Pick<RosterStudent, 'guardian_mobile'>): boolean {
+  return !s.guardian_mobile
+}
+
 /** Free-text search over the three fields an office actually searches by. */
 export function searchRoster(students: readonly RosterStudent[], q: string): RosterStudent[] {
-  const term = q.trim().toLowerCase()
+  const term = toLatinDigits(q.trim().toLowerCase())
   if (!term) return [...students]
+  // Fields are coerced with String() — never assume a column's runtime type —
+  // and digits normalised, so a Bangla-digit query finds Latin-digit data.
   return students.filter((s) =>
-    [s.full_name, s.guardian_name ?? '', s.roll_number?.toString() ?? '', s.student_no ?? '', s.guardian_mobile ?? ''].some((f) =>
-      f.toLowerCase().includes(term),
+    [s.full_name, s.guardian_name, s.roll_number, s.student_no, s.guardian_mobile].some((f) =>
+      toLatinDigits(String(f ?? '').toLowerCase()).includes(term),
     ),
   )
 }

@@ -10,6 +10,8 @@ import { reachSentences } from '@/lib/school/teacher-reach'
 import { EMPLOYEE_CATEGORIES, EMPLOYEE_CATEGORY_LABEL_KEY, isKnownEmployeeCategory } from '@/lib/employees'
 import { ACADEMIC_SHIFT_LABEL_KEY, type AcademicShift } from '@/lib/institute'
 import { ComboboxField } from '@/components/ui/combobox-field'
+import { mobileInputProps } from '@/lib/bd-mobile'
+import { PERSON_NAME_MAX } from '@/lib/name'
 
 export const fieldClass =
   'w-full rounded-md border border-line bg-paper px-3 py-2 text-sm focus:border-brand-500 focus:outline-none'
@@ -86,10 +88,16 @@ export function ProfileFields({
       <Card title={t('employees.identity', lang)}>
         <div className="grid gap-3 sm:grid-cols-2">
           <Field label={t('employees.name', lang)}>
-            <input name="full_name" required defaultValue={d('full_name')} className={fieldClass} />
+            <input name="full_name" required maxLength={PERSON_NAME_MAX} defaultValue={d('full_name')} className={fieldClass} />
           </Field>
           <Field label={t('employees.mobile', lang)}>
-            <input name="mobile" defaultValue={d('mobile')} className={fieldClass} placeholder="01xxxxxxxxx" />
+            <input
+              name="mobile"
+              defaultValue={d('mobile')}
+              className={fieldClass}
+              placeholder="01xxxxxxxxx"
+              {...mobileInputProps(d('mobile'), t('people.errMobileInvalid', lang))}
+            />
           </Field>
           <Field label={t('employees.dob', lang)}>
             <input type="date" name="date_of_birth" defaultValue={d('date_of_birth')} className={dateInputClass({ size: 'md', fullWidth: true })} />
@@ -236,6 +244,9 @@ export function CreateEmployeeForm({
   return (
     <form
       ref={formRef}
+      // The server validates (name, mobile, email, password) and answers in the
+      // UI language into the error line below; native bubbles are always English.
+      noValidate
       onSubmit={(e) => {
         e.preventDefault()
         const data = new FormData(e.currentTarget)

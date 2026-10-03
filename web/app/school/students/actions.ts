@@ -6,7 +6,10 @@ import { createClient } from '@/lib/supabase/server'
 import { currentActor } from '@/lib/school/actor'
 import { sendStudentSms } from '@/lib/sms/student-sms'
 import { recordBehaviourTriage } from '@/lib/behaviour-triage-service'
-import { photoExtension, behaviourSmsBody, parseRollNumber, rollScopeChanged } from '@/lib/students'
+import { photoExtension, behaviourSmsBody, parseRollNumber, rollScopeChanged, friendlyStudentError } from '@/lib/students'
+import { checkMobile } from '@/lib/bd-mobile'
+import { currentLang } from '@/lib/i18n-server'
+import { t, type Lang } from '@/lib/i18n'
 import { createSignedUpload, type SignedUpload } from '@/lib/storage/signed-upload'
 
 // RLS scopes everything to the caller's School; the 3-day lock trigger is the
@@ -52,6 +55,29 @@ function profileFields(formData: FormData) {
   }
 }
 
+type ProfileFieldValues = ReturnType<typeof profileFields>
+
+/** Validates and normalises the two mobile fields (student + guardian; the
+ *  guardian one is mirrored into guardian_phone). `existing` is the stored row
+ *  on an edit, so unchanged legacy values still save. */
+function checkedMobiles(
+  fields: ProfileFieldValues,
+  existing: { student_mobile?: string | null; guardian_mobile?: string | null } | null,
+  lang: Lang,
+): { fields: ProfileFieldValues; error?: string } {
+  const student = checkMobile(fields.student_mobile, existing?.student_mobile)
+  const guardian = checkMobile(fields.guardian_mobile, existing?.guardian_mobile)
+  if (student.invalid || guardian.invalid) return { fields, error: t('people.errMobileInvalid', lang) }
+  return {
+    fields: {
+      ...fields,
+      student_mobile: student.value,
+      guardian_mobile: guardian.value,
+      guardian_phone: guardian.value,
+    },
+  }
+}
+
 /** Admission (issue #27, rewired onto the Enrollment model in map #568/#582's
  *  Wave 3, issue #586): the form's class picker is now the id-based Class
  *  Offering select (admission-form.tsx's ProfileFields, `usingOfferings`
@@ -88,11 +114,14 @@ function profileFields(formData: FormData) {
 export async function admitStudent(
   formData: FormData,
 ): Promise<{ id?: string; error?: string; roll_number?: number | null }> {
+  const lang = await currentLang()
   const name = String(formData.get('full_name') ?? '').trim()
-  if (!name) return { error: 'Name is required' }
+  if (!name) return { error: t('students.errNameRequired', lang) }
   const classOfferingId = String(formData.get('class_offering_id') ?? '').trim()
   const roll = parseRollNumber(String(formData.get('roll_number') ?? ''))
   if (roll.error) return { error: roll.error }
+  const mobiles = checkedMobiles(profileFields(formData), null, lang)
+  if (mobiles.error) return { error: mobiles.error }
   const supabase = await createClient()
 
   let className: string | null = null
@@ -113,13 +142,13 @@ export async function admitStudent(
     .insert({
       full_name: name,
       roll_number: roll.value,
-      ...profileFields(formData),
+      ...mobiles.fields,
       class_name: className,
       section,
     })
     .select('id, roll_number')
     .single()
-  if (error) return { error: error.message }
+  if (error) return { error: friendlyStudentError(error, lang) }
 
   // What actually landed on the row — assign_student_roll (0032) runs
   // before this insert, so a blank roll.value is already resolved by the
@@ -143,7 +172,7 @@ export async function admitStudent(
       // this path on every attempt — admit_student_enrollment is Owner and
       // office-staff only (ADR 0021), while the students insert above is not.
       await supabase.from('students').delete().eq('id', data.id)
-      return { error: `Admission failed: ${enrollError.message}` }
+      return { error: friendlyStudentError(enrollError, lang) }
     }
     // Sync the roll Enrollment actually assigned (auto or explicit) back
     // onto students.roll_number, so the denormalized copy always matches
@@ -179,11 +208,11 @@ export async function admitStudent(
 export async function updateStudent(formData: FormData): Promise<{ error?: string }> {
   const id = String(formData.get('id') ?? '').trim()
   if (!id) return { error: 'Student is required' }
+  const lang = await currentLang()
   const name = String(formData.get('full_name') ?? '').trim()
-  if (!name) return { error: 'Name is required' }
+  if (!name) return { error: t('students.errNameRequired', lang) }
   const roll = parseRollNumber(String(formData.get('roll_number') ?? ''))
   if (roll.error) return { error: roll.error }
-  const fields = profileFields(formData)
   const supabase = await createClient()
 
   // An explicit roll always wins; a blank one only keeps the existing roll
@@ -192,9 +221,12 @@ export async function updateStudent(formData: FormData): Promise<{ error?: strin
   // was never computed for.
   const { data: current } = await supabase
     .from('students')
-    .select('class_name, section')
+    .select('class_name, section, student_mobile, guardian_mobile')
     .eq('id', id)
     .maybeSingle()
+  const mobiles = checkedMobiles(profileFields(formData), current, lang)
+  if (mobiles.error) return { error: mobiles.error }
+  const fields = mobiles.fields
   const scopeChanged = rollScopeChanged(current, fields)
 
   const { data, error } = await supabase
@@ -206,7 +238,7 @@ export async function updateStudent(formData: FormData): Promise<{ error?: strin
     })
     .eq('id', id)
     .select('id')
-  if (error) return { error: error.message }
+  if (error) return { error: friendlyStudentError(error, lang) }
   if (!data?.length) return { error: 'Student not found' }
   revalidatePath(LIST)
   revalidatePath(`${LIST}/${id}`)
@@ -295,7 +327,7 @@ export async function transferStudent(formData: FormData): Promise<{ error?: str
     p_outcome_for_previous: 'transferred',
     p_note: note,
   })
-  if (enrollError) return { error: enrollError.message }
+  if (enrollError) return { error: friendlyStudentError(enrollError, await currentLang()) }
 
   const { data: enrollment } = await supabase
     .from('student_enrollments')
