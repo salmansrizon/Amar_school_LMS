@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { requireSchoolMemberProfile } from '@/lib/auth/require-role'
 import { recordAudit } from '@/lib/engines/audit/engine'
+import { examClassDenied } from '@/lib/school/exam-class-guard'
 
 // RLS scopes every write to the caller's School; exam_refs_same_school and the
 // per-child same-school + closed-exam guard triggers (0039 migration) are the
@@ -27,6 +28,8 @@ export async function updateExamBasicInfo(examId: string, formData: FormData): P
   const startDate = optId(formData.get('start_date'))
 
   const supabase = await createClient()
+  const denied = await examClassDenied(supabase, examId, classId)
+  if (denied) return denied
   const { error } = await supabase
     .from('exams')
     .update({ name, exam_year: year, class_id: classId, start_date: startDate })
@@ -38,6 +41,8 @@ export async function updateExamBasicInfo(examId: string, formData: FormData): P
 
 export async function setExamGradingScheme(examId: string, schemeId: string | null): Promise<{ error?: string }> {
   const supabase = await createClient()
+  const denied = await examClassDenied(supabase, examId)
+  if (denied) return denied
   const { error } = await supabase
     .from('exams')
     .update({ grading_scheme_id: schemeId })
@@ -53,6 +58,8 @@ export async function assignSubjectTeacher(
   teacherId: string | null,
 ): Promise<{ error?: string }> {
   const supabase = await createClient()
+  const denied = await examClassDenied(supabase, examId)
+  if (denied) return denied
   const { error } = await supabase
     .from('exam_subject_teachers')
     .upsert(
@@ -77,6 +84,8 @@ export async function setResultsPublished(
   const supabase = await createClient()
   const { ok, schoolId } = await requireSchoolMemberProfile(supabase)
   if (!ok) return { error: 'Unauthorized' }
+  const denied = await examClassDenied(supabase, examId)
+  if (denied) return denied
 
   const { data, error } = await supabase
     .from('exams')

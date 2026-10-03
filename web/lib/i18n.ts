@@ -1173,6 +1173,10 @@ const dict = {
     en: 'A closed exam cannot be deleted — its results are already out.',
   },
   'exams.deleteMissing': { bn: 'পরীক্ষাটি পাওয়া যায়নি।', en: 'Exam not found.' },
+  'exams.notYourClass': {
+    bn: 'এই পরীক্ষাটি আপনার শ্রেণির নয় — পরিবর্তন করতে স্কুল মালিকের সাথে যোগাযোগ করুন।',
+    en: 'This exam belongs to a class that is not yours — ask the school owner to change it.',
+  },
   'exams.close': { bn: 'পরীক্ষা বন্ধ করুন', en: 'Close exam' },
   'exams.closeConfirm': {
     bn: 'পরীক্ষা বন্ধ করলে আর কখনো খোলা যাবে না — সব সম্পাদনা স্থায়ীভাবে বন্ধ হবে। নিশ্চিত?',
