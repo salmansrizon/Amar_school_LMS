@@ -1173,6 +1173,10 @@ const dict = {
     en: 'A closed exam cannot be deleted — its results are already out.',
   },
   'exams.deleteMissing': { bn: 'পরীক্ষাটি পাওয়া যায়নি।', en: 'Exam not found.' },
+  'exams.notYourClass': {
+    bn: 'এই পরীক্ষাটি আপনার শ্রেণির নয় — পরিবর্তন করতে স্কুল মালিকের সাথে যোগাযোগ করুন।',
+    en: 'This exam belongs to a class that is not yours — ask the school owner to change it.',
+  },
   'exams.close': { bn: 'পরীক্ষা বন্ধ করুন', en: 'Close exam' },
   'exams.closeConfirm': {
     bn: 'পরীক্ষা বন্ধ করলে আর কখনো খোলা যাবে না — সব সম্পাদনা স্থায়ীভাবে বন্ধ হবে। নিশ্চিত?',
@@ -2188,10 +2192,8 @@ const dict = {
   'directorCapital.investTitle': { bn: 'বিনিয়োগ করুন', en: 'Invest' },
   'directorCapital.withdrawTitle': { bn: 'উত্তোলন করুন', en: 'Withdraw' },
   'directorCapital.currentBalance': { bn: 'বর্তমান ব্যালেন্স', en: 'Current balance' },
-  'directorCapital.broughtForward': {
-    bn: 'তালিকার বাইরের লেনদেনের জের',
-    en: 'From transactions not in this list',
-  },
+  'directorCapital.openingBalance': { bn: 'প্রারম্ভিক ব্যালেন্স', en: 'Opening balance' },
+  'directorCapital.closingBalance': { bn: 'সমাপনী ব্যালেন্স', en: 'Closing balance' },
   'directorCapital.confirmInvest': { bn: 'বিনিয়োগ নিশ্চিত করুন', en: 'Confirm Invest' },
   'directorCapital.confirmWithdraw': { bn: 'উত্তোলন নিশ্চিত করুন', en: 'Confirm Withdraw' },
   'directorCapital.noTransactions': { bn: 'কোনো লেনদেন নেই', en: 'No transactions yet' },
