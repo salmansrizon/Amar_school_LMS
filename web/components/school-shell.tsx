@@ -25,9 +25,13 @@ const SMS_BADGE_STYLE = {
 
 // School route-group chrome. Now a thin adapter over the shared AppShell (#285):
 // it builds the grant/feature-gated school nav and passes the school-specific
-// slots (SMS badge, notification bell, global search, Add-Student CTA). Nesting
-// is grouping only (same row style at both levels, ui.md issue 1), so the tree is
-// flattened in visible order — behaviour-preserving vs the previous bespoke shell.
+// slots (SMS badge, notification bell, global search, Add-Student CTA). Classes
+// -> Attendance nesting is grouping only (same row style at both levels, ui.md
+// issue 1), so that one level is flattened into visible order. Attendance's OWN
+// children (Off-Day Calendar/Students/Employees/Machine, map #667) are a second,
+// different kind of nesting: they're attached as real `AppNavItem.children`, so
+// AppShell's NavLinks renders them indented and always-visible under Attendance,
+// never flattened into more top-level-styled rows.
 type Allow = (screen: SchoolNavItem['screen']) => boolean
 
 function schoolAllow(role: Role, grants: readonly string[], enabledFeatures?: readonly string[]): Allow {
@@ -48,17 +52,23 @@ function buildSchoolNav(allow: Allow, lang: Lang): AppNavItem[] {
   const out: AppNavItem[] = []
   for (const group of SCHOOL_NAV_GROUPS) {
     const section = t(group.labelKey, lang)
-    for (const it of flattenSchoolModules(group.items)) {
-      if (!allow(it.screen)) continue
-      out.push({
-        href: it.href,
-        label: t(it.titleKey, lang),
-        // An entry riding the always-available sentinel names its own glyph, or it
-        // would wear the dashboard's (lib/school-nav.ts).
-        icon: <Icon name={(it.icon ?? it.screen) as Parameters<typeof Icon>[0]['name']} className="size-5" />,
-        matchExact: it.href === '/school',
-        section,
-      })
+    const toItem = (it: SchoolNavItem): AppNavItem => ({
+      href: it.href,
+      label: t(it.titleKey, lang),
+      // An entry riding the always-available sentinel names its own glyph, or it
+      // would wear the dashboard's (lib/school-nav.ts).
+      icon: <Icon name={(it.icon ?? it.screen) as Parameters<typeof Icon>[0]['name']} className="size-5" />,
+      matchExact: it.href === '/school',
+      matchPrefixes: it.matchPrefixes,
+      section,
+    })
+    for (const it of group.items) {
+      if (allow(it.screen)) out.push(toItem(it))
+      for (const child of it.children ?? []) {
+        if (!allow(child.screen)) continue
+        const grandchildren = (child.children ?? []).filter((gc) => allow(gc.screen)).map(toItem)
+        out.push(grandchildren.length ? { ...toItem(child), children: grandchildren } : toItem(child))
+      }
     }
   }
   return out

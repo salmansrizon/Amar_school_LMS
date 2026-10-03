@@ -2,6 +2,7 @@ import { cache } from 'react'
 import { notFound } from 'next/navigation'
 import {
   Banknote,
+  BookOpen,
   Briefcase,
   Building,
   Calendar,
@@ -20,7 +21,7 @@ import { isKnownAcademicShift, ACADEMIC_SHIFT_LABEL_KEY } from '@/lib/institute'
 import { employeeCategoryLabel } from '@/lib/employees'
 import { EntityAvatar } from '@/components/entity-avatar'
 import { ProfileAside, ProfileField, ProfileSection } from '@/components/ui/profile'
-import { OfficeTimeToggle, ShiftToggle } from '../employee-controls'
+import { ShiftToggle } from '../employee-controls'
 import { ProfileEditor } from './profile-controls'
 
 // Editable employee profile, shared by the Employee detail page and the
@@ -40,16 +41,13 @@ export const getEmployee = cache(async (id: string) => {
 
 export async function EmployeeProfile({ id, lang }: { id: string; lang: Lang }) {
   const { supabase, configuredShifts: rawConfiguredShifts } = await getSchoolContext()
-  const [employee, { data: officeTimes }, { data: assignments }, { data: shiftAssignments }] = await Promise.all([
+  const [employee, { data: shiftAssignments }] = await Promise.all([
     getEmployee(id),
-    supabase.from('office_times').select('id, name').order('name'),
-    supabase.from('employee_office_times').select('office_time_id').eq('employee_id', id),
     supabase.from('employee_academic_shifts').select('shift').eq('employee_id', id),
   ])
   if (!employee) notFound()
 
   const locale = lang === 'bn' ? 'bn-BD' : 'en-GB'
-  const assignedOfficeTimeIds = new Set((assignments ?? []).map((a) => a.office_time_id))
   const assignedShifts = new Set((shiftAssignments ?? []).map((a) => a.shift))
   const configuredShifts = rawConfiguredShifts.filter(isKnownAcademicShift)
   const dob = employee.date_of_birth ? new Date(employee.date_of_birth).toLocaleDateString(locale) : null
@@ -76,7 +74,6 @@ export async function EmployeeProfile({ id, lang }: { id: string; lang: Lang }) 
               {/* Read-only — unique_id is server-assigned and immutable (#564),
                   never editable via ProfileFields. */}
               <ProfileField icon={ScanLine} label={t('employees.uniqueId', lang)} value={employee.unique_id} />
-              <ProfileField icon={CreditCard} label={t('employees.rfidCardNumber', lang)} value={employee.rfid_card_number} />
               <ProfileField icon={Calendar} label={t('employees.dob', lang)} value={dob} />
               <ProfileField icon={CalendarDays} label={t('employees.joiningDate', lang)} value={joiningDate} />
             </>
@@ -90,7 +87,6 @@ export async function EmployeeProfile({ id, lang }: { id: string; lang: Lang }) 
             <ProfileField icon={Calendar} label={t('employees.dob', lang)} value={dob} />
             <ProfileField icon={CalendarDays} label={t('employees.joiningDate', lang)} value={joiningDate} />
             <ProfileField icon={ScanLine} label={t('employees.uniqueId', lang)} value={employee.unique_id} />
-            <ProfileField icon={CreditCard} label={t('employees.rfidCardNumber', lang)} value={employee.rfid_card_number} />
           </ProfileSection>
 
           {configuredShifts.length > 0 && (
@@ -119,30 +115,10 @@ export async function EmployeeProfile({ id, lang }: { id: string; lang: Lang }) 
             <ProfileField icon={Building} label={t('employees.department', lang)} value={employee.department} />
           </ProfileSection>
 
-          <section className="mb-4 rounded-2xl border border-line bg-paper p-card">
-            <div className="mb-4 flex items-center gap-2.5">
-              <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-brand-500 text-white">
-                <Clock className="size-4" aria-hidden />
-              </span>
-              <h3 className="font-bold">{t('employees.subjectOfficeTime', lang)}</h3>
-            </div>
-            <dl className="mb-3 grid gap-4 @md:grid-cols-2">
-              <ProfileField label={t('employees.subjectTaught', lang)} value={employee.subject_taught} />
-            </dl>
-            <p className="mb-2 text-xs font-semibold text-muted">{t('employees.officeTimes', lang)}</p>
-            <div className="flex flex-wrap items-center gap-2">
-              {!officeTimes?.length && <span className="text-sm text-muted">{t('employees.none', lang)}</span>}
-              {officeTimes?.map((s) => (
-                <OfficeTimeToggle
-                  key={s.id}
-                  employeeId={id}
-                  officeTimeId={s.id}
-                  label={s.name}
-                  assigned={assignedOfficeTimeIds.has(s.id)}
-                />
-              ))}
-            </div>
-          </section>
+          {/* Office Time moved to Attendance > Employees > Grace Time (issue #671). */}
+          <ProfileSection icon={BookOpen} title={t('employees.subjectTitle', lang)} cols={3}>
+            <ProfileField icon={BookOpen} label={t('employees.subjectTaught', lang)} value={employee.subject_taught} />
+          </ProfileSection>
         </ProfileEditor>
       </div>
     </div>

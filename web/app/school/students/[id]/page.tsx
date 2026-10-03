@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ArrowRightLeft, FileText, IdCard } from 'lucide-react'
 import { averageRating, isEntryLocked } from '@/lib/behaviour'
+import { BEHAVIOUR_TRIAGE_FLAG, triageView, type BehaviourTriage } from '@/lib/behaviour-triage'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
@@ -39,23 +40,42 @@ export default async function StudentDetailPage({
   // is not a Staff-User act, and the RPCs reject them regardless.
   const isOwner = role === 'school_owner'
 
-  const [{ data: entries }, { data: subjects }, { data: assignments }, loginRes] =
-    await Promise.all([
-      supabase
-        .from('behaviour_log_entries')
-        .select('id, note, rating, remind_date, created_at')
-        .eq('student_id', id)
-        .order('created_at', { ascending: false }),
-      supabase.from('subjects').select('id, name').order('name'),
-      supabase.from('student_subjects').select('subject_id, is_optional').eq('student_id', id),
-      isOwner
-        ? supabase
-            .from('student_login_info')
-            .select('email, last_sign_in_at')
-            .eq('student_id', id)
-            .maybeSingle()
-        : Promise.resolve({ data: null }),
-    ])
+  const [
+    { data: entries },
+    { data: subjects },
+    { data: assignments },
+    loginRes,
+    { data: triageRows },
+    { data: triageFlag },
+  ] = await Promise.all([
+    supabase
+      .from('behaviour_log_entries')
+      .select('id, note, rating, remind_date, created_at')
+      .eq('student_id', id)
+      .order('created_at', { ascending: false }),
+    supabase.from('subjects').select('id, name').order('name'),
+    supabase.from('student_subjects').select('subject_id, is_optional').eq('student_id', id),
+    isOwner
+      ? supabase
+          .from('student_login_info')
+          .select('email, last_sign_in_at')
+          .eq('student_id', id)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
+    // Advisory AI triage (#672) — RLS returns only rows whose entry is visible.
+    supabase
+      .from('behaviour_entry_triage')
+      .select(
+        'entry_id, note_sha256, model, severity, severity_confidence, severity_probs, parent_contact_p, category, category_confidence, category_probs, behaviour_log_entries!inner(student_id)',
+      )
+      .eq('behaviour_log_entries.student_id', id),
+    supabase
+      .from('school_feature_flags')
+      .select('enabled')
+      .eq('school_id', student.school_id)
+      .eq('flag_key', BEHAVIOUR_TRIAGE_FLAG)
+      .maybeSingle(),
+  ])
 
   const subjectName = new Map((subjects ?? []).map((s) => [s.id, s.name]))
   const assignedSubjects: AssignedSubject[] = (assignments ?? []).map((a) => ({
@@ -66,6 +86,9 @@ export default async function StudentDetailPage({
 
   const now = new Date()
   const avg = averageRating((entries ?? []).map((e) => e.rating))
+  const triageByEntry = new Map(
+    ((triageRows ?? []) as (BehaviourTriage & { entry_id: string })[]).map((r) => [r.entry_id, r]),
+  )
   const archived = student.archived_at !== null
   const classSection = classSectionLabel(student.class_name, student.section)
   return (
@@ -149,18 +172,23 @@ export default async function StudentDetailPage({
 
       <section className="rounded-lg border border-line bg-paper p-5">
         <p className="mb-3 text-xs text-muted">{t('behaviour.lockedHint', lang)}</p>
+        {triageFlag?.enabled && <p className="mb-3 text-xs text-muted">{t('behaviour.triage.disclosure', lang)}</p>}
         {!entries?.length && <p className="text-sm text-muted">{t('behaviour.none', lang)}</p>}
         <ul className="divide-y divide-line">
-          {entries?.map((entry) => (
-            <li key={entry.id} className="py-3">
-              <EditableEntry
-                entry={entry}
-                studentId={student.id}
-                locked={isEntryLocked(new Date(entry.created_at), now)}
-                lang={lang}
-              />
-            </li>
-          ))}
+          {entries?.map((entry) => {
+            const locked = isEntryLocked(new Date(entry.created_at), now)
+            return (
+              <li key={entry.id} className="py-3">
+                <EditableEntry
+                  entry={entry}
+                  studentId={student.id}
+                  locked={locked}
+                  triage={triageFlag?.enabled ? triageView(triageByEntry.get(entry.id), entry, locked) : null}
+                  lang={lang}
+                />
+              </li>
+            )
+          })}
         </ul>
       </section>
     </div>

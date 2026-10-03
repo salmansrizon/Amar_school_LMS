@@ -1,6 +1,7 @@
 import type { MessageKey } from '@/lib/i18n'
 import type { ScreenKey } from '@/lib/auth/screens'
 import { HUB_HOME, HUB_TABS } from '@/lib/student/hub'
+import { attendanceGroupHref, attendanceGroupTabHrefs } from '@/lib/attendance-nav'
 
 // Shared nav data for the School Owner/Staff sidebar (school-shell.tsx) and the
 // dashboard's Quick Actions, per ui/school-owner/dashboard.html's sidebar.
@@ -18,8 +19,11 @@ export interface SchoolNavItem {
   /** Nested entries shown under this one in the sidebar (issue #101). A child
    *  keeps its own screen grant and its own route — nesting is presentation. */
   children?: SchoolNavItem[]
-  /** Other route prefixes that belong to this entry (breadcrumbs, active tab). */
-  alsoMatches?: readonly string[]
+  /** Extra routes this entry also reads as "active" for, beyond `href` itself
+   *  (sidebar highlight, breadcrumbs, phone tab) — for an entry fronting
+   *  several pages that share no URL prefix with it (map #667: a nav group's
+   *  default tab; map 013: Messages & Requests' hub tabs). */
+  matchPrefixes?: string[]
 }
 
 export type SchoolNavGroupKey = 'overview' | 'people' | 'academics' | 'financeComms' | 'administration'
@@ -66,7 +70,40 @@ export const SCHOOL_NAV_GROUPS: SchoolNavGroup[] = [
         // Issues §1), so it reads as a child of Class & Curriculum. Nav position
         // only (map #91 grilling decision 11): the route stays /school/attendance,
         // and the `attendance` grant key is untouched.
-        children: [{ screen: 'attendance', href: '/school/attendance', titleKey: 'attendance.title' }],
+        children: [
+          {
+            screen: 'attendance',
+            href: '/school/attendance',
+            titleKey: 'attendance.title',
+            // Off-Day Calendar / Students / Employees move from Attendance's own
+            // top-of-page tab row into always-visible sidebar children (map
+            // #667) — no click-to-expand, same "own grant, own route" rule as
+            // this file's own `children` doc comment. Hrefs come from
+            // lib/attendance-nav.ts, the same source AttendanceTabs itself
+            // renders from, so the two can't drift apart.
+            children: [
+              { screen: 'attendance', href: attendanceGroupHref('off-days'), titleKey: 'attendance.tabOffDays' },
+              {
+                screen: 'attendance',
+                href: attendanceGroupHref('students'),
+                titleKey: 'attendance.groupStudents',
+                matchPrefixes: attendanceGroupTabHrefs('students'),
+              },
+              {
+                screen: 'attendance',
+                href: attendanceGroupHref('employees'),
+                titleKey: 'attendance.groupEmployees',
+                matchPrefixes: attendanceGroupTabHrefs('employees'),
+              },
+              {
+                screen: 'attendance',
+                href: attendanceGroupHref('machine'),
+                titleKey: 'attendance.groupMachine',
+                matchPrefixes: attendanceGroupTabHrefs('machine'),
+              },
+            ],
+          },
+        ],
       },
       { screen: 'exams', href: '/school/exams', titleKey: 'exams.title' },
     ],
@@ -107,7 +144,7 @@ export const SCHOOL_NAV_GROUPS: SchoolNavGroup[] = [
         href: HUB_HOME,
         titleKey: 'hub.title',
         icon: 'feedback',
-        alsoMatches: HUB_TABS.map((tab) => tab.href),
+        matchPrefixes: HUB_TABS.map((tab) => tab.href),
       },
     ],
   },
@@ -129,15 +166,18 @@ export const SCHOOL_MODULES: SchoolNavItem[] = SCHOOL_NAV_GROUPS.flatMap((g) => 
   (it) => it.href !== '/school',
 )
 
-/** Every nav entry, parents and children alike — for anything that needs the
- *  flat module list rather than the sidebar's shape. */
+/** Every nav entry at every depth, parents and children alike — for anything
+ *  that needs the flat module list rather than the sidebar's shape. Recurses
+ *  fully: Attendance's own children (map #667) are nested two levels deep
+ *  (Classes -> Attendance -> Off-Day Calendar/Students/Employees), and a
+ *  single-level flatMap would silently drop that third level. */
 export function flattenSchoolModules(items: SchoolNavItem[] = SCHOOL_MODULES): SchoolNavItem[] {
-  return items.flatMap((item) => [item, ...(item.children ?? [])])
+  return items.flatMap((item) => [item, ...flattenSchoolModules(item.children ?? [])])
 }
 
 function matchLength(pathname: string, item: SchoolNavItem): number {
   // Dashboard root matches only itself, or it would swallow every /school route.
-  const prefixes = [item.href, ...(item.alsoMatches ?? [])]
+  const prefixes = [item.href, ...(item.matchPrefixes ?? [])]
   let best = -1
   for (const p of prefixes) {
     const hit = p === '/school' ? pathname === p : pathname === p || pathname.startsWith(p + '/')

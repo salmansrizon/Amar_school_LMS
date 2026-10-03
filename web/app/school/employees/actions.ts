@@ -2,26 +2,12 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
-import {
-  friendlyEmployeeError,
-  validateOptionalLogin,
-  validateEmployeeCategory,
-  isKnownEmployeeCategory,
-  EMPLOYEE_CATEGORIES,
-} from '@/lib/employees'
+import { validateOptionalLogin, validateEmployeeCategory } from '@/lib/employees'
 import { isKnownAcademicShift } from '@/lib/institute'
 
 // RLS scopes all writes to the caller's School.
 
 const PAGE = '/school/employees'
-
-/** Empty → null; invalid → NaN (callers reject); otherwise the integer. */
-function optionalMinutes(value: FormDataEntryValue | null): number | null {
-  const raw = String(value ?? '').trim()
-  if (!raw) return null
-  const minutes = Number(raw)
-  return Number.isInteger(minutes) && minutes >= 0 ? minutes : Number.NaN
-}
 
 function text(formData: FormData, key: string): string | null {
   return String(formData.get(key) ?? '').trim() || null
@@ -40,11 +26,6 @@ function profileFields(formData: FormData) {
     qualification: text(formData, 'qualification'),
     department: text(formData, 'department'),
     subject_taught: text(formData, 'subject_taught'),
-    // Attendance-machine data-model prep (#564/#565) — plain text via the
-    // same text() helper as every other optional field here, so a blank
-    // submission is null, not '' (the partial unique index on
-    // (school_id, rfid_card_number) is keyed off "is not null").
-    rfid_card_number: text(formData, 'rfid_card_number'),
   }
 }
 
@@ -73,8 +54,6 @@ export async function createEmployee(
 ): Promise<{ id?: string; error?: string }> {
   const name = String(formData.get('full_name') ?? '').trim()
   if (!name) return { error: 'Name is required' }
-  const override = optionalMinutes(formData.get('grace_override'))
-  if (Number.isNaN(override)) return { error: 'Grace must be a non-negative integer' }
 
   const email = String(formData.get('email') ?? '').trim()
   const password = String(formData.get('password') ?? '')
@@ -90,10 +69,10 @@ export async function createEmployee(
   const supabase = await createClient()
   const { data, error } = await supabase
     .from('employees')
-    .insert({ full_name: name, grace_override_minutes: override, ...fields })
+    .insert({ full_name: name, ...fields })
     .select('id')
     .single()
-  if (error) return { error: friendlyEmployeeError(error) }
+  if (error) return { error: error.message }
   const employeeId = data.id as string
 
   if (email && password) {
@@ -146,8 +125,6 @@ export async function updateEmployee(formData: FormData): Promise<{ error?: stri
   if (!id) return { error: 'Employee is required' }
   const name = String(formData.get('full_name') ?? '').trim()
   if (!name) return { error: 'Name is required' }
-  const override = optionalMinutes(formData.get('grace_override'))
-  if (Number.isNaN(override)) return { error: 'Grace must be a non-negative integer' }
   const supabase = await createClient()
 
   const fields = profileFields(formData)
@@ -161,10 +138,10 @@ export async function updateEmployee(formData: FormData): Promise<{ error?: stri
 
   const { data, error } = await supabase
     .from('employees')
-    .update({ full_name: name, grace_override_minutes: override, ...fields })
+    .update({ full_name: name, ...fields })
     .eq('id', id)
     .select('id')
-  if (error) return { error: friendlyEmployeeError(error) }
+  if (error) return { error: error.message }
   if (!data?.length) return { error: 'Employee not found' }
   revalidatePath(PAGE)
   revalidatePath(`${PAGE}/${id}`)
@@ -202,42 +179,12 @@ export async function restoreEmployee(id: string): Promise<{ error?: string }> {
   return {}
 }
 
-export async function addOfficeTime(formData: FormData): Promise<{ error?: string }> {
-  const name = String(formData.get('name') ?? '').trim()
-  if (!name) return { error: 'Name is required' }
-  const grace = optionalMinutes(formData.get('grace_minutes'))
-  if (Number.isNaN(grace)) return { error: 'Grace must be a non-negative integer' }
-  const supabase = await createClient()
-  const { error } = await supabase.from('office_times').insert({ name, grace_minutes: grace })
-  if (error) return { error: error.message }
-  revalidatePath(PAGE)
-  return {}
-}
-
-export async function setOfficeTimeAssignment(
-  employeeId: string,
-  officeTimeId: string,
-  assigned: boolean,
-): Promise<{ error?: string }> {
-  const supabase = await createClient()
-  const { error } = assigned
-    ? await supabase.from('employee_office_times').insert({ employee_id: employeeId, office_time_id: officeTimeId })
-    : await supabase
-        .from('employee_office_times')
-        .delete()
-        .eq('employee_id', employeeId)
-        .eq('office_time_id', officeTimeId)
-  if (error) return { error: error.message }
-  revalidatePath(PAGE)
-  return {}
-}
-
 /** An Employee's permanent academic Shift assignment (issue #580, Wave
- *  5/#590) — structurally identical to setOfficeTimeAssignment, hitting
- *  employee_academic_shifts instead. Re-validates the fixed vocabulary
- *  server-side (choices at the UI layer are narrowed to configured_shifts,
- *  #580's Q2, but that narrowing is a picker restriction, not a security
- *  boundary — same reasoning as addClass's shift field). */
+ *  5/#590) — an insert/delete toggle against employee_academic_shifts.
+ *  Re-validates the fixed vocabulary server-side (choices at the UI layer are
+ *  narrowed to configured_shifts, #580's Q2, but that narrowing is a picker
+ *  restriction, not a security boundary — same reasoning as addClass's shift
+ *  field). */
 export async function setShiftAssignment(
   employeeId: string,
   shift: string,
@@ -248,40 +195,6 @@ export async function setShiftAssignment(
   const { error } = assigned
     ? await supabase.from('employee_academic_shifts').insert({ employee_id: employeeId, shift })
     : await supabase.from('employee_academic_shifts').delete().eq('employee_id', employeeId).eq('shift', shift)
-  if (error) return { error: error.message }
-  revalidatePath(PAGE)
-  return {}
-}
-
-export async function setCategoryGrace(formData: FormData): Promise<{ error?: string }> {
-  const category = String(formData.get('category') ?? '').trim()
-  if (!category) return { error: 'Category is required' }
-  // The UI is a `<select>` restricted to the fixed list (issue #666), same as
-  // Office Hour's own category picker — this rejects a raw POST that tries to
-  // smuggle a value past it, the same role isKnownEmployeeCategory already
-  // plays for Office Hour and the Employee form.
-  if (!isKnownEmployeeCategory(category)) {
-    return { error: `Category must be one of: ${EMPLOYEE_CATEGORIES.join(', ')}` }
-  }
-  const grace = Number(formData.get('grace_minutes'))
-  if (!Number.isInteger(grace) || grace < 0) return { error: 'Grace must be a non-negative integer' }
-  const supabase = await createClient()
-  const { error } = await supabase
-    .from('category_grace_minutes')
-    .upsert({ category, grace_minutes: grace }, { onConflict: 'school_id,category' })
-  if (error) return { error: error.message }
-  revalidatePath(PAGE)
-  return {}
-}
-
-export async function setDefaultGrace(formData: FormData): Promise<{ error?: string }> {
-  const raw = String(formData.get('minutes') ?? '').trim()
-  const minutes = raw === '' ? null : Number(raw)
-  if (minutes !== null && (!Number.isInteger(minutes) || minutes < 0)) {
-    return { error: 'Grace must be a non-negative integer' }
-  }
-  const supabase = await createClient()
-  const { error } = await supabase.rpc('set_school_default_grace', { minutes })
   if (error) return { error: error.message }
   revalidatePath(PAGE)
   return {}

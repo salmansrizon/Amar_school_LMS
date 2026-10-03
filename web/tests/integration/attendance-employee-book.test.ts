@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { signedIn, anonClient } from '../helpers/auth'
+import { enrollCard, unenrollCards } from '../helpers/machine-enroll'
 
 // Seam: the per-school manual-attendance override switch (issue #30, PRD
 // §5.3 — "de-activate automatic attendance"), and its effect on
@@ -38,18 +39,18 @@ describe('Attendance II: manual-attendance override switch (issue #30)', () => {
     await ownerA.from('attendance_events').delete().gte('tapped_at', `${DAY}T00:00:00Z`).lte('tapped_at', `${DAY}T23:59:59Z`)
     await ownerA.from('attendance_records').delete().eq('att_date', DAY)
     await ownerA.from('students').delete().eq('full_name', 'Attendance II Toggle Student')
-    await ownerA.from('rfid_cards').delete().eq('card_number', cardNumber)
+    await unenrollCards(ownerA, [cardNumber])
 
     studentId = (
       await ownerA.from('students').insert({ full_name: 'Attendance II Toggle Student' }).select('id').single()
     ).data!.id
-    await ownerA.from('rfid_cards').insert({ card_number: cardNumber, student_id: studentId })
+    await enrollCard(ownerA, { student_id: studentId }, cardNumber)
   })
 
   afterAll(async () => {
     await ownerA.from('attendance_events').delete().gte('tapped_at', `${DAY}T00:00:00Z`).lte('tapped_at', `${DAY}T23:59:59Z`)
     await ownerA.from('attendance_records').delete().eq('att_date', DAY)
-    await ownerA.from('rfid_cards').delete().eq('card_number', cardNumber)
+    await unenrollCards(ownerA, [cardNumber])
     await ownerA.from('students').delete().eq('id', studentId)
     // Restore the school's original flag so this test is repeatable/isolated.
     await ownerA.rpc('set_automatic_attendance_enabled', { enabled: originalEnabledA })

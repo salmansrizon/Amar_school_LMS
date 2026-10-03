@@ -20,10 +20,8 @@ export function pgErrorMessage(
 /** Friendly text for one specific unique-constraint violation, keyed by the
  *  constraint's own name rather than just its 23505 code — needed whenever a
  *  single write can violate more than one unique constraint on the same
- *  table (e.g. students: both students_roll_unique and
- *  students_rfid_card_number_key can 23505 from the same admitStudent/
- *  updateStudent call), so pgErrorMessage's code-only keying can't tell them
- *  apart — it would apply one `overrides['23505']` string to either. Matches
+ *  table, so pgErrorMessage's code-only keying can't tell them apart — it
+ *  would apply one `overrides['23505']` string to either. Matches
  *  Postgres's own quoted constraint name (its duplicate-key message is
  *  literally `violates unique constraint "the_name"`) rather than a bare
  *  substring — an unanchored match could false-positive on a future

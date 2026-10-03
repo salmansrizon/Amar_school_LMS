@@ -6,7 +6,9 @@ describe('navGroupFor (map 013 F5)', () => {
     ['/school', 'overview', '/school'],
     ['/school/students', 'people', '/school/students'],
     ['/school/students/abc/edit', 'people', '/school/students'],
-    ['/school/attendance/book', 'academics', '/school/attendance'],
+    // Attendance's own sidebar children (map #667): Book belongs to its Students entry.
+    ['/school/attendance/book', 'academics', '/school/attendance/mark'],
+    ['/school/attendance', 'academics', '/school/attendance'],
     ['/school/exams', 'academics', '/school/exams'],
     ['/school/sms', 'financeComms', '/school/sms'],
     ['/school/corrections', 'financeComms', '/school/questions'],

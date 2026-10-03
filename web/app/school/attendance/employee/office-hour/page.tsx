@@ -14,14 +14,17 @@ import { dayLabel } from '@/lib/routine'
 import { ACADEMIC_SHIFT_LABEL_KEY } from '@/lib/institute'
 import { schoolCrumbs } from '@/lib/school-crumbs'
 import { PageHeader } from '@/components/ui/page'
-import { InstituteTabs } from '../tabs'
+import { AttendanceTabs } from '../../attendance-tabs'
 import { OfficeHourForm } from './office-hour-form'
 import { OfficeHourCell } from './office-hour-cell'
 
-// Office Hour (issue #643, ADR 0026): Employee-Category x Shift x Day
-// published schedule matrix. The Shift tab bar here is local to this page and
-// reads schools.configured_shifts directly (via getSchoolContext().configuredShifts)
-// — it has no relationship with the topbar's Global Shift Selection cookie.
+// Office Hour (issue #643, ADR 0026; moved from Institute Setup to Attendance
+// > Employees by issue #669/ADR 0029 — see that ADR for why the route move
+// is itself the Permission Grant change, from `institute` to `attendance`).
+// Employee-Category x Shift x Day published schedule matrix. The Shift tab
+// bar here is local to this page and reads schools.configured_shifts
+// directly (via getSchoolContext().configuredShifts) — it has no
+// relationship with the topbar's Global Shift Selection cookie.
 
 // Per-day column tinting so a hovering eye can tell which day a cell belongs
 // to without re-counting columns or re-reading the header every time (the
@@ -59,10 +62,10 @@ export default async function OfficeHourPage({
     <div>
       <PageHeader
         title={t('officeHour.title', lang)}
-        crumbs={schoolCrumbs('/school/institute/office-hour', lang, { label: t('officeHour.title', lang) })}
+        crumbs={schoolCrumbs('/school/attendance', lang, { label: t('attendance.title', lang), href: '/school/attendance' }, { label: t('officeHour.title', lang) })}
       />
 
-      <InstituteTabs active="/school/institute/office-hour" lang={lang} />
+      <AttendanceTabs active="/school/attendance/employee/office-hour" lang={lang} />
 
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-muted">{t('officeHour.intro', lang)}</p>
@@ -75,7 +78,7 @@ export default async function OfficeHourPage({
           {shiftOptions.map((s) => (
             <Link
               key={s}
-              href={`/school/institute/office-hour?shift=${s}`}
+              href={`/school/attendance/employee/office-hour?shift=${s}`}
               className={`rounded-full px-3 py-1 text-xs font-semibold ${
                 s === activeShift ? 'bg-brand-500 text-white' : 'border border-line-strong text-muted hover:bg-paper-muted'
               }`}

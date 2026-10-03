@@ -1,83 +1,12 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { inputClass, labelClass } from '@/components/auth-card'
 import { t, type Lang } from '@/lib/i18n'
-import { assignCard, removeCard, setAutomaticAttendance } from './actions'
-import { ComboboxField } from '@/components/ui/combobox-field'
-
-// The live "assign a card" flow (issue #10): writes rfid_cards.card_number,
-// per-school unique, wired to ingest_attendance_events/reconcile_attendance.
-//
-// students.rfid_card_number / employees.rfid_card_number (ticket #564,
-// migration 0173) are a second, independent field pair on the profile forms
-// themselves (issue #565), prepping for a future attendance-machine sync.
-// The two are deliberately NOT kept in sync — #565's own ticket weighed that
-// and chose a hint pointing each screen at the other over reconciling them
-// now. This screen's card_number is still the one that actually feeds
-// ingest_attendance_events/reconcile_attendance; the profile-form field does
-// nothing yet.
-export function AssignCardForm({
-  students,
-  employees,
-  lang,
-}: {
-  students: { id: string; full_name: string }[]
-  employees: { id: string; full_name: string }[]
-  lang: Lang
-}) {
-  const [error, setError] = useState<string | null>(null)
-  const [pending, startTransition] = useTransition()
-
-  return (
-    <form
-      className="flex flex-wrap items-end gap-2"
-      onSubmit={(e) => {
-        e.preventDefault()
-        const form = e.currentTarget
-        const data = new FormData(form)
-        startTransition(async () => {
-          setError(null)
-          const result = await assignCard(data)
-          if (result.error) setError(result.error)
-          else form.reset()
-        })
-      }}
-    >
-      <div>
-        <label className={labelClass} htmlFor="card_number">{t('attendance.cardNumber', lang)}</label>
-        <input id="card_number" name="card_number" required className={`${inputClass} font-mono`} />
-      </div>
-      <div>
-        <label className={labelClass} htmlFor="holder">{t('attendance.holder', lang)}</label>
-        <ComboboxField
-          id="holder"
-          name="holder"
-          required
-          className="w-full"
-          options={[
-            { value: '__group_students__', label: t('students.title', lang), disabled: true },
-            ...students.map((s) => ({ value: `student:${s.id}`, label: s.full_name })),
-            { value: '__group_employees__', label: t('employees.title', lang), disabled: true },
-            ...employees.map((e) => ({ value: `employee:${e.id}`, label: e.full_name })),
-          ]}
-        />
-      </div>
-      <button
-        type="submit"
-        disabled={pending}
-        className="h-10 cursor-pointer rounded-full bg-brand-500 px-5 text-sm font-semibold text-white hover:bg-brand-600 disabled:opacity-50"
-      >
-        {t('attendance.assign', lang)}
-      </button>
-      {error && <p className="w-full text-sm text-alert-deep">{error}</p>}
-    </form>
-  )
-}
+import { setAutomaticAttendance } from './actions'
 
 // Per-school manual-attendance override switch (issue #30, PRD §5.3): the
-// legacy "de-activate automatic attendance" toggle. Optimistic like
-// OfficeTimeToggle (app/school/employees/employee-controls.tsx), reverts on error.
+// legacy "de-activate automatic attendance" toggle. Optimistic-immediate
+// save like ShiftToggle (app/school/employees/employee-controls.tsx), reverts on error.
 export function AutomaticAttendanceToggle({ enabled, lang }: { enabled: boolean; lang: Lang }) {
   const [on, setOn] = useState(enabled)
   const [error, setError] = useState<string | null>(null)
@@ -109,28 +38,5 @@ export function AutomaticAttendanceToggle({ enabled, lang }: { enabled: boolean;
       </button>
       {error && <span className="text-xs text-alert-deep">{error}</span>}
     </div>
-  )
-}
-
-export function RemoveCardButton({ id, label }: { id: string; label: string }) {
-  const [error, setError] = useState<string | null>(null)
-  const [pending, startTransition] = useTransition()
-  return (
-    <span className="flex items-center gap-2">
-      {error && <span className="text-xs text-alert-deep">{error}</span>}
-      <button
-        type="button"
-        disabled={pending}
-        onClick={() =>
-          startTransition(async () => {
-            const result = await removeCard(id)
-            setError(result.error ?? null)
-          })
-        }
-        className="cursor-pointer rounded-full px-3 py-1 text-xs font-semibold text-alert-deep hover:bg-alert-soft disabled:opacity-50"
-      >
-        {label}
-      </button>
-    </span>
   )
 }

@@ -2,9 +2,7 @@ import { describe, it, expect } from 'vitest'
 import {
   matchesEmployeeQuery,
   filterEmployees,
-  employeeOfficeTimeNames,
   employeeCategoryLabel,
-  friendlyEmployeeError,
   validateOptionalLogin,
   validateEmployeeCategory,
   EMPLOYEE_CATEGORIES,
@@ -32,50 +30,6 @@ describe('filterEmployees', () => {
     expect(filterEmployees(rows, '', 'Teacher').map((r) => r.id)).toEqual(['1', '2'])
     expect(filterEmployees(rows, 'sharmin', '').map((r) => r.id)).toEqual(['3'])
     expect(filterEmployees(rows, '', '')).toHaveLength(3)
-  })
-})
-
-describe('employeeOfficeTimeNames', () => {
-  const officeTimes = [
-    { id: 's1', name: 'Morning' },
-    { id: 's2', name: 'Day' },
-  ]
-  const assignments = [
-    { employee_id: 'e1', office_time_id: 's1' },
-    { employee_id: 'e1', office_time_id: 's2' },
-    { employee_id: 'e2', office_time_id: 's1' },
-  ]
-
-  it('joins multiple assigned officeTime names', () => {
-    expect(employeeOfficeTimeNames('e1', assignments, officeTimes)).toBe('Morning, Day')
-  })
-
-  it('returns a single name for one assignment', () => {
-    expect(employeeOfficeTimeNames('e2', assignments, officeTimes)).toBe('Morning')
-  })
-
-  it('returns null when no officeTimes are assigned', () => {
-    expect(employeeOfficeTimeNames('e3', assignments, officeTimes)).toBeNull()
-  })
-})
-
-describe('friendlyEmployeeError', () => {
-  it('replaces a duplicate rfid_card_number violation with a legible message', () => {
-    const error = {
-      code: '23505',
-      message: 'duplicate key value violates unique constraint "employees_rfid_card_number_key"',
-    }
-    expect(friendlyEmployeeError(error)).toBe('That RFID card number is already used by someone else at this school')
-  })
-
-  it('passes through any other error unchanged', () => {
-    const notFound = { code: '23503', message: 'foreign key violation' }
-    expect(friendlyEmployeeError(notFound)).toBe('foreign key violation')
-
-    // A 23505 on a different constraint (e.g. a future unique column) must
-    // not be swallowed into the rfid_card_number message.
-    const otherUnique = { code: '23505', message: 'duplicate key value violates unique constraint "employees_pkey"' }
-    expect(friendlyEmployeeError(otherUnique)).toBe(otherUnique.message)
   })
 })
 

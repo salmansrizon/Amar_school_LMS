@@ -107,7 +107,6 @@ export async function StudentProfile({ id, lang }: { id: string; lang: Lang }) {
             <ProfileField icon={Droplet} label={t('students.bloodGroup', lang)} value={student.blood_group} />
             <ProfileField icon={IdCard} label={t('students.studentNo', lang)} value={student.student_no} />
             <ProfileField icon={ScanLine} label={t('students.uniqueId', lang)} value={student.unique_id} />
-            <ProfileField icon={CreditCard} label={t('students.rfidCardNumber', lang)} value={student.rfid_card_number} />
             <ProfileField icon={GraduationCap} label={t('students.classSection', lang)} value={classSection} />
             <ProfileField icon={Hash} label={t('students.roll', lang)} value={student.roll_number} />
             <ProfileField icon={Landmark} label={t('students.religion', lang)} value={religionLabel(student.religion, lang)} />

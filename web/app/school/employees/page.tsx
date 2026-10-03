@@ -4,7 +4,7 @@ import { currentLang } from '@/lib/i18n-server'
 import { t, numberFmt, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { canOpenScreen } from '@/lib/auth/screens'
-import { employeeOfficeTimeNames, employeeCategoryLabel } from '@/lib/employees'
+import { employeeCategoryLabel } from '@/lib/employees'
 import { ACADEMIC_SHIFT_LABEL_KEY, isKnownAcademicShift } from '@/lib/institute'
 import { schoolToday } from '@/lib/school-time'
 import { selectAllRows } from '@/lib/supabase/select-all'
@@ -18,7 +18,6 @@ import { EntityAvatar } from '@/components/entity-avatar'
 import { DataTable, Pill, type Column } from '@/components/data-table/data-table'
 import { RecordDrawer } from '@/components/data-table/record-drawer'
 import { RowActionPill } from '@/components/data-table/row-action-pill'
-import { AddOfficeTimeForm, CategoryGraceForm, DefaultGraceForm } from './employee-controls'
 import { EmployeeProfile, getEmployee } from './[id]/employee-profile'
 import { RowMore } from '@/components/data-table/row-more'
 import { DrawerFooter, DrawerHeader } from '@/components/data-table/drawer-parts'
@@ -30,8 +29,9 @@ import { EmployeeDrawerBody, loadEmployeeDrawerData, employeeDrawerCancelHref } 
 // contextual next-step pill per row, everything else behind ⋮), then two
 // workflow cards — today's presence and leave requests awaiting review.
 // Today's presence is one attendance_records read for today (at most one row
-// per employee) plus today's approved leaves. The office-time / grace config
-// (issue #9) stays below the table, unchanged.
+// per employee) plus today's approved leaves. Grace / Office-Time configuration
+// moved to Attendance > Employees > Grace Time (issue #671) — this page no
+// longer owns any grace UI.
 
 type Presence = 'present' | 'on_leave' | 'not_in'
 
@@ -44,7 +44,6 @@ type Row = {
   mobile: string | null
   unique_id: string | null
   shifts: string[]
-  officeTimes: string | null
   presence: Presence
   entryAt: string | null
 }
@@ -69,16 +68,12 @@ export default async function EmployeesPage({
   const { q = '', category = '', department = '', shift = '', presence = '', page, size, view } = params
   const pageSize = pageSizeFrom(size, PAGE_SIZE)
   const lang: Lang = await currentLang()
-  const { supabase, schoolId, role, grants, configuredShifts } = await getSchoolContext()
+  const { supabase, role, grants, configuredShifts } = await getSchoolContext()
   const today = schoolToday()
   const canAttendance = canOpenScreen(role, grants, 'attendance')
 
   const [
-    { data: school },
-    { data: officeTimes },
-    { data: categoryGrace },
     { rows: employees },
-    { rows: assignments },
     { rows: shiftRows },
     { rows: records },
     { rows: leaves },
@@ -87,9 +82,6 @@ export default async function EmployeesPage({
     viewed,
     employeeDrawerData,
   ] = await Promise.all([
-    supabase.from('schools').select('default_grace_minutes').eq('id', schoolId).single(),
-    supabase.from('office_times').select('id, name, grace_minutes').order('name'),
-    supabase.from('category_grace_minutes').select('category, grace_minutes').order('category'),
     selectAllRows((from, to) =>
       supabase
         .from('employees')
@@ -97,9 +89,6 @@ export default async function EmployeesPage({
         .is('archived_at', null)
         .order('full_name')
         .range(from, to),
-    ),
-    selectAllRows((from, to) =>
-      supabase.from('employee_office_times').select('employee_id, office_time_id').range(from, to),
     ),
     selectAllRows((from, to) => supabase.from('employee_academic_shifts').select('employee_id, shift').range(from, to)),
     selectAllRows((from, to) =>
@@ -142,7 +131,6 @@ export default async function EmployeesPage({
   const all: Row[] = employees.map((e) => ({
     ...e,
     shifts: shiftsBy.get(e.id) ?? [],
-    officeTimes: employeeOfficeTimeNames(e.id, assignments, officeTimes ?? []),
     presence: entryBy.has(e.id) ? 'present' : onLeave.has(e.id) ? 'on_leave' : 'not_in',
     entryAt: entryBy.get(e.id) ?? null,
   }))
@@ -243,10 +231,7 @@ export default async function EmployeesPage({
       key: 'shift',
       header: t('employees.shift', lang),
       cell: (e) => (
-        <div>
-          <div>{e.shifts.length ? e.shifts.map(shiftLabel).join(', ') : dash}</div>
-          {e.officeTimes && <div className="text-xs text-muted">{e.officeTimes}</div>}
-        </div>
+<div>{e.shifts.length ? e.shifts.map(shiftLabel).join(', ') : dash}</div>
       ),
     },
     {
@@ -515,27 +500,6 @@ export default async function EmployeesPage({
         </WorkflowCard>
       </div>
 
-      <section className="mt-section grid gap-4 rounded-lg border border-line bg-paper p-5 sm:grid-cols-3">
-        <div className="sm:col-span-3">
-          <h2 className="font-bold">{t('employees.graceSettings', lang)}</h2>
-          <p className="text-xs text-muted">{t('grace.hint', lang)}</p>
-        </div>
-        <DefaultGraceForm current={school?.default_grace_minutes ?? null} lang={lang} />
-        <AddOfficeTimeForm lang={lang} />
-        <CategoryGraceForm lang={lang} />
-        <div className="text-xs text-muted sm:col-span-3">
-          {officeTimes?.map((s) => (
-            <span key={s.id} className="mr-3">
-              {s.name}: {s.grace_minutes ?? '—'}m
-            </span>
-          ))}
-          {categoryGrace?.map((c) => (
-            <span key={c.category} className="mr-3">
-              {c.category}: {c.grace_minutes}m
-            </span>
-          ))}
-        </div>
-      </section>
 
       <RecordDrawer
         open={Boolean(viewed)}

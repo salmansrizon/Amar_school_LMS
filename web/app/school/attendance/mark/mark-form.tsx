@@ -54,7 +54,7 @@ export function MarkAttendanceForm({
   date: string
   students: Row[]
   markedBy: MarkedBy | null
-  /** Attendance Rate (YTD) per student id; null hides the column (0208 unapplied). */
+  /** Attendance Rate (YTD) per student id; null hides the column (0214 unapplied). */
   rates?: Record<string, number | null> | null
 }) {
   const [rows, setRows] = useState<Row[]>(students)

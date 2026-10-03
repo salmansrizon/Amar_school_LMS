@@ -2,14 +2,17 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { signedIn } from '../helpers/auth'
 
-// Seam: employees/officeTimes schema + effective_grace_minutes (issue #9).
+// Seam: standing_grace_rules + effective_grace_minutes (issue #9, redesigned
+// by #671 and #673 / ADR 0032). The MAX-across-levels rule runs over every
+// Standing Grace Rule covering the Employee's Category, whatever the rule's
+// Shift — Shift is display-only.
 
-describe('Minimal Employee + Considerable Grace Window (issue #9)', () => {
+const DETAILS = ['Prayer', 'Lunch Hour'] as const
+
+describe('Considerable Grace Window via Standing Grace Rules (issue #673)', () => {
   let ownerA: SupabaseClient
   let ownerB: SupabaseClient
   let employeeId: string
-  let morningOfficeTime: string
-  let dayOfficeTime: string
 
   async function grace(): Promise<number> {
     const { data, error } = await ownerA.rpc('effective_grace_minutes', { emp: employeeId })
@@ -17,85 +20,81 @@ describe('Minimal Employee + Considerable Grace Window (issue #9)', () => {
     return data as number
   }
 
+  async function save(shift: string | null, detail: string, minutes: number, categories: string[]) {
+    const { error } = await ownerA.rpc('save_standing_grace_rule', {
+      p_shift: shift,
+      p_grace_detail: detail,
+      p_grace_minutes: minutes,
+      p_categories: categories,
+    })
+    if (error) throw new Error(error.message)
+  }
+
+  async function cleanup() {
+    await ownerA.from('employees').delete().eq('full_name', 'Grace Test Employee')
+    await ownerA.from('standing_grace_rules').delete().in('grace_detail', DETAILS)
+  }
+
   beforeAll(async () => {
     ownerA = await signedIn('owner-a@test.local')
     ownerB = await signedIn('owner-b@test.local')
-    // Idempotent cleanup of prior runs.
-    await ownerA.from('employees').delete().eq('full_name', 'Grace Test Employee')
-    await ownerA.from('office_times').delete().in('name', ['G-Morning', 'G-Day'])
-    await ownerA.from('category_grace_minutes').delete().eq('category', 'g-teacher')
-    await ownerA.rpc('set_school_default_grace', { minutes: null })
-
-    morningOfficeTime = (
-      await ownerA.from('office_times').insert({ name: 'G-Morning', grace_minutes: 10 }).select('id').single()
-    ).data!.id
-    dayOfficeTime = (
-      await ownerA.from('office_times').insert({ name: 'G-Day', grace_minutes: 25 }).select('id').single()
-    ).data!.id
+    await cleanup()
 
     const { data: emp, error } = await ownerA
       .from('employees')
-      .insert({ full_name: 'Grace Test Employee', category: 'g-teacher' })
+      .insert({ full_name: 'Grace Test Employee', category: 'Librarian' })
       .select('id')
       .single()
     if (error) throw new Error(error.message)
     employeeId = emp!.id
   })
 
-  afterAll(async () => {
-    await ownerA.from('employees').delete().eq('id', employeeId)
-    await ownerA.from('office_times').delete().in('id', [morningOfficeTime, dayOfficeTime])
-    await ownerA.from('category_grace_minutes').delete().eq('category', 'g-teacher')
-    await ownerA.rpc('set_school_default_grace', { minutes: null })
+  afterAll(cleanup)
+
+  it('nothing configured means zero grace', async () => {
+    expect(await grace()).toBe(0)
   })
 
-  it('an Employee can be created and assigned to multiple officeTimes', async () => {
-    const { error } = await ownerA.from('employee_office_times').insert([
-      { employee_id: employeeId, office_time_id: morningOfficeTime },
-      { employee_id: employeeId, office_time_id: dayOfficeTime },
-    ])
-    expect(error).toBeNull()
+  it('a rule covering the Category is picked up', async () => {
+    await save(null, 'Prayer', 15, ['Librarian', 'Nurse'])
+    expect(await grace()).toBe(15)
   })
 
-  it('two officeTimes with different grace values resolve to the larger', async () => {
-    expect(await grace()).toBe(25)
-  })
-
-  it('a larger category default takes over (max across levels)', async () => {
-    await ownerA.from('category_grace_minutes').insert({ category: 'g-teacher', grace_minutes: 30 })
+  it('a rule filed under another Shift still applies (Shift is display-only)', async () => {
+    await save('Morning', 'Lunch Hour', 30, ['Librarian'])
     expect(await grace()).toBe(30)
   })
 
-  it('a SMALLER per-individual override does not force a stricter window', async () => {
-    await ownerA.from('employees').update({ grace_override_minutes: 5 }).eq('id', employeeId)
-    expect(await grace()).toBe(30) // still the max, not the override
-  })
-
-  it('a larger global default wins over everything', async () => {
-    await ownerA.rpc('set_school_default_grace', { minutes: 40 })
-    expect(await grace()).toBe(40)
-  })
-
-  it("another School's Owner cannot see the Employee", async () => {
-    const { data } = await ownerB.from('employees').select('id').eq('id', employeeId)
-    expect(data).toEqual([])
-  })
-
-  it("a foreign school's officeTime cannot be associated with my employee", async () => {
-    await ownerB.from('office_times').delete().eq('name', 'G-Foreign')
-    const { data: foreign } = await ownerB
-      .from('office_times')
-      .insert({ name: 'G-Foreign', grace_minutes: 999 })
+  it('re-saving the same Shift + Grace Detail replaces its Categories and minutes, never duplicates', async () => {
+    await save('Morning', 'Lunch Hour', 10, ['Nurse'])
+    const { data } = await ownerA
+      .from('standing_grace_rules')
       .select('id')
-      .single()
+      .eq('shift', 'Morning')
+      .eq('grace_detail', 'Lunch Hour')
+    expect(data).toHaveLength(1)
+    expect(await grace()).toBe(15) // Librarian dropped from Lunch Hour; Prayer 15 remains
+  })
 
-    const { error } = await ownerA
-      .from('employee_office_times')
-      .insert({ employee_id: employeeId, office_time_id: foreign!.id })
+  it('rejects a category that is not a known Employee Category', async () => {
+    const { error } = await ownerA.rpc('save_standing_grace_rule', {
+      p_shift: null,
+      p_grace_detail: 'Prayer',
+      p_grace_minutes: 5,
+      p_categories: ['not-a-real-category'],
+    })
     expect(error).not.toBeNull()
+  })
 
-    expect(await grace()).toBeLessThan(999)
-    await ownerB.from('office_times').delete().eq('id', foreign!.id)
+  it('deleting a rule removes its grace', async () => {
+    await ownerA.from('standing_grace_rules').delete().eq('grace_detail', 'Prayer').is('shift', null)
+    expect(await grace()).toBe(0)
+  })
+
+  it("another School's Owner cannot see the rules", async () => {
+    await save(null, 'Prayer', 15, ['Librarian'])
+    const { data } = await ownerB.from('standing_grace_rules').select('id').in('grace_detail', DETAILS)
+    expect(data).toEqual([])
   })
 
   it('the one-call school-wide grace list matches the per-employee value', async () => {

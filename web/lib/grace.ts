@@ -1,52 +1,80 @@
-// Considerable Grace Window resolution (issue #9): the effective grace for an
-// attendance check is the MAX across every applicable configured value —
-// global default, category default, each assigned officeTime, and the
-// per-individual override. An override can widen the window, never narrow it.
-// Mirrors public.effective_grace_minutes (migration 0012); SQL is the authority.
+// Considerable Grace Window resolution (issue #9, redesigned by #671 and
+// #673): the effective grace for an attendance check is the MAX across every
+// Standing Grace Rule covering the Employee's Category, plus an Ad-Hoc Grace
+// Exemption active for that specific date. A rule's Shift plays no part
+// (ADR 0032) — it only organises the Grace Time screen. The School default,
+// per-Category grace and Prayer & Tiffin Window levels were retired (#673).
+// Mirrors public.effective_grace_minutes/reconcile_attendance's grace CTE
+// (migration 0210); SQL is the authority.
 //
 // effectiveGraceWithSource is the single implementation of the rule;
 // effectiveGrace is the value-only view of it, so the MAX lives in one place.
 
-export interface GraceInputs {
-  global: number | null
-  category: number | null
-  officeTimes: number[]
-  override: number | null
+/** Fixed, code-owned Grace Detail list (issue #673) — the reason a Standing
+ *  Grace Rule carries. Identical for every School; not free text. */
+export const GRACE_DETAILS = [
+  'General',
+  'Lunch Hour',
+  'Tiffin',
+  'Prayer',
+  'Prayer & Tiffin',
+  "Jumu'ah",
+  'Transport Delay',
+  'Weather',
+  'Special Duty',
+  'Meeting',
+] as const
+
+export type GraceDetail = (typeof GRACE_DETAILS)[number]
+
+export const GRACE_DETAIL_LABEL_KEY = Object.fromEntries(
+  GRACE_DETAILS.map((d) => [d, `graceDetail.${d}`]),
+) as Record<GraceDetail, `graceDetail.${GraceDetail}`>
+
+export function isGraceDetail(value: string): value is GraceDetail {
+  return (GRACE_DETAILS as readonly string[]).includes(value)
 }
+
+export interface StandingGraceCandidate {
+  detail: string
+  minutes: number
+}
+
+export interface GraceInputs {
+  /** Every Standing Grace Rule covering the Employee's Category, any Shift. */
+  standing: readonly StandingGraceCandidate[]
+  adHoc: number | null
+}
+
+export type GraceSource = { kind: 'standing'; detail: string } | { kind: 'adHoc' }
 
 export function effectiveGrace(inputs: GraceInputs): number {
   return effectiveGraceWithSource(inputs).minutes
 }
 
-// Issue #30 (Attendance II): the employee-attendance screen must show which
-// level the effective grace came from (ui/school-owner/attendance-employee.html
-// annotates each row with "20 min (individual override)" etc.) — the same MAX
-// rule, keeping the winning source alongside the value.
-export type GraceSource = 'global' | 'category' | 'officeTime' | 'override'
-
-export function effectiveGraceWithSource({
-  global,
-  category,
-  officeTimes,
-  override,
-}: GraceInputs): { minutes: number; source: GraceSource | null } {
-  const officeTimeMax = officeTimes.length ? Math.max(...officeTimes) : null
-  const levels: { source: GraceSource; minutes: number | null | undefined }[] = [
-    { source: 'global', minutes: global },
-    { source: 'category', minutes: category },
-    { source: 'officeTime', minutes: officeTimeMax },
-    { source: 'override', minutes: override },
-  ]
-  const applicable = levels.filter(
-    (l): l is { source: GraceSource; minutes: number } => l.minutes !== null && l.minutes !== undefined,
+// Issue #30 (Attendance II): the employee-attendance screen shows which rule
+// the effective grace came from — the same MAX rule, keeping the winning
+// source alongside the value.
+export function effectiveGraceWithSource({ standing, adHoc }: GraceInputs): {
+  minutes: number
+  source: GraceSource | null
+} {
+  const candidates: { source: GraceSource; minutes: number }[] = []
+  // Ties resolve to an Ad-Hoc Grace Exemption first — the most deliberate,
+  // date-scoped configuration — then to Grace Detail list order, so the
+  // credited reason is deterministic regardless of query row order.
+  if (adHoc !== null) candidates.push({ source: { kind: 'adHoc' }, minutes: adHoc })
+  const ordered = [...standing].sort(
+    (a, b) => detailRank(a.detail) - detailRank(b.detail),
   )
-  if (!applicable.length) return { minutes: 0, source: null }
+  for (const r of ordered) candidates.push({ source: { kind: 'standing', detail: r.detail }, minutes: r.minutes })
 
-  const minutes = Math.max(...applicable.map((l) => l.minutes))
-  // Ties resolve to the most specific level — an override is the most
-  // deliberate configuration, so it should be the one credited when it ties
-  // the school/category/officeTime default rather than an incidental match.
-  const priority: GraceSource[] = ['override', 'officeTime', 'category', 'global']
-  const source = priority.find((p) => applicable.some((l) => l.source === p && l.minutes === minutes)) ?? null
-  return { minutes, source }
+  if (!candidates.length) return { minutes: 0, source: null }
+  const minutes = Math.max(...candidates.map((c) => c.minutes))
+  return { minutes, source: candidates.find((c) => c.minutes === minutes)!.source }
+}
+
+function detailRank(detail: string): number {
+  const i = (GRACE_DETAILS as readonly string[]).indexOf(detail)
+  return i === -1 ? GRACE_DETAILS.length : i
 }

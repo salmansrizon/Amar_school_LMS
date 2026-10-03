@@ -5,7 +5,8 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { currentActor } from '@/lib/school/actor'
 import { sendStudentSms } from '@/lib/sms/student-sms'
-import { photoExtension, behaviourSmsBody, parseRollNumber, rollScopeChanged, friendlyStudentError } from '@/lib/students'
+import { recordBehaviourTriage } from '@/lib/behaviour-triage-service'
+import { photoExtension, behaviourSmsBody, parseRollNumber, rollScopeChanged } from '@/lib/students'
 import { createSignedUpload, type SignedUpload } from '@/lib/storage/signed-upload'
 
 // RLS scopes everything to the caller's School; the 3-day lock trigger is the
@@ -48,11 +49,6 @@ function profileFields(formData: FormData) {
     previous_institute: text(formData, 'previous_institute'),
     previous_class: text(formData, 'previous_class'),
     sibling_info: text(formData, 'sibling_info'),
-    // Attendance-machine data-model prep (#564/#565) — plain text via the
-    // same text() helper as every other optional field here, so a blank
-    // submission is null, not '' (the partial unique index on
-    // (school_id, rfid_card_number) is keyed off "is not null").
-    rfid_card_number: text(formData, 'rfid_card_number'),
   }
 }
 
@@ -123,7 +119,7 @@ export async function admitStudent(
     })
     .select('id, roll_number')
     .single()
-  if (error) return { error: friendlyStudentError(error) }
+  if (error) return { error: error.message }
 
   // What actually landed on the row — assign_student_roll (0032) runs
   // before this insert, so a blank roll.value is already resolved by the
@@ -210,7 +206,7 @@ export async function updateStudent(formData: FormData): Promise<{ error?: strin
     })
     .eq('id', id)
     .select('id')
-  if (error) return { error: friendlyStudentError(error) }
+  if (error) return { error: error.message }
   if (!data?.length) return { error: 'Student not found' }
   revalidatePath(LIST)
   revalidatePath(`${LIST}/${id}`)
@@ -378,13 +374,19 @@ export async function addBehaviourEntry(formData: FormData): Promise<{ error?: s
   if (rating === null) return { error: 'Rating must be between 0 and 10' }
 
   const supabase = await createClient()
-  const { error } = await supabase.from('behaviour_log_entries').insert({
-    student_id: studentId,
-    note,
-    rating,
-    remind_date: String(formData.get('remind_date') ?? '') || null,
-  })
+  const { data, error } = await supabase
+    .from('behaviour_log_entries')
+    .insert({
+      student_id: studentId,
+      note,
+      rating,
+      remind_date: String(formData.get('remind_date') ?? '') || null,
+    })
+    .select('id')
+    .single()
   if (error) return { error: error.message }
+  // Advisory only, after the entry is saved; never fails the save (#672).
+  await recordBehaviourTriage(supabase, { id: data.id, studentId, note })
   revalidatePath(`/school/students/${studentId}`)
   return {}
 }
@@ -410,6 +412,8 @@ export async function updateBehaviourEntry(formData: FormData): Promise<{ error?
     .select('id')
   if (error) return { error: error.message }
   if (!data?.length) return { error: 'entry not updated' }
+  // Re-judge the edited note so the advice matches it (#672).
+  await recordBehaviourTriage(supabase, { id, studentId, note })
   revalidatePath(`/school/students/${studentId}`)
   return {}
 }

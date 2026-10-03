@@ -17,6 +17,7 @@ const STUDENT = 's9001@test-a.students.invalid'
 // test edit here.
 const FORBIDDEN = [
   'behaviour_log_entries',
+  'behaviour_entry_triage',
   'staff_permissions',
   'feedback_messages',
   'sms_log',

@@ -1,6 +1,5 @@
 // Employees I helpers (issue #28): list filtering, kept pure for unit testing.
 
-import { pgConstraintMessage } from '@/lib/crud/pg-error'
 import { t, type Lang, type MessageKey } from '@/lib/i18n'
 
 export interface EmployeeListRow {
@@ -29,35 +28,6 @@ export function filterEmployees<T extends EmployeeListRow>(
   )
 }
 
-/** Comma-joined assigned officeTime names for an employee, "—" via null when none. */
-export function employeeOfficeTimeNames(
-  employeeId: string,
-  assignments: { employee_id: string; office_time_id: string }[],
-  officeTimes: { id: string; name: string }[],
-): string | null {
-  const officeTimeMap = new Map(officeTimes.map((s) => [s.id, s.name]))
-  const names = assignments
-    .filter((a) => a.employee_id === employeeId)
-    .map((a) => officeTimeMap.get(a.office_time_id))
-    .filter((n): n is string => Boolean(n))
-  return names.length ? names.join(', ') : null
-}
-
-/** Turns the one DB constraint an operator can plausibly hit while filling in
- *  the profile form — a duplicate RFID Card Number within the school (issue
- *  #565's employees_rfid_card_number_key) — into a message that says what to
- *  fix, instead of the raw Postgres constraint-violation text `error.message`
- *  would otherwise surface verbatim. Constraint-name-keyed via
- *  pgConstraintMessage (see friendlyStudentError, lib/students.ts, for why —
- *  same reasoning applies here even though employees has no second unique
- *  constraint reachable from this call site yet). */
-export function friendlyEmployeeError(error: { code: string; message: string }): string {
-  return pgConstraintMessage(
-    error,
-    'employees_rfid_card_number_key',
-    'That RFID card number is already used by someone else at this school',
-  )
-}
 
 /** Validates the optional Login section on the Add Employee form (issue
  *  #566, folding in what used to be the separate "Add a teacher" flow,
@@ -77,7 +47,7 @@ export function validateOptionalLogin(email: string, password: string): { error?
 
 /** The fixed set an Employee's `category` is locked to (issue #567) — the
  *  canonical English strings, matched against whatever's actually stored
- *  (seed data, and every cross-referencing table: category_grace_minutes,
+ *  (seed data, and every cross-referencing table: standing_grace_rule_categories,
  *  SMS recipient filters, satisfaction-rating breakdowns) regardless of the
  *  UI's current language. Both entry forms render a `<select>` restricted
  *  to these; this list is what the server checks a submission against so a

@@ -70,7 +70,7 @@ export default async function MarkAttendancePage({
       showYear,
       academicYearSelection,
     }),
-    // Attendance Rate (YTD, CONTEXT.md). Null while migration 0208 is
+    // Attendance Rate (YTD, CONTEXT.md). Null while migration 0214 is
     // unapplied — the column and the card then hide rather than show zeros.
     studentAttendanceRates(supabase),
     // Pending leave workflow card: a head-only count, so PostgREST's 1,000-row

@@ -97,19 +97,6 @@ export function ProfileFields({
           <Field label={t('employees.joiningDate', lang)}>
             <input type="date" name="joining_date" defaultValue={d('joining_date')} className={dateInputClass({ size: 'md', fullWidth: true })} />
           </Field>
-          {/* Data-model prep for future attendance-machine sync (issue #564)
-              gets its UI here (#565) — plain text (not number: leading zeros
-              are possible and meaningful), no format constraint, matching
-              the DB. Separate from the Attendance module's own card
-              assignment (card-controls.tsx / rfid_cards) — the hint says so. */}
-          <Field label={t('employees.rfidCardNumber', lang)}>
-            <input
-              name="rfid_card_number"
-              defaultValue={d('rfid_card_number')}
-              className={`${fieldClass} font-mono`}
-            />
-            <p className="mt-1 text-xs text-muted">{t('employees.rfidCardNumberHint', lang)}</p>
-          </Field>
         </div>
       </Card>
 
@@ -159,24 +146,9 @@ export function ProfileFields({
         </div>
       </Card>
 
-      <Card title={t('employees.subjectOfficeTime', lang)}>
+      <Card title={t('employees.subjectTitle', lang)}>
         <Field label={t('employees.subjectTaught', lang)}>
           <input name="subject_taught" defaultValue={d('subject_taught')} className={fieldClass} />
-        </Field>
-        <p className="mt-2 text-xs text-muted">{t('employees.officeTimeAssignHint', lang)}</p>
-      </Card>
-
-      <Card title={t('employees.graceOverrideTitle', lang)}>
-        <p className="mb-3 text-sm text-muted">{t('grace.hint', lang)}</p>
-        <Field label={t('employees.override', lang)}>
-          <input
-            name="grace_override"
-            type="number"
-            min={0}
-            defaultValue={d('grace_override_minutes')}
-            className={fieldClass}
-            placeholder="e.g. 20"
-          />
         </Field>
       </Card>
     </>

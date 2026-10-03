@@ -5,6 +5,7 @@ import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
 import { t, type Lang } from '@/lib/i18n'
 import { addBehaviourEntry, updateBehaviourEntry, sendBehaviourSms } from '../actions'
 import { dateInputClass } from '@/components/ui/field'
+import type { TriageView } from '@/lib/behaviour-triage'
 
 export function AddEntryForm({ studentId, lang }: { studentId: string; lang: Lang }) {
   const [error, setError] = useState<string | null>(null)
@@ -48,15 +49,41 @@ export function AddEntryForm({ studentId, lang }: { studentId: string; lang: Lan
   )
 }
 
+/** Advisory AI triage chips (#672). Read-only hints: nothing here acts on them. */
+function TriageHints({ triage, lang }: { triage: TriageView; lang: Lang }) {
+  const chip = 'rounded-full px-2 py-0.5 text-xs font-semibold'
+  return (
+    <div className="mt-2 flex flex-wrap items-center gap-1.5">
+      <span className="text-xs text-muted">{t('behaviour.triage.label', lang)}:</span>
+      <span className={`${chip} bg-paper-muted text-muted`}>{t(`behaviour.triage.category.${triage.category}`, lang)}</span>
+      {triage.severityLevel !== null && (
+        <span className={`${chip} ${triage.severityLevel >= 3 ? 'bg-alert-soft text-alert-deep' : 'bg-paper-muted text-muted'}`}>
+          {t(`behaviour.triage.severity.${triage.severityLevel as 0 | 1 | 2 | 3 | 4}`, lang)}
+        </span>
+      )}
+      {triage.parentContact !== 'notSuggested' && (
+        <span className={`${chip} ${triage.parentContact === 'suggested' ? 'bg-sky-soft text-sky-deep' : 'bg-paper-muted text-muted'}`}>
+          {t(`behaviour.triage.contact.${triage.parentContact}`, lang)}
+        </span>
+      )}
+      {triage.mismatch && (
+        <p className="w-full text-xs text-alert-deep">⚠ {t(`behaviour.triage.mismatch.${triage.mismatch}`, lang)}</p>
+      )}
+    </div>
+  )
+}
+
 export function EditableEntry({
   entry,
   studentId,
   locked,
+  triage,
   lang,
 }: {
   entry: { id: string; note: string; rating: number; remind_date: string | null; created_at: string }
   studentId: string
   locked: boolean
+  triage: TriageView | null
   lang: Lang
 }) {
   const [editing, setEditing] = useState(false)
@@ -76,6 +103,7 @@ export function EditableEntry({
             {' · '}
             {new Date(entry.created_at).toLocaleDateString('en-GB')}
           </p>
+          {triage && <TriageHints triage={triage} lang={lang} />}
           {error && <p className="mt-1 text-xs text-alert-deep">{error}</p>}
         </div>
         <div className="flex shrink-0 items-center gap-2">

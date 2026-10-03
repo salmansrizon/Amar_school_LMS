@@ -34,6 +34,10 @@ export interface AppNavItem {
   children?: AppNavItem[]
   /** Sidebar group heading; one is drawn wherever this changes between items. */
   section?: string
+  /** Extra routes this item's link should also read as "active" for, beyond
+   *  `href` (map #667) — for an item fronting several unrelated pages that
+   *  share no URL prefix with each other (a nav group's default tab, say). */
+  matchPrefixes?: string[]
 }
 
 export interface AppShellBrand {
@@ -62,7 +66,8 @@ export interface AppShellSearch {
 }
 
 function isActive(pathname: string, item: AppNavItem): boolean {
-  return item.matchExact ? pathname === item.href : pathname === item.href || pathname.startsWith(item.href + '/')
+  const hrefs = [item.href, ...(item.matchPrefixes ?? [])]
+  return hrefs.some((href) => (item.matchExact ? pathname === href : pathname === href || pathname.startsWith(href + '/')))
 }
 
 function NavLinks({
@@ -78,7 +83,12 @@ function NavLinks({
   collapsed: boolean
   onNavigate?: () => void
 }) {
-  const renderLink = (item: AppNavItem) => {
+  // `isChild` indents an always-visible nested item (map #667) — no
+  // expand/collapse, just a smaller left-offset than its parent so the
+  // grouping reads visually, same row style otherwise. Collapsed mode has no
+  // labels to indent relative to, so children render centered like any other
+  // icon-only row.
+  const renderLink = (item: AppNavItem, isChild = false) => {
     const active = isActive(pathname, item)
     return (
       <Link
@@ -88,7 +98,7 @@ function NavLinks({
         aria-current={active ? 'page' : undefined}
         title={collapsed ? item.label : undefined}
         className={`flex min-h-11 items-center gap-3 rounded-xl py-2.5 text-sm font-semibold transition ${FOCUS_RING} ${
-          collapsed ? 'justify-center px-0' : 'px-3'
+          collapsed ? 'justify-center px-0' : isChild ? 'pr-3 pl-8' : 'px-3'
         } ${active ? 'bg-brand-50 text-brand-700' : 'text-muted hover:bg-brand-50/60 hover:text-brand-600'}`}
       >
         <span className={`grid size-5 shrink-0 place-items-center ${active ? 'text-brand-600' : 'text-muted'}`}>
@@ -110,7 +120,7 @@ function NavLinks({
               <div className={`px-3 pb-1 text-xs font-bold text-muted ${i > 0 ? 'pt-3' : ''}`}>{item.section}</div>
             ))}
           {renderLink(item)}
-          {item.children?.map((child) => renderLink(child))}
+          {item.children?.map((child) => renderLink(child, true))}
         </div>
       ))}
     </nav>

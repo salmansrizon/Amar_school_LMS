@@ -7,8 +7,7 @@ import { signedIn } from '../helpers/auth'
 // narrowing schools.configured_shifts never rewrites or deletes anything
 // that already referenced a now-unconfigured Shift value — it only changes
 // which values are *offered* going forward. Mutates the shared test
-// School's configured_shifts, same shared-row pattern as
-// employees-grace.test.ts's set_school_default_grace — restored in
+// School's configured_shifts, same shared-row pattern other suites use for School-wide settings — restored in
 // afterAll so no other suite is affected by the transient change.
 
 const TAG = 'ZZ590shift'
