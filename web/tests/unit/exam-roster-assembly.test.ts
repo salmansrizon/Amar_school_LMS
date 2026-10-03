@@ -78,7 +78,7 @@ describe('assembleRosterRows', () => {
     expect(s1.rankOutOf).toBe(2)
   })
 
-  it('defaults a missing mark to 0 rather than dropping the subject', () => {
+  it('keeps a subject with no mark in the list, flagged as not entered', () => {
     const rows = assembleRosterRows(
       subjects,
       [roster[0]],
@@ -91,6 +91,46 @@ describe('assembleRosterRows', () => {
     expect(s1.subjectResults).toHaveLength(2)
     const math = s1.subjectResults.find((r) => r.subjectId === 'math')!
     expect(math.result.obtainedMarks).toBe(0)
+    expect(math.entered).toBe(false)
+    expect(s1.subjectResults.find((r) => r.subjectId === 'ban')!.entered).toBe(true)
+    expect(s1.marksMissing).toBe(1)
+  })
+
+  it('an incomplete result holds no merit position; a scored 0 is still a complete result', () => {
+    const rows = assembleRosterRows(
+      subjects,
+      roster,
+      marks([
+        ['s1:ban', 80], // s1: math never entered
+        ['s2:ban', 40],
+        ['s2:math', 0], // s2: a real zero
+      ]),
+      new Map(),
+      scheme,
+      'grade',
+    )
+    const s1 = rows.find((r) => r.studentId === 's1')!
+    const s2 = rows.find((r) => r.studentId === 's2')!
+    expect(s1.marksMissing).toBe(1)
+    expect(s1.rankPosition).toBeNull()
+    expect(s2.marksMissing).toBe(0)
+    expect(s2.overall?.passed).toBe(false)
+  })
+
+  it('does not rank an incomplete student above a complete one', () => {
+    const rows = assembleRosterRows(
+      [subjects[0]],
+      [...roster, { id: 's3', full_name: 'Sadia', roll_number: 3, guardian_name: 'C' }],
+      marks([
+        ['s1:ban', 80],
+        ['s2:ban', 40],
+      ]),
+      new Map(),
+      scheme,
+      'grade',
+    )
+    expect(rows.map((r) => r.rankPosition)).toEqual([1, 2, null])
+    expect(rows[2].marksMissing).toBe(1)
   })
 
   it('threads the optional-subject flag into each subject result', () => {

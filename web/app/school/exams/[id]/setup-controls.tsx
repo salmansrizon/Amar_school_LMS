@@ -3,8 +3,11 @@
 import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
 import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
-import { subjectFullMarks } from '@/lib/exam-setup'
+import Link from 'next/link'
+import { toast } from 'sonner'
+import { EXAM_CHIP, subjectFullMarks, type ExamChip } from '@/lib/exam-setup'
 import { t, type Lang } from '@/lib/i18n'
+import { Pill } from '@/components/data-table/data-table'
 import { CloseExamModal } from '../exam-controls'
 import { ExamAction, examActionClass } from '../exam-action'
 import { ExamDocumentsModal } from '../exam-documents-modal'
@@ -19,6 +22,8 @@ import { classCatalogueLabel, type ClassCatalogueRow } from '@/lib/class-catalog
 export interface SchemeOption {
   id: string
   name: string
+  /** False for a band-graded scheme with no grade bands — it cannot grade. */
+  usable: boolean
 }
 
 export interface TeacherOption {
@@ -72,6 +77,7 @@ export function ExamHeader({
   examId,
   examLabel,
   closed,
+  chip,
   basicInfoComplete,
   /** Basic Info's own address, origin included — so a document opened from
    *  here returns to Basic Info, and Basic Info's own Back still returns to
@@ -82,19 +88,19 @@ export function ExamHeader({
   examId: string
   examLabel: string
   closed: boolean
+  /** The exam's status chip — the same one its row on the exams list shows
+   *  (examChip, lib/exam-setup.ts), not a second open/closed reading. */
+  chip: ExamChip
   basicInfoComplete: boolean
   selfHref: string
   lang: Lang
 }) {
   return (
     <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-      <span
-        className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
-          closed ? 'bg-paper-muted text-muted' : 'bg-mint-soft text-mint-deep'
-        }`}
-      >
-        {closed ? `🔒 ${t('exams.closed', lang)}` : t('exams.open', lang)}
-      </span>
+      <Pill tone={EXAM_CHIP[chip].tone}>
+        {chip === 'closed' && '🔒 '}
+        {t(EXAM_CHIP[chip].label, lang)}
+      </Pill>
       <div className="flex flex-wrap items-center gap-2">
         <ExamAction
           href={withOrigin(`/school/exams/${examId}/promotion`, selfHref)}
@@ -172,7 +178,10 @@ export function BasicInfoForm({
           setError(null)
           const result = await updateExamBasicInfo(examId, data)
           if (result.error) setError(result.error)
-          else router.refresh()
+          else {
+            toast.success(t('examSetup.saved', lang))
+            router.refresh()
+          }
         })
       }}
     >
@@ -244,6 +253,10 @@ export function GradingSchemeSelect({
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
+  // Tracked here, not read from the prop, so the warning shows the moment a
+  // band-less scheme is picked rather than after the refresh lands.
+  const [selected, setSelected] = useState(schemeId ?? '')
+  const unusable = schemes.find((s) => s.id === selected)?.usable === false
 
   return (
     <div className="max-w-sm">
@@ -254,18 +267,33 @@ export function GradingSchemeSelect({
         disabled={disabled || pending}
         onValueChange={(v) => {
           const value = v || null
+          setSelected(v)
           startTransition(async () => {
             setError(null)
             const result = await setExamGradingScheme(examId, value)
             if (result.error) setError(result.error)
-            else router.refresh()
+            else {
+              toast.success(t('examSetup.saved', lang))
+              router.refresh()
+            }
           })
         }}
         options={[
           { value: '', label: t('examSetup.noScheme', lang) },
-          ...schemes.map((s) => ({ value: s.id, label: s.name })),
+          ...schemes.map((s) => ({
+            value: s.id,
+            label: s.usable ? s.name : `${s.name} ${t('examSetup.noBandsOption', lang)}`,
+          })),
         ]}
       />
+      {unusable && (
+        <p role="alert" className="mt-2 rounded-lg border border-alert bg-alert-soft p-3 text-xs font-semibold text-alert-deep">
+          {t('examSetup.schemeNoBands', lang)}{' '}
+          <Link href="/school/exams/grading-schemes" className="underline">
+            {t('examSetup.addBands', lang)}
+          </Link>
+        </p>
+      )}
       {error && <p className="mt-1 text-xs text-alert-deep">{error}</p>}
     </div>
   )
@@ -339,7 +367,10 @@ function SubjectTeacherRow({
               setError(null)
               const result = await assignSubjectTeacher(examId, subject.id, teacherId)
               if (result.error) setError(result.error)
-              else router.refresh()
+              else {
+                toast.success(t('examSetup.saved', lang))
+                router.refresh()
+              }
             })
           }}
           options={[

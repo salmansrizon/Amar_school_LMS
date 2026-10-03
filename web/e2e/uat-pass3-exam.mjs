@@ -91,6 +91,11 @@ if (examId) {
   const publishBtn = page.locator('button', { hasText: /প্রকাশ|Publish/ }).first()
   if (await publishBtn.count()) {
     await publishBtn.click()
+    // Publishing asks first now; the confirm is disabled while the exam has no
+    // grading scheme with grade bands, which this run never sets — so a
+    // disabled confirm here is the designed refusal, not a failure to click.
+    const confirm = page.locator('[role=dialog][aria-modal=true] button', { hasText: /প্রকাশ করুন|Publish/ }).last()
+    if (await confirm.isEnabled().catch(() => false)) await confirm.click()
     await page.waitForTimeout(2500)
     record('owner publishes results', /প্রকাশিত|Published/.test(await main(page)) ? 'pass' : 'fail')
   } else {

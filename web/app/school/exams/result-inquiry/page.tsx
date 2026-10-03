@@ -168,17 +168,25 @@ export default async function ResultInquiryPage({
               <tbody className="divide-y divide-line">
                 {rows.map((row) => {
                   const passed = row.overall?.passed ?? false
+                  // Same reading as the Result Book: missing marks are an
+                  // incomplete result, not a failed one.
+                  const incomplete = row.marksMissing > 0
+                  const noMarks = row.marksMissing === row.subjectResults.length
                   return (
                     <tr key={row.studentId}>
-                      <td className={`px-4 py-3 ${railClass(passed ? 'mint' : 'alert')}`}>{row.rollNumber ?? '—'}</td>
+                      <td className={`px-4 py-3 ${railClass(incomplete ? undefined : passed ? 'mint' : 'alert')}`}>{row.rollNumber ?? '—'}</td>
                       <td className="px-4 py-3 font-medium">{row.fullName}</td>
                       <td className="px-4 py-3">{clsLabel}</td>
                       <td className="px-4 py-3">
-                        {row.totalObtained} / {row.totalFull}
+                        {noMarks ? '—' : `${row.totalObtained} / ${row.totalFull}`}
                       </td>
-                      <td className="px-4 py-3">{row.overall?.gpa !== null && row.overall?.gpa !== undefined ? row.overall.gpa.toFixed(2) : '—'}</td>
+                      <td className="px-4 py-3">{!incomplete && row.overall?.gpa !== null && row.overall?.gpa !== undefined ? row.overall.gpa.toFixed(2) : '—'}</td>
                       <td className="px-4 py-3">
-                        <Pill tone={passed ? 'mint' : 'alert'}>{passed ? t('promotion.pass', lang) : t('promotion.fail', lang)}</Pill>
+                        {incomplete ? (
+                          <Pill tone="sun">{t(noMarks ? 'exams.marksNotEntered' : 'exams.incomplete', lang)}</Pill>
+                        ) : (
+                          <Pill tone={passed ? 'mint' : 'alert'}>{passed ? t('promotion.pass', lang) : t('promotion.fail', lang)}</Pill>
+                        )}
                       </td>
                       <td className="px-4 py-3">
                         <Link href={`/school/exams/${examId}/mark-sheet/${row.studentId}`} className="text-brand-600 hover:underline">

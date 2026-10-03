@@ -5,8 +5,15 @@ import { useState, useTransition } from 'react'
 import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
 import { dateToDayOfWeek, sortRoutineEntries } from '@/lib/exam-setup'
 import { dayLabel } from '@/lib/routine'
-import { t, type Lang } from '@/lib/i18n'
-import { addRoutineEntry, removeRoutineEntry } from './actions'
+import { toast } from 'sonner'
+import { t, type Lang, type MessageKey } from '@/lib/i18n'
+import { addRoutineEntry, removeRoutineEntry, type RoutineEntryRefusal } from './actions'
+
+const REFUSAL: Record<RoutineEntryRefusal, MessageKey> = {
+  required: 'examRoutine.errRequired',
+  timeOrder: 'examRoutine.errTimeOrder',
+  overlap: 'examRoutine.errOverlap',
+}
 import { dateInputClass } from '@/components/ui/field'
 import { ComboboxField } from '@/components/ui/combobox-field'
 
@@ -123,8 +130,10 @@ export function AddRoutineEntryForm({
         startTransition(async () => {
           setError(null)
           const result = await addRoutineEntry(examId, data)
-          if (result.error) setError(result.error)
+          if (result.refused) setError(t(REFUSAL[result.refused], lang))
+          else if (result.error) setError(result.error)
           else {
+            toast.success(t('examRoutine.added', lang))
             form.reset()
             router.refresh()
           }

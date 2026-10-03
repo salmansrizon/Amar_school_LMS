@@ -394,6 +394,43 @@ const dict = {
     bn: 'প্রকাশ করলে শিক্ষার্থীরা নিজেদের ফলাফল দেখতে পাবে। প্রয়োজনে আবার বাতিল করা যাবে।',
     en: 'Publishing lets students see their own results. It can be undone.',
   },
+  'exams.publishConfirmTitle': { bn: 'ফলাফল প্রকাশ করবেন?', en: 'Publish results?' },
+  'exams.publishAnyway': { bn: 'তবুও প্রকাশ করুন', en: 'Publish anyway' },
+  'exams.unpublishConfirmTitle': { bn: 'প্রকাশ বাতিল করবেন?', en: 'Unpublish results?' },
+  'exams.unpublishConfirmBody': {
+    bn: 'শিক্ষার্থীরা আর এই পরীক্ষার ফলাফল দেখতে পাবে না। পরে আবার প্রকাশ করা যাবে।',
+    en: "Students will no longer see this exam's results. You can publish again later.",
+  },
+  'exams.resultsUnpublished': { bn: 'ফলাফল প্রকাশ বাতিল হয়েছে', en: 'Results unpublished' },
+  'exams.countStudentsMarked': { bn: 'সব নম্বর দেওয়া হয়েছে এমন শিক্ষার্থী', en: 'Students with all marks entered' },
+  'exams.countSubjectsComplete': { bn: 'সম্পূর্ণ বিষয়', en: 'Subjects complete' },
+  'exams.readyClass': { bn: 'শ্রেণি নির্ধারিত', en: 'Class is set' },
+  'exams.readyScheme': {
+    bn: 'গ্রেডিং স্কিমে অন্তত একটি গ্রেড ব্যান্ড আছে',
+    en: 'Grading scheme has at least one grade band',
+  },
+  'exams.readyMarks': {
+    bn: 'সব শিক্ষার্থীর সব বিষয়ের নম্বর দেওয়া হয়েছে',
+    en: 'Marks entered for every student in every subject',
+  },
+  'exams.blockNoClass': {
+    bn: 'প্রকাশ করা যাবে না: পরীক্ষার শ্রেণি নির্ধারণ করা হয়নি।',
+    en: 'Cannot publish: the exam has no class set.',
+  },
+  'exams.blockNoScheme': {
+    bn: 'প্রকাশ করা যাবে না: কোনো গ্রেডিং স্কিম নির্বাচন করা হয়নি।',
+    en: 'Cannot publish: no grading scheme is selected.',
+  },
+  'exams.blockNoBands': {
+    bn: 'প্রকাশ করা যাবে না: নির্বাচিত গ্রেডিং স্কিমে কোনো গ্রেড ব্যান্ড নেই। আগে গ্রেডিং স্কিমে ব্যান্ড যোগ করুন।',
+    en: 'Cannot publish: the selected grading scheme has no grade bands. Add bands to the grading scheme first.',
+  },
+  'exams.warnMarksIncomplete': {
+    bn: 'কিছু শিক্ষার্থীর নম্বর এখনো দেওয়া হয়নি। তাদের ফলাফল "অসম্পূর্ণ" হিসেবে থাকবে।',
+    en: 'Some students have marks missing. Their result will stay "Incomplete".',
+  },
+  'exams.incomplete': { bn: 'অসম্পূর্ণ', en: 'Incomplete' },
+  'exams.marksNotEntered': { bn: 'নম্বর দেওয়া হয়নি', en: 'Marks not entered' },
   'student.materialsTitle': { bn: 'পড়ার উপকরণ', en: 'Study Material' },
   'student.noMaterialsHint': {
     bn: 'শিক্ষক সিলেবাস বা পাঠ পরিকল্পনা দিলে সেটি এখানে আসবে।',
@@ -1309,6 +1346,13 @@ const dict = {
   'examSetup.title': { bn: 'পরীক্ষা সেটআপ', en: 'Exam Setup' },
   'examSetup.basicInfo': { bn: 'মূল তথ্য', en: 'Basic Info' },
   'examSetup.save': { bn: 'সংরক্ষণ করুন', en: 'Save' },
+  'examSetup.saved': { bn: 'সংরক্ষিত হয়েছে', en: 'Saved' },
+  'examSetup.noBandsOption': { bn: '(গ্রেড ব্যান্ড নেই)', en: '(no grade bands)' },
+  'examSetup.schemeNoBands': {
+    bn: 'এই গ্রেডিং স্কিমে কোনো গ্রেড ব্যান্ড নেই — গ্রেড ও জিপিএ হিসাব হবে না এবং ফলাফল প্রকাশ করা যাবে না।',
+    en: 'This grading scheme has no grade bands — grades and GPA cannot be computed and results cannot be published.',
+  },
+  'examSetup.addBands': { bn: 'গ্রেড ব্যান্ড যোগ করুন', en: 'Add grade bands' },
   'examSetup.gradingScheme': { bn: 'গ্রেডিং স্কিম', en: 'Grading Scheme' },
   'examSetup.pickGradingScheme': { bn: 'গ্রেডিং স্কিম নির্বাচন করুন', en: 'Select a grading scheme' },
   'examSetup.noScheme': { bn: '— কোনোটি নয় —', en: '— None —' },
@@ -1343,6 +1387,19 @@ const dict = {
   'examRoutine.save': { bn: 'সংরক্ষণ করুন', en: 'Save' },
   'examRoutine.print': { bn: 'প্রিন্ট', en: 'Print' },
   'examRoutine.delete': { bn: 'মুছুন', en: 'Delete' },
+  'examRoutine.added': { bn: 'রুটিনে যোগ হয়েছে', en: 'Added to the routine' },
+  'examRoutine.errRequired': {
+    bn: 'বিষয়, তারিখ, শুরু ও শেষের সময় দিন',
+    en: 'Subject, date, start and end time are required',
+  },
+  'examRoutine.errTimeOrder': {
+    bn: 'শেষের সময় শুরুর সময়ের পরে হতে হবে',
+    en: 'End time must be after start time',
+  },
+  'examRoutine.errOverlap': {
+    bn: 'এই সময়ে একই শ্রেণির আরেকটি পরীক্ষা আছে',
+    en: 'Another exam of this class is already scheduled at this time',
+  },
   'examRoutine.none': { bn: 'এখনো কোনো রুটিন এন্ট্রি নেই', en: 'No routine entries yet' },
   'examRoutine.pickSubject': { bn: 'বিষয় নির্বাচন করুন', en: 'Select subject' },
   'examRoutine.pickRoom': { bn: 'কক্ষ নির্বাচন করুন', en: 'Select room' },
@@ -1470,6 +1527,26 @@ const dict = {
   'markEntry.grade': { bn: 'গ্রেড', en: 'Grade' },
   'markEntry.save': { bn: 'সংরক্ষণ করুন', en: 'Save' },
   'markEntry.saved': { bn: 'সংরক্ষিত হয়েছে', en: 'Saved' },
+  'markEntry.blankHint': {
+    bn: 'খালি ঘর মানে নম্বর দেওয়া হয়নি — শূন্য পেলে ০ লিখুন।',
+    en: 'A blank cell means not entered — type 0 for a zero score.',
+  },
+  'markEntry.errOverMax': { bn: 'সর্বোচ্চ নম্বরের বেশি', en: 'Above the maximum' },
+  'markEntry.errNegative': { bn: 'ঋণাত্মক নম্বর দেওয়া যাবে না', en: 'Marks cannot be negative' },
+  'markEntry.errInvalid': { bn: 'সংখ্যা লিখুন', en: 'Enter a number' },
+  'markEntry.errPartial': {
+    bn: 'সব অংশের নম্বর দিন, অথবা সারিটি খালি রাখুন',
+    en: 'Enter every component, or leave the row blank',
+  },
+  'markEntry.fixErrors': {
+    bn: 'লাল চিহ্নিত ঘরগুলো ঠিক করে আবার সংরক্ষণ করুন।',
+    en: 'Fix the cells marked in red, then save again.',
+  },
+  'markEntry.unsaved': { bn: 'সংরক্ষণ করা হয়নি', en: 'Unsaved changes' },
+  'markEntry.unsavedConfirm': {
+    bn: 'সংরক্ষণ না করা নম্বর আছে। সংরক্ষণ না করে চলে গেলে সেগুলো হারিয়ে যাবে। চলে যাবেন?',
+    en: 'You have unsaved marks. They will be lost if you leave without saving. Leave anyway?',
+  },
   'markEntry.hint': {
     bn: 'নম্বর স্বয়ংক্রিয়ভাবে যোগ হয়ে মোট ও গ্রেড গণনা করে। এই বিষয়ের এন্ট্রি সম্পন্ন হলে পরবর্তী বিষয় নির্বাচন করুন।',
     en: 'Totals and grades are computed automatically as marks are entered. Select the next subject once this one is complete.',
@@ -1632,6 +1709,7 @@ const dict = {
   },
   'classes.addRoom': { bn: '+ কক্ষ যোগ করুন', en: '+ Add Room' },
   'classes.addSubject': { bn: '+ বিষয় যোগ করুন', en: '+ Add Subject' },
+  'classes.subjectAdded': { bn: 'বিষয় যোগ হয়েছে', en: 'Subject added' },
   'classes.addSubjectTitle': { bn: 'বিষয় যোগ করুন', en: 'Add Subject' },
   'classes.class': { bn: 'শ্রেণি', en: 'Class' },
   'classes.name': { bn: 'নাম', en: 'Name' },

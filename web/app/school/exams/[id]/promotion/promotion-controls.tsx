@@ -71,6 +71,8 @@ export interface PromotionStudentRow {
   roll_number: number | null
   full_name: string
   passed: boolean
+  /** Marks still missing: not promotable yet, but not a "repeat" either. */
+  incomplete: boolean
   label: string | null
   position: number | null
 }
@@ -157,15 +159,25 @@ export function PromotionTable({
                   <td className="px-4 py-3">
                     <span
                       className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
-                        row.passed ? 'bg-mint-soft text-mint-deep' : 'bg-alert-soft text-alert-deep'
+                        row.incomplete
+                          ? 'bg-sun-soft text-sun-deep'
+                          : row.passed
+                            ? 'bg-mint-soft text-mint-deep'
+                            : 'bg-alert-soft text-alert-deep'
                       }`}
                     >
-                      {row.passed ? t('promotion.pass', lang) : t('promotion.fail', lang)}
+                      {row.incomplete
+                        ? t('exams.incomplete', lang)
+                        : row.passed
+                          ? t('promotion.pass', lang)
+                          : t('promotion.fail', lang)}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-right">{row.position ?? '—'}</td>
                   <td className="px-4 py-3">
-                    {row.passed ? (
+                    {row.incomplete ? (
+                      <span className="text-muted">{t('exams.marksNotEntered', lang)}</span>
+                    ) : row.passed ? (
                       targetClass ? (
                         classCatalogueLabel(targetClass, showYear)
                       ) : (

@@ -186,6 +186,10 @@ export default async function PromotionPage({
 
   let scheme: GradingScheme | null = null
   const overallByStudent = new Map<string, OverallResult>()
+  // Students with a mark never entered in the chosen result source. Their
+  // result is not known yet, so they are neither promoted nor told to repeat
+  // (audit AC4) — a missing exam_marks row is "not entered", not a 0.
+  const incomplete = new Set<string>()
 
   if (!selectedCombo) {
     scheme = exam.grading_scheme_id ? await loadGradingScheme(supabase, exam.grading_scheme_id) : null
@@ -213,6 +217,7 @@ export default async function PromotionPage({
         }))
         const results = marks.map((m) => evaluateSubject(m, scheme as GradingScheme))
         overallByStudent.set(s.id, evaluateOverallResult(results, scheme as GradingScheme))
+        if (subjects.some((sub) => !marksMap.has(`${s.id}:${sub.id}`))) incomplete.add(s.id)
       }
     }
   } else {
@@ -238,6 +243,10 @@ export default async function PromotionPage({
       const marksMap = new Map(
         marksRows.map((m) => [`${m.exam_id}:${m.student_id}:${m.subject_id}`, Number(m.obtained_marks)]),
       )
+      for (const s of roster) {
+        const missing = memberExamIds.some((examId) => subjects.some((sub) => !marksMap.has(`${examId}:${s.id}:${sub.id}`)))
+        if (missing) incomplete.add(s.id)
+      }
 
       if (selectedCombo.strategy === 'sum') {
         for (const s of roster) {
@@ -292,7 +301,8 @@ export default async function PromotionPage({
 
   const rankable: RankableResult[] = roster.map((s) => {
     const overall = overallByStudent.get(s.id)
-    return { studentId: s.id, passed: overall?.passed ?? false, gpa: overall?.gpa ?? null, percent: overall?.percent ?? 0 }
+    const passed = !incomplete.has(s.id) && (overall?.passed ?? false)
+    return { studentId: s.id, passed, gpa: overall?.gpa ?? null, percent: overall?.percent ?? 0 }
   })
   const rankedById = new Map(rankResults(rankable, basis).map((r) => [r.studentId, r]))
 
@@ -303,7 +313,8 @@ export default async function PromotionPage({
       id: s.id,
       roll_number: s.roll_number,
       full_name: s.full_name,
-      passed: overall?.passed ?? false,
+      passed: !incomplete.has(s.id) && (overall?.passed ?? false),
+      incomplete: incomplete.has(s.id),
       label: overall?.label ?? null,
       position: ranked?.position ?? null,
     }

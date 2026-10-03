@@ -2,6 +2,7 @@
 
 import { useMemo, useState, useTransition } from 'react'
 import Link from 'next/link'
+import { toast } from 'sonner'
 import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
 import { t, type Lang } from '@/lib/i18n'
 import { ACADEMIC_SHIFT_LABEL_KEY, GROUP_DEPARTMENTS, type AcademicShift } from '@/lib/institute'
@@ -386,6 +387,7 @@ export function AddSubjectForm({
   // fields; a key remount guarantees a fresh, empty field every time.
   const [subjectFieldKey, setSubjectFieldKey] = useState(0)
   const { error, pending, onSubmit } = useSubmit(addSubject, () => {
+    toast.success(t('classes.subjectAdded', lang))
     setClassId('')
     setSubjectFieldKey((k) => k + 1)
     onCreated?.()

@@ -7,7 +7,8 @@ import { filterOfferingsByYearSelection } from '@/lib/school/year-filter'
 import { classCatalogueLabel } from '@/lib/class-catalogue'
 import { subjectsForClass } from '@/lib/students'
 import { schoolToday } from '@/lib/school-time'
-import { examBasicInfoComplete, examStage, filterExams, type ExamStage, type ExamStageFacts } from '@/lib/exam-setup'
+import { EXAM_CHIP, examBasicInfoComplete, examChip, examStage, filterExams, type ExamStage, type ExamStageFacts } from '@/lib/exam-setup'
+import { loadExamReadiness } from '@/lib/exam-readiness'
 import { withOrigin } from '@/lib/back-nav'
 import { schoolCrumbs } from '@/lib/school-crumbs'
 import { PageHeader } from '@/components/ui/page'
@@ -218,40 +219,16 @@ export default async function ExamsPage({
 
   // Publish status as the reference shows it: a result that is out beats every
   // workflow stage; otherwise the stage says where the exam stands.
+  // Label and tone come from the shared chip (lib/exam-setup.ts) the setup
+  // page reads too; only the motion and the lock icon are this table's own.
   const publishPill = (e: ExamRow) => {
-    if (e.results_published_at) return <Pill tone="mint">{t('exams.pubPublished', lang)}</Pill>
-    switch (stageOf(e)) {
-      case 'ready':
-        return <Pill tone="brand">{t('exams.pubReady', lang)}</Pill>
-      case 'running':
-        return (
-          <Pill tone="sun" live>
-            {t('exams.pubMarking', lang)}
-          </Pill>
-        )
-      case 'marksPending':
-        return (
-          <Pill tone="alert" pulse>
-            {t('exams.stageMarksPending', lang)}
-          </Pill>
-        )
-      case 'upcoming':
-        return <Pill tone="sky">{t('exams.stageUpcoming', lang)}</Pill>
-      case 'setup':
-        return (
-          <Pill tone="muted" pulse>
-            {t('exams.pubDraft', lang)}
-          </Pill>
-        )
-      case 'closed':
-      default:
-        return (
-          <Pill tone="muted">
-            <Lock className="mr-1 size-3" aria-hidden />
-            {t('exams.stageClosed', lang)}
-          </Pill>
-        )
-    }
+    const chip = examChip(stageOf(e), e.results_published_at)
+    return (
+      <Pill tone={EXAM_CHIP[chip].tone} live={chip === 'running'} pulse={chip === 'marksPending' || chip === 'setup'}>
+        {chip === 'closed' && <Lock className="mr-1 size-3" aria-hidden />}
+        {t(EXAM_CHIP[chip].label, lang)}
+      </Pill>
+    )
   }
 
   // The one contextual next step each row surfaces; the full six-action set
@@ -382,6 +359,7 @@ export default async function ExamsPage({
   const planningQueue = upcomingList.filter((e) => !lastExamDateByExam.has(e.id) || !e.seat_plan_published_at)
   const stageCount = (st: ExamStage) => all.filter((e) => stageOf(e) === st).length
   const toApprove = readyUnpublished[0]
+  const toApproveFacts = toApprove ? await loadExamReadiness(supabase, toApprove) : null
 
   return (
     <>
@@ -522,7 +500,7 @@ export default async function ExamsPage({
           title={t('exams.workflowTitle', lang)}
           tag={t('exams.finalStep', lang)}
         >
-          {toApprove ? (
+          {toApprove && toApproveFacts ? (
             <>
               <div className="mb-4 rounded-xl border border-brand-100 bg-brand-50 p-4">
                 <div className="flex items-start justify-between gap-3">
@@ -540,7 +518,7 @@ export default async function ExamsPage({
                 </div>
                 <p className="mt-3 text-sm text-muted">{t('exams.workflowNote', lang)}</p>
               </div>
-              <PublishResults lang={lang} examId={toApprove.id} publishedAt={toApprove.results_published_at} />
+              <PublishResults lang={lang} examId={toApprove.id} publishedAt={toApprove.results_published_at} facts={toApproveFacts} />
               {readyUnpublished.length > 1 && (
                 <Link href="/school/exams?stage=ready" className="text-xs font-semibold text-brand-600 hover:underline">
                   +{n(readyUnpublished.length - 1)} {t('exams.pubReady', lang)} <span aria-hidden>→</span>

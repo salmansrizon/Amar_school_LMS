@@ -262,7 +262,8 @@ export default async function PrintAllPage({
   }
 
   const filteredRows = filterResultRoster(
-    roster.rows.map((r) => ({ ...r, rollNumber: r.rollNumber, passed: r.overall?.passed ?? false })),
+    // "Promoted only" means a known pass: an incomplete result is not one.
+    roster.rows.map((r) => ({ ...r, rollNumber: r.rollNumber, passed: r.marksMissing === 0 && (r.overall?.passed ?? false) })),
     { rollFrom, rollTo, promotedOnly },
   )
 
@@ -309,12 +310,14 @@ export default async function PrintAllPage({
               label: r.result.label,
               gpa: r.result.gradePoint,
               passed: r.result.passed,
+              entered: r.entered,
             }))}
             totalFull={row.totalFull}
             totalObtained={row.totalObtained}
             overallGpa={row.overall?.gpa ?? null}
             overallLabel={row.overall?.label ?? null}
             overallPassed={row.overall?.passed ?? false}
+            incomplete={row.marksMissing > 0}
             rankPosition={row.rankPosition}
             rankOutOf={row.rankOutOf}
             qrSvg={qrSvg}
