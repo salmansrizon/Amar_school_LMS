@@ -82,7 +82,12 @@ export async function addCombinationMember(formData: FormData): Promise<{ error?
 export async function removeCombinationMember(id: string): Promise<{ error?: string }> {
   const supabase = await createClient()
   // The member row names its own exam; guard on that, not on anything passed in.
-  const { data: member } = await supabase.from('exam_combination_members').select('exam_id').eq('id', id).maybeSingle()
+  const { data: member, error: readError } = await supabase
+    .from('exam_combination_members')
+    .select('exam_id')
+    .eq('id', id)
+    .maybeSingle()
+  if (readError) return { error: readError.message }
   const denied = member && (await examClassDenied(supabase, member.exam_id))
   if (denied) return denied
   const { data, error } = await supabase.from('exam_combination_members').delete().eq('id', id).select('id')
