@@ -1,67 +1,47 @@
 import Link from 'next/link'
-import { t, type Lang } from '@/lib/i18n'
+import { t, formatDate, type Lang } from '@/lib/i18n'
+import { importanceLabel } from '@/lib/publishing'
+import { railClass } from '@/components/ui/page'
 import type { StudentNotice } from '@/lib/student/notices'
 
-// The two things the home screen knew but never said: what the newest notices
-// actually are, and whether money is owed. The screen carried a count badge for
-// notices ("2 new") and nothing at all for fees, so a student had to open two
-// more pages to learn anything, and half the viewport sat empty below the fold.
-
-export function LatestNotices({
+// The body of the home's "latest notices" card: the three notices the feed
+// puts first (urgent, then newest). An urgent one carries the alert rail and
+// the word for it; an unread one carries a dot and "new". Colour is never the
+// only signal. With no notices the card says so rather than disappearing.
+export function NoticeRows({
   notices,
   unread,
   lang,
-  locale,
 }: {
   notices: StudentNotice[]
-  unread: Set<string>
+  unread: ReadonlySet<string>
   lang: Lang
-  locale: string
 }) {
-  if (!notices.length) return null
+  if (!notices.length) return <p className="py-6 text-center text-sm text-muted">{t('student.noNotices', lang)}</p>
   return (
-    <section className="rounded-lg border border-line bg-paper p-4">
-      <div className="mb-2 flex items-center justify-between">
-        <h2 className="font-bold">{t('student.noticesTitle', lang)}</h2>
-        <Link href="/student/notices" className="text-xs font-semibold text-brand-600 hover:underline">
-          {t('dash.viewAll', lang)}
-        </Link>
-      </div>
-      <ul className="divide-y divide-line">
-        {notices.slice(0, 3).map((n) => (
+    <ul className="divide-y divide-line">
+      {notices.slice(0, 3).map((n) => {
+        const urgent = n.importance === 'urgent'
+        const isNew = unread.has(n.id)
+        return (
           <li key={n.id}>
-            <Link href={`/student/notices/${n.id}`} className="block py-2 hover:opacity-80">
+            <Link
+              href={`/student/notices/${n.id}`}
+              className={`flex min-h-11 flex-col justify-center px-3 py-2 transition hover:bg-paper-muted ${railClass(urgent ? 'alert' : undefined)}`}
+            >
               <span className="flex items-center gap-2">
-                {unread.has(n.id) && <span className="size-1.5 shrink-0 rounded-full bg-brand-500" />}
+                {isNew && <span className="size-1.5 shrink-0 rounded-full bg-brand-500" aria-hidden />}
                 <span className="truncate text-sm font-medium">{n.title}</span>
               </span>
-              <span className="block text-xs text-muted">
-                {new Date(n.created_at).toLocaleDateString(locale, {
-                  day: 'numeric',
-                  month: 'short',
-                })}
+              <span className="flex flex-wrap items-center gap-x-2 text-xs text-muted">
+                {urgent && <span className="font-semibold text-alert-deep">{importanceLabel(n.importance, lang)}</span>}
+                {isNew && <span className="font-semibold text-brand-700">{t('student.newBadge', lang)}</span>}
+                <span>{formatDate(n.created_at, lang)}</span>
               </span>
             </Link>
           </li>
-        ))}
-      </ul>
-    </section>
-  )
-}
-
-/** Shown only when something is owed: a zero balance is not news, and a fee
- *  card that is always there is a card nobody reads. */
-export function FeesDue({ due, lang, money }: { due: number; lang: Lang; money: (n: number) => string }) {
-  if (due <= 0) return null
-  return (
-    <Link
-      href="/student/fees"
-      className="block rounded-lg border border-alert bg-alert-soft p-4 hover:brightness-95"
-    >
-      <span className="text-xs font-semibold uppercase tracking-wide text-alert-deep">
-        {t('student.totalDue', lang)}
-      </span>
-      <span className="block text-2xl font-extrabold text-alert-deep">৳{money(due)}</span>
-    </Link>
+        )
+      })}
+    </ul>
   )
 }
