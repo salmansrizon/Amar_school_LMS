@@ -4,7 +4,14 @@ import { t, localeOf, numberFmt } from '@/lib/i18n'
 import { getStudentContext } from '@/lib/student/context'
 import { schoolToday } from '@/lib/school-time'
 import { monthGrid, monthLeadIn, monthRange, shiftMonth, attendancePercent } from '@/lib/student/attendance'
+import { attendanceBand } from '@/lib/student/dashboard'
+import { attendanceRange } from '@/lib/student/daily'
+import { studentGroupTabs } from '@/lib/student-nav'
 import { pageTitle } from '@/lib/page-title'
+import { Icon } from '@/components/school-icons'
+import { Card, PageHeader } from '@/components/ui/page'
+import { SectionTabs } from '@/components/ui/section-tabs'
+import { StatCard, StatGrid, WarningBanner } from '@/components/ui/widgets'
 
 // The Student's own attendance (#451).
 //
@@ -27,13 +34,20 @@ export default async function StudentAttendancePage({
   const year = Number(y) || Number(today.slice(0, 4))
   const month = Number(m) || Number(today.slice(5, 7))
   const { start, end } = monthRange(year, month)
+  // The month still running is counted up to today, as on the home: days that
+  // have not happened yet are not absences. A past month runs to its last day.
+  const counted = attendanceRange(start, end, today)
 
   const [records, leaves, schoolOff, centralOff, absent] = await Promise.all([
-    supabase.from('attendance_records').select('att_date').gte('att_date', start).lte('att_date', end),
+    counted
+      ? supabase.from('attendance_records').select('att_date').gte('att_date', counted.start).lte('att_date', counted.end)
+      : Promise.resolve({ data: [] as { att_date: string }[] }),
     supabase.from('student_leaves').select('from_day, to_day').eq('status', 'approved'),
     supabase.from('off_days').select('day, label').gte('day', start).lte('day', end),
     supabase.from('central_off_days').select('day, label_bn, label_en').gte('day', start).lte('day', end),
-    supabase.rpc('student_absent_working_days', { p_start: start, p_end: end }),
+    counted
+      ? supabase.rpc('student_absent_working_days', { p_start: counted.start, p_end: counted.end })
+      : Promise.resolve({ data: 0 }),
   ])
 
   const presentDates = (records.data ?? []).map((r) => r.att_date as string)
@@ -45,6 +59,7 @@ export default async function StudentAttendancePage({
     ...(schoolOff.data ?? []).map((o) => ({ day: o.day as string, label: o.label })),
   ]
 
+  const num = numberFmt(lang, { useGrouping: false })
   const grid = monthGrid({
     year,
     month,
@@ -53,7 +68,11 @@ export default async function StudentAttendancePage({
     offDays,
   })
   const absentDays = typeof absent.data === 'number' ? absent.data : 0
-  const percent = attendancePercent(presentDates.length, absentDays)
+  // With no present row the school has not taken attendance; 0% would accuse
+  // the student of something nobody recorded (same rule as the home).
+  const percent = presentDates.length ? attendancePercent(presentDates.length, absentDays) : null
+  const offCount = grid.filter((d) => d.state === 'off').length
+  const fmt = (n: number) => num.format(n)
 
   const prev = shiftMonth(year, month, -1)
   const next = shiftMonth(year, month, 1)
@@ -64,7 +83,6 @@ export default async function StudentAttendancePage({
     timeZone: 'UTC',
   })
 
-  const num = numberFmt(lang, { useGrouping: false })
   // Sunday-start, to match the routine's রবি … বৃহঃ week. 2026-02-01 is a
   // Sunday and is only ever used to name the seven weekdays.
   const A_SUNDAY = Date.UTC(2026, 1, 1)
@@ -83,74 +101,93 @@ export default async function StudentAttendancePage({
     blank: 'bg-paper text-muted',
   }
 
+  const chip =
+    'inline-flex h-11 items-center rounded-full border border-line-strong px-4 text-sm font-semibold text-brand-600 hover:bg-paper-muted sm:h-9'
+
   return (
-    <main className="w-full max-w-3xl p-6">
-      <h1 className="mb-4 text-2xl font-extrabold">{t('student.attendanceTitle', lang)}</h1>
+    <main className="w-full px-gutter pt-section pb-16">
+      <PageHeader
+        title={t('student.attendanceTitle', lang)}
+        crumbs={{ lang, items: [{ label: t('student.nav.home', lang), href: '/student' }, { label: t('student.navGroup.attendance', lang) }] }}
+        badge={monthLabel}
+        actions={
+          <>
+            <Link href={`/student/attendance?y=${prev.year}&m=${prev.month}`} className={chip}>
+              ← {t('student.prevMonth', lang)}
+            </Link>
+            <Link href={`/student/attendance?y=${next.year}&m=${next.month}`} className={chip}>
+              {t('student.nextMonth', lang)} →
+            </Link>
+          </>
+        }
+      />
+      <SectionTabs
+        tabs={studentGroupTabs('attendance')}
+        active="/student/attendance"
+        lang={lang}
+        label={t('student.navGroup.attendance', lang)}
+      />
 
-      <div className="mb-4 grid grid-cols-3 gap-3">
-        <div className="rounded-lg border border-line bg-paper p-4">
-          <div className="text-xl font-extrabold text-brand-700">{percent === null ? '—' : `${num.format(percent)}%`}</div>
-          <div className="text-xs text-muted">{t('student.attendancePercent', lang)}</div>
-        </div>
-        <div className="rounded-lg border border-line bg-paper p-4">
-          <div className="text-xl font-extrabold">{num.format(presentDates.length)}</div>
-          <div className="text-xs text-muted">{t('student.present', lang)}</div>
-        </div>
-        <div className="rounded-lg border border-line bg-paper p-4">
-          <div className="text-xl font-extrabold">{num.format(absentDays)}</div>
-          <div className="text-xs text-muted">{t('student.absentDays', lang)}</div>
-        </div>
-      </div>
-
-      {/* A month the school never took attendance for reads as 3% and "30 absent
-          days" otherwise — the figures are right (they agree with the fine
+      {/* A month the school never took attendance for would read as a low rate
+          and a run of absences; the figures are right (they agree with the fine
           formula) but the screen has to say what it is looking at. */}
-      {percent === null || presentDates.length === 0 ? (
-        <p className="mb-3 rounded-lg border border-line bg-paper-muted p-3 text-xs text-muted">
-          {t('student.attNoRecords', lang)}
+      {percent === null && (
+        <WarningBanner
+          label={t('student.nav.attendance', lang)}
+          text={t('student.attNoRecords', lang)}
+          href="/student/leave"
+          linkLabel={t('student.nav.leave', lang)}
+        />
+      )}
+
+      <StatGrid>
+        <StatCard
+          icon={<Icon name="attendance" className="size-5" />}
+          tone={attendanceBand(percent)}
+          label={t('student.attendancePercent', lang)}
+          value={percent === null ? '—' : `${fmt(percent)}%`}
+        />
+        <StatCard tone="mint" label={t('student.present', lang)} value={fmt(presentDates.length)} />
+        <StatCard
+          tone={absentDays && percent !== null ? attendanceBand(percent) : 'muted'}
+          label={t('student.absentDays', lang)}
+          value={fmt(absentDays)}
+        />
+        <StatCard tone="sky" label={t('student.offDay', lang)} value={fmt(offCount)} />
+      </StatGrid>
+
+      <Card>
+        <div className="grid grid-cols-7 gap-1">
+          {weekdays.map((name) => (
+            <div key={name} className="p-1 text-center text-[11px] font-semibold text-muted">
+              {name}
+            </div>
+          ))}
+          {Array.from({ length: leadIn }, (_, i) => (
+            <div key={`lead-${i}`} aria-hidden />
+          ))}
+          {grid.map((day) => (
+            <div
+              key={day.date}
+              title={day.label ?? undefined}
+              className={`flex min-h-11 items-center justify-center rounded-md p-1 text-center text-xs ${tone[day.state]}`}
+            >
+              {num.format(Number(day.date.slice(8)))}
+            </div>
+          ))}
+        </div>
+
+        <p className="mt-4 flex flex-wrap gap-2 text-xs text-muted">
+          <span className="rounded bg-mint-soft px-2 py-1 text-mint-deep">{t('student.present', lang)}</span>
+          <span className="rounded bg-sky-soft px-2 py-1 text-sky-deep">{t('student.onLeave', lang)}</span>
+          <span className="rounded bg-paper-muted px-2 py-1">{t('student.offDay', lang)}</span>
+          {/* Blank is deliberately not "absent": a day nobody marked is not an
+              absence (lib/student/attendance.ts). The absent count above comes
+              from the shared working-day rule instead, so the legend says which
+              colour is which rather than letting the empty cells imply it. */}
+          <span className="rounded border border-line px-2 py-1">{t('student.attAbsent', lang)}</span>
         </p>
-      ) : null}
-
-      <div className="mb-3 flex items-center justify-between">
-        <Link href={`/student/attendance?y=${prev.year}&m=${prev.month}`} className="text-sm text-brand-600 hover:underline">
-          ← {t('student.prevMonth', lang)}
-        </Link>
-        <span className="font-semibold">{monthLabel}</span>
-        <Link href={`/student/attendance?y=${next.year}&m=${next.month}`} className="text-sm text-brand-600 hover:underline">
-          {t('student.nextMonth', lang)} →
-        </Link>
-      </div>
-
-      <div className="grid grid-cols-7 gap-1 rounded-lg border border-line bg-paper p-3">
-        {weekdays.map((name) => (
-          <div key={name} className="p-1 text-center text-[11px] font-semibold text-muted">
-            {name}
-          </div>
-        ))}
-        {Array.from({ length: leadIn }, (_, i) => (
-          <div key={`lead-${i}`} aria-hidden />
-        ))}
-        {grid.map((day) => (
-          <div
-            key={day.date}
-            title={day.label ?? undefined}
-            className={`rounded-md p-2 text-center text-xs ${tone[day.state]}`}
-          >
-            {num.format(Number(day.date.slice(8)))}
-          </div>
-        ))}
-      </div>
-
-      <p className="mt-3 flex flex-wrap gap-3 text-xs text-muted">
-        <span className="rounded bg-mint-soft px-2 text-mint-deep">{t('student.present', lang)}</span>
-        <span className="rounded bg-sky-soft px-2 text-sky-deep">{t('student.onLeave', lang)}</span>
-        <span className="rounded bg-paper-muted px-2">{t('student.offDay', lang)}</span>
-        {/* Blank is deliberately not "absent": a day nobody marked is not an
-            absence (lib/student/attendance.ts). The absent count above comes
-            from the shared working-day rule instead, so the legend says which
-            colour is which rather than letting the empty cells imply it. */}
-        <span className="rounded border border-line px-2">{t('student.attAbsent', lang)}</span>
-      </p>
+      </Card>
     </main>
   )
 }
