@@ -55,15 +55,17 @@ export interface StudentSearchEntry {
 
 export const STUDENT_SEARCH: StudentSearchEntry[] = [
   { href: '/student', titleKey: 'student.nav.home', keywords: ['home', 'today', 'হোম', 'আজ'] },
+  // Order follows the menu groups (lib/student-nav.ts). A group name is a
+  // keyword on its landing page, not an entry of its own: hrefs stay unique.
+  { href: '/student/tasks', titleKey: 'student.tasksTitle', keywords: ['study', 'পড়াশোনা', 'homework', 'task', 'due', 'বাড়ির কাজ', 'কাজ'] },
   { href: '/student/routine', titleKey: 'student.routineTitle', keywords: ['routine', 'timetable', 'class', 'রুটিন', 'ক্লাস'] },
-  { href: '/student/notices', titleKey: 'student.noticesTitle', keywords: ['notice', 'announcement', 'নোটিশ', 'বিজ্ঞপ্তি'] },
-  { href: '/student/tasks', titleKey: 'student.tasksTitle', keywords: ['homework', 'task', 'due', 'বাড়ির কাজ', 'কাজ'] },
   { href: '/student/materials', titleKey: 'student.materialsTitle', keywords: ['syllabus', 'lesson', 'material', 'pdf', 'সিলেবাস', 'পড়ার উপকরণ'] },
-  { href: '/student/results', titleKey: 'student.resultsTitle', keywords: ['result', 'marks', 'grade', 'gpa', 'ফলাফল', 'নম্বর'] },
-  { href: '/student/exams', titleKey: 'student.examsTitle', keywords: ['exam', 'seat', 'admit card', 'পরীক্ষা', 'প্রবেশপত্র', 'আসন'] },
-  { href: '/student/attendance', titleKey: 'student.attendanceTitle', keywords: ['attendance', 'present', 'absent', 'উপস্থিতি', 'হাজিরা'] },
-  { href: '/student/leave', titleKey: 'student.leaveTitle', keywords: ['leave', 'holiday', 'absent', 'ছুটি'] },
-  { href: '/student/fees', titleKey: 'student.feesTitle', keywords: ['fee', 'due', 'payment', 'ফি', 'বকেয়া', 'বেতন'] },
   { href: '/student/questions', titleKey: 'student.questionsTitle', keywords: ['question', 'ask', 'teacher', 'প্রশ্ন', 'শিক্ষক'] },
+  { href: '/student/exams', titleKey: 'student.examsTitle', keywords: ['exams & results', 'পরীক্ষা ও ফলাফল', 'exam', 'seat', 'admit card', 'পরীক্ষা', 'প্রবেশপত্র', 'আসন'] },
+  { href: '/student/results', titleKey: 'student.resultsTitle', keywords: ['result', 'marks', 'grade', 'gpa', 'ফলাফল', 'নম্বর'] },
+  { href: '/student/attendance', titleKey: 'student.attendanceTitle', keywords: ['attendance & leave', 'উপস্থিতি ও ছুটি', 'attendance', 'present', 'absent', 'উপস্থিতি', 'হাজিরা'] },
+  { href: '/student/leave', titleKey: 'student.leaveTitle', keywords: ['leave', 'holiday', 'absent', 'ছুটি'] },
+  { href: '/student/fees', titleKey: 'student.feesTitle', keywords: ['fees & notices', 'ফি ও নোটিশ', 'fee', 'due', 'payment', 'ফি', 'বকেয়া', 'বেতন'] },
+  { href: '/student/notices', titleKey: 'student.noticesTitle', keywords: ['notice', 'announcement', 'নোটিশ', 'বিজ্ঞপ্তি'] },
   { href: '/student/profile', titleKey: 'student.profileTitle', keywords: ['profile', 'correction', 'photo', 'তথ্য', 'সংশোধন'] },
 ]
