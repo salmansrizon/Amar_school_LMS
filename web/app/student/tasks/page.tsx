@@ -1,84 +1,99 @@
 import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
-import { t, localeOf, numberFmt, type Lang, type MessageKey } from '@/lib/i18n'
+import { t, formatDate, formatNumber, type Lang, type MessageKey } from '@/lib/i18n'
 import { getStudentContext, isReadOnly } from '@/lib/student/context'
 import { loadStudentTasks } from '@/lib/student/tasks-read'
-import { splitTasks, type StudentTask, type TaskBucket } from '@/lib/student/tasks'
+import type { StudentTask } from '@/lib/student/tasks'
+import { dashboardTaskCounts, type TaskUrgency } from '@/lib/student/dashboard'
+import { TASK_PILES, taskPiles } from '@/lib/student/daily'
+import { schoolToday } from '@/lib/school-time'
+import { studentGroupTabs } from '@/lib/student-nav'
 import { TaskToggle } from './task-toggle'
 import { pageTitle } from '@/lib/page-title'
+import { Card, PageHeader, railClass, type Tone } from '@/components/ui/page'
+import { SectionTabs } from '@/components/ui/section-tabs'
+import { EmptyState } from '@/components/ui/states'
 
-// The Student's homework (#446), split into the piles that make a list useful:
-// overdue, due soon, later, done. Done beats overdue — finished late is still
-// finished, and red forever would nag rather than inform.
+// The Student's homework (#446), in four piles: overdue, due within two days,
+// later, done. Done beats overdue: finished late is still finished. A task
+// handed in but not yet ticked counts as done too (decision D2; see
+// isTaskHandled). Placement is by school day, in lib/student/daily.ts.
+export const generateMetadata = pageTitle('student.tasksTitle')
 
-const SECTIONS: { bucket: TaskBucket; titleKey: MessageKey; tone: string }[] = [
-  { bucket: 'overdue', titleKey: 'student.taskOverdue', tone: 'text-alert-deep' },
-  { bucket: 'dueSoon', titleKey: 'student.taskDueSoon', tone: 'text-sun-deep' },
-  { bucket: 'later', titleKey: 'student.taskLater', tone: 'text-muted' },
-  { bucket: 'done', titleKey: 'student.taskDone', tone: 'text-mint-deep' },
-]
+const PILE: Record<TaskUrgency, { titleKey: MessageKey; rail: Tone; text: string }> = {
+  overdue: { titleKey: 'student.taskOverdue', rail: 'alert', text: 'text-alert-deep' },
+  dueSoon: { titleKey: 'student.taskDueSoon', rail: 'sun', text: 'text-sun-deep' },
+  later: { titleKey: 'student.taskLater', rail: 'muted', text: 'text-muted' },
+  done: { titleKey: 'student.taskDone', rail: 'mint', text: 'text-mint-deep' },
+}
 
-function TaskRow({ task, lang, readOnly }: { task: StudentTask; lang: Lang; readOnly: boolean }) {
-  const locale = localeOf(lang)
+function TaskRow({ task, rail, lang, readOnly }: { task: StudentTask; rail: Tone; lang: Lang; readOnly: boolean }) {
   return (
-    <li className="flex items-start justify-between gap-3 py-3">
-      <span className="min-w-0">
-        <Link
-          href={`/student/tasks/${task.id}`}
-          className="block text-sm font-medium hover:text-brand-600"
-        >
-          {task.title}
-        </Link>
-        <span className="mt-0.5 flex flex-wrap items-center gap-2">
+    <li className={`flex items-center justify-between gap-3 py-1.5 pr-3 pl-3 ${railClass(rail)}`}>
+      <Link
+        href={`/student/tasks/${task.id}`}
+        className="flex min-h-11 min-w-0 flex-1 flex-col justify-center hover:text-brand-600"
+      >
+        <span className="truncate text-sm font-medium">{task.title}</span>
+        <span className="flex flex-wrap items-center gap-x-2 text-xs text-muted">
           {task.due_at && (
-            <span className="text-xs text-muted">
-              {t('student.taskDue', lang)}:{' '}
-              {new Date(task.due_at).toLocaleDateString(locale, { day: 'numeric', month: 'short' })}
+            <span>
+              {t('student.taskDue', lang)}: {formatDate(task.due_at, lang)}
             </span>
           )}
           {task.submitted && (
-            <span className="rounded-full bg-mint-soft px-2 py-0.5 text-[11px] font-semibold text-mint-deep">
-              {t('student.handedIn', lang)}
-            </span>
+            <span className="font-semibold text-mint-deep">{t('student.handedIn', lang)}</span>
           )}
         </span>
-      </span>
+      </Link>
       <TaskToggle lang={lang} taskId={task.id} done={Boolean(task.completed_at)} disabled={readOnly} />
     </li>
   )
 }
 
-export const generateMetadata = pageTitle('student.tasksTitle')
-
 export default async function StudentTasksPage() {
   const lang = await currentLang()
   const ctx = await getStudentContext()
-  const buckets = splitTasks(await loadStudentTasks(ctx.supabase), new Date())
+  const today = schoolToday()
+  const tasks = await loadStudentTasks(ctx.supabase)
+  const piles = taskPiles(tasks, today)
+  const counts = dashboardTaskCounts(tasks, today)
   const readOnly = isReadOnly(ctx)
-  const empty = SECTIONS.every((s) => buckets[s.bucket].length === 0)
 
   return (
-    <main className="w-full max-w-3xl p-6">
-      <h1 className="mb-1 text-2xl font-extrabold">{t('student.tasksTitle', lang)}</h1>
-      <p className="mb-4 text-xs text-muted">{t('student.ownClaim', lang)}</p>
+    <main className="w-full px-gutter pt-section pb-16">
+      <PageHeader
+        title={t('student.tasksTitle', lang)}
+        crumbs={{ lang, items: [{ label: t('student.nav.home', lang), href: '/student' }, { label: t('student.navGroup.study', lang) }] }}
+        subtitle={t('student.ownClaim', lang)}
+        badge={counts.overdue ? `${formatNumber(counts.overdue, lang)} ${t('student.dash.overdueNote', lang)}` : undefined}
+      />
+      <SectionTabs
+        tabs={studentGroupTabs('study', { tasks: counts.pending })}
+        active="/student/tasks"
+        lang={lang}
+        label={t('student.navGroup.study', lang)}
+      />
 
-      {empty ? (
-        <p className="rounded-lg border border-line bg-paper p-6 text-sm text-muted">
-          {t('student.noTasks', lang)}
-        </p>
+      {!tasks.length ? (
+        <EmptyState
+          lang={lang}
+          title={t('student.noTasks', lang)}
+          action={{ href: '/student/routine', label: t('student.nav.routine', lang) }}
+        />
       ) : (
-        <div className="space-y-4">
-          {SECTIONS.filter((s) => buckets[s.bucket].length > 0).map((s) => (
-            <section key={s.bucket} className="rounded-lg border border-line bg-paper p-5">
-              <h2 className={`mb-2 text-sm font-bold ${s.tone}`}>
-                {t(s.titleKey, lang)} · {numberFmt(lang).format(buckets[s.bucket].length)}
+        <div className="grid items-start gap-grid lg:grid-cols-2">
+          {TASK_PILES.filter((p) => piles[p].length > 0).map((p) => (
+            <Card key={p} padded={false}>
+              <h2 className={`px-card pt-card pb-2 text-sm font-bold ${PILE[p].text}`}>
+                {t(PILE[p].titleKey, lang)} · {formatNumber(piles[p].length, lang)}
               </h2>
-              <ul className="divide-y divide-line">
-                {buckets[s.bucket].map((task) => (
-                  <TaskRow key={task.id} task={task} lang={lang} readOnly={readOnly} />
+              <ul className="divide-y divide-line pb-2">
+                {piles[p].map((task) => (
+                  <TaskRow key={task.id} task={task} rail={PILE[p].rail} lang={lang} readOnly={readOnly} />
                 ))}
               </ul>
-            </section>
+            </Card>
           ))}
         </div>
       )}
