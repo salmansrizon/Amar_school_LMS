@@ -17,6 +17,7 @@ import {
   buildStudentAlerts,
   buildStudentUpcoming,
   dashboardTaskCounts,
+  isTaskHandled,
   feeStatus,
   formatClock,
   latestResult,
@@ -123,6 +124,7 @@ export default async function StudentHome() {
   const [todayPlan, tomorrowPlan] = todayAndTomorrow(today, routine.rows, routine.offDays)
 
   const taskCounts = dashboardTaskCounts(tasks, today)
+  const openTasks = tasks.filter((task) => !isTaskHandled(task)).length
   const fee = feeStatus(feeRows, today)
   const presentDays = new Set((presentRes.data ?? []).map((r) => r.att_date as string)).size
   const absentDays = typeof absentRes.data === 'number' ? absentRes.data : 0
@@ -302,13 +304,17 @@ export default async function StudentHome() {
           icon={<Icon name="classes" className="size-5" />}
           tone={taskCounts.overdue ? 'alert' : taskCounts.dueSoon ? 'sun' : 'mint'}
           label={t('student.dash.homework', lang)}
-          value={fmt(taskCounts.pending)}
+          // Every open task, not only the urgent ones: a task due next week or
+          // with no date is still homework the student has.
+          value={fmt(openTasks)}
           note={
             taskCounts.overdue
               ? `${fmt(taskCounts.overdue)} ${t('student.dash.overdueNote', lang)}`
               : taskCounts.dueSoon
                 ? `${fmt(taskCounts.dueSoon)} ${t('student.dash.dueTasks', lang)}`
-                : t('student.noTasks', lang)
+                : openTasks
+                  ? undefined
+                  : t('student.noTasks', lang)
           }
           action={{ href: '/student/tasks', label: t('dash.viewAll', lang) }}
         />
