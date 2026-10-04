@@ -75,10 +75,10 @@ export function AskForm({
         <div className="rounded-sm border border-line bg-paper-muted p-3 text-xs">
           <p className="text-muted">{t('student.noSubjectsYet', lang)}</p>
           <span className="mt-2 flex gap-3">
-            <Link href="/student/notices" className="font-semibold text-brand-600 hover:underline">
+            <Link href="/student/notices" className="inline-flex items-center font-semibold text-brand-600 hover:underline max-sm:min-h-11">
               {t('student.noticesTitle', lang)}
             </Link>
-            <Link href="/student/tasks" className="font-semibold text-brand-600 hover:underline">
+            <Link href="/student/tasks" className="inline-flex items-center font-semibold text-brand-600 hover:underline max-sm:min-h-11">
               {t('student.tasksTitle', lang)}
             </Link>
           </span>
@@ -107,7 +107,7 @@ export function AskForm({
           name="subject"
           required
           maxLength={120}
-          className="h-9 w-full rounded-sm border border-line-strong bg-paper px-2 text-sm"
+          className="h-11 w-full rounded-sm border border-line-strong bg-paper px-2 text-sm sm:h-9"
         />
       </label>
 
@@ -129,7 +129,7 @@ export function AskForm({
         <p className="text-sm text-mint-deep">
           {t('student.questionSent', lang)}{' '}
           {publicationId && (
-            <Link href="/student/questions" className="font-semibold underline">
+            <Link href="/student/questions" className="inline-flex items-center font-semibold underline max-sm:min-h-11">
               {t('student.seeQuestions', lang)}
             </Link>
           )}
@@ -139,7 +139,7 @@ export function AskForm({
       <button
         type="submit"
         disabled={pending}
-        className="cursor-pointer justify-self-start rounded-full bg-brand-500 px-5 py-1.5 text-sm font-semibold text-white hover:bg-brand-600 disabled:opacity-50"
+        className="cursor-pointer justify-self-start rounded-full bg-brand-500 px-5 py-1.5 text-sm font-semibold text-white hover:bg-brand-600 disabled:opacity-50 max-sm:min-h-11"
       >
         {t('student.send', lang)}
       </button>

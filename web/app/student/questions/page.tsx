@@ -1,8 +1,14 @@
 import { currentLang } from '@/lib/i18n-server'
-import { t } from '@/lib/i18n'
+import { t, formatDate, formatNumber } from '@/lib/i18n'
 import { getStudentContext, isReadOnly } from '@/lib/student/context'
 import { AskForm } from './ask-form'
+import { groupQuestions } from '@/lib/student/daily'
+import { waitingTone } from '@/lib/student/hub'
+import { studentGroupTabs } from '@/lib/student-nav'
 import { pageTitle } from '@/lib/page-title'
+import { Card, PageHeader, railClass } from '@/components/ui/page'
+import { SectionTabs } from '@/components/ui/section-tabs'
+import { EmptyState } from '@/components/ui/states'
 
 // The Student's own questions (#454). One question, one reply — not a thread.
 export const generateMetadata = pageTitle('student.questionsTitle')
@@ -35,55 +41,94 @@ export default async function StudentQuestionsPage() {
     (q.subject_id ? subjectName.get(q.subject_id) : null) ??
     null
 
-  const locale = lang === 'bn' ? 'bn-BD' : 'en-GB'
+  const now = new Date()
+  const { waiting, answered } = groupQuestions(mine ?? [])
+  const readOnly = isReadOnly(ctx)
+
+  type Question = NonNullable<typeof mine>[number]
+  // Waiting: sky, then sun after 24 h and alert after 72 h (waitingTone).
+  // Answered: mint. The rail is decoration; the words say which is which.
+  const QuestionCard = ({ q }: { q: Question }) => (
+    <li className={`rounded-lg border border-line bg-paper p-4 ${railClass(waitingTone(q, now) ?? 'sky')}`}>
+      <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
+        <span className="font-semibold">{q.subject}</span>
+        <span className="text-xs text-muted">{formatDate(q.created_at, lang)}</span>
+      </div>
+      {aboutOf(q) && (
+        <p className="mb-2 text-xs text-muted">
+          {t('student.questionAbout', lang)}: <span className="font-medium">{aboutOf(q)}</span>
+        </p>
+      )}
+      <p className="whitespace-pre-wrap text-sm">{q.body}</p>
+
+      {q.reply_body ? (
+        <div className="mt-3 rounded-md bg-mint-soft p-3">
+          <span className="block text-xs font-semibold text-mint-deep">{t('student.teacherReplied', lang)}</span>
+          <p className="mt-1 whitespace-pre-wrap text-sm">{q.reply_body}</p>
+        </div>
+      ) : (
+        <p className="mt-2 text-xs font-semibold text-muted">{t('student.awaitingReply', lang)}</p>
+      )}
+    </li>
+  )
 
   return (
-    <main className="w-full max-w-3xl p-6">
-      <h1 className="mb-4 text-2xl font-extrabold">{t('student.questionsTitle', lang)}</h1>
+    <main className="w-full px-gutter pt-section pb-16">
+      <PageHeader
+        title={t('student.questionsTitle', lang)}
+        crumbs={{ lang, items: [{ label: t('student.nav.home', lang), href: '/student' }, { label: t('student.navGroup.study', lang) }] }}
+        badge={waiting.length ? `${formatNumber(waiting.length, lang)} ${t('student.questionsWaitingBadge', lang)}` : undefined}
+      />
+      <SectionTabs
+        tabs={studentGroupTabs('study', { questions: waiting.length })}
+        active="/student/questions"
+        lang={lang}
+        label={t('student.navGroup.study', lang)}
+      />
 
-      {!isReadOnly(ctx) && (
-        <section className="mb-6 rounded-lg border border-line bg-paper p-5">
-          <h2 className="mb-3 font-bold">{t('student.askGeneral', lang)}</h2>
-          <AskForm lang={lang} subjects={subjectRows ?? []} />
-        </section>
-      )}
+      <div className="grid items-start gap-grid lg:grid-cols-3">
+        <div className={readOnly ? 'lg:col-span-3' : 'lg:col-span-2'}>
+          {!mine?.length ? (
+            <EmptyState
+              lang={lang}
+              title={t('student.noQuestions', lang)}
+              body={t('student.noQuestionsHint', lang)}
+              action={{ href: '/student/notices', label: t('student.nav.notices', lang) }}
+            />
+          ) : (
+            <div className="space-y-section">
+              {(
+                [
+                  [waiting, 'student.awaitingReply'],
+                  [answered, 'student.teacherReplied'],
+                ] as const
+              )
+                .filter(([list]) => list.length > 0)
+                .map(([list, titleKey]) => (
+                  <section key={titleKey}>
+                    <h2 className="mb-3 text-sm font-bold">
+                      {t(titleKey, lang)} · {formatNumber(list.length, lang)}
+                    </h2>
+                    <ul className="space-y-3">
+                      {list.map((q) => (
+                        <QuestionCard key={q.id} q={q} />
+                      ))}
+                    </ul>
+                  </section>
+                ))}
+            </div>
+          )}
+        </div>
 
-      {!mine?.length ? (
-        <p className="rounded-lg border border-line bg-paper p-6 text-sm text-muted">
-          {t('student.noQuestions', lang)}
-          <span className="mt-1 block text-xs">{t('student.noQuestionsHint', lang)}</span>
-        </p>
-      ) : (
-        <ul className="space-y-3">
-          {mine.map((q) => (
-            <li key={q.id} className="rounded-lg border border-line bg-paper p-4">
-              <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
-                <span className="font-semibold">{q.subject}</span>
-                <span className="text-xs text-muted">
-                  {new Date(q.created_at).toLocaleDateString(locale, { day: 'numeric', month: 'short' })}
-                </span>
-              </div>
-              {aboutOf(q) && (
-                <p className="mb-2 text-xs text-muted">
-                  {t('student.questionAbout', lang)}: <span className="font-medium">{aboutOf(q)}</span>
-                </p>
-              )}
-              <p className="whitespace-pre-wrap text-sm">{q.body}</p>
-
-              {q.reply_body ? (
-                <div className="mt-3 rounded-md bg-mint-soft p-3">
-                  <span className="block text-xs font-semibold text-mint-deep">
-                    {t('student.teacherReplied', lang)}
-                  </span>
-                  <p className="mt-1 whitespace-pre-wrap text-sm">{q.reply_body}</p>
-                </div>
-              ) : (
-                <p className="mt-2 text-xs text-muted">{t('student.awaitingReply', lang)}</p>
-              )}
-            </li>
-          ))}
-        </ul>
-      )}
+        {!readOnly && (
+          <div id="ask" className="scroll-mt-24">
+            <Card>
+              <h2 className="mb-3 font-bold">{t('student.askGeneral', lang)}</h2>
+              <AskForm lang={lang} subjects={subjectRows ?? []} />
+            </Card>
+          </div>
+        )}
+      </div>
     </main>
   )
 }
