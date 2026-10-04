@@ -151,7 +151,9 @@ export default async function StudentAttendancePage({
         <StatCard
           tone={absentDays && percent !== null ? attendanceBand(percent) : 'muted'}
           label={t('student.absentDays', lang)}
-          value={fmt(absentDays)}
+          // With no present row the school has not marked this month: the RPC's
+          // count would read as absences nobody recorded.
+          value={percent === null ? '—' : fmt(absentDays)}
         />
         <StatCard tone="sky" label={t('student.offDay', lang)} value={fmt(offCount)} />
       </StatGrid>
