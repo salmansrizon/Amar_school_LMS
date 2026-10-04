@@ -9,7 +9,7 @@ import { studentGroupTabs } from '@/lib/student-nav'
 import { PrintTrigger } from '@/components/print/print-trigger'
 import { Card, PageHeader, thClass, tdClass, trClass } from '@/components/ui/page'
 import { SectionTabs } from '@/components/ui/section-tabs'
-import { StatCard, StatGrid, type WidgetTone } from '@/components/ui/widgets'
+import { StatCard, StatGrid } from '@/components/ui/widgets'
 
 // One published exam's result (#449).
 //
@@ -89,20 +89,36 @@ export default async function StudentResultPage({
       />
 
       {evaluated ? (
-        <StatGrid>
-          <StatCard
-            tone="brand"
-            label={t('student.gpa', lang)}
-            value={incomplete || evaluated.overall.gpa === null ? '—' : fmt(evaluated.overall.gpa)}
-          />
-          <StatCard tone="brand" label={t('student.grade', lang)} value={incomplete ? '—' : (evaluated.overall.label ?? '—')} />
-          <StatCard
-            tone={(incomplete ? 'sun' : evaluated.overall.passed ? 'mint' : 'alert') satisfies WidgetTone}
-            label={t('student.nav.results', lang)}
-            value={t(incomplete ? 'exams.incomplete' : evaluated.overall.passed ? 'student.passed' : 'student.failed', lang)}
-          />
-          {rankCard}
-        </StatGrid>
+        // The graded tiles keep their original markup: this is the path that
+        // runs once the grading policy is fixed (#702) and must not change.
+        <section className="mb-section grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div className="rounded-lg border border-line bg-paper p-4">
+            <div className="text-xl font-extrabold text-brand-700">
+              {incomplete ? '—' : (evaluated.overall.gpa ?? '—')}
+            </div>
+            <div className="text-xs text-muted">{t('student.gpa', lang)}</div>
+          </div>
+          <div className="rounded-lg border border-line bg-paper p-4">
+            <div className="text-xl font-extrabold">{incomplete ? '—' : (evaluated.overall.label ?? '—')}</div>
+            <div className="text-xs text-muted">{t('student.grade', lang)}</div>
+          </div>
+          <div className="rounded-lg border border-line bg-paper p-4">
+            <div
+              className={`text-xl font-extrabold ${incomplete ? 'text-sun-deep' : evaluated.overall.passed ? 'text-mint-deep' : 'text-alert-deep'}`}
+            >
+              {t(incomplete ? 'exams.incomplete' : evaluated.overall.passed ? 'student.passed' : 'student.failed', lang)}
+            </div>
+          </div>
+          {rank && !incomplete && (
+            <div className="rounded-lg border border-line bg-paper p-4">
+              <div className="text-xl font-extrabold">
+                {rank.rank}
+                <span className="text-sm text-muted"> / {rank.out_of}</span>
+              </div>
+              <div className="text-xs text-muted">{t('student.rank', lang)}</div>
+            </div>
+          )}
+        </section>
       ) : (
         <>
           <Card tone="sun" className="mb-section">
