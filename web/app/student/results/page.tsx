@@ -1,9 +1,14 @@
 import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
-import { t } from '@/lib/i18n'
+import { t, formatNumber } from '@/lib/i18n'
 import { getStudentContext } from '@/lib/student/context'
-import { groupByExam, type ResultRow } from '@/lib/student/results'
+import { groupByExam, missingSubjects, type ResultRow } from '@/lib/student/results'
+import { rawTotal } from '@/lib/student/dashboard'
+import { studentGroupTabs } from '@/lib/student-nav'
 import { pageTitle } from '@/lib/page-title'
+import { Card, PageHeader } from '@/components/ui/page'
+import { SectionTabs } from '@/components/ui/section-tabs'
+import { EmptyState } from '@/components/ui/states'
 
 // Published exams only (#449). The gate is not in this query — it is in
 // student_exam_result (0143), so no screen can forget it.
@@ -13,34 +18,66 @@ export default async function StudentResultsPage() {
   const lang = await currentLang()
   const { supabase } = await getStudentContext()
 
-  const { data } = await supabase.from('student_exam_result').select('*')
+  const [{ data }, { data: classSubjects }] = await Promise.all([
+    supabase.from('student_exam_result').select('*'),
+    supabase.from('student_subject_option').select('id'),
+  ])
   const exams = groupByExam((data ?? []) as ResultRow[])
+  const fmt = (n: number) => formatNumber(n, lang, { maximumFractionDigits: 2 })
 
   return (
-    <main className="w-full max-w-3xl p-6">
-      <h1 className="mb-4 text-2xl font-extrabold">{t('student.resultsTitle', lang)}</h1>
+    <main className="w-full px-gutter pt-section pb-16">
+      <PageHeader
+        title={t('student.resultsTitle', lang)}
+        crumbs={{ lang, items: [{ label: t('student.nav.home', lang), href: '/student' }, { label: t('student.resultsTitle', lang) }] }}
+        badge={exams.length ? fmt(exams.length) : undefined}
+      />
+      <SectionTabs
+        tabs={studentGroupTabs('exams')}
+        active="/student/results"
+        lang={lang}
+        label={t('student.navGroup.exams', lang)}
+      />
 
       {!exams.length ? (
-        <p className="rounded-lg border border-line bg-paper p-6 text-sm text-muted">
-          {t('student.noResults', lang)}
-          <span className="mt-1 block text-xs">{t('student.noResultsHint', lang)}</span>
-        </p>
+        <EmptyState
+          lang={lang}
+          title={t('student.noResults', lang)}
+          body={t('student.noResultsHint', lang)}
+          action={{ href: '/student/exams', label: t('student.nav.exams', lang) }}
+        />
       ) : (
-        <ul className="space-y-3">
-          {exams.map((exam) => (
-            <li key={exam.examId}>
-              <Link
-                href={`/student/results/${exam.examId}`}
-                className="block rounded-lg border border-line bg-paper p-4 transition hover:border-brand-300"
-              >
-                <span className="font-semibold">{exam.examName}</span>
-                <span className="ml-2 text-xs text-muted">{exam.examYear}</span>
-                <span className="block text-xs text-muted">
-                  {exam.rows.length} {t('student.subject', lang)}
-                </span>
-              </Link>
-            </li>
-          ))}
+        <ul className="grid gap-grid lg:grid-cols-2">
+          {exams.map((exam) => {
+            const total = rawTotal(exam.rows)
+            const incomplete = missingSubjects(exam, (classSubjects ?? []) as { id: string }[]).length > 0
+            return (
+              <li key={exam.examId}>
+                <Link
+                  href={`/student/results/${exam.examId}`}
+                  className="block min-h-11 transition hover:opacity-90"
+                >
+                  <Card tone={incomplete ? 'sun' : 'brand'} className="flex items-center justify-between gap-3">
+                    <span className="min-w-0">
+                      <span className="block font-semibold">{exam.examName}</span>
+                      <span className="block text-xs text-muted">
+                        {formatNumber(exam.examYear, lang, { useGrouping: false })} · {fmt(exam.rows.length)}{' '}
+                        {t('student.subject', lang)}
+                      </span>
+                    </span>
+                    <span className="shrink-0 text-right">
+                      <span className="block text-lg font-extrabold">
+                        {incomplete ? '—' : `${fmt(total.obtained)} / ${fmt(total.full)}`}
+                      </span>
+                      <span className="block text-xs text-muted">
+                        {incomplete ? t('exams.incomplete', lang) : t('student.dash.totalMarks', lang)}
+                      </span>
+                    </span>
+                  </Card>
+                </Link>
+              </li>
+            )
+          })}
         </ul>
       )}
     </main>

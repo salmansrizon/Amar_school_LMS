@@ -1,8 +1,12 @@
 import { currentLang } from '@/lib/i18n-server'
-import { t, type MessageKey } from '@/lib/i18n'
+import { t, formatDate, formatNumber, type MessageKey } from '@/lib/i18n'
 import { getStudentContext } from '@/lib/student/context'
 import { groupMaterials, fileKind, isDownloadable, type StudentMaterial } from '@/lib/student/materials'
 import { pageTitle } from '@/lib/page-title'
+import { studentGroupTabs } from '@/lib/student-nav'
+import { Card, PageHeader } from '@/components/ui/page'
+import { SectionTabs } from '@/components/ui/section-tabs'
+import { EmptyState } from '@/components/ui/states'
 
 // The kinds we have labels for. An unexpected kind still renders — groupMaterials
 // keeps it — so it falls back to its own name rather than throwing in t().
@@ -28,21 +32,34 @@ export default async function StudentMaterialsPage() {
     .order('posted_at', { ascending: false })
 
   const groups = groupMaterials((data ?? []) as StudentMaterial[])
-  const locale = lang === 'bn' ? 'bn-BD' : 'en-GB'
+  const linkClass =
+    'inline-flex min-h-11 shrink-0 items-center rounded-full border border-line-strong px-4 text-xs font-semibold hover:bg-paper-muted sm:min-h-9 sm:px-3'
 
   return (
-    <main className="w-full max-w-3xl p-6">
-      <h1 className="mb-4 text-2xl font-extrabold">{t('student.materialsTitle', lang)}</h1>
+    <main className="w-full px-gutter pt-section pb-16">
+      <PageHeader
+        title={t('student.materialsTitle', lang)}
+        crumbs={{ lang, items: [{ label: t('student.nav.home', lang), href: '/student' }, { label: t('student.materialsTitle', lang) }] }}
+        badge={data?.length ? formatNumber(data.length, lang) : undefined}
+      />
+      <SectionTabs
+        tabs={studentGroupTabs('study')}
+        active="/student/materials"
+        lang={lang}
+        label={t('student.navGroup.study', lang)}
+      />
 
       {!groups.length ? (
-        <p className="rounded-lg border border-line bg-paper p-6 text-sm text-muted">
-          {t('student.noMaterials', lang)}
-          <span className="mt-1 block text-xs">{t('student.noMaterialsHint', lang)}</span>
-        </p>
+        <EmptyState
+          lang={lang}
+          title={t('student.noMaterials', lang)}
+          body={t('student.noMaterialsHint', lang)}
+          action={{ href: '/student/tasks', label: t('student.nav.tasks', lang) }}
+        />
       ) : (
-        <div className="space-y-4">
+        <div className="grid gap-grid lg:grid-cols-2">
           {groups.map((group) => (
-            <section key={group.key} className="rounded-lg border border-line bg-paper p-5">
+            <Card key={group.key} tone="brand" className="self-start">
               <h2 className="mb-3 text-sm font-bold">
                 {KIND_LABELS[group.key] ? t(KIND_LABELS[group.key], lang) : group.key}
               </h2>
@@ -54,11 +71,7 @@ export default async function StudentMaterialsPage() {
                       <span className="block text-xs text-muted">
                         {[
                           fileKind(item),
-                          new Date(item.posted_at).toLocaleDateString(locale, {
-                            day: 'numeric',
-                            month: 'short',
-                            year: 'numeric',
-                          }),
+                          formatDate(item.posted_at, lang),
                           item.posted_by ? `${t('student.postedBy', lang)} ${item.posted_by}` : null,
                         ]
                           .filter(Boolean)
@@ -70,26 +83,18 @@ export default async function StudentMaterialsPage() {
                     </span>
 
                     {isDownloadable(item) ? (
-                      <a
-                        href={`/api/student/material?source=${item.source}&id=${item.id}`}
-                        className="shrink-0 rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted"
-                      >
+                      <a href={`/api/student/material?source=${item.source}&id=${item.id}`} className={linkClass}>
                         {t('student.download', lang)}
                       </a>
                     ) : item.link_url ? (
-                      <a
-                        href={item.link_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="shrink-0 rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted"
-                      >
+                      <a href={item.link_url} target="_blank" rel="noopener noreferrer" className={linkClass}>
                         {t('student.openLink', lang)}
                       </a>
                     ) : null}
                   </li>
                 ))}
               </ul>
-            </section>
+            </Card>
           ))}
         </div>
       )}
