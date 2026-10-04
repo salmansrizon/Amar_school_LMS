@@ -4,6 +4,7 @@ import { PageHeader } from '@/components/ui/page'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
+import { mayActOnExamClass } from '@/lib/school/exam-class-guard'
 import { subjectsForClass } from '@/lib/students'
 import { AddRoutineEntryForm, RoutineTable, type Option, type RoutineEntryRow } from './routine-controls'
 import { resolveBackHref } from '@/lib/back-nav'
@@ -36,6 +37,10 @@ export default async function ExamRoutinePage({
     .maybeSingle()
   if (!exam) notFound()
   const closed = exam.status === 'closed'
+  // #676: another class's exam is read-only to a class-attached teacher — the
+  // same answer the server actions give, asked once here.
+  const notMine = !(await mayActOnExamClass(supabase, exam.id))
+  const readOnly = closed || notMine
 
   const [{ data: entries }, { data: allSubjects }, { data: rooms }] = await Promise.all([
     supabase
@@ -66,6 +71,7 @@ export default async function ExamRoutinePage({
         <PrintTrigger href={`/school/exams/${exam.id}/routine/print`} label={t('examRoutine.print', lang)} />
       </div>
 
+      {notMine && <p className="mb-3 text-xs text-alert-deep">{t('exams.notYourClass', lang)}</p>}
       <section className="rounded-2xl border border-line bg-paper p-card">
         {!entries?.length ? (
           <p className="mb-4 text-sm text-muted">{t('examRoutine.none', lang)}</p>
@@ -76,12 +82,12 @@ export default async function ExamRoutinePage({
               entries={entries as RoutineEntryRow[]}
               subjects={subjectOpts}
               rooms={roomOpts}
-              disabled={closed}
+              disabled={readOnly}
               lang={lang}
             />
           </div>
         )}
-        {!closed &&
+        {!readOnly &&
           (subjectOpts.length ? (
             <AddRoutineEntryForm examId={exam.id} subjects={subjectOpts} rooms={roomOpts} lang={lang} />
           ) : (

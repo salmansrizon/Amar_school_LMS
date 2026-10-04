@@ -5,6 +5,7 @@ import type { ReactNode } from 'react'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
+import { mayActOnExamClass } from '@/lib/school/exam-class-guard'
 import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
 import { applyGlobalYearFilterToOfferings } from '@/lib/school/year-filter'
 import { excludeArchivedOfferings } from '@/lib/school/archived-offerings-filter'
@@ -320,14 +321,20 @@ export default async function PromotionPage({
     }
   })
 
+  // #676: another class's exam is read-only to a class-attached teacher.
+  const notMine = !(await mayActOnExamClass(supabase, exam.id))
+
   return bodyWrap(
     <>
-      <FinalClassToggle
-        examId={exam.id}
-        classId={exam.class_id}
-        isFinalClass={cls?.is_final_class ?? false}
-        lang={lang}
-      />
+      {notMine && <p className="mb-3 text-xs text-alert-deep">{t('exams.notYourClass', lang)}</p>}
+      {!notMine && (
+        <FinalClassToggle
+          examId={exam.id}
+          classId={exam.class_id}
+          isFinalClass={cls?.is_final_class ?? false}
+          lang={lang}
+        />
+      )}
       <section className="mb-4 rounded-2xl border border-line bg-paper p-card">
         <PromotionTable
           examId={exam.id}
@@ -336,9 +343,10 @@ export default async function PromotionPage({
           currentClassName={cls?.name ?? null}
           lang={lang}
           showYear={showYear}
+          readOnly={notMine}
         />
       </section>
-      {cls?.is_final_class && <GraduatingSection examId={exam.id} rows={rows} lang={lang} />}
+      {cls?.is_final_class && !notMine && <GraduatingSection examId={exam.id} rows={rows} lang={lang} />}
     </>,
   )
 }

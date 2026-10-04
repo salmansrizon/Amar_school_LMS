@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { examClassDenied } from '@/lib/school/exam-class-guard'
 
 // RLS + enforce_cocurricular_mark_school (same-school tenancy, Closed-exam
 // guard, migration 0052) are the authority here — mirrors marks-entry's
@@ -23,6 +24,8 @@ export async function saveCocurricularMarks(
 ): Promise<{ error?: string }> {
   if (!rows.length) return {}
   const supabase = await createClient()
+  const denied = await examClassDenied(supabase, examId)
+  if (denied) return denied
 
   const payload = rows.map((r) => ({
     exam_id: examId,

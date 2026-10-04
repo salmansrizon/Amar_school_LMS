@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { examClassDenied } from '@/lib/school/exam-class-guard'
 import { overlappingRoutineEntry } from '@/lib/exam-setup'
 
 // RLS + exam_routine_entry_same_school (same-school tenancy + Closed-exam
@@ -34,6 +35,8 @@ export async function addRoutineEntry(
   if (endTime <= startTime) return { error: 'End time must be after start time', refused: 'timeOrder' }
 
   const supabase = await createClient()
+  const denied = await examClassDenied(supabase, examId)
+  if (denied) return denied
   // One exam is one class, so two of its sittings overlapping puts the same
   // students in two papers at once. Checked here because the table has no
   // such constraint; a routine is a few dozen rows at most.
@@ -72,7 +75,10 @@ export async function addRoutineEntry(
 
 export async function removeRoutineEntry(examId: string, entryId: string): Promise<{ error?: string }> {
   const supabase = await createClient()
-  const { error } = await supabase.from('exam_routine_entries').delete().eq('id', entryId)
+  const denied = await examClassDenied(supabase, examId)
+  if (denied) return denied
+  // Bound to the guarded exam: `examId` is no longer only a revalidation hint.
+  const { error } = await supabase.from('exam_routine_entries').delete().eq('id', entryId).eq('exam_id', examId)
   if (error) return { error: error.message }
   revalidatePath(pagePath(examId))
   return {}

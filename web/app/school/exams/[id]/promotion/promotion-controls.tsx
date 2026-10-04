@@ -84,6 +84,7 @@ export function PromotionTable({
   currentClassName,
   lang,
   showYear = false,
+  readOnly = false,
 }: {
   examId: string
   rows: PromotionStudentRow[]
@@ -93,6 +94,8 @@ export function PromotionTable({
   /** Academic Year segment (issue #621, map #609's recipe) — true only when
    *  the School has more than one started Academic Year. */
   showYear?: boolean
+  /** #676: the caller may not act on this exam's class. */
+  readOnly?: boolean
 }) {
   const router = useRouter()
   const [toClassId, setToClassId] = useState('')
@@ -217,7 +220,7 @@ export function PromotionTable({
       <div className="mt-4 flex justify-end">
         <button
           type="button"
-          disabled={pending || !toClassId}
+          disabled={pending || !toClassId || readOnly}
           onClick={() => {
             const items = rows
               .filter((r) => r.passed && checked.has(r.id))

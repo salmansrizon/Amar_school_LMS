@@ -6,6 +6,7 @@ import { notFound } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
+import { mayActOnExamClass } from '@/lib/school/exam-class-guard'
 import { overlappingRowIds, overCapacityRoomIds } from '@/lib/exam-setup'
 import { enrolledStudentIds, enrolledIdFilter } from '@/lib/school/offering-roster'
 import {
@@ -54,6 +55,10 @@ export default async function SeatPlanPage({
     .maybeSingle()
   if (!exam) notFound()
   const closed = exam.status === 'closed'
+  // #676: another class's exam is read-only to a class-attached teacher — the
+  // same answer the server actions give, asked once here.
+  const notMine = !(await mayActOnExamClass(supabase, exam.id))
+  const readOnly = closed || notMine
 
   // Mixed seating (issue #95): capacity is a room-wide budget, so the page
   // needs every exam's allocation in these rooms, not just this exam's.
@@ -130,7 +135,7 @@ export default async function SeatPlanPage({
             {t('examAttendanceSheet.title', lang)}
           </Link>
         </div>
-        {!closed && (
+        {!readOnly && (
           <div className="flex items-center gap-2">
             <PublishButton
               examId={exam.id}
@@ -142,7 +147,8 @@ export default async function SeatPlanPage({
         )}
       </div>
 
-      {!closed && exam.class_id && (
+      {notMine && <p className="mb-3 text-xs text-alert-deep">{t('exams.notYourClass', lang)}</p>}
+      {!readOnly && exam.class_id && (
         <div className="mb-4 flex">
           <GeneratePanel
             examId={exam.id}
@@ -177,11 +183,11 @@ export default async function SeatPlanPage({
                 rooms={roomOpts}
                 rolls={rolls}
                 overCapacityRooms={overCapacity}
-                disabled={closed}
+                disabled={readOnly}
                 lang={lang}
               />
             )}
-            {!closed && <AddSeatPlanRowForm examId={exam.id} rooms={roomOpts} lang={lang} />}
+            {!readOnly && <AddSeatPlanRowForm examId={exam.id} rooms={roomOpts} lang={lang} />}
           </section>
         </>
       )}

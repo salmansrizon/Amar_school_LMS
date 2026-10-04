@@ -3,7 +3,7 @@ import { currentLang } from '@/lib/i18n-server'
 import { getStudentContext } from '@/lib/student/context'
 import { loadGradingScheme } from '@/lib/grading-scheme-loader'
 import { loadInstitutePrintHeader } from '@/lib/institute-print'
-import { groupByExam, evaluateExam, type ResultRow } from '@/lib/student/results'
+import { groupByExam, evaluateExam, missingSubjects, type ResultRow } from '@/lib/student/results'
 import { MarkSheetTemplate } from '@/app/school/exams/[id]/mark-sheet/[studentId]/templates'
 import { classSectionLabel } from '@/lib/students'
 
@@ -35,15 +35,19 @@ export default async function StudentMarkSheetPage({
   const [exam] = groupByExam((data ?? []) as ResultRow[])
   if (!exam || !exam.gradingSchemeId) notFound()
 
-  const [scheme, institute, rankRes] = await Promise.all([
+  const [scheme, institute, rankRes, { data: classSubjects }] = await Promise.all([
     loadGradingScheme(supabase, exam.gradingSchemeId),
     loadInstitutePrintHeader(supabase, lang),
     supabase.rpc('student_exam_rank', { p_exam: examId }),
+    supabase.from('student_subject_option').select('id'),
   ])
   if (!scheme || !institute) notFound()
 
   const evaluated = evaluateExam(exam, scheme)
-  const rank = (rankRes.data as { rank: number; out_of: number }[] | null)?.[0] ?? null
+  // Same reading as the school's copy: marks missing prints Incomplete, with
+  // no GPA and no position.
+  const incomplete = missingSubjects(exam, (classSubjects ?? []) as { id: string }[]).length > 0
+  const rank = incomplete ? null : ((rankRes.data as { rank: number; out_of: number }[] | null)?.[0] ?? null)
 
   return (
     <MarkSheetTemplate
@@ -71,6 +75,7 @@ export default async function StudentMarkSheetPage({
       overallGpa={evaluated.overall.gpa}
       overallLabel={evaluated.overall.label}
       overallPassed={evaluated.overall.passed}
+      incomplete={incomplete}
       rankPosition={rank?.rank ?? null}
       rankOutOf={rank?.out_of ?? 0}
       // The QR on the school's copy verifies the document against the student
