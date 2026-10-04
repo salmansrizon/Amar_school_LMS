@@ -17,11 +17,11 @@ describe('STUDENT_NAV_GROUPS', () => {
 
   it('orders items and lands each tab on its first item', () => {
     expect(STUDENT_NAV_GROUPS.map((g) => g.items.map((i) => i.href))).toEqual([
-      ['/student'],
+      ['/student', '/student/notices'],
       ['/student/tasks', '/student/routine', '/student/materials', '/student/questions'],
       ['/student/exams', '/student/results'],
       ['/student/attendance', '/student/leave'],
-      ['/student/fees', '/student/notices'],
+      ['/student/fees'],
     ])
   })
 
@@ -54,7 +54,7 @@ describe('studentGroupFor', () => {
       '/student/attendance': 'attendance',
       '/student/leave': 'attendance',
       '/student/fees': 'money',
-      '/student/notices': 'money',
+      '/student/notices': 'overview',
       '/student/profile': null,
     }
     for (const route of OLD_ROUTES) {

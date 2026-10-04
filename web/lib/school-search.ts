@@ -57,6 +57,7 @@ export const STUDENT_SEARCH: StudentSearchEntry[] = [
   { href: '/student', titleKey: 'student.nav.home', keywords: ['home', 'today', 'হোম', 'আজ'] },
   // Order follows the menu groups (lib/student-nav.ts). A group name is a
   // keyword on its landing page, not an entry of its own: hrefs stay unique.
+  { href: '/student/notices', titleKey: 'student.noticesTitle', keywords: ['notice', 'announcement', 'নোটিশ', 'বিজ্ঞপ্তি'] },
   { href: '/student/tasks', titleKey: 'student.tasksTitle', keywords: ['study', 'পড়াশোনা', 'homework', 'task', 'due', 'বাড়ির কাজ', 'কাজ'] },
   { href: '/student/routine', titleKey: 'student.routineTitle', keywords: ['routine', 'timetable', 'class', 'রুটিন', 'ক্লাস'] },
   { href: '/student/materials', titleKey: 'student.materialsTitle', keywords: ['syllabus', 'lesson', 'material', 'pdf', 'সিলেবাস', 'পড়ার উপকরণ'] },
@@ -65,7 +66,6 @@ export const STUDENT_SEARCH: StudentSearchEntry[] = [
   { href: '/student/results', titleKey: 'student.resultsTitle', keywords: ['result', 'marks', 'grade', 'gpa', 'ফলাফল', 'নম্বর'] },
   { href: '/student/attendance', titleKey: 'student.attendanceTitle', keywords: ['attendance & leave', 'উপস্থিতি ও ছুটি', 'attendance', 'present', 'absent', 'উপস্থিতি', 'হাজিরা'] },
   { href: '/student/leave', titleKey: 'student.leaveTitle', keywords: ['leave', 'holiday', 'absent', 'ছুটি'] },
-  { href: '/student/fees', titleKey: 'student.feesTitle', keywords: ['fees & notices', 'ফি ও নোটিশ', 'fee', 'due', 'payment', 'ফি', 'বকেয়া', 'বেতন'] },
-  { href: '/student/notices', titleKey: 'student.noticesTitle', keywords: ['notice', 'announcement', 'নোটিশ', 'বিজ্ঞপ্তি'] },
+  { href: '/student/fees', titleKey: 'student.feesTitle', keywords: ['fee', 'due', 'payment', 'ফি', 'বকেয়া', 'বেতন'] },
   { href: '/student/profile', titleKey: 'student.profileTitle', keywords: ['profile', 'correction', 'photo', 'তথ্য', 'সংশোধন'] },
 ]

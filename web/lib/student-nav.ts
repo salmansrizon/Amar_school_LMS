@@ -35,7 +35,11 @@ export const STUDENT_NAV_GROUPS: StudentNavGroup[] = [
     labelKey: 'student.navGroup.overview',
     shortLabelKey: 'student.nav.home',
     icon: 'dashboard',
-    items: [{ key: 'home', href: '/student', titleKey: 'student.nav.home' }],
+    // Notices sit beside Home: read several times a week, and not a money matter.
+    items: [
+      { key: 'home', href: '/student', titleKey: 'student.nav.home' },
+      { key: 'notices', href: '/student/notices', titleKey: 'student.nav.notices' },
+    ],
   },
   {
     key: 'study',
@@ -74,10 +78,7 @@ export const STUDENT_NAV_GROUPS: StudentNavGroup[] = [
     labelKey: 'student.navGroup.money',
     shortLabelKey: 'student.tab.money',
     icon: 'fees',
-    items: [
-      { key: 'fees', href: '/student/fees', titleKey: 'student.nav.fees' },
-      { key: 'notices', href: '/student/notices', titleKey: 'student.nav.notices' },
-    ],
+    items: [{ key: 'fees', href: '/student/fees', titleKey: 'student.nav.fees' }],
   },
 ]
 
