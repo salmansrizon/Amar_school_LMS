@@ -1,12 +1,16 @@
 import { currentLang } from '@/lib/i18n-server'
-import { t } from '@/lib/i18n'
+import { t, formatNumber } from '@/lib/i18n'
 import { dayLabel } from '@/lib/routine'
 import { getStudentContext } from '@/lib/student/context'
 import { loadStudentRoutine } from '@/lib/student/routine-source'
 import { usedPeriods, weekPlan } from '@/lib/student/routine'
 import { dayOfWeek, schoolToday } from '@/lib/school-time'
 import { PrintTrigger } from '@/components/print/print-trigger'
+import { studentGroupTabs } from '@/lib/student-nav'
 import { pageTitle } from '@/lib/page-title'
+import { Card, PageHeader, TableFrame, tdClass, thClass, trClass } from '@/components/ui/page'
+import { SectionTabs } from '@/components/ui/section-tabs'
+import { EmptyState } from '@/components/ui/states'
 
 // The full weekly routine (#444). Sun–Thu across, periods down.
 //
@@ -26,114 +30,111 @@ export default async function StudentRoutinePage() {
   // count across from রবি every time they opened it.
   const todayColumn = dayOfWeek(schoolToday())
 
+  const fmt = (n: number) => formatNumber(n, lang)
+  const meta = (slot: { teacher_name?: string | null; room_name?: string | null }) =>
+    [slot.teacher_name, slot.room_name].filter(Boolean).join(' · ')
+
   return (
-    <main className="w-full p-6">
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-2xl font-extrabold">{t('student.routineTitle', lang)}</h1>
-        {periods.length > 0 && (
-          <PrintTrigger href="/student/routine/print" label={t('student.printRoutine', lang)} />
-        )}
-      </div>
+    <main className="w-full px-gutter pt-section pb-16">
+      <PageHeader
+        title={t('student.routineTitle', lang)}
+        crumbs={{ lang, items: [{ label: t('student.nav.home', lang), href: '/student' }, { label: t('student.navGroup.study', lang) }] }}
+        actions={
+          periods.length > 0 ? (
+            <PrintTrigger href="/student/routine/print" label={t('student.printRoutine', lang)} />
+          ) : undefined
+        }
+      />
+      <SectionTabs
+        tabs={studentGroupTabs('study')}
+        active="/student/routine"
+        lang={lang}
+        label={t('student.navGroup.study', lang)}
+      />
 
       {!periods.length ? (
-        <p className="rounded-lg border border-line bg-paper p-6 text-sm text-muted">
-          {t('student.noRoutine', lang)}
-        </p>
+        <EmptyState
+          lang={lang}
+          title={t('student.noRoutine', lang)}
+          action={{ href: '/student', label: t('student.nav.home', lang) }}
+        />
       ) : (
         <>
-        {/* One card per day below sm. A weekly grid on a 390px screen was a
-            595px table inside a 340px scroller: readable only by dragging, and
-            never showing a whole day at once. */}
-        <div className="space-y-3 sm:hidden">
-          {week.map((d) => (
-            <section
-              key={d.day}
-              className={`rounded-lg border bg-paper p-4 ${
-                d.day === todayColumn ? 'border-brand-300 bg-brand-50/40' : 'border-line'
-              }`}
-            >
-              <h2 className="mb-2 text-sm font-bold">
-                {dayLabel(d.day, lang)}
-                {d.day === todayColumn && (
-                  <span className="ml-2 rounded-full bg-brand-500 px-2 py-0.5 text-[11px] font-semibold text-white">
-                    {t('student.today', lang)}
-                  </span>
-                )}
-              </h2>
-              {!d.periods.length ? (
-                <p className="text-xs text-muted">—</p>
-              ) : (
-                <ul className="divide-y divide-line">
-                  {d.periods.map((slot) => (
-                    <li key={slot.period} className="flex gap-3 py-2">
-                      <span className="w-5 shrink-0 text-sm font-semibold text-brand-700">
-                        {slot.period}
-                      </span>
-                      <span className="min-w-0">
-                        <span className="block text-sm font-medium">{slot.subject_name ?? '—'}</span>
-                        <span className="block text-xs text-muted">
-                          {[slot.teacher_name, slot.room_name].filter(Boolean).join(' · ')}
+          {/* One card per day below sm. A weekly grid on a 390px screen was a
+              595px table inside a 340px scroller: readable only by dragging,
+              and never showing a whole day at once. */}
+          <div className="grid gap-grid sm:hidden">
+            {week.map((d) => (
+              <Card key={d.day} tone={d.day === todayColumn ? 'brand' : undefined}>
+                <h2 className="mb-2 text-sm font-bold">
+                  {dayLabel(d.day, lang)}
+                  {d.day === todayColumn && (
+                    <span className="ml-2 rounded-full bg-brand-500 px-2 py-0.5 text-[11px] font-semibold text-white">
+                      {t('student.today', lang)}
+                    </span>
+                  )}
+                </h2>
+                {!d.periods.length ? (
+                  <p className="text-xs text-muted">—</p>
+                ) : (
+                  <ul className="divide-y divide-line">
+                    {d.periods.map((slot) => (
+                      <li key={slot.period} className="flex gap-3 py-2">
+                        <span className="w-5 shrink-0 text-sm font-semibold text-brand-700">{fmt(slot.period)}</span>
+                        <span className="min-w-0">
+                          <span className="block text-sm font-medium">{slot.subject_name ?? '—'}</span>
+                          <span className="block text-xs text-muted">{meta(slot)}</span>
                         </span>
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </section>
-          ))}
-        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </Card>
+            ))}
+          </div>
 
-        <div className="hidden overflow-x-auto rounded-lg border border-line bg-paper sm:block">
-          <table className="w-full min-w-[36rem] border-collapse">
-            <thead>
-              <tr className="border-b border-line-strong">
-                <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">
-                  {t('student.period', lang)}
-                </th>
-                {week.map((d) => (
-                  <th
-                    key={d.day}
-                    aria-current={d.day === todayColumn ? 'date' : undefined}
-                    className={`px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide ${
-                      d.day === todayColumn ? 'bg-brand-50 text-brand-700' : 'text-muted'
-                    }`}
-                  >
-                    {dayLabel(d.day, lang)}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {periods.map((period) => (
-                <tr key={period} className="border-b border-line last:border-0">
-                  <td className="px-3 py-2 text-sm font-semibold text-brand-700">{period}</td>
-                  {week.map((d) => {
-                    const slot = d.periods.find((p) => p.period === period)
-                    return (
-                      <td
+          <div className="hidden sm:block">
+            <Card padded={false}>
+              <TableFrame>
+                <thead>
+                  <tr>
+                    <th className={thClass}>{t('student.period', lang)}</th>
+                    {week.map((d) => (
+                      <th
                         key={d.day}
-                        className={`px-3 py-2 align-top ${d.day === todayColumn ? 'bg-brand-50/50' : ''}`}
+                        aria-current={d.day === todayColumn ? 'date' : undefined}
+                        className={`${thClass} ${d.day === todayColumn ? '!bg-brand-50 text-brand-700' : ''}`}
                       >
-                        {slot ? (
-                          <>
-                            <span className="block text-sm font-medium">
-                              {slot.subject_name ?? '—'}
-                            </span>
-                            <span className="block text-xs text-muted">
-                              {[slot.teacher_name, slot.room_name].filter(Boolean).join(' · ')}
-                            </span>
-                          </>
-                        ) : (
-                          <span className="text-muted">—</span>
-                        )}
-                      </td>
-                    )
-                  })}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                        {dayLabel(d.day, lang)}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {periods.map((period) => (
+                    <tr key={period} className={trClass}>
+                      <td className={`${tdClass} font-semibold text-brand-700`}>{fmt(period)}</td>
+                      {week.map((d) => {
+                        const slot = d.periods.find((p) => p.period === period)
+                        return (
+                          <td key={d.day} className={`${tdClass} align-top ${d.day === todayColumn ? 'bg-brand-50/50' : ''}`}>
+                            {slot ? (
+                              <>
+                                <span className="block font-medium">{slot.subject_name ?? '—'}</span>
+                                <span className="block text-xs text-muted">{meta(slot)}</span>
+                              </>
+                            ) : (
+                              <span className="text-muted">—</span>
+                            )}
+                          </td>
+                        )
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </TableFrame>
+            </Card>
+          </div>
         </>
       )}
     </main>
