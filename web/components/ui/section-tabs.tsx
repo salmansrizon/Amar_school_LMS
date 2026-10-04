@@ -46,7 +46,7 @@ export function SectionTabs({
             key={tab.href}
             href={tab.href}
             aria-current={current ? 'page' : undefined}
-            className={`flex shrink-0 items-center gap-2 whitespace-nowrap rounded-t-md px-4 py-2 ${
+            className={`flex shrink-0 items-center gap-2 whitespace-nowrap rounded-t-md px-4 py-2 max-sm:min-h-11 ${
               current
                 ? 'border-b-2 border-brand-500 text-brand-600'
                 : 'text-muted hover:bg-paper hover:text-ink'
