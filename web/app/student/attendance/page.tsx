@@ -1,7 +1,7 @@
 import { CalendarOff, CircleCheck, CircleX } from 'lucide-react'
 import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
-import { t, localeOf, numberFmt } from '@/lib/i18n'
+import { t, localeOf, numberFmt, formatDate } from '@/lib/i18n'
 import { getStudentContext } from '@/lib/student/context'
 import { schoolToday } from '@/lib/school-time'
 import { monthGrid, monthLeadIn, monthRange, shiftMonth, attendancePercent } from '@/lib/student/attendance'
@@ -13,6 +13,8 @@ import { Icon } from '@/components/school-icons'
 import { Card, PageHeader } from '@/components/ui/page'
 import { SectionTabs } from '@/components/ui/section-tabs'
 import { StatCard, StatGrid, WarningBanner } from '@/components/ui/widgets'
+import { MonthGridFrame } from '@/app/school/attendance/calendar-shell'
+import { isWeekendColumn } from '@/lib/employee-attendance-calendar'
 
 // The Student's own attendance (#451).
 //
@@ -29,7 +31,7 @@ export default async function StudentAttendancePage({
 }) {
   const { y, m } = await searchParams
   const lang = await currentLang()
-  const { supabase } = await getStudentContext()
+  const { supabase, student } = await getStudentContext()
 
   const today = schoolToday()
   const year = Number(y) || Number(today.slice(0, 4))
@@ -39,7 +41,7 @@ export default async function StudentAttendancePage({
   // have not happened yet are not absences. A past month runs to its last day.
   const counted = attendanceRange(start, end, today)
 
-  const [records, leaves, schoolOff, centralOff, absent] = await Promise.all([
+  const [records, leaves, schoolOff, centralOff, absent, school] = await Promise.all([
     counted
       ? supabase.from('attendance_records').select('att_date').gte('att_date', counted.start).lte('att_date', counted.end)
       : Promise.resolve({ data: [] as { att_date: string }[] }),
@@ -49,7 +51,11 @@ export default async function StudentAttendancePage({
     counted
       ? supabase.rpc('student_absent_working_days', { p_start: counted.start, p_end: counted.end })
       : Promise.resolve({ data: 0 }),
+    // The weekly off-days only tint the weekend columns and mark those cells;
+    // the counts above still come from the shared working-day rule.
+    supabase.from('schools').select('weekly_off_days').eq('id', student.school_id).maybeSingle(),
   ])
+  const weeklyOffDays: number[] = (school.data?.weekly_off_days as number[] | null) ?? []
 
   const presentDates = (records.data ?? []).map((r) => r.att_date as string)
   const offDays = [
@@ -72,7 +78,12 @@ export default async function StudentAttendancePage({
   // With no present row the school has not taken attendance; 0% would accuse
   // the student of something nobody recorded (same rule as the home).
   const percent = presentDates.length ? attendancePercent(presentDates.length, absentDays) : null
-  const offCount = grid.filter((d) => d.state === 'off').length
+  // Holidays plus the school's weekly off-days, the same cells the calendar
+  // below marks as off.
+  const firstColumn = monthLeadIn(year, month)
+  const offCount = grid.filter(
+    (d, i) => d.state === 'off' || (d.state === 'blank' && isWeekendColumn(firstColumn + i, weeklyOffDays)),
+  ).length
   const fmt = (n: number) => num.format(n)
 
   const prev = shiftMonth(year, month, -1)
@@ -84,15 +95,6 @@ export default async function StudentAttendancePage({
     timeZone: 'UTC',
   })
 
-  // Sunday-start, to match the routine's রবি … বৃহঃ week. 2026-02-01 is a
-  // Sunday and is only ever used to name the seven weekdays.
-  const A_SUNDAY = Date.UTC(2026, 1, 1)
-  const weekdays = Array.from({ length: 7 }, (_, i) =>
-    new Date(A_SUNDAY + i * 86_400_000).toLocaleDateString(locale, {
-      weekday: 'short',
-      timeZone: 'UTC',
-    }),
-  )
   const leadIn = monthLeadIn(year, month)
 
   const tone: Record<string, string> = {
@@ -100,6 +102,13 @@ export default async function StudentAttendancePage({
     leave: 'bg-sky-soft text-sky-deep',
     off: 'bg-paper-muted text-muted',
     blank: 'bg-paper text-muted',
+  }
+  const dot: Record<string, string> = { present: 'bg-mint-deep', leave: 'bg-sky', off: 'bg-line-strong', blank: '' }
+  const stateLabel: Record<string, string> = {
+    present: t('student.present', lang),
+    leave: t('student.onLeave', lang),
+    off: t('student.offDay', lang),
+    blank: '',
   }
 
   const chip =
@@ -162,25 +171,54 @@ export default async function StudentAttendancePage({
       </StatGrid>
 
       <Card>
-        <div className="grid grid-cols-7 gap-1">
-          {weekdays.map((name) => (
-            <div key={name} className="p-1 text-center text-[11px] font-semibold text-muted">
-              {name}
-            </div>
-          ))}
+        {/* The owner's month grid (calendar-shell): bordered cells, weekday
+            header, weekend columns tinted. Each cell: the date top-left (today
+            in a filled circle) and the day's state as a chip; on a phone the
+            chip shrinks to a dot and the state is in the cell's label. */}
+        <MonthGridFrame monthLabel={monthLabel} lang={lang} weeklyOffDays={weeklyOffDays}>
           {Array.from({ length: leadIn }, (_, i) => (
-            <div key={`lead-${i}`} aria-hidden />
+            <div key={`lead-${i}`} aria-hidden className="min-h-14 bg-paper-muted/30 sm:min-h-24" />
           ))}
-          {grid.map((day) => (
-            <div
-              key={day.date}
-              title={day.label ?? undefined}
-              className={`flex min-h-11 items-center justify-center rounded-md p-1 text-center text-xs ${tone[day.state]}`}
-            >
-              {num.format(Number(day.date.slice(8)))}
-            </div>
+          {grid.map((day, i) => {
+            const weekend = isWeekendColumn(leadIn + i, weeklyOffDays)
+            // A weekly off-day with no record reads as off, like a holiday.
+            const state = day.state === 'blank' && weekend ? 'off' : day.state
+            const isToday = day.date === today
+            const future = day.date > today
+            const text = stateLabel[state]
+            return (
+              <div
+                key={day.date}
+                role="gridcell"
+                aria-label={[formatDate(day.date, lang), text, day.label].filter(Boolean).join(', ')}
+                aria-current={isToday ? 'date' : undefined}
+                title={day.label ?? undefined}
+                className={`flex min-h-14 flex-col gap-1 p-1.5 sm:min-h-24 sm:p-2 ${
+                  weekend ? 'bg-paper-muted/50' : 'bg-paper'
+                } ${future ? 'opacity-60' : ''}`}
+              >
+                <span
+                  className={`inline-flex size-6 items-center justify-center self-start rounded-full text-xs font-semibold sm:size-7 sm:text-sm ${
+                    isToday ? 'bg-brand-600 text-white' : 'text-ink'
+                  }`}
+                >
+                  {num.format(Number(day.date.slice(8)))}
+                </span>
+                {text && (
+                  <>
+                    <span className={`hidden truncate rounded px-1.5 py-0.5 text-xs font-semibold sm:block ${tone[state]}`}>
+                      {day.label && state === 'off' ? day.label : text}
+                    </span>
+                    <span className={`size-2 self-start rounded-full sm:hidden ${dot[state]}`} aria-hidden />
+                  </>
+                )}
+              </div>
+            )
+          })}
+          {Array.from({ length: (7 - ((leadIn + grid.length) % 7)) % 7 }, (_, i) => (
+            <div key={`tail-${i}`} aria-hidden className="min-h-14 bg-paper-muted/30 sm:min-h-24" />
           ))}
-        </div>
+        </MonthGridFrame>
 
         <p className="mt-4 flex flex-wrap gap-2 text-xs text-muted">
           <span className="rounded bg-mint-soft px-2 py-1 text-mint-deep">{t('student.present', lang)}</span>
