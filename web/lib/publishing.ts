@@ -1,5 +1,6 @@
 import type { Lang } from '@/lib/i18n'
 import { classCatalogueLabel } from '@/lib/class-catalogue'
+import { addDays, schoolToday } from '@/lib/school-time'
 
 // Publishing (issue #37, PRD §5.8): notices, homework, lesson plans, daily
 // lessons and exam-prep suggestions share one table (`publications`, kind
@@ -325,4 +326,48 @@ const PHOTO_MIME_EXT: Record<string, string> = {
 /** Storage extension for an allowed gallery/publication image MIME type; null = not allowed. */
 export function galleryImageExtension(mimeType: string): string | null {
   return PHOTO_MIME_EXT[mimeType] ?? null
+}
+
+// ---------------------------------------------------------------- due date
+// Homework's optional due date (#705). The form sends a calendar day; the
+// student portal compares by school day in Asia/Dhaka (lib/student/dashboard.ts
+// taskUrgency), so the day is stored as its last second there: due "by the end
+// of that school day", no time picker.
+
+export type DueDateError = 'invalid' | 'too-far'
+
+export const DUE_DATE_ERROR_KEY = {
+  invalid: 'notices.dueDateInvalid',
+  'too-far': 'notices.dueDateTooFar',
+} as const satisfies Record<DueDateError, string>
+
+/** A due date further ahead than this is a typo, not a plan. */
+export const DUE_DATE_MAX_DAYS_AHEAD = 366 * 2
+
+/** `YYYY-MM-DD` -> the timestamp of that day's last second in Asia/Dhaka
+ *  (`T23:59:59+06:00`; Bangladesh has no DST). Empty -> null. A past day is
+ *  allowed: a teacher may record homework that was already due. */
+export function dueDateToTimestamp(
+  dueDate: string | null | undefined,
+  today: string = schoolToday(),
+): { dueAt: string | null } | { error: DueDateError } {
+  const day = (dueDate ?? '').trim()
+  if (!day) return { dueAt: null }
+  // addDays round-trips a real calendar day unchanged; 2026-02-31 does not.
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(day) || addDays(day, 0) !== day) return { error: 'invalid' }
+  if (day > addDays(today, DUE_DATE_MAX_DAYS_AHEAD)) return { error: 'too-far' }
+  return { dueAt: `${day}T23:59:59+06:00` }
+}
+
+/** What `publications.due_at` is written with. Only homework carries a due
+ *  date: any other kind stores null whatever was sent. `undefined` means the
+ *  caller did not mention a date, so the column is left out of the write. */
+export function publicationDueAt(
+  kind: PublicationKind,
+  dueDate: string | null | undefined,
+  today: string = schoolToday(),
+): { dueAt: string | null | undefined } | { error: DueDateError } {
+  if (kind !== 'homework') return { dueAt: null }
+  if (dueDate === undefined) return { dueAt: undefined }
+  return dueDateToTimestamp(dueDate, today)
 }

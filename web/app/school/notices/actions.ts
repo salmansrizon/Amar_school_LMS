@@ -5,7 +5,13 @@ import { createClient } from '@/lib/supabase/server'
 import { currentActor, type Actor } from '@/lib/school/actor'
 import { currentLang } from '@/lib/i18n-server'
 import { t } from '@/lib/i18n'
-import { galleryImageExtension, validateTargetSelection, TARGET_SELECTION_ERROR_KEY } from '@/lib/publishing'
+import {
+  DUE_DATE_ERROR_KEY,
+  galleryImageExtension,
+  publicationDueAt,
+  validateTargetSelection,
+  TARGET_SELECTION_ERROR_KEY,
+} from '@/lib/publishing'
 import type { Importance, PublicationKind, TargetScope } from '@/lib/publishing'
 import { createSignedUpload, type SignedUpload } from '@/lib/storage/signed-upload'
 
@@ -43,6 +49,9 @@ export interface PublicationInput {
   targetSection: string
   imagePath: string | null
   linkUrl: string
+  /** Homework only (#705): the school day it is due, `YYYY-MM-DD`; null or ''
+   *  clears it. Left out = the stored date is not touched. */
+  dueDate?: string | null
 }
 
 /** The validated column values a publication is written with — one definition
@@ -73,6 +82,8 @@ async function publicationColumns(me: Actor, input: PublicationInput, pinnedYear
     section: input.targetSection,
   })
   if (targetError) return { error: t(TARGET_SELECTION_ERROR_KEY[targetError], await currentLang()) }
+  const due = publicationDueAt(input.kind, input.dueDate)
+  if ('error' in due) return { error: t(DUE_DATE_ERROR_KEY[due.error], await currentLang()) }
   // imagePath (if any) was already validated by publicationImageUploadPath and
   // the bucket's own type/size limits at upload time — nothing more to check.
 
@@ -95,6 +106,7 @@ async function publicationColumns(me: Actor, input: PublicationInput, pinnedYear
       target_group_department: broadcast ? input.targetGroupDepartment || null : null,
       target_section: broadcast ? input.targetSection || null : null,
       link_url: input.linkUrl.trim() ? input.linkUrl.trim() : null,
+      ...(due.dueAt === undefined ? {} : { due_at: due.dueAt }),
     },
   }
 }

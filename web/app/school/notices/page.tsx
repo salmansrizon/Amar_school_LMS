@@ -52,6 +52,7 @@ type Row = {
   target_group_department: string | null
   target_section: string | null
   created_at: string
+  due_at: string | null
 }
 
 const PAGE_SIZE = 20
@@ -75,7 +76,7 @@ export default async function NoticesPage({
       supabase
         .from('publications')
         .select(
-          'id, kind, title, importance, target_scope, class_offering_id, target_class_name, target_academic_year, target_shift, target_group_department, target_section, created_at',
+          'id, kind, title, importance, target_scope, class_offering_id, target_class_name, target_academic_year, target_shift, target_group_department, target_section, created_at, due_at',
         )
         .order('created_at', { ascending: false })
         .order('id')
@@ -104,7 +105,21 @@ export default async function NoticesPage({
     <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ${cls}`}>{label}</span>
   )
   const columns: Column<Row>[] = [
-    { key: 'title', header: t('notices.colTitle', lang), card: 'title', cell: (r) => <span className="font-semibold">{r.title}</span> },
+    {
+      key: 'title',
+      header: t('notices.colTitle', lang),
+      card: 'title',
+      cell: (r) => (
+        <>
+          <span className="font-semibold">{r.title}</span>
+          {r.kind === 'homework' && r.due_at && (
+            <span className="block text-xs font-normal text-muted">
+              {t('student.taskDue', lang)}: {formatDate(r.due_at, lang)}
+            </span>
+          )}
+        </>
+      ),
+    },
     { key: 'kind', header: t('notices.colType', lang), card: 'badge', cell: (r) => badge(kindBadgeClass(r.kind), kindLabel(r.kind, lang)) },
     {
       key: 'importance',

@@ -9,7 +9,7 @@ import {
   targetAudienceLabel,
 } from '@/lib/publishing'
 import { PublicationActions } from './detail-controls'
-import { formatDate } from '@/lib/i18n'
+import { formatDate, t } from '@/lib/i18n'
 import { Markdown } from '@/components/markdown'
 
 // Shared detail body for notice/homework/lesson-plan/daily-lesson/exam-prep
@@ -21,7 +21,7 @@ export const getNotice = cache(async (id: string) => {
   const { data: row } = await supabase
     .from('publications')
     .select(
-      'id, kind, title, content, importance, target_scope, class_offering_id, target_class_name, target_academic_year, target_shift, target_group_department, target_section, image_path, link_url, created_at',
+      'id, kind, title, content, importance, target_scope, class_offering_id, target_class_name, target_academic_year, target_shift, target_group_department, target_section, image_path, link_url, created_at, due_at',
     )
     .eq('id', id)
     .maybeSingle()
@@ -69,6 +69,11 @@ export function NoticeDetail({ notice, lang }: { notice: Notice; lang: Lang }) {
         <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${importanceBadgeClass(row.importance)}`}>
           {importanceLabel(row.importance, lang)}
         </span>
+        {row.kind === 'homework' && row.due_at && (
+          <span className="text-xs text-muted">
+            {t('student.taskDue', lang)}: {formatDate(row.due_at, lang)}
+          </span>
+        )}
       </div>
       {row.content && <Markdown text={row.content} className="mb-4 max-w-prose" />}
       {row.image_path && (
