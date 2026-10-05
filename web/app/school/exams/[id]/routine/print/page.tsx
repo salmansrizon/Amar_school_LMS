@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
-import { t, type Lang } from '@/lib/i18n'
+import { t, formatDate, formatNumber, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { dateToDayOfWeek, sortRoutineEntries } from '@/lib/exam-setup'
 import { dayLabel } from '@/lib/routine'
@@ -56,7 +56,7 @@ export default async function ExamRoutinePrintPage({
     (rooms ?? []).map((r) => [r.id, roomVenueLabel(embeddedBuildingName(r), r.name)]),
   )
   const sorted = sortRoutineEntries(entries ?? [])
-  const examLabel = `${exam.name} (${exam.exam_year})`
+  const examLabel = `${exam.name} (${formatNumber(exam.exam_year, lang, { useGrouping: false })})`
 
   // #532: with no entries this rendered the institute header, the column titles
   // and nothing else — a document that looks finished right up until it is handed
@@ -116,7 +116,7 @@ export default async function ExamRoutinePrintPage({
                 // Banded rows: a reader tracking one line across five columns
                 // on a wall needs the row, not the grid, to carry the eye.
                 <tr key={i} className={i % 2 ? 'bg-paper-muted' : undefined}>
-                  <td className={`${tdClass} text-center font-semibold`}>{e.exam_date}</td>
+                  <td className={`${tdClass} text-center font-semibold`}>{formatDate(e.exam_date, lang)}</td>
                   <td className={`${tdClass} text-center`}>
                     {dayLabel(dateToDayOfWeek(e.exam_date), lang)}
                   </td>

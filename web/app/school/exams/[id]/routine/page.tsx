@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation'
 import { schoolCrumbs } from '@/lib/school-crumbs'
 import { PageHeader } from '@/components/ui/page'
 import { currentLang } from '@/lib/i18n-server'
-import { t, type Lang } from '@/lib/i18n'
+import { t, formatNumber, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { mayActOnExamClass } from '@/lib/school/exam-class-guard'
 import { subjectsForClass } from '@/lib/students'
@@ -55,7 +55,7 @@ export default async function ExamRoutinePage({
     ? subjectsForClass(allSubjects ?? [], exam.class_id).map((s) => ({ id: s.id, label: s.name }))
     : []
   const roomOpts: Option[] = (rooms ?? []).map((r) => ({ id: r.id, label: r.name }))
-  const examLabel = `${exam.name} (${exam.exam_year})`
+  const examLabel = `${exam.name} (${formatNumber(exam.exam_year, lang, { useGrouping: false })})`
 
   return (
     <div>

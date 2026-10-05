@@ -3,7 +3,7 @@ import { PrintTrigger } from '@/components/print/print-trigger'
 import { schoolCrumbs } from '@/lib/school-crumbs'
 import { notFound } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
-import { t, type Lang } from '@/lib/i18n'
+import { t, formatNumber, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { classSectionLabel } from '@/lib/students'
 import { loadExamRosterResults } from '@/lib/exam-print-data'
@@ -63,10 +63,10 @@ export default async function ResultBookPage({
   const examOptions: ExamOption[] = (exams ?? []).map((e) => {
     const cls = e.class_id ? classById.get(e.class_id) : null
     const clsLabel = cls ? classSectionLabel(cls.name, cls.section) : null
-    return { id: e.id, label: `${e.name} ${e.exam_year}${clsLabel ? ` - ${clsLabel}` : ''}` }
+    return { id: e.id, label: `${e.name} ${formatNumber(e.exam_year, lang, { useGrouping: false })}${clsLabel ? ` - ${clsLabel}` : ''}` }
   })
 
-  const examLabel = `${roster.exam.name} ${roster.exam.exam_year}`
+  const examLabel = `${roster.exam.name} ${formatNumber(roster.exam.exam_year, lang, { useGrouping: false })}`
 
   const header = (
     <PageHeader
@@ -155,13 +155,13 @@ export default async function ResultBookPage({
                 const noMarks = row.marksMissing === row.subjectResults.length
                 return (
                   <tr key={row.studentId}>
-                    <td className={`px-4 py-3 ${railClass(incomplete ? undefined : passed ? 'mint' : 'alert')}`}>{row.rankPosition ?? '—'}</td>
-                    <td className="px-4 py-3">{row.rollNumber ?? '—'}</td>
+                    <td className={`px-4 py-3 ${railClass(incomplete ? undefined : passed ? 'mint' : 'alert')}`}>{row.rankPosition != null ? formatNumber(row.rankPosition, lang) : '—'}</td>
+                    <td className="px-4 py-3">{row.rollNumber != null ? formatNumber(row.rollNumber, lang) : '—'}</td>
                     <td className="px-4 py-3 font-medium">{row.fullName}</td>
                     <td className="px-4 py-3">
-                      {noMarks ? '—' : `${row.totalObtained} / ${row.totalFull}`}
+                      {noMarks ? '—' : `${formatNumber(row.totalObtained, lang)} / ${formatNumber(row.totalFull, lang)}`}
                     </td>
-                    <td className="px-4 py-3">{!incomplete && row.overall?.gpa !== null && row.overall?.gpa !== undefined ? row.overall.gpa.toFixed(2) : '—'}</td>
+                    <td className="px-4 py-3">{!incomplete && row.overall?.gpa !== null && row.overall?.gpa !== undefined ? formatNumber(row.overall.gpa, lang, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '—'}</td>
                     <td className="px-4 py-3">
                       {!incomplete && row.overall?.label ? <Pill tone={gradeTone(passed, row.overall.gpa)}>{row.overall.label}</Pill> : '—'}
                     </td>

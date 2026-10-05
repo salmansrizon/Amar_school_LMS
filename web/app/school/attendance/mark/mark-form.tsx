@@ -152,7 +152,7 @@ export function MarkAttendanceForm({
       <div className="sticky top-14 z-10 mb-3 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-line bg-paper/95 p-2 backdrop-blur">
         <div className="text-sm text-muted">
           {formatNumber(presentCount, lang)}/{formatNumber(marking.length, lang)} {t('attendance.presentShort', lang)}
-          {leaveCount > 0 && ` · ${leaveCount} ${t('status.on_leave', lang)}`}
+          {leaveCount > 0 && ` · ${formatNumber(leaveCount, lang)} ${t('status.on_leave', lang)}`}
         </div>
         <div className="flex gap-2">
           <button

@@ -3,7 +3,7 @@ import { schoolCrumbs } from '@/lib/school-crumbs'
 import { PageHeader } from '@/components/ui/page'
 import type { ReactNode } from 'react'
 import { currentLang } from '@/lib/i18n-server'
-import { t, type Lang } from '@/lib/i18n'
+import { t, formatNumber, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { mayActOnExamClass } from '@/lib/school/exam-class-guard'
 import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
@@ -72,7 +72,7 @@ export default async function PromotionPage({
     .eq('id', id)
     .maybeSingle()
   if (!exam) notFound()
-  const examLabel = `${exam.name} (${exam.exam_year})`
+  const examLabel = `${exam.name} (${formatNumber(exam.exam_year, lang, { useGrouping: false })})`
 
   const header = (
     <PageHeader

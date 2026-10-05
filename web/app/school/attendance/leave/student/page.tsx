@@ -1,5 +1,5 @@
 import { currentLang } from '@/lib/i18n-server'
-import { t, type Lang, formatNumber } from '@/lib/i18n'
+import { t, type Lang, formatDate, formatNumber } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { schoolRosterRead, filterSchoolRoster } from '@/lib/school/roster-source'
 import { AttendanceTabs } from '../../attendance-tabs'
@@ -110,8 +110,8 @@ export default async function StudentLeaveManagementPage({
       cell: (l) => <span className="font-semibold">{l.student?.full_name ?? '—'}</span>,
     },
     { key: 'class', header: t('attendance.classSection', lang), cell: (l) => classOf(l.student) ?? dash },
-    { key: 'from', header: t('attendance.leaveFromCol', lang), cell: (l) => l.from_day },
-    { key: 'to', header: t('attendance.leaveToCol', lang), cell: (l) => l.to_day },
+    { key: 'from', header: t('attendance.leaveFromCol', lang), cell: (l) => formatDate(l.from_day, lang) },
+    { key: 'to', header: t('attendance.leaveToCol', lang), cell: (l) => formatDate(l.to_day, lang) },
     {
       key: 'reason',
       header: t('attendance.leaveReasonCol', lang),

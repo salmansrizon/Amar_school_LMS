@@ -1,5 +1,5 @@
 import { currentLang } from '@/lib/i18n-server'
-import { t, type Lang } from '@/lib/i18n'
+import { t, type Lang, formatDate } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { AttendanceTabs } from '../../attendance-tabs'
 import Form from 'next/form'
@@ -104,8 +104,8 @@ export default async function EmployeeLeaveManagementPage({
       card: 'title',
       cell: (l) => <span className="font-semibold">{l.name}</span>,
     },
-    { key: 'from', header: t('attendance.leaveFromCol', lang), cell: (l) => l.from_day },
-    { key: 'to', header: t('attendance.leaveToCol', lang), cell: (l) => l.to_day },
+    { key: 'from', header: t('attendance.leaveFromCol', lang), cell: (l) => formatDate(l.from_day, lang) },
+    { key: 'to', header: t('attendance.leaveToCol', lang), cell: (l) => formatDate(l.to_day, lang) },
     {
       key: 'reason',
       header: t('attendance.leaveReasonCol', lang),

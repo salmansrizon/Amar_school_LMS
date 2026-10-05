@@ -1,4 +1,4 @@
-import { t, type Lang } from '@/lib/i18n'
+import { formatDate, formatNumber, t, type Lang } from '@/lib/i18n'
 import { Pill, type Chip } from '@/components/data-table/data-table'
 import { LeaveActions } from './leave-controls'
 
@@ -31,7 +31,7 @@ export function leaveStatusChips(leaves: { status: string }[], lang: Lang): Chip
   return LEAVE_STATUSES.map((s) => ({
     param: 'status',
     value: s,
-    label: `${t(KEY[s], lang)} (${leaves.filter((l) => l.status === s).length})`,
+    label: `${t(KEY[s], lang)} (${formatNumber(leaves.filter((l) => l.status === s).length, lang)})`,
   }))
 }
 
@@ -49,8 +49,8 @@ export function LeaveDetail({
 }) {
   const rows = [
     ...facts,
-    { label: t('attendance.leaveFromCol', lang), value: leave.from_day },
-    { label: t('attendance.leaveToCol', lang), value: leave.to_day },
+    { label: t('attendance.leaveFromCol', lang), value: formatDate(leave.from_day, lang) },
+    { label: t('attendance.leaveToCol', lang), value: formatDate(leave.to_day, lang) },
     { label: t('attendance.leaveReasonCol', lang), value: leave.reason ?? '—' },
   ]
   return (

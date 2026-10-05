@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
-import { t, type Lang } from '@/lib/i18n'
+import { t, formatNumber, type Lang } from '@/lib/i18n'
 import { makeOldStudents, promoteStudents, setClassFinal } from './actions'
 import { ComboboxField } from '@/components/ui/combobox-field'
 import { SelectField } from '@/components/ui/select-field'
@@ -157,7 +157,7 @@ export function PromotionTable({
                       }}
                     />
                   </td>
-                  <td className="px-4 py-3">{row.roll_number ?? '—'}</td>
+                  <td className="px-4 py-3">{row.roll_number != null ? formatNumber(row.roll_number, lang) : '—'}</td>
                   <td className="px-4 py-3 font-medium">{row.full_name}</td>
                   <td className="px-4 py-3">
                     <span
@@ -176,7 +176,7 @@ export function PromotionTable({
                           : t('promotion.fail', lang)}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-right">{row.position ?? '—'}</td>
+                  <td className="px-4 py-3 text-right">{row.position != null ? formatNumber(row.position, lang) : '—'}</td>
                   <td className="px-4 py-3">
                     {row.incomplete ? (
                       <span className="text-muted">{t('exams.marksNotEntered', lang)}</span>
@@ -332,7 +332,7 @@ export function GraduatingSection({
                     }}
                   />
                 </td>
-                <td className="px-4 py-3">{row.roll_number ?? '—'}</td>
+                <td className="px-4 py-3">{row.roll_number != null ? formatNumber(row.roll_number, lang) : '—'}</td>
                 <td className="px-4 py-3 font-medium">{row.full_name}</td>
                 <td className="px-4 py-3">
                   <span className="rounded-full bg-mint-soft px-2 py-0.5 text-xs font-semibold text-mint-deep">
