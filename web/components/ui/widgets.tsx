@@ -26,7 +26,31 @@ const TEXT: Record<WidgetTone, string> = {
   muted: 'text-muted',
 }
 
+/** Solid fill per tone: progress bars and status dots. */
+const FILL: Record<WidgetTone, string> = {
+  brand: 'bg-brand-500',
+  mint: 'bg-mint-deep',
+  sun: 'bg-sun',
+  alert: 'bg-alert',
+  sky: 'bg-sky',
+  muted: 'bg-line-strong',
+}
+
 export type WidgetAction = { href: string; label: string }
+
+/** A status dot in the tone's colour. `pulse` adds a slow ping ring for the
+ *  one state that should catch the eye (needs action now); decorative, so it
+ *  is hidden from assistive tech and still under reduced motion. */
+export function ToneDot({ tone, pulse = false }: { tone: WidgetTone; pulse?: boolean }) {
+  return (
+    <span className="relative flex size-2.5 shrink-0" aria-hidden>
+      {pulse && (
+        <span className={`absolute inline-flex size-full rounded-full opacity-60 motion-safe:animate-ping ${FILL[tone]}`} />
+      )}
+      <span className={`relative inline-flex size-2.5 rounded-full ${FILL[tone]}`} />
+    </span>
+  )
+}
 
 /** Course-card look for the status summary row (user reference, map 013):
  *  a light wash of the tone, not a solid fill, so ink text keeps its contrast
@@ -50,6 +74,7 @@ export function StatCard({
   note,
   noteTone,
   action,
+  progress,
 }: {
   icon?: ReactNode
   tone?: WidgetTone
@@ -58,6 +83,8 @@ export function StatCard({
   note?: string
   noteTone?: WidgetTone
   action?: WidgetAction
+  /** 0–100: draws a bar in the card's tone under the value (a rate, a share). */
+  progress?: number
 }) {
   return (
     <section
@@ -71,8 +98,16 @@ export function StatCard({
           {icon}
         </span>
       )}
-      <h2 className={`relative text-xs font-bold uppercase tracking-wider ${TEXT[tone]}`}>{label}</h2>
+      <h2 className={`relative flex items-center gap-2 text-xs font-bold uppercase tracking-wider ${TEXT[tone]}`}>
+        {tone === 'alert' && <ToneDot tone="alert" pulse />}
+        {label}
+      </h2>
       <p className="relative mt-2 text-3xl font-extrabold tracking-tight text-ink">{value}</p>
+      {progress != null && (
+        <div className="relative mt-2 max-w-40">
+          <ProgressBar pct={progress} tone={tone} label={label} />
+        </div>
+      )}
       {note && <p className={`relative mt-1 text-xs font-semibold ${TEXT[noteTone ?? tone]}`}>{note}</p>}
       {action && (
         <Link
@@ -87,7 +122,7 @@ export function StatCard({
 }
 
 export function StatGrid({ children }: { children: ReactNode }) {
-  return <div className="mb-section grid grid-cols-2 gap-grid xl:grid-cols-4">{children}</div>
+  return <div className="ui-stagger mb-section grid grid-cols-2 gap-grid xl:grid-cols-4">{children}</div>
 }
 
 export type Alert = { tone: WidgetTone; title: string; body?: string; action?: WidgetAction }
@@ -98,12 +133,13 @@ export function AlertStrip({ title, alerts }: { title: string; alerts: Alert[] }
   return (
     <section className="mb-section rounded-2xl border border-line bg-paper p-card">
       <h2 className="mb-3 font-bold">{title}</h2>
-      <ul className="grid gap-grid md:grid-cols-2 xl:grid-cols-3">
+      <ul className="ui-stagger grid gap-grid md:grid-cols-2 xl:grid-cols-3">
         {alerts.map((a) => (
           <li
             key={a.title}
             className={`flex items-center gap-3 rounded-xl border border-line p-3 ${SOFT[a.tone].split(' ')[0]}`}
           >
+            <ToneDot tone={a.tone} pulse={a.tone === 'alert'} />
             <div className="min-w-0 flex-1">
               <p className={`text-sm font-semibold ${TEXT[a.tone]}`}>{a.title}</p>
               {a.body && <p className="text-xs text-muted">{a.body}</p>}
@@ -136,7 +172,7 @@ export function QuickActions({ title, actions }: { title: string; actions: Quick
           <li key={a.href}>
             <Link
               href={a.href}
-              className={`inline-flex h-11 items-center gap-2 rounded-xl px-4 text-sm font-semibold transition ${
+              className={`inline-flex h-11 items-center gap-2 rounded-xl px-4 text-sm font-semibold transition motion-safe:active:scale-95 ${
                 a.primary
                   ? 'bg-brand-500 text-white hover:bg-brand-600'
                   : 'border border-line bg-paper-muted text-ink hover:bg-line'
@@ -213,15 +249,25 @@ export function WorkflowCard({
   )
 }
 
-/** Marks-entry progress bar: a track + a filled portion, clamped. The caller
- *  always prints the ratio beside it, so the bar is never the only signal. */
-export function ProgressBar({ pct }: { pct: number }) {
+/** A track and a filled portion, clamped to 0–100. The fill grows in on first
+ *  paint and slides and re-colours when the value changes. Without `tone` the
+ *  colour follows the value (under half brand, half or more amber, complete
+ *  green) — the marks-entry rule. The caller always prints the number beside
+ *  it, so the bar is never the only signal. */
+export function ProgressBar({ pct, tone, label }: { pct: number; tone?: WidgetTone; label?: string }) {
   const clamped = Math.min(100, Math.max(0, pct))
-  const tone = clamped >= 100 ? 'bg-mint-deep' : clamped >= 50 ? 'bg-sun' : 'bg-brand-500'
+  const fill = tone ? FILL[tone] : clamped >= 100 ? 'bg-mint-deep' : clamped >= 50 ? 'bg-sun' : 'bg-brand-500'
   return (
-    <div className="h-2 w-full overflow-hidden rounded-full bg-paper-muted">
+    <div
+      role="progressbar"
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-valuenow={Math.round(clamped)}
+      aria-label={label}
+      className="h-2 w-full overflow-hidden rounded-full bg-ink/10"
+    >
       <div
-        className={`h-full rounded-full ${tone} motion-safe:transition-[width] motion-safe:duration-500`}
+        className={`ui-bar h-full rounded-full ${fill} motion-safe:transition-[width,background-color] motion-safe:duration-500`}
         style={{ width: `${clamped}%` }}
       />
     </div>
