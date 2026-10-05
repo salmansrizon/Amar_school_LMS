@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
-import { t, type Lang } from '@/lib/i18n'
+import { t, formatDate, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
 import { classCatalogueLabel } from '@/lib/class-catalogue'
@@ -110,6 +110,7 @@ export default async function MyClassesPage() {
                             className="rounded-full bg-paper-muted px-3 py-1 text-xs hover:bg-brand-50"
                           >
                             {t('myClasses.homework', lang)}: {task.title}
+                            {task.due_at && ` · ${t('student.taskDue', lang)}: ${formatDate(task.due_at, lang)}`}
                           </Link>
                         </li>
                       ))}
