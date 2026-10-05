@@ -47,7 +47,7 @@ export default async function StudentResultsPage() {
           action={{ href: '/student/exams', label: t('student.nav.exams', lang) }}
         />
       ) : (
-        <ul className="grid gap-grid lg:grid-cols-2">
+        <ul className="ui-stagger grid gap-grid lg:grid-cols-2">
           {exams.map((exam) => {
             const total = rawTotal(exam.rows)
             const incomplete = missingSubjects(exam, (classSubjects ?? []) as { id: string }[]).length > 0
@@ -55,7 +55,7 @@ export default async function StudentResultsPage() {
               <li key={exam.examId}>
                 <Link
                   href={`/student/results/${exam.examId}`}
-                  className="block min-h-11 transition hover:opacity-90"
+                  className="block min-h-11 transition hover:opacity-90 motion-safe:active:scale-[0.98]"
                 >
                   <Card tone={incomplete ? 'sun' : 'brand'} className="flex items-center justify-between gap-3">
                     <span className="min-w-0">

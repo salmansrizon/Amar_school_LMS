@@ -42,7 +42,7 @@ export default async function StudentNoticesPage() {
           action={{ href: '/student', label: t('student.nav.home', lang) }}
         />
       ) : (
-        <ul className="grid gap-grid lg:grid-cols-2">
+        <ul className="ui-stagger grid gap-grid lg:grid-cols-2">
           {notices.map((notice) => {
             const isNew = unread.has(notice.id)
             return (
@@ -50,7 +50,7 @@ export default async function StudentNoticesPage() {
                 {/* Rail: alert when urgent, brand when unread. The words stay. */}
                 <Link
                   href={`/student/notices/${notice.id}`}
-                  className={`block min-h-11 rounded-lg border border-line bg-paper p-card transition hover:border-brand-300 ${railClass(notice.importance === 'urgent' ? 'alert' : isNew ? 'brand' : 'muted')}`}
+                  className={`block min-h-11 rounded-lg border border-line bg-paper p-card transition hover:border-brand-300 motion-safe:hover:-translate-y-0.5 motion-safe:hover:shadow-md motion-safe:active:scale-[0.98] ${railClass(notice.importance === 'urgent' ? 'alert' : isNew ? 'brand' : 'muted')}`}
                 >
                   <div className="mb-1 flex flex-wrap items-center gap-2">
                     <span

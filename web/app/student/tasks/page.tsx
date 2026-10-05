@@ -13,6 +13,7 @@ import { pageTitle } from '@/lib/page-title'
 import { Card, PageHeader, railClass, type Tone } from '@/components/ui/page'
 import { SectionTabs } from '@/components/ui/section-tabs'
 import { EmptyState } from '@/components/ui/states'
+import { ToneDot } from '@/components/ui/widgets'
 
 // The Student's homework (#446), in four piles: overdue, due within two days,
 // later, done. Done beats overdue: finished late is still finished. A task
@@ -82,10 +83,11 @@ export default async function StudentTasksPage() {
           action={{ href: '/student/routine', label: t('student.nav.routine', lang) }}
         />
       ) : (
-        <div className="grid items-start gap-grid lg:grid-cols-2">
+        <div className="ui-stagger grid items-start gap-grid lg:grid-cols-2">
           {TASK_PILES.filter((p) => piles[p].length > 0).map((p) => (
             <Card key={p} padded={false}>
-              <h2 className={`px-card pt-card pb-2 text-sm font-bold ${PILE[p].text}`}>
+              <h2 className={`flex items-center gap-2 px-card pt-card pb-2 text-sm font-bold ${PILE[p].text}`}>
+                {p === 'overdue' && <ToneDot tone="alert" pulse />}
                 {t(PILE[p].titleKey, lang)} · {formatNumber(piles[p].length, lang)}
               </h2>
               <ul className="divide-y divide-line pb-2">
