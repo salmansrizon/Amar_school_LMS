@@ -113,7 +113,7 @@ function StudentBottomNav({ lang }: { lang: Lang }) {
               <Link
                 href={group.items[0].href}
                 aria-current={active ? 'page' : undefined}
-                className={`flex min-h-14 flex-col items-center justify-center gap-0.5 px-1 text-[11px] font-semibold ${FOCUS_RING} ${
+                className={`flex min-h-14 flex-col items-center justify-center gap-0.5 px-1 text-[11px] font-semibold transition-transform motion-safe:active:scale-95 ${FOCUS_RING} ${
                   active ? 'text-brand-600' : 'text-muted hover:text-brand-600'
                 }`}
               >

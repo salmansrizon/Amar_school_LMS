@@ -146,6 +146,7 @@ export default async function StudentAttendancePage({
           tone={attendanceBand(percent)}
           label={t('student.attendancePercent', lang)}
           value={percent === null ? '—' : `${fmt(percent)}%`}
+          progress={percent ?? undefined}
         />
         <StatCard tone="mint" label={t('student.present', lang)} value={fmt(presentDates.length)} />
         <StatCard

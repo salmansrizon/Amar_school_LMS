@@ -280,6 +280,7 @@ export default async function StudentHome() {
           tone={attTone}
           label={t('student.dash.attendanceThisMonth', lang)}
           value={percent === null ? '—' : `${fmt(percent)}%`}
+          progress={percent ?? undefined}
           note={
             percent === null
               ? t('student.attNoRecords', lang)
@@ -326,6 +327,7 @@ export default async function StudentHome() {
           tone={latest.state === 'none' ? 'sky' : 'brand'}
           label={t('student.dash.latestResult', lang)}
           value={latest.state === 'ok' ? `${fmt(latest.obtained)} / ${fmt(latest.full)}` : '—'}
+          progress={latest.state === 'ok' && latest.full ? (latest.obtained / latest.full) * 100 : undefined}
           note={
             latest.state === 'none'
               ? t('student.noResults', lang)
