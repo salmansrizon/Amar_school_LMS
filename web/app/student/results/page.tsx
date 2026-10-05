@@ -4,17 +4,25 @@ import { t, formatNumber } from '@/lib/i18n'
 import { getStudentContext } from '@/lib/student/context'
 import { groupByExam, missingSubjects, type ResultRow } from '@/lib/student/results'
 import { rawTotal } from '@/lib/student/dashboard'
+import { matchesQ, pageOf } from '@/lib/student/table'
 import { studentGroupTabs } from '@/lib/student-nav'
 import { pageTitle } from '@/lib/page-title'
-import { Card, PageHeader } from '@/components/ui/page'
+import { PageHeader } from '@/components/ui/page'
 import { SectionTabs } from '@/components/ui/section-tabs'
 import { EmptyState } from '@/components/ui/states'
+import { DataTable, Pill, type Column } from '@/components/data-table/data-table'
+import { NoMatch } from '@/components/student/no-match'
 
 // Published exams only (#449). The gate is not in this query — it is in
 // student_exam_result (0143), so no screen can forget it.
 export const generateMetadata = pageTitle('student.resultsTitle')
 
-export default async function StudentResultsPage() {
+export default async function StudentResultsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | undefined>>
+}) {
+  const params = await searchParams
   const lang = await currentLang()
   const { supabase } = await getStudentContext()
 
@@ -24,6 +32,50 @@ export default async function StudentResultsPage() {
   ])
   const exams = groupByExam((data ?? []) as ResultRow[])
   const fmt = (n: number) => formatNumber(n, lang, { maximumFractionDigits: 2 })
+  const year = (y: number) => formatNumber(y, lang, { useGrouping: false })
+
+  type Exam = (typeof exams)[number]
+  const isIncomplete = (exam: Exam) => missingSubjects(exam, (classSubjects ?? []) as { id: string }[]).length > 0
+  const years = [...new Set(exams.map((e) => e.examYear))].sort((a, b) => b - a)
+  const shown = exams.filter((e) => matchesQ(params.q, e.examName) && (!params.year || String(e.examYear) === params.year))
+  const paged = pageOf(shown, params)
+
+  const columns: Column<Exam>[] = [
+    {
+      key: 'exam',
+      header: t('student.col.exam', lang),
+      card: 'title',
+      cell: (exam) => (
+        <Link
+          href={`/student/results/${exam.examId}`}
+          className="inline-flex min-h-11 items-center font-semibold hover:text-brand-600 hover:underline md:min-h-0"
+        >
+          {exam.examName}
+        </Link>
+      ),
+    },
+    { key: 'year', header: t('student.col.year', lang), cell: (exam) => year(exam.examYear) },
+    {
+      key: 'total',
+      header: t('student.dash.totalMarks', lang),
+      cell: (exam) => {
+        if (isIncomplete(exam)) return <span className="text-muted">—</span>
+        const total = rawTotal(exam.rows)
+        return <span className="font-semibold">{`${fmt(total.obtained)} / ${fmt(total.full)}`}</span>
+      },
+    },
+    {
+      key: 'state',
+      header: t('student.col.state', lang),
+      card: 'badge',
+      cell: (exam) =>
+        isIncomplete(exam) ? (
+          <Pill tone="sun">{t('exams.incomplete', lang)}</Pill>
+        ) : (
+          <Pill tone="mint">{t('student.col.complete', lang)}</Pill>
+        ),
+    },
+  ]
 
   return (
     <main className="w-full px-gutter pt-section pb-16">
@@ -47,38 +99,23 @@ export default async function StudentResultsPage() {
           action={{ href: '/student/exams', label: t('student.nav.exams', lang) }}
         />
       ) : (
-        <ul className="ui-stagger grid gap-grid lg:grid-cols-2">
-          {exams.map((exam) => {
-            const total = rawTotal(exam.rows)
-            const incomplete = missingSubjects(exam, (classSubjects ?? []) as { id: string }[]).length > 0
-            return (
-              <li key={exam.examId}>
-                <Link
-                  href={`/student/results/${exam.examId}`}
-                  className="block min-h-11 transition hover:opacity-90 motion-safe:active:scale-[0.98]"
-                >
-                  <Card tone={incomplete ? 'sun' : 'brand'} className="flex items-center justify-between gap-3">
-                    <span className="min-w-0">
-                      <span className="block font-semibold">{exam.examName}</span>
-                      <span className="block text-xs text-muted">
-                        {formatNumber(exam.examYear, lang, { useGrouping: false })} · {fmt(exam.rows.length)}{' '}
-                        {t('student.subject', lang)}
-                      </span>
-                    </span>
-                    <span className="shrink-0 text-right">
-                      <span className="block text-lg font-extrabold">
-                        {incomplete ? '—' : `${fmt(total.obtained)} / ${fmt(total.full)}`}
-                      </span>
-                      <span className="block text-xs text-muted">
-                        {incomplete ? t('exams.incomplete', lang) : t('student.dash.totalMarks', lang)}
-                      </span>
-                    </span>
-                  </Card>
-                </Link>
-              </li>
-            )
-          })}
-        </ul>
+        <DataTable
+          rows={paged.items}
+          rowId={(e) => e.examId}
+          rowLabel={(e) => e.examName}
+          columns={columns}
+          lang={lang}
+          params={params}
+          caption={t('student.resultsTitle', lang)}
+          search={{ placeholder: t('student.col.search', lang) }}
+          filters={
+            years.length > 1
+              ? [{ param: 'year', label: t('student.col.year', lang), options: years.map((y) => ({ value: String(y), label: year(y) })) }]
+              : []
+          }
+          pagination={{ page: paged.page, totalPages: paged.totalPages, total: paged.total, pageSize: paged.pageSize }}
+          empty={<NoMatch lang={lang} />}
+        />
       )}
     </main>
   )
