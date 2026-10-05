@@ -8,11 +8,12 @@ import { IMPORTANCE_LEVELS, importanceLabel } from '@/lib/publishing'
 import { matchesQ, pageOf } from '@/lib/student/table'
 import { studentGroupTabs } from '@/lib/student-nav'
 import { pageTitle } from '@/lib/page-title'
-import { PageHeader } from '@/components/ui/page'
+import { PageHeader, railClass } from '@/components/ui/page'
 import { SectionTabs } from '@/components/ui/section-tabs'
 import { EmptyState } from '@/components/ui/states'
 import { DataTable, Pill, type Column } from '@/components/data-table/data-table'
 import { NoMatch } from '@/components/student/no-match'
+import { PhoneRows, PhoneRowsShell } from '@/components/student/phone-rows'
 
 // The Student's notice feed (#445) as a table. Urgent first, then newest — an
 // urgent notice from Monday still outranks a normal one from Friday, which is
@@ -99,6 +100,34 @@ export default async function StudentNoticesPage({
           action={{ href: '/student', label: t('student.nav.home', lang) }}
         />
       ) : (
+        <PhoneRowsShell
+          rows={
+            <PhoneRows label={t('student.noticesTitle', lang)}>
+              {paged.items.map((n) => {
+                const isNew = unread.has(n.id)
+                return (
+                  <li key={n.id}>
+                    {/* Rail: alert when urgent, brand when unread; the words stay on line two. */}
+                    <Link
+                      href={`/student/notices/${n.id}`}
+                      className={`flex min-h-14 flex-col justify-center py-1 pr-3 pl-3 hover:text-brand-600 ${railClass(n.importance === 'urgent' ? 'alert' : isNew ? 'brand' : 'muted')}`}
+                    >
+                      <span className="truncate text-sm font-medium">{n.title}</span>
+                      <span className="truncate text-xs text-muted">
+                        {formatDate(n.created_at, lang)}
+                        {n.importance === 'urgent' && (
+                          <span className="font-semibold text-alert-deep"> · {importanceLabel(n.importance, lang)}</span>
+                        )}
+                        {isNew && <span className="font-semibold text-brand-700"> · {t('student.newBadge', lang)}</span>}
+                        {` · ${isForMyClass(n) ? t('student.forMyClass', lang) : t('student.forEveryone', lang)}`}
+                      </span>
+                    </Link>
+                  </li>
+                )
+              })}
+            </PhoneRows>
+          }
+        >
         <DataTable
           rows={paged.items}
           rowId={(n) => n.id}
@@ -126,6 +155,7 @@ export default async function StudentNoticesPage({
           pagination={{ page: paged.page, totalPages: paged.totalPages, total: paged.total, pageSize: paged.pageSize }}
           empty={<NoMatch lang={lang} />}
         />
+        </PhoneRowsShell>
       )}
     </main>
   )
