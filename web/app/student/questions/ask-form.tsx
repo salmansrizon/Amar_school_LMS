@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { t, type Lang, type MessageKey } from '@/lib/i18n'
 import { askQuestion } from '@/lib/student/messages-source'
 import { ComboboxField } from '@/components/ui/combobox-field'
+import { RichTextField } from '@/components/rich-text-field'
 
 const ERRORS: Record<string, MessageKey> = {
   anchorRequired: 'student.anchorRequired',
@@ -111,15 +112,7 @@ export function AskForm({
         />
       </label>
 
-      <label className="text-xs font-semibold text-muted">
-        <span className="mb-1 block">{t('student.questionBody', lang)}</span>
-        <textarea
-          name="body"
-          required
-          rows={3}
-          className="w-full rounded-sm border border-line-strong bg-paper p-2 text-sm"
-        />
-      </label>
+      <RichTextField key={subjectFieldKey} name="body" label={t('student.questionBody', lang)} lang={lang} />
 
       {error && <p className="text-sm text-alert-deep">{error}</p>}
       {/* A bare ✓ was the only thing telling a student their question had gone

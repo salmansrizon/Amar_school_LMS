@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { Markdown } from '@/components/markdown'
 import { CheckCircle2, Clock, MessageCircleQuestion, Tag } from 'lucide-react'
 import { currentLang } from '@/lib/i18n-server'
 import { t, numberFmt, formatNumber, type Lang, formatDate, formatDateTime } from '@/lib/i18n'
@@ -330,7 +331,7 @@ export default async function SchoolQuestionsPage({
               viewed.reply_body ? (
                 <div className="rounded-md bg-mint-soft p-3">
                   <span className="text-xs font-semibold text-mint-deep">{t('questions.replied', lang)}</span>
-                  <p className="mt-1 whitespace-pre-wrap text-sm">{viewed.reply_body}</p>
+                  <Markdown className="mt-1" text={viewed.reply_body} />
                 </div>
               ) : answerable === null || answerable.has(viewed.id) ? (
                 <ReplyForm lang={lang} messageId={viewed.id} />

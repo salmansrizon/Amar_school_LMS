@@ -3,6 +3,7 @@ import { CalendarDays, Tag } from 'lucide-react'
 import { t, type Lang } from '@/lib/i18n'
 import { withParams, type Params } from '@/lib/url-params'
 import { Card } from '@/components/ui/page'
+import { Markdown } from '@/components/markdown'
 import { DrawerFacts, type DrawerFact } from '@/components/data-table/drawer-parts'
 
 // Question record drawer body (drawer redesign): Topic/Asked facts above the
@@ -32,7 +33,7 @@ export function QuestionDrawerBody({
     <div className="space-y-4">
       <DrawerFacts facts={facts} />
       <Card>
-        <p className="whitespace-pre-wrap text-sm">{body}</p>
+        <Markdown text={body} />
       </Card>
       {replyArea}
     </div>
