@@ -1,0 +1,94 @@
+One list of every database change recommended during the owner UI overhaul, the owner workflow audit and the student portal plan. None of these was made on `merge/staging-sync`: that branch changes no schema, policy or function. Each row links to the issue that explains the problem; this issue is the index and the suggested order.
+
+"Migration" here means a new migration file: a column, constraint, view, policy, trigger or database function. Two rows are database work that is not a new migration (marked **ops**).
+
+## 0. Do first
+
+| # | Change | Why | Detail |
+|---|---|---|---|
+| 0.1 | **ops** — apply `0214_student_attendance_summary.sql` to the staging database | It is the only migration file on `merge/staging-sync` that `staging` does not have. It is still a draft. Until it is applied, `lib/school/attendance-rate-source.ts` returns null and pages hide the attendance-rate column | #684 |
+| 0.2 | **ops** — remove audit test data from Test School A | Test rows from the audit and fix runs (students, leaves, exams, one fee record, one active staff login) | #686 |
+
+## 1. Access and security
+
+| # | Change | Why | Detail |
+|---|---|---|---|
+| 1.1 | `exams` write policy: School Owner, office staff, or a teacher attached to the exam's class. Same for the child tables (routine, seat plan, marks, co-curricular marks, combination members) | The app's server actions now refuse a teacher acting on another class's exam, but a direct API write with the teacher's own token still passes the policy | #676 |
+| 1.2 | Read policy (or a definer view) so a student can read `grading_schemes` and `grade_bands` for exams published to their class | The student portal cannot grade any result: it shows "no results published yet" and the portal mark sheet returns 404 | #702 |
+| 1.3 | A function to disable a staff login (remove `staff_permissions`, block the auth user), callable by the School Owner | Archiving an employee leaves their login active; no revoke action exists | #688 |
+| 1.4 | Scope `workflow_instances` reads (or add an RPC) to the viewer's own approver stages | Any member sees the whole school's approvals queue and count | #689 — needs a product decision first |
+| 1.5 | Expose an attendance start date (joining date) through `employee_card` or a small view readable with the attendance permission | Non-owner roles probably cannot read `employees.joining_date`, so "no absence before joining" may not apply for them | #693 — confirm in a browser first |
+| 1.6 | If option B of #677 is chosen: a separate permission for machines, Grace Time and Office Hour | A class teacher with the attendance permission can manage employee attendance settings | #677 — needs a product decision first |
+
+## 2. Fees and finance
+
+| # | Change | Why | Detail |
+|---|---|---|---|
+| 2.1 | `fee_collection_records.fee_amount` (billed fee), backfilled from pay + due − fine + adjustment | The edit form derives the fee; once due is 0 an exact payment and an overpayment look the same, and the receipt has no fee line | #678 |
+| 2.2 | Void / reversal for fee records: `void_at`, `void_reason`, and an offsetting ledger entry | A wrong fee record cannot be undone in the app | #683 |
+| 2.3 | Advance-payment credit carried to the next fee record, if "carry forward" is chosen | Overpayment is now acknowledged but stays on that month | #695 — needs a product decision first; depends on 2.1 |
+| 2.4 | Director capital: a delete trigger that reverses the running balance (or forbid deletes), then a one-time recompute for Test School A | The balance trigger handles inserts only; deleted rows left a ৳13,14,000 drift | #681 |
+| 2.5 | Per-payment receipts (payment history table) | `fee_collection_records` keeps one cumulative row per month, so a single payment cannot be receipted | Student portal plan, section 8 — no issue yet |
+
+## 3. Exams and marks
+
+| # | Change | Why | Detail |
+|---|---|---|---|
+| 3.1 | Nullable mark components and an `is_absent` flag on `exam_marks` | "Absent" cannot be told from "not entered"; a half-filled row (theory now, MCQ later) is refused | #679 |
+| 3.2 | One database function for the marks save (upsert + delete in one transaction) | The save runs two statements; a failure between them leaves half a save | #700 — do with 3.1, same code |
+| 3.3 | Exclusion constraint on exam routine entries (class, date, time range) | The overlap check is in the app and inside one exam only | #699 — check existing overlaps first |
+| 3.4 | **ops, then code** — clean up all-zero `exam_marks` rows saved before the marks-entry fix | They still count as entered and read as failed | #698 — do before or with 3.1 |
+| 3.5 | Roll uniqueness per class + section + academic year: confirm the constraint, fix it if looser than intended | Two students were saved with roll 9001 in one class offering | #690 — investigate first; clean duplicates before adding |
+
+## 4. Attendance and leave
+
+| # | Change | Why | Detail |
+|---|---|---|---|
+| 4.0 | **`is_absent_working_day` must skip the school's weekly off-days** (`schools.weekly_off_days`, 0 = Sunday … 6 = Saturday). `create or replace function`; `absent_working_days_in_range` and `student_absent_working_days` call it. Also let a student read their school's `weekly_off_days` so the portal calendar can mark those days | Observed on Test School A (weekly off-days Friday, Saturday): the function returned 1 absent day for Fri 2 Oct and 1 for Sat 3 Oct. A student present on 2 of 3 working days showed 40% instead of 67%, with a false "attendance low" alert. **The absence fine and the absence SMS rules use the same function**, so they are counting weekend days too | Found by the student portal evaluation — no issue yet. Check the fine and SMS effect before and after |
+| 4.1 | `decision_note` (rejection reason) and `decided_at` (when it was approved or rejected) on `student_leaves` and `employee_leaves` | Reject is a confirm-only click; no reason is stored or shown. With no decision time, the student home can only count its "leave rejected" alert from the request date, so a leave rejected more than 7 days after it was requested raises no alert | #680 |
+| 4.2 | A way to tell "machine not synced" from "nobody came" (for example last successful sync time per machine) | A sync failure looks like a school full of absentees | #694 |
+| 4.3 | A source marker on `off_days` for rows imported from the central holiday list | The new holiday list cannot label imported holidays | Raised while closing #692 — no issue yet |
+| 4.4 | A student-readable source for "days on which attendance was taken for my class" (a view or a definer function) | A student can read only their own attendance rows. The student home and attendance page therefore cannot tell "the school took no attendance this month" from "I was absent every day it was taken": both show "—" instead of 0% | Found while reviewing the student home dashboard — no issue yet |
+
+## 5. Notices and student portal
+
+| # | Change | Why | Detail |
+|---|---|---|---|
+| 5.1 | `publications` status (or nullable `published_at`) and a student read policy limited to published rows | A notice cannot be unpublished without deleting it | #696 |
+| 5.2 | Per-student "read" marker for teacher replies to questions | "Answered but not yet seen" cannot be shown as an alert on the student home | Student portal plan, section 8 — no issue yet |
+| 5.3 | One function returning the student home counters (overdue tasks, fee due, unread notices) | Only if the home's ~11 parallel reads measure slow | Student portal plan, section 8 — measure first |
+
+## 6. Optional hardening
+
+| # | Change | Why | Detail |
+|---|---|---|---|
+| 6.1 | CHECK on mobile number format (`^01[3-9]\d{8}$`) for students, guardians and employees | The app now validates new values; old invalid values (for example `abc123`) remain | Clean the data first, or the constraint cannot be added |
+| 6.2 | CHECK on `full_name` length (100) | The form limits it; the column does not | Low priority |
+| 6.3 | A real 404 for unknown `/school/...` routes | Not a database change; listed here because it reverses the fail-closed proxy choice of #515 | #697 — security decision |
+
+## Suggested order
+
+1. 0.1 and 0.2 (no code depends on them, and they clear the ground).
+2. **4.0** (weekly off-days counted as absences — affects fines and SMS today), 1.2 (student results are broken for every student today) and 1.1 (closes the gap behind #676).
+3. 2.1, then 2.2 and 2.4.
+4. 3.4, then 3.1 with 3.2.
+5. 4.1, 5.1, 1.3.
+6. The rest, after the product decisions in 1.4, 1.6, 2.3 and 3.5.
+
+## Rules for whoever implements these
+
+- `staging` and production share one database: a migration applied to staging is live for production data.
+- Next free migration number after this branch is `0215` (`0214` is taken by the attendance summary draft). Re-check before numbering; another developer is working on `staging`.
+- Policies that narrow access (1.1, 1.4) need a check that the School Owner and office staff are unaffected. The app-level guards in `web/lib/school/exam-class-guard.ts` and `web/lib/auth/require-grant.ts` show the intended rule and have unit tests to mirror.
+- `web/tests/integration/accounting-ii.test.ts` deletes rows as the owner on the shared database. Fix that test with 2.4, or it will drift the balance again.
+
+## Change log
+
+- 2026-10-04 — created with 20 items.
+- 2026-10-04 — 4.1 extended with `decided_at` (found while building the student home dashboard).
+- 2026-10-04 — 4.4 added: student-readable "attendance was taken" source. Total is now 21 items.
+- 2026-10-05 — 4.0 added: weekly off-days counted as absences (fines and SMS affected). Moved to the front of the suggested order. Total is now 22 items.
+
+## Source
+
+Owner workflow audit (`docs/testing/owner-workflow-audit-2026-10-03/`), fix wave 1 on `merge/staging-sync`, and the student portal plan (`docs/testing/student-portal-audit-2026-10-04/implementation-plan.md`, section 8).
