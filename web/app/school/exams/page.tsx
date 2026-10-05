@@ -409,6 +409,7 @@ export default async function ExamsPage({
           tone="brand"
           label={t('exams.statMarksProgress', lang)}
           value={aggPct === null ? '—' : `${n(aggPct)}%`}
+          progress={aggPct ?? undefined}
           note={agg.total ? `${n(agg.entered)} / ${n(agg.total)} ${t('exams.entriesDone', lang)}` : undefined}
           noteTone="muted"
           action={marksPendingList.length ? { href: '/school/exams?stage=marksPending', label: t('students.statView', lang) } : undefined}
@@ -497,7 +498,7 @@ export default async function ExamsPage({
       />
       <p className="mt-3 text-xs text-muted">{t('exams.closedNote', lang)}</p>
 
-      <div className="mt-section grid gap-grid lg:grid-cols-2">
+      <div className="ui-stagger mt-section grid gap-grid lg:grid-cols-2">
         <WorkflowCard
           icon={<BadgeCheck className="size-5" />}
           title={t('exams.workflowTitle', lang)}

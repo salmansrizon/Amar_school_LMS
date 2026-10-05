@@ -412,7 +412,7 @@ export default async function SchoolHome() {
               <li key={m.href}>
                 <Link
                   href={m.href}
-                  className="flex min-h-11 items-center gap-3 rounded-md px-2 text-sm font-semibold hover:bg-paper-muted"
+                  className="flex min-h-11 items-center gap-3 rounded-md px-2 text-sm font-semibold transition-colors hover:bg-paper-muted motion-safe:active:scale-[0.98]"
                 >
                   <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-brand-50 text-brand-600">
                     <Icon name={(m.icon ?? m.screen) as React.ComponentProps<typeof Icon>['name']} className="size-4" />
