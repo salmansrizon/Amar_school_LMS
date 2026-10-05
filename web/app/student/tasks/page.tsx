@@ -14,9 +14,11 @@ import { pageTitle } from '@/lib/page-title'
 import { PageHeader } from '@/components/ui/page'
 import { SectionTabs } from '@/components/ui/section-tabs'
 import { EmptyState } from '@/components/ui/states'
+import { railClass } from '@/components/ui/page'
 import { ToneDot } from '@/components/ui/widgets'
 import { DataTable, Pill, type Column } from '@/components/data-table/data-table'
 import { NoMatch } from '@/components/student/no-match'
+import { PhoneRows, PhoneRowsShell } from '@/components/student/phone-rows'
 
 // The Student's homework (#446) as one table. The four piles (overdue, due
 // within the horizon, later, done) are the `state` filter; the default view is
@@ -25,11 +27,11 @@ import { NoMatch } from '@/components/student/no-match'
 // isTaskHandled). Placement is by school day, in lib/student/daily.ts.
 export const generateMetadata = pageTitle('student.tasksTitle')
 
-const PILE: Record<TaskUrgency, { labelKey: MessageKey; tone: 'alert' | 'sun' | 'muted' | 'mint' }> = {
-  overdue: { labelKey: 'student.taskOverdue', tone: 'alert' },
-  dueSoon: { labelKey: 'student.taskDueSoon', tone: 'sun' },
-  later: { labelKey: 'student.taskLater', tone: 'muted' },
-  done: { labelKey: 'student.taskDone', tone: 'mint' },
+const PILE: Record<TaskUrgency, { labelKey: MessageKey; tone: 'alert' | 'sun' | 'muted' | 'mint'; text: string }> = {
+  overdue: { labelKey: 'student.taskOverdue', tone: 'alert', text: 'text-alert-deep' },
+  dueSoon: { labelKey: 'student.taskDueSoon', tone: 'sun', text: 'text-sun-deep' },
+  later: { labelKey: 'student.taskLater', tone: 'muted', text: 'text-muted' },
+  done: { labelKey: 'student.taskDone', tone: 'mint', text: 'text-mint-deep' },
 }
 
 export default async function StudentTasksPage({
@@ -122,6 +124,38 @@ export default async function StudentTasksPage({
           action={{ href: '/student/routine', label: t('student.nav.routine', lang) }}
         />
       ) : (
+        <PhoneRowsShell
+          rows={
+            <PhoneRows label={t('student.tasksTitle', lang)}>
+              {paged.items.map((task) => {
+                const u = taskUrgency(task, today)
+                return (
+                  <li key={task.id} className={`flex items-center gap-2 pr-2 pl-3 ${railClass(PILE[u].tone)}`}>
+                    <Link
+                      href={`/student/tasks/${task.id}`}
+                      className="flex min-h-14 min-w-0 flex-1 flex-col justify-center hover:text-brand-600"
+                    >
+                      <span className="truncate text-sm font-medium">{task.title}</span>
+                      <span className="truncate text-xs text-muted">
+                        {task.due_at && `${formatDate(task.due_at, lang)} · `}
+                        {u === 'overdue' && task.id === firstOverdueId && (
+                          <span className="mr-1.5 inline-flex align-middle">
+                            <ToneDot tone="alert" pulse />
+                          </span>
+                        )}
+                        <span className={`font-semibold ${PILE[u].text}`}>{t(PILE[u].labelKey, lang)}</span>
+                        {task.submitted && (
+                          <span className="font-semibold text-mint-deep"> · ✓ {t('student.handedIn', lang)}</span>
+                        )}
+                      </span>
+                    </Link>
+                    <TaskToggle lang={lang} taskId={task.id} done={Boolean(task.completed_at)} disabled={readOnly} />
+                  </li>
+                )
+              })}
+            </PhoneRows>
+          }
+        >
         <DataTable
           rows={paged.items}
           rowId={(task) => task.id}
@@ -147,6 +181,7 @@ export default async function StudentTasksPage({
           pagination={{ page: paged.page, totalPages: paged.totalPages, total: paged.total, pageSize: paged.pageSize }}
           empty={<NoMatch lang={lang} />}
         />
+        </PhoneRowsShell>
       )}
     </main>
   )
