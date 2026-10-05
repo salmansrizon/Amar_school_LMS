@@ -4,6 +4,7 @@ import * as React from 'react'
 import { Select as SelectPrimitive } from '@base-ui/react/select'
 import { ChevronDownIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useDialogContainer } from '@/components/native-dialog'
 import { FIELD_HEIGHT } from './field'
 import type { ComboboxFieldOption } from './combobox-field'
 
@@ -55,6 +56,7 @@ export function SelectField({
   const resolvedDefault =
     !isControlled && defaultValue != null ? (options.find((o) => o.value === defaultValue) ?? null) : undefined
 
+  const dialog = useDialogContainer()
   return (
     <SelectPrimitive.Root
       items={options}
@@ -74,8 +76,8 @@ export function SelectField({
           render={<ChevronDownIcon className="size-4 shrink-0 text-muted" />}
         />
       </SelectPrimitive.Trigger>
-      <SelectPrimitive.Portal>
-        <SelectPrimitive.Positioner sideOffset={4} className="z-50 outline-none">
+      <SelectPrimitive.Portal container={dialog ?? undefined}>
+        <SelectPrimitive.Positioner sideOffset={4} positionMethod={dialog ? 'fixed' : 'absolute'} className="z-50 outline-none">
           <SelectPrimitive.Popup className="w-(--anchor-width) max-w-(--available-width) overflow-hidden rounded-md border border-line bg-paper shadow-card">
             <SelectPrimitive.List className="max-h-[min(16rem,var(--available-height))] overflow-y-auto overscroll-contain py-1">
               {options.map((option) => (

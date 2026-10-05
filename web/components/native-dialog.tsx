@@ -1,6 +1,15 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { createContext, useContext, useEffect, useRef, useState } from 'react'
+
+/** The open <dialog> a popup is rendered inside, or null on a plain page.
+ *
+ *  showModal() puts the dialog in the browser's top layer, above everything in
+ *  <body> whatever its z-index, and makes the rest of the page inert. A popup
+ *  portaled to <body> (combobox, select, menu) is then drawn behind the dialog
+ *  and cannot be clicked. Popups read this and portal into the dialog instead. */
+const DialogContainer = createContext<HTMLElement | null>(null)
+export const useDialogContainer = () => useContext(DialogContainer)
 
 /** The one dialog primitive behind Modal and ConfirmDialog.
  *
@@ -25,6 +34,7 @@ export function NativeDialog({
   children: React.ReactNode
 }) {
   const ref = useRef<HTMLDialogElement>(null)
+  const [el, setEl] = useState<HTMLDialogElement | null>(null)
 
   useEffect(() => {
     const d = ref.current
@@ -35,7 +45,10 @@ export function NativeDialog({
 
   return (
     <dialog
-      ref={ref}
+      ref={(node) => {
+        ref.current = node
+        setEl(node)
+      }}
       role="dialog"
       aria-modal="true"
       aria-labelledby={labelledBy}
@@ -52,7 +65,7 @@ export function NativeDialog({
       }}
       className={`m-auto w-[calc(100%-2rem)] backdrop:bg-black/40 ${className}`}
     >
-      {open && children}
+      {open && <DialogContainer.Provider value={el}>{children}</DialogContainer.Provider>}
     </dialog>
   )
 }
