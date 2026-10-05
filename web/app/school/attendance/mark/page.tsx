@@ -333,6 +333,7 @@ export default async function MarkAttendancePage({
           icon={<CalendarClock className="size-5" />}
           title={t('attendance.classesNotMarked', lang)}
           tag={unmarkedIds.length ? t('attendance.pendingTag', lang) : undefined}
+          pulse
         >
           {unmarkedIds.length ? (
             <ul className="mb-4 divide-y divide-line">

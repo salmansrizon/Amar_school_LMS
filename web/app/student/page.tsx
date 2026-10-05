@@ -281,6 +281,7 @@ export default async function StudentHome() {
           label={t('student.dash.attendanceThisMonth', lang)}
           value={percent === null ? '—' : `${fmt(percent)}%`}
           progress={percent ?? undefined}
+          pulse={attTone === 'alert'}
           note={
             percent === null
               ? t('student.attNoRecords', lang)
@@ -291,6 +292,7 @@ export default async function StudentHome() {
         <StatCard
           icon={<Icon name="fees" className="size-5" />}
           tone={fee.tone}
+          pulse={fee.tone === 'alert'}
           label={t('student.dash.feeStatus', lang)}
           value={feeRows.length ? formatMoney(fee.due, lang) : '—'}
           note={
@@ -305,6 +307,7 @@ export default async function StudentHome() {
         <StatCard
           icon={<Icon name="classes" className="size-5" />}
           tone={taskCounts.overdue ? 'alert' : taskCounts.dueSoon ? 'sun' : 'mint'}
+          pulse={taskCounts.overdue > 0}
           label={t('student.dash.homework', lang)}
           // Every open task, not only the urgent ones: a task due next week or
           // with no date is still homework the student has.

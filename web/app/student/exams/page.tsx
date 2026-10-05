@@ -10,6 +10,7 @@ import { pageTitle } from '@/lib/page-title'
 import { Card, PageHeader, type Tone } from '@/components/ui/page'
 import { SectionTabs } from '@/components/ui/section-tabs'
 import { EmptyState } from '@/components/ui/states'
+import { ToneDot } from '@/components/ui/widgets'
 
 // The Student's exam calendar (#450): dates, times, rooms, and their own seat.
 //
@@ -62,10 +63,11 @@ export default async function StudentExamsPage() {
           action={{ href: '/student/results', label: t('student.nav.results', lang) }}
         />
       ) : (
-        <div className="grid gap-grid lg:grid-cols-2">
+        <div className="ui-stagger grid gap-grid lg:grid-cols-2">
           {exams.map((exam) => {
             const next = exam.papers.find((p) => p.exam_date >= today)
             const urgency: ExamUrgency = next ? examUrgency(next.exam_date, today) : 'past'
+            const todayIdx = exam.papers.findIndex((p) => examUrgency(p.exam_date, today) === 'today')
             return (
               <Card key={exam.examId} tone={RAIL[urgency]}>
                 <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
@@ -103,7 +105,12 @@ export default async function StudentExamsPage() {
                       <li key={`${p.exam_date}-${i}`} className={`flex items-baseline justify-between gap-3 py-2 ${u === 'past' ? 'opacity-60' : ''}`}>
                         <span className="min-w-0">
                           <span className="block text-sm font-medium">{p.subject_name ?? '—'}</span>
-                          {LABEL[u] && <span className={`block text-xs font-bold ${LABEL_CLASS[u]}`}>{t(LABEL[u]!, lang)}</span>}
+                          {LABEL[u] && (
+                            <span className={`flex items-center gap-1.5 text-xs font-bold ${LABEL_CLASS[u]}`}>
+                              {i === todayIdx && <ToneDot tone="alert" pulse />}
+                              {t(LABEL[u]!, lang)}
+                            </span>
+                          )}
                         </span>
                         <span className="text-right text-xs text-muted">
                           <span className="block">{formatDate(p.exam_date, lang)}</span>

@@ -75,6 +75,7 @@ export function StatCard({
   noteTone,
   action,
   progress,
+  pulse = false,
 }: {
   icon?: ReactNode
   tone?: WidgetTone
@@ -85,6 +86,9 @@ export function StatCard({
   action?: WidgetAction
   /** 0–100: draws a bar in the card's tone under the value (a rate, a share). */
   progress?: number
+  /** A pinging dot beside the label: this number needs action now. Opt-in —
+   *  an alert tone alone is often just a category (expenses, failures). */
+  pulse?: boolean
 }) {
   return (
     <section
@@ -99,7 +103,7 @@ export function StatCard({
         </span>
       )}
       <h2 className={`relative flex items-center gap-2 text-xs font-bold uppercase tracking-wider ${TEXT[tone]}`}>
-        {tone === 'alert' && <ToneDot tone="alert" pulse />}
+        {pulse && <ToneDot tone={tone} pulse />}
         {label}
       </h2>
       <p className="relative mt-2 text-3xl font-extrabold tracking-tight text-ink">{value}</p>
@@ -228,11 +232,14 @@ export function WorkflowCard({
   icon,
   title,
   tag,
+  pulse = false,
   children,
 }: {
   icon: ReactNode
   title: string
   tag?: string
+  /** Ping the tag's dot: the card names a state that needs action now. */
+  pulse?: boolean
   children: ReactNode
 }) {
   return (
@@ -242,7 +249,12 @@ export function WorkflowCard({
           {icon}
         </span>
         <h2 className="min-w-0 flex-1 font-bold">{title}</h2>
-        {tag && <span className="rounded-md bg-sun-soft px-2 py-0.5 text-xs font-semibold text-sun-deep">{tag}</span>}
+        {tag && (
+          <span className="inline-flex items-center gap-1.5 rounded-md bg-sun-soft px-2 py-0.5 text-xs font-semibold text-sun-deep">
+            {pulse && <ToneDot tone="sun" pulse />}
+            {tag}
+          </span>
+        )}
       </header>
       <div className="flex flex-1 flex-col">{children}</div>
     </section>

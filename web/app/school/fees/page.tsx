@@ -363,6 +363,7 @@ export default async function FeesPage({
           tone="mint"
           label={t('fees.statCollected', lang)}
           value={tk(summary.collected)}
+          progress={billed ? rate : undefined}
           note={`${fmt.format(rate)}% ${t('fees.statCollectedRate', lang)}`}
         />
         <StatCard
@@ -533,7 +534,7 @@ export default async function FeesPage({
         }
       />
 
-      <div className="mt-section grid gap-grid lg:grid-cols-2">
+      <div className="ui-stagger mt-section grid gap-grid lg:grid-cols-2">
         <WorkflowCard icon={<Wallet className="size-5" />} title={t('fees.workflowDuesTitle', lang)} tag={t('students.thisMonthTag', lang)}>
           {dueRows.length === 0 ? (
             <p className="mb-4 rounded-xl border border-dashed border-line p-6 text-center text-sm text-muted">

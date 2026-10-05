@@ -35,7 +35,7 @@ export function TaskToggle({
             else router.refresh()
           })
         }
-        className={`cursor-pointer rounded-full border px-3 py-1 text-xs font-semibold disabled:opacity-50 max-sm:min-h-11 max-sm:min-w-11 ${
+        className={`cursor-pointer rounded-full border transition-colors duration-300 motion-safe:active:scale-95 px-3 py-1 text-xs font-semibold disabled:opacity-50 max-sm:min-h-11 max-sm:min-w-11 ${
           done
             ? 'border-mint bg-mint-soft text-mint-deep'
             : 'border-line-strong hover:bg-paper-muted'

@@ -9,7 +9,7 @@ import { PrintTrigger } from '@/components/print/print-trigger'
 import { pageTitle } from '@/lib/page-title'
 import { Card, PageHeader, railClass, thClass, tdClass, trClass } from '@/components/ui/page'
 import { EmptyState } from '@/components/ui/states'
-import { StatCard, StatGrid, type WidgetTone } from '@/components/ui/widgets'
+import { StatCard, StatGrid, ToneDot, type WidgetTone } from '@/components/ui/widgets'
 
 // The Student's own fees (#453), bound by ADR 0015.
 //
@@ -35,6 +35,8 @@ export default async function StudentFeesPage() {
 
   const dueTone: WidgetTone = status.tone === 'muted' ? 'muted' : status.tone
   const money = (n: number) => formatMoney(n, lang)
+  // One pulse for the table: the first past-due month names the state.
+  const firstOverdueId = records.find((r) => isFeeOverdue(r, today))?.id
 
   return (
     <main className="w-full px-gutter pt-section pb-16">
@@ -99,7 +101,10 @@ export default async function StudentFeesPage() {
                     return (
                       <tr key={r.id} className={trClass}>
                         <td className={`${tdClass} font-medium ${railClass(overdue ? 'alert' : owing ? 'sun' : undefined)}`}>
-                          {monthLabel(r.month, r.year, lang)}
+                          <span className="inline-flex items-center gap-2">
+                            {r.id === firstOverdueId && <ToneDot tone="alert" pulse />}
+                            {monthLabel(r.month, r.year, lang)}
+                          </span>
                         </td>
                         <td className={`${tdClass} font-medium`}>{money(payableOf(r))}</td>
                         <td className={tdClass}>{money(Number(r.pay_amount))}</td>

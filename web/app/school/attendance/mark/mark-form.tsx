@@ -39,7 +39,7 @@ function RatePill({ rate, lang }: { rate: number | null | undefined; lang: Lang 
 
 // #540: 44px is the floor for anything a thumb has to hit. h-11 is exactly that.
 const toggleBase =
-  'inline-flex h-11 flex-1 cursor-pointer items-center justify-center rounded-full border px-4 text-sm font-semibold transition'
+  'inline-flex h-11 flex-1 cursor-pointer items-center justify-center rounded-full border px-4 text-sm font-semibold transition motion-safe:active:scale-95'
 
 export function MarkAttendanceForm({
   lang,
@@ -158,14 +158,14 @@ export function MarkAttendanceForm({
           <button
             type="button"
             onClick={() => markAll(true)}
-            className="h-11 cursor-pointer rounded-full border border-line px-4 text-xs font-semibold hover:bg-paper-muted"
+            className="h-11 cursor-pointer rounded-full border border-line px-4 text-xs font-semibold transition motion-safe:active:scale-95 hover:bg-paper-muted"
           >
             {t('attendance.markAllPresent', lang)}
           </button>
           <button
             type="button"
             onClick={() => markAll(false)}
-            className="h-11 cursor-pointer rounded-full border border-line px-4 text-xs font-semibold hover:bg-paper-muted"
+            className="h-11 cursor-pointer rounded-full border border-line px-4 text-xs font-semibold transition motion-safe:active:scale-95 hover:bg-paper-muted"
           >
             {t('attendance.markAllAbsent', lang)}
           </button>
@@ -313,7 +313,7 @@ export function MarkAttendanceForm({
           type="button"
           disabled={pending || (!dirty && !!saved)}
           onClick={save}
-          className="h-11 cursor-pointer rounded-full bg-brand-500 px-6 text-sm font-semibold text-white hover:bg-brand-600 disabled:opacity-50"
+          className="h-11 cursor-pointer rounded-full bg-brand-500 px-6 text-sm font-semibold text-white transition motion-safe:active:scale-95 hover:bg-brand-600 disabled:opacity-50"
         >
           {t('attendance.saveAttendance', lang)}
         </button>
