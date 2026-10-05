@@ -4,6 +4,7 @@
 // wiring (mirrors the grading.ts / routine.ts split from #31 / #45).
 
 import type { MessageKey } from './i18n'
+import { toLatinDigits } from './bd-mobile'
 
 export interface SubjectMarksConfig {
   theory_marks: number
@@ -307,7 +308,8 @@ export type MarkCellError = 'invalid' | 'negative' | 'overMax'
 export function markCellError(raw: string, max: number): MarkCellError | null {
   const v = raw.trim()
   if (!v) return null
-  const n = Number(v)
+  // Bangla digits are fine: ৭৫ is 75.
+  const n = Number(toLatinDigits(v))
   if (!Number.isFinite(n)) return 'invalid'
   if (n < 0) return 'negative'
   if (n > max) return 'overMax'
