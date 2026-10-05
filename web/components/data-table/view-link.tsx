@@ -9,7 +9,7 @@ export function ViewLink({ id, params, label, name }: { id: string; params: Para
       scroll={false}
       data-view-link={id}
       aria-label={`${label}: ${name}`}
-      className="inline-flex h-9 items-center rounded-full border border-line-strong px-4 text-xs font-semibold hover:bg-paper-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"
+      className="inline-flex h-9 max-sm:h-11 items-center rounded-full border border-line-strong px-4 text-xs font-semibold hover:bg-paper-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"
     >
       {label}
     </Link>
