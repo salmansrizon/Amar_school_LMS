@@ -8,10 +8,13 @@ import { getStudentContext } from '@/lib/student/context'
 export default async function StudentLayout({ children }: { children: React.ReactNode }) {
   const lang = await currentLang()
   const collapsed = await sidebarCollapsed()
-  const { student } = await getStudentContext()
+  const { student, supabase } = await getStudentContext()
+  // The brand names the School, as the owner portal does. A Student may read
+  // their own school's row ("student reads own school", 0133).
+  const { data: school } = await supabase.from('schools').select('name').eq('id', student.school_id).maybeSingle()
 
   return (
-    <StudentShell fullName={student.full_name} lang={lang} initialCollapsed={collapsed}>
+    <StudentShell fullName={student.full_name} schoolName={school?.name ?? null} lang={lang} initialCollapsed={collapsed}>
       {children}
     </StudentShell>
   )

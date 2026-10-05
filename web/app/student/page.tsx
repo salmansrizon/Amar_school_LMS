@@ -207,7 +207,8 @@ export default async function StudentHome() {
     {
       href: '/student/tasks',
       // The count goes in the label: QuickAction.count prints ASCII digits.
-      label: [t('student.dash.homework', lang), taskCounts.pending ? fmt(taskCounts.pending) : ''].filter(Boolean).join(' '),
+      // No count here: the homework card beside it carries the number.
+      label: t('student.dash.homework', lang),
       icon: <Icon name="classes" className="size-4" />,
     },
     { href: '/student/routine', label: t('student.nav.routine', lang), icon: <CalendarDays className="size-4" /> },

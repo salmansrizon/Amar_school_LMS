@@ -130,18 +130,21 @@ function StudentBottomNav({ lang }: { lang: Lang }) {
 
 export function StudentShell({
   fullName,
+  schoolName,
   lang,
   initialCollapsed = false,
   children,
 }: {
   fullName: string
+  /** The Student's school; the app name stands in when it cannot be read. */
+  schoolName: string | null
   lang: Lang
   initialCollapsed?: boolean
   children: React.ReactNode
 }) {
   return (
     <AppShell
-      brand={{ title: t('app.name', lang), subtitle: t('home.student', lang), initial: 'E' }}
+      brand={{ title: schoolName ?? t('app.name', lang), subtitle: t('home.student', lang), initial: schoolName ?? 'E' }}
       nav={buildStudentNav(lang)}
       profile={{ fullName, label: t('shell.profile', lang), href: '/student/profile' }}
       lang={lang}
