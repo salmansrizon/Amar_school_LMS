@@ -384,6 +384,12 @@ const dict = {
     bn: 'Markdown চলে। কোড ব্লকের ভেতরে Tab চাপলে দুটি স্পেস বসে; ফিল্ড থেকে বের হতে আগে Esc, তারপর Tab চাপো।',
     en: 'Markdown works here. Inside a code block, Tab adds two spaces; press Esc, then Tab, to leave the field.',
   },
+  'editor.write': { bn: 'লিখুন', en: 'Write' },
+  'editor.hint': {
+    bn: 'Markdown চলে। কোড ব্লকের ভেতরে Tab চাপলে দুটি স্পেস বসে; ফিল্ড থেকে বের হতে আগে Esc, তারপর Tab চাপুন।',
+    en: 'Markdown works here. Inside a code block, Tab adds two spaces; press Esc, then Tab, to leave the field.',
+  },
+  'questions.replyLabel': { bn: 'আপনার উত্তর', en: 'Your reply' },
   'student.followUp': { bn: 'ফলো-আপ প্রশ্ন', en: 'Ask a follow-up' },
   'student.messagesCount': { bn: 'বার্তা', en: 'Messages' },
   'student.lastActivity': { bn: 'সর্বশেষ', en: 'Last activity' },

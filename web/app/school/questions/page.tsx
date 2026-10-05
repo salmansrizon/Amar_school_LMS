@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { Markdown } from '@/components/markdown'
+import { markdownToPlainText } from '@/lib/rich-text'
 import { CheckCircle2, Clock, MessageCircleQuestion, Tag } from 'lucide-react'
 import { currentLang } from '@/lib/i18n-server'
 import { t, numberFmt, formatNumber, type Lang, formatDate, formatDateTime } from '@/lib/i18n'
@@ -152,7 +153,7 @@ export default async function SchoolQuestionsPage({
       cell: (m) => (
         <div className="min-w-0">
           <p className="truncate font-medium">{m.subject}</p>
-          <p className="truncate text-xs text-muted">{m.body}</p>
+          <p className="truncate text-xs text-muted">{markdownToPlainText(m.body)}</p>
         </div>
       ),
     },

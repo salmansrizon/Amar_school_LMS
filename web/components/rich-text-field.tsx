@@ -54,6 +54,7 @@ export function RichTextField({
   lang,
   rows = 5,
   required = true,
+  formal = false,
   onValue,
 }: {
   name: string
@@ -61,6 +62,8 @@ export function RichTextField({
   lang: Lang
   rows?: number
   required?: boolean
+  /** Owner / teacher portal: use the formal (আপনি) Write label and hint. */
+  formal?: boolean
   onValue?: (v: string) => void
 }) {
   const id = useId()
@@ -107,7 +110,7 @@ export function RichTextField({
         mode === m ? 'bg-brand-500 text-white' : 'bg-paper-muted text-ink hover:bg-line'
       } disabled:opacity-50`}
     >
-      {t(`student.editor.${m}`, lang)}
+      {t(m === 'write' && formal ? 'editor.write' : `student.editor.${m}`, lang)}
     </button>
   )
 
@@ -181,7 +184,7 @@ export function RichTextField({
         )}
       </div>
       <p id={`${id}-hint`} className="text-xs text-muted">
-        {t('student.editor.hint', lang)}
+        {t(formal ? 'editor.hint' : 'student.editor.hint', lang)}
       </p>
     </div>
   )

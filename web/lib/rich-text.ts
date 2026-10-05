@@ -76,3 +76,21 @@ export function softBreaksToHard(md: string): string {
     })
     .join('\n')
 }
+
+/** One-line plain text for previews and table cells: Markdown marks removed,
+ *  link text kept, whitespace collapsed. Text that never used Markdown (a lone
+ *  `*`, `#১`, `৫ * ৩`) passes through unchanged. Numbered-list numbers are kept. */
+export function markdownToPlainText(text: string): string {
+  return text
+    .replace(/^\s*(```|~~~).*$/gm, '')
+    .replace(/^\s{0,3}#{1,6}\s+/gm, '')
+    .replace(/^\s{0,3}>\s?/gm, '')
+    .replace(/^\s*[-*+]\s+/gm, '')
+    .replace(/!?\[([^\]]*)\]\((?:[^()]|\([^()]*\))*\)/g, '$1')
+    .replace(/(\*\*|__)(?=\S)(.+?)(?<=\S)\1/g, '$2')
+    .replace(/\*(?=\S)([^*\n]+?)(?<=\S)\*/g, '$1')
+    .replace(/~~(?=\S)(.+?)(?<=\S)~~/g, '$1')
+    .replace(/`([^`]*)`/g, '$1')
+    .replace(/\s+/g, ' ')
+    .trim()
+}

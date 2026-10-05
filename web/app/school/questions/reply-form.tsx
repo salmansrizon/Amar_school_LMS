@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { t, type Lang } from '@/lib/i18n'
+import { RichTextField } from '@/components/rich-text-field'
 import { answerQuestion } from '@/lib/student/messages-source'
 
 export function ReplyForm({ lang, messageId }: { lang: Lang; messageId: string }) {
@@ -12,7 +13,7 @@ export function ReplyForm({ lang, messageId }: { lang: Lang; messageId: string }
 
   return (
     <form
-      className="mt-2 flex flex-wrap items-center gap-2"
+      className="mt-2 grid gap-2"
       onSubmit={(e) => {
         e.preventDefault()
         const data = new FormData(e.currentTarget)
@@ -27,16 +28,11 @@ export function ReplyForm({ lang, messageId }: { lang: Lang; messageId: string }
         })
       }}
     >
-      <input
-        name="reply_body"
-        required
-        placeholder={t('questions.reply', lang)}
-        className="h-9 min-w-0 flex-1 rounded-sm border border-line-strong bg-paper px-2 text-sm"
-      />
+      <RichTextField name="reply_body" label={t('questions.replyLabel', lang)} lang={lang} rows={4} formal />
       <button
         type="submit"
         disabled={pending}
-        className="h-9 cursor-pointer rounded-full bg-brand-500 px-4 text-xs font-semibold text-white hover:bg-brand-600 disabled:opacity-50"
+        className="h-11 cursor-pointer justify-self-start rounded-full bg-brand-500 px-5 text-xs sm:h-9 font-semibold text-white hover:bg-brand-600 disabled:opacity-50"
       >
         {t('questions.reply', lang)}
       </button>
