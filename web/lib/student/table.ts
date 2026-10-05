@@ -19,6 +19,12 @@ export function pageOf<T>(rows: T[], params: Params) {
   return { ...paginate(rows, params.page, pageSize), pageSize }
 }
 
+/** Inclusive day count of a leave request (`YYYY-MM-DD` both ends). */
+export function leaveDays(from: string, to: string): number {
+  const ms = Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)
+  return Math.max(1, Math.round(ms / 86400000) + 1)
+}
+
 /** Tasks `state` filter: absent = every open task, `all` = everything, else one pile. */
 export function taskStateMatches(state: string | undefined, urgency: TaskUrgency): boolean {
   if (state === 'all') return true

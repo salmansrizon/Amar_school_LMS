@@ -1,13 +1,16 @@
 import { currentLang } from '@/lib/i18n-server'
-import { t, formatDate, type MessageKey } from '@/lib/i18n'
+import { t, formatDate, formatNumber, type MessageKey } from '@/lib/i18n'
 import { getStudentContext, isReadOnly } from '@/lib/student/context'
 import { schoolToday } from '@/lib/school-time'
 import { LeaveRequestForm, WithdrawLeaveButton } from './leave-form'
 import { orderLeaves } from '@/lib/student/daily'
+import { leaveDays, matchesQ, pageOf } from '@/lib/student/table'
 import { studentGroupTabs } from '@/lib/student-nav'
 import { pageTitle } from '@/lib/page-title'
-import { Card, PageHeader, railClass, type Tone } from '@/components/ui/page'
+import { Card, PageHeader } from '@/components/ui/page'
 import { SectionTabs } from '@/components/ui/section-tabs'
+import { DataTable, Pill, type Column } from '@/components/data-table/data-table'
+import { NoMatch } from '@/components/student/no-match'
 
 const STATUS_LABEL: Record<string, MessageKey> = {
   pending: 'student.leavePending',
@@ -15,18 +18,20 @@ const STATUS_LABEL: Record<string, MessageKey> = {
   rejected: 'student.leaveRejected',
 }
 
-const STATUS_RAIL: Record<string, Tone> = { pending: 'sky', approved: 'mint', rejected: 'alert' }
-const STATUS_TEXT: Record<string, string> = {
-  pending: 'text-sky-deep',
-  approved: 'text-mint-deep',
-  rejected: 'text-alert-deep',
-}
+const STATUS_TONE = { pending: 'sky', approved: 'mint', rejected: 'alert' } as const
 
 // The Student's leave requests (#452). The request joins the SAME owner queue
 // Attendance I already built — nothing new on the staff side.
 export const generateMetadata = pageTitle('student.leaveTitle')
 
-export default async function StudentLeavePage() {
+type Leave = { id: string; from_day: string; to_day: string; reason: string | null; status: string; created_at: string }
+
+export default async function StudentLeavePage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | undefined>>
+}) {
+  const params = await searchParams
   const lang = await currentLang()
   const ctx = await getStudentContext()
 
@@ -35,9 +40,38 @@ export default async function StudentLeavePage() {
     .select('id, from_day, to_day, reason, status, created_at')
     .order('from_day', { ascending: false })
 
+  // Pending requests first, then newest.
   const requests = orderLeaves(leaves ?? [])
-  const range = (from: string, to: string) =>
-    from === to ? formatDate(from, lang) : `${formatDate(from, lang)} – ${formatDate(to, lang)}`
+  const shown = requests.filter((l) => matchesQ(params.q, l.reason) && (!params.status || l.status === params.status))
+  const paged = pageOf(shown, params)
+  const readOnly = isReadOnly(ctx)
+
+  const columns: Column<Leave>[] = [
+    {
+      key: 'from',
+      header: t('student.leaveFrom', lang),
+      card: 'title',
+      cell: (l) => <span className="font-semibold">{formatDate(l.from_day, lang)}</span>,
+    },
+    { key: 'to', header: t('student.leaveTo', lang), cell: (l) => formatDate(l.to_day, lang) },
+    { key: 'days', header: t('student.col.days', lang), cell: (l) => formatNumber(leaveDays(l.from_day, l.to_day), lang) },
+    {
+      key: 'reason',
+      header: t('student.leaveReason', lang),
+      className: 'max-w-xs',
+      cell: (l) => (l.reason ? <span className="line-clamp-2 whitespace-normal" title={l.reason}>{l.reason}</span> : <span className="text-muted">—</span>),
+    },
+    {
+      key: 'status',
+      header: t('student.col.state', lang),
+      card: 'badge',
+      cell: (l) => (
+        <Pill tone={STATUS_TONE[l.status as keyof typeof STATUS_TONE] ?? 'muted'}>
+          {t(STATUS_LABEL[l.status] ?? 'student.leavePending', lang)}
+        </Pill>
+      ),
+    },
+  ]
 
   return (
     <main className="w-full px-gutter pt-section pb-16">
@@ -62,36 +96,35 @@ export default async function StudentLeavePage() {
               <p className="text-sm text-muted">{t('student.noLeave', lang)}</p>
             </Card>
           ) : (
-            <Card padded={false}>
-              <ul className="divide-y divide-line">
-                {requests.map((leave) => (
-                  <li
-                    key={leave.id}
-                    className={`flex flex-wrap items-center justify-between gap-2 px-card py-3 ${railClass(STATUS_RAIL[leave.status])}`}
-                  >
-                    <span className="min-w-0">
-                      <span className="block text-sm font-medium">{range(leave.from_day, leave.to_day)}</span>
-                      {leave.reason && <span className="block text-xs text-muted">{leave.reason}</span>}
-                    </span>
-                    <span className="flex items-center gap-3">
-                      <span className={`text-xs font-bold ${STATUS_TEXT[leave.status] ?? ''}`}>
-                        {t(STATUS_LABEL[leave.status] ?? 'student.leavePending', lang)}
-                      </span>
-                      {leave.status === 'pending' && (
-                        <WithdrawLeaveButton lang={lang} leaveId={leave.id} disabled={isReadOnly(ctx)} />
-                      )}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </Card>
+            <DataTable
+              rows={paged.items}
+              rowId={(l) => l.id}
+              rowLabel={(l) => formatDate(l.from_day, lang)}
+              columns={columns}
+              lang={lang}
+              params={params}
+              caption={t('student.myRequests', lang)}
+              search={{ placeholder: t('student.col.searchReason', lang) }}
+              filters={[
+                {
+                  param: 'status',
+                  label: t('student.col.state', lang),
+                  options: Object.entries(STATUS_LABEL).map(([value, key]) => ({ value, label: t(key, lang) })),
+                },
+              ]}
+              rowActions={(l) =>
+                l.status === 'pending' ? <WithdrawLeaveButton lang={lang} leaveId={l.id} disabled={readOnly} /> : null
+              }
+              pagination={{ page: paged.page, totalPages: paged.totalPages, total: paged.total, pageSize: paged.pageSize }}
+              empty={<NoMatch lang={lang} />}
+            />
           )}
         </section>
 
         <div id="new-leave" className="scroll-mt-24">
           <Card>
             <h2 className="mb-3 font-bold">{t('student.requestLeave', lang)}</h2>
-            <LeaveRequestForm lang={lang} disabled={isReadOnly(ctx)} today={schoolToday()} />
+            <LeaveRequestForm lang={lang} disabled={readOnly} today={schoolToday()} />
           </Card>
         </div>
       </div>
