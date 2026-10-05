@@ -227,6 +227,8 @@ export function CreateEmployeeForm({
   return (
     <form
       ref={formRef}
+      // Never a GET: a submit before hydration must not put the password in the URL.
+      method="post"
       // The server validates (name, mobile, email, password) and answers in the
       // UI language into the error line below; native bubbles are always English.
       noValidate

@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useSyncExternalStore } from 'react'
 import { AuthCard, inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
 import { signInAction } from '@/lib/auth/session-actions'
 import { t } from '@/lib/i18n'
@@ -17,6 +17,15 @@ export function LoginForm({ brand }: { brand: SchoolBrand | null }) {
   const [error, setError] = useState(false)
   const [blocked, setBlocked] = useState(false)
   const [busy, setBusy] = useState(false)
+  // The handler below only exists after hydration. Before it, a native submit
+  // of a GET form would put the email and password in the URL (history, logs).
+  // So: the form is method="post" (nothing in the URL), and the button stays
+  // disabled until the handler is attached.
+  const ready = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  )
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -39,7 +48,7 @@ export function LoginForm({ brand }: { brand: SchoolBrand | null }) {
 
   return (
     <AuthCard lang={lang} title={t('login.title', lang)} brand={brand} illustrated>
-      <form onSubmit={onSubmit} className="flex flex-col gap-3">
+      <form method="post" onSubmit={onSubmit} className="flex flex-col gap-3">
         <div>
           <label className={labelClass} htmlFor="email">{t('login.email', lang)}</label>
           <input id="email" name="email" type="email" required className={inputClass} />
@@ -50,7 +59,7 @@ export function LoginForm({ brand }: { brand: SchoolBrand | null }) {
         </div>
         {error && <p className="text-sm text-alert-deep">{t('login.failed', lang)}</p>}
         {blocked && <p className="text-sm text-alert-deep">{t('blocked.message', lang)}</p>}
-        <button type="submit" disabled={busy} className={primaryBtnClass}>
+        <button type="submit" disabled={busy || !ready} className={primaryBtnClass}>
           {t('login.submit', lang)}
         </button>
       </form>

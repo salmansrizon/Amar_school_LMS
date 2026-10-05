@@ -28,7 +28,7 @@ export default function ResetPasswordPage() {
 
   return (
     <AuthCard lang={lang} title={t('reset.title', lang)}>
-      <form onSubmit={onSubmit} className="flex flex-col gap-3">
+      <form method="post" onSubmit={onSubmit} className="flex flex-col gap-3">
         <div>
           <label className={labelClass} htmlFor="email">{t('login.email', lang)}</label>
           <input id="email" name="email" type="email" required className={inputClass} />

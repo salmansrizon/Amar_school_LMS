@@ -97,7 +97,7 @@ export default function ClaimPage() {
     return (
       <AuthCard lang={lang} title={t('claim.title', lang)} illustrated>
         <p className="mb-3 text-sm text-muted">{t('claim.intro', lang)}</p>
-        <form onSubmit={onCreateAccount} className="flex flex-col gap-3">
+        <form method="post" onSubmit={onCreateAccount} className="flex flex-col gap-3">
           <div>
             <label className={labelClass} htmlFor="email">{t('login.email', lang)}</label>
             <input id="email" name="email" type="email" required className={inputClass} />
@@ -123,7 +123,7 @@ export default function ClaimPage() {
   return (
     <AuthCard lang={lang} title={t('claim.title', lang)} illustrated>
       <p className="mb-3 text-sm text-muted">{t('claim.intro', lang)}</p>
-      <form onSubmit={onClaim} className="flex flex-col gap-3">
+      <form method="post" onSubmit={onClaim} className="flex flex-col gap-3">
         <div>
           <label className={labelClass} htmlFor="code">{t('claim.code', lang)}</label>
           <input
