@@ -8,6 +8,7 @@ import type { Importance, PublicationKind, TargetScope } from '@/lib/publishing'
 import { CreateNoticeForm } from '../../new/create-form'
 import { getNotice } from '../notice-detail'
 import { pageTitle } from '@/lib/page-title'
+import { schoolToday } from '@/lib/school-time'
 
 // Edit a published notice/homework/lesson row: the create form, prefilled, and
 // saved through updatePublication (same validation as create). The table has no
@@ -68,6 +69,7 @@ export default async function EditNoticePage({ params }: { params: Promise<{ id:
           targetSection: row.target_section ?? '',
           linkUrl: row.link_url ?? '',
           hasImage: Boolean(row.image_path),
+          dueDate: row.due_at ? schoolToday(new Date(row.due_at)) : '',
         }}
       />
     </>

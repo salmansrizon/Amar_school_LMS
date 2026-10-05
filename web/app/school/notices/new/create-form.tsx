@@ -43,6 +43,8 @@ export interface NoticeFormInitial {
   targetSection: string
   linkUrl: string
   hasImage: boolean
+  /** The stored due day, `YYYY-MM-DD` in school time; '' when there is none. */
+  dueDate?: string
 }
 
 export function CreateNoticeForm({
@@ -63,6 +65,7 @@ export function CreateNoticeForm({
   const [kind, setKind] = useState<PublicationKind>(initial?.kind ?? 'notice')
   const [importance, setImportance] = useState<Importance>(initial?.importance ?? 'normal')
   const [title, setTitle] = useState(initial?.title ?? '')
+  const [dueDate, setDueDate] = useState(initial?.dueDate ?? '')
   const [content, setContent] = useState(initial?.content ?? '')
   // Targeting onto map #598's three-scope contract (#607): All / exact Class
   // Offering / broadcast predicate (Class + Any-or-specific Shift/Group/
@@ -148,6 +151,8 @@ export function CreateNoticeForm({
         targetSection,
         imagePath,
         linkUrl,
+        // Only homework carries a due date; the action enforces the same rule.
+        dueDate: kind === 'homework' ? dueDate || null : null,
       }
       const res = initial ? await updatePublication(initial.id, input) : await createPublication(input)
       if (res.error) {
@@ -194,6 +199,31 @@ export function CreateNoticeForm({
             required
           />
         </div>
+        {kind === 'homework' && (
+          <div>
+            <label htmlFor="notice_due_date" className={labelClass}>{t('notices.dueDate', lang)}</label>
+            <div className="flex items-center gap-2">
+              <input
+                id="notice_due_date"
+                type="date"
+                className={`${inputClass} max-sm:h-11`}
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
+                aria-describedby="notice_due_date_hint"
+              />
+              {dueDate && (
+                <button
+                  type="button"
+                  onClick={() => setDueDate('')}
+                  className="h-10 shrink-0 cursor-pointer rounded-full border border-line-strong px-3 text-xs font-semibold hover:bg-paper-muted max-sm:h-11"
+                >
+                  {t('notices.dueDateClear', lang)}
+                </button>
+              )}
+            </div>
+            <p id="notice_due_date_hint" className="mt-1 text-xs text-muted">{t('notices.dueDateHint', lang)}</p>
+          </div>
+        )}
         <div>
           <label htmlFor="notice_target_scope" className={labelClass}>{t('notices.colTarget', lang)}</label>
           <SelectField
@@ -207,7 +237,7 @@ export function CreateNoticeForm({
             ]}
           />
         </div>
-        <div />
+        {kind !== 'homework' && <div />}
         {targetScope === 'offering' && (
           <div className="sm:col-span-2">
             <label htmlFor="notice_offering" className={labelClass}>{t('notices.classOffering', lang)}</label>
