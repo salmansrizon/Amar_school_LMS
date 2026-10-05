@@ -358,6 +358,7 @@ export default async function SchoolHome() {
           tone={attToday?.rate != null ? (attToday.rate >= 85 ? 'mint' : 'alert') : 'muted'}
           label={t('dash.attendanceToday', lang)}
           value={attToday?.rate != null ? `${fmt(attToday.rate)}%` : '—'}
+          progress={attToday?.rate ?? undefined}
           note={
             attToday?.rate != null
               ? `${fmt(attToday.present)}/${fmt(attToday.total)} ${t('dash.presentToday', lang)}${
