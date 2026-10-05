@@ -8,6 +8,7 @@ import { importanceLabel } from '@/lib/publishing'
 import { isReadOnly } from '@/lib/student/context'
 import { AskForm } from '../../questions/ask-form'
 import { Card, PageHeader } from '@/components/ui/page'
+import { Markdown } from '@/components/markdown'
 
 // One notice (#445). Opening it is what marks it read — there is no "mark as
 // read" button, because the receipt exists to answer "what is new since I last
@@ -63,7 +64,7 @@ export default async function StudentNoticePage({
           )}
 
           {notice.content ? (
-            <div className="whitespace-pre-wrap text-sm leading-relaxed">{notice.content}</div>
+            <Markdown text={notice.content} className="leading-relaxed" />
           ) : null}
 
           {notice.link_url && (

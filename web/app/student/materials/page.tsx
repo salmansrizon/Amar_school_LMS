@@ -10,6 +10,7 @@ import { SectionTabs } from '@/components/ui/section-tabs'
 import { EmptyState } from '@/components/ui/states'
 import { DataTable, type Column } from '@/components/data-table/data-table'
 import { NoMatch } from '@/components/student/no-match'
+import { markdownToPlainText } from '@/lib/rich-text'
 
 // The kinds we have labels for. An unexpected kind still renders — groupMaterials
 // keeps it — so it falls back to its own name rather than throwing in t().
@@ -59,7 +60,7 @@ export default async function StudentMaterialsPage({
       cell: (m) => (
         <>
           <span className="font-semibold">{m.title}</span>
-          {m.content && <div className="line-clamp-2 whitespace-pre-wrap text-xs text-muted">{m.content}</div>}
+          {m.content && <div className="line-clamp-2 text-xs text-muted">{markdownToPlainText(m.content)}</div>}
         </>
       ),
     },

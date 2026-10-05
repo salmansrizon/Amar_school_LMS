@@ -22,9 +22,7 @@ import { ComboboxField } from '@/components/ui/combobox-field'
 import { SelectField } from '@/components/ui/select-field'
 import { removeUploadedObject } from '@/lib/storage/remove-object'
 import { uploadWithSignedToken } from '@/lib/storage/upload-client'
-
-const textareaClass =
-  'w-full rounded-sm border border-line-strong bg-paper px-3 py-2 text-sm outline-none focus:border-brand-500'
+import { RichTextField } from '@/components/rich-text-field'
 
 function distinct(values: (string | null | undefined)[]): string[] {
   return [...new Set(values.filter((v): v is string => !!v))].sort()
@@ -280,12 +278,17 @@ export function CreateNoticeForm({
           </div>
         )}
         <div className="sm:col-span-2">
-          <label htmlFor="notice_f_2" className={labelClass}>{t('notices.content', lang)}</label>
-          <textarea id="notice_f_2"
-            rows={5}
-            className={textareaClass}
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
+          {/* Shown on screen only (owner detail, student notice and task
+              pages) — never sent by SMS, printed or exported — so formatting
+              is safe here. */}
+          <RichTextField
+            name="content"
+            label={t('notices.content', lang)}
+            lang={lang}
+            required={false}
+            formal
+            defaultValue={content}
+            onValue={setContent}
           />
         </div>
         <div>

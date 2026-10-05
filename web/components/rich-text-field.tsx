@@ -55,6 +55,7 @@ export function RichTextField({
   rows = 5,
   required = true,
   formal = false,
+  defaultValue = '',
   onValue,
 }: {
   name: string
@@ -64,13 +65,15 @@ export function RichTextField({
   required?: boolean
   /** Owner / teacher portal: use the formal (আপনি) Write label and hint. */
   formal?: boolean
+  /** Text to start with (an edit form). */
+  defaultValue?: string
   onValue?: (v: string) => void
 }) {
   const id = useId()
   const ref = useRef<HTMLTextAreaElement>(null)
   const sel = useRef<{ start: number; end: number } | null>(null)
   const escaped = useRef(false)
-  const [value, setValue] = useState('')
+  const [value, setValue] = useState(defaultValue)
   const [mode, setMode] = useState<'write' | 'preview'>('write')
 
   useLayoutEffect(() => {

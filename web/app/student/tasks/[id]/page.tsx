@@ -6,6 +6,7 @@ import { MAX_SUBMISSION_FILES } from '@/lib/student/submissions'
 import { SubmitWork, WithdrawButton } from './submit-work'
 import { AskForm } from '../../questions/ask-form'
 import { Card, PageHeader } from '@/components/ui/page'
+import { Markdown } from '@/components/markdown'
 
 // One task, with the Student's own submitted work (#448).
 //
@@ -52,7 +53,7 @@ export default async function StudentTaskPage({
         }}
         subtitle={task.due_at ? `${t('student.taskDue', lang)}: ${formatDate(task.due_at, lang)}` : undefined}
       />
-      {task.content && <p className="mb-section whitespace-pre-wrap text-sm">{task.content}</p>}
+      {task.content && <Markdown text={task.content} className="mb-section" />}
 
       <div className="grid items-start gap-grid lg:grid-cols-2">
         <Card>

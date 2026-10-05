@@ -10,6 +10,7 @@ import {
 } from '@/lib/publishing'
 import { PublicationActions } from './detail-controls'
 import { formatDate } from '@/lib/i18n'
+import { Markdown } from '@/components/markdown'
 
 // Shared detail body for notice/homework/lesson-plan/daily-lesson/exam-prep
 // rows (issue #37), rendered by the full page `[id]` and by the list's record
@@ -69,7 +70,7 @@ export function NoticeDetail({ notice, lang }: { notice: Notice; lang: Lang }) {
           {importanceLabel(row.importance, lang)}
         </span>
       </div>
-      {row.content && <p className="mb-4 max-w-prose whitespace-pre-wrap text-sm">{row.content}</p>}
+      {row.content && <Markdown text={row.content} className="mb-4 max-w-prose" />}
       {row.image_path && (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={`/api/publication-image?id=${row.id}`} alt="" className="mb-4 max-w-full rounded-md border border-line" />
