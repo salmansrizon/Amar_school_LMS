@@ -167,7 +167,7 @@ export default async function StudentQuestionsPage({
           <ol className="ui-stagger relative ml-1 space-y-5 border-l-2 border-line pl-5">
             {open.steps.map((step, i) => (
               <li key={`${step.rowId}-${step.kind}-${i}`} className="relative">
-                <span className="absolute -left-[27px] top-1">
+                <span className="absolute -left-[26px] top-1">
                   {step.kind === 'asked' ? (
                     <ToneDot tone="brand" />
                   ) : step.kind === 'replied' ? (
