@@ -65,14 +65,19 @@ export default async function EmployeeAttendancePage({
   const { supabase, weeklyOffDays } = await getSchoolContext()
   const isTableView = view === 'table'
 
-  const [{ data: employees }, { data: standingRules }, { data: adHocExemptions }, { data: dateOffRows }] = await Promise.all([
+  const [{ data: employees }, { data: standingRules }, { data: adHocExemptions }, { data: dateOffRows }, { data: tenureRows }] = await Promise.all([
     supabase.from('employee_card').select('id, full_name, category').is('archived_at', null).order('full_name'),
     // Every Standing Grace Rule, any Shift — Shift is display-only (ADR 0032).
     supabase.from('standing_grace_rules').select('grace_detail, grace_minutes, standing_grace_rule_categories(category)'),
     // Ad-Hoc Grace Exemptions active on this specific date (issue #671).
     supabase.from('ad_hoc_grace_exemptions').select('id, duration_minutes').eq('exemption_date', date),
     supabase.from('off_days').select('day, label, is_significant').eq('day', date),
+    // Same read as the calendar below: Owner-only, and no rows means no clip.
+    supabase.from('employees').select('id, joining_date, created_at').is('archived_at', null),
   ])
+  const trackingStartById = new Map(
+    (tenureRows ?? []).map((e) => [e.id, employeeTrackingStart(e.joining_date, e.created_at)]),
+  )
   const dateIsOff = isOffDayIso(date, dateOffRows ?? [], weeklyOffDays)
   const categoriesByExemptionId = await exemptionCategoriesByExemptionId(
     supabase,
@@ -125,7 +130,13 @@ export default async function EmployeeAttendancePage({
   const recordByEmployee = new Map((records ?? []).map((r) => [r.person_id, r]))
   const onLeaveEmployees = new Set((leaves ?? []).map((l) => l.employee_id))
 
-  const rows = roster.map((e) => {
+  // Someone who had not joined by this date is not absent on it (the calendar
+  // already leaves those days blank); a real record still shows.
+  const employedOnDate = roster.filter((e) => {
+    const start = trackingStartById.get(e.id)
+    return recordByEmployee.has(e.id) || !start || date >= start
+  })
+  const rows = employedOnDate.map((e) => {
     const { minutes: grace, source } = effectiveGraceWithSource({
       standing: e.category ? (standingByCategory.get(e.category) ?? []) : [],
       adHoc: e.category ? (adHocByCategory.get(e.category) ?? null) : null,
