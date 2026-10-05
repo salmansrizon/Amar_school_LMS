@@ -171,7 +171,7 @@ export function CreateNoticeForm({
 
   return (
     <div className="rounded-lg border border-line bg-paper p-5 shadow-card">
-      <form className="grid gap-4 sm:grid-cols-2" onSubmit={onSubmit}>
+      <form className="grid grid-cols-1 gap-4 sm:grid-cols-2" onSubmit={onSubmit}>
         <div>
           <label htmlFor="notice_kind" className={labelClass}>{t('notices.type', lang)}</label>
           <SelectField
