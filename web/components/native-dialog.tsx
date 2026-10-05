@@ -63,6 +63,12 @@ export function NativeDialog({
         e.preventDefault()
         onRequestClose()
       }}
+      // One Escape closes one layer: the browser's cancel handles this dialog,
+      // so keep the keydown from also reaching an Escape listener further up
+      // (the route modal's Base UI dialog).
+      onKeyDown={(e) => {
+        if (e.key === 'Escape') e.stopPropagation()
+      }}
       // A click on the ::backdrop lands on the <dialog> itself, outside its box.
       onMouseDown={(e) => {
         const r = e.currentTarget.getBoundingClientRect()
