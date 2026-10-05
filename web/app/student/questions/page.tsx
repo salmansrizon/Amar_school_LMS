@@ -144,12 +144,20 @@ export default async function StudentQuestionsPage({
         search={{ param: 'find', placeholder: t('student.questionsSearch', lang) }}
         pagination={{ page: pageData.page, totalPages: pageData.totalPages, total: pageData.total, pageSize }}
         empty={
-          <EmptyState
-            lang={lang}
-            title={t('student.noQuestions', lang)}
-            body={t('student.noQuestionsHint', lang)}
-            action={{ href: '/student/notices', label: t('student.nav.notices', lang) }}
-          />
+          needle ? (
+            <EmptyState
+              lang={lang}
+              title={t('search.noResults', lang)}
+              action={{ href: withParams(params, { find: null, view: null, q: null }), label: t('table.resetFilters', lang) }}
+            />
+          ) : (
+            <EmptyState
+              lang={lang}
+              title={t('student.noQuestions', lang)}
+              body={t('student.noQuestionsHint', lang)}
+              action={{ href: '/student/notices', label: t('student.nav.notices', lang) }}
+            />
+          )
         }
       />
 

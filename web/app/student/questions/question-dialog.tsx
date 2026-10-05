@@ -30,7 +30,8 @@ export function QuestionDialog({
 
   useEffect(
     () => () => {
-      setTimeout(() => document.querySelector<HTMLElement>(`[data-view-link="${focusId}"]`)?.focus(), 0)
+      setTimeout(() => // The table renders a phone list and a desktop table; focus the one on screen.
+      [...document.querySelectorAll<HTMLElement>(`[data-view-link="${focusId}"]`)].find((el) => el.offsetParent)?.focus(), 0)
     },
     [focusId],
   )
