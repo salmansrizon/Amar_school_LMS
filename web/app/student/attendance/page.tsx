@@ -13,7 +13,7 @@ import { Icon } from '@/components/school-icons'
 import { Card, PageHeader } from '@/components/ui/page'
 import { SectionTabs } from '@/components/ui/section-tabs'
 import { StatCard, StatGrid, WarningBanner } from '@/components/ui/widgets'
-import { MonthGridFrame } from '@/app/school/attendance/calendar-shell'
+import { CAL_CELL, CAL_CHIP, CAL_OUTSIDE, CAL_WEEKEND, CalendarDayNumber, MonthGridFrame } from '@/app/school/attendance/calendar-shell'
 import { isWeekendColumn } from '@/lib/employee-attendance-calendar'
 
 // The Student's own attendance (#451).
@@ -96,6 +96,8 @@ export default async function StudentAttendancePage({
   })
 
   const leadIn = monthLeadIn(year, month)
+  // Day 0 of this month is the last day of the previous one.
+  const prevMonthDays = new Date(Date.UTC(year, month - 1, 0)).getUTCDate()
 
   const tone: Record<string, string> = {
     present: 'bg-mint-soft text-mint-deep',
@@ -177,7 +179,9 @@ export default async function StudentAttendancePage({
             chip shrinks to a dot and the state is in the cell's label. */}
         <MonthGridFrame monthLabel={monthLabel} lang={lang} weeklyOffDays={weeklyOffDays}>
           {Array.from({ length: leadIn }, (_, i) => (
-            <div key={`lead-${i}`} aria-hidden className="min-h-14 bg-paper-muted/30 sm:min-h-24" />
+            <div key={`lead-${i}`} aria-hidden className={`${CAL_CELL} ${CAL_OUTSIDE}`}>
+              <CalendarDayNumber label={num.format(prevMonthDays - leadIn + i + 1)} isToday={false} muted />
+            </div>
           ))}
           {grid.map((day, i) => {
             const weekend = isWeekendColumn(leadIn + i, weeklyOffDays)
@@ -193,30 +197,24 @@ export default async function StudentAttendancePage({
                 aria-label={[formatDate(day.date, lang), text, day.label].filter(Boolean).join(', ')}
                 aria-current={isToday ? 'date' : undefined}
                 title={day.label ?? undefined}
-                className={`flex min-h-14 flex-col gap-1 p-1.5 sm:min-h-24 sm:p-2 ${
-                  weekend ? 'bg-paper-muted/50' : 'bg-paper'
-                } ${future ? 'opacity-60' : ''}`}
+                className={`${CAL_CELL} ${weekend ? CAL_WEEKEND : ''} ${future ? 'opacity-60' : ''}`}
               >
-                <span
-                  className={`inline-flex size-6 items-center justify-center self-start rounded-full text-xs font-semibold sm:size-7 sm:text-sm ${
-                    isToday ? 'bg-brand-600 text-white' : 'text-ink'
-                  }`}
-                >
-                  {num.format(Number(day.date.slice(8)))}
-                </span>
+                <div className="flex items-center justify-between">
+                  <CalendarDayNumber label={num.format(Number(day.date.slice(8)))} isToday={isToday} />
+                  {text && <span className={`size-2 rounded-full sm:hidden ${dot[state]}`} aria-hidden />}
+                </div>
                 {text && (
-                  <>
-                    <span className={`hidden truncate rounded px-1.5 py-0.5 text-xs font-semibold sm:block ${tone[state]}`}>
-                      {day.label && state === 'off' ? day.label : text}
-                    </span>
-                    <span className={`size-2 self-start rounded-full sm:hidden ${dot[state]}`} aria-hidden />
-                  </>
+                  <span className={`hidden sm:block ${CAL_CHIP} ${tone[state]}`}>
+                    {day.label && state === 'off' ? day.label : text}
+                  </span>
                 )}
               </div>
             )
           })}
           {Array.from({ length: (7 - ((leadIn + grid.length) % 7)) % 7 }, (_, i) => (
-            <div key={`tail-${i}`} aria-hidden className="min-h-14 bg-paper-muted/30 sm:min-h-24" />
+            <div key={`tail-${i}`} aria-hidden className={`${CAL_CELL} ${CAL_OUTSIDE}`}>
+              <CalendarDayNumber label={num.format(i + 1)} isToday={false} muted />
+            </div>
           ))}
         </MonthGridFrame>
 

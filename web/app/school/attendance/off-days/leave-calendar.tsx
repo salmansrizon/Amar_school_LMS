@@ -5,6 +5,7 @@ import { t, type Lang } from '@/lib/i18n'
 import { formatDayLong, localizeNumber, type LeaveCalendarDayCell as LeaveCalendarDayCellData } from '@/lib/employee-attendance-calendar'
 import { AddOffDayForm, DeleteOffDayButton } from './off-day-controls'
 import { LeaveStatusPill } from '../leave/leave-shared'
+import { CAL_CELL, CAL_CHIP, CAL_WEEKEND, CalendarDayNumber } from '@/app/school/attendance/calendar-shell'
 
 // The Leave Calendar's day cell (map 013 follow-up, calendar polish pass):
 // one cell of the shared MonthGridFrame (../calendar-shell.tsx), overlaying
@@ -69,21 +70,13 @@ function DayPopoverContent({ cell, lang }: { cell: LeaveCalendarDayCellData; lan
 }
 
 function DayNumber({ day, lang, isToday, muted }: { day: number | null; lang: Lang; isToday: boolean; muted: boolean }) {
-  return (
-    <span
-      className={`inline-flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${
-        isToday ? 'bg-brand-500 text-white' : muted ? 'text-muted/50' : 'text-ink'
-      }`}
-    >
-      {localizeNumber(day ?? 0, lang)}
-    </span>
-  )
+  return <CalendarDayNumber label={localizeNumber(day ?? 0, lang)} isToday={isToday} muted={muted} />
 }
 
 function NameChip({ name, status }: { name: string; status: 'approved' | 'pending' }) {
   return (
     <span
-      className={`truncate rounded-full px-1.5 py-0.5 text-[9px] font-semibold ${
+      className={`${CAL_CHIP} ${
         status === 'approved' ? 'bg-mint text-white' : 'border border-dashed border-sun-deep text-sun-deep'
       }`}
     >
@@ -92,7 +85,7 @@ function NameChip({ name, status }: { name: string; status: 'approved' | 'pendin
   )
 }
 
-const cellFrame = 'flex h-16 w-full flex-col gap-1 p-1 text-left sm:h-26 sm:p-1.5'
+const cellFrame = CAL_CELL
 
 export function LeaveCalendarDayCell({
   cell,
@@ -105,7 +98,7 @@ export function LeaveCalendarDayCell({
   isToday: boolean
   isWeekend: boolean
 }) {
-  const weekendTint = isWeekend ? 'bg-paper-muted/40' : ''
+  const weekendTint = isWeekend ? CAL_WEEKEND : ''
 
   if (!cell.iso) {
     return (

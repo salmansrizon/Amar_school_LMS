@@ -15,6 +15,30 @@ import { WEEKDAY_SHORT, isWeekendColumn } from '@/lib/employee-attendance-calend
 // prop — these pages are Server Components, and a function can't cross to a
 // Client Component as a prop, only elements/children can.
 
+/** One day cell of any month calendar: fixed height so the weeks line up, the
+ *  date on top and the day's content under it. */
+export const CAL_CELL = 'flex h-16 w-full flex-col gap-1 p-1.5 text-left sm:h-28 sm:p-2'
+/** Weekend column wash, and the wash of a cell that belongs to the next or
+ *  previous month. */
+export const CAL_WEEKEND = 'bg-paper-muted/50'
+export const CAL_OUTSIDE = 'bg-paper-muted/30'
+/** A day's content chip (status, a name, a rate). The caller adds the tone. */
+export const CAL_CHIP = 'truncate rounded px-1.5 py-0.5 text-[11px] font-semibold leading-tight'
+
+/** The date in a cell's top-left corner. Today sits in a filled circle; a day
+ *  of the adjacent month is muted. */
+export function CalendarDayNumber({ label, isToday, muted = false }: { label: string; isToday: boolean; muted?: boolean }) {
+  return (
+    <span
+      className={`inline-flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold sm:size-7 sm:text-sm ${
+        isToday ? 'bg-brand-600 text-white' : muted ? 'text-muted/50' : 'text-ink'
+      }`}
+    >
+      {label}
+    </span>
+  )
+}
+
 const navBtn = 'inline-flex size-9 max-sm:size-11 items-center justify-center rounded-full text-muted hover:bg-paper-muted hover:text-ink'
 
 export function CalendarToolbar({

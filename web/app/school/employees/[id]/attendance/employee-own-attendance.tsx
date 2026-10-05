@@ -21,7 +21,7 @@ import { PageHeader } from '@/components/ui/page'
 import { StatCard, StatGrid } from '@/components/ui/widgets'
 import { LeaveStatusPill } from '@/app/school/attendance/leave/leave-shared'
 import { LeaveActions } from '@/app/school/attendance/leave/leave-controls'
-import { CalendarToolbar, MonthGridFrame } from '../../../attendance/calendar-shell'
+import { CalendarToolbar, MonthGridFrame, CAL_CELL, CAL_CHIP, CAL_OUTSIDE, CAL_WEEKEND, CalendarDayNumber } from '../../../attendance/calendar-shell'
 
 // The employees list's "View attendance" row action (map 013 follow-up): a
 // focused view of ONE employee's own attendance — a month calendar, its
@@ -53,7 +53,13 @@ function cellStatusLabel(status: Exclude<EmployeeCalendarCell['status'], null>, 
   return t(`status.${status}` as 'status.present', lang)
 }
 
-const cellFrame = 'flex h-16 w-full flex-col gap-1 p-1 text-left sm:h-26 sm:p-1.5'
+const cellFrame = CAL_CELL
+const CELL_DOT: Partial<Record<Exclude<EmployeeCalendarCell['status'], null>, string>> = {
+  present: 'bg-mint-deep',
+  absent: 'bg-alert',
+  on_leave: 'bg-sky',
+  off: 'bg-line-strong',
+}
 
 /** This calendar's own day cell (calendar polish, map 013 follow-up): same
  *  cellFrame/DayNumber convention as the other two calendars' day cells
@@ -72,39 +78,33 @@ function EmployeeOwnDayCell({
   isToday: boolean
   isWeekend: boolean
 }) {
-  const weekendTint = isWeekend ? 'bg-paper-muted/40' : ''
+  const weekendTint = isWeekend ? CAL_WEEKEND : ''
 
   if (!cell.iso || !cell.status) {
     return (
-      <div className={`${cellFrame} ${weekendTint}`} aria-hidden>
-        <span className="inline-flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold text-muted/50">
-          {localizeNumber(cell.day ?? 0, lang)}
-        </span>
+      <div className={`${cellFrame} ${cell.iso ? weekendTint : CAL_OUTSIDE}`} aria-hidden>
+        <CalendarDayNumber label={localizeNumber(cell.day ?? 0, lang)} isToday={false} muted />
       </div>
     )
   }
 
+  const quiet = cell.status === 'future' || cell.status === 'not_started'
   return (
     <div
       role="gridcell"
       aria-label={`${cell.iso} — ${cellStatusLabel(cell.status, lang)}`}
-      className={`${cellFrame} ${CELL_TONE[cell.status]}`}
+      aria-current={isToday ? 'date' : undefined}
+      className={`${cellFrame} ${weekendTint} ${quiet ? 'opacity-60' : ''}`}
     >
-      <span
-        className={`inline-flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${
-          isToday ? 'bg-brand-500 text-white' : ''
-        }`}
-      >
-        {localizeNumber(cell.day ?? 0, lang)}
-      </span>
-      {cell.status === 'present' ? (
-        <span className="hidden truncate text-[10px] leading-tight sm:block">
-          {hhmm(cell.entry)}
-          {cell.exit ? `–${hhmm(cell.exit)}` : ''}
+      <div className="flex items-center justify-between">
+        <CalendarDayNumber label={localizeNumber(cell.day ?? 0, lang)} isToday={isToday} />
+        {CELL_DOT[cell.status] && <span className={`size-2 rounded-full sm:hidden ${CELL_DOT[cell.status]}`} aria-hidden />}
+      </div>
+      {!quiet && (
+        <span className={`hidden sm:block ${CAL_CHIP} ${CELL_TONE[cell.status]}`}>
+          {cell.status === 'present' ? `${hhmm(cell.entry)}${cell.exit ? `–${hhmm(cell.exit)}` : ''}` || cellStatusLabel(cell.status, lang) : cellStatusLabel(cell.status, lang)}
         </span>
-      ) : cell.status !== 'future' && cell.status !== 'not_started' ? (
-        <span className="hidden truncate text-[10px] font-semibold leading-tight sm:block">{cellStatusLabel(cell.status, lang)}</span>
-      ) : null}
+      )}
     </div>
   )
 }

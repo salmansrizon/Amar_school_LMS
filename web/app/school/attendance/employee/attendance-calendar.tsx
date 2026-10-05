@@ -4,6 +4,7 @@ import { Popover } from '@base-ui/react/popover'
 import { t, type Lang } from '@/lib/i18n'
 import { attendanceBand } from '@/lib/dashboard'
 import { formatDayLong, localizeNumber, type SchoolAttendanceDayCell } from '@/lib/employee-attendance-calendar'
+import { CAL_CELL, CAL_CHIP, CAL_WEEKEND, CalendarDayNumber } from '@/app/school/attendance/calendar-shell'
 
 // The school-wide Employee Attendance Calendar's day cell (map 013 follow-up,
 // calendar polish pass): one cell of the shared MonthGridFrame
@@ -57,18 +58,10 @@ function DayPopoverContent({ cell, lang }: { cell: SchoolAttendanceDayCell; lang
 }
 
 function DayNumber({ cell, lang, isToday }: { cell: SchoolAttendanceDayCell; lang: Lang; isToday: boolean }) {
-  return (
-    <span
-      className={`inline-flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${
-        isToday ? 'bg-brand-500 text-white' : cell.iso ? 'text-ink' : 'text-muted/50'
-      }`}
-    >
-      {localizeNumber(cell.day ?? 0, lang)}
-    </span>
-  )
+  return <CalendarDayNumber label={localizeNumber(cell.day ?? 0, lang)} isToday={isToday} muted={!cell.iso} />
 }
 
-const cellFrame = 'flex h-16 w-full flex-col gap-1 p-1 text-left sm:h-26 sm:p-1.5'
+const cellFrame = CAL_CELL
 
 export function EmployeeAttendanceDayCell({
   cell,
@@ -81,7 +74,7 @@ export function EmployeeAttendanceDayCell({
   isToday: boolean
   isWeekend: boolean
 }) {
-  const weekendTint = isWeekend ? 'bg-paper-muted/40' : ''
+  const weekendTint = isWeekend ? CAL_WEEKEND : ''
 
   // Adjacent-month blank — muted, day number only, no content.
   if (!cell.iso) {
@@ -102,7 +95,7 @@ export function EmployeeAttendanceDayCell({
         style={cell.isOff ? { backgroundImage: 'repeating-linear-gradient(135deg, var(--color-alert-soft), var(--color-alert-soft) 6px, transparent 6px 12px)' } : undefined}
       >
         <DayNumber cell={cell} lang={lang} isToday={isToday} />
-        {cell.isOff && <span className="hidden truncate text-[10px] font-semibold text-alert-deep sm:block">{t('status.holiday', lang)}</span>}
+        {cell.isOff && <span className={`hidden sm:block ${CAL_CHIP} bg-alert-soft text-alert-deep`}>{t('status.holiday', lang)}</span>}
         {!cell.isOff && cell.isFuture && <span className="hidden truncate text-[10px] text-muted sm:block">{cell.leaveCount ? `${t('status.on_leave', lang)} ${localizeNumber(cell.leaveCount, lang)}` : t('attendance.calendarUpcoming', lang)}</span>}
       </div>
     )
@@ -123,7 +116,7 @@ export function EmployeeAttendanceDayCell({
           <DayNumber cell={cell} lang={lang} isToday={isToday} />
           <span className={`size-2 rounded-full sm:hidden ${BAND_DOT[band]}`} aria-hidden />
         </div>
-        <div className={`hidden flex-col gap-0.5 sm:flex ${BAND_TONE[band]} rounded-md px-1.5 py-1`}>
+        <div className={`hidden flex-col gap-0.5 sm:flex ${BAND_TONE[band]} rounded px-1.5 py-1`}>
           <span className="text-xs font-bold">{localizeNumber(cell.rate ?? 0, lang)}%</span>
           <span className="text-[10px] leading-tight opacity-80">
             {localizeNumber(cell.presentCount, lang)}/{localizeNumber(cell.totalCount, lang)}
