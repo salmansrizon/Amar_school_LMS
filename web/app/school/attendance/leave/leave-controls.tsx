@@ -35,7 +35,7 @@ export function RequestLeaveButton({
     <Modal
       lang={lang}
       triggerLabel={t('attendance.leaveRequestTitle', lang)}
-      triggerClassName="cursor-pointer rounded-full border border-line px-3 py-1 text-xs font-semibold hover:bg-paper-muted"
+      triggerClassName="cursor-pointer rounded-full border border-line px-3 py-1 text-xs font-semibold hover:bg-paper-muted max-sm:min-h-11 max-sm:px-4"
       title={t('attendance.leaveRequestTitle', lang)}
       onOpenChange={(open) => {
         if (!open) setError(null)
@@ -137,13 +137,13 @@ export function LeaveActions({ kind, id, lang }: { kind: 'student' | 'employee';
         type="button"
         disabled={pending}
         onClick={approve}
-        className="cursor-pointer rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted disabled:opacity-50"
+        className="cursor-pointer rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted disabled:opacity-50 max-sm:min-h-11 max-sm:px-4"
       >
         {t('attendance.leaveApprove', lang)}
       </button>
       <ConfirmDialog
         triggerLabel={t('attendance.leaveReject', lang)}
-        triggerClassName="cursor-pointer rounded-full border border-line-strong px-3 py-1 text-xs font-semibold text-alert-deep hover:bg-alert-soft"
+        triggerClassName="cursor-pointer rounded-full border border-line-strong px-3 py-1 text-xs font-semibold text-alert-deep hover:bg-alert-soft max-sm:min-h-11 max-sm:px-4"
         title={t('attendance.leaveRejectConfirm', lang)}
         confirmLabel={t('attendance.leaveReject', lang)}
         cancelLabel={t('graceTime.cancel', lang)}

@@ -72,11 +72,11 @@ if (examId) {
   await page.goto(`${BASE}/school/exams/${examId}/marks-entry`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(1500)
   const marksText = await main(page)
-  const numberInputs = await page.locator('input[type=number]').count()
+  const numberInputs = await page.locator('input[inputmode=decimal]').count()
   record('marks entry opens with the roster', numberInputs > 0 ? 'pass' : 'info',
     numberInputs ? `${numberInputs} mark fields` : marksText.slice(0, 140))
   if (numberInputs > 0) {
-    await page.locator('input[type=number]').first().fill('72')
+    await page.locator('input[inputmode=decimal]').first().fill('72')
     const save = page.locator('button', { hasText: /সংরক্ষণ|Save/ }).first()
     if (await save.count()) {
       await save.click()

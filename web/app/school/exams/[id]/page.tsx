@@ -1,8 +1,9 @@
+import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { schoolCrumbs } from '@/lib/school-crumbs'
 import { PageHeader } from '@/components/ui/page'
 import { currentLang } from '@/lib/i18n-server'
-import { t, type Lang } from '@/lib/i18n'
+import { t, formatNumber, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { mayActOnExamClass } from '@/lib/school/exam-class-guard'
 import { examBasicInfoComplete, examChip, examStage, publishMarksComplete, schemeHasUsableBands } from '@/lib/exam-setup'
@@ -35,6 +36,18 @@ import { PublishResults } from './publish-results'
 // index card and the "next: seat plan" hand-off both moved out, leaving only
 // the three config cards. The documents are reachable from the header's
 // Documents button (exam-documents-modal.tsx) and from the exam row.
+
+const examLabelOf = (e: { name: string; exam_year: number }, lang: Lang) =>
+  `${e.name} (${formatNumber(e.exam_year, lang, { useGrouping: false })})`
+
+// The same string the page heading shows.
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params
+  const lang: Lang = await currentLang()
+  const { supabase } = await getSchoolContext()
+  const { data: exam } = await supabase.from('exams').select('name, exam_year').eq('id', id).maybeSingle()
+  return { title: exam ? `${t('examSetup.title', lang)} — ${examLabelOf(exam, lang)}` : t('examSetup.title', lang) }
+}
 
 export default async function ExamSetupPage({
   params,
@@ -139,7 +152,7 @@ export default async function ExamSetupPage({
       }))
     : []
 
-  const examLabel = `${exam.name} (${exam.exam_year})`
+  const examLabel = examLabelOf(exam, lang)
 
   return (
     <div>

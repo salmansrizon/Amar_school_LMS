@@ -1,6 +1,7 @@
 import { CalendarDays, List as ListIcon, Grid3x3 } from 'lucide-react'
 import { currentLang } from '@/lib/i18n-server'
-import { t, type Lang } from '@/lib/i18n'
+import { pageTitle } from '@/lib/page-title'
+import { t, formatNumber, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { monthGrid, type OffDay } from '@/lib/attendance-manual'
 import { schoolToday } from '@/lib/school-time'
@@ -44,6 +45,8 @@ const WEEKDAY_LABELS: { bn: string; en: string }[] = [
 function currentYear(): number {
   return new Date().getFullYear()
 }
+
+export const generateMetadata = pageTitle('attendance.offDayTitle')
 
 export default async function OffDayCalendarPage({
   searchParams,
@@ -110,7 +113,7 @@ export default async function OffDayCalendarPage({
   const { weekly: weeklyDays, rows: holidayRows } = buildOffDayList(offDays, weeklyOffDays, year)
   const calMonthLabel = formatMonthYear(calYear, calMonth0, lang)
   // Calendar view titles by the month on screen, not the list's ?year=.
-  const titleYear = isListView || isHolidayView ? year : calYear
+  const titleYear = formatNumber(isListView || isHolidayView ? year : calYear, lang, { useGrouping: false })
 
   return (
     <div>

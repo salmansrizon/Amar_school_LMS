@@ -2,7 +2,7 @@ import { BookOpen, CalendarClock, ClipboardList, FileText, Layers } from 'lucide
 import { getSchoolContext } from '@/lib/school/context'
 import { selectAllRows } from '@/lib/supabase/select-all'
 import { examBasicInfoComplete } from '@/lib/exam-setup'
-import { t, numberFmt, type Lang } from '@/lib/i18n'
+import { t, numberFmt, formatDate, type Lang } from '@/lib/i18n'
 import { withParams, type Params } from '@/lib/url-params'
 import { Pill } from '@/components/data-table/data-table'
 import { DrawerFacts, DrawerSection, DrawerItemCard, type DrawerFact } from '@/components/data-table/drawer-parts'
@@ -79,7 +79,7 @@ export function ExamDrawerBody({
 
   const facts: DrawerFact[] = [
     { icon: <Layers className="size-3.5" aria-hidden />, label: t('exams.class', lang), value: classLabel ?? dash },
-    { icon: <CalendarClock className="size-3.5" aria-hidden />, label: t('exams.startDate', lang), value: exam.start_date ?? dash },
+    { icon: <CalendarClock className="size-3.5" aria-hidden />, label: t('exams.startDate', lang), value: exam.start_date ? formatDate(exam.start_date, lang) : dash },
     {
       icon: <ClipboardList className="size-3.5" aria-hidden />,
       label: t('examSetup.gradingScheme', lang),
@@ -87,7 +87,7 @@ export function ExamDrawerBody({
     },
   ]
   if (lastExamDate && lastExamDate !== exam.start_date) {
-    facts.push({ icon: <CalendarClock className="size-3.5" aria-hidden />, label: t('exams.colPeriod', lang), value: lastExamDate })
+    facts.push({ icon: <CalendarClock className="size-3.5" aria-hidden />, label: t('exams.colPeriod', lang), value: formatDate(lastExamDate, lang) })
   }
 
   return (

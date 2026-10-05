@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { examMarksDenied } from '@/lib/school/exam-class-guard'
 import { markCellError, markRowState } from '@/lib/exam-setup'
+import { toLatinDigits } from '@/lib/bd-mobile'
 
 // RLS + enforce_exam_mark_school (same-school tenancy, Closed-exam guard,
 // migration 0048) are the authority here — this action only shapes the
@@ -72,9 +73,9 @@ export async function saveMarks(
       student_id: r.studentId,
       // A component the subject does not have (max 0) is stored 0, as the
       // column requires; the row state above ignored it.
-      theory_obtained: subject.theory_marks > 0 ? Number(r.theory) : 0,
-      mcq_obtained: subject.mcq_marks > 0 ? Number(r.mcq) : 0,
-      practical_obtained: subject.practical_marks > 0 ? Number(r.practical) : 0,
+      theory_obtained: subject.theory_marks > 0 ? Number(toLatinDigits(r.theory)) : 0,
+      mcq_obtained: subject.mcq_marks > 0 ? Number(toLatinDigits(r.mcq)) : 0,
+      practical_obtained: subject.practical_marks > 0 ? Number(toLatinDigits(r.practical)) : 0,
     })
   }
 

@@ -7,6 +7,7 @@ import { primaryBtnClass } from '@/components/auth-card'
 import { markCellError, markRowState, subjectFullMarks, type MarkCellError, type MarkCells } from '@/lib/exam-setup'
 import { evaluateSubject, type GradingScheme } from '@/lib/grading'
 import { t, type Lang, type MessageKey } from '@/lib/i18n'
+import { toLatinDigits } from '@/lib/bd-mobile'
 import { saveMarks } from './actions'
 import { ComboboxField } from '@/components/ui/combobox-field'
 
@@ -154,7 +155,7 @@ export function MarksEntryTable({
   function update(studentId: string, field: Component, value: string) {
     setMarks((prev) => {
       const next = new Map(prev)
-      next.set(studentId, { ...(next.get(studentId) ?? blank), [field]: value })
+      next.set(studentId, { ...(next.get(studentId) ?? blank), [field]: toLatinDigits(value) })
       return next
     })
   }
@@ -167,10 +168,10 @@ export function MarksEntryTable({
     return (
       <>
         <input
-          type="number"
-          min={0}
-          max={max[field]}
-          step="any"
+          // Text, not number: a number input refuses the Bangla digits a Bangla
+          // keyboard types. update() turns them into Latin; markCellError rules.
+          type="text"
+          inputMode="decimal"
           value={value}
           disabled={disabled}
           aria-label={`${row.full_name} ${field}`}

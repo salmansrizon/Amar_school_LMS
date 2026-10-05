@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { BadgeCheck, CalendarClock, CircleCheck, ClipboardList, FileSearch, Lock, PencilLine, TriangleAlert } from 'lucide-react'
 import { currentLang } from '@/lib/i18n-server'
-import { t, numberFmt, formatNumber } from '@/lib/i18n'
+import { t, numberFmt, formatNumber, formatDate } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { filterOfferingsByYearSelection } from '@/lib/school/year-filter'
 import { classCatalogueLabel } from '@/lib/class-catalogue'
@@ -283,7 +283,7 @@ export default async function ExamsPage({
             </Link>
             <div className="text-xs text-muted">
               {classLabel(e.class_id) ?? formatNumber(e.exam_year, lang, { useGrouping: false })}
-              {e.start_date ? ` · ${e.start_date}${last && last !== e.start_date ? ` – ${last}` : ''}` : ''}
+              {e.start_date ? ` · ${formatDate(e.start_date, lang)}${last && last !== e.start_date ? ` – ${formatDate(last, lang)}` : ''}` : ''}
             </div>
           </div>
         )

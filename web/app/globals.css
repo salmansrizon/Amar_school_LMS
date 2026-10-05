@@ -502,3 +502,10 @@ body {
     scroll-behavior: auto !important;
   }
 }
+
+/* A native dialog sits in the top layer and makes <body> inert, so the shell's
+   toaster is hidden while one is open; the dialog renders its own (NativeDialog).
+   Only the toaster inside the innermost open dialog stays. */
+body:has(dialog[open]) [data-sonner-toaster]:not(dialog[open]:not(:has(dialog[open])) [data-sonner-toaster]) {
+  display: none;
+}

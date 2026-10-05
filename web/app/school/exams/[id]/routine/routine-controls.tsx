@@ -6,7 +6,7 @@ import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
 import { dateToDayOfWeek, sortRoutineEntries } from '@/lib/exam-setup'
 import { dayLabel } from '@/lib/routine'
 import { toast } from 'sonner'
-import { t, type Lang, type MessageKey } from '@/lib/i18n'
+import { t, formatDate, type Lang, type MessageKey } from '@/lib/i18n'
 import { addRoutineEntry, removeRoutineEntry, type RoutineEntryRefusal } from './actions'
 
 const REFUSAL: Record<RoutineEntryRefusal, MessageKey> = {
@@ -70,7 +70,7 @@ export function RoutineTable({
         <tbody className="divide-y divide-line">
           {sorted.map((e) => (
             <tr key={e.id}>
-              <td className="px-4 py-3">{e.exam_date}</td>
+              <td className="px-4 py-3">{formatDate(e.exam_date, lang)}</td>
               <td className="px-4 py-3">{dayLabel(dateToDayOfWeek(e.exam_date), lang)}</td>
               <td className="px-4 py-3">
                 {e.start_time.slice(0, 5)} - {e.end_time.slice(0, 5)}

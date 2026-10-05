@@ -16,6 +16,8 @@ import {
   roomUsedSeats,
   overCapacityRoomIds,
   examStage,
+  markCellError,
+  markRowState,
 } from '@/lib/exam-setup'
 
 describe('subjectFullMarks', () => {
@@ -346,5 +348,19 @@ describe('examStage', () => {
         lastExamDate: '2026-03-05',
       }),
     ).toBe('marksPending')
+  })
+})
+
+describe('markCellError with Bangla digits', () => {
+  it('reads ৭৫ as 75 and applies the same rules', () => {
+    expect(markCellError('৭৫', 100)).toBeNull()
+    expect(markCellError('৭৫.৫', 100)).toBeNull()
+    expect(markCellError('১০১', 100)).toBe('overMax')
+    expect(markCellError('-৫', 100)).toBe('negative')
+    expect(markCellError('৭ক', 100)).toBe('invalid')
+    expect(markCellError('', 100)).toBeNull()
+  })
+  it('a half-filled row is still partial', () => {
+    expect(markRowState({ theory: '৭০', mcq: '', practical: '' }, { theory_marks: 70, mcq_marks: 30, practical_marks: 0 })).toBe('partial')
   })
 })
