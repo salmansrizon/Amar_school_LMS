@@ -7,8 +7,11 @@ import { feeStatus, isFeeOverdue } from '@/lib/student/dashboard'
 import { schoolToday } from '@/lib/school-time'
 import { PrintTrigger } from '@/components/print/print-trigger'
 import { pageTitle } from '@/lib/page-title'
-import { Card, PageHeader, railClass, thClass, tdClass, trClass } from '@/components/ui/page'
+import { PageHeader } from '@/components/ui/page'
 import { EmptyState } from '@/components/ui/states'
+import { DataTable, Pill, type Column } from '@/components/data-table/data-table'
+import { NoMatch } from '@/components/student/no-match'
+import { matchesQ, pageOf } from '@/lib/student/table'
 import { StatCard, StatGrid, ToneDot, type WidgetTone } from '@/components/ui/widgets'
 
 // The Student's own fees (#453), bound by ADR 0015.
@@ -21,7 +24,12 @@ import { StatCard, StatGrid, ToneDot, type WidgetTone } from '@/components/ui/wi
 // cumulative row per Student per month with no per-payment history by design.
 export const generateMetadata = pageTitle('student.feesTitle')
 
-export default async function StudentFeesPage() {
+export default async function StudentFeesPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | undefined>>
+}) {
+  const params = await searchParams
   const lang = await currentLang()
   const { supabase } = await getStudentContext()
 
@@ -37,6 +45,53 @@ export default async function StudentFeesPage() {
   const money = (n: number) => formatMoney(n, lang)
   // One pulse for the table: the first past-due month names the state.
   const firstOverdueId = records.find((r) => isFeeOverdue(r, today))?.id
+
+  const years = [...new Set(records.map((r) => r.year))].sort((a, b) => b - a)
+  const shown = records.filter(
+    (r) =>
+      matchesQ(params.q, monthLabel(r.month, r.year, lang)) &&
+      (!params.status || (params.status === 'due') === (Number(r.due_amount) > 0)) &&
+      (!params.year || String(r.year) === params.year),
+  )
+  const paged = pageOf(shown, params)
+
+  const columns: Column<FeeRecord>[] = [
+    {
+      key: 'month',
+      header: t('student.month', lang),
+      card: 'title',
+      cell: (r) => (
+        <span className="inline-flex items-center gap-2 font-medium">
+          {r.id === firstOverdueId && <ToneDot tone="alert" pulse />}
+          {monthLabel(r.month, r.year, lang)}
+        </span>
+      ),
+    },
+    { key: 'payable', header: t('student.feePayable', lang), cell: (r) => <span className="font-medium">{money(payableOf(r))}</span> },
+    { key: 'paid', header: t('student.feePaid', lang), cell: (r) => money(Number(r.pay_amount)) },
+    { key: 'fine', header: t('student.feeFine', lang), cell: (r) => (Number(r.fine_amount) > 0 ? money(Number(r.fine_amount)) : '—') },
+    {
+      key: 'due',
+      header: t('student.feeDue', lang),
+      cell: (r) =>
+        Number(r.due_amount) > 0 ? (
+          <span className={`font-bold ${isFeeOverdue(r, today) ? 'text-alert-deep' : 'text-sun-deep'}`}>{money(Number(r.due_amount))}</span>
+        ) : (
+          '—'
+        ),
+    },
+    {
+      key: 'status',
+      header: t('student.col.state', lang),
+      card: 'badge',
+      cell: (r) =>
+        Number(r.due_amount) > 0 ? (
+          <Pill tone={isFeeOverdue(r, today) ? 'alert' : 'sun'}>{t('student.feeDue', lang)}</Pill>
+        ) : (
+          <Pill tone="mint">{t('student.feePaid', lang)}</Pill>
+        ),
+    },
+  ]
 
   return (
     <main className="w-full px-gutter pt-section pb-16">
@@ -82,49 +137,31 @@ export default async function StudentFeesPage() {
             />
           </StatGrid>
 
-          <Card padded={false}>
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr>
-                    {['student.month', 'student.feePayable', 'student.feePaid', 'student.feeFine', 'student.feeDue'].map((key) => (
-                      <th key={key} className={thClass}>
-                        {t(key as Parameters<typeof t>[0], lang)}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {records.map((r) => {
-                    const overdue = isFeeOverdue(r, today)
-                    const owing = Number(r.due_amount) > 0
-                    return (
-                      <tr key={r.id} className={trClass}>
-                        <td className={`${tdClass} font-medium ${railClass(overdue ? 'alert' : owing ? 'sun' : undefined)}`}>
-                          <span className="inline-flex items-center gap-2">
-                            {r.id === firstOverdueId && <ToneDot tone="alert" pulse />}
-                            {monthLabel(r.month, r.year, lang)}
-                          </span>
-                        </td>
-                        <td className={`${tdClass} font-medium`}>{money(payableOf(r))}</td>
-                        <td className={tdClass}>{money(Number(r.pay_amount))}</td>
-                        <td className={tdClass}>{Number(r.fine_amount) > 0 ? money(Number(r.fine_amount)) : '—'}</td>
-                        <td className={tdClass}>
-                          {owing ? (
-                            <span className={`font-bold ${overdue ? 'text-alert-deep' : 'text-sun-deep'}`}>
-                              {money(Number(r.due_amount))}
-                            </span>
-                          ) : (
-                            '—'
-                          )}
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </Card>
+          <DataTable
+            rows={paged.items}
+            rowId={(r) => r.id}
+            rowLabel={(r) => monthLabel(r.month, r.year, lang)}
+            columns={columns}
+            lang={lang}
+            params={params}
+            caption={t('student.feesTitle', lang)}
+            search={{ placeholder: t('student.col.searchMonth', lang) }}
+            filters={[
+              {
+                param: 'status',
+                label: t('student.col.state', lang),
+                options: [
+                  { value: 'due', label: t('student.feeDue', lang) },
+                  { value: 'paid', label: t('student.feePaid', lang) },
+                ],
+              },
+              ...(years.length > 1
+                ? [{ param: 'year', label: t('student.col.year', lang), options: years.map((y) => ({ value: String(y), label: formatNumber(y, lang, { useGrouping: false }) })) }]
+                : []),
+            ]}
+            pagination={{ page: paged.page, totalPages: paged.totalPages, total: paged.total, pageSize: paged.pageSize }}
+            empty={<NoMatch lang={lang} />}
+          />
 
           <p className="mt-3 text-xs text-muted">{t('student.statementNote', lang)}</p>
         </>

@@ -3,23 +3,80 @@ import { currentLang } from '@/lib/i18n-server'
 import { t, formatDate, formatNumber } from '@/lib/i18n'
 import { getStudentContext } from '@/lib/student/context'
 import { loadNoticeFeed } from '@/lib/student/notices-source'
-import { isForMyClass } from '@/lib/student/notices'
-import { importanceBadgeClass, importanceLabel } from '@/lib/publishing'
+import { isForMyClass, type StudentNotice } from '@/lib/student/notices'
+import { IMPORTANCE_LEVELS, importanceLabel } from '@/lib/publishing'
+import { matchesQ, pageOf } from '@/lib/student/table'
 import { studentGroupTabs } from '@/lib/student-nav'
 import { pageTitle } from '@/lib/page-title'
-import { PageHeader, railClass } from '@/components/ui/page'
+import { PageHeader } from '@/components/ui/page'
 import { SectionTabs } from '@/components/ui/section-tabs'
 import { EmptyState } from '@/components/ui/states'
+import { DataTable, Pill, type Column } from '@/components/data-table/data-table'
+import { NoMatch } from '@/components/student/no-match'
 
-// The Student's notice feed (#445). Urgent first, then newest — an urgent
-// notice from Monday still outranks a normal one from Friday, which is the
-// whole point of marking it urgent.
+// The Student's notice feed (#445) as a table. Urgent first, then newest — an
+// urgent notice from Monday still outranks a normal one from Friday, which is
+// the whole point of marking it urgent.
 export const generateMetadata = pageTitle('student.noticesTitle')
 
-export default async function StudentNoticesPage() {
+const IMPORTANCE_TONE = { urgent: 'alert', important: 'sun', normal: 'muted' } as const
+
+export default async function StudentNoticesPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | undefined>>
+}) {
+  const params = await searchParams
   const lang = await currentLang()
   const { supabase } = await getStudentContext()
   const { notices, unread } = await loadNoticeFeed(supabase)
+
+  const shown = notices.filter(
+    (n) =>
+      matchesQ(params.q, n.title) &&
+      (!params.read || (params.read === 'unread') === unread.has(n.id)) &&
+      (!params.importance || n.importance === params.importance),
+  )
+  const paged = pageOf(shown, params)
+
+  const columns: Column<StudentNotice>[] = [
+    {
+      key: 'title',
+      header: t('student.col.title', lang),
+      card: 'title',
+      cell: (n) => (
+        <>
+          <Link
+            href={`/student/notices/${n.id}`}
+            className="inline-flex min-h-11 items-center font-semibold hover:text-brand-600 hover:underline md:min-h-0"
+          >
+            {n.title}
+          </Link>
+          <div className="text-xs text-muted">
+            {isForMyClass(n) ? t('student.forMyClass', lang) : t('student.forEveryone', lang)}
+          </div>
+        </>
+      ),
+    },
+    {
+      key: 'importance',
+      header: t('student.col.type', lang),
+      card: 'badge',
+      cell: (n) => <Pill tone={IMPORTANCE_TONE[n.importance]}>{importanceLabel(n.importance, lang)}</Pill>,
+    },
+    { key: 'date', header: t('student.col.date', lang), cell: (n) => formatDate(n.created_at, lang) },
+    {
+      key: 'read',
+      header: t('student.col.read', lang),
+      card: 'badge',
+      cell: (n) =>
+        unread.has(n.id) ? (
+          <Pill tone="brand">{t('student.newBadge', lang)}</Pill>
+        ) : (
+          <span className="text-muted">{t('student.col.readDone', lang)}</span>
+        ),
+    },
+  ]
 
   return (
     <main className="w-full px-gutter pt-section pb-16">
@@ -42,38 +99,33 @@ export default async function StudentNoticesPage() {
           action={{ href: '/student', label: t('student.nav.home', lang) }}
         />
       ) : (
-        <ul className="ui-stagger grid gap-grid lg:grid-cols-2">
-          {notices.map((notice) => {
-            const isNew = unread.has(notice.id)
-            return (
-              <li key={notice.id}>
-                {/* Rail: alert when urgent, brand when unread. The words stay. */}
-                <Link
-                  href={`/student/notices/${notice.id}`}
-                  className={`block min-h-11 rounded-lg border border-line bg-paper p-card transition hover:border-brand-300 motion-safe:hover:-translate-y-0.5 motion-safe:hover:shadow-md motion-safe:active:scale-[0.98] ${railClass(notice.importance === 'urgent' ? 'alert' : isNew ? 'brand' : 'muted')}`}
-                >
-                  <div className="mb-1 flex flex-wrap items-center gap-2">
-                    <span
-                      className={`rounded-full px-2 py-0.5 text-xs font-semibold ${importanceBadgeClass(notice.importance)}`}
-                    >
-                      {importanceLabel(notice.importance, lang)}
-                    </span>
-                    {isNew && (
-                      <span className="rounded-full bg-brand-500 px-2 py-0.5 text-xs font-semibold text-white">
-                        {t('student.newBadge', lang)}
-                      </span>
-                    )}
-                    <span className="text-xs text-muted">
-                      {isForMyClass(notice) ? t('student.forMyClass', lang) : t('student.forEveryone', lang)}
-                    </span>
-                  </div>
-                  <div className="font-semibold">{notice.title}</div>
-                  <div className="text-xs text-muted">{formatDate(notice.created_at, lang)}</div>
-                </Link>
-              </li>
-            )
-          })}
-        </ul>
+        <DataTable
+          rows={paged.items}
+          rowId={(n) => n.id}
+          rowLabel={(n) => n.title}
+          columns={columns}
+          lang={lang}
+          params={params}
+          caption={t('student.noticesTitle', lang)}
+          search={{ placeholder: t('student.col.search', lang) }}
+          filters={[
+            {
+              param: 'read',
+              label: t('student.col.read', lang),
+              options: [
+                { value: 'unread', label: t('student.col.unread', lang) },
+                { value: 'read', label: t('student.col.readDone', lang) },
+              ],
+            },
+            {
+              param: 'importance',
+              label: t('student.col.importance', lang),
+              options: IMPORTANCE_LEVELS.map((i) => ({ value: i.key, label: i.label[lang] })),
+            },
+          ]}
+          pagination={{ page: paged.page, totalPages: paged.totalPages, total: paged.total, pageSize: paged.pageSize }}
+          empty={<NoMatch lang={lang} />}
+        />
       )}
     </main>
   )

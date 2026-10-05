@@ -2,11 +2,14 @@ import { currentLang } from '@/lib/i18n-server'
 import { t, formatDate, formatNumber, type MessageKey } from '@/lib/i18n'
 import { getStudentContext } from '@/lib/student/context'
 import { groupMaterials, fileKind, isDownloadable, type StudentMaterial } from '@/lib/student/materials'
+import { matchesQ, pageOf } from '@/lib/student/table'
 import { pageTitle } from '@/lib/page-title'
 import { studentGroupTabs } from '@/lib/student-nav'
-import { Card, PageHeader } from '@/components/ui/page'
+import { PageHeader } from '@/components/ui/page'
 import { SectionTabs } from '@/components/ui/section-tabs'
 import { EmptyState } from '@/components/ui/states'
+import { DataTable, type Column } from '@/components/data-table/data-table'
+import { NoMatch } from '@/components/student/no-match'
 
 // The kinds we have labels for. An unexpected kind still renders — groupMaterials
 // keeps it — so it falls back to its own name rather than throwing in t().
@@ -19,10 +22,17 @@ const KIND_LABELS: Record<string, MessageKey> = {
 
 // Study material (#447): the class syllabus and the posted lesson plans, on one
 // surface. `student_material` (0141) unions both and has already decided what
-// this Student may see, so there is no filtering here.
+// this Student may see, so there is no filtering here beyond the search and
+// kind filter the table adds. Neither source records a subject, so there is no
+// subject column or filter (see lib/student/materials.ts).
 export const generateMetadata = pageTitle('student.materialsTitle')
 
-export default async function StudentMaterialsPage() {
+export default async function StudentMaterialsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | undefined>>
+}) {
+  const params = await searchParams
   const lang = await currentLang()
   const { supabase } = await getStudentContext()
 
@@ -31,9 +41,51 @@ export default async function StudentMaterialsPage() {
     .select('id, source, kind, title, content, storage_path, file_name, link_url, posted_at, posted_by')
     .order('posted_at', { ascending: false })
 
+  // Syllabus first, then each kind, newest first inside it (groupMaterials).
   const groups = groupMaterials((data ?? []) as StudentMaterial[])
+  const items = groups.flatMap((g) => g.items)
+  const shown = items.filter((m) => matchesQ(params.q, m.title) && (!params.kind || m.kind === params.kind))
+  const paged = pageOf(shown, params)
+  const kindLabel = (kind: string) => (KIND_LABELS[kind] ? t(KIND_LABELS[kind], lang) : kind)
   const linkClass =
     'inline-flex min-h-11 shrink-0 items-center rounded-full border border-line-strong px-4 text-xs font-semibold hover:bg-paper-muted sm:min-h-9 sm:px-3'
+
+  const columns: Column<StudentMaterial>[] = [
+    {
+      key: 'title',
+      header: t('student.col.title', lang),
+      card: 'title',
+      className: 'max-w-md',
+      cell: (m) => (
+        <>
+          <span className="font-semibold">{m.title}</span>
+          {m.content && <div className="line-clamp-2 whitespace-pre-wrap text-xs text-muted">{m.content}</div>}
+        </>
+      ),
+    },
+    {
+      key: 'kind',
+      header: t('student.col.type', lang),
+      card: 'badge',
+      cell: (m) => [kindLabel(m.kind), fileKind(m)].filter(Boolean).join(' · '),
+    },
+    {
+      key: 'date',
+      header: t('student.col.date', lang),
+      cell: (m) => (
+        <>
+          {formatDate(m.posted_at, lang)}
+          {m.posted_by && (
+            <div className="text-xs text-muted">
+              {t('student.postedBy', lang)} {m.posted_by}
+            </div>
+          )}
+        </>
+      ),
+    },
+  ]
+
+  const kinds = [...new Set(items.map((m) => m.kind))]
 
   return (
     <main className="w-full px-gutter pt-section pb-16">
@@ -57,46 +109,36 @@ export default async function StudentMaterialsPage() {
           action={{ href: '/student/tasks', label: t('student.nav.tasks', lang) }}
         />
       ) : (
-        <div className="grid gap-grid lg:grid-cols-2">
-          {groups.map((group) => (
-            <Card key={group.key} tone="brand" className="self-start">
-              <h2 className="mb-3 text-sm font-bold">
-                {KIND_LABELS[group.key] ? t(KIND_LABELS[group.key], lang) : group.key}
-              </h2>
-              <ul className="divide-y divide-line">
-                {group.items.map((item) => (
-                  <li key={`${item.source}-${item.id}`} className="flex items-start justify-between gap-3 py-3">
-                    <span className="min-w-0">
-                      <span className="block truncate text-sm font-medium">{item.title}</span>
-                      <span className="block text-xs text-muted">
-                        {[
-                          fileKind(item),
-                          formatDate(item.posted_at, lang),
-                          item.posted_by ? `${t('student.postedBy', lang)} ${item.posted_by}` : null,
-                        ]
-                          .filter(Boolean)
-                          .join(' · ')}
-                      </span>
-                      {item.content && (
-                        <span className="mt-1 block whitespace-pre-wrap text-xs">{item.content}</span>
-                      )}
-                    </span>
-
-                    {isDownloadable(item) ? (
-                      <a href={`/api/student/material?source=${item.source}&id=${item.id}`} className={linkClass}>
-                        {t('student.download', lang)}
-                      </a>
-                    ) : item.link_url ? (
-                      <a href={item.link_url} target="_blank" rel="noopener noreferrer" className={linkClass}>
-                        {t('student.openLink', lang)}
-                      </a>
-                    ) : null}
-                  </li>
-                ))}
-              </ul>
-            </Card>
-          ))}
-        </div>
+        <DataTable
+          rows={paged.items}
+          rowId={(m) => `${m.source}-${m.id}`}
+          rowLabel={(m) => m.title}
+          columns={columns}
+          lang={lang}
+          params={params}
+          caption={t('student.materialsTitle', lang)}
+          search={{ placeholder: t('student.col.search', lang) }}
+          filters={[
+            {
+              param: 'kind',
+              label: t('student.col.type', lang),
+              options: kinds.map((k) => ({ value: k, label: kindLabel(k) })),
+            },
+          ]}
+          rowActions={(m) =>
+            isDownloadable(m) ? (
+              <a href={`/api/student/material?source=${m.source}&id=${m.id}`} className={linkClass}>
+                {t('student.download', lang)}
+              </a>
+            ) : m.link_url ? (
+              <a href={m.link_url} target="_blank" rel="noopener noreferrer" className={linkClass}>
+                {t('student.openLink', lang)}
+              </a>
+            ) : null
+          }
+          pagination={{ page: paged.page, totalPages: paged.totalPages, total: paged.total, pageSize: paged.pageSize }}
+          empty={<NoMatch lang={lang} />}
+        />
       )}
     </main>
   )

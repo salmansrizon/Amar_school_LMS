@@ -63,9 +63,12 @@ test.describe('@student portal writes', () => {
   })
 
   test('#446 a student marks a task done, and undone again', async ({ studentPage: page }) => {
-    await page.goto('/student/tasks')
+    // state=all: the default view is open tasks only, and a task ticked done
+    // would drop out of it mid-test.
+    await page.goto('/student/tasks?state=all')
     // TaskToggle is a bare <button type="button">, not a form or a checkbox.
-    const toggles = page.locator('main button[type="button"]')
+    // Scoped to the table / phone-card rows: the filter combobox is a button too.
+    const toggles = page.locator('main :is(tbody, ul) button[type="button"]:visible')
     expect(
       await toggles.count(),
       'no task in the fixture — /student/tasks has nothing to complete',
