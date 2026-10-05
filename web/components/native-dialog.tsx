@@ -1,5 +1,6 @@
 'use client'
 
+import { Toaster } from 'sonner'
 import { createContext, useContext, useEffect, useRef, useState } from 'react'
 
 /** The open <dialog> a popup is rendered inside, or null on a plain page.
@@ -10,6 +11,11 @@ import { createContext, useContext, useEffect, useRef, useState } from 'react'
  *  and cannot be clicked. Popups read this and portal into the dialog instead. */
 const DialogContainer = createContext<HTMLElement | null>(null)
 export const useDialogContainer = () => useContext(DialogContainer)
+
+const toasterTheme = () => {
+  const t = document.documentElement.dataset.theme
+  return t === 'light' || t === 'dark' ? t : 'system'
+}
 
 /** The one dialog primitive behind Modal and ConfirmDialog.
  *
@@ -65,7 +71,15 @@ export function NativeDialog({
       }}
       className={`m-auto w-[calc(100%-2rem)] backdrop:bg-black/40 ${className}`}
     >
-      {open && <DialogContainer.Provider value={el}>{children}</DialogContainer.Provider>}
+      {open && (
+        <DialogContainer.Provider value={el}>
+          {children}
+          {/* The shell's toaster in <body> is under the top layer while a dialog
+              is open (and inert). globals.css hides it then; this one lives in
+              the dialog, so a toast fired now is visible and clickable. */}
+          <Toaster theme={toasterTheme()} position="top-right" richColors closeButton />
+        </DialogContainer.Provider>
+      )}
     </dialog>
   )
 }
