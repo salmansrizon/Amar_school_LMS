@@ -2,7 +2,9 @@
 
 Documentation for Amar School LMS (Next.js + Supabase, multi-tenant; the app is in `web/`). Status of each entry: **current** (describes how the system works or is being built now), **reference** (stable background), **record** (dated report or handoff, true when written, not maintained).
 
-Many files keep their old names and paths because code comments, migrations, tests, ADRs and `ui/index.html` cite them. Do not rename or move a file without searching `web/` first.
+Many files keep their old names and paths because code comments, migrations, tests and ADRs cite them. Do not rename or move a file without searching `web/` first.
+
+The static HTML prototype that used to live in `ui/` (and the GitHub Pages redirect in the root `index.html`) was retired on 2026-10-05. Code comments and ADR 0006 still name `ui/...` files as the design they were built from; those files are in git history only.
 
 ## Start here
 
