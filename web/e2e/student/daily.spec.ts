@@ -30,7 +30,9 @@ for (const [width, height] of [[390, 844], [1440, 900]] as const) {
 
       await expect(main.locator('h1')).toBeVisible()
       // The group's tab strip, with this page current.
-      const strip = main.locator('nav[aria-label]').last()
+      // The tab strip is the nav that links to this page's own path; a table's
+      // pager is also a labelled nav, so "the last nav" no longer picks the tabs.
+      const strip = main.locator('nav[aria-label]').filter({ has: page.locator(`a[href="${path}"]`) }).first()
       await expect(strip.locator('a')).toHaveCount(tabs.length)
       await expect(strip.locator('a[aria-current="page"]')).toHaveAttribute('href', path)
       // No narrow desktop column: the page spans the shell.
