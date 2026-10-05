@@ -845,6 +845,255 @@ Update this section at every milestone.
   one reply — the timeline has at most two steps until threads exist.
   NOTE: the animation pass 2 agent may also touch this page's neighbours;
   expect a small merge.
+- 2026-10-05 ~10:20 — **Animation pass 2 merged. Verdict: accept with one
+  correction (done).** `feat/student-portal-overhaul` at `de4c4b0`.
+  - Agent added: paid/collected bars (student and owner fees), marks
+    progress bar (owner exams), pulses on overdue pile, first past-due fee
+    row, exam today, unmarked classes; press feedback on toggles; entrance
+    on list pages. Count-up skipped. Its jev run used condensed diffs
+    (escalate 0.56) — low value.
+  - **My correction:** pass 1 made every alert-tone `StatCard` ping. Several
+    owner cards use red as a category (expenses, failed SMS, total due even
+    at 0), so they pinged forever. `StatCard` now has an opt-in `pulse`
+    prop; set only for student attendance low / fee overdue / homework
+    overdue and owner attendance under 85%.
+  - Browser-checked on port 3716: owner `/school`, fees, exams; student
+    home, tasks, fees, exams, results, notices — stagger and bars present,
+    no stray pings, no overflow, 0 console errors. tsc clean; unit
+    1669/1669. Student pulses not seen with data (seed has nothing urgent).
+  - NOTE: owner-portal animation changes of pass 2 exist only on the
+    student branch (a superset of `merge/staging-sync`).
+- 2026-10-05 ~10:25 — **Docs revamp finished. Verdict: accept.** Branch
+  `docs/revamp` now at `e283463` (7 commits). I checked the diff myself:
+  28 files added, 2 moved (`R100`, the two old handoffs into
+  `docs/archive/handoff/`), nothing else changed, nothing under `web/`.
+  New `docs/README.md` index, `docs/adr/README.md`, `docs/archive/README.md`,
+  `docs/_revamp/inventory.md` (91 files classified). Untracked docs from
+  the main checkout were copied in (byte-identical) and are now versioned
+  there — including a SNAPSHOT of this handoff; the working copy in the main
+  checkout keeps growing. Nothing dropped: almost every doc is cited from
+  code. Undecided, left in place: `ux-audit.md`, `ux-journey-map.md`
+  (jev 0.56 on "superseded"), `010_exam_system.md`. Not merged anywhere yet.
+- 2026-10-05 ~10:30 — **Two more student-portal agents launched** (both
+  Sonnet 5.5, own worktrees from `de4c4b0`):
+  - Questions upgrade (port 3718, `worktree-agent-aeccac31102cb6754`):
+    Markdown editor with toolbar (code block, text size, lists, preview)
+    over a real textarea using the installed `react-markdown` + `remark-gfm`
+    (no raw HTML, no images); `DataTable` for the list; conversation popup
+    with follow-ups. Follow-ups are grouped BY CONVENTION (same anchor +
+    same title) because there is no thread column — **#703 item 5.4 added**
+    (`student_messages.parent_id`).
+  - Student lists as owner-style tables (port 3719,
+    `worktree-agent-abed1716b510d7fd6`): tasks, notices, leave, results,
+    exams, fees, materials → shared `DataTable` with search, filters,
+    pagination and the keyboard-shortcut bar. Must not edit
+    `components/data-table/` or the questions page.
+  - Expect conflicts between the two only in `web/lib/i18n.ts`.
+- 2026-10-05 ~11:15 — **Questions upgrade merged. Verdict: accept with
+  conditions.** `feat/student-portal-overhaul` at `a3a0108` (fast-forward:
+  `843edf1`, `a3a0108`). tsc clean, eslint clean, unit tests 1687/1687.
+  - Built: `web/components/rich-text-field.tsx` (toolbar over a real
+    textarea, Markdown, Write/Preview), `web/lib/rich-text.ts` (pure
+    transforms), `web/components/markdown.tsx` (renderer),
+    `web/lib/student/question-threads.ts` (conversations by convention),
+    `app/student/questions/{page,question-dialog,follow-up-form}.tsx`,
+    `DataTable` list (search param is `?find=`; `?view=` and old `?q=` open
+    the popup); teacher drawer and reply display render Markdown.
+  - **I read the renderer myself**: no `rehype-raw`, no
+    `dangerouslySetInnerHTML`, link allowlist http/https/mailto with
+    `rel="noopener noreferrer nofollow"`, images become their alt text.
+    My browser check at 1280 and 390 on the conversation holding the
+    agent's payloads: 0 `<script>`, 0 `<img>`, 0 `onerror`, 0 `javascript:`
+    links, no alert fired; popup opens, 4 timeline steps, composer present,
+    Escape closes (slow on the dev server), no overflow, 0 console errors.
+  - Conditions: teacher's reply input is still a one-line field; the
+    teacher's list preview shows raw Markdown; toolbar edits are not in the
+    undo stack; Bangla at 390 and the page-size control were not exercised;
+    the popup needs JS (content is server-rendered but hidden until
+    hydration); follow-ups are separate rows for the teacher (#703 5.4).
+  - 18 new strings under `student.editor.*`, `student.followUp`,
+    `student.messagesCount`, `student.lastActivity`,
+    `student.questionsSearch` — owner to review wording.
+  - **#703 updated**: 5.5 body length limit, 5.6 several replies, 5.7
+    attachments, 5.8 student delete of own unanswered question (27 items).
+  - Left in the database: 4 `STU-Q-EVAL…` question rows for S9001 and their
+    teacher notifications (no delete in the app). The agent's attempt to
+    delete them with the student's token was blocked; I did not do it
+    either. Noted on #686.
+  - Still running: student lists as tables; demo data seeding (manifest
+    `docs/handoff/student-demo-data-2026-10-05.md`).
+- 2026-10-05 ~12:00 — **Student lists as tables merged. Verdict: accept
+  with conditions.** `feat/student-portal-overhaul` at `efd88d4` (7 commits
+  `da3116a` … `f9a694d`). tsc clean, eslint 0 errors, unit 1691/1691.
+  Nothing under `components/data-table/` changed (checked).
+  - Converted to the owner's `DataTable` (search `q`, filters, `page` /
+    `size`, shortcut bar `/` and `F` on desktop): tasks (state filter,
+    default open tasks; `?state=all` for everything), notices, leave,
+    results, exams (per paper), fees, materials. Notifications not
+    converted (shared `NotificationInbox` draws its own list). New
+    `web/lib/student/table.ts`, `web/components/student/no-match.tsx`.
+  - My browser check, Bangla, 1440 and 390, all 8 list pages incl.
+    questions: 200, search present where rows exist, no overflow, 0 console
+    errors.
+  - Conditions: **on a phone each task is now a ~180px card (about two per
+    screen); the old rows were ~50px** — tasks and notices are worse on
+    phones as tables (agent's judgement, screenshot
+    `<scratchpad>/tbl/shots/390-en-_student_tasks.png`); exams table never
+    seen with rows; search box and filter selects are 42px (inside
+    `DataTable`); Tasks default filter reads "All Open tasks"; 23 new
+    `student.col.*` strings; two e2e assertions updated, not run; the
+    agent's jev run covered helpers only (escalate 0.70), pages unreviewed.
+  - #703: 5.9 added (subject on homework and study material — no subject
+    filter possible today). 28 items.
+- 2026-10-05 ~12:05 — **Demo data: only 2 of 10 items created.** Manifest
+  `docs/handoff/student-demo-data-2026-10-05.md`. Created: pending leave
+  "DEMO পারিবারিক অনুষ্ঠান" (12–13 Oct, removable with withdraw) and
+  question "DEMO ভগ্নাংশ যোগ" (database-only removal). **Blocker: the seed
+  student's class "Seed Class - A" belongs to academic year 2026; Test
+  School A's started years are 2030–2032, so owner and teacher pages
+  (class pickers, attendance roster, student list, fee form) cannot reach
+  the class or the student.** Homework/notices could only be posted
+  school-wide, which the agent's rules forbade. No SMS, no money, nothing
+  existing edited. Options put to the user: allow school-wide DEMO
+  notices/homework in Test School A; or seed via the database (needs
+  access); or use a student in an active-year class instead.
+- 2026-10-05 ~12:30 — User feedback handled:
+  - "Timeline not aligned" (dot off the line): fixed in `f169c80`
+    (`-left-[26px]`); measured line centre = dot centres at 1280 and 390.
+  - "File attachment, max 1 MB overall": needs a table + storage bucket.
+    **User decision: record in #703, build later.** #703 item 5.7 now
+    carries the 1 MB-total rule. No attach button in the editor for now.
+  - **User decision on demo data: post DEMO homework and notices
+    school-wide in Test School A.** Demo agent resumed with that one rule
+    lifted (5 homework, 3 notices, one hand-in). Routine, exam schedule,
+    attendance, fee and materials stay skipped (class is in year 2026,
+    owner pages only reach 2030–2032).
+  - `feat/student-portal-overhaul` at `f169c80`.
+- 2026-10-05 ~12:45 — **Rich-text scope agent launched** (user: "find the
+  scope for rich text and add them"). Sonnet 5.5, port 3720, branch
+  `worktree-agent-aff0cd479940c4ccc`, from `feat/student-portal-overhaul`
+  `f169c80`. It lists every long free-text field in both portals, traces
+  each one's consumers (screens, print layouts, SMS, notifications,
+  exports), classifies ADD / DISPLAY-ONLY / NO, verifies each ADD with jev,
+  then swaps in `RichTextField` and renders with `Markdown` at every
+  display site; adds `markdownToPlainText` for previews and notifications;
+  formal-tone toolbar labels for the owner portal. No server action,
+  validation, migration or RLS change. Scope file:
+  `docs/handoff/rich-text-scope-2026-10-05.md`. Fields that feed SMS, print
+  or ledgers must stay plain.
+- 2026-10-05 ~13:00 — **Demo data stopped: no school-wide records were
+  created.** The agent's create step was denied by the permission system
+  ("Modify Shared Resources") and it stopped. I did not perform the action
+  for it. The user must approve that write in the permission prompt (or
+  create the records by hand) if they still want it. Database still holds
+  only the DEMO leave and DEMO question.
+  - **Finding (real product gap, filed as an issue):** homework has no due
+    date anywhere in the owner/teacher portal. `publications.due_at` is
+    only read (`my-classes`), never written; the create form and
+    `createPublication` have no such field. So in real use every homework
+    is "later": the student portal's overdue / due-soon piles and the home
+    alerts for homework can never fire. Code-only fix (column exists) but
+    it changes a server action. The earlier `STU-TBL` tasks that showed due
+    dates were inserted by the tables agent outside the app's forms.
+- 2026-10-05 ~13:30 — **Demo data, second pass (done by me, on the user's
+  direct approval of school-wide posts in Test School A).** Created through
+  `/school/notices/new` as owner: 5 DEMO homework (no due dates — #705) and
+  3 DEMO notices (one urgent). Visible to every student of Test School A
+  until deleted from `/school/notices`. No SMS path in that action. Manifest
+  updated: `docs/handoff/student-demo-data-2026-10-05.md` (also holds the
+  coverage table).
+  - **Coverage check (user: "check all features have enough demo data").
+    Answer: no.** Browser as S9001: home alert strip 3 rows (urgent notice,
+    pending leave, 2 new notices); tasks 6, notices 5, leave 1, questions
+    12, results 1, fees 1 (paid). **No data: exams, routine, attendance,
+    materials, notifications. No state possible: homework overdue / due
+    soon (#705), fee due / overdue, exam today, attendance bands,
+    incomplete result.**
+  - `jev_verify`: "every feature has enough demo data" contradicted (1.0);
+    "fees testable in due/overdue" contradicted (0.99); home alerts and
+    tasks claims verified (0.91, 0.92). It marked "exams/routine/… have no
+    data" contradicted at 0.54 — a misread; the browser output shows 0 rows
+    on each, I keep my reading.
+  - Root cause of the gaps: the seed student's class is in academic year
+    2026; owner pages reach only 2030–2032. Full coverage needs either a
+    DEMO student in an active-year class (new student + login) or seeding
+    through the database.
+- 2026-10-05 ~14:15 — **Rich-text scope: done. Verdict: accept.** Scope
+  table: `docs/handoff/rich-text-scope-2026-10-05.md` (copied from the
+  agent's worktree). `feat/student-portal-overhaul` now has:
+  - Agent (`ce0a3d5`, `748fbf3`): teacher's reply to a question →
+    `RichTextField` with formal labels (new `formal` prop, keys
+    `editor.write`, `editor.hint`, `questions.replyLabel`);
+    `markdownToPlainText` in `web/lib/rich-text.ts`; teacher list preview
+    uses it. jev_verify on that field 0.99.
+  - **Me (latest commit "feat(ui): rich text for the notice and homework
+    body"):** the agent held this field back because jev scored its
+    "no SMS/print/export consumer" claim 0.74–0.75. I traced every reader
+    of `publications.content` myself — owner notice detail, student notice
+    detail, student task detail, materials 2-line preview, edit form; no
+    SMS, print, export or notification — and converted it: editor in
+    `notices/new/create-form.tsx` (new `defaultValue` prop so the edit page
+    loads stored text), `Markdown` at the three detail sites, plain-text
+    strip on the materials preview.
+  - Browser-checked: owner form shows 10 toolbar buttons and the formal
+    hint; a formatted notice saved; student view at 390px shows heading,
+    list, code block, bold and a safe link; the three attack strings were
+    inert (0 script, 0 img, 0 onerror, 0 javascript: links, no alert); an
+    old plain notice keeps its paragraphs; the edit form loads the stored
+    Markdown and saves. tsc clean, eslint clean, unit tests 1696/1696.
+  - Classified NO (stay plain): leave reason (search key, table cells),
+    behaviour note (goes into an SMS), SMS text, feedback reply (emailed as
+    plain text), transfer note, admission sibling info (printed), machine
+    setup text. Super-admin pages out of scope.
+  - Known side effect: an OLD notice or reply line beginning with `- `,
+    `1. ` or `# ` now renders as a list or heading.
+  - Demo record 9 added (formatted notice, school-wide) — in the manifest.
+  - The agent removed its own `RT-EVAL` test questions using the
+    super-admin fixture.
+- 2026-10-05 ~15:00 — **User: "Merge the student branch into
+  merge/staging-sync". Done** — fast-forward (staging-sync was 0 ahead, 43
+  behind). `merge/staging-sync` and `feat/student-portal-overhaul` now point
+  at the same commit; from here work lands on `merge/staging-sync` and the
+  student branch is fast-forwarded after it.
+  - After the merge: `origin/staging` still `4e6f955`, 0 behind / 215+
+    ahead; only migration file differing from staging is still 0214; tsc
+    clean; unit tests 1696/1696; no exported `lib` function and no file
+    removed since `f92793a` (270 files changed in the whole wave); eslint
+    errors only in `app/claim/page.tsx:33` and `e2e/fixtures/roles.ts`
+    (both older than this work).
+  - Smoke on port 3700 as owner (12 pages) and student (12 pages), Bangla:
+    all 200, none redirected to login, 0 console errors.
+  - Port 3700 now serves the redesigned student portal too; port 3716
+    (student worktree) is redundant.
+- 2026-10-05 ~15:20 — **User (screenshot): make the student attendance
+  calendar professional, like Google Calendar.** Done in `a648b20`
+  (`web/app/student/attendance/page.tsx` only): reuses the owner's
+  `MonthGridFrame` — bordered cells, weekday header, tinted weekend columns,
+  date top-left, today in a filled circle, state chip per day (dot on
+  phones, state in the `aria-label`), future days dimmed. Reads
+  `schools.weekly_off_days` (a student may read their own school row) to
+  mark weekly off-days; the off-day stat card counts the same cells (10 in
+  October for Fri+Sat). The absent count still comes from the database
+  function (#703 item 4.0 unchanged). Browser-checked at 1280 and 390: 31
+  cells, today = ৫ অক্টো ২০২৬, no overflow, 0 errors. Both branches at
+  `a648b20`.
+- 2026-10-05 ~15:50 — **User: "make all calendars like this Google
+  calendar". Done in `1db79d4`** (both branches). Shared pieces added to
+  `web/app/school/attendance/calendar-shell.tsx`: `CAL_CELL`, `CAL_WEEKEND`,
+  `CAL_OUTSIDE`, `CAL_CHIP`, `CalendarDayNumber`. Used by all four month
+  calendars: Employee Attendance Calendar, Off-Day / Leave Calendar, one
+  employee's own calendar (was a colour-filled cell; now white cell + chip
+  + phone dot + `aria-current`), student attendance calendar (now also
+  shows neighbouring-month days muted). The year grid of mini months on the
+  Off-Day page is unchanged (a different view).
+  Browser, Bangla, owner + student, 1280 and 390: each calendar 35 cells,
+  one cell height (112px desktop, 64px phone), today circle present, no
+  overflow, 0 console errors. `jev_verify`: today circle 0.94, no overflow
+  1.0, one height 0.77 (review — the measurements show a single height per
+  width), control claim "data loading changed" correctly contradicted 0.98.
+  tsc clean, eslint clean, unit 1696/1696. e2e spec
+  `school.attendance-calendars.spec.ts` uses `data-iso` selectors, which
+  were not touched; not run.
 - If the session dies: find the implementer branches with
   `git branch --list 'worktree-agent-*' --sort=-committerdate | head` and
   `git log merge/staging-sync..<branch> --oneline`; merge finished ones into

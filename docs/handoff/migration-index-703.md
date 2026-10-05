@@ -55,6 +55,12 @@ One list of every database change recommended during the owner UI overhaul, the 
 | # | Change | Why | Detail |
 |---|---|---|---|
 | 5.1 | `publications` status (or nullable `published_at`) and a student read policy limited to published rows | A notice cannot be unpublished without deleting it | #696 |
+| 5.4 | `student_messages.parent_id` (or a `thread_id`) so a follow-up question belongs to its original, plus the teacher inbox grouping by it | The owner asked for follow-up questions. With no link column, the student portal groups follow-ups by convention (same anchor and same title), so two unrelated questions with one title merge, and the teacher sees each follow-up as a separate question without the earlier messages | Student questions rebuild, 2026-10-05 — no issue yet |
+| 5.5 | Length limit on `student_messages.body` (a CHECK plus the same limit in `validateQuestion`) | The question body has no limit at all; the new editor cannot show a character counter and a student can post an unbounded text | Student questions rebuild — no issue yet |
+| 5.6 | Several replies per question (a `student_message_replies` table, or messages as rows) | One `reply_body` per row: a teacher who replies twice overwrites or has nowhere to write. Goes with 5.4 | Student questions rebuild — no issue yet |
+| 5.7 | Attachments on questions and follow-ups (`student_message_attachments` + a private storage bucket with policies: the student writes to their own folder, the class teacher and owner read). **Owner's rule (2026-10-05): at most 1 MB in total per question, all files together** — enforce it in the upload action and with a bucket file-size limit | The owner asked for file attachment on the question editor. There is nowhere to record a file against a question today, and images are deliberately not rendered from the question text (a student must not embed remote pictures) | Requested by the owner — no issue yet |
+| 5.8 | A delete policy letting a student remove their own unanswered question | A question sent by mistake cannot be withdrawn; test rows cannot be cleaned up from the app | Student questions rebuild — product decision, no issue yet |
+| 5.9 | A subject on homework and study material (`publications.subject_id`, and the same for the syllabus/material rows) | The student's Tasks and Materials tables cannot show or filter by subject: the rows carry no subject | Student lists as tables, 2026-10-05 — no issue yet |
 | 5.2 | Per-student "read" marker for teacher replies to questions | "Answered but not yet seen" cannot be shown as an alert on the student home | Student portal plan, section 8 — no issue yet |
 | 5.3 | One function returning the student home counters (overdue tasks, fee due, unread notices) | Only if the home's ~11 parallel reads measure slow | Student portal plan, section 8 — measure first |
 
@@ -88,6 +94,10 @@ One list of every database change recommended during the owner UI overhaul, the 
 - 2026-10-04 — 4.1 extended with `decided_at` (found while building the student home dashboard).
 - 2026-10-04 — 4.4 added: student-readable "attendance was taken" source. Total is now 21 items.
 - 2026-10-05 — 4.0 added: weekly off-days counted as absences (fines and SMS affected). Moved to the front of the suggested order. Total is now 22 items.
+- 2026-10-05 — 5.4 added: thread link on `student_messages` for follow-up questions. Total is now 23 items.
+- 2026-10-05 — 5.5–5.8 added from the student questions rebuild (body length, several replies, attachments, student delete). 5.2 also covers "which reply is new". Total is now 27 items.
+- 2026-10-05 — 5.9 added: subject on homework and study material. Total is now 28 items.
+- 2026-10-05 — 5.7 changed from optional to requested by the owner, with the 1 MB total limit.
 
 ## Source
 
