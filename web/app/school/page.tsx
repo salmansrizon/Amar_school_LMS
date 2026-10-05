@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import { CalendarClock, LayoutGrid } from 'lucide-react'
 import { currentLang } from '@/lib/i18n-server'
@@ -61,6 +62,12 @@ const ALERT_TEXT: Record<DashAlertKind, { title: Parameters<typeof t>[0]; action
   questions: { title: 'hub.dashQuestions', action: 'dash.actReview' },
   attendance: { title: 'dash.alertNoAttendance', action: 'dash.actTakeAttendance' },
   sms: { title: 'dash.alertSmsLow', action: 'dash.actRecharge' },
+}
+
+// The same string the page heading shows.
+export async function generateMetadata(): Promise<Metadata> {
+  const { schoolName } = await getSchoolContext()
+  return { title: schoolName ?? t('home.school', await currentLang()) }
 }
 
 export default async function SchoolHome() {

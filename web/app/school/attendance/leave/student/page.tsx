@@ -153,6 +153,7 @@ export default async function StudentLeaveManagementPage({
             <input
               name="q"
               defaultValue={q}
+              aria-label={t('attendance.leaveSearchStudent', lang)}
               placeholder={t('attendance.leaveSearchStudent', lang)}
               className={`${inputClass()} w-64`}
             />

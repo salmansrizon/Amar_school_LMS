@@ -1,5 +1,6 @@
 import { CalendarDays, List as ListIcon, Grid3x3 } from 'lucide-react'
 import { currentLang } from '@/lib/i18n-server'
+import { pageTitle } from '@/lib/page-title'
 import { t, formatNumber, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { monthGrid, type OffDay } from '@/lib/attendance-manual'
@@ -44,6 +45,8 @@ const WEEKDAY_LABELS: { bn: string; en: string }[] = [
 function currentYear(): number {
   return new Date().getFullYear()
 }
+
+export const generateMetadata = pageTitle('attendance.offDayTitle')
 
 export default async function OffDayCalendarPage({
   searchParams,
