@@ -4,6 +4,7 @@ import * as React from 'react'
 import { Combobox as ComboboxPrimitive } from '@base-ui/react/combobox'
 import { ChevronDownIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useDialogContainer } from '@/components/native-dialog'
 import { FIELD_HEIGHT } from './field'
 
 // The "text dynamic" dropdown — type-to-filter replacement for a native
@@ -87,6 +88,7 @@ export function ComboboxField({
   const resolvedDefault =
     !isControlled && defaultValue != null ? (options.find((o) => o.value === defaultValue) ?? null) : undefined
 
+  const dialog = useDialogContainer()
   return (
     <ComboboxPrimitive.Root
       items={options}
@@ -130,8 +132,8 @@ export function ComboboxField({
           <ChevronDownIcon className="size-4" />
         </ComboboxPrimitive.Trigger>
       </ComboboxPrimitive.InputGroup>
-      <ComboboxPrimitive.Portal>
-        <ComboboxPrimitive.Positioner sideOffset={4} className="z-50 outline-none">
+      <ComboboxPrimitive.Portal container={dialog ?? undefined}>
+        <ComboboxPrimitive.Positioner sideOffset={4} positionMethod={dialog ? 'fixed' : 'absolute'} className="z-50 outline-none">
           <ComboboxPrimitive.Popup className="min-w-(--anchor-width) w-max max-w-[min(var(--available-width),28rem)] overflow-hidden rounded-md border border-line bg-paper shadow-card">
             <ComboboxPrimitive.Empty className="px-3 py-2 text-sm text-muted">{emptyText}</ComboboxPrimitive.Empty>
             <ComboboxPrimitive.List className="max-h-[min(16rem,var(--available-height))] overflow-y-auto overscroll-contain py-1 empty:p-0">
