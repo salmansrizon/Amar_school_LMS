@@ -133,7 +133,7 @@ export function ExamHeader({
             examId={examId}
             examLabel={examLabel}
             lang={lang}
-            triggerClassName="cursor-pointer rounded-full bg-alert-soft px-3 py-1.5 text-xs font-semibold text-alert-deep hover:bg-alert/20"
+            triggerClassName="cursor-pointer rounded-full bg-alert-soft px-3 py-1.5 text-xs font-semibold text-alert-deep hover:bg-alert/20 max-sm:inline-flex max-sm:min-h-11 max-sm:items-center"
           />
         )}
       </div>
@@ -187,7 +187,7 @@ export function BasicInfoForm({
     >
       <div>
         <label className={labelClass} htmlFor="name">{t('exams.name', lang)}</label>
-        <input id="name" name="name" defaultValue={name} disabled={disabled} required className={inputClass} />
+        <input id="name" name="name" defaultValue={name} disabled={disabled} required className={`${inputClass} max-sm:h-11`} />
       </div>
       <div>
         <label className={labelClass} htmlFor="class_id">{t('exams.class', lang)}</label>
@@ -213,7 +213,7 @@ export function BasicInfoForm({
           defaultValue={examYear}
           disabled={disabled}
           required
-          className={inputClass}
+          className={`${inputClass} max-sm:h-11`}
         />
       </div>
       <div>
@@ -229,7 +229,7 @@ export function BasicInfoForm({
       </div>
       {error && <p className="text-sm text-alert-deep sm:col-span-2">{error}</p>}
       {!disabled && (
-        <button type="submit" disabled={pending} className={`${primaryBtnClass} sm:col-span-2`}>
+        <button type="submit" disabled={pending} className={`${primaryBtnClass} max-sm:h-11 sm:col-span-2`}>
           {t('examSetup.save', lang)}
         </button>
       )}
