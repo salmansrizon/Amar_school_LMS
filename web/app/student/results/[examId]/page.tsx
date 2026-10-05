@@ -1,3 +1,4 @@
+import { ClipboardList, Trophy } from 'lucide-react'
 import { notFound } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
 import { t, formatNumber } from '@/lib/i18n'
@@ -54,6 +55,7 @@ export default async function StudentResultPage({
   const fmt = (n: number) => formatNumber(n, lang, { maximumFractionDigits: 2 })
   const rankCard = rank && !incomplete && (
     <StatCard
+      icon={<Trophy className="size-5" />}
       tone="brand"
       label={t('student.rank', lang)}
       value={`${fmt(rank.rank)} / ${fmt(rank.out_of)}`}
@@ -127,9 +129,11 @@ export default async function StudentResultPage({
           </Card>
           <StatGrid>
             <StatCard
+              icon={<ClipboardList className="size-5" />}
               tone="brand"
               label={t('student.dash.totalMarks', lang)}
               value={`${fmt(raw.total.obtained)} / ${fmt(raw.total.full)}`}
+              progress={raw.total.full ? (raw.total.obtained / raw.total.full) * 100 : undefined}
             />
             {raw.showRank && rankCard}
           </StatGrid>

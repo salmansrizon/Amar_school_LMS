@@ -1,3 +1,4 @@
+import { CircleCheck, ReceiptText, TriangleAlert, Wallet } from 'lucide-react'
 import { currentLang } from '@/lib/i18n-server'
 import { t, formatMoney, formatNumber } from '@/lib/i18n'
 import { getStudentContext } from '@/lib/student/context'
@@ -56,10 +57,22 @@ export default async function StudentFeesPage() {
               compare against. Payable is derived from the record itself
               (lib/student/fees.ts), so fee_structures stays shut — ADR 0015. */}
           <StatGrid>
-            <StatCard tone="brand" label={t('student.totalPayable', lang)} value={money(totals.payable)} />
-            <StatCard tone="mint" label={t('student.feePaid', lang)} value={money(totals.paid)} />
-            <StatCard tone={totals.fine > 0 ? 'sun' : 'muted'} label={t('student.feeFine', lang)} value={money(totals.fine)} />
+            <StatCard icon={<ReceiptText className="size-5" />} tone="brand" label={t('student.totalPayable', lang)} value={money(totals.payable)} />
             <StatCard
+              icon={<CircleCheck className="size-5" />}
+              tone="mint"
+              label={t('student.feePaid', lang)}
+              value={money(totals.paid)}
+              progress={totals.payable > 0 ? (totals.paid / totals.payable) * 100 : undefined}
+            />
+            <StatCard
+              icon={<TriangleAlert className="size-5" />}
+              tone={totals.fine > 0 ? 'sun' : 'muted'}
+              label={t('student.feeFine', lang)}
+              value={money(totals.fine)}
+            />
+            <StatCard
+              icon={<Wallet className="size-5" />}
               tone={dueTone}
               label={t('student.totalDue', lang)}
               value={money(totals.due)}

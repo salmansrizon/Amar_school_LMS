@@ -1,3 +1,4 @@
+import { CalendarOff, CircleCheck, CircleX } from 'lucide-react'
 import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
 import { t, localeOf, numberFmt } from '@/lib/i18n'
@@ -148,15 +149,16 @@ export default async function StudentAttendancePage({
           value={percent === null ? '—' : `${fmt(percent)}%`}
           progress={percent ?? undefined}
         />
-        <StatCard tone="mint" label={t('student.present', lang)} value={fmt(presentDates.length)} />
+        <StatCard icon={<CircleCheck className="size-5" />} tone="mint" label={t('student.present', lang)} value={fmt(presentDates.length)} />
         <StatCard
+          icon={<CircleX className="size-5" />}
           tone={absentDays && percent !== null ? attendanceBand(percent) : 'muted'}
           label={t('student.absentDays', lang)}
           // With no present row the school has not marked this month: the RPC's
           // count would read as absences nobody recorded.
           value={percent === null ? '—' : fmt(absentDays)}
         />
-        <StatCard tone="sky" label={t('student.offDay', lang)} value={fmt(offCount)} />
+        <StatCard icon={<CalendarOff className="size-5" />} tone="sky" label={t('student.offDay', lang)} value={fmt(offCount)} />
       </StatGrid>
 
       <Card>
