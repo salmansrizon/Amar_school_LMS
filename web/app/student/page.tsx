@@ -9,7 +9,8 @@ import { addDays, schoolToday } from '@/lib/school-time'
 import { loadNoticeFeed } from '@/lib/student/notices-source'
 import { loadStudentTasks } from '@/lib/student/tasks-read'
 import { monthLabel, type FeeRecord } from '@/lib/student/fees'
-import { attendancePercent } from '@/lib/student/attendance'
+import { attendanceOutcome } from '@/lib/student/attendance'
+import { classAttendanceDays } from '@/lib/student/attendance-source'
 import type { ExamRoutineRow } from '@/lib/student/exam-schedule'
 import type { ResultRow } from '@/lib/student/results'
 import {
@@ -81,7 +82,7 @@ export default async function StudentHome() {
   const monthStart = `${today.slice(0, 7)}-01`
   const horizon = Array.from({ length: HOLIDAY_HORIZON_DAYS }, (_, i) => addDays(today, i))
 
-  const [routine, feed, tasks, feeRes, examRes, presentRes, absentRes, leaveRes, messageRes, result] = await Promise.all([
+  const [routine, feed, tasks, feeRes, examRes, presentRes, absentRes, takenDates, leaveRes, messageRes, result] = await Promise.all([
     loadStudentRoutine(supabase, lang, horizon),
     loadNoticeFeed(supabase, 30),
     loadStudentTasks(supabase),
@@ -91,6 +92,8 @@ export default async function StudentHome() {
     // not absences.
     supabase.from('attendance_records').select('att_date').gte('att_date', monthStart).lte('att_date', today),
     supabase.rpc('student_absent_working_days', { p_start: monthStart, p_end: today }),
+    // null until migration 0215 is applied; the figures then stay as they were.
+    classAttendanceDays(supabase, monthStart, today),
     supabase
       .from('student_leaves')
       .select('from_day, to_day, status, created_at')
@@ -126,11 +129,17 @@ export default async function StudentHome() {
   const taskCounts = dashboardTaskCounts(tasks, today)
   const openTasks = tasks.filter((task) => !isTaskHandled(task)).length
   const fee = feeStatus(feeRows, today)
-  const presentDays = new Set((presentRes.data ?? []).map((r) => r.att_date as string)).size
-  const absentDays = typeof absentRes.data === 'number' ? absentRes.data : 0
-  // With no present row the school has not taken attendance yet; 0% would
-  // accuse the student of something nobody recorded.
-  const percent = presentDays ? attendancePercent(presentDays, absentDays) : null
+  const presentDates = (presentRes.data ?? []).map((r) => r.att_date as string)
+  const presentDays = new Set(presentDates).size
+  // With no present row and no day taken for the class the school has not
+  // taken attendance yet; 0% would accuse the student of something nobody
+  // recorded.
+  const { percent, absentDays } = attendanceOutcome({
+    presentDates,
+    takenDates,
+    absentWorkingDays: typeof absentRes.data === 'number' ? absentRes.data : 0,
+    today,
+  })
   const attTone = attendanceBand(percent)
   const { latest, rank } = result
 

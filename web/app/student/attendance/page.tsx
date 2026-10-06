@@ -4,7 +4,8 @@ import { currentLang } from '@/lib/i18n-server'
 import { t, localeOf, numberFmt, formatDate } from '@/lib/i18n'
 import { getStudentContext } from '@/lib/student/context'
 import { schoolToday } from '@/lib/school-time'
-import { monthGrid, monthLeadIn, monthRange, shiftMonth, attendancePercent } from '@/lib/student/attendance'
+import { monthGrid, monthLeadIn, monthRange, shiftMonth, attendanceOutcome } from '@/lib/student/attendance'
+import { classAttendanceDays } from '@/lib/student/attendance-source'
 import { attendanceBand } from '@/lib/student/dashboard'
 import { attendanceRange } from '@/lib/student/daily'
 import { studentGroupTabs } from '@/lib/student-nav'
@@ -22,6 +23,10 @@ import { isWeekendColumn } from '@/lib/employee-attendance-calendar'
 // wrapper over the same absent_working_days_in_range the absent-fine formula and
 // the absence-SMS rules use. Counting attendance_records instead would disagree
 // with the money, because that table only ever holds present-ish rows.
+//
+// Once migration 0215 is applied the page also knows which days attendance was
+// taken for the class, and judges the Student on those (attendanceOutcome).
+// Until then, and whenever that call gives nothing, it behaves as before.
 export const generateMetadata = pageTitle('student.attendanceTitle')
 
 export default async function StudentAttendancePage({
@@ -41,7 +46,7 @@ export default async function StudentAttendancePage({
   // have not happened yet are not absences. A past month runs to its last day.
   const counted = attendanceRange(start, end, today)
 
-  const [records, leaves, schoolOff, centralOff, absent, school] = await Promise.all([
+  const [records, leaves, schoolOff, centralOff, absent, school, takenDates] = await Promise.all([
     counted
       ? supabase.from('attendance_records').select('att_date').gte('att_date', counted.start).lte('att_date', counted.end)
       : Promise.resolve({ data: [] as { att_date: string }[] }),
@@ -54,6 +59,7 @@ export default async function StudentAttendancePage({
     // The weekly off-days only tint the weekend columns and mark those cells;
     // the counts above still come from the shared working-day rule.
     supabase.from('schools').select('weekly_off_days').eq('id', student.school_id).maybeSingle(),
+    counted ? classAttendanceDays(supabase, counted.start, counted.end) : Promise.resolve(null),
   ])
   const weeklyOffDays: number[] = (school.data?.weekly_off_days as number[] | null) ?? []
 
@@ -74,10 +80,15 @@ export default async function StudentAttendancePage({
     approvedLeaveRanges: leaves.data ?? [],
     offDays,
   })
-  const absentDays = typeof absent.data === 'number' ? absent.data : 0
-  // With no present row the school has not taken attendance; 0% would accuse
-  // the student of something nobody recorded (same rule as the home).
-  const percent = presentDates.length ? attendancePercent(presentDates.length, absentDays) : null
+  // With no present row and no taken day the school has not taken attendance;
+  // 0% would accuse the student of something nobody recorded (same rule as the
+  // home).
+  const { percent, absentDays, absentDates } = attendanceOutcome({
+    presentDates,
+    takenDates,
+    absentWorkingDays: typeof absent.data === 'number' ? absent.data : 0,
+    today,
+  })
   // Holidays plus the school's weekly off-days, the same cells the calendar
   // below marks as off.
   const firstColumn = monthLeadIn(year, month)
@@ -103,13 +114,15 @@ export default async function StudentAttendancePage({
     present: 'bg-mint-soft text-mint-deep',
     leave: 'bg-sky-soft text-sky-deep',
     off: 'bg-paper-muted text-muted',
+    absent: 'bg-alert-soft text-alert-deep',
     blank: 'bg-paper text-muted',
   }
-  const dot: Record<string, string> = { present: 'bg-mint-deep', leave: 'bg-sky', off: 'bg-line-strong', blank: '' }
+  const dot: Record<string, string> = { present: 'bg-mint-deep', leave: 'bg-sky', off: 'bg-line-strong', absent: 'bg-alert-deep', blank: '' }
   const stateLabel: Record<string, string> = {
     present: t('student.present', lang),
     leave: t('student.onLeave', lang),
     off: t('student.offDay', lang),
+    absent: t('student.attAbsent', lang),
     blank: '',
   }
 
@@ -186,7 +199,10 @@ export default async function StudentAttendancePage({
           {grid.map((day, i) => {
             const weekend = isWeekendColumn(leadIn + i, weeklyOffDays)
             // A weekly off-day with no record reads as off, like a holiday.
-            const state = day.state === 'blank' && weekend ? 'off' : day.state
+            // A day the class was marked and this Student was not is absent
+            // (only known once 0215 is applied; before that it stays blank).
+            const state =
+              day.state !== 'blank' ? day.state : weekend ? 'off' : absentDates.has(day.date) ? 'absent' : 'blank'
             const isToday = day.date === today
             const future = day.date > today
             const text = stateLabel[state]
@@ -226,7 +242,9 @@ export default async function StudentAttendancePage({
               absence (lib/student/attendance.ts). The absent count above comes
               from the shared working-day rule instead, so the legend says which
               colour is which rather than letting the empty cells imply it. */}
-          <span className="rounded border border-line px-2 py-1">{t('student.attAbsent', lang)}</span>
+          <span className={`rounded px-2 py-1 ${absentDates.size ? tone.absent : 'border border-line'}`}>
+            {t('student.attAbsent', lang)}
+          </span>
         </p>
       </Card>
     </main>
