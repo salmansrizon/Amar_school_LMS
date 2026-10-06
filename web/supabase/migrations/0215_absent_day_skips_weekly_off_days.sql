@@ -58,11 +58,14 @@
 --   changes which SMS rule matches, so it is left for its own reviewed change.
 --
 -- "ATTENDANCE WAS TAKEN FOR MY CLASS ON DAY D" (function 2)
---   There is no table that says a roll call happened: attendance_records holds
---   one row per person per day they were PRESENT and nothing for an absence
---   (0017, 0046). So the only evidence the schema has is: at least one Student
---   whose current Enrollment is in the same Class Offering as the caller's has
---   an attendance record on D. That is the definition used.
+--   There is no table that says a roll call happened. A day is marked across
+--   two tables: attendance_records holds one row per person per day they were
+--   PRESENT (machine or hand, 0017), and attendance_absence_notes holds one row
+--   per Student marked ABSENT by hand (save_student_attendance, 0046/0170).
+--   The owner's register reads "taken" from both (lib/school/roster.ts
+--   latestMark), so this does too: D is taken when at least one Student whose
+--   current Enrollment is in the same Class Offering as the caller's has an
+--   attendance record or an absence note on D.
 --   Returned are those days that also count for the caller: a day the caller
 --   has a record, or a day is_absent_working_day says is an absence. A taken
 --   day that is an off-day, a Weekly Off-Day or inside the caller's approved
@@ -70,15 +73,17 @@
 --     returned days minus own present days = days absent while the class was marked
 --   and that set is always inside what is_absent_working_day counts.
 --   Limits, by design of the data:
---     * A day the whole class was absent (or the machine was down and nobody
---       marked by hand) looks the same as a day attendance was not taken.
+--     * Machine-only classes: a day nobody in the class tapped in (everyone
+--       absent, or the machine down) and nobody marked by hand looks the same
+--       as a day attendance was not taken. A hand-marked day is always seen.
 --     * "Same class" is the classmates' CURRENT Enrollment, not the Enrollment
 --       they held on D. After a promotion, older months are judged by today's
 --       classmates.
 --     * A Student with no current Enrollment gets no rows; the app then keeps
 --       its previous behaviour.
 --   Only dates are returned. No other Student's id, name or count leaves the
---   function.
+--   function, and no absence-note text (0146 keeps that table closed to
+--   Students; only "a note exists that day" is used here).
 --
 -- ROLLBACK (run as written; restores the 0046 body and removes function 2)
 --   create or replace function public.is_absent_working_day(sid uuid, school uuid, d date) returns boolean
@@ -137,16 +142,28 @@ language sql stable security definer set search_path = public as $$
       join student_enrollments e on e.id = s.current_enrollment_id
      where s.id = public.app_current_student_id()
   ),
-  taken as (
-    select distinct ar.att_date as att_day
+  classmates as (
+    select c.id, me.school_id
       from me
       join student_enrollments ce on ce.class_offering_id = me.class_offering_id
       join students c on c.current_enrollment_id = ce.id and c.school_id = me.school_id
+  ),
+  taken as (
+    select ar.att_date as att_day
+      from classmates cm
       join attendance_records ar
         on ar.person_type = 'student'
-       and ar.person_id = c.id
-       and ar.school_id = me.school_id
+       and ar.person_id = cm.id
+       and ar.school_id = cm.school_id
        and ar.att_date between p_start and p_end
+    union
+    select an.att_date
+      from classmates cm
+      join attendance_absence_notes an
+        on an.person_type = 'student'
+       and an.person_id = cm.id
+       and an.school_id = cm.school_id
+       and an.att_date between p_start and p_end
   )
   select t.att_day
     from taken t
@@ -165,6 +182,6 @@ grant execute on function public.student_class_attendance_days(date, date) to au
 comment on function public.student_class_attendance_days(date, date) is
   'Days in [p_start, p_end] on which attendance was taken for the calling '
   'Student''s class: some Student currently enrolled in the same Class Offering '
-  'has an attendance record that day. Days excused for the caller (off-day, '
+  'has an attendance record or a hand-marked absence note that day. Days excused for the caller (off-day, '
   'Weekly Off-Day, approved leave) are left out unless the caller has a record. '
   'Dates only. Issue #703 item 4.4.';
