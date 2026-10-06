@@ -25,6 +25,7 @@ function hhmm(iso: string | null): string {
 function dayAriaLabel(cell: SchoolAttendanceDayCell, lang: Lang): string {
   const parts = [formatDayLong(cell.iso as string, lang)]
   if (cell.isOff) parts.push(t('status.holiday', lang))
+  else if (cell.noRecord) parts.push(t('status.no_record', lang))
   else if (cell.isFuture) parts.push(cell.leaveCount ? `${localizeNumber(cell.leaveCount, lang)} ${t('status.on_leave', lang)}` : t('attendance.calendarUpcoming', lang))
   else if (cell.rate !== null) parts.push(
       `${localizeNumber(cell.rate, lang)}% (${localizeNumber(cell.presentCount, lang)}/${localizeNumber(cell.totalCount, lang)})`,
@@ -37,6 +38,7 @@ function DayPopoverContent({ cell, lang }: { cell: SchoolAttendanceDayCell; lang
     present: t('status.present', lang),
     absent: t('status.absent', lang),
     on_leave: t('status.on_leave', lang),
+    no_record: t('status.no_record', lang),
   }
   return (
     <div className="w-72 max-w-[80vw]">
@@ -96,6 +98,7 @@ export function EmployeeAttendanceDayCell({
       >
         <DayNumber cell={cell} lang={lang} isToday={isToday} />
         {cell.isOff && <span className={`hidden sm:block ${CAL_CHIP} bg-alert-soft text-alert-deep`}>{t('status.holiday', lang)}</span>}
+        {!cell.isOff && cell.noRecord && <span className={`hidden sm:block ${CAL_CHIP} bg-paper-muted text-muted`}>{t('status.no_record', lang)}</span>}
         {!cell.isOff && cell.isFuture && <span className="hidden truncate text-[10px] text-muted sm:block">{cell.leaveCount ? `${t('status.on_leave', lang)} ${localizeNumber(cell.leaveCount, lang)}` : t('attendance.calendarUpcoming', lang)}</span>}
       </div>
     )

@@ -8,6 +8,7 @@ import { employeeCategoryLabel, matchesEmployeeDirectoryQuery } from '@/lib/empl
 import { ACADEMIC_SHIFT_LABEL_KEY, isKnownAcademicShift } from '@/lib/institute'
 import { schoolToday } from '@/lib/school-time'
 import { isOffDayIso } from '@/lib/attendance-manual'
+import { isNoRecordDay } from '@/lib/employee-attendance-calendar'
 import { selectAllRows } from '@/lib/supabase/select-all'
 import { schoolCrumbs } from '@/lib/school-crumbs'
 import { withParams } from '@/lib/url-params'
@@ -35,7 +36,7 @@ import { pageTitle } from '@/lib/page-title'
 // moved to Attendance > Employees > Grace Time (issue #671) — this page no
 // longer owns any grace UI.
 
-type Presence = 'present' | 'on_leave' | 'not_in' | 'holiday'
+type Presence = 'present' | 'on_leave' | 'not_in' | 'holiday' | 'no_record'
 
 type Row = {
   id: string
@@ -132,6 +133,8 @@ export default async function EmployeesPage({
   // On an off-day nobody is "not in yet": same holiday verdict the attendance
   // calendar gives (audit F10). A check-in or approved leave still wins.
   const offToday = isOffDayIso(today, todayOffRows ?? [], weeklyOffDays)
+  // Nobody has a record today (#694): "no record", not a roomful of "not in yet".
+  const noRecordToday = isNoRecordDay({ iso: today, today, isOff: offToday, recordCount: records.length })
   const entryBy = new Map(records.map((r) => [r.person_id, r.entry_at as string | null]))
   const onLeave = new Set(leaves.map((l) => l.employee_id))
   const shiftsBy = new Map<string, string[]>()
@@ -143,7 +146,15 @@ export default async function EmployeesPage({
     // real string so nothing downstream has to guess.
     unique_id: e.unique_id == null ? null : String(e.unique_id),
     shifts: shiftsBy.get(e.id) ?? [],
-    presence: entryBy.has(e.id) ? 'present' : onLeave.has(e.id) ? 'on_leave' : offToday ? 'holiday' : 'not_in',
+    presence: entryBy.has(e.id)
+      ? 'present'
+      : onLeave.has(e.id)
+        ? 'on_leave'
+        : offToday
+          ? 'holiday'
+          : noRecordToday
+            ? 'no_record'
+            : 'not_in',
     entryAt: entryBy.get(e.id) ?? null,
   }))
   const viewedRow = view ? (all.find((e) => e.id === view) ?? null) : null
@@ -194,6 +205,8 @@ export default async function EmployeesPage({
       <Pill tone="sky">{t('status.on_leave', lang)}</Pill>
     ) : e.presence === 'holiday' ? (
       <Pill tone="muted">{t('status.holiday', lang)}</Pill>
+    ) : e.presence === 'no_record' ? (
+      <Pill tone="muted">{t('status.no_record', lang)}</Pill>
     ) : (
       // Not checked in yet needs a look; on_leave/present are steady facts, no pulse.
       <Pill tone="muted" pulse>

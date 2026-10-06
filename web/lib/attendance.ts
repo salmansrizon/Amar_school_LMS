@@ -60,7 +60,7 @@ export function employeeStatus(
 // pre-existing no-officeTime-configured fallback (also used for students), kept
 // here only so this type can wrap AttendanceStatus without narrowing it.
 // ui/school-owner/attendance-employee.html shows the 6 as one badge set.
-export type EmployeeDisplayStatus = AttendanceStatus | 'absent' | 'on_leave' | 'holiday'
+export type EmployeeDisplayStatus = AttendanceStatus | 'absent' | 'on_leave' | 'holiday' | 'no_record'
 
 export function resolveEmployeeDisplayStatus(args: {
   hasRecord: boolean
@@ -71,6 +71,10 @@ export function resolveEmployeeDisplayStatus(args: {
   /** Approved leave outranks the off-day verdict (as on the Leave Calendar).
    *  Default false keeps holiday > leave. */
   leaveBeatsOff?: boolean
+  /** Nobody in the School has a record that day (isNoRecordDay in
+   *  employee-attendance-calendar.ts): an Employee with no record, no leave and
+   *  no off-day reads 'no_record' rather than 'absent'. Default false. */
+  noRecordDay?: boolean
   entry: Date | null
   exit: Date | null
   officeStart: string | null
@@ -80,7 +84,8 @@ export function resolveEmployeeDisplayStatus(args: {
   if (!args.hasRecord) {
     if (args.onApprovedLeave && args.leaveBeatsOff) return 'on_leave'
     if (args.isOff) return 'holiday'
-    return args.onApprovedLeave ? 'on_leave' : 'absent'
+    if (args.onApprovedLeave) return 'on_leave'
+    return args.noRecordDay ? 'no_record' : 'absent'
   }
   return employeeStatus(args.entry!, args.exit, args.officeStart, args.officeEnd, args.graceMinutes)
 }
