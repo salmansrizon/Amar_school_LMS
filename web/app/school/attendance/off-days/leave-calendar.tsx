@@ -116,8 +116,10 @@ export function LeaveCalendarDayCell({
   const shown = people.slice(0, cell.isOff ? 1 : 2)
   const overflow = people.length - shown.length
 
-  const stripedOff = cell.isOff && !cell.isSignificant
-  const toneClass = cell.isSignificant ? 'bg-sky-soft' : stripedOff ? '' : weekendTint
+  // An off-day is a chip in a plain cell, like every other event on the
+  // calendars — no striped or filled cell. Red chip for a regular off-day, blue
+  // for a significant day; the weekend column keeps its light wash.
+  const offChip = cell.isSignificant ? 'bg-sky-soft text-sky-deep' : 'bg-alert-soft text-alert-deep'
 
   return (
     <Popover.Root>
@@ -125,20 +127,20 @@ export function LeaveCalendarDayCell({
         role="gridcell"
         aria-label={dayAriaLabel(cell, lang)}
         data-iso={cell.iso}
-        className={`${cellFrame} ${toneClass} cursor-pointer hover:bg-paper-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300`}
-        style={stripedOff ? { backgroundImage: 'repeating-linear-gradient(135deg, var(--color-alert-soft), var(--color-alert-soft) 6px, transparent 6px 12px)' } : undefined}
+        className={`${cellFrame} ${weekendTint} cursor-pointer hover:bg-paper-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300`}
       >
         <div className="flex items-center justify-between">
           <DayNumber day={cell.day} lang={lang} isToday={isToday} muted={false} />
-          {people.length > 0 && (
+          {(people.length > 0 || cell.isOff) && (
             <span className="flex items-center gap-0.5 sm:hidden">
+              {cell.isOff && <span className={`size-2 rounded-full ${cell.isSignificant ? 'bg-sky' : 'bg-alert'}`} aria-hidden />}
               {cell.approved.length > 0 && <span className="size-2 rounded-full bg-mint" aria-hidden />}
               {cell.pending.length > 0 && <span className="size-2 rounded-full border border-dashed border-sun-deep" aria-hidden />}
             </span>
           )}
         </div>
         {cell.isOff && (
-          <span className={`hidden shrink-0 truncate text-[10px] font-semibold sm:block ${cell.isSignificant ? 'text-sky-deep' : 'text-alert-deep'}`}>
+          <span className={`hidden shrink-0 sm:block ${CAL_CHIP} ${offChip}`}>
             {cell.label ?? t('status.holiday', lang)}
           </span>
         )}
