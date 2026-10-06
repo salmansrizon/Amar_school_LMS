@@ -213,6 +213,8 @@ export interface AlertLeave {
   to_day: string
   status: string
   created_at: string
+  /** When staff decided it (migration 0216); absent before it is applied or for older rows. */
+  decided_at?: string | null
 }
 export interface AlertMessage {
   subject: string
@@ -345,12 +347,11 @@ export function buildStudentAlerts(input: StudentAlertInput): StudentAlert[] {
       count: unread.length - urgent.length,
     })
 
-  // ponytail: student_leaves has no decided-at column, so the 7-day window runs
-  // from the request's created_at. A decision timestamp needs a migration.
+  // The 7-day window runs from the decision (0216), else from the request.
   const since = addDays(today, -LEAVE_REJECTED_DAYS)
   const byStart = (a: AlertLeave, b: AlertLeave) => a.from_day.localeCompare(b.from_day)
   const rejected = input.leaves
-    .filter((l) => l.status === 'rejected' && schoolDay(l.created_at) >= since)
+    .filter((l) => l.status === 'rejected' && schoolDay(l.decided_at ?? l.created_at) >= since)
     .sort(byStart)
   if (rejected.length)
     out.push({

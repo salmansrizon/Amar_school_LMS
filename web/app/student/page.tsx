@@ -25,6 +25,7 @@ import {
   type AlertMessage,
   type StudentAlert,
 } from '@/lib/student/dashboard'
+import { withLeaveColumns } from '@/lib/leave-columns'
 import { studentGroupTabs } from '@/lib/student-nav'
 import { pageTitle } from '@/lib/page-title'
 import { Icon } from '@/components/school-icons'
@@ -81,6 +82,14 @@ export default async function StudentHome() {
   const monthStart = `${today.slice(0, 7)}-01`
   const horizon = Array.from({ length: HOLIDAY_HORIZON_DAYS }, (_, i) => addDays(today, i))
 
+  const recentLeaves = (cols: string) =>
+    supabase
+      .from('student_leaves')
+      .select(cols)
+      .in('status', ['pending', 'rejected'])
+      .order('created_at', { ascending: false })
+      .limit(20)
+
   const [routine, feed, tasks, feeRes, examRes, presentRes, absentRes, leaveRes, messageRes, result] = await Promise.all([
     loadStudentRoutine(supabase, lang, horizon),
     loadNoticeFeed(supabase, 30),
@@ -91,12 +100,11 @@ export default async function StudentHome() {
     // not absences.
     supabase.from('attendance_records').select('att_date').gte('att_date', monthStart).lte('att_date', today),
     supabase.rpc('student_absent_working_days', { p_start: monthStart, p_end: today }),
-    supabase
-      .from('student_leaves')
-      .select('from_day, to_day, status, created_at')
-      .in('status', ['pending', 'rejected'])
-      .order('created_at', { ascending: false })
-      .limit(20),
+    // decided_at arrives with migration 0216; read without it until then.
+    withLeaveColumns(
+      () => recentLeaves('from_day, to_day, status, created_at, decided_at'),
+      () => recentLeaves('from_day, to_day, status, created_at'),
+    ),
     supabase
       .from('student_messages')
       .select('subject, status, replied_at, created_at')
@@ -180,7 +188,7 @@ export default async function StudentHome() {
     exams: examRows,
     notices: feed.notices,
     unread: feed.unread,
-    leaves: (leaveRes.data ?? []) as AlertLeave[],
+    leaves: (leaveRes.data ?? []) as unknown as AlertLeave[],
     messages: (messageRes.data ?? []) as AlertMessage[],
     attendancePercent: percent,
   }).map((a) => ({

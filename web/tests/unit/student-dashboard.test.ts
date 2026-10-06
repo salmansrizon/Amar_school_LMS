@@ -315,6 +315,22 @@ describe('buildStudentAlerts', () => {
     expect(buildStudentAlerts(input({ leaves: [{ ...leave('2026-10-03T06:00:00Z'), status: 'approved' }] }))).toEqual([])
   })
 
+  it('rejected-leave window counts from decided_at when present', () => {
+    const base = { from_day: '2026-10-10', to_day: '2026-10-11', status: 'rejected', created_at: '2026-09-14T06:00:00Z' }
+    // Requested 20 days ago, decided 2 days ago: still news.
+    expect(
+      buildStudentAlerts(input({ leaves: [{ ...base, decided_at: '2026-10-02T06:00:00Z' }] })),
+    ).toMatchObject([{ kind: 'leaveRejected' }])
+    // Requested recently, decided 8 days ago: stale.
+    expect(
+      buildStudentAlerts(
+        input({ leaves: [{ ...base, created_at: '2026-10-03T06:00:00Z', decided_at: '2026-09-26T06:00:00Z' }] }),
+      ),
+    ).toEqual([])
+    // No decided_at: created_at as before.
+    expect(buildStudentAlerts(input({ leaves: [{ ...base, decided_at: null }] }))).toEqual([])
+  })
+
   it('attendance below 75 is sun, 75 and unrecorded are nothing', () => {
     expect(buildStudentAlerts(input({ attendancePercent: 74 }))).toMatchObject([
       { kind: 'attendanceLow', tone: 'sun', percent: 74 },

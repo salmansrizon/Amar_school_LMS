@@ -2,6 +2,7 @@ import { currentLang } from '@/lib/i18n-server'
 import { t, formatDate, formatNumber, type MessageKey } from '@/lib/i18n'
 import { getStudentContext, isReadOnly } from '@/lib/student/context'
 import { schoolToday } from '@/lib/school-time'
+import { withLeaveColumns } from '@/lib/leave-columns'
 import { LeaveRequestForm, WithdrawLeaveButton } from './leave-form'
 import { orderLeaves } from '@/lib/student/daily'
 import { leaveDays, matchesQ, pageOf } from '@/lib/student/table'
@@ -24,7 +25,7 @@ const STATUS_TONE = { pending: 'sky', approved: 'mint', rejected: 'alert' } as c
 // Attendance I already built — nothing new on the staff side.
 export const generateMetadata = pageTitle('student.leaveTitle')
 
-type Leave = { id: string; from_day: string; to_day: string; reason: string | null; status: string; created_at: string }
+type Leave = { id: string; from_day: string; to_day: string; reason: string | null; status: string; created_at: string; decision_note?: string | null; decided_at?: string | null }
 
 export default async function StudentLeavePage({
   searchParams,
@@ -35,13 +36,17 @@ export default async function StudentLeavePage({
   const lang = await currentLang()
   const ctx = await getStudentContext()
 
-  const { data: leaves } = await ctx.supabase
-    .from('student_leaves')
-    .select('id, from_day, to_day, reason, status, created_at')
-    .order('from_day', { ascending: false })
+  // decision_note / decided_at arrive with migration 0216; read without them until then.
+  const readLeaves = (cols: string) =>
+    ctx.supabase.from('student_leaves').select(cols).order('from_day', { ascending: false })
+  const { data } = await withLeaveColumns(
+    () => readLeaves('id, from_day, to_day, reason, status, created_at, decision_note, decided_at'),
+    () => readLeaves('id, from_day, to_day, reason, status, created_at'),
+  )
+  const leaves = (data ?? []) as unknown as Leave[]
 
   // Pending requests first, then newest.
-  const requests = orderLeaves(leaves ?? [])
+  const requests = orderLeaves(leaves)
   const shown = requests.filter((l) => matchesQ(params.q, l.reason) && (!params.status || l.status === params.status))
   const paged = pageOf(shown, params)
   const readOnly = isReadOnly(ctx)
@@ -59,16 +64,32 @@ export default async function StudentLeavePage({
       key: 'reason',
       header: t('student.leaveReason', lang),
       className: 'max-w-xs',
-      cell: (l) => (l.reason ? <span className="line-clamp-2 whitespace-normal" title={l.reason}>{l.reason}</span> : <span className="text-muted">—</span>),
+      cell: (l) => (
+        <>
+          {l.reason ? <span className="line-clamp-2 whitespace-normal" title={l.reason}>{l.reason}</span> : <span className="text-muted">—</span>}
+          {l.status === 'rejected' && l.decision_note && (
+            <span className="mt-1 block whitespace-normal text-xs text-alert-deep">
+              {t('student.leaveRejectReason', lang)}: {l.decision_note}
+            </span>
+          )}
+        </>
+      ),
     },
     {
       key: 'status',
       header: t('student.col.state', lang),
       card: 'badge',
       cell: (l) => (
-        <Pill tone={STATUS_TONE[l.status as keyof typeof STATUS_TONE] ?? 'muted'}>
-          {t(STATUS_LABEL[l.status] ?? 'student.leavePending', lang)}
-        </Pill>
+        <>
+          <Pill tone={STATUS_TONE[l.status as keyof typeof STATUS_TONE] ?? 'muted'}>
+            {t(STATUS_LABEL[l.status] ?? 'student.leavePending', lang)}
+          </Pill>
+          {l.decided_at && l.status !== 'pending' && (
+            <span className="mt-1 block text-xs text-muted">
+              {t('student.leaveDecidedOn', lang)} {formatDate(l.decided_at, lang)}
+            </span>
+          )}
+        </>
       ),
     },
   ]
