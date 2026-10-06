@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useId, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { inputClass, labelClass } from '@/components/auth-card'
 import { t, type Lang } from '@/lib/i18n'
@@ -9,6 +9,7 @@ import { requestLeave, approveLeave, rejectLeave, revertLeave } from '../manual-
 import { ConfirmDialog } from '@/components/confirm-dialog'
 import { dateInputClass } from '@/components/ui/field'
 import { Modal } from '@/components/modal'
+import { DECISION_NOTE_MAX, REJECT_REASON_REQUIRED } from '@/lib/leave-columns'
 
 // Replaces the old dropdown-of-every-person-in-the-institute form (map #668)
 // — a row action on an already-filtered roster instead, so the person is
@@ -110,6 +111,8 @@ export function LeaveActions({ kind, id, lang }: { kind: 'student' | 'employee';
   const router = useRouter()
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
+  const [note, setNote] = useState('')
+  const noteId = useId()
 
   const approve = () =>
     startTransition(async () => {
@@ -147,12 +150,31 @@ export function LeaveActions({ kind, id, lang }: { kind: 'student' | 'employee';
         title={t('attendance.leaveRejectConfirm', lang)}
         confirmLabel={t('attendance.leaveReject', lang)}
         cancelLabel={t('graceTime.cancel', lang)}
+        confirmDisabled={REJECT_REASON_REQUIRED && !note.trim()}
         onConfirm={async () => {
-          const result = await rejectLeave(kind, id)
-          if (!result.error) router.refresh()
+          const result = await rejectLeave(kind, id, note)
+          if (!result.error) {
+            setNote('')
+            router.refresh()
+          }
           return result
         }}
-      />
+      >
+        <label className="mb-1 block text-sm font-semibold" htmlFor={noteId}>
+          {t('attendance.leaveRejectReason', lang)}
+          {!REJECT_REASON_REQUIRED && <span className="font-normal text-muted"> ({t('attendance.leaveOptional', lang)})</span>}
+        </label>
+        <textarea
+          id={noteId}
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          maxLength={DECISION_NOTE_MAX}
+          rows={3}
+          required={REJECT_REASON_REQUIRED}
+          className={`${inputClass} mb-1 min-h-11 w-full`}
+        />
+        <p className="mb-4 text-xs text-muted">{t('attendance.leaveRejectReasonHint', lang)}</p>
+      </ConfirmDialog>
       {error && <span className="text-xs text-alert-deep">{error}</span>}
     </span>
   )

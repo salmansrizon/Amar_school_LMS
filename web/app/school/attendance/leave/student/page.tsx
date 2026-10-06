@@ -15,6 +15,7 @@ import { paginate, pageSizeFrom } from '@/components/pager'
 import { ClassSectionSelect } from '@/components/ui/class-section-select'
 import { filterButtonClass, inputClass } from '@/components/ui/field'
 import { pageTitle } from '@/lib/page-title'
+import { withLeaveColumns } from '@/lib/leave-columns'
 
 // Split off the Students half of the old unified Leave Management page (map
 // #664): search is now Class (schoolRoster's own picker) + name/roll text,
@@ -35,6 +36,8 @@ interface StudentLeaveRow {
   to_day: string
   reason: string | null
   status: string
+  decision_note?: string | null
+  decided_at?: string | null
 }
 
 export const generateMetadata = pageTitle('attendance.studentLeaveTitle')
@@ -64,21 +67,22 @@ export default async function StudentLeaveManagementPage({
   let leaves: StudentLeaveRow[] = []
   if (filterActive) {
     if (matchedIds.length) {
-      const { data } = await supabase
-        .from('student_leaves')
-        .select('id, student_id, from_day, to_day, reason, status')
-        .in('student_id', matchedIds)
-        .order('from_day', { ascending: false })
-        .limit(FILTERED_VIEW_LIMIT)
-      leaves = data ?? []
+      const filtered = (cols: string) =>
+        supabase
+          .from('student_leaves')
+          .select(cols)
+          .in('student_id', matchedIds)
+          .order('from_day', { ascending: false })
+          .limit(FILTERED_VIEW_LIMIT)
+      // decision_note / decided_at arrive with migration 0216; read without them until then.
+      const { data } = await withLeaveColumns(() => filtered('id, student_id, from_day, to_day, reason, status, decision_note, decided_at'), () => filtered('id, student_id, from_day, to_day, reason, status'))
+      leaves = (data ?? []) as unknown as StudentLeaveRow[]
     }
   } else {
-    const { data } = await supabase
-      .from('student_leaves')
-      .select('id, student_id, from_day, to_day, reason, status')
-      .order('created_at', { ascending: false })
-      .limit(DEFAULT_VIEW_LIMIT)
-    leaves = data ?? []
+    const recent = (cols: string) =>
+      supabase.from('student_leaves').select(cols).order('created_at', { ascending: false }).limit(DEFAULT_VIEW_LIMIT)
+    const { data } = await withLeaveColumns(() => recent('id, student_id, from_day, to_day, reason, status, decision_note, decided_at'), () => recent('id, student_id, from_day, to_day, reason, status'))
+    leaves = (data ?? []) as unknown as StudentLeaveRow[]
   }
 
   // Looked up by the leave rows' own student_ids, not from `matched` — the
@@ -115,7 +119,16 @@ export default async function StudentLeaveManagementPage({
     {
       key: 'reason',
       header: t('attendance.leaveReasonCol', lang),
-      cell: (l) => (l.reason ? <span className="line-clamp-2">{l.reason}</span> : dash),
+      cell: (l) => (
+        <>
+          {l.reason ? <span className="line-clamp-2">{l.reason}</span> : dash}
+          {l.decision_note && (
+            <span className="line-clamp-2 text-xs text-alert-deep">
+              {t('attendance.leaveRejectReason', lang)}: {l.decision_note}
+            </span>
+          )}
+        </>
+      ),
     },
     {
       key: 'status',
