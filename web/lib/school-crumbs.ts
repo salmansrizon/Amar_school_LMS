@@ -1,6 +1,7 @@
 import { t, type Lang } from '@/lib/i18n'
 import { navGroupFor } from '@/lib/school-nav'
 import type { Crumb } from '@/components/ui/page'
+import { ATTENDANCE_GROUPS } from '@/lib/attendance-nav'
 
 // Breadcrumb trail for a School Owner page (map 013): Dashboard › <sidebar
 // group> › …tail. The group label comes from the nav, so a page never names
@@ -16,6 +17,21 @@ export function schoolCrumbs(pathname: string, lang: Lang, ...tail: (Crumb | Cru
       ...tail.flat(),
     ],
   }
+}
+
+/** Trail for an Attendance page: Dashboard › group › Attendance › area. The
+ *  area (Students, Employees, Off-Day Calendar, Machine) is the one whose pages
+ *  include `activeHref` — the same lookup the area row uses — so the trail and
+ *  the row cannot disagree. */
+export function attendanceCrumbs(activeHref: string, lang: Lang): { lang: Lang; items: Crumb[] } {
+  const area = ATTENDANCE_GROUPS.find((g) => (g.tabs ? g.tabs.some((tab) => tab.href === activeHref) : g.href === activeHref))
+  return schoolCrumbs(
+    '/school/attendance',
+    lang,
+    area
+      ? [{ label: t('attendance.title', lang), href: '/school/attendance' }, { label: t(area.labelKey, lang) }]
+      : [{ label: t('attendance.title', lang) }],
+  )
 }
 
 /** PageHeader action pills, same as the student/employee directories. */

@@ -1,23 +1,24 @@
 import type { ReactNode } from 'react'
 import { t, type Lang } from '@/lib/i18n'
 import { SegmentedControl } from '@/components/ui/segmented-control'
-import { ATTENDANCE_GROUPS as GROUPS } from '@/lib/attendance-nav'
+import { SectionTabs } from '@/components/ui/section-tabs'
+import { ATTENDANCE_GROUPS as GROUPS, attendanceGroupHref } from '@/lib/attendance-nav'
 
 // RFID card assignment tab intentionally removed — RFID is disabled for now, so
 // attendance is manual only (mark/book/employee/leave/off-days).
 //
-// Two-level nav (map #663) collapsed to one (map #670): Students and
-// Employees were parent groups with a top-of-page group-selector row above
-// their sub-tabs, but that row duplicated the sidebar entries #667 already
-// added (Off-Day Calendar/Students/Employees, always-visible under
-// Attendance) — removed here rather than left as a second way to reach the
-// same three destinations. Only the second-level sub-tab row remains; a page
-// whose group has no sub-tabs (Off-Day Calendar) renders no tab bar at all,
-// since the sidebar already shows it as the active entry.
+// Two levels, both in the page (owner decision 2026-10-06; the sidebar now
+// holds one Attendance item, like Exams):
+//  1. the area row — Students, Employees, Off-Day Calendar, Machine — as the
+//     shared underlined SectionTabs strip (page-to-page links in a <nav>, with
+//     aria-current, not ARIA tabs);
+//  2. the chosen area's own pages as the compact SegmentedControl, sharing its
+//     row with a calendar page's toolbar (`extra`).
+// The two look different on purpose: two identical tab rows stacked read as one
+// confusing control. Off-Day Calendar has no pages of its own, so it shows
+// only the area row.
 //
-// The group/tab data itself still lives in lib/attendance-nav.ts (map #667),
-// shared with the sidebar so the two can't drift apart.
-
+// The group/tab data lives in lib/attendance-nav.ts.
 
 export function AttendanceTabs({
   active,
@@ -34,14 +35,26 @@ export function AttendanceTabs({
 }) {
   const activeGroup = GROUPS.find((g) => (g.tabs ? g.tabs.some((tab) => tab.href === active) : g.href === active))
   const subItems = activeGroup?.tabs?.map((tab) => ({ href: tab.href, label: t(tab.key, lang) }))
-  if (!subItems && !extra) return null
+  const areas = GROUPS.map((g) => ({ href: attendanceGroupHref(g.id), labelKey: g.labelKey }))
 
   return (
-    <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-      <div>
-        {subItems && <SegmentedControl items={subItems} active={active} ariaLabel={t('attendance.subNavLabel', lang)} />}
-      </div>
-      {extra}
-    </div>
+    <>
+      <SectionTabs
+        tabs={areas}
+        active={activeGroup ? attendanceGroupHref(activeGroup.id) : ''}
+        lang={lang}
+        label={t('attendance.title', lang)}
+      />
+      {(subItems || extra) && (
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+          <div>
+            {subItems && (
+              <SegmentedControl items={subItems} active={active} ariaLabel={t('attendance.subNavLabel', lang)} />
+            )}
+          </div>
+          {extra}
+        </div>
+      )}
+    </>
   )
 }

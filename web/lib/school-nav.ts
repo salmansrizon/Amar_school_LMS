@@ -1,7 +1,6 @@
 import type { MessageKey } from '@/lib/i18n'
 import type { ScreenKey } from '@/lib/auth/screens'
 import { HUB_HOME, HUB_TABS } from '@/lib/student/hub'
-import { attendanceGroupHref, attendanceGroupTabHrefs } from '@/lib/attendance-nav'
 
 // Shared nav data for the School Owner/Staff sidebar (school-shell.tsx) and the
 // dashboard's Quick Actions, per ui/school-owner/dashboard.html's sidebar.
@@ -62,49 +61,16 @@ export const SCHOOL_NAV_GROUPS: SchoolNavGroup[] = [
     shortLabelKey: 'nav.tabAcademics',
     icon: 'classes',
     items: [
-      {
-        screen: 'classes',
-        href: '/school/classes',
-        titleKey: 'classes.title',
-        // Attendance depends on class information (docs/improvement.md Known
-        // Issues §1), so it reads as a child of Class & Curriculum. Nav position
-        // only (map #91 grilling decision 11): the route stays /school/attendance,
-        // and the `attendance` grant key is untouched.
-        children: [
-          {
-            screen: 'attendance',
-            href: '/school/attendance',
-            titleKey: 'attendance.title',
-            // Off-Day Calendar / Students / Employees move from Attendance's own
-            // top-of-page tab row into always-visible sidebar children (map
-            // #667) — no click-to-expand, same "own grant, own route" rule as
-            // this file's own `children` doc comment. Hrefs come from
-            // lib/attendance-nav.ts, the same source AttendanceTabs itself
-            // renders from, so the two can't drift apart.
-            children: [
-              { screen: 'attendance', href: attendanceGroupHref('off-days'), titleKey: 'attendance.tabOffDays' },
-              {
-                screen: 'attendance',
-                href: attendanceGroupHref('students'),
-                titleKey: 'attendance.groupStudents',
-                matchPrefixes: attendanceGroupTabHrefs('students'),
-              },
-              {
-                screen: 'attendance',
-                href: attendanceGroupHref('employees'),
-                titleKey: 'attendance.groupEmployees',
-                matchPrefixes: attendanceGroupTabHrefs('employees'),
-              },
-              {
-                screen: 'attendance',
-                href: attendanceGroupHref('machine'),
-                titleKey: 'attendance.groupMachine',
-                matchPrefixes: attendanceGroupTabHrefs('machine'),
-              },
-            ],
-          },
-        ],
-      },
+      { screen: 'classes', href: '/school/classes', titleKey: 'classes.title' },
+      // Attendance is one sidebar item, like Exams (owner decision 2026-10-06,
+      // replacing map #667's always-visible sidebar children and map #91's
+      // "child of Classes" placement). Its four areas — Off-Day Calendar,
+      // Students, Employees, Machine — are one row of links at the top of every
+      // Attendance page (AttendanceTabs), and each area's own pages are the
+      // small switch under it. A sidebar holds two levels, not four. The route
+      // stays /school/attendance and the `attendance` grant key is untouched;
+      // every Attendance route is under that prefix, so the item stays active.
+      { screen: 'attendance', href: '/school/attendance', titleKey: 'attendance.title' },
       { screen: 'exams', href: '/school/exams', titleKey: 'exams.title' },
     ],
   },

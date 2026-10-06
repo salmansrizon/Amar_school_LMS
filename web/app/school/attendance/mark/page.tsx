@@ -11,7 +11,7 @@ import { isOffDayIso } from '@/lib/attendance-manual'
 import { studentAttendanceRates } from '@/lib/school/attendance-rate-source'
 import { attendanceRate, unmarkedOfferings } from '@/lib/dashboard'
 import { selectAllRows } from '@/lib/supabase/select-all'
-import { schoolCrumbs } from '@/lib/school-crumbs'
+import { attendanceCrumbs } from '@/lib/school-crumbs'
 import { PageHeader } from '@/components/ui/page'
 import { QuickActions, StatCard, StatGrid, WarningBanner, WorkflowCard } from '@/components/ui/widgets'
 import { RowActionPill } from '@/components/data-table/row-action-pill'
@@ -196,7 +196,7 @@ export default async function MarkAttendancePage({
         title={t('attendance.markTitle', lang)}
         subtitle={t('attendance.pageSubtitle', lang)}
         badge={`${n(register.readable.length)} ${t('attendance.studentsTotal', lang)}`}
-        crumbs={schoolCrumbs('/school/attendance', lang, { label: t('attendance.title', lang) })}
+        crumbs={attendanceCrumbs('/school/attendance/mark', lang)}
         actions={
           <Link
             href="/school/attendance/book"
