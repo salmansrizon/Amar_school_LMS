@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import {
   employeeDayStatus,
   employeeTrackingStart,
+  isNoRecordDay,
   buildEmployeeMonthCalendar,
   summarizeEmployeeMonth,
   buildLeaveCalendarMonth,
@@ -390,5 +391,80 @@ describe('employee tracking start (no absent before joining)', () => {
     const oct3 = cells.find((c) => c.iso === '2026-10-03')!
     expect(oct1.totalCount).toBe(1)
     expect(oct3.totalCount).toBe(2)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// "No record" (#694): a day nobody was recorded reads "no record", not absent.
+
+describe('isNoRecordDay', () => {
+  const base = { iso: '2026-09-05', today: '2026-09-10', isOff: false, recordCount: 0 }
+  it('is true on a past working day with no record from anyone', () => {
+    expect(isNoRecordDay(base)).toBe(true)
+  })
+  it('includes today, excludes the future', () => {
+    expect(isNoRecordDay({ ...base, iso: '2026-09-10' })).toBe(true)
+    expect(isNoRecordDay({ ...base, iso: '2026-09-11' })).toBe(false)
+  })
+  it('is false on an off-day and when anyone has a record', () => {
+    expect(isNoRecordDay({ ...base, isOff: true })).toBe(false)
+    expect(isNoRecordDay({ ...base, recordCount: 1 })).toBe(false)
+  })
+})
+
+describe('no-record state in the status functions', () => {
+  const base = { iso: '2026-09-05', today: '2026-09-10', isOff: false, onApprovedLeave: false, hasRecord: false }
+  it('precedence: record > leave > future > before start > off > no record > absent', () => {
+    const nr = { ...base, noRecordDay: true }
+    expect(employeeDayStatus({ ...nr, hasRecord: true })).toBe('present')
+    expect(employeeDayStatus({ ...nr, onApprovedLeave: true })).toBe('on_leave')
+    expect(employeeDayStatus({ ...nr, iso: '2026-09-20' })).toBe('future')
+    expect(employeeDayStatus({ ...nr, startDay: '2026-09-08' })).toBe('not_started')
+    expect(employeeDayStatus({ ...nr, isOff: true })).toBe('off')
+    expect(employeeDayStatus(nr)).toBe('no_record')
+    expect(employeeDayStatus(base)).toBe('absent')
+    expect(employeeDayStatus({ ...base, noRecordDay: false })).toBe('absent')
+  })
+
+  const args = { year: 2026, month0: 8, today: '2026-09-10', offDays: [], weeklyOffDays: NO_WEEKLY_OFF, records: [], approvedLeaves: [] }
+  it('the per-employee month marks only days outside schoolRecordedDays', () => {
+    const cells = buildEmployeeMonthCalendar({ ...args, schoolRecordedDays: new Set(['2026-09-03']) })
+    expect(cells.find((c) => c.iso === '2026-09-03')?.status).toBe('absent')
+    expect(cells.find((c) => c.iso === '2026-09-04')?.status).toBe('no_record')
+    expect(cells.find((c) => c.iso === '2026-09-20')?.status).toBe('future')
+    expect(summarizeEmployeeMonth(cells).absentDays).toBe(1) // no_record is not counted absent
+  })
+  it('without schoolRecordedDays the month is unchanged', () => {
+    const cells = buildEmployeeMonthCalendar(args)
+    expect(cells.find((c) => c.iso === '2026-09-04')?.status).toBe('absent')
+  })
+
+  const employees = [
+    { id: 'e1', full_name: 'Abdul Karim' },
+    { id: 'e2', full_name: 'Rahim Uddin' },
+  ]
+  it('the school month: nobody recorded -> no_record for all but leave, no rate; one record keeps absent', () => {
+    const cells = buildSchoolAttendanceMonth({
+      ...args,
+      employees,
+      records: [{ person_id: 'e1', att_date: '2026-09-03', entry_at: '2026-09-03T02:00:00Z' }],
+      approvedLeaves: [{ employee_id: 'e2', from_day: '2026-09-04', to_day: '2026-09-04' }],
+      markNoRecordDays: true,
+    })
+    const d3 = cells.find((c) => c.iso === '2026-09-03')!
+    expect(d3.noRecord).toBe(false)
+    expect(d3.employees.map((e) => e.status)).toEqual(['present', 'absent'])
+    const d4 = cells.find((c) => c.iso === '2026-09-04')!
+    expect(d4.noRecord).toBe(true)
+    expect(d4.rate).toBeNull()
+    expect(d4.employees.map((e) => e.status)).toEqual(['no_record', 'on_leave'])
+    expect(cells.find((c) => c.iso === '2026-09-20')?.noRecord).toBe(false)
+  })
+  it('the school month is unchanged unless markNoRecordDays is given', () => {
+    const cells = buildSchoolAttendanceMonth({ ...args, employees, records: [], approvedLeaves: [] })
+    const d4 = cells.find((c) => c.iso === '2026-09-04')!
+    expect(d4.noRecord).toBe(false)
+    expect(d4.rate).toBe(0)
+    expect(d4.employees.every((e) => e.status === 'absent')).toBe(true)
   })
 })

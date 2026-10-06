@@ -3165,6 +3165,8 @@ const dict = {
   'attendance.graceMinutesSuffix': { bn: 'মিনিট', en: 'min' },
   'attendance.graceSourceAdHoc': { bn: 'বিশেষ ছাড়', en: 'Ad-Hoc Exemption' },
   'status.absent': { bn: 'অনুপস্থিত', en: 'Absent' },
+  // No Employee has an attendance record that day (#694): not the same as everyone absent.
+  'status.no_record': { bn: 'কোনো রেকর্ড নেই', en: 'No record' },
   'status.on_leave': { bn: 'ছুটিতে', en: 'On Leave' },
   'status.holiday': { bn: 'ছুটির দিন', en: 'Holiday / Off Day' },
   'attendance.employeeGraceNote': {

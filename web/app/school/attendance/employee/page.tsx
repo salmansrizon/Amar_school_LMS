@@ -8,7 +8,8 @@ import { resolveEmployeeDisplayStatus, type EmployeeDisplayStatus } from '@/lib/
 import { schoolToday } from '@/lib/school-time'
 import { isOffDayIso } from '@/lib/attendance-manual'
 import { selectAllRows } from '@/lib/supabase/select-all'
-import { parseMonthParam, shiftYearMonth, formatMonthYear, buildSchoolAttendanceMonth, isWeekendColumn, employeeTrackingStart } from '@/lib/employee-attendance-calendar'
+import { parseMonthParam, shiftYearMonth, formatMonthYear, buildSchoolAttendanceMonth, isWeekendColumn, isNoRecordDay } from '@/lib/employee-attendance-calendar'
+import { loadEmployeeAttendanceStarts } from '@/lib/school/employee-attendance-starts-source'
 import { exemptionCategoriesByExemptionId } from '@/lib/school/ad-hoc-grace'
 import { AttendanceTabs } from '../attendance-tabs'
 import { CalendarToolbar, MonthGridFrame } from '../calendar-shell'
@@ -30,13 +31,14 @@ function todayIso(): string {
   return new Date().toISOString().slice(0, 10)
 }
 
-const STATUS_TONE: Record<EmployeeDisplayStatus, 'mint' | 'sun' | 'alert' | 'sky'> = {
+const STATUS_TONE: Record<EmployeeDisplayStatus, 'mint' | 'sun' | 'alert' | 'sky' | 'muted'> = {
   on_time: 'mint',
   exit_early: 'sun',
   late_entry: 'sun',
   late_exit_early: 'alert',
   present: 'mint',
   absent: 'alert',
+  no_record: 'muted',
   on_leave: 'sky',
   holiday: 'sky',
 }
@@ -65,19 +67,17 @@ export default async function EmployeeAttendancePage({
   const { supabase, weeklyOffDays } = await getSchoolContext()
   const isTableView = view === 'table'
 
-  const [{ data: employees }, { data: standingRules }, { data: adHocExemptions }, { data: dateOffRows }, { data: tenureRows }] = await Promise.all([
+  const [{ data: employees }, { data: standingRules }, { data: adHocExemptions }, { data: dateOffRows }, trackingStartById] = await Promise.all([
     supabase.from('employee_card').select('id, full_name, category').is('archived_at', null).order('full_name'),
     // Every Standing Grace Rule, any Shift — Shift is display-only (ADR 0032).
     supabase.from('standing_grace_rules').select('grace_detail, grace_minutes, standing_grace_rule_categories(category)'),
     // Ad-Hoc Grace Exemptions active on this specific date (issue #671).
     supabase.from('ad_hoc_grace_exemptions').select('id, duration_minutes').eq('exemption_date', date),
     supabase.from('off_days').select('day, label, is_significant').eq('day', date),
-    // Same read as the calendar below: Owner-only, and no rows means no clip.
-    supabase.from('employees').select('id, joining_date, created_at').is('archived_at', null),
+    // Start day per employee: 0217's function (Owner and attendance-grant
+    // staff), else the Owner-only table read. Shared with the calendar below.
+    loadEmployeeAttendanceStarts(supabase),
   ])
-  const trackingStartById = new Map(
-    (tenureRows ?? []).map((e) => [e.id, employeeTrackingStart(e.joining_date, e.created_at)]),
-  )
   const dateIsOff = isOffDayIso(date, dateOffRows ?? [], weeklyOffDays)
   const categoriesByExemptionId = await exemptionCategoriesByExemptionId(
     supabase,
@@ -89,7 +89,7 @@ export default async function EmployeeAttendancePage({
   )
   const employeeIds = roster.map((e) => e.id)
 
-  const [{ data: records }, { data: leaves }] = await Promise.all([
+  const [{ data: records }, { data: leaves }, { count: schoolRecordCount }] = await Promise.all([
     employeeIds.length
       ? supabase
           .from('attendance_records')
@@ -107,7 +107,14 @@ export default async function EmployeeAttendancePage({
           .gte('to_day', date)
           .in('employee_id', employeeIds)
       : Promise.resolve({ data: [] as { employee_id: string; from_day: string; to_day: string }[] }),
+    // School-wide (not the ?q= roster): "no record" means nobody was recorded.
+    supabase
+      .from('attendance_records')
+      .select('id', { count: 'exact', head: true })
+      .eq('person_type', 'employee')
+      .eq('att_date', date),
   ])
+  const noRecordDay = isNoRecordDay({ iso: date, today: schoolToday(), isOff: dateIsOff, recordCount: schoolRecordCount ?? 1 })
 
   const standingByCategory = new Map<string, StandingGraceCandidate[]>()
   for (const rule of standingRules ?? []) {
@@ -148,6 +155,7 @@ export default async function EmployeeAttendancePage({
       onApprovedLeave: onLeaveEmployees.has(e.id),
       isOff: dateIsOff,
       leaveBeatsOff: true,
+      noRecordDay,
       entry: record ? new Date(record.entry_at) : null,
       exit: record?.exit_at ? new Date(record.exit_at) : null,
       // Office Time (the sole source of an expected start/end window) was
@@ -185,7 +193,7 @@ export default async function EmployeeAttendancePage({
   const calendarCells = isTableView
     ? []
     : await (async () => {
-        const [{ data: calOffDaysRaw }, { rows: calRecords }, { data: calApprovedLeaves }, { data: tenures }] = await Promise.all([
+        const [{ data: calOffDaysRaw }, { rows: calRecords }, { data: calApprovedLeaves }] = await Promise.all([
           supabase.from('off_days').select('day, label, is_significant').gte('day', calStart).lte('day', calEnd),
           selectAllRows((from, to) =>
             supabase
@@ -202,11 +210,8 @@ export default async function EmployeeAttendancePage({
             .eq('status', 'approved')
             .lte('from_day', calEnd)
             .gte('to_day', calStart),
-          // employee_card hides joining_date on purpose; the base table is
-          // readable by the Owner only, and no rows just means no start clip.
-          supabase.from('employees').select('id, joining_date, created_at').is('archived_at', null),
         ])
-        const startById = new Map((tenures ?? []).map((e) => [e.id, employeeTrackingStart(e.joining_date, e.created_at)]))
+        const startById = trackingStartById
         return buildSchoolAttendanceMonth({
           year: calYear,
           month0: calMonth0,
@@ -216,6 +221,7 @@ export default async function EmployeeAttendancePage({
           employees: (employees ?? []).map((e) => ({ ...e, startDay: startById.get(e.id) ?? null })),
           records: calRecords,
           approvedLeaves: calApprovedLeaves ?? [],
+          markNoRecordDays: true,
         })
       })()
 
@@ -351,7 +357,7 @@ export default async function EmployeeAttendancePage({
                       <Pill tone={STATUS_TONE[r.status]}>{t(`status.${r.status}` as 'status.on_time', lang)}</Pill>
                     </td>
                     <td className="px-4 py-3 text-xs text-muted">
-                      {r.status === 'absent' || r.status === 'on_leave' || r.status === 'holiday' ? (
+                      {r.status === 'absent' || r.status === 'on_leave' || r.status === 'holiday' || r.status === 'no_record' ? (
                         '—'
                       ) : (
                         <>

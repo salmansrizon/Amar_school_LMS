@@ -116,7 +116,17 @@ export function parseMonthParam(param: string | undefined, todayIso: string): { 
 // ---------------------------------------------------------------------------
 // Part 1: one employee's own month (employees/[id]/attendance)
 
-export type EmployeeDayStatus = 'present' | 'absent' | 'on_leave' | 'off' | 'future' | 'not_started'
+export type EmployeeDayStatus = 'present' | 'absent' | 'on_leave' | 'off' | 'future' | 'not_started' | 'no_record'
+
+/** "No record" (#694): a past-or-today working day on which NOBODY in the School
+ *  has an Employee attendance record. The data cannot say whether the machine
+ *  was never used, failed to sync, or the day was simply not marked (machines
+ *  hold no last-contact time, 0213; attendance is also entered by hand), so the
+ *  honest reading is "no record", not "everyone absent". One record by anyone
+ *  keeps "absent" for the others — someone was marked, so the day was taken. */
+export function isNoRecordDay(args: { iso: string; today: string; isOff: boolean; recordCount: number }): boolean {
+  return args.iso <= args.today && !args.isOff && args.recordCount === 0
+}
 
 /** The first day an Employee's absence can be inferred: the later of their
  *  joining date and the day they were entered in the system (a veteran added
@@ -128,7 +138,10 @@ export function employeeTrackingStart(joiningDate: string | null | undefined, cr
   return joined && created ? (joined > created ? joined : created) : (joined ?? created)
 }
 
-/** A day's status for one employee's own calendar. Precedence mirrors
+/** A day's status for one employee's own calendar. Full order, first match wins:
+ *  real record > approved leave (not before start; beats off-day only with
+ *  leaveBeatsOff) > future > before start > off-day > no record (noRecordDay) >
+ *  absent. Precedence mirrors
  *  studentLogDayStatus's rule (lib/attendance-manual.ts) — an actual
  *  attendance_records row is the honest fact and outranks every inference:
  *  an employee who worked an off-day or a leave day still reads 'present',
@@ -146,6 +159,9 @@ export function employeeDayStatus(args: {
   /** Approved leave also outranks an off-day, as on the Leave Calendar (which
    *  lists approved leave on off-days too). Default false keeps off > leave. */
   leaveBeatsOff?: boolean
+  /** The whole School has no record that day (isNoRecordDay): reads 'no_record'
+   *  instead of 'absent'. Default false keeps every existing caller unchanged. */
+  noRecordDay?: boolean
 }): EmployeeDayStatus {
   if (args.hasRecord) return 'present'
   const beforeStart = !!args.startDay && args.iso < args.startDay
@@ -155,7 +171,7 @@ export function employeeDayStatus(args: {
   if (args.iso > args.today) return 'future'
   if (beforeStart) return 'not_started'
   if (args.isOff) return 'off'
-  return 'absent'
+  return args.noRecordDay ? 'no_record' : 'absent'
 }
 
 export interface EmployeeCalendarCell extends CalendarCell {
@@ -176,6 +192,10 @@ export function buildEmployeeMonthCalendar(args: {
   startDay?: string | null
   /** See employeeDayStatus. */
   leaveBeatsOff?: boolean
+  /** Days (YYYY-MM-DD) of this month on which ANY Employee has a record. When
+   *  given, a day outside it is 'no_record' instead of 'absent' (isNoRecordDay).
+   *  Omit to keep the old behaviour. */
+  schoolRecordedDays?: ReadonlySet<string>
 }): EmployeeCalendarCell[] {
   const grid = monthGrid(args.year, args.month0, args.offDays, args.weeklyOffDays)
   const recordByDay = new Map(args.records.map((r) => [r.att_date, r]))
@@ -191,6 +211,9 @@ export function buildEmployeeMonthCalendar(args: {
       hasRecord: !!record,
       startDay: args.startDay,
       leaveBeatsOff: args.leaveBeatsOff,
+      noRecordDay:
+        !!args.schoolRecordedDays &&
+        isNoRecordDay({ iso: cell.iso, today: args.today, isOff: cell.isOff, recordCount: args.schoolRecordedDays.has(cell.iso) ? 1 : 0 }),
     })
     return { ...cell, status, entry: record?.entry_at ?? null, exit: record?.exit_at ?? null }
   })
@@ -268,7 +291,7 @@ export function buildLeaveCalendarMonth(args: {
 // ---------------------------------------------------------------------------
 // Part 2b: school-wide Employee Attendance Calendar (attendance/employee)
 
-export type SchoolDayEmployeeStatus = 'present' | 'absent' | 'on_leave'
+export type SchoolDayEmployeeStatus = 'present' | 'absent' | 'on_leave' | 'no_record'
 
 export interface SchoolDayEmployeeRow {
   name: string
@@ -289,6 +312,9 @@ export interface SchoolAttendanceDayCell extends CalendarCell {
   /** Employees on approved leave that day — lets a future day say "on leave"
    *  instead of only "upcoming". Absent on older callers' cells. */
   leaveCount?: number
+  /** See isNoRecordDay: no one has a record on this past/today working day. Set
+   *  only when the builder is asked for it (markNoRecordDays). */
+  noRecord?: boolean
 }
 
 export function buildSchoolAttendanceMonth(args: {
@@ -302,6 +328,9 @@ export function buildSchoolAttendanceMonth(args: {
   employees: { id: string; full_name: string; startDay?: string | null }[]
   records: { person_id: string; att_date: string; entry_at: string }[]
   approvedLeaves: { employee_id: string; from_day: string; to_day: string }[]
+  /** Read a day with no record from anyone as 'no_record' (isNoRecordDay), not
+   *  as everyone absent. Off by default so existing callers are unchanged. */
+  markNoRecordDays?: boolean
 }): SchoolAttendanceDayCell[] {
   const grid = monthGrid(args.year, args.month0, args.offDays, args.weeklyOffDays)
   const recordsByDay = new Map<string, Map<string, string>>() // iso -> employeeId -> entry_at
@@ -314,18 +343,22 @@ export function buildSchoolAttendanceMonth(args: {
     if (!cell.iso) return { ...cell, isFuture: false, presentCount: 0, totalCount: 0, rate: null, employees: [] }
     const iso = cell.iso
     const dayRecords = recordsByDay.get(iso)
+    const noRecord =
+      !!args.markNoRecordDays &&
+      args.employees.length > 0 &&
+      isNoRecordDay({ iso, today: args.today, isOff: cell.isOff, recordCount: dayRecords?.size ?? 0 })
     const employees: SchoolDayEmployeeRow[] = args.employees.flatMap((e): SchoolDayEmployeeRow[] => {
       const entry = dayRecords?.get(e.id)
       if (entry) return [{ name: e.full_name, status: 'present', entry }]
       if (e.startDay && iso < e.startDay) return []
       const onLeave = args.approvedLeaves.some((l) => l.employee_id === e.id && l.from_day <= iso && l.to_day >= iso)
-      return [{ name: e.full_name, status: onLeave ? 'on_leave' : 'absent', entry: null }]
+      return [{ name: e.full_name, status: onLeave ? 'on_leave' : noRecord ? 'no_record' : 'absent', entry: null }]
     })
     const presentCount = employees.filter((e) => e.status === 'present').length
     const totalCount = employees.length
     const isFuture = iso > args.today
-    const rate = !isFuture && !cell.isOff && totalCount > 0 ? attendanceRate(presentCount, totalCount) : null
-    return { ...cell, isFuture, presentCount, totalCount, rate, employees, leaveCount: employees.filter((e) => e.status === 'on_leave').length }
+    const rate = !isFuture && !cell.isOff && !noRecord && totalCount > 0 ? attendanceRate(presentCount, totalCount) : null
+    return { ...cell, isFuture, presentCount, totalCount, rate, employees, leaveCount: employees.filter((e) => e.status === 'on_leave').length, noRecord }
   })
   return withAdjacentMonthDays(cells, args.year, args.month0, () => ({
     isFuture: false,

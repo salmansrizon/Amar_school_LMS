@@ -105,3 +105,16 @@ describe('resolveEmployeeDisplayStatus: adds absent/on_leave around employeeStat
     ).toBe('on_time')
   })
 })
+
+describe('resolveEmployeeDisplayStatus: no-record day (#694)', () => {
+  const none = { hasRecord: false, onApprovedLeave: false, entry: null, exit: null, officeStart: null, officeEnd: null, graceMinutes: 0 }
+  it('no record, no leave, not off, noRecordDay -> no_record; default stays absent', () => {
+    expect(resolveEmployeeDisplayStatus({ ...none, noRecordDay: true })).toBe('no_record')
+    expect(resolveEmployeeDisplayStatus(none)).toBe('absent')
+  })
+  it('a record, leave or off-day still outranks it', () => {
+    expect(resolveEmployeeDisplayStatus({ ...none, noRecordDay: true, onApprovedLeave: true })).toBe('on_leave')
+    expect(resolveEmployeeDisplayStatus({ ...none, noRecordDay: true, isOff: true })).toBe('holiday')
+    expect(resolveEmployeeDisplayStatus({ ...none, noRecordDay: true, hasRecord: true, entry: new Date('2026-09-05T02:00:00Z') })).toBe('present')
+  })
+})
