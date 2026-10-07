@@ -131,3 +131,18 @@ notice form dark at 390. `app-shell.tsx` not changed in range.
   Bangla leftovers: marks page title "(2026)", rolls, "তত্ত্বীয় (100)", totals; routine times "09:00 - 11:00"; my-classes "শিক্ষার্থী সংখ্যা: 1".
 
 ## Rebuilt here — findings from 2026-10-07 on
+
+### L (rest). Owner regression — MET (browser, 2026-10-07)
+- Leave: the EVAL2 student applied (25–26 Oct, "EVAL2-ছুটি পরীক্ষা") on a phone; student list shows it "অপেক্ষমাণ · দিন ২" with "আবেদন ফিরিয়ে নাও".
+  Owner `/school/attendance/leave/student?q=EVAL2` at 390px: row buttons "অনুমোদন" 82×44 and "প্রত্যাখ্যান" 81×44. Reject → confirm
+  "এই ছুটির আবেদন প্রত্যাখ্যান করবেন? | বাতিল | প্রত্যাখ্যান" → cancelled, row still pending. Approve → row "অনুমোদিত", toast "ছুটি অনুমোদিত হয়েছে" with
+  "পূর্বাবস্থায়"; clicked it → after reload the row is "অপেক্ষমাণ" again. 0 console errors.
+- Fee form overpayment guard (EVAL2 student row → "আদায় করুন"; POSTs blocked in the test browser, 0 attempted): fee 500 / received 200 → "প্রদেয় মোট ৳৫০০",
+  "বকেয়া ৳৩০০"; received 600 → warning "প্রদেয় মোটের চেয়ে বেশি নেওয়া হচ্ছে: ৳১০০"; "রসিদ দেখে নিন" → review step adds "অতিরিক্ত টাকা এই মাসের রেকর্ডেই জমা থাকবে —
+  পরের মাসের ফি-তে নিজে থেকে সমন্বয় হবে না।" and a checkbox "হ্যাঁ, অতিরিক্ত টাকা অগ্রিম হিসেবে নিচ্ছি"; "নিশ্চিত করুন ও রসিদ ছাপুন" stays DISABLED until it is ticked.
+  Nothing saved.
+- Employee search: "Staging Teacher" → URL `?q=Staging+Teacher`, 10 rows → 2 (Staging Teacher One / Two); nonsense → 0 rows, "এই খোঁজে কোনো কর্মচারী মেলেনি".
+- Exam delete: confirm "পরীক্ষা মুছে ফেলবেন? … রুটিন, আসন বিন্যাস, নম্বর … সবকিছু একসাথে মুছে যাবে। বন্ধ করা পরীক্ষা মোছা যায় না।" → deleted, back on the list, gone from it;
+  the old URL shows the 404 page. Notes: no toast after an exam delete; the 404 page answers HTTP 200 and addresses the owner informally ("এসেছ", "ফিরে যাও").
+- LEDGER: exam `EVAL2-পরীক্ষা` (#14) **DELETED** with its 2 routine papers and the mark. New #15: leave request 25–26 Oct "EVAL2-ছুটি পরীক্ষা" by the EVAL2 student,
+  pending — to withdraw at the end.
