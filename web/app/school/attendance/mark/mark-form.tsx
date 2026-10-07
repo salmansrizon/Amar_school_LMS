@@ -55,7 +55,7 @@ export function MarkAttendanceForm({
   isToday?: boolean
   students: Row[]
   markedBy: MarkedBy | null
-  /** Attendance Rate (YTD) per student id; null hides the column (0214 unapplied). */
+  /** Attendance Rate (YTD) per student id; null hides the column (0217 unapplied). */
   rates?: Record<string, number | null> | null
 }) {
   const [rows, setRows] = useState<Row[]>(students)

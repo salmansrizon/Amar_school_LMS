@@ -74,7 +74,7 @@ export default async function EmployeeAttendancePage({
     // Ad-Hoc Grace Exemptions active on this specific date (issue #671).
     supabase.from('ad_hoc_grace_exemptions').select('id, duration_minutes').eq('exemption_date', date),
     supabase.from('off_days').select('day, label, is_significant').eq('day', date),
-    // Start day per employee: 0217's function (Owner and attendance-grant
+    // Start day per employee: 0220's function (Owner and attendance-grant
     // staff), else the Owner-only table read. Shared with the calendar below.
     loadEmployeeAttendanceStarts(supabase),
   ])

@@ -2,11 +2,11 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 
 /**
  * The days attendance was taken for the calling Student's class
- * (student_class_attendance_days, migration 0215).
+ * (student_class_attendance_days, migration 0218).
  *
- * null whenever the answer is not usable: the function is missing (0215 not
+ * null whenever the answer is not usable: the function is missing (0218 not
  * applied), the call failed, or the reply is not a list. The caller then keeps
- * its behaviour from before 0215, so this optional call can never break a page.
+ * its behaviour from before 0218, so this optional call can never break a page.
  */
 export async function classAttendanceDays(
   supabase: SupabaseClient,
