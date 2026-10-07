@@ -2243,6 +2243,14 @@ const dict = {
     bn: 'প্রাপ্ত পরিমাণ প্রদেয় মোটের চেয়ে বেশি — অগ্রিম হিসেবে নিশ্চিত না করলে সংরক্ষণ হবে না।',
     en: 'Received is more than the total payable — confirm it as an advance payment before saving.',
   },
+  // #678: an older record with nothing due has no stored fee; the form says
+  // the figure it shows is worked out, not recorded.
+  'fees.feeEstimated': {
+    bn: 'এই রেকর্ডে ফি সংরক্ষিত নেই — দেখানো অঙ্কটি জমার হিসাব থেকে বের করা। সঠিক ফি জানা থাকলে লিখুন।',
+    en: 'This record has no stored fee — the figure shown is worked out from the amounts. Enter the actual fee if you know it.',
+  },
+  // #695: the part of the received amount beyond fee + fine − adjustment.
+  'fees.advance': { bn: 'অগ্রিম (৳)', en: 'Advance (Tk)' },
   'fees.ledgerImpact': { bn: 'খতিয়ানে প্রভাব', en: 'Ledger impact' },
   'fees.ledgerDebit': { bn: 'ডেবিট', en: 'Debit' },
   'fees.ledgerCredit': { bn: 'ক্রেডিট', en: 'Credit' },

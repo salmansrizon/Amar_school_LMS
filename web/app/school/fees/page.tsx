@@ -27,6 +27,7 @@ import { withParams } from '@/lib/url-params'
 import { classCatalogueLabel } from '@/lib/class-catalogue'
 import { DrawerFooter, DrawerHeader } from '@/components/data-table/drawer-parts'
 import { FeeDrawerBody, loadFeeDrawerData, feeDrawerCancelHref } from './fee-drawer'
+import { feeColumns, feeSelect } from '@/lib/fee-columns'
 import { pageTitle } from '@/lib/page-title'
 
 // Fees & finance (map 013 FC1, new_ui/04-finance-communication/fees-finance),
@@ -50,6 +51,19 @@ type RecordRow = {
   due: number
   method: string
   standing: FeeStanding
+}
+
+/** A roster student's record for the month, as read for the collection form. */
+type RosterFeeRow = {
+  id: string
+  student_id: string
+  pay_amount: number
+  fine_amount: number
+  adjust_amount: number
+  due_amount: number
+  fee_amount?: number | null
+  payment_method: string
+  note: string | null
 }
 
 const STANDING_TONE = { paid: 'mint', partial: 'sun', due: 'alert' } as const
@@ -101,6 +115,8 @@ export default async function FeesPage({
   // Started-year history is the signal (#609/#612), same boolean T6/#615
   // threaded into the Fee Structures Offering picker.
   const showYear = startedAcademicYears.length > 1
+  // Which optional fee columns the database has (0230 fee_amount, 0231 void).
+  const cols = await feeColumns(supabase)
 
   const [{ data: classes }, { rows: monthRecords }] = await Promise.all([
     applyGlobalYearFilterToOfferings(
@@ -161,17 +177,18 @@ export default async function FeesPage({
     finePerDay = Number(structure?.fine_per_absent_day ?? 0)
 
     if (roster.length) {
-      const { data: records } = await supabase
+      const { data } = await supabase
         .from('fee_collection_records')
-        .select('id, student_id, pay_amount, fine_amount, adjust_amount, due_amount, payment_method, note')
+        .select(feeSelect('id, student_id, pay_amount, fine_amount, adjust_amount, due_amount, payment_method, note', cols))
         .eq('month', month)
         .eq('year', year)
         .in(
           'student_id',
           roster.map((s) => s.id),
         )
+      const records = (data ?? []) as unknown as RosterFeeRow[]
       recordMap = new Map(
-        (records ?? []).map((r) => [
+        records.map((r) => [
           r.student_id,
           {
             id: r.id,
@@ -179,6 +196,7 @@ export default async function FeesPage({
             fine_amount: Number(r.fine_amount),
             adjust_amount: Number(r.adjust_amount),
             due_amount: Number(r.due_amount),
+            fee_amount: r.fee_amount == null ? null : Number(r.fee_amount),
             payment_method: r.payment_method,
             note: r.note,
           },
