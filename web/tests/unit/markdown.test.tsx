@@ -39,6 +39,12 @@ describe('Markdown', () => {
     expect(html('one\ntwo\nthree')).toContain('one<br/>')
     expect(html('one\ntwo')).toContain('<br/>')
   })
+  // A textarea sent in a form reaches the server with CRLF line ends; the
+  // stored text must render exactly like the editor's preview (LF).
+  it('renders CRLF text the same as LF text', () => {
+    const lf = 'one\ntwo\n\n- a\n- b\n\n```\nx\ny\n```'
+    expect(html(lf.replace(/\n/g, '\r\n'))).toBe(html(lf))
+  })
 })
 
 describe('softBreaksToHard', () => {
