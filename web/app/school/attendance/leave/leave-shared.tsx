@@ -42,7 +42,15 @@ export function LeaveDetail({
   lang,
 }: {
   kind: 'student' | 'employee'
-  leave: { id: string; from_day: string; to_day: string; reason: string | null; status: string }
+  leave: {
+    id: string
+    from_day: string
+    to_day: string
+    reason: string | null
+    status: string
+    decision_note?: string | null
+    decided_at?: string | null
+  }
   /** Holder facts shown above the dates, e.g. roll and class. */
   facts: { label: string; value: string }[]
   lang: Lang
@@ -52,6 +60,13 @@ export function LeaveDetail({
     { label: t('attendance.leaveFromCol', lang), value: formatDate(leave.from_day, lang) },
     { label: t('attendance.leaveToCol', lang), value: formatDate(leave.to_day, lang) },
     { label: t('attendance.leaveReasonCol', lang), value: leave.reason ?? '—' },
+    // Present only once migration 0216 is applied and the leave was decided after it.
+    ...(leave.decided_at
+      ? [{ label: t('attendance.leaveDecidedOn', lang), value: formatDate(leave.decided_at, lang) }]
+      : []),
+    ...(leave.decision_note
+      ? [{ label: t('attendance.leaveRejectReason', lang), value: leave.decision_note }]
+      : []),
   ]
   return (
     <div className="space-y-5">

@@ -13,6 +13,7 @@ import { ViewLink } from '@/components/data-table/view-link'
 import { paginate, pageSizeFrom } from '@/components/pager'
 import { filterButtonClass, inputClass } from '@/components/ui/field'
 import { pageTitle } from '@/lib/page-title'
+import { withLeaveColumns } from '@/lib/leave-columns'
 
 // Split off the Employees half of the old unified Leave Management page (map
 // #664). Employee search follows the same name-substring-over-the-full-roster
@@ -34,6 +35,8 @@ interface EmployeeLeaveRow {
   to_day: string
   reason: string | null
   status: string
+  decision_note?: string | null
+  decided_at?: string | null
 }
 
 export const generateMetadata = pageTitle('attendance.employeeLeaveTitle')
@@ -71,21 +74,22 @@ export default async function EmployeeLeaveManagementPage({
   let leaves: EmployeeLeaveRow[] = []
   if (filterActive) {
     if (matchedIds.length) {
-      const { data } = await supabase
-        .from('employee_leaves')
-        .select('id, employee_id, from_day, to_day, reason, status')
-        .in('employee_id', matchedIds)
-        .order('from_day', { ascending: false })
-        .limit(FILTERED_VIEW_LIMIT)
-      leaves = data ?? []
+      const filtered = (cols: string) =>
+        supabase
+          .from('employee_leaves')
+          .select(cols)
+          .in('employee_id', matchedIds)
+          .order('from_day', { ascending: false })
+          .limit(FILTERED_VIEW_LIMIT)
+      // decision_note / decided_at arrive with migration 0216; read without them until then.
+      const { data } = await withLeaveColumns(() => filtered('id, employee_id, from_day, to_day, reason, status, decision_note, decided_at'), () => filtered('id, employee_id, from_day, to_day, reason, status'))
+      leaves = (data ?? []) as unknown as EmployeeLeaveRow[]
     }
   } else {
-    const { data } = await supabase
-      .from('employee_leaves')
-      .select('id, employee_id, from_day, to_day, reason, status')
-      .order('created_at', { ascending: false })
-      .limit(DEFAULT_VIEW_LIMIT)
-    leaves = data ?? []
+    const recent = (cols: string) =>
+      supabase.from('employee_leaves').select(cols).order('created_at', { ascending: false }).limit(DEFAULT_VIEW_LIMIT)
+    const { data } = await withLeaveColumns(() => recent('id, employee_id, from_day, to_day, reason, status, decision_note, decided_at'), () => recent('id, employee_id, from_day, to_day, reason, status'))
+    leaves = (data ?? []) as unknown as EmployeeLeaveRow[]
   }
 
   const nameById = new Map(allEmployees.map((e) => [e.id, e.full_name]))
@@ -109,7 +113,16 @@ export default async function EmployeeLeaveManagementPage({
     {
       key: 'reason',
       header: t('attendance.leaveReasonCol', lang),
-      cell: (l) => (l.reason ? <span className="line-clamp-2">{l.reason}</span> : dash),
+      cell: (l) => (
+        <>
+          {l.reason ? <span className="line-clamp-2">{l.reason}</span> : dash}
+          {l.decision_note && (
+            <span className="line-clamp-2 text-xs text-alert-deep">
+              {t('attendance.leaveRejectReason', lang)}: {l.decision_note}
+            </span>
+          )}
+        </>
+      ),
     },
     {
       key: 'status',

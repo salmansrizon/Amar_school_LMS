@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { requireSchoolMember, requireSchoolOwnerProfile } from '@/lib/auth/require-role'
 import { createClient } from '@/lib/supabase/server'
+import { cleanDecisionNote, REJECT_REASON_REQUIRED, withLeaveColumns } from '@/lib/leave-columns'
 
 const MARK_PAGE = '/school/attendance/mark'
 const STUDENT_LEAVE_PAGE = '/school/attendance/leave/student'
@@ -60,13 +61,23 @@ async function setLeaveStatus(
   kind: string,
   id: string,
   status: 'pending' | 'approved' | 'rejected',
+  note: string | null = null,
 ): Promise<{ error?: string }> {
   if ((kind !== 'student' && kind !== 'employee') || !id) return { error: 'Invalid leave' }
   const supabase = await createClient()
   if (!(await requireSchoolMember(supabase))) return { error: 'Unauthorized' }
 
   const table = kind === 'student' ? 'student_leaves' : 'employee_leaves'
-  const { data, error } = await supabase.from(table).update({ status }).eq('id', id).select('id')
+  // 0216 columns: pending clears both; approve/reject stamp the time; only reject keeps a note.
+  // Before 0216 is applied the first update errors on the unknown column and the plain one runs.
+  const decision = {
+    decided_at: status === 'pending' ? null : new Date().toISOString(),
+    decision_note: status === 'rejected' ? note : null,
+  }
+  const { data, error } = await withLeaveColumns(
+    () => supabase.from(table).update({ status, ...decision }).eq('id', id).select('id'),
+    () => supabase.from(table).update({ status }).eq('id', id).select('id'),
+  )
   if (error) return { error: error.message }
   if (!data?.length) return { error: 'Leave request not found or not accessible' }
   revalidatePath(leavePageFor(kind))
@@ -77,13 +88,16 @@ export async function approveLeave(kind: string, id: string): Promise<{ error?: 
   return setLeaveStatus(kind, id, 'approved')
 }
 
-/** Undo for approve/reject: puts a decided request back to pending. */
+/** Undo for approve/reject: puts a decided request back to pending (clears the decision time and note). */
 export async function revertLeave(kind: string, id: string): Promise<{ error?: string }> {
   return setLeaveStatus(kind, id, 'pending')
 }
 
-export async function rejectLeave(kind: string, id: string): Promise<{ error?: string }> {
-  return setLeaveStatus(kind, id, 'rejected')
+/** `note` is the optional reason shown to the requester; stored once migration 0216 exists. */
+export async function rejectLeave(kind: string, id: string, note?: string): Promise<{ error?: string }> {
+  const clean = cleanDecisionNote(note)
+  if (REJECT_REASON_REQUIRED && !clean) return { error: 'A reason is required' }
+  return setLeaveStatus(kind, id, 'rejected', clean)
 }
 
 export async function addOffDay(formData: FormData): Promise<{ error?: string }> {
