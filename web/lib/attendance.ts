@@ -19,10 +19,20 @@ export type AttendanceStatus = 'present' | 'on_time' | 'late_entry' | 'exit_earl
 
 /**
  * Legacy status matrix: late-entry × early-exit, with the Considerable Grace
- * Window applied to the entry side. Times are 'HH:MM' interpreted as UTC —
- * matching the SQL job. Devices must send UTC timestamps.
- * ponytail: single-timezone assumption; add schools.timezone when a non-UTC
- * deployment needs local-time statuses.
+ * Window applied to the entry side. `entry`/`exit` are absolute instants (the
+ * normalized UTC `tapped_at` of the Attendance Events).
+ *
+ * Event time (ADR 0033): a device event may carry device-local wall-clock
+ * time, and Agent-originated device time has no time zone attached. The
+ * server derives the authoritative UTC instant from it using the machine's
+ * (else the School's) configured time zone, and each event's Attendance Date
+ * is School-local (`schools.time_zone`). Callers never pass device-local time
+ * here.
+ *
+ * The office window is 'HH:MM' applied to the day the same way the SQL
+ * reconcile applies it (`att_date + HH:MM` as UTC). No window is configured
+ * today (Office Time retired, ADR 0030); an expected-window feature must apply
+ * it in the School's time zone, in both places.
  */
 export function employeeStatus(
   entry: Date,

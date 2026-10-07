@@ -173,7 +173,7 @@ A one-way, permanent state transition on an Exam — once Closed, marks/setup/ro
 _Avoid_: Locked, archived (imply reversibility that doesn't exist here)
 
 **Attendance Event**:
-A single raw RFID/biometric card-tap record ingested via the dual-path pipeline (device push or bridge agent — see ADR 0001), staged before reconciliation. Multiple Attendance Events for the same person on the same day collapse to one finalized attendance record: the **earliest tap is entry, the latest tap is exit**; any taps in between are discarded as noise (e.g. a forgotten lunch tap-out/back-in). One finalized record per person per day, not one per in/out pair.
+A single raw punch record staged in `attendance_events` before reconciliation. Today every Attendance Event is a legacy card tap from the ingest-token path (device push or bridge upload, ADR 0001), resolved to a person by its card number through Machine Enrollment. Under ADR 0033 the Attendance Agent adds Agent events. An Agent event carries the Attendance Machine and Machine User ID that produced it and its Device Local Time. It resolves through the Enrollment Episode valid at punch time, not by card. Each Attendance Event belongs to one Attendance Date. Multiple Attendance Events for the same person on the same day collapse to one finalized attendance record: the **earliest tap is entry, the latest tap is exit**; any taps in between are discarded as noise (e.g. a forgotten lunch tap-out/back-in). One finalized record per person per day, not one per in/out pair.
 _Avoid_: Punch, tap (fine informally, but the record type is "Attendance Event")
 
 **Machine ID**:
@@ -181,10 +181,42 @@ A Student's or Employee's attendance-machine User ID (`students.unique_id` / `em
 _Avoid_: Student Number, roll (both are different identifiers)
 
 **Machine Enrollment**:
-One person's enrollment on attendance machines (`machine_enroll_infos`): their Machine ID, their `type` (`student` / `employee`), a direct reference to that Student or Employee (the database keeps the three consistent with each other and with the person's School), and an optional RFID card number, unique within the School. A person can be enrolled with no card and still sign in by fingerprint. It is the only place an RFID card number is stored (the profile `rfid_card_number` columns and the legacy `rfid_cards` table were retired in 0211/0212), the source reconciliation uses to turn an Attendance Event's card into a person, and the source a future machine sync will read. Cards are entered on Attendance → Machine Attendance (Student RFID Enrollment / Employee Enrollment, issue #675); clearing a student's card removes their enrollment, clearing an employee's keeps it with no card.
+One person's enrollment on attendance machines (`machine_enroll_infos`): their Machine ID, their `type` (`student` / `employee`), a direct reference to that Student or Employee (the database keeps the three consistent with each other and with the person's School), and an optional RFID card number, unique within the School. A person can be enrolled with no card and still sign in by fingerprint. It is the only place an RFID card number is stored (the profile `rfid_card_number` columns and the legacy `rfid_cards` table were retired in 0211/0212), the source reconciliation uses to turn a legacy card tap into a person, and the source the Attendance Agent's provisioning will read. It is person-level desired state; which device holds the person, and since when, is an Enrollment Episode. Cards are entered on Attendance → Machine Attendance (Student RFID Enrollment / Employee Enrollment, issue #675); clearing a student's card removes their enrollment, clearing an employee's keeps it with no card.
 
 **Attendance Machine**:
-A physical attendance device a School has registered on Attendance → Machine Setup (`attendance_machines`): vendor (ZKTeco / Timmy), model, serial number (unique within the School — it is how an operator tells two devices apart), location, and the Shift it serves — one configured Shift, all of them, or none (the only choice for a School with no Shifts). Configuration only: nothing talks to a device yet; the future Windows sync service will read these rows, and the screens' "Enroll" and "Download Windows Service" actions say Upcoming until it exists.
+A physical attendance device a School has registered on Attendance → Machine Setup (`attendance_machines`): vendor (ZKTeco / Timmy), model, serial number (unique within the School — it is how an operator tells two devices apart), location, and the Shift it serves — one configured Shift, all of them, or none (the only choice for a School with no Shifts). Configuration only: nothing talks to a device yet. The Attendance Agent (ADR 0033) will read these rows, and the screens' "Enroll" and "Download Windows Service" actions say Upcoming until it exists. Under ADR 0033 a machine that has recorded punches is archived and restored, never hard-deleted. Only a never-used machine may be deleted, and replacement hardware gets a new row.
+
+**Attendance Agent**:
+The Windows service a School installs on a PC on its own LAN (ADR 0033, separate `attendance-agent` repository). It reads that School's Attendance Machines through Device Drivers and talks to the cloud over outbound HTTPS only, so cloud and browser code never connect to a LAN device. One installation serves every device on its LAN. It authenticates with its own activation credential, separate from the devices' communication keys. Those keys stay on the Agent PC and never reach the cloud.
+_Avoid_: Agent on its own (that is a Distributor's field person), bridge agent (ADR 0001's upload path), sync service
+
+**Machine User ID**:
+The user ID as held on one Attendance Machine (`machine_user_id`), stored exactly as the device reports it, as a string. For people the platform provisions, it is their Machine ID written as a plain decimal. A device user created on the keypad, or by older software, may hold any other value. The ID alone never identifies a person: it is only meaningful together with the Attendance Machine, through an Enrollment Episode.
+_Avoid_: Machine ID (the person's platform-wide number), PIN (vendor word, fine informally)
+
+**Enrollment Episode**:
+One period during which a given Machine User ID on a given Attendance Machine belongs to one person (`attendance_machine_enrollments`, Baseline §21.2). It is linked once, when the device confirms the person, and unlinked once, when removal is confirmed. It is never reopened: enrolling the same person again starts a new Episode. Episodes for the same machine and ID never overlap. An Agent Attendance Event resolves through the Episode whose window contains its punch time, so past punches keep resolving after a person is removed or the ID is reused.
+_Avoid_: Enrollment on its own (ambiguous with Machine Enrollment and Student Enrollment), sync record
+
+**Device Local Time**:
+The wall-clock time an Attendance Machine stored for a punch, with no time zone or UTC offset attached. The Agent sends it as the authoritative time. The server derives UTC from it using the machine's configured time zone (falling back to the School's), and stores the zone it used. Any UTC the Agent computes is a cross-check only.
+_Avoid_: Timestamp, UTC time (it is neither)
+
+**Attendance Date**:
+The School-local calendar day an Attendance Event belongs to (`attendance_events.attendance_date`). It is reconciled into the finalized attendance record for that day. For a legacy card tap it is the tap's UTC time read in the School's time zone (`schools.time_zone`, default `Asia/Dhaka`). For an Agent event it is the Device Local Time's own date. A tap at 05:30 Dhaka time belongs to that Dhaka day, even though it is the previous day in UTC.
+_Avoid_: UTC day, tap date
+
+**Reconciliation Queue**:
+`attendance_reconcile_dates`: one row per (School, Attendance Date). It is the source of truth for which days reconciliation must run (migrations 0214/0215). Every ingest re-pends the pairs it touched, including duplicate and backdated taps. The reconcile cron drains pending pairs. A pair goes back to pending if a new request arrives during its run. A School with automatic attendance off has its pairs skipped, and turning it back on re-pends them.
+_Avoid_: Reconcile job date, cron date (the queue, not the clock, decides what runs)
+
+**Device Driver**:
+The Attendance Agent's adapter for one family of attendance hardware. It implements one vendor-neutral contract (`IAttendanceDeviceDriver`): read users, cards and attendance, write desired users, and report capabilities and errors. No vendor type crosses it. A driver reports what a device can do, for example whether it supports remote fingerprint enrollment, so nothing outside the driver assumes a vendor's behaviour.
+_Avoid_: SDK (the vendor library a driver may use), plugin
+
+**Driver Bridge**:
+A separate process that hosts a Device Driver whose vendor SDK must not run inside the Agent service: native, COM, 32-bit or crash-prone. The TIMY ActiveX SDK is the first case. The Agent talks to it over JSON-RPC on the bridge's stdin/stdout. A bridge that crashes or hangs is restarted without stopping the Agent or its other devices.
+_Avoid_: Bridge agent (ADR 0001's upload path), plugin host
 
 **Absence SMS Rule**:
 A School-configured trigger ("exactly N working-days absent" or "absent within an X–Y working-day range") that automatically sends an SMS about a Student. Uses the same "working days" definition as the absent-fine formula (§5.6: total days minus off-days, approved leave, and present days) — one definition, not redefined per feature. Evaluated by a once-daily scheduled job after that day's attendance is finalized, not triggered instantly on each attendance mark.

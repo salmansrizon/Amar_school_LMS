@@ -20,7 +20,7 @@ See [`CONTEXT.md`](../CONTEXT.md) for the canonical glossary (School, School Own
 - **Student/Parent self-service portal.** Students/parents have no login in the legacy system (only SMS + public notices/gallery); v1 keeps that behavior. A portal is an explicit fast-follow.
 - **Real payment gateway integration.** Dealer Subscription Code purchases are approved manually by a Super Admin in v1 (no SSLCommerz/bKash/Nagad integration yet).
 - **Offline-first data entry.** The web app is online-only (tolerant of flaky connections, not offline-capable). The legacy desktop app's offline operation is not preserved.
-- **Live SDK integration with attendance hardware.** No requirement to talk to a proprietary vendor SDK; covered via the dual-path ingest in ADR 0001 (device push, or a local bridge agent for non-push hardware).
+- **Direct cloud/browser-to-device integration with attendance hardware.** The cloud app and the browser never connect to a device on a School's LAN, and never load a vendor SDK. Attendance hardware *is* integrated, through the approved Windows Attendance Agent on the School's LAN (ADR 0033), which reaches the cloud over outbound HTTPS only. The existing ingest endpoint (ADR 0001) remains available for device push and legacy card-tap uploads.
 
 ## 4. Roles
 
