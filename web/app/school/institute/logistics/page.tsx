@@ -25,7 +25,7 @@ export default async function LogisticsPage() {
     <div>
       <PageHeader
         title={t('institute.tabLogistics', lang)}
-        crumbs={schoolCrumbs('/school/institute/logistics', lang, { label: t('institute.tabLogistics', lang) })}
+        crumbs={schoolCrumbs('/school/institute', lang, { label: t('institute.title', lang), href: '/school/institute' }, { label: t('institute.tabLogistics', lang) })}
       />
 
       <InstituteTabs active="/school/institute/logistics" lang={lang} />

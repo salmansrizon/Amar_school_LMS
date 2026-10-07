@@ -1,9 +1,9 @@
-import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
 import { t, formatDate } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { Card, PageHeader } from '@/components/ui/page'
+import { schoolCrumbs } from '@/lib/school-crumbs'
 import { ReviewForm } from './review-form'
 
 // Who has ticked this task off (#446), for the Class Teacher.
@@ -52,6 +52,7 @@ export default async function TaskRosterPage({
         title={task.title}
         backHref="/school/my-classes"
         backLabel={t('myClasses.title', lang)}
+        crumbs={schoolCrumbs('/school/my-classes', lang, { label: t('myClasses.title', lang), href: '/school/my-classes' }, { label: task.title })}
       />
       <Card>
         <p className="mb-1 text-sm">

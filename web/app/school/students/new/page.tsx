@@ -5,6 +5,7 @@ import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
 import { applyGlobalYearFilterToOfferings } from '@/lib/school/year-filter'
 import { excludeArchivedOfferings } from '@/lib/school/archived-offerings-filter'
 import { PageHeader } from '@/components/ui/page'
+import { schoolCrumbs } from '@/lib/school-crumbs'
 import { AdmissionForm } from './admission-form'
 import { recentAdmissions } from '../recent-admissions-actions'
 import { pageTitle } from '@/lib/page-title'
@@ -56,14 +57,7 @@ export default async function NewAdmissionPage() {
         title={t('students.admissionTitle', lang)}
         backHref="/school/students"
         backLabel={t('students.listTitle', lang)}
-        crumbs={{
-          lang,
-          items: [
-            { label: t('dash.dashboard', lang), href: '/school' },
-            { label: t('students.listTitle', lang), href: '/school/students' },
-            { label: t('students.admissionTitle', lang) },
-          ],
-        }}
+        crumbs={schoolCrumbs('/school/students', lang, { label: t('students.listTitle', lang), href: '/school/students' }, { label: t('students.admissionTitle', lang) })}
       />
       <AdmissionForm
         lang={lang}
