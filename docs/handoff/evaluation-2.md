@@ -189,3 +189,43 @@ notice form dark at 390. `app-shell.tsx` not changed in range.
 - Undo: Cmd+Z after a toolbar action gave `alpha **beta**alpha [beta](https://)\ngamma` in my scripted sequence (text from an earlier fill re-appeared) — toolbar edits are
   not in the browser's undo stack, so undo after one can corrupt the text. Known limitation in the handoff; not fixed (needs `execCommand`/`setRangeText` design choice).
 - LEDGER #16: question `EVAL2-ফরম্যাট প্রশ্ন` + one follow-up by the EVAL2 student, answered by the owner — database only to remove.
+
+### F. Rich text on notices / homework — MET (browser)
+- Owner form: label "বিস্তারিত বিবরণ", tabs "লিখুন | প্রিভিউ", hint "… Tab চাপুন।" (formal), 10 toolbar buttons with Bangla names. Edit page loads the stored Markdown (seen in C).
+- Stored "EVAL2 body **bold** + 2-item list": owner detail, owner drawer and student task detail all render `p,strong,ul,li,li`, no raw `**`.
+  DEMO formatted notice (read only): owner detail and student detail both `h3,ul,li,li,strong,pre,code,p,a`.
+- Previews are plain: student materials list, tasks list, notices list, owner notices list, teacher my-classes — no `**` or `](` anywhere.
+
+### G. Calendars — MET with two notes (browser, 1440 and 390)
+Employee attendance calendar, off-day/leave calendar, one employee's own calendar, student attendance calendar:
+- each 35 cells, one cell height per width: 112px desktop, 64px phone; weekday header রবি … শনি; today in a filled circle; state chips on desktop
+  (36 / 12 / 7 / 10 chip texts), none on phone (dots where a day has a state); no overflow, 0 console errors.
+- Fri/Sat columns tinted on all four. Student calendar marks the weekly off-days with "ছুটির দিন" chips: 10 chips = stat card "ছুটির দিন ১০" (5 Fridays + 5 Saturdays in Oct 2026).
+- Note 1: `aria-current="date"` is set on today's cell only in the employee-own and student calendars (`employee-own-attendance.tsx:96`, `student/attendance/page.tsx:198`);
+  the employee attendance calendar and the off-day calendar draw the circle but do not expose "today" to assistive tech.
+- Note 2: the two owner overview calendars draw weekly off-days with a red hatched pattern, the other two with the plain tint + grey chip — same grid, slightly different off-day look.
+- Values vs cards with real attendance: NOT CHECKED (my student has no attendance; the DEMO student could not be opened).
+
+### H. Attendance figures for the DEMO student — NOT CHECKED
+Needs the DEMO student's login (password file wiped). I did not mark attendance for my own student because saving a day writes rows for the whole DEMO class.
+Seen instead: a student admitted after the marked days (my EVAL2 student, class marked on 4 and 5 Oct) gets "—" rate, "উপস্থিত ০", "অনুপস্থিত কার্যদিবস —" and the banner
+"এই মাসে স্কুল এখনো হাজিরা তোলেনি।" — the page cannot tell "class not marked" from "no row for me" (known, #703 item 4.4).
+
+### I. Results — MET (seed student, 1440 and 390); DEMO empty state seen through the EVAL2 student
+- Seed list row "UAT3 Exam 177343 · ২০২৬ · ৭২ / ১০০ · সম্পূর্ণ". Detail: notice "গ্রেড এখনো দেখানো যাচ্ছে না, নম্বর নিচে দেওয়া আছে।", "মোট নম্বর ৭২ / ১০০", "মেধাক্রম ১ / ১",
+  subject table "XS1 Physics ৭২ / ১০০". No grade/GPA value, no print link (0), only breadcrumb/tab links. 0 console errors, no overflow.
+- No-result student: "এখনো কোনো ফলাফল প্রকাশ করা হয়নি। পরীক্ষা শেষে স্কুল ফলাফল প্রকাশ করলে এখানে দেখতে পাবে।" No-fee student: "কোনো ফি রেকর্ড নেই।"
+
+### M. Formats — PARTLY (browser text scan of `main`; names/ids with digits ignored)
+- Student portal, Bangla: all 13 pages + seed results/detail/fees/profile — no Latin digit, dates all "৫ অক্টো ২০২৬" style, money "৳৫০০".
+- English: 5 owner + 5 student pages — no Bangla digit. Grouping locale is `bn-BD` / `en-IN` (`lib/i18n.ts:3708`): 12,34,567 / ১২,৩৪,৫৬৭.
+  No amount of 6+ digits was on screen to see lakh grouping in a page.
+- Owner portal, Bangla — clean: students, fees, notices, attendance/mark, leave/student, off-days, attendance/employee, sms, classes, result book.
+  Leftovers (page → text):
+  - `/school` → quick-action badge "343" (the alert row beside it says "৩৪৩").
+  - `/school/exams` → class labels with a Latin year "… — 2026"; same label in class pickers ("UXA-Att … — 2032").
+  - `/school/exams/<id>/marks-entry` → title "(2026)", roll numbers, "তত্ত্বীয় (100)", "এমসিকিউ (0)", totals ("72").
+  - `/school/exams/<id>/routine` → times "10:00 - 12:00" (12-hour format is an open decision).
+  - `/school/classes/routine` → period numbers 1–8.
+  - `/school/employees` → "মেশিন আইডি 229" (an identifier; arguably fine).
+  - `/school/my-classes` (teacher) → "শিক্ষার্থী সংখ্যা: 1".
