@@ -6,7 +6,7 @@
 // same definition the absent-fine formula and the absence-SMS rules use — so
 // the calendar agrees with the money rather than contradicting it.
 
-export type DayState = 'present' | 'leave' | 'off' | 'blank'
+export type DayState = 'present' | 'leave' | 'off' | 'absent' | 'blank'
 
 export interface AttendanceDay {
   date: string
@@ -84,6 +84,51 @@ export function attendancePercent(presentCount: number, absentWorkingDays: numbe
   const workingDays = presentCount + absentWorkingDays
   if (workingDays <= 0) return null
   return Math.round((presentCount / workingDays) * 100)
+}
+
+export interface AttendanceOutcome {
+  /** Whole percent; null when there is nothing to judge the Student by. */
+  percent: number | null
+  /** The figure for "absent days". */
+  absentDays: number
+  /** Days to draw as absent. Empty when the taken days are not known. */
+  absentDates: ReadonlySet<string>
+}
+
+/**
+ * The one decision behind the percentage, the absent figure and the calendar's
+ * absent cells, for the attendance page and the home alike.
+ *
+ * `takenDates` are the days attendance was taken for the Student's class and
+ * that count for them (student_class_attendance_days, migration 0215: off-days,
+ * weekly off-days and approved leave are already left out there). null means
+ * the function is not available; an empty list says nothing either (an
+ * unplaced Student gets no rows). Both keep the behaviour from before 0215:
+ * the shared RPC's absent count, and no percentage without a present row.
+ *
+ * With taken days known, the Student is judged on those days only: absent on
+ * every one of them is 0%, not "—", and each is an absent cell.
+ */
+export function attendanceOutcome(input: {
+  presentDates: readonly string[]
+  takenDates: readonly string[] | null
+  /** From student_absent_working_days. */
+  absentWorkingDays: number
+  today: string
+}): AttendanceOutcome {
+  const present = new Set(input.presentDates)
+  if (!input.takenDates?.length)
+    return {
+      percent: present.size ? attendancePercent(present.size, input.absentWorkingDays) : null,
+      absentDays: input.absentWorkingDays,
+      absentDates: new Set(),
+    }
+  const absentDates = new Set(input.takenDates.filter((d) => d <= input.today && !present.has(d)))
+  return {
+    percent: attendancePercent(present.size, absentDates.size),
+    absentDays: absentDates.size,
+    absentDates,
+  }
 }
 
 /** First and last date of a month, for the RPC's range arguments. */
