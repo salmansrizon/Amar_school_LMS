@@ -58,3 +58,7 @@ $$;
 revoke execute on function public.employee_attendance_starts() from public;
 revoke execute on function public.employee_attendance_starts() from anon;
 grant execute on function public.employee_attendance_starts() to authenticated;
+
+-- PostgREST learns the new shape at once; otherwise the app keeps taking its
+-- "not applied yet" fallback until the schema cache reloads by itself.
+notify pgrst, 'reload schema';

@@ -185,3 +185,7 @@ comment on function public.student_class_attendance_days(date, date) is
   'has an attendance record or a hand-marked absence note that day. Days excused for the caller (off-day, '
   'Weekly Off-Day, approved leave) are left out unless the caller has a record. '
   'Dates only. Issue #703 item 4.4.';
+
+-- PostgREST learns the new shape at once; otherwise the app keeps taking its
+-- "not applied yet" fallback until the schema cache reloads by itself.
+notify pgrst, 'reload schema';

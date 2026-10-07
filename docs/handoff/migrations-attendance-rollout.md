@@ -190,7 +190,7 @@ After applying:
 - Run `tests/integration/leave-decision-note.test.ts` (written for this migration, not yet run).
 - Leaves decided through the workflow engine (0105 sync) update only `status`, so `decided_at` stays null for them.
 
-Rollback: `alter table public.student_leaves drop column if exists decision_note, drop column if exists decided_at;` the same for `employee_leaves`, then re-create `enforce_student_leave_pending()` as in 0146 section 3. The app keeps working (it falls back to status-only updates and reads). Stored reasons are lost on rollback.
+Rollback, in this order (the block is in the migration's header): first re-create `enforce_student_leave_pending()` with its 0146 body, then drop `decision_note` and `decided_at` from both tables. The other order breaks every insert into `student_leaves` in between, because the function body names the columns. The app keeps working (it falls back to status-only updates and reads). Stored reasons are lost on rollback.
 
 Make the reject reason mandatory: set `REJECT_REASON_REQUIRED = true` in `web/lib/leave-columns.ts` (the dialog and the action both read it). Do that only after 0216 is applied, otherwise a required reason is accepted but not stored.
 
@@ -218,7 +218,7 @@ derived from `attendance_records` alone (no Employee recorded that day).
 - Daily table (`?view=table&date=…`) and one employee's own calendar agree.
 - A staff user WITHOUT the `attendance` grant: `select * from
   employee_attendance_starts()` returns zero rows.
-- Owner: nothing changes (they read the same start days as before).
+- Owner: nothing changes (they read the same start days as before). This is true of start days only. The "No record" state is app code and is live on deploy, with or without 0217: a past working day on which no employee has any record reads "No record" with no rate, where it read everyone absent at 0%, so absent totals for such months drop. The Employees directory keeps "Not in yet" for today.
 - "No record" days are the same before and after (app logic, not SQL).
 
 **Expected change.** Only non-owner `attendance`-grant roles: fewer false
@@ -231,3 +231,12 @@ this is safe at any time and nothing else needs reverting.
 **Integration test.** `web/tests/integration/employee-attendance-starts.test.ts`
 was written for this migration and has NOT been run; run it on the branch
 database after applying.
+
+## Notes from the review of 0215–0217 together (2026-10-07)
+
+- Each of the three files ends with `notify pgrst, 'reload schema';`. Without a reload the app keeps its "not applied yet" fallback; for 0216 that means a typed reject reason is not stored although the reject succeeds.
+- `weekly_off_days` defaults to `{6}` (Saturday only, 0206). A School that never set its weekly off-days still has Fridays counted as absences after 0215. Check each School's setting before describing 0215 as the fix.
+- Integration expectations that change once 0215 is applied (if Test School A is `{6}`): `absent-working-days-range.test.ts:52` (4 becomes 3), `:73` and `fee-structures.test.ts:208` (`before - 2` becomes `before - 1`).
+- `absent-day-weekly-off.test.ts` updates `schools.weekly_off_days` for Test School A while it runs; on the shared database that changes that School's computed figures for the duration.
+- The workflow engine (0105) changes a leave's `status` only, so `decided_at` and `decision_note` can go stale on a workflow-driven change.
+- Not in these files, recorded in #703: `is_absent_working_day` is executable by `anon` (since 0021); `student_class_attendance_days` takes any date range and includes archived classmates.

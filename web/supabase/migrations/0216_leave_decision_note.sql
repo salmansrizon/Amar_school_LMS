@@ -17,10 +17,18 @@
 --   the note is readable on their own row), insert, and delete-while-pending
 --   only; there is no UPDATE policy, so the only write path is INSERT, closed
 --   by the trigger below.
--- Rollback:
+-- Rollback (in this order: the function first, because its body names the
+--   columns and every insert into student_leaves runs it):
+--   create or replace function public.enforce_student_leave_pending() returns trigger
+--   language plpgsql security definer set search_path = public as $$
+--   begin
+--     if public.app_current_role() = 'student' and new.status is distinct from 'pending' then
+--       raise exception 'a student may only create a pending leave request';
+--     end if;
+--     return new;
+--   end $$;
 --   alter table public.student_leaves  drop column if exists decision_note, drop column if exists decided_at;
 --   alter table public.employee_leaves drop column if exists decision_note, drop column if exists decided_at;
---   then re-create enforce_student_leave_pending() as in 0146 section 3.
 -- Idempotent.
 
 alter table public.student_leaves
@@ -46,3 +54,7 @@ begin
   end if;
   return new;
 end $$;
+
+-- PostgREST learns the new shape at once; otherwise the app keeps taking its
+-- "not applied yet" fallback until the schema cache reloads by itself.
+notify pgrst, 'reload schema';

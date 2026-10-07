@@ -41,7 +41,7 @@
 -- (school_id, att_date), both from 0017. See
 -- docs/research/2026-09-26-attendance-summary-impact.md.
 
-create function public.student_attendance_summary()
+create or replace function public.student_attendance_summary()
 returns table (student_id uuid, present_days bigint, school_days bigint)
 language sql stable security invoker set search_path = public as $$
   with bounds as (
@@ -80,7 +80,7 @@ $$;
 -- School-wide figure for the dashboard in one row, instead of paging every
 -- Student through REST. Student-day weighted: sum of present over sum of
 -- possible. Same invoker scoping, because it only reads the function above.
-create function public.school_attendance_summary()
+create or replace function public.school_attendance_summary()
 returns table (present_days bigint, school_days bigint)
 language sql stable security invoker set search_path = public as $$
   select coalesce(sum(present_days), 0)::bigint, coalesce(sum(school_days), 0)::bigint
