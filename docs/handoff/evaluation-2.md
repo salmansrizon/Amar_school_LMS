@@ -146,3 +146,46 @@ notice form dark at 390. `app-shell.tsx` not changed in range.
   the old URL shows the 404 page. Notes: no toast after an exam delete; the 404 page answers HTTP 200 and addresses the owner informally ("এসেছ", "ফিরে যাও").
 - LEDGER: exam `EVAL2-পরীক্ষা` (#14) **DELETED** with its 2 routine papers and the mark. New #15: leave request 25–26 Oct "EVAL2-ছুটি পরীক্ষা" by the EVAL2 student,
   pending — to withdraw at the end.
+
+### A. Student shell — MET (browser, EVAL2 student, 390 and 1440, Bangla)
+- Phone: 5 bottom tabs হোম | পড়াশোনা | পরীক্ষা | হাজিরা | ফি, each 78×56; `aria-current=page` on the right tab for home, routine, results, attendance, leave, fees
+  (profile and notifications: none active, as designed). On the five list pages my probe picked the pager instead of the tab bar, so the active tab there
+  was not measured on the phone; the sidebar check below covers the mapping.
+- Desktop: sidebar groups সংক্ষিপ্ত, পড়াশোনা, পরীক্ষা ও ফলাফল, উপস্থিতি ও ছুটি, ফি; the right group is expanded and the right item `aria-current` on all 11 menu routes.
+- Brand "T / Test School A / শিক্ষার্থী পোর্টাল". Avatar menu: name, "প্রোফাইল", "লগআউট". First focusable element and first Tab stop: "মূল অংশে যাও" → `#app-content`, visible on focus.
+- All 13 URLs (12 old + notifications) answer 200 with their own title and h1, 0 console errors, 0 horizontal overflow at both widths.
+
+### D. Student lists — MET (browser; EVAL2 student, plus seed student for results and fees)
+| List | Search | Filters (URL) | Paging | No match |
+|---|---|---|---|---|
+| tasks | `q` (7 EVAL2 rows) | state: default open / overdue 5 / dueSoon 1 / later / done 0 / all 17 | `page=2` "দেখাচ্ছে ১১–১৭ / ১৭", `size=20` → 17 | "কোনো ফলাফল নেই" + clear link |
+| notices | `q` | read: unread 8 / read 1; importance: normal 7 / important 0 / urgent 2 | size | same |
+| leave | `q` | status: pending 1 / approved 0 / rejected 0 | size | same |
+| exams | `q` | exam; when: upcoming 2 / past 0 | size | same |
+| materials | `q` | kind: lesson_plan 1 / exam_prep 1 | size | same |
+| questions | `find` | none (search only) | size | same |
+| results (seed) | `q` | year filter only when more than one year exists (code `results/page.tsx:112`) — not shown for 1 row | size | 0 rows |
+| fees (seed) | `q` | status: বকেয়া / জমা | size | 0 rows |
+- Counts agree with the dates on 2026-10-07 (overdue 5 = three DEMO + two EVAL2 past days; due soon 1). URL always reflects the state. 0 console errors.
+- Shortcuts at 1440: "/" focuses the search box on every list with rows; "F" focuses the filter (lists that have one).
+- Phone rows: tasks and notices at 390 and 639px = one list of rows 56–57px high (6 tasks / 5 notices above the tab bar), no table; at 640 and 768px the table and no phone list.
+  DataTable's own cards are hidden (0 visible). No overflow.
+- With no rows at all (EVAL2 student's results and fees) there is no search bar — only the empty state.
+
+### E. Questions — MET after one fix (browser; EVAL2 student, owner, seed student)
+- Toolbar on a selection ("beta" in "alpha beta\ngamma"): মোটা → `**beta**`, বাঁকা → `*beta*`, বড়/মাঝারি শিরোনাম → `## ` / `### ` on the line, বুলেট → `- `, ক্রমিক → `1. `,
+  উদ্ধৃতি → `> `, ইনলাইন কোড → `` `beta` ``, কোড ব্লক → fenced block with blank lines around, লিংক → `[beta](https://)` with the URL selected. Focus stays in the textarea each time.
+- **DEFECT D-3 (in range, `843edf1`; FIXED in `db69a5b`):** the stored question did not render like the preview. Preview: `p > strong, em, br` and tight lists;
+  timeline: every single line break a new `<p>`, every list item wrapped in `<p>`. Cause: a textarea posted in a form arrives with CRLF; `softBreaksToHard`
+  (`web/lib/rich-text.ts:64`) split on LF only, so `\r` + the two added spaces read as a blank line. It also changed OLD plain multi-line questions and replies
+  (line breaks became paragraphs). Affected: student questions, follow-ups and teacher replies (all sent as FormData); not notices/homework (sent as JSON).
+  After the fix the timeline's element list is identical to the preview's (`h3,p,strong,em,br,ul,li,li,ol,li,li,blockquote,p,p,code,pre,code,p,a`). Unit test added (failed before).
+- Follow-up from the popup: sent, appears as a second "প্রশ্ন" step, "প্রশ্ন পাঠানো হয়েছে।"; the list keeps ONE row for the conversation, message count ২.
+- Owner replied from the inbox drawer (editor with formal labels "লিখুন", "আপনার উত্তর", hint "… চাপুন") with bold, a numbered list and inline code: student row becomes
+  "শিক্ষকের উত্তর · ৩", popup shows "শিক্ষকের উত্তর · ৭ অক্টো ২০২৬, ৯:০৯ PM" rendered as `p,strong,ol,li,li,p,code`.
+- Old plain question (seed student, "E2E question 1789977634963"): question and reply each one plain `<p>`.
+- Notes: the owner's inbox lists the question and its follow-up as two rows (known, #703 5.4) with a plain-text preview; the submit button there reads "উত্তর দাও"
+  (informal) beside formal labels; no toast after a reply.
+- Undo: Cmd+Z after a toolbar action gave `alpha **beta**alpha [beta](https://)\ngamma` in my scripted sequence (text from an earlier fill re-appeared) — toolbar edits are
+  not in the browser's undo stack, so undo after one can corrupt the text. Known limitation in the handoff; not fixed (needs `execCommand`/`setRangeText` design choice).
+- LEDGER #16: question `EVAL2-ফরম্যাট প্রশ্ন` + one follow-up by the EVAL2 student, answered by the owner — database only to remove.
