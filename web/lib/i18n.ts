@@ -2944,6 +2944,11 @@ const dict = {
   'machine.errNotFound': { bn: 'মেশিনটি পাওয়া যায়নি — পাতাটি রিফ্রেশ করুন', en: 'Machine not found — refresh the page' },
   'machine.errSave': { bn: 'সংরক্ষণ করা যায়নি — আবার চেষ্টা করুন', en: 'Could not save — please try again' },
   'machine.downloadService': { bn: 'উইন্ডোজ সার্ভিস ডাউনলোড', en: 'Download Windows Service' },
+  'machine.agentLastSync': { bn: 'অ্যাটেনডেন্স এজেন্টের সর্বশেষ সিঙ্ক', en: 'Attendance Agent last synced' },
+  'attendance.agentNotSynced': {
+    bn: 'এই দিনের জন্য হাজিরা মেশিন এখনো সিঙ্ক হয়নি, তাই “কোনো রেকর্ড নেই” মানে অনুপস্থিত নাও হতে পারে।',
+    en: 'The attendance machine has not synced for this day yet, so "No record" may not mean absent.',
+  },
   'machine.upcoming': { bn: 'শীঘ্রই আসছে', en: 'Upcoming' },
   'machine.serviceUpcomingBody': {
     bn: 'উইন্ডোজ সিঙ্ক্রোনাইজেশন সার্ভিস পরবর্তী রিলিজে আসবে। এটি প্রতিষ্ঠানের একটি কম্পিউটারে চলবে এবং হাজিরা মেশিন ও এই সিস্টেমের মধ্যে তথ্য আদান-প্রদান করবে — শিক্ষার্থী ও কর্মচারীর তথ্য মেশিনে পাঠাবে এবং মেশিনের হাজিরা এখানে নিয়ে আসবে।',

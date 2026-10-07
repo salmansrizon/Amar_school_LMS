@@ -11,7 +11,9 @@ import { selectAllRows } from '@/lib/supabase/select-all'
 import { parseMonthParam, shiftYearMonth, formatMonthYear, buildSchoolAttendanceMonth, isWeekendColumn, isNoRecordDay } from '@/lib/employee-attendance-calendar'
 import { loadEmployeeAttendanceStarts } from '@/lib/school/employee-attendance-starts-source'
 import { exemptionCategoriesByExemptionId } from '@/lib/school/ad-hoc-grace'
+import { loadLastAgentHeartbeat, agentNotSyncedFor } from '@/lib/school/attendance-agent-sync'
 import { AttendanceTabs } from '../attendance-tabs'
+import { AgentSyncWarning } from '../agent-sync-warning'
 import { CalendarToolbar, MonthGridFrame } from '../calendar-shell'
 import { EmployeeAttendanceDayCell } from './attendance-calendar'
 import { SegmentedControl } from '@/components/ui/segmented-control'
@@ -235,6 +237,12 @@ export default async function EmployeeAttendancePage({
     const qs = qp.toString()
     return qs ? `?${qs}` : '?'
   }
+  // #694: a "no record" day after the Attendance Agent's last heartbeat may be
+  // a sync failure, not an empty school. Null heartbeat = unknown = no warning.
+  const lastHeartbeat = await loadLastAgentHeartbeat(supabase)
+  const agentNotSynced = isTableView
+    ? noRecordDay && agentNotSyncedFor(date, lastHeartbeat)
+    : calendarCells.some((c) => c.noRecord && !!c.iso && agentNotSyncedFor(c.iso, lastHeartbeat))
   const calendarHref = calQuery({ view: undefined })
   const tableHref = calQuery({ view: 'table' })
   const monthLabel = formatMonthYear(calYear, calMonth0, lang)
@@ -271,6 +279,8 @@ export default async function EmployeeAttendancePage({
           </div>
         }
       />
+
+      {agentNotSynced && lastHeartbeat && <AgentSyncWarning lastHeartbeat={lastHeartbeat} lang={lang} />}
 
       {!isTableView && (
         <section className="mb-4 rounded-2xl border border-line bg-paper p-card">
