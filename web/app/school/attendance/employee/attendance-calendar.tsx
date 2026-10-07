@@ -93,10 +93,12 @@ export function EmployeeAttendanceDayCell({
         role="gridcell"
         aria-label={dayAriaLabel(cell, lang)}
         data-iso={cell.iso}
-        className={`${cellFrame} ${cell.isOff ? '' : weekendTint}`}
-        style={cell.isOff ? { backgroundImage: 'repeating-linear-gradient(135deg, var(--color-alert-soft), var(--color-alert-soft) 6px, transparent 6px 12px)' } : undefined}
+        className={`${cellFrame} ${weekendTint}`}
       >
-        <DayNumber cell={cell} lang={lang} isToday={isToday} />
+        <div className="flex items-center justify-between">
+          <DayNumber cell={cell} lang={lang} isToday={isToday} />
+          {cell.isOff && <span className="size-2 rounded-full bg-alert sm:hidden" aria-hidden />}
+        </div>
         {cell.isOff && <span className={`hidden sm:block ${CAL_CHIP} bg-alert-soft text-alert-deep`}>{t('status.holiday', lang)}</span>}
         {!cell.isOff && cell.noRecord && <span className={`hidden sm:block ${CAL_CHIP} bg-paper-muted text-muted`}>{t('status.no_record', lang)}</span>}
         {!cell.isOff && cell.isFuture && <span className="hidden truncate text-[10px] text-muted sm:block">{cell.leaveCount ? `${t('status.on_leave', lang)} ${localizeNumber(cell.leaveCount, lang)}` : t('attendance.calendarUpcoming', lang)}</span>}
