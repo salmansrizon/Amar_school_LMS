@@ -10,6 +10,7 @@ import { Card, PageHeader } from '@/components/ui/page'
 import { ComboboxField } from '@/components/ui/combobox-field'
 import { classLoginCandidates } from '../login-actions'
 import { BulkLoginControls } from './bulk-controls'
+import { schoolCrumbs } from '@/lib/school-crumbs'
 import { pageTitle } from '@/lib/page-title'
 
 // Class-at-a-time login issue (#442). No owner provisions a 40-child roster one
@@ -58,6 +59,7 @@ export default async function StudentLoginsPage({
     <>
       <PageHeader
         title={t('students.loginBulkTitle', lang)}
+        crumbs={schoolCrumbs('/school/students', lang, { label: t('students.listTitle', lang), href: '/school/students' }, { label: t('students.loginBulkTitle', lang) })}
         actions={
           <Link
             href="/school/students"

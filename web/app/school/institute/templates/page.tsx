@@ -36,7 +36,7 @@ export default async function TemplatesPage() {
     <div>
       <PageHeader
         title={t('institute.tabTemplates', lang)}
-        crumbs={schoolCrumbs('/school/institute/templates', lang, { label: t('institute.tabTemplates', lang) })}
+        crumbs={schoolCrumbs('/school/institute', lang, { label: t('institute.title', lang), href: '/school/institute' }, { label: t('institute.tabTemplates', lang) })}
       />
 
       <InstituteTabs active="/school/institute/templates" lang={lang} />

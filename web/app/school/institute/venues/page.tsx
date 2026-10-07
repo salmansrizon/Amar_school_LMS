@@ -36,7 +36,7 @@ export default async function VenuesPage() {
     <div>
       <PageHeader
         title={t('institute.tabVenues', lang)}
-        crumbs={schoolCrumbs('/school/institute/venues', lang, { label: t('institute.tabVenues', lang) })}
+        crumbs={schoolCrumbs('/school/institute', lang, { label: t('institute.title', lang), href: '/school/institute' }, { label: t('institute.tabVenues', lang) })}
       />
 
       <InstituteTabs active="/school/institute/venues" lang={lang} />
