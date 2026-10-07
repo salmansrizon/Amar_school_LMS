@@ -2,10 +2,10 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { signedIn } from '../helpers/auth'
 
-// written for migration 0216 — not run
-// Seam: the reason and time a leave request was decided (#680, migration 0216).
+// written for migration 0219 — not run
+// Seam: the reason and time a leave request was decided (#680, migration 0219).
 
-describe('Leave decision note and time (#680, 0216)', () => {
+describe('Leave decision note and time (#680, 0219)', () => {
   let owner: SupabaseClient
   let student: SupabaseClient
   let studentId: string

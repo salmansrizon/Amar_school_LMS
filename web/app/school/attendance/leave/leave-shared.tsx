@@ -60,7 +60,7 @@ export function LeaveDetail({
     { label: t('attendance.leaveFromCol', lang), value: formatDate(leave.from_day, lang) },
     { label: t('attendance.leaveToCol', lang), value: formatDate(leave.to_day, lang) },
     { label: t('attendance.leaveReasonCol', lang), value: leave.reason ?? '—' },
-    // Present only once migration 0216 is applied and the leave was decided after it.
+    // Present only once migration 0219 is applied and the leave was decided after it.
     ...(leave.decided_at
       ? [{ label: t('attendance.leaveDecidedOn', lang), value: formatDate(leave.decided_at, lang) }]
       : []),

@@ -29,7 +29,7 @@ describe('loadEmployeeAttendanceStarts', () => {
     const c = fakeClient({ data: [{ employee_id: 'e1', start_day: '2026-09-03' }, { employee_id: 'e2', start_day: '2026-09-04' }], error: null }, [])
     expect([...(await loadEmployeeAttendanceStarts(c, 'e2'))]).toEqual([['e2', '2026-09-04']])
   })
-  it('before 0217: reads employees and applies the later-of rule', async () => {
+  it('before 0220: reads employees and applies the later-of rule', async () => {
     const c = fakeClient({ data: null, error: { code: 'PGRST202' } }, [
       { id: 'e1', joining_date: '2020-01-01', created_at: '2026-10-03T03:00:00Z' },
       { id: 'e2', joining_date: null, created_at: null },

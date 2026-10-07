@@ -9,6 +9,14 @@ import { enrollCard, unenrollCards } from '../helpers/machine-enroll'
 const RECONCILE_SECRET = process.env.RECONCILE_SECRET!
 const DAY = '2026-07-02' // fixed historical date, isolated from other runs
 
+// Reconcile DAY for one School the way the cron route now does (migration 0215):
+// mark the (School, day) pair due, then drain the queue for that School.
+const reconcileDay = async (school: string) => {
+  await anonClient().rpc('enqueue_attendance_reconcile_dates', { job_secret: RECONCILE_SECRET, target_date: DAY, target_school: school })
+  return anonClient().rpc('drain_attendance_reconcile_queue', { job_secret: RECONCILE_SECRET, only_school: school })
+}
+
+
 describe('Attendance II: manual-attendance override switch (issue #30)', () => {
   let ownerA: SupabaseClient
   let ownerB: SupabaseClient
@@ -88,13 +96,13 @@ describe('Attendance II: manual-attendance override switch (issue #30)', () => {
     expect(schoolBBefore?.automatic_attendance_enabled).toBe(true) // School B untouched, still its default
   })
 
-  it('reconcile_attendance skips a School with automatic attendance switched off', async () => {
+  it('reconciliation skips a School with automatic attendance switched off', async () => {
     await anonClient().rpc('ingest_attendance_events', {
       school: schoolIdA,
       token: ingestTokenA,
       events: [{ card_number: cardNumber, tapped_at: `${DAY}T08:00:00Z` }],
     })
-    await anonClient().rpc('reconcile_attendance', { job_secret: RECONCILE_SECRET, target_date: DAY })
+    await reconcileDay(schoolIdA)
 
     const { data: records } = await ownerA
       .from('attendance_records')
@@ -113,7 +121,7 @@ describe('Attendance II: manual-attendance override switch (issue #30)', () => {
 
   it('re-enabling lets the same unprocessed tap reconcile normally', async () => {
     await ownerA.rpc('set_automatic_attendance_enabled', { enabled: true })
-    await anonClient().rpc('reconcile_attendance', { job_secret: RECONCILE_SECRET, target_date: DAY })
+    await reconcileDay(schoolIdA)
 
     const { data: records } = await ownerA
       .from('attendance_records')
