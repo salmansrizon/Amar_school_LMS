@@ -36,7 +36,7 @@ export default async function StudentLeavePage({
   const lang = await currentLang()
   const ctx = await getStudentContext()
 
-  // decision_note / decided_at arrive with migration 0216; read without them until then.
+  // decision_note / decided_at arrive with migration 0219; read without them until then.
   const readLeaves = (cols: string) =>
     ctx.supabase.from('student_leaves').select(cols).order('from_day', { ascending: false })
   const { data } = await withLeaveColumns(

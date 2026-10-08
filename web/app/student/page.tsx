@@ -101,9 +101,9 @@ export default async function StudentHome() {
     // not absences.
     supabase.from('attendance_records').select('att_date').gte('att_date', monthStart).lte('att_date', today),
     supabase.rpc('student_absent_working_days', { p_start: monthStart, p_end: today }),
-    // null until migration 0215 is applied; the figures then stay as they were.
+    // null until migration 0218 is applied; the figures then stay as they were.
     classAttendanceDays(supabase, monthStart, today),
-    // decided_at arrives with migration 0216; read without it until then.
+    // decided_at arrives with migration 0219; read without it until then.
     withLeaveColumns(
       () => recentLeaves('from_day, to_day, status, created_at, decided_at'),
       () => recentLeaves('from_day, to_day, status, created_at'),

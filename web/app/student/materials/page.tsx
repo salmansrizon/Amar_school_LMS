@@ -92,7 +92,7 @@ export default async function StudentMaterialsPage({
     <main className="w-full px-gutter pt-section pb-16">
       <PageHeader
         title={t('student.materialsTitle', lang)}
-        crumbs={{ lang, items: [{ label: t('student.nav.home', lang), href: '/student' }, { label: t('student.materialsTitle', lang) }] }}
+        crumbs={{ lang, items: [{ label: t('student.nav.home', lang), href: '/student' }, { label: t('student.navGroup.study', lang) }] }}
         badge={data?.length ? formatNumber(data.length, lang) : undefined}
       />
       <SectionTabs

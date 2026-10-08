@@ -1,4 +1,4 @@
--- 0216_leave_decision_note.sql
+-- 0219_leave_decision_note.sql
 -- #680: record WHY and WHEN a leave request was decided.
 --
 -- What: decision_note (optional reason, shown to the requester) and decided_at

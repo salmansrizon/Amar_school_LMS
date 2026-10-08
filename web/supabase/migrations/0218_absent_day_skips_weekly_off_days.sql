@@ -1,4 +1,4 @@
--- 0215_absent_day_skips_weekly_off_days.sql
+-- 0218_absent_day_skips_weekly_off_days.sql
 -- Issue #703 items 4.0 and 4.4.
 -- DRAFT: written by an agent, applied by hand after review. Two functions, no
 -- data change, no policy change, no table change. Safe to run twice.

@@ -79,8 +79,8 @@ async function setLeaveStatus(
   }
 
   const table = kind === 'student' ? 'student_leaves' : 'employee_leaves'
-  // 0216 columns: pending clears both; approve/reject stamp the time; only reject keeps a note.
-  // Before 0216 is applied the first update errors on the unknown column and the plain one runs.
+  // 0219 columns: pending clears both; approve/reject stamp the time; only reject keeps a note.
+  // Before 0219 is applied the first update errors on the unknown column and the plain one runs.
   const decision = {
     decided_at: status === 'pending' ? null : new Date().toISOString(),
     decision_note: status === 'rejected' ? note : null,
@@ -104,7 +104,7 @@ export async function revertLeave(kind: string, id: string): Promise<{ error?: s
   return setLeaveStatus(kind, id, 'pending')
 }
 
-/** `note` is the optional reason shown to the requester; stored once migration 0216 exists. */
+/** `note` is the optional reason shown to the requester; stored once migration 0219 exists. */
 export async function rejectLeave(kind: string, id: string, note?: string): Promise<{ error?: string }> {
   const clean = cleanDecisionNote(note)
   if (REJECT_REASON_REQUIRED && !clean) return { error: 'A reason is required' }

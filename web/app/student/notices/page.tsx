@@ -83,7 +83,7 @@ export default async function StudentNoticesPage({
     <main className="w-full px-gutter pt-section pb-16">
       <PageHeader
         title={t('student.noticesTitle', lang)}
-        crumbs={{ lang, items: [{ label: t('student.nav.home', lang), href: '/student' }, { label: t('student.noticesTitle', lang) }] }}
+        crumbs={{ lang, items: [{ label: t('student.nav.home', lang), href: '/student' }, { label: t('student.navGroup.overview', lang) }] }}
         badge={unread.size ? `${formatNumber(unread.size, lang)} ${t('student.dash.newNotices', lang)}` : undefined}
       />
       <SectionTabs

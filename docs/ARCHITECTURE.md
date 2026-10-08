@@ -35,15 +35,27 @@ A `profiles` table (keyed to `auth.users.id`) carries role, school/territory sco
 
 ## 5. Hardware & external integrations
 
-- **Attendance machines**: dual-path ingest per ADR 0001 — a per-School webhook endpoint (`/api/attendance/ingest/[schoolId]`) accepts either (a) direct device push (ADMS-style POST) or (b) batched uploads from a local bridge agent for non-push hardware. Both paths write to the same `attendance_events` staging table, processed by the same reconciliation job described in §6.
+- **Attendance machines**: integrated through the Windows Attendance Agent (ADR 0033; design in `docs/machine_attendance_device_agent_implementation_plan.md`):
+
+  ```
+  Attendance device (School LAN)
+    -> local Windows Attendance Agent (Device Drivers; a Driver Bridge process for native/COM SDKs)
+    -> outbound HTTPS
+    -> cloud / LMS
+  ```
+
+  - **No cloud-to-LAN connection.** No connection ever goes from the cloud or a browser into a School's LAN. Device ports stay inside the LAN. The cloud sends work to the Agent as commands that the Agent polls for.
+  - **Credentials.** Device communication keys stay on the Agent PC. The Agent authenticates to the cloud with its own, separate credential.
+  - **Legacy ingest path.** The per-School endpoint from ADR 0001 (`/api/attendance/ingest/[schoolId]`, ingest token) still accepts device push and legacy card-tap uploads.
+  - **One pipeline.** Both paths write to the same `attendance_events` staging table, each event with a School-local Attendance Date. Both are reconciled by the job in §6.
 - **ID cards / RFID assignment**: manual card-number-to-person binding stays a simple form (matches legacy keyboard-wedge-reader UX — no live SDK dependency, same as today).
 - **SMS**: a provider-agnostic `SmsGateway` interface with a `MimSmsProvider` default implementation (preserves `esms.mimsms.com` as the live default), so a future provider swap doesn't touch call sites.
 - **PDF/printing**: legacy Swing print-preview flows (receipts, mark sheets ×3, progress reports ×3, admit cards, ID cards, routines, attendance books) become server-rendered PDFs (e.g. via a headless-Chromium or React-PDF renderer) served for browser print/download — one shared templating layer, mirroring the legacy `C_TAMPLATES` shared-header/footer component pattern (institute header, exam header, student-info block, grade panel, "powered by" footer as composable template pieces).
 
 ## 6. Background jobs
 
-Legacy `C_SUPER_AutoTask` polled a hardcoded production server IP and processed queued RFID events into attendance records. In the rebuild this becomes a proper queued job (e.g. Supabase Edge Function on a schedule, or a Vercel cron route) that:
-1. Reads unprocessed rows from `attendance_events`.
+Legacy `C_SUPER_AutoTask` polled a hardcoded production server IP and processed queued RFID events into attendance records. In the rebuild this becomes a proper queued job (a Vercel cron route, `/api/attendance/reconcile`). It drains the Reconciliation Queue (`attendance_reconcile_dates`), and for each due (School, Attendance Date) pair it:
+1. Reads that pair's unprocessed rows from `attendance_events`.
 2. Resolves student vs. employee, entry vs. exit, per that School's office-time/consider-minutes/punch-mode configuration (`office_times`/`employee_office_times` — renamed from `shifts`/`employee_shifts` well before map #568/#582; unrelated to that map's later, distinct "Shift" — a per-Class-Offering dimension, `class_offerings.shift`, for a School running the same Class more than once a day, not an Employee's working-hours window).
 3. Writes/updates the finalized attendance record.
 

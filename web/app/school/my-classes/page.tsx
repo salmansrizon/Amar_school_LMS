@@ -6,6 +6,7 @@ import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
 import { classCatalogueLabel } from '@/lib/class-catalogue'
 import { countFor, homeworkTargetsOffering, studentCounts } from '@/lib/classes'
 import { Card, PageHeader } from '@/components/ui/page'
+import { schoolCrumbs } from '@/lib/school-crumbs'
 import { pageTitle } from '@/lib/page-title'
 
 // The Class Teacher's own view (#443): the classes they are responsible for.
@@ -30,7 +31,7 @@ export default async function MyClassesPage() {
   if (!myEmployeeId) {
     return (
       <>
-        <PageHeader title={t('myClasses.title', lang)} />
+        <PageHeader title={t('myClasses.title', lang)} crumbs={schoolCrumbs('/school/my-classes', lang, { label: t('myClasses.title', lang) })} />
         <Card>
           <p className="text-sm text-muted">{t('myClasses.notLinked', lang)}</p>
         </Card>
@@ -72,7 +73,7 @@ export default async function MyClassesPage() {
 
   return (
     <>
-      <PageHeader title={t('myClasses.title', lang)} />
+      <PageHeader title={t('myClasses.title', lang)} crumbs={schoolCrumbs('/school/my-classes', lang, { label: t('myClasses.title', lang) })} />
       <Card>
         {!classes?.length ? (
           <p className="text-sm text-muted">{t('myClasses.none', lang)}</p>

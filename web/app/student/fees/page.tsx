@@ -97,7 +97,7 @@ export default async function StudentFeesPage({
     <main className="w-full px-gutter pt-section pb-16">
       <PageHeader
         title={t('student.feesTitle', lang)}
-        crumbs={{ lang, items: [{ label: t('student.nav.home', lang), href: '/student' }, { label: t('student.feesTitle', lang) }] }}
+        crumbs={{ lang, items: [{ label: t('student.nav.home', lang), href: '/student' }, { label: t('student.navGroup.money', lang) }] }}
         badge={status.monthsDue ? `${formatNumber(status.monthsDue, lang)} ${t('student.dash.monthsDue', lang)}` : undefined}
         actions={records.length > 0 && <PrintTrigger href="/student/fees/print" label={t('student.printStatement', lang)} />}
       />

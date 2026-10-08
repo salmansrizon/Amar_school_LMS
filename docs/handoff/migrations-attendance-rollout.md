@@ -1,13 +1,13 @@
 # Attendance migrations — rollout notes (written, not applied)
 
-Plan: `plan-2026-10-06-attendance-migrations.md`. Apply order 0214 → 0215 →
-0216 → 0217, on a branch database first. Each section below is appended by its
+Plan: `plan-2026-10-06-attendance-migrations.md`. Apply order 0217 → 0218 →
+0219 → 0220, on a branch database first. Each section below is appended by its
 own package.
 
-## 0215_absent_day_skips_weekly_off_days.sql
+## 0218_absent_day_skips_weekly_off_days.sql
 
 Issue #703 items 4.0 and 4.4. File:
-`web/supabase/migrations/0215_absent_day_skips_weekly_off_days.sql`.
+`web/supabase/migrations/0218_absent_day_skips_weekly_off_days.sql`.
 
 ### What it does
 
@@ -40,7 +40,7 @@ No table, column, policy or row changes. Both statements are
 - 0206 (`schools.weekly_off_days`) applied. It is, on the shared database.
 - 0146 and 0177/0178 applied (`app_current_student_id`, `student_enrollments`,
   `students.current_enrollment_id`).
-- 0214 is not required by 0215. Keep the number order anyway.
+- 0217 is not required by 0218. Keep the number order anyway.
 - The app code on this branch can be deployed before or after: while the new
   function is missing the student pages show what they show today.
 
@@ -84,7 +84,7 @@ No table, column, policy or row changes. Both statements are
 
 ### Who calls it, and what changes
 
-| Caller | Where | Produces | After 0215 |
+| Caller | Where | Produces | After 0218 |
 |---|---|---|---|
 | `absent_working_days_in_month` | 0039; `calculateAbsentFine` in `web/app/school/fees/actions.ts`, called by the Calculate button in `web/app/school/fees/fee-form.tsx` | Absent day count, and count x `fine_per_absent_day` put into the fine field | Lower by the number of weekly off-days in the month the Student has no record on (4 to 9 days in a Fri+Sat School). The fine suggested from now on is lower. |
 | `absent_working_days_in_range` | 0146; `web/lib/progress-report-data.ts` (progress report and print-all) | Attendance % on the progress report | Higher: weekly off-days leave the denominator. |
@@ -100,7 +100,7 @@ read, so they change at once.
 **Gap left open, on purpose.** `absence_sms_candidates` calls
 `is_absent_working_day` only for the target date. For earlier days it walks
 back with its own copy of the off-day and leave conditions (0046, the
-`streaks` CTE) and that copy does not know weekly off-days. So after 0215:
+`streaks` CTE) and that copy does not know weekly off-days. So after 0218:
 
 - on a Friday or Saturday (off-days) no absence SMS is raised: fixed;
 - a streak that crosses a weekend still counts the weekend. Absent Thursday
@@ -110,7 +110,7 @@ back with its own copy of the off-day and leave conditions (0046, the
 Fixing the walk changes which rule matches and so which texts are sent. It
 needs its own migration and the owner's yes.
 
-**Existing integration tests that will need new numbers once 0215 is applied**
+**Existing integration tests that will need new numbers once 0218 is applied**
 (Test School A has `weekly_off_days = {6}`; both use Sat 2026-07-04):
 
 - `web/tests/integration/absent-working-days-range.test.ts`: the count over
@@ -141,7 +141,7 @@ needs its own migration and the owner's yes.
    "absent" cell. A month the class was never marked still shows "—" and the
    "school has not taken attendance" message.
 6. Run `web/tests/integration/absent-day-weekly-off.test.ts` against a branch
-   database (it was written for 0215 and has not been run).
+   database (it was written for 0218 and has not been run).
 
 ### How the student pages use it
 
@@ -149,7 +149,7 @@ needs its own migration and the owner's yes.
 and returns null on any error or unusable reply. `attendanceOutcome` in
 `web/lib/student/attendance.ts` then decides:
 
-- null or no rows: as before 0215 (the RPC's absent count; no percentage
+- null or no rows: as before 0218 (the RPC's absent count; no percentage
   without a present row);
 - at least one taken day: percentage = present / (present + taken days with no
   record); those days are the absent cells.
@@ -172,11 +172,11 @@ change is needed; the student pages fall back by themselves. Numbers computed
 on read go back to the old values; fines saved in between keep the lower
 amount.
 
-## 0216
+## 0219
 
-`web/supabase/migrations/0216_leave_decision_note.sql` (#680). Adds `decision_note text` (CHECK length <= 500) and `decided_at timestamptz` to `student_leaves` and `employee_leaves`, and extends `enforce_student_leave_pending()` so a Student-created row must have both null.
+`web/supabase/migrations/0219_leave_decision_note.sql` (#680). Adds `decision_note text` (CHECK length <= 500) and `decided_at timestamptz` to `student_leaves` and `employee_leaves`, and extends `enforce_student_leave_pending()` so a Student-created row must have both null.
 
-Prerequisites: none (independent of 0214, 0215, 0217). It replaces the function from 0146 and needs `app_current_role()` (exists).
+Prerequisites: none (independent of 0217, 0218, 0220). It replaces the function from 0146 and needs `app_current_role()` (exists).
 
 Before applying (branch database):
 - Confirm the columns are absent: `select column_name from information_schema.columns where table_name in ('student_leaves','employee_leaves') and column_name in ('decision_note','decided_at');` returns no rows.
@@ -192,18 +192,18 @@ After applying:
 
 Rollback, in this order (the block is in the migration's header): first re-create `enforce_student_leave_pending()` with its 0146 body, then drop `decision_note` and `decided_at` from both tables. The other order breaks every insert into `student_leaves` in between, because the function body names the columns. The app keeps working (it falls back to status-only updates and reads). Stored reasons are lost on rollback.
 
-Make the reject reason mandatory: set `REJECT_REASON_REQUIRED = true` in `web/lib/leave-columns.ts` (the dialog and the action both read it). Do that only after 0216 is applied, otherwise a required reason is accepted but not stored.
+Make the reject reason mandatory: set `REJECT_REASON_REQUIRED = true` in `web/lib/leave-columns.ts` (the dialog and the action both read it). Do that only after 0219 is applied, otherwise a required reason is accepted but not stored.
 
-## 0217 — `employee_attendance_starts()` (#693, #694)
+## 0220 — `employee_attendance_starts()` (#693, #694)
 
-File: `web/supabase/migrations/0217_employee_attendance_start.sql`. One new
+File: `web/supabase/migrations/0220_employee_attendance_start.sql`. One new
 function, no table/view/policy change. No machine-sync column was added: the
 data holds no per-machine last-contact time, so the "no record" state is
 derived from `attendance_records` alone (no Employee recorded that day).
 
 **Prerequisites.** 0136 (`app_module_granted`), 0138 era helpers
 (`app_current_school_id`), `employees.joining_date` (0046). Independent of
-0214–0216.
+0217–0219.
 
 **Before applying.**
 1. Log in as the School Owner and as a class teacher / staff user holding the
@@ -218,7 +218,7 @@ derived from `attendance_records` alone (no Employee recorded that day).
 - Daily table (`?view=table&date=…`) and one employee's own calendar agree.
 - A staff user WITHOUT the `attendance` grant: `select * from
   employee_attendance_starts()` returns zero rows.
-- Owner: nothing changes (they read the same start days as before). This is true of start days only. The "No record" state is app code and is live on deploy, with or without 0217: a past working day on which no employee has any record reads "No record" with no rate, where it read everyone absent at 0%, so absent totals for such months drop. The Employees directory keeps "Not in yet" for today.
+- Owner: nothing changes (they read the same start days as before). This is true of start days only. The "No record" state is app code and is live on deploy, with or without 0220: a past working day on which no employee has any record reads "No record" with no rate, where it read everyone absent at 0%, so absent totals for such months drop. The Employees directory keeps "Not in yet" for today.
 - "No record" days are the same before and after (app logic, not SQL).
 
 **Expected change.** Only non-owner `attendance`-grant roles: fewer false
@@ -232,11 +232,11 @@ this is safe at any time and nothing else needs reverting.
 was written for this migration and has NOT been run; run it on the branch
 database after applying.
 
-## Notes from the review of 0215–0217 together (2026-10-07)
+## Notes from the review of 0218–0220 together (2026-10-07)
 
-- Each of the three files ends with `notify pgrst, 'reload schema';`. Without a reload the app keeps its "not applied yet" fallback; for 0216 that means a typed reject reason is not stored although the reject succeeds.
-- `weekly_off_days` defaults to `{6}` (Saturday only, 0206). A School that never set its weekly off-days still has Fridays counted as absences after 0215. Check each School's setting before describing 0215 as the fix.
-- Integration expectations that change once 0215 is applied (if Test School A is `{6}`): `absent-working-days-range.test.ts:52` (4 becomes 3), `:73` and `fee-structures.test.ts:208` (`before - 2` becomes `before - 1`).
+- Each of the three files ends with `notify pgrst, 'reload schema';`. Without a reload the app keeps its "not applied yet" fallback; for 0219 that means a typed reject reason is not stored although the reject succeeds.
+- `weekly_off_days` defaults to `{6}` (Saturday only, 0206). A School that never set its weekly off-days still has Fridays counted as absences after 0218. Check each School's setting before describing 0218 as the fix.
+- Integration expectations that change once 0218 is applied (if Test School A is `{6}`): `absent-working-days-range.test.ts:52` (4 becomes 3), `:73` and `fee-structures.test.ts:208` (`before - 2` becomes `before - 1`).
 - `absent-day-weekly-off.test.ts` updates `schools.weekly_off_days` for Test School A while it runs; on the shared database that changes that School's computed figures for the duration.
 - The workflow engine (0105) changes a leave's `status` only, so `decided_at` and `decision_note` can go stale on a workflow-driven change.
 - Not in these files, recorded in #703: `is_absent_working_day` is executable by `anon` (since 0021); `student_class_attendance_days` takes any date range and includes archived classmates.

@@ -8,6 +8,14 @@ import { enrollCard, unenrollCards } from '../helpers/machine-enroll'
 const RECONCILE_SECRET = process.env.RECONCILE_SECRET!
 const DAY = '2026-07-01' // fixed historical date, isolated from other runs
 
+// Reconcile DAY for one School the way the cron route now does (migration 0215):
+// mark the (School, day) pair due, then drain the queue for that School.
+const reconcileDay = async (school: string) => {
+  await anonClient().rpc('enqueue_attendance_reconcile_dates', { job_secret: RECONCILE_SECRET, target_date: DAY, target_school: school })
+  return anonClient().rpc('drain_attendance_reconcile_queue', { job_secret: RECONCILE_SECRET, only_school: school })
+}
+
+
 describe('RFID Attendance Event ingestion + reconciliation (issue #10)', () => {
   let ownerA: SupabaseClient
   let schoolId: string
@@ -100,10 +108,7 @@ describe('RFID Attendance Event ingestion + reconciliation (issue #10)', () => {
   })
 
   it('reconciliation collapses 4 employee taps to one record: earliest entry, latest exit', async () => {
-    const { error } = await anonClient().rpc('reconcile_attendance', {
-      job_secret: RECONCILE_SECRET,
-      target_date: DAY,
-    })
+    const { error } = await reconcileDay(schoolId)
     expect(error).toBeNull()
 
     const { data } = await ownerA
@@ -133,7 +138,7 @@ describe('RFID Attendance Event ingestion + reconciliation (issue #10)', () => {
   })
 
   it('re-running reconciliation is idempotent (still exactly one record each)', async () => {
-    await anonClient().rpc('reconcile_attendance', { job_secret: RECONCILE_SECRET, target_date: DAY })
+    await reconcileDay(schoolId)
     const { data } = await ownerA.from('attendance_records').select('id').eq('att_date', DAY)
     expect(data).toHaveLength(2)
   })
@@ -145,7 +150,7 @@ describe('RFID Attendance Event ingestion + reconciliation (issue #10)', () => {
       token: ingestToken,
       events: [{ card_number: 'LATE-CARD-9', tapped_at: `${DAY}T08:10:00Z` }],
     })
-    await anonClient().rpc('reconcile_attendance', { job_secret: RECONCILE_SECRET, target_date: DAY })
+    await reconcileDay(schoolId)
 
     // Not consumed: the tap is still unprocessed.
     const { data: pending } = await ownerA
@@ -161,7 +166,7 @@ describe('RFID Attendance Event ingestion + reconciliation (issue #10)', () => {
       .select('id')
       .single()
     await enrollCard(ownerA, { student_id: lateStudent!.id }, 'LATE-CARD-9')
-    await anonClient().rpc('reconcile_attendance', { job_secret: RECONCILE_SECRET, target_date: DAY })
+    await reconcileDay(schoolId)
 
     const { data: record } = await ownerA
       .from('attendance_records')
@@ -181,7 +186,7 @@ describe('RFID Attendance Event ingestion + reconciliation (issue #10)', () => {
       token: ingestToken,
       events: [{ card_number: 'EMP-CARD-1', tapped_at: `${DAY}T14:30:00Z` }],
     })
-    await anonClient().rpc('reconcile_attendance', { job_secret: RECONCILE_SECRET, target_date: DAY })
+    await reconcileDay(schoolId)
 
     const { data } = await ownerA
       .from('attendance_records')

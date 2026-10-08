@@ -24,7 +24,7 @@ import { isWeekendColumn } from '@/lib/employee-attendance-calendar'
 // the absence-SMS rules use. Counting attendance_records instead would disagree
 // with the money, because that table only ever holds present-ish rows.
 //
-// Once migration 0215 is applied the page also knows which days attendance was
+// Once migration 0218 is applied the page also knows which days attendance was
 // taken for the class, and judges the Student on those (attendanceOutcome).
 // Until then, and whenever that call gives nothing, it behaves as before.
 export const generateMetadata = pageTitle('student.attendanceTitle')
@@ -200,7 +200,7 @@ export default async function StudentAttendancePage({
             const weekend = isWeekendColumn(leadIn + i, weeklyOffDays)
             // A weekly off-day with no record reads as off, like a holiday.
             // A day the class was marked and this Student was not is absent
-            // (only known once 0215 is applied; before that it stays blank).
+            // (only known once 0218 is applied; before that it stays blank).
             const state =
               day.state !== 'blank' ? day.state : weekend ? 'off' : absentDates.has(day.date) ? 'absent' : 'blank'
             const isToday = day.date === today

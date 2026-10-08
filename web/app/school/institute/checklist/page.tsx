@@ -68,7 +68,7 @@ export default async function ChecklistPage({
     <div>
       <PageHeader
         title={t('institute.tabChecklist', lang)}
-        crumbs={schoolCrumbs('/school/institute/checklist', lang, { label: t('institute.tabChecklist', lang) })}
+        crumbs={schoolCrumbs('/school/institute', lang, { label: t('institute.title', lang), href: '/school/institute' }, { label: t('institute.tabChecklist', lang) })}
       />
 
       <InstituteTabs active="/school/institute/checklist" lang={lang} />
