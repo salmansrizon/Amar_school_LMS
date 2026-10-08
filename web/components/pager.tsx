@@ -33,6 +33,8 @@ export function Pager({
   lang,
   params = {},
   pageSize,
+  pageParam = 'page',
+  sizeParam = 'size',
 }: {
   page: number
   totalPages: number
@@ -41,7 +43,11 @@ export function Pager({
   params?: Params
   /** When set, shows "showing X–Y of N" and the rows-per-page choice. */
   pageSize?: number
+  /** URL keys, for a second table on the same page (e.g. `rpage` / `rsize`). */
+  pageParam?: string
+  sizeParam?: string
 }) {
+  const own = pageParam === 'page' ? undefined : pageParam
   const fmt = numberFmt(lang)
   const cell = 'flex items-center justify-center rounded-full px-2 text-sm font-semibold'
   // 44px hit area on a phone; the compact 32px / 28px pills from sm up.
@@ -64,7 +70,7 @@ export function Pager({
       {PAGE_SIZES.map((n) => (
         <Link
           key={n}
-          href={withParams(params, { size: String(n) })}
+          href={withParams(params, { [sizeParam]: String(n), [pageParam]: null }, own)}
           scroll={false}
           aria-current={n === pageSize ? 'true' : undefined}
           className={`${cell} ${sizeCell} ${n === pageSize ? 'bg-brand-50 text-brand-700' : 'hover:bg-paper-muted'}`}
@@ -79,7 +85,7 @@ export function Pager({
   const atLast = page >= totalPages
   const step = (target: number, label: string, glyph: string, disabled: boolean) => (
     <Link
-      href={withParams(params, { page: String(target) })}
+      href={withParams(params, { [pageParam]: String(target) }, own)}
       scroll={false}
       aria-label={label}
       aria-disabled={disabled}
@@ -107,7 +113,7 @@ export function Pager({
             ) : (
               <Link
                 key={n}
-                href={withParams(params, { page: String(n) })}
+                href={withParams(params, { [pageParam]: String(n) }, own)}
                 scroll={false}
                 aria-current={n === page ? 'page' : undefined}
                 className={`${cell} ${pageCell} ${n === page ? 'bg-brand-500 text-white' : 'hover:bg-paper-muted'}`}
@@ -131,4 +137,13 @@ export function paginate<T>(rows: T[], rawPage: string | undefined, pageSize: nu
   const page = Math.min(Math.max(1, Number(rawPage) || 1), totalPages)
   const start = (page - 1) * pageSize
   return { page, totalPages, total, items: rows.slice(start, start + pageSize) }
+}
+
+/** Server paging: clamp a raw ?page= to the real last page once the count is
+ *  known, and give the inclusive `.range(from, to)` for it. */
+export function pageRange(rawPage: string | undefined, total: number, pageSize: number) {
+  const totalPages = Math.max(1, Math.ceil(total / pageSize))
+  const page = Math.min(Math.max(1, Math.floor(Number(rawPage)) || 1), totalPages)
+  const from = (page - 1) * pageSize
+  return { page, totalPages, total, from, to: from + pageSize - 1 }
 }

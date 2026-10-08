@@ -11,11 +11,11 @@ import { schoolCrumbs } from '@/lib/school-crumbs'
 import { DataTable, type Column } from '@/components/data-table/data-table'
 import { RecordDrawer } from '@/components/data-table/record-drawer'
 import { ViewLink } from '@/components/data-table/view-link'
-import { paginate, pageSizeFrom } from '@/components/pager'
+import { paginate, pageSizeFrom, Pager } from '@/components/pager'
+import { leavePage } from '../leave-page'
 import { ClassSectionSelect } from '@/components/ui/class-section-select'
 import { filterButtonClass, inputClass } from '@/components/ui/field'
 import { pageTitle } from '@/lib/page-title'
-import { withLeaveColumns } from '@/lib/leave-columns'
 
 // Split off the Students half of the old unified Leave Management page (map
 // #664): search is now Class (schoolRoster's own picker) + name/roll text,
@@ -25,8 +25,6 @@ import { withLeaveColumns } from '@/lib/leave-columns'
 // Map 013: the list is the shared DataTable (status chips, pagination); a
 // row's Details opens a drawer carrying the same approve/reject actions.
 
-const DEFAULT_VIEW_LIMIT = 100
-const FILTERED_VIEW_LIMIT = 500
 const PAGE_SIZE = 20
 
 interface StudentLeaveRow {
@@ -45,10 +43,10 @@ export const generateMetadata = pageTitle('attendance.studentLeaveTitle')
 export default async function StudentLeaveManagementPage({
   searchParams,
 }: {
-  searchParams: Promise<{ classSection?: string; q?: string; status?: string; page?: string; size?: string; view?: string}>
+  searchParams: Promise<{ classSection?: string; q?: string; status?: string; page?: string; size?: string; rpage?: string; rsize?: string; view?: string }>
 }) {
   const params = await searchParams
-  const { classSection = '', q = '', status = '', page, size, view } = params
+  const { classSection = '', q = '', status = '', page, size, rpage, rsize, view } = params
   const pageSize = pageSizeFrom(size, PAGE_SIZE)
   const lang: Lang = await currentLang()
   const { supabase, shiftSelection, startedAcademicYears, academicYearSelection } = await getSchoolContext()
@@ -64,43 +62,38 @@ export default async function StudentLeaveManagementPage({
 
   const filterActive = Boolean(classSection || q)
   const matchedIds = matched.map((s) => s.id)
-  let leaves: StudentLeaveRow[] = []
-  if (filterActive) {
-    if (matchedIds.length) {
-      const filtered = (cols: string) =>
-        supabase
-          .from('student_leaves')
-          .select(cols)
-          .in('student_id', matchedIds)
-          .order('from_day', { ascending: false })
-          .limit(FILTERED_VIEW_LIMIT)
-      // decision_note / decided_at arrive with migration 0219; read without them until then.
-      const { data } = await withLeaveColumns(() => filtered('id, student_id, from_day, to_day, reason, status, decision_note, decided_at'), () => filtered('id, student_id, from_day, to_day, reason, status'))
-      leaves = (data ?? []) as unknown as StudentLeaveRow[]
-    }
-  } else {
-    const recent = (cols: string) =>
-      supabase.from('student_leaves').select(cols).order('created_at', { ascending: false }).limit(DEFAULT_VIEW_LIMIT)
-    const { data } = await withLeaveColumns(() => recent('id, student_id, from_day, to_day, reason, status, decision_note, decided_at'), () => recent('id, student_id, from_day, to_day, reason, status'))
-    leaves = (data ?? []) as unknown as StudentLeaveRow[]
-  }
+  const leavesPage = await leavePage<StudentLeaveRow>({
+    supabase,
+    table: 'student_leaves',
+    personCol: 'student_id',
+    ids: filterActive ? matchedIds : null,
+    status,
+    rawPage: page,
+    pageSize,
+    viewId: view,
+  })
+  const leaves = leavesPage.rows
 
   // Looked up by the leave rows' own student_ids, not from `matched` — the
   // roster is also narrowed by the caller's Global Academic Year Selection
   // (schoolRoster/applyGlobalYearFilterToStudents), which would otherwise
   // blank out the name/roll/class of a leave belonging to a student outside
   // the selected year(s) while leaving the row itself fully actionable.
-  const leaveStudentIds = [...new Set(leaves.map((l) => l.student_id))]
+  const leaveStudentIds = [...new Set([...leaves, ...(leavesPage.viewed ? [leavesPage.viewed] : [])].map((l) => l.student_id))]
   const { data: leaveStudents } = leaveStudentIds.length
     ? await supabase.from('students').select('id, full_name, roll_number, class_name, section').in('id', leaveStudentIds)
     : { data: [] }
   const infoById = new Map((leaveStudents ?? []).map((s) => [s.id, s]))
-  const rows = leaves.map((l) => ({ ...l, student: infoById.get(l.student_id) ?? null }))
+  const withStudent = (l: StudentLeaveRow) => ({ ...l, student: infoById.get(l.student_id) ?? null })
+  const rows = leaves.map(withStudent)
   type Row = (typeof rows)[number]
 
-  const visible = status ? rows.filter((l) => l.status === status) : rows
-  const pageData = paginate(visible, page, pageSize)
-  const viewed = view ? rows.find((l) => l.id === view) : undefined
+  // Two tables on this page, two independent pagers: the roster (rpage/rsize)
+  // is already in memory for the filter; the records page (page/size) is
+  // paged by the database.
+  const rosterSize = pageSizeFrom(rsize, PAGE_SIZE)
+  const rosterPage = paginate(rosterStudents, rpage, rosterSize)
+  const viewed = leavesPage.viewed ? withStudent(leavesPage.viewed) : undefined
 
   const dash = <span className="text-muted">—</span>
   const classOf = (s: Row['student']) => (s?.class_name ? `${s.class_name}${s.section ? ` / ${s.section}` : ''}` : null)
@@ -192,7 +185,7 @@ export default async function StudentLeaveManagementPage({
                 </tr>
               </thead>
               <tbody>
-                {rosterStudents.map((s) => (
+                {rosterPage.items.map((s) => (
                   <tr key={s.id} className="border-b border-line last:border-0">
                     <td className="px-3 py-2 text-sm">{s.roll_number != null ? formatNumber(s.roll_number, lang) : '—'}</td>
                     <td className="px-3 py-2 text-sm font-medium">{s.full_name}</td>
@@ -209,10 +202,22 @@ export default async function StudentLeaveManagementPage({
             </table>
           </div>
         )}
+        {rosterStudents.length > 0 && (
+          <Pager
+            page={rosterPage.page}
+            totalPages={rosterPage.totalPages}
+            total={rosterPage.total}
+            lang={lang}
+            params={params}
+            pageSize={rosterSize}
+            pageParam="rpage"
+            sizeParam="rsize"
+          />
+        )}
       </section>
 
       <DataTable
-        rows={pageData.items}
+        rows={rows}
         rowId={(l) => l.id}
         rowLabel={(l) => l.student?.full_name ?? '—'}
         columns={columns}
@@ -221,14 +226,14 @@ export default async function StudentLeaveManagementPage({
         caption={t('attendance.studentLeaveTitle', lang)}
         search={{ placeholder: t('attendance.leaveSearchStudent', lang) }}
         filters={[{ param: 'classSection', label: t('attendance.classSection', lang), options: combos }]}
-        chips={leaveStatusChips(leaves, lang)}
+        chips={leaveStatusChips(leavesPage.statusCounts, lang)}
         rowActions={(l) => (
           <>
             {l.status === 'pending' && <LeaveActions kind="student" id={l.id} lang={lang} />}
             <ViewLink id={l.id} params={params} label={t('attendance.leaveDetails', lang)} name={l.student?.full_name ?? '—'} />
           </>
         )}
-        pagination={{ page: pageData.page, totalPages: pageData.totalPages, total: pageData.total, pageSize }}
+        pagination={{ page: leavesPage.page, totalPages: leavesPage.totalPages, total: leavesPage.total, pageSize }}
         empty={<p className="rounded-2xl border border-line bg-paper p-card text-sm text-muted">{t('attendance.none', lang)}</p>}
       />
 
