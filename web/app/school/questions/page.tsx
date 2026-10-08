@@ -22,7 +22,7 @@ import { DrawerFooter, DrawerHeader } from '@/components/data-table/drawer-parts
 import { QuestionDrawerBody, questionDrawerCancelHref } from './question-drawer'
 import { pageTitle } from '@/lib/page-title'
 import { loadExtraReplies, loadThreadIds } from '@/lib/student/questions-source'
-import { threadSiblings } from '@/lib/student/question-threads'
+import { supersededMessages, threadSiblings } from '@/lib/student/question-threads'
 
 // The Questions tab of বার্তা ও অনুরোধ (#454 inbox, #509 section), following
 // the exam-landing pattern (013 FC4/013 A3): a one-line late-question warning
@@ -61,7 +61,14 @@ export default async function SchoolQuestionsPage({
     .order('created_at', { ascending: false })
     .limit(500)
 
-  const messages = (data ?? []) as InboxMessage[]
+  // A reply on a follow-up answers the conversation: the first message of that
+  // thread is not "unanswered" (the Student already sees it as answered).
+  const threadOf = await loadThreadIds(supabase)
+  const rawMessages = (data ?? []) as InboxMessage[]
+  const superseded = supersededMessages(rawMessages, threadOf)
+  const messages = rawMessages.map((m) =>
+    superseded.has(m.id) ? { ...m, status: 'answered' as const, replied_at: superseded.get(m.id) ?? null } : m,
+  )
   const groups = groupByTopic(messages)
 
   // This page is already holding every row the questions badge would count, so
@@ -96,7 +103,7 @@ export default async function SchoolQuestionsPage({
   const [furtherReplies, earlier] = viewed
     ? await Promise.all([
         loadExtraReplies(supabase, [viewed.id]),
-        loadThreadIds(supabase).then((threadOf) => threadSiblings(messages, threadOf, viewed.id)),
+        Promise.resolve(threadSiblings(messages, threadOf, viewed.id)),
       ])
     : [null, []]
   const lateList = messages.filter((m) => !isAnswered(m) && waitingHours(m) >= WAITING_LATE_HOURS)
