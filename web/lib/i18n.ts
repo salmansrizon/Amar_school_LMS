@@ -1708,6 +1708,10 @@ const dict = {
     bn: 'লাল চিহ্নিত ঘরগুলো ঠিক করে আবার সংরক্ষণ করুন।',
     en: 'Fix the cells marked in red, then save again.',
   },
+  'student.followUpDiscardConfirm': {
+    bn: 'লেখা ফলো-আপ সংরক্ষণ করা হয়নি। বন্ধ করলে মুছে যাবে। বন্ধ করবেন?',
+    en: 'Your follow-up is not sent. Closing will discard it. Close anyway?',
+  },
   'markEntry.unsaved': { bn: 'সংরক্ষণ করা হয়নি', en: 'Unsaved changes' },
   'markEntry.unsavedConfirm': {
     bn: 'সংরক্ষণ না করা নম্বর আছে। সংরক্ষণ না করে চলে গেলে সেগুলো হারিয়ে যাবে। চলে যাবেন?',
