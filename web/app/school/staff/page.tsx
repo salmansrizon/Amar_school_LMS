@@ -20,6 +20,7 @@ import { CreateStaffForm } from './create-staff-form'
 import { DrawerFooter, DrawerHeader } from '@/components/data-table/drawer-parts'
 import { StaffDrawerBody, staffDrawerCancelHref } from './staff-drawer'
 import { pageTitle } from '@/lib/page-title'
+import { archivedEmployeeLoginActive, disabledStaffLogins, staffLoginState, type StaffLoginState } from '@/lib/staff-login'
 
 // Staff permissions (map 013, AD2), per new_ui/05-administration/staff-permissions:
 // header + stat cards + DataTable with a per-row grant summary. The row's
@@ -27,7 +28,15 @@ import { pageTitle } from '@/lib/page-title'
 // `?view=new` opens the create-login form there. Grant reads/writes unchanged —
 // RLS is still the authority (actions.ts).
 
-type Row = { id: string; name: string; createdAt: string; screens: string[] }
+type Row = {
+  id: string
+  name: string
+  createdAt: string
+  screens: string[]
+  /** #688 */
+  login: StaffLoginState
+  employeeArchived: boolean
+}
 
 const PAGE_SIZE = 20
 const NEW = 'new'
@@ -45,14 +54,19 @@ export default async function StaffPage({
   const { supabase, role } = await getSchoolContext()
   if (role !== 'school_owner') redirect('/school')
 
-  const [{ rows: staff }, { rows: grants }] = await Promise.all([
+  const [{ rows: staff }, { rows: grants }, disabledLogins, { data: archivedLinks }] = await Promise.all([
     selectAllRows((from, to) =>
       supabase.from('profiles').select('id, full_name, created_at').eq('role', 'staff_user').order('created_at').range(from, to),
     ),
     selectAllRows((from, to) =>
       supabase.from('staff_permissions').select('staff_user_id, screen_key').range(from, to),
     ),
+    // #688: which logins are off (null until migration 0241 is applied), and
+    // which belong to an archived Employee.
+    disabledStaffLogins(supabase),
+    supabase.from('employees').select('profile_id').not('profile_id', 'is', null).not('archived_at', 'is', null),
   ])
+  const archivedLogins = new Set((archivedLinks ?? []).map((e) => e.profile_id as string))
 
   const screensBy = new Map<string, string[]>()
   for (const g of grants) screensBy.set(g.staff_user_id, [...(screensBy.get(g.staff_user_id) ?? []), g.screen_key])
@@ -64,6 +78,8 @@ export default async function StaffPage({
     createdAt: s.created_at,
     // Only keys the toggles know; order follows GRANTABLE_SCREENS.
     screens: GRANTABLE_SCREENS.map((sc) => sc.key as string).filter((k) => screensBy.get(s.id)?.includes(k)),
+    login: staffLoginState(disabledLogins, s.id),
+    employeeArchived: archivedLogins.has(s.id),
   }))
 
   const needle = q.trim().toLowerCase()
@@ -91,6 +107,17 @@ export default async function StaffPage({
           <EntityAvatar name={r.name} id={r.id} />
           <div className="min-w-0">
             <div className="truncate font-semibold">{r.name}</div>
+            {(r.login === 'disabled' || r.employeeArchived) && (
+              <div className="mt-0.5 flex flex-wrap gap-1">
+                {r.login === 'disabled' && <Pill tone="muted">{t('staff.loginDisabled', lang)}</Pill>}
+                {r.employeeArchived && (
+                  // Needs attention while the login still works.
+                  <Pill tone={archivedEmployeeLoginActive(r.login, true) ? 'alert' : 'muted'}>
+                    {t('staff.employeeArchived', lang)}
+                  </Pill>
+                )}
+              </div>
+            )}
             <div className="text-xs text-muted">
               {t('staff.joined', lang)} {date.format(new Date(r.createdAt))}
             </div>
@@ -247,6 +274,7 @@ export default async function StaffPage({
             screenCount={viewed.screens.length}
             staffUserId={viewed.id}
             granted={new Set(viewed.screens)}
+            login={viewed.login}
             lang={lang}
           />
         ) : view === NEW ? (

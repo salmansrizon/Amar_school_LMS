@@ -688,6 +688,27 @@ const dict = {
   'staff.access': { bn: 'অ্যাক্সেস', en: 'Access' },
   'staff.screenCount': { bn: 'টি স্ক্রিন', en: 'screens' },
   'staff.noAccess': { bn: 'কোনো অ্যাক্সেস নেই', en: 'No access' },
+  // #688: turning a Staff login off and on.
+  'staff.loginDisabled': { bn: 'লগইন বন্ধ', en: 'Login disabled' },
+  'staff.employeeArchived': { bn: 'কর্মচারী পুরাতন তালিকায়', en: 'Employee archived' },
+  'staff.disableLogin': { bn: 'লগইন বন্ধ করুন', en: 'Disable login' },
+  'staff.enableLogin': { bn: 'লগইন চালু করুন', en: 'Enable login' },
+  'staff.disableLoginConfirm': {
+    bn: 'এই ব্যক্তি আর লগইন করতে পারবেন না এবং খোলা সেশন বন্ধ হবে। অনুমতিগুলো থেকে যাবে, তাই পরে আবার চালু করা যাবে।',
+    en: 'This person can no longer sign in, and open sessions end. Their permissions are kept, so you can turn the login back on later.',
+  },
+  'staff.loginDisabledNote': {
+    bn: 'এই লগইন বন্ধ আছে। অনুমতিগুলো রাখা আছে; চালু করলে আগের মতো কাজ করবে।',
+    en: 'This login is disabled. Its permissions are kept; enabling it gives back the same access.',
+  },
+  'staff.loginToggleUnavailable': {
+    bn: 'এই সুবিধা এখনো চালু হয়নি। ডেটাবেস হালনাগাদের পর আবার চেষ্টা করুন।',
+    en: 'This is not available yet. Try again after the database update.',
+  },
+  'staff.loginToggleFailed': {
+    bn: 'লগইনের অবস্থা বদলানো যায়নি। আবার চেষ্টা করুন।',
+    en: 'Could not change the login. Please try again.',
+  },
   'staff.withAccess': { bn: 'অ্যাক্সেস আছে', en: 'Has access' },
   'staff.totalStaff': { bn: 'মোট স্টাফ', en: 'Total staff' },
   'staff.loginsNote': { bn: 'স্টাফ লগইন', en: 'Staff logins' },
@@ -1170,6 +1191,19 @@ const dict = {
     en: 'This employee has an active staff login. Archiving does not turn it off — remove its access separately on the Staff page.',
   },
   'employees.archiveLoginLink': { bn: 'স্টাফ পাতায় যান', en: 'Open Staff page' },
+  // #688
+  'employees.archiveDisableLogin': {
+    bn: 'এই ব্যক্তির স্টাফ লগইনও বন্ধ করুন',
+    en: "Also disable this person's staff login",
+  },
+  'employees.archiveLoginNotDisabled': {
+    bn: 'কর্মচারীকে পুরাতন তালিকায় পাঠানো হয়েছে, কিন্তু স্টাফ লগইন বন্ধ করা যায়নি। স্টাফ পাতা থেকে বন্ধ করুন।',
+    en: 'The employee was archived, but the staff login could not be disabled. Disable it from the Staff page.',
+  },
+  'employees.restoreLoginStillDisabled': {
+    bn: 'কর্মচারীকে ফিরিয়ে আনা হয়েছে। স্টাফ লগইন এখনো বন্ধ আছে; স্টাফ পাতা থেকে চালু করুন।',
+    en: 'The employee was restored. The staff login is still disabled; enable it from the Staff page.',
+  },
   'employees.toastSaved': { bn: 'কর্মচারীর তথ্য সংরক্ষিত হয়েছে', en: 'Employee saved' },
   'employees.toastArchived': { bn: 'কর্মচারীকে পুরাতন তালিকায় পাঠানো হয়েছে', en: 'Employee moved to Old Employees' },
   'employees.errNameRequired': { bn: 'নাম দিতে হবে', en: 'Name is required' },

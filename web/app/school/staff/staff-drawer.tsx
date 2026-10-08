@@ -4,6 +4,8 @@ import { withParams, type Params } from '@/lib/url-params'
 import { Pill } from '@/components/data-table/data-table'
 import { DrawerFacts, type DrawerFact } from '@/components/data-table/drawer-parts'
 import { GrantList } from './[id]/grant-list'
+import { LoginToggle } from './[id]/login-toggle'
+import type { StaffLoginState } from '@/lib/staff-login'
 
 // Staff record drawer body (drawer redesign): Joined/Access facts above the
 // existing GrantList (per-screen toggles — unchanged, still the RLS-backed
@@ -14,12 +16,15 @@ export function StaffDrawerBody({
   screenCount,
   staffUserId,
   granted,
+  login,
   lang,
 }: {
   joinedLabel: string
   screenCount: number
   staffUserId: string
   granted: Set<string>
+  /** #688: 'unavailable' hides the control. */
+  login: StaffLoginState
   lang: Lang
 }) {
   const fmt = numberFmt(lang)
@@ -43,6 +48,7 @@ export function StaffDrawerBody({
     <div className="space-y-4">
       <DrawerFacts facts={facts} />
       <GrantList staffUserId={staffUserId} granted={granted} lang={lang} />
+      {login !== 'unavailable' && <LoginToggle staffUserId={staffUserId} disabled={login === 'disabled'} lang={lang} />}
     </div>
   )
 }

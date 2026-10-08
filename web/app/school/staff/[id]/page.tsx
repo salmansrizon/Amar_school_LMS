@@ -5,6 +5,8 @@ import { getSchoolContext } from '@/lib/school/context'
 import { schoolCrumbs } from '@/lib/school-crumbs'
 import { Card, PageHeader } from '@/components/ui/page'
 import { GrantList } from './grant-list'
+import { LoginToggle } from './login-toggle'
+import { disabledStaffLogins, staffLoginState } from '@/lib/staff-login'
 
 export default async function StaffPermissionsPage({
   params,
@@ -29,6 +31,8 @@ export default async function StaffPermissionsPage({
     .select('screen_key')
     .eq('staff_user_id', id)
   const granted = new Set((grants ?? []).map((g) => g.screen_key))
+  // #688: 'unavailable' until migration 0241 is applied; the control is then hidden.
+  const login = staffLoginState(await disabledStaffLogins(supabase), id)
 
   return (
     <>
@@ -44,6 +48,12 @@ export default async function StaffPermissionsPage({
       <Card>
         <GrantList staffUserId={staff.id} granted={granted} lang={lang} />
       </Card>
+
+      {login !== 'unavailable' && (
+        <div className="mt-4">
+          <LoginToggle staffUserId={staff.id} disabled={login === 'disabled'} lang={lang} />
+        </div>
+      )}
     </>
   )
 }
