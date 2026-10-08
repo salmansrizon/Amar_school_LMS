@@ -162,7 +162,7 @@ export default async function AttendanceBookPage({
         <div className="flex gap-2">
           <Link
             href={buildLink({ mode: 'filled' })}
-            className={`rounded-full border px-3 py-1 text-xs font-semibold ${
+            className={`inline-flex min-h-11 items-center justify-center rounded-full border px-4 text-xs font-semibold ${
               mode === 'filled' ? 'border-brand-500 bg-brand-500 text-white' : 'border-line hover:bg-paper-muted'
             }`}
           >
@@ -170,7 +170,7 @@ export default async function AttendanceBookPage({
           </Link>
           <Link
             href={buildLink({ mode: 'blank' })}
-            className={`rounded-full border px-3 py-1 text-xs font-semibold ${
+            className={`inline-flex min-h-11 items-center justify-center rounded-full border px-4 text-xs font-semibold ${
               mode === 'blank' ? 'border-brand-500 bg-brand-500 text-white' : 'border-line hover:bg-paper-muted'
             }`}
           >
