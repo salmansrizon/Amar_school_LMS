@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { takaInWords } from '@/lib/amount-words'
+import { banglaAmountInWords } from '@/lib/bangla-amount-words'
 import {
   receiptTotal,
   feePeriodLabel,
@@ -193,7 +194,7 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
 
         <p className="mt-4 rounded-md bg-paper-muted px-3 py-2 text-xs">
           <span className="font-semibold text-muted">{t('fees.inWords', lang)}: </span>
-          {takaInWords(total)}
+          {lang === 'bn' && Number.isInteger(total) && total <= 999999999 ? banglaAmountInWords(total) : takaInWords(total)}
         </p>
 
         {record.note && (
