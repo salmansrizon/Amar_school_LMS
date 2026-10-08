@@ -356,7 +356,17 @@ export default async function FeesPage({
       card: 'badge',
       cell: (s) =>
         recordMap.has(s.id) ? (
-          <Pill tone="mint">{t('fees.collected', lang)}</Pill>
+          // Same verdict as the records table: a record with money still due is
+          // not "collected" (#704).
+          (() => {
+            const rec = recordMap.get(s.id)!
+            const standing = feeStanding({ pay_amount: Number(rec.pay_amount), due_amount: Number(rec.due_amount) }) ?? 'due'
+            return standing === 'paid' ? (
+              <Pill tone="mint">{t('fees.collected', lang)}</Pill>
+            ) : (
+              <Pill tone={STANDING_TONE[standing]}>{t(STANDING_LABEL[standing], lang)}</Pill>
+            )
+          })()
         ) : (
           <Pill tone="sun">{t('fees.notCollected', lang)}</Pill>
         ),
