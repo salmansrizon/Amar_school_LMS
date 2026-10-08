@@ -257,3 +257,49 @@ Seen instead: a student admitted after the marked days (my EVAL2 student, class 
 - Student `EVAL2-শিক্ষার্থী পরীক্ষক` archived ("পুরাতন শিক্ষার্থী"; 0 rows in the active list).
 - LEFT BEHIND (no removal in the app): the archived student row and its login `s9293@sch3d5b6aaf.students.invalid`; three question rows by that student
   (`EVAL2-xss প্রশ্ন`, `EVAL2-ফরম্যাট প্রশ্ন` + one follow-up, one of them answered by the owner) and whatever notifications those created.
+
+## Part 3 — jev (2026-10-08, model jev-1.13.0)
+
+`jev_review`, per file, RAW `git diff b40c47b..8d903dd -- <file>`, real unit-test output passed in `tests`. **9 of the 20 requested files were sent.**
+The other 11 were NOT sent: `markdown.tsx`, `rich-text-field.tsx`, `rich-text.ts`, `student/dashboard.ts`, `question-threads.ts`, `daily.ts`, `student-nav.ts`,
+`student-shell.tsx`, `ui/widgets.tsx`, `student/page.tsx`, `student/questions/page.tsx` (about 1,900 diff lines; the tool takes the text typed into the call, and
+I ran out of session budget to re-type them verbatim). No summary or excerpt was sent in their place.
+
+| File | action | composite | safe_to_apply | limiting rubric | correctness (conf) |
+|---|---|---|---|---|---|
+| `app/school/exams/[id]/marks-entry/actions.ts` | escalate | 0.85 | 0.77 | test_gap | 1.91 (0.85) |
+| `app/school/notices/actions.ts` | escalate | 0.77 | 0.70 | test_gap | 1.88 (0.82) |
+| `lib/exam-setup.ts` | escalate | 0.81 | 0.83 | test_gap, blast_radius | 1.94 (0.90) |
+| `lib/publishing.ts` | escalate | 0.76 | 0.73 | test_gap | 1.84 (0.74) |
+| `components/native-dialog.tsx` | escalate | 0.24 | 0.08 | spec_match | **0.11 (0.82)** |
+| `components/login-form.tsx` | escalate | 0.78 | 0.76 | blast_radius | 1.85 (0.77) |
+| `app/school/attendance/calendar-shell.tsx` | escalate | 0.84 | 0.84 | test_gap | 1.91 (0.88) |
+| `components/student/phone-rows.tsx` | escalate | 0.68 | 0.44 | correctness | 1.49 (0.23) |
+| `lib/student/result-fallback.ts` | escalate | 0.77 | 0.77 | blast_radius | 1.86 (0.78) |
+
+Call 1 (first four): action escalate, composite 0.80, safe_to_apply 0.70, reason `confidence_below_review`.
+Call 2 (last five): action escalate, composite 0.66, safe_to_apply 0.08, reasons `confidence_below_review`, `safe_to_apply_below_review`.
+- `native-dialog.tsx` correctness 0.11 agrees with my observation: the diff as it stands at `8d903dd` breaks server rendering of an initially open dialog
+  (I passed the failing test and the browser error as test output). Fixed in `e6ace1e`.
+- `phone-rows.tsx` low confidence (0.23) matches the known brittleness: CSS selectors on DataTable's markup. In the browser it works at 390/639/640/768.
+- Every "escalate" on the server-side files is driven by test_gap at confidence 0 — consistent with my own note that the action wiring has no test.
+
+`jev_verify` on 15 claims with the captured evidence: 12 verified, 2 contradicted, 1 unsupported; 3 flagged for review.
+- Verified at 0.92–1.0: SSR failure at 8d903dd and its fix; Markdown path clean; login form; CRLF defect and fix; fee roster label; teacher refused in the UI;
+  single delete request; phone row heights; only migration 0214 differs.
+- The three NOT verified were control claims I wrote false on purpose, and jev rejected each: "impossible date shown refused in the browser" (contradicted 0.83),
+  "server-side exam guard exercised directly" (unsupported / contradicted 0.94), "DEMO student's fee row and attendance checked in a browser" (contradicted 0.80).
+  These are exactly my NOT CHECKED items.
+- Review flags: "far-future date refused, nothing saved" 0.52 — the evidence block also described the undated record my failed bypass created, which muddied it;
+  I trust the observation (URL stayed on the form, Bangla error shown, no new row for that title). "All test data removed" 0.79 — verified, just under the auto threshold.
+- No disagreement between jev and what I observed.
+
+## FINAL VERDICT (evaluated commit: `8d903dd`; `merge/staging-sync` has since moved to `b234fa5`, which I did not evaluate)
+
+**Ready with conditions.**
+1. Merge my three fixes: `78ff910` (super-admin password forms), `e6ace1e` (dialog server rendering), `db69a5b` (CRLF rendering of questions and replies).
+2. Have someone with the DEMO student's login look at B / H / J on the student side (fee-due row and card, attendance figures and bars) — not checked here.
+3. Known gates stay open: integration + e2e in the pipeline, migration on staging, #703 item 4.0.
+Not blocking, to file: D-2 fee roster label; "tomorrow" routine wording; Bangla-digit leftovers on owner exam/marks/routine pages; `aria-current` on two calendars;
+tap targets under 44px (breadcrumbs, filter comboboxes 42px, profile correction controls); Escape discards a follow-up draft; undo after a toolbar action;
+absolute local links in one research doc; no toast after exam delete / question reply; soft 404 with informal wording in the owner portal.
