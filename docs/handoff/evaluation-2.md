@@ -229,3 +229,24 @@ Seen instead: a student admitted after the marked days (my EVAL2 student, class 
   - `/school/classes/routine` → period numbers 1–8.
   - `/school/employees` → "মেশিন আইডি 229" (an identifier; arguably fine).
   - `/school/my-classes` (teacher) → "শিক্ষার্থী সংখ্যা: 1".
+
+### N. Accessibility basics — PARTLY (browser, 390px; 13 student pages + owner /school, /school/fees, /school/notices)
+- Unlabeled inputs: none found. (The only nameless controls are the comboboxes' arrow buttons, which are `tabindex=-1 aria-hidden`.)
+- Page titles: every student page and the three owner pages have their own `<title>` and one `h1`.
+- Focus visibility: first 10 Tab stops inside `main` on every page have an outline or ring.
+- Tap targets under 44px at 390px (size w×h):
+  - every student page except home: breadcrumb "হোম" 25×20; owner: breadcrumb "ড্যাশবোর্ড" 54×20;
+  - filter comboboxes 274×42 (notices, tasks, materials, exams, leave, questions subject picker, profile; owner fees ×4, notices ×2);
+  - student attendance: link "ছুটি →" 38×20; student profile: correction input 308×36, button "সংশোধনের অনুরোধ" 154×32;
+  - owner fees: "বকেয়া তালিকা ও তাগাদা →" 155×20; owner notices: "দেখুন →" 49×20 and row link 42×44 wide;
+  - toast action button 98×24 (from P1.4).
+  Home dashboards (student and owner): none.
+- Dark-mode contrast (computed for all text in `main` with a solid background): everything ≥ AA except the muted outside-month day numbers on the
+  student calendar (2.68:1, `text-muted/50`, decorative and `aria-hidden`).
+- `aria-current="date"` missing on two owner calendars (see G).
+
+### O. Docs and repo — MET with one note
+- 98 Markdown files, 301 relative links checked. `docs/README.md`: all links resolve. `README.md` and `CONTEXT.md`: no mention of `ui/`, `index.html`, `figma/`, `handsoff/`.
+- Removed paths are named only as history: `docs/README.md:7` (retired prototype note), `docs/adr/0006`, `docs/_revamp/inventory.md`, the handoff / plan / cleanup records, the student audit.
+- Note: `docs/research/2026-08-29-bangladesh-market-compliance-gap-analysis.md` has 10 links written as absolute paths on the author's machine
+  (`/Users/salmansakib/Documents/Projects/Amar_school_LMS/...`) — they work nowhere else. Older file, only moved into version control by the docs revamp.
