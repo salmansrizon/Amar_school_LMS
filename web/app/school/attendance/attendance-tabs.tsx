@@ -2,7 +2,8 @@ import type { ReactNode } from 'react'
 import { t, type Lang } from '@/lib/i18n'
 import { SegmentedControl } from '@/components/ui/segmented-control'
 import { SectionTabs } from '@/components/ui/section-tabs'
-import { ATTENDANCE_GROUPS as GROUPS, attendanceGroupHref } from '@/lib/attendance-nav'
+import { attendanceGroupHref } from '@/lib/attendance-nav'
+import { attendanceGroupsFor, isEmployeeAttendanceAdmin } from '@/lib/school/employee-attendance-admin'
 
 // RFID card assignment tab intentionally removed — RFID is disabled for now, so
 // attendance is manual only (mark/book/employee/leave/off-days).
@@ -19,8 +20,12 @@ import { ATTENDANCE_GROUPS as GROUPS, attendanceGroupHref } from '@/lib/attendan
 // only the area row.
 //
 // The group/tab data lives in lib/attendance-nav.ts.
+//
+// #677: a teacher (a Staff User with an employees row) does not get the
+// Employees and Machine areas; the pages refuse her too. Async server component
+// so no page has to pass the answer in.
 
-export function AttendanceTabs({
+export async function AttendanceTabs({
   active,
   lang,
   extra,
@@ -33,6 +38,7 @@ export function AttendanceTabs({
    *  second underline tab row plus a third Calendar/Table row). */
   extra?: ReactNode
 }) {
+  const GROUPS = attendanceGroupsFor(await isEmployeeAttendanceAdmin())
   const activeGroup = GROUPS.find((g) => (g.tabs ? g.tabs.some((tab) => tab.href === active) : g.href === active))
   const subItems = activeGroup?.tabs?.map((tab) => ({ href: tab.href, label: t(tab.key, lang) }))
   const areas = GROUPS.map((g) => ({ href: attendanceGroupHref(g.id), labelKey: g.labelKey }))

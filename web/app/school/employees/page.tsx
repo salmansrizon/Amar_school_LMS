@@ -3,6 +3,7 @@ import { CalendarOff, Clock, SquarePen, UserCheck, Users } from 'lucide-react'
 import { currentLang } from '@/lib/i18n-server'
 import { t, numberFmt, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
+import { isEmployeeAttendanceAdmin } from '@/lib/school/employee-attendance-admin'
 import { canOpenScreen } from '@/lib/auth/screens'
 import { employeeCategoryLabel, matchesEmployeeDirectoryQuery } from '@/lib/employees'
 import { ACADEMIC_SHIFT_LABEL_KEY, isKnownAcademicShift } from '@/lib/institute'
@@ -74,7 +75,8 @@ export default async function EmployeesPage({
   const lang: Lang = await currentLang()
   const { supabase, role, grants, configuredShifts, weeklyOffDays } = await getSchoolContext()
   const today = schoolToday()
-  const canAttendance = canOpenScreen(role, grants, 'attendance')
+  // #677: the employee attendance pages are Owner and office staff only.
+  const canAttendance = canOpenScreen(role, grants, 'attendance') && (await isEmployeeAttendanceAdmin())
 
   const [
     { rows: employees },

@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
+import { requireEmployeeAttendanceAdmin } from '@/lib/school/employee-attendance-admin'
 import { EMPLOYEE_CATEGORIES } from '@/lib/employees'
 import {
   OFFICE_HOUR_DAYS,
@@ -49,6 +50,8 @@ export default async function OfficeHourPage({
 }) {
   const lang: Lang = await currentLang()
   const { supabase, configuredShifts } = await getSchoolContext()
+  // #677: Owner and office staff only; a teacher is refused.
+  await requireEmployeeAttendanceAdmin('/school/attendance/employee/office-hour')
   const { shift: requestedShift } = await searchParams
 
   const shiftOptions = officeHourShiftOptions(configuredShifts)

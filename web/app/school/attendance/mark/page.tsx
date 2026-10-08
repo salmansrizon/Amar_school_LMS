@@ -5,6 +5,7 @@ import { BookOpen, CalendarClock, CalendarOff, ClipboardList, TrendingUp, UserCh
 import { currentLang } from '@/lib/i18n-server'
 import { t, numberFmt, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
+import { isEmployeeAttendanceAdmin } from '@/lib/school/employee-attendance-admin'
 import { studentRegister } from '@/lib/school/roster-source'
 import { classScopeFor } from '@/lib/school/class-scope'
 import { isOffDayIso } from '@/lib/attendance-manual'
@@ -188,7 +189,9 @@ export default async function MarkAttendancePage({
         href: `/school/attendance/mark?date=${date}`,
       }
     : null
-  const pendingLeaveTotal = studentLeavePending + employeeLeavePending
+  // #677: a teacher is not shown the employee side of Attendance.
+  const employeeAdmin = await isEmployeeAttendanceAdmin()
+  const pendingLeaveTotal = studentLeavePending + (employeeAdmin ? employeeLeavePending : 0)
 
   return (
     <div>
@@ -270,7 +273,9 @@ export default async function MarkAttendancePage({
               label: t('attendance.studentLeaveTitle', lang),
               icon: <CalendarOff className="size-4" />,
             },
-            { href: '/school/attendance/employee', label: t('attendance.tabEmployee', lang), icon: <UserCheck className="size-4" /> },
+            ...(employeeAdmin
+              ? [{ href: '/school/attendance/employee', label: t('attendance.tabEmployee', lang), icon: <UserCheck className="size-4" /> }]
+              : []),
           ]}
         />
       </div>
@@ -382,7 +387,7 @@ export default async function MarkAttendancePage({
                   />
                 </li>
               )}
-              {employeeLeavePending > 0 && (
+              {employeeAdmin && employeeLeavePending > 0 && (
                 <li className="flex flex-wrap items-center justify-between gap-2 py-3">
                   <p className="font-semibold">
                     {t('attendance.employeeLeavesPendingLabel', lang)}: {n(employeeLeavePending)}
