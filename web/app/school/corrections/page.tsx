@@ -155,6 +155,7 @@ export default async function CorrectionsQueuePage({
   return (
     <>
       <PageHeader
+        icon="corrections"
         title={t('hub.title', lang)}
         crumbs={schoolCrumbs('/school/corrections', lang, [
           { label: t('hub.title', lang), href: '/school/questions' },

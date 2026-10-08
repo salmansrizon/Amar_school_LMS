@@ -15,6 +15,7 @@ import { DataTable, Pill, type Column } from '@/components/data-table/data-table
 import { RecordDrawer } from '@/components/data-table/record-drawer'
 import { ViewLink } from '@/components/data-table/view-link'
 import { pageTitle } from '@/lib/page-title'
+import { DateField } from '@/components/ui/date-field'
 
 // Vouchers (map 013 FC1): stat cards (income / expense over the listed range),
 // category panel + new-voucher form (unchanged), then the vouchers DataTable
@@ -180,8 +181,8 @@ export default async function VouchersPage({
       <Form className="mb-grid flex flex-wrap items-center gap-2" action="/school/fees/vouchers">
         {q && <input type="hidden" name="q" value={q} />}
         {type && <input type="hidden" name="type" value={type} />}
-        <input name="from" type="date" defaultValue={from} aria-label={t('vouchers.from', lang)} className={dateInputClass()} />
-        <input name="to" type="date" defaultValue={to} aria-label={t('vouchers.to', lang)} className={dateInputClass()} />
+        <DateField lang={lang} name="from" defaultValue={from} aria-label={t('vouchers.from', lang)} className={dateInputClass()} />
+        <DateField lang={lang} name="to" defaultValue={to} aria-label={t('vouchers.to', lang)} className={dateInputClass()} />
         <button
           type="submit"
           className={filterButtonClass()}
@@ -215,6 +216,7 @@ export default async function VouchersPage({
         pagination={{ page: pageData.page, totalPages: pageData.totalPages, total: pageData.total, pageSize }}
         empty={
           <EmptyState
+            icon="fees"
             title={t('vouchers.noVouchers', lang)}
             action={{ href: '/school/fees/vouchers', label: t('students.clearFilters', lang) }}
             lang={lang}

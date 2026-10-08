@@ -13,7 +13,7 @@ import { isPrintPath } from '@/lib/print-path'
 
 // #540: 44px thumb floor on a phone, compact pill on a pointer device.
 const triggerClass =
-  'inline-flex min-h-11 cursor-pointer items-center justify-center gap-1.5 rounded-full border border-line-strong px-4 text-xs font-semibold hover:bg-paper-muted disabled:opacity-50 sm:min-h-9 sm:px-3'
+  'inline-flex min-h-11 cursor-pointer items-center justify-center gap-1.5 rounded-full border border-line-strong px-4 text-xs font-semibold hover:bg-paper-muted disabled:opacity-50'
 const iconClass =
   'inline-flex size-9 cursor-pointer items-center justify-center rounded-full text-muted hover:bg-paper-muted hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300'
 

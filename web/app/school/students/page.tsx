@@ -161,7 +161,7 @@ export default async function StudentsPage({
         if (!f) return <Pill tone="muted">{t('students.feeNotBilled', lang)}</Pill>
         return (
           // Due fees need attention now; paid/partial are informational, no pulse.
-          <Pill tone={FEE_TONE[f.standing]} pulse={f.standing === 'due'}>
+          <Pill tone={FEE_TONE[f.standing]} pulse={f.standing === 'due' && s.id === firstDueId}>
             {t(FEE_LABEL[f.standing], lang)}
             {f.standing !== 'paid' && ` ৳${fmt.format(f.due)}`}
           </Pill>
@@ -175,6 +175,7 @@ export default async function StudentsPage({
   const empty =
     roster.empty === 'unassigned' ? (
       <EmptyState
+        icon="students"
         title={t('students.noClassAssigned', lang)}
         body={t('students.noClassAssignedHelp', lang)}
         action={{ href: '/school', label: t('denied.back', lang) }}
@@ -182,6 +183,7 @@ export default async function StudentsPage({
       />
     ) : roster.empty === 'no-match' || roster.students.length > 0 ? (
       <EmptyState
+        icon="students"
         title={t('students.noMatch', lang)}
         body={t('students.noMatchHelp', lang)}
         action={{ href: '/school/students', label: t('students.clearFilters', lang) }}
@@ -189,6 +191,7 @@ export default async function StudentsPage({
       />
     ) : (
       <EmptyState
+        icon="students"
         title={t('students.none', lang)}
         action={{ href: '/school/students/new', label: t('students.newAdmission', lang) }}
         lang={lang}
@@ -198,9 +201,13 @@ export default async function StudentsPage({
   const secondary =
     'inline-flex h-11 items-center rounded-full border border-line-strong px-4 text-xs font-semibold hover:bg-paper-muted'
 
+  // One pulse per list: only the first row that needs a look keeps it.
+  const firstDueId = pageData.items.find((s) => fees.get(s.id)?.standing === 'due')?.id
+
   return (
-    <>
+    <div className="ui-rows">
       <PageHeader
+        icon="students"
         title={t('students.listTitle', lang)}
         subtitle={t('students.pageSubtitle', lang)}
         crumbs={schoolCrumbs('/school/students', lang, { label: t('students.listTitle', lang) })}
@@ -476,6 +483,6 @@ export default async function StudentsPage({
             <StudentProfile id={viewed.id} lang={lang} />
           ))}
       </RecordDrawer>
-    </>
+    </div>
   )
 }

@@ -1,9 +1,9 @@
 // Generic streamed skeleton (#301). Shown while a route's server queries resolve
 // so the user sees structure instead of a blank wait. Reused by the super-admin /
 // distributor / agent / gov loading.tsx.
-export function PageSkeleton({ cards = 3, rows = 6 }: { cards?: number; rows?: number }) {
+export function PageSkeleton({ cards = 3, rows = 6, shimmer = false }: { cards?: number; rows?: number; shimmer?: boolean }) {
   return (
-    <div className="mx-auto w-full max-w-4xl animate-pulse p-6" aria-hidden="true">
+    <div className={`mx-auto w-full max-w-4xl p-6 ${shimmer ? 'ui-shimmer' : 'animate-pulse'}`} aria-hidden="true">
       <div className="mb-6 h-8 w-56 rounded bg-line-strong" />
       {cards > 0 && (
         <div className="mb-6 grid gap-3 sm:grid-cols-3">

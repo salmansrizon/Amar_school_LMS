@@ -9,6 +9,7 @@ import { saveVoucher, saveVoucherCategory } from './actions'
 import { dateInputClass } from '@/components/ui/field'
 import { ComboboxField } from '@/components/ui/combobox-field'
 import { SelectField } from '@/components/ui/select-field'
+import { DateField } from '@/components/ui/date-field'
 
 export interface CategoryOption {
   id: string
@@ -78,7 +79,7 @@ export function NewVoucherForm({ categories, lang }: { categories: CategoryOptio
         <label className={labelClass} htmlFor="txn_date">
           {t('vouchers.date', lang)}
         </label>
-        <input id="txn_date" name="txn_date" type="date" defaultValue={today} className={dateInputClass({ size: 'md', fullWidth: true })} />
+        <DateField lang={lang} id="txn_date" name="txn_date" defaultValue={today} className={dateInputClass({ size: 'md', fullWidth: true })} />
       </div>
       <div className="sm:col-span-2">
         <label className={labelClass} htmlFor="description">

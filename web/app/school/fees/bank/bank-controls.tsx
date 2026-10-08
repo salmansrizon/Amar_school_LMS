@@ -8,6 +8,7 @@ import { t, formatMoney, type Lang } from '@/lib/i18n'
 import { recordBankTransaction, saveBankAccount } from './actions'
 import { dateInputClass } from '@/components/ui/field'
 import { SelectField } from '@/components/ui/select-field'
+import { DateField } from '@/components/ui/date-field'
 
 /** "+ New Account" form: Name, Type (Cash/Bank), Opening Balance. No
  *  dedicated mockup screen for this (bank-cash-accounts.html only shows the
@@ -162,7 +163,7 @@ export function TransactionForm({
           <label className={labelClass} htmlFor="txn_date">
             {t('vouchers.date', lang)}
           </label>
-          <input id="txn_date" name="txn_date" type="date" defaultValue={today} className={dateInputClass({ size: 'md', fullWidth: true })} />
+          <DateField lang={lang} id="txn_date" name="txn_date" defaultValue={today} className={dateInputClass({ size: 'md', fullWidth: true })} />
         </div>
         {accountType === 'bank' && (
           <>
@@ -193,7 +194,7 @@ export function TransactionForm({
                   <label className={labelClass} htmlFor="cheque_date">
                     {t('bank.chequeDate', lang)}
                   </label>
-                  <input id="cheque_date" name="cheque_date" type="date" className={dateInputClass({ size: 'md', fullWidth: true })} />
+                  <DateField lang={lang} id="cheque_date" name="cheque_date" className={dateInputClass({ size: 'md', fullWidth: true })} />
                 </div>
               </>
             )}

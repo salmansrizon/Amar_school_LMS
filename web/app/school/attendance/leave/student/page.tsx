@@ -141,6 +141,7 @@ export default async function StudentLeaveManagementPage({
   return (
     <div>
       <PageHeader
+        icon="attendance"
         title={t('attendance.studentLeaveTitle', lang)}
         crumbs={schoolCrumbs('/school/attendance', lang, { label: t('attendance.title', lang), href: '/school/attendance' }, { label: t('attendance.studentLeaveTitle', lang) })}
       />

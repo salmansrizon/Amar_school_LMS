@@ -89,6 +89,7 @@ export default async function ApprovalsPage({
   return (
     <>
       <PageHeader
+        icon="approvals"
         title={t('approvals.title', lang)}
         subtitle={t('approvals.pageSubtitle', lang)}
         crumbs={schoolCrumbs('/school/approvals', lang, [{ label: t('approvals.title', lang) }])}

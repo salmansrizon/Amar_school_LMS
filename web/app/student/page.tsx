@@ -1,3 +1,4 @@
+import { pickPulse } from '@/lib/ui/pulse'
 import Link from 'next/link'
 import { CalendarClock, CalendarDays } from 'lucide-react'
 import { currentLang } from '@/lib/i18n-server'
@@ -206,6 +207,17 @@ export default async function StudentHome() {
     action: { href: a.href, label: t('student.dash.open', lang) },
   }))
 
+  // One pulse for the whole dashboard. The strip above already pulses its first
+  // alert row; a stat card only pulses when the strip has none, and then only the
+  // most urgent card does.
+  const statPulse = alerts.some((a) => a.tone === 'alert')
+    ? null
+    : pickPulse([
+        { key: 'homework', urgency: 3, active: taskCounts.overdue },
+        { key: 'fee', urgency: 2, active: fee.tone === 'alert' },
+        { key: 'attendance', urgency: 1, active: attTone === 'alert' },
+      ])
+
   const upcoming = buildStudentUpcoming({ exams: examRows, offDays: routine.offDays, tasks }, today, {
     lang,
     holidayTitle: t('upcoming.holidayDefault', lang),
@@ -250,6 +262,7 @@ export default async function StudentHome() {
   return (
     <main className="w-full px-gutter pt-section pb-16">
       <PageHeader
+        icon="home"
         title={student.full_name}
         crumbs={{ lang, items: [{ label: t('student.nav.home', lang) }] }}
         subtitle={subtitle}
@@ -298,7 +311,7 @@ export default async function StudentHome() {
           label={t('student.dash.attendanceThisMonth', lang)}
           value={percent === null ? '—' : `${fmt(percent)}%`}
           progress={percent ?? undefined}
-          pulse={attTone === 'alert'}
+          pulse={statPulse === 'attendance'}
           note={
             percent === null
               ? t('student.attNoRecords', lang)
@@ -309,7 +322,7 @@ export default async function StudentHome() {
         <StatCard
           icon={<Icon name="fees" className="size-5" />}
           tone={fee.tone}
-          pulse={fee.tone === 'alert'}
+          pulse={statPulse === 'fee'}
           label={t('student.dash.feeStatus', lang)}
           value={feeRows.length ? formatMoney(fee.due, lang) : '—'}
           note={
@@ -324,7 +337,7 @@ export default async function StudentHome() {
         <StatCard
           icon={<Icon name="classes" className="size-5" />}
           tone={taskCounts.overdue ? 'alert' : taskCounts.dueSoon ? 'sun' : 'mint'}
-          pulse={taskCounts.overdue > 0}
+          pulse={statPulse === 'homework'}
           label={t('student.dash.homework', lang)}
           // Every open task, not only the urgent ones: a task due next week or
           // with no date is still homework the student has.

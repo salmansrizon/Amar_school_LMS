@@ -27,6 +27,7 @@ export default async function StudentNotificationsPage() {
   return (
     <main className="w-full px-gutter pt-section pb-16">
       <PageHeader
+        icon="notices"
         title={t('shell.notifications', lang)}
         crumbs={{ lang, items: [{ label: t('student.nav.home', lang), href: '/student' }, { label: t('shell.notifications', lang) }] }}
       />

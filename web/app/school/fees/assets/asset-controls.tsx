@@ -8,6 +8,7 @@ import { AttachmentPicker, type AttachmentMeta } from '../attachment-picker'
 import { saveAsset, saveAssetCategory } from './actions'
 import { dateInputClass } from '@/components/ui/field'
 import { ComboboxField } from '@/components/ui/combobox-field'
+import { DateField } from '@/components/ui/date-field'
 
 export interface AssetCategoryOption {
   id: string
@@ -79,7 +80,7 @@ export function NewAssetForm({ categories, lang }: { categories: AssetCategoryOp
         <label className={labelClass} htmlFor="purchase_date">
           {t('assets.purchaseDate', lang)}
         </label>
-        <input id="purchase_date" name="purchase_date" type="date" defaultValue={today} className={dateInputClass({ size: 'md', fullWidth: true })} />
+        <DateField lang={lang} id="purchase_date" name="purchase_date" defaultValue={today} className={dateInputClass({ size: 'md', fullWidth: true })} />
       </div>
       <div>
         <label className={labelClass} htmlFor="purchase_value">

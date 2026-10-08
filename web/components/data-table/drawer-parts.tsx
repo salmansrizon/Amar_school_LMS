@@ -1,6 +1,5 @@
 import Link from 'next/link'
 import type { ReactNode } from 'react'
-import { ChevronDown } from 'lucide-react'
 import { EntityAvatar } from '@/components/entity-avatar'
 
 // Shared record-drawer anatomy (drawer redesign, reference: right-side panel
@@ -63,32 +62,7 @@ export function DrawerFacts({ facts }: { facts: DrawerFact[] }) {
 
 /** Collapsible block: native <details>/<summary> (no JS, no state to wire up)
  *  — title, optional count chip, chevron that flips via CSS on `[open]`. */
-export function DrawerSection({
-  title,
-  count,
-  defaultOpen = true,
-  children,
-}: {
-  title: string
-  count?: number
-  defaultOpen?: boolean
-  children: ReactNode
-}) {
-  return (
-    <details className="group border-t border-line py-3 first:border-t-0" open={defaultOpen}>
-      <summary className="flex cursor-pointer list-none items-center justify-between gap-2 py-1 text-sm font-bold [&::-webkit-details-marker]:hidden">
-        <span className="flex items-center gap-2">
-          {title}
-          {count !== undefined && (
-            <span className="rounded-full bg-paper-muted px-2 py-0.5 text-xs font-semibold text-muted">{count}</span>
-          )}
-        </span>
-        <ChevronDown className="size-4 shrink-0 text-muted transition-transform group-open:rotate-180" aria-hidden />
-      </summary>
-      <div className="pt-3">{children}</div>
-    </details>
-  )
-}
+export { DrawerSection } from './drawer-section'
 
 /** One linked-item row inside a DrawerSection: icon tile, title, a meta line
  *  split by thin `·` dividers, optional status pill. `href` makes the whole

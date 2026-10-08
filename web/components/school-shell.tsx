@@ -14,6 +14,7 @@ import { FOCUS_RING, ICON_BUTTON } from '@/lib/ui-tokens'
 import { canOpenScreen, FEATURE_KEYS } from '@/lib/auth/screens'
 import type { Role } from '@/lib/auth/routing'
 import { SCHOOL_NAV_GROUPS, flattenSchoolModules, navGroupFor, type SchoolNavItem } from '@/lib/school-nav'
+import { HUB_HOME } from '@/lib/student/hub'
 import type { SchoolSmsCredit } from '@/lib/sms/credit'
 
 // SMS-balance badge styling by level (map #171 T9).
@@ -48,7 +49,7 @@ function schoolAllow(role: Role, grants: readonly string[], enabledFeatures?: re
   }
 }
 
-function buildSchoolNav(allow: Allow, lang: Lang): AppNavItem[] {
+function buildSchoolNav(allow: Allow, lang: Lang, hubBacklog = 0): AppNavItem[] {
   const out: AppNavItem[] = []
   for (const group of SCHOOL_NAV_GROUPS) {
     const section = t(group.labelKey, lang)
@@ -60,6 +61,7 @@ function buildSchoolNav(allow: Allow, lang: Lang): AppNavItem[] {
       icon: <Icon name={(it.icon ?? it.screen) as Parameters<typeof Icon>[0]['name']} className="size-5" />,
       matchExact: it.href === '/school',
       matchPrefixes: it.matchPrefixes,
+      badge: it.href === HUB_HOME && hubBacklog > 0 ? hubBacklog : undefined,
       section,
     })
     for (const it of group.items) {
@@ -122,6 +124,7 @@ export function SchoolShell({
   initialCollapsed = false,
   banner,
   smsCredit = null,
+  hubBacklog = 0,
   enabledFeatures,
   configuredShifts = [],
   shiftSelection = [],
@@ -139,6 +142,8 @@ export function SchoolShell({
   initialCollapsed?: boolean
   banner?: React.ReactNode
   smsCredit?: SchoolSmsCredit | null
+  /** Unanswered questions + pending corrections in the caller's reach. */
+  hubBacklog?: number
   enabledFeatures?: readonly string[]
   /** Global Shift Selection (issue #577, Wave 5/#590) — configuredShifts empty
    *  means a No-Shift institute, so the selector doesn't render at all. */
@@ -153,7 +158,7 @@ export function SchoolShell({
   children: React.ReactNode
 }) {
   const allow = schoolAllow(role, grants, enabledFeatures)
-  const nav = buildSchoolNav(allow, lang)
+  const nav = buildSchoolNav(allow, lang, hubBacklog)
   const canAddStudent = canOpenScreen(role, grants, 'students')
 
   // School keeps its rich feature index (keywords per screen), grant-filtered.

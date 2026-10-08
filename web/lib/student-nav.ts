@@ -116,6 +116,8 @@ export function studentGroupTabs(
   if (!group) return []
   return group.items.map((it) => {
     const n = counts[it.key]
-    return n ? { href: it.href, labelKey: it.titleKey, count: n } : { href: it.href, labelKey: it.titleKey }
+    return n
+      ? { href: it.href, labelKey: it.titleKey, icon: it.key, count: n }
+      : { href: it.href, labelKey: it.titleKey, icon: it.key }
   })
 }

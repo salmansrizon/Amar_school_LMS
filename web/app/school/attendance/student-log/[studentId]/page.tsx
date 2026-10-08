@@ -13,6 +13,7 @@ import { PageHeader } from '@/components/ui/page'
 import { schoolCrumbs } from '@/lib/school-crumbs'
 import { loadInstitutePrintHeader } from '@/lib/institute-print'
 import { PrintVerifyFooter } from '@/components/print/verify-footer'
+import { DateField } from '@/components/ui/date-field'
 
 // Individual Student Log (map #380, docs/011_student_module.md): one
 // student's attendance history, with Today / Monthly / Custom filters and
@@ -185,7 +186,7 @@ export default async function StudentLogDetailPage({
   const printHref = `/school/attendance/student-log/${studentId}/print?${printQuery.toString()}`
 
   const pillClass = (active: boolean) =>
-    `rounded-full border px-3 py-1 text-xs font-semibold ${
+    `inline-flex min-h-11 items-center justify-center rounded-full border px-4 text-xs font-semibold ${
       active ? 'border-brand-500 bg-brand-500 text-white' : 'border-line hover:bg-paper-muted'
     }`
 
@@ -195,6 +196,7 @@ export default async function StudentLogDetailPage({
     <div className="mx-auto w-full max-w-3xl">
       <div className="print:hidden">
         <PageHeader
+          icon="attendance"
           title={student.full_name}
           crumbs={schoolCrumbs(
             '/school/attendance',
@@ -235,9 +237,9 @@ export default async function StudentLogDetailPage({
             <Form action={`/school/attendance/student-log/${studentId}`} className="flex flex-wrap items-center gap-2">
               <input type="hidden" name="classSection" value={classSection} />
               <input type="hidden" name="view" value="custom" />
-              <input type="date" name="from" defaultValue={fromParam} max={today} className={dateInputClass()} />
+              <DateField lang={lang} name="from" defaultValue={fromParam} max={today} className={dateInputClass()} />
               <span className="text-sm text-muted">–</span>
-              <input type="date" name="to" defaultValue={toParam} max={today} className={dateInputClass()} />
+              <DateField lang={lang} name="to" defaultValue={toParam} max={today} className={dateInputClass()} />
               <button type="submit" className={filterButtonClass()}>
                 {t('classes.filter', lang)}
               </button>

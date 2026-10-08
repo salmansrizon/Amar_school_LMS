@@ -152,8 +152,9 @@ export default async function NoticesPage({
   ]
 
   return (
-    <>
+    <div className="ui-rows">
       <PageHeader
+        icon="notices"
         title={t('notices.title', lang)}
         subtitle={t('notices.pageSubtitle', lang)}
         crumbs={schoolCrumbs('/school/notices', lang, [{ label: t('notices.title', lang) }])}
@@ -299,6 +300,6 @@ export default async function NoticesPage({
       >
         {viewed && <NoticeDrawerBody notice={viewed} lang={lang} />}
       </RecordDrawer>
-    </>
+    </div>
   )
 }

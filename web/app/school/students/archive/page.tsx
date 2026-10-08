@@ -133,12 +133,14 @@ export default async function StudentsArchivePage({
         empty={
           students.length ? (
             <EmptyState
+              icon="students"
               title={t('students.noMatch', lang)}
               action={{ href: '/school/students/archive', label: t('students.clearFilters', lang) }}
               lang={lang}
             />
           ) : (
             <EmptyState
+              icon="students"
               title={t('students.noArchived', lang)}
               action={{ href: '/school/students', label: t('students.activeList', lang) }}
               lang={lang}

@@ -67,6 +67,7 @@ export default async function OfficeHourPage({
   return (
     <div>
       <PageHeader
+        icon="attendance"
         title={t('officeHour.title', lang)}
         crumbs={schoolCrumbs('/school/attendance', lang, { label: t('attendance.title', lang), href: '/school/attendance' }, { label: t('officeHour.title', lang) })}
       />

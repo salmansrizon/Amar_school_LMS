@@ -23,6 +23,7 @@ import { schoolCrumbs } from '@/lib/school-crumbs'
 import { PageHeader } from '@/components/ui/page'
 import { Pill } from '@/components/data-table/data-table'
 import { pageTitle } from '@/lib/page-title'
+import { DateField } from '@/components/ui/date-field'
 
 // Layout per ui/school-owner/attendance-employee.html: search + date filter,
 // one row per employee with In/Out/Status/Applied-Grace, the 6-state status
@@ -253,6 +254,7 @@ export default async function EmployeeAttendancePage({
   return (
     <div>
       <PageHeader
+        icon="attendance"
         title={t('attendance.employeeTitle', lang)}
         crumbs={schoolCrumbs('/school/attendance', lang, { label: t('attendance.title', lang), href: '/school/attendance' }, { label: t('attendance.employeeTitle', lang) })}
       />
@@ -326,7 +328,7 @@ export default async function EmployeeAttendancePage({
           placeholder={t('attendance.employeeSearch', lang)}
           className={`${inputClass()} w-56`}
         />
-        <input type="date" name="date" defaultValue={date} className={dateInputClass()} />
+        <DateField lang={lang} name="date" defaultValue={date} className={dateInputClass()} />
         <button
           type="submit"
           className={filterButtonClass()}

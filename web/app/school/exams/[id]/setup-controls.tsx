@@ -18,6 +18,7 @@ import { ConfirmDialog } from '@/components/confirm-dialog'
 import { dateInputClass } from '@/components/ui/field'
 import { ComboboxField } from '@/components/ui/combobox-field'
 import { classCatalogueLabel, type ClassCatalogueRow } from '@/lib/class-catalogue'
+import { DateField } from '@/components/ui/date-field'
 
 export interface SchemeOption {
   id: string
@@ -219,10 +220,9 @@ export function BasicInfoForm({
       </div>
       <div>
         <label className={labelClass} htmlFor="start_date">{t('exams.startDate', lang)}</label>
-        <input
+        <DateField lang={lang}
           id="start_date"
           name="start_date"
-          type="date"
           defaultValue={startDate ?? ''}
           disabled={disabled}
           className={dateInputClass({ size: 'md', fullWidth: true })}

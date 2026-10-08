@@ -16,6 +16,7 @@ import { PageHeader } from '@/components/ui/page'
 import { schoolCrumbs } from '@/lib/school-crumbs'
 import { pageTitle } from '@/lib/page-title'
 import { PrintVerifyFooter } from '@/components/print/verify-footer'
+import { DateField } from '@/components/ui/date-field'
 
 // Layout per ui/school-owner/general-ledger.html: a date-range toolbar over a
 // Date | Source | Description | Debit | Credit | Balance table, combining
@@ -199,8 +200,8 @@ export default async function GeneralLedgerPage({
 
       <Form className="mb-4 flex flex-wrap items-center gap-2 print:hidden" action="/school/fees/ledger">
         <label htmlFor="ledger_from" className="text-xs text-muted">{t('ledger.dateRange', lang)}</label>
-        <input id="ledger_from" name="from" type="date" defaultValue={from} className={dateInputClass()} />
-        <input aria-label={t('ledger.dateRange', lang)} name="to" type="date" defaultValue={to} className={dateInputClass()} />
+        <DateField lang={lang} id="ledger_from" name="from" defaultValue={from} className={dateInputClass()} />
+        <DateField lang={lang} aria-label={t('ledger.dateRange', lang)} name="to" defaultValue={to} className={dateInputClass()} />
         <button
           type="submit"
           className={filterButtonClass()}

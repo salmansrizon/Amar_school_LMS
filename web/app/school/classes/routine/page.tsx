@@ -8,6 +8,7 @@ import { excludeArchivedOfferings } from '@/lib/school/archived-offerings-filter
 import { ROUTINE_DAYS, ROUTINE_PERIODS, dayLabel, indexSlots, type RoutineSlot } from '@/lib/routine'
 import { schoolCrumbs } from '@/lib/school-crumbs'
 import { PageHeader } from '@/components/ui/page'
+import { PrintTrigger } from '@/components/print/print-trigger'
 import { SlotCell, PublishButton, ClassPicker, type Option } from './routine-cell'
 import { pageTitle } from '@/lib/page-title'
 
@@ -62,16 +63,10 @@ export default async function RoutinePage({
         actions={
           selectedClass && classes?.length ? (
             <>
-              {/* ponytail: not PrintTrigger — its frame-ready check wants
-                  '/print/' in the path, and this route ends in '/print'. */}
-              <a
+              <PrintTrigger
                 href={`/school/classes/routine/print?class=${selectedClass}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex h-11 items-center rounded-full border border-line-strong px-4 text-xs font-semibold hover:bg-paper-muted"
-              >
-                {t('routine.print', lang)}
-              </a>
+                label={t('routine.print', lang)}
+              />
               <Link
                 href="/school/classes"
                 className="inline-flex h-11 items-center rounded-full border border-line-strong px-4 text-xs font-semibold hover:bg-paper-muted"

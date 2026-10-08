@@ -5,6 +5,7 @@ import { t, type Lang } from '@/lib/i18n'
 import { addOffDay, deleteOffDay, addRule, deleteRule, addLeave, deleteLeave } from './actions'
 import { dateInputClass } from '@/components/ui/field'
 import { ComboboxField } from '@/components/ui/combobox-field'
+import { DateField } from '@/components/ui/date-field'
 
 export function AddOffDayForm({ lang }: { lang: Lang }) {
   const [error, setError] = useState<string | null>(null)
@@ -25,7 +26,7 @@ export function AddOffDayForm({ lang }: { lang: Lang }) {
         })
       }}
     >
-      <input type="date" name="day" aria-label={t('sms.offDayDate', lang)} required className={dateInputClass()} />
+      <DateField lang={lang} name="day" aria-label={t('sms.offDayDate', lang)} required className={dateInputClass()} />
       <input
         type="text"
         name="label"
@@ -197,11 +198,11 @@ export function AddLeaveForm({ lang, students }: { lang: Lang; students: { id: s
     >
       <div>
         <label htmlFor="sms_from_day" className="block text-xs text-gray-500">{t('sms.leaveFrom', lang)}</label>
-        <input id="sms_from_day" type="date" name="from_day" required className={dateInputClass()} />
+        <DateField lang={lang} id="sms_from_day" name="from_day" required className={dateInputClass()} />
       </div>
       <div>
         <label htmlFor="sms_to_day" className="block text-xs text-gray-500">{t('sms.leaveTo', lang)}</label>
-        <input id="sms_to_day" type="date" name="to_day" required className={dateInputClass()} />
+        <DateField lang={lang} id="sms_to_day" name="to_day" required className={dateInputClass()} />
       </div>
       <div>
         <label htmlFor="leave_student" className="block text-xs text-gray-500">{t('sms.leaveStudent', lang)}</label>

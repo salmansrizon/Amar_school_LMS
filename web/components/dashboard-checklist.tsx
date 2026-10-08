@@ -60,6 +60,7 @@ export function DashboardChecklist({
 
   // No template configured yet — nothing to show on the dashboard.
   if (!items.length) return null
+  const firstDueId = items.find((i) => dueSet.has(i.id))?.id
 
   return (
     <section className="mt-section">
@@ -87,13 +88,15 @@ export function DashboardChecklist({
       <div className="grid grid-cols-2 gap-grid sm:grid-cols-3 lg:grid-cols-5">
         {items.map((item) => {
           const checked = !dueSet.has(item.id)
+          // One pulse for the row: only the first item still due keeps it.
+          const pulses = !checked && item.id === firstDueId
           return (
             <button
               key={item.id}
               type="button"
               onClick={() => toggle(item.id)}
               aria-pressed={checked}
-              className={`group relative flex min-h-24 min-w-0 flex-col justify-between gap-3 rounded-lg border border-line bg-paper p-card text-left transition hover:bg-paper-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 focus-visible:ring-offset-2 ${railClass(
+              className={`group ui-press relative flex min-h-24 min-w-0 flex-col justify-between gap-3 rounded-lg border border-line bg-paper p-card text-left transition hover:bg-paper-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 focus-visible:ring-offset-2 ${railClass(
                 checked ? 'mint' : 'sun',
               )}`}
             >
@@ -108,7 +111,9 @@ export function DashboardChecklist({
                   </svg>
                 </span>
                 {!checked && (
-                  <span className="rounded-full bg-sun-soft px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-sun-deep motion-safe:animate-pulse">
+                  <span
+                    className={`rounded-full bg-sun-soft px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-sun-deep ${pulses ? 'motion-safe:animate-pulse' : ''}`}
+                  >
                     {t('dash.checklistDue', lang)}
                   </span>
                 )}

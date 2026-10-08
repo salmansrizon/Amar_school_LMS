@@ -132,6 +132,7 @@ export default async function StudentAttendancePage({
   return (
     <main className="w-full px-gutter pt-section pb-16">
       <PageHeader
+        icon="attendance"
         title={t('student.attendanceTitle', lang)}
         crumbs={{ lang, items: [{ label: t('student.nav.home', lang), href: '/student' }, { label: t('student.navGroup.attendance', lang) }] }}
         badge={monthLabel}

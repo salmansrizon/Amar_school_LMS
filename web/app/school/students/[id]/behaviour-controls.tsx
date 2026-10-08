@@ -6,6 +6,7 @@ import { t, type Lang, formatDate } from '@/lib/i18n'
 import { addBehaviourEntry, updateBehaviourEntry, sendBehaviourSms } from '../actions'
 import { dateInputClass } from '@/components/ui/field'
 import type { TriageView } from '@/lib/behaviour-triage'
+import { DateField } from '@/components/ui/date-field'
 
 export function AddEntryForm({ studentId, lang }: { studentId: string; lang: Lang }) {
   const [error, setError] = useState<string | null>(null)
@@ -37,7 +38,7 @@ export function AddEntryForm({ studentId, lang }: { studentId: string; lang: Lan
       </div>
       <div>
         <label className={labelClass} htmlFor="remind_date">{t('behaviour.remind', lang)}</label>
-        <input id="remind_date" name="remind_date" type="date" className={dateInputClass({ size: 'md', fullWidth: true })} />
+        <DateField lang={lang} id="remind_date" name="remind_date" className={dateInputClass({ size: 'md', fullWidth: true })} />
       </div>
       <div className="flex items-end">
         <button type="submit" disabled={pending} className={primaryBtnClass}>
@@ -165,7 +166,7 @@ export function EditableEntry({
       <textarea name="note" defaultValue={entry.note} required rows={2} className={`${inputClass} h-auto py-2`} />
       <div className="flex items-center gap-2">
         <input name="rating" type="number" min={0} max={10} defaultValue={entry.rating} required className={`${inputClass} w-24`} />
-        <input name="remind_date" type="date" defaultValue={entry.remind_date ?? ''} className={`${dateInputClass({ size: 'md' })} w-40`} />
+        <DateField lang={lang} name="remind_date" defaultValue={entry.remind_date ?? ''} className={`${dateInputClass({ size: 'md' })} w-40`} />
         <button type="submit" disabled={pending} className="h-9 cursor-pointer rounded-full bg-brand-500 px-4 text-xs font-semibold text-white hover:bg-brand-600 disabled:opacity-50">
           {t('behaviour.save', lang)}
         </button>

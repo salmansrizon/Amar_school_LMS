@@ -14,6 +14,7 @@ import { paginate, pageSizeFrom } from '@/components/pager'
 import { DataTable, Pill, type Column } from '@/components/data-table/data-table'
 import { capitalSummary, capitalRunningBalances } from '@/lib/director-capital'
 import { pageTitle } from '@/lib/page-title'
+import { DateField } from '@/components/ui/date-field'
 
 // Director Capital (map 013 FC1): balance + invested/withdrawn stat cards,
 // Invest / Withdraw header actions (open the unchanged TransactionForm), date
@@ -149,8 +150,8 @@ export default async function DirectorCapitalPage({
 
       <Form className="mb-grid flex flex-wrap items-center gap-2" action="/school/fees/director-capital">
         {type && <input type="hidden" name="type" value={type} />}
-        <input name="from" type="date" defaultValue={from} aria-label={t('vouchers.from', lang)} className={dateInputClass()} />
-        <input name="to" type="date" defaultValue={to} aria-label={t('vouchers.to', lang)} className={dateInputClass()} />
+        <DateField lang={lang} name="from" defaultValue={from} aria-label={t('vouchers.from', lang)} className={dateInputClass()} />
+        <DateField lang={lang} name="to" defaultValue={to} aria-label={t('vouchers.to', lang)} className={dateInputClass()} />
         <button
           type="submit"
           className={filterButtonClass()}
