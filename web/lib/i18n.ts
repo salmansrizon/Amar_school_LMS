@@ -1374,6 +1374,7 @@ const dict = {
     bn: 'এই পরীক্ষাটি আপনার শ্রেণির নয় — পরিবর্তন করতে স্কুল মালিকের সাথে যোগাযোগ করুন।',
     en: 'This exam belongs to a class that is not yours — ask the school owner to change it.',
   },
+  'exams.permissionCheckFailed': { bn: 'অনুমতি যাচাই করা যায়নি। আবার চেষ্টা করুন।', en: 'Could not check permission. Please try again.' },
   'exams.close': { bn: 'পরীক্ষা বন্ধ করুন', en: 'Close exam' },
   'exams.closeConfirm': {
     bn: 'পরীক্ষা বন্ধ করলে আর কখনো খোলা যাবে না — সব সম্পাদনা স্থায়ীভাবে বন্ধ হবে। নিশ্চিত?',
