@@ -5,8 +5,9 @@ import { useRouter } from 'next/navigation'
 import { t, type Lang, type MessageKey } from '@/lib/i18n'
 import { askQuestion } from '@/lib/student/messages-source'
 import { RichTextField } from '@/components/rich-text-field'
+import { QUESTION_BODY_MAX } from '@/lib/student/messages'
 
-const ERRORS: Record<string, MessageKey> = { bodyRequired: 'student.bodyRequired' }
+const ERRORS: Record<string, MessageKey> = { bodyRequired: 'student.bodyRequired', bodyTooLong: 'student.bodyTooLong' }
 
 /** A follow-up is a new question row with the same anchor and title as the
  *  original (see lib/student/question-threads.ts). Allowed while the last
@@ -16,11 +17,14 @@ export function FollowUpForm({
   title,
   publicationId,
   subjectId,
+  threadId,
 }: {
   lang: Lang
   title: string
   publicationId: string | null
   subjectId: string | null
+  /** The original question's id (#703 item 5.4); ignored until migration 0253. */
+  threadId: string
 }) {
   const router = useRouter()
   const [pending, startTransition] = useTransition()
@@ -35,6 +39,7 @@ export function FollowUpForm({
         e.preventDefault()
         const data = new FormData(e.currentTarget)
         data.set('subject', title)
+        data.set('thread_id', threadId)
         if (publicationId) data.set('publication_id', publicationId)
         else if (subjectId) data.set('subject_id', subjectId)
         startTransition(async () => {
@@ -50,7 +55,7 @@ export function FollowUpForm({
         })
       }}
     >
-      <RichTextField key={fieldKey} name="body" label={t('student.followUp', lang)} lang={lang} rows={4} />
+      <RichTextField key={fieldKey} name="body" label={t('student.followUp', lang)} lang={lang} rows={4} maxLength={QUESTION_BODY_MAX} />
       {error && <p className="text-sm text-alert-deep">{error}</p>}
       {sent && (
         <p role="status" className="text-sm text-mint-deep">

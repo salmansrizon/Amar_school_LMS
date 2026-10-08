@@ -183,6 +183,31 @@ const dict = {
     en: 'Pick the post or the subject your question is about.',
   },
   'student.subjectRequired': { bn: 'বিষয় লেখো।', en: 'A subject is required.' },
+  'student.bodyTooLong': {
+    bn: 'প্রশ্নটি অনেক বড় — ৪০০০ অক্ষরের মধ্যে লেখো।',
+    en: 'The question is too long — keep it within 4000 characters.',
+  },
+  'student.newReply': { bn: 'নতুন উত্তর', en: 'New reply' },
+  'student.withdrawQuestion': { bn: 'প্রশ্ন তুলে নাও', en: 'Withdraw question' },
+  'student.confirmWithdraw': {
+    bn: 'এই প্রশ্নটি তুলে নেবে? এটি মুছে যাবে এবং শিক্ষক আর দেখতে পাবেন না।',
+    en: 'Withdraw this question? It will be deleted and your teacher will no longer see it.',
+  },
+  'student.questionWithdrawn': { bn: 'প্রশ্নটি তুলে নেওয়া হয়েছে', en: 'Question withdrawn' },
+  'student.cannotWithdraw': {
+    bn: 'প্রশ্নটি তুলে নেওয়া যায়নি। উত্তর দেওয়া হয়ে গেলে প্রশ্ন আর তোলা যায় না।',
+    en: 'The question could not be withdrawn. A question that has been answered cannot be withdrawn.',
+  },
+  'questions.addReply': { bn: 'আরও একটি উত্তর যোগ করুন', en: 'Add another reply' },
+  'questions.replyUnavailable': {
+    bn: 'আরও উত্তর যোগ করার সুবিধাটি এখনো চালু হয়নি',
+    en: 'Adding another reply is not available yet',
+  },
+  'questions.replyTooLong': {
+    bn: 'উত্তরটি অনেক বড় — ৪০০০ অক্ষরের মধ্যে লিখুন',
+    en: 'The reply is too long — keep it within 4000 characters',
+  },
+  'questions.earlierInThread': { bn: 'এই আলোচনার অন্য বার্তা', en: 'Other messages in this conversation' },
   'student.bodyRequired': { bn: 'প্রশ্ন লেখো।', en: 'A question is required.' },
   // বার্তা ও অনুরোধ — the merged section (#509). Three sidebar entries became
   // one, so the section needs a name of its own that neither queue owns.

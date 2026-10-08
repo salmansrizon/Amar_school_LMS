@@ -7,11 +7,13 @@ import { t, type Lang, type MessageKey } from '@/lib/i18n'
 import { askQuestion } from '@/lib/student/messages-source'
 import { ComboboxField } from '@/components/ui/combobox-field'
 import { RichTextField } from '@/components/rich-text-field'
+import { QUESTION_BODY_MAX } from '@/lib/student/messages'
 
 const ERRORS: Record<string, MessageKey> = {
   anchorRequired: 'student.anchorRequired',
   subjectRequired: 'student.subjectRequired',
   bodyRequired: 'student.bodyRequired',
+  bodyTooLong: 'student.bodyTooLong',
 }
 
 /** Asking a question (#454).
@@ -112,7 +114,7 @@ export function AskForm({
         />
       </label>
 
-      <RichTextField key={subjectFieldKey} name="body" label={t('student.questionBody', lang)} lang={lang} />
+      <RichTextField key={subjectFieldKey} name="body" label={t('student.questionBody', lang)} lang={lang} maxLength={QUESTION_BODY_MAX} />
 
       {error && <p className="text-sm text-alert-deep">{error}</p>}
       {/* A bare ✓ was the only thing telling a student their question had gone
