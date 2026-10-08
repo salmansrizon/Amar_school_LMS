@@ -110,11 +110,30 @@ All under `verifyDoc.*` in `web/lib/i18n.ts`, for wording review:
 
 Reused for document types and labels: `markSheet.docWord`, `progressReport.docWord`, `admitCard.docWord`, `fees.receipt`, `attendance.studentLogTitle`, `attendance.bookRegisterWord`, `routine.docWord`, `examAttendanceSheet.docWord`, `seatPlan.docWord`, `examRoutine.docWord`, `students.idCard`, `ledger.title`, `institute.template*`, `verify.issuedBy`, `markSheet.studentName`, `students.class`, `students.roll`, `students.studentNo`, `exams.year`, `exams.incomplete`, `markSheet.pass`, `promotion.fail`, `markSheet.gpa`, `markSheet.grade`, `fees.month`, `fees.receivedAmount`, `fees.voidedOn`.
 
-## Browser check
+## Browser check (2026-10-08, headless Chromium, owner-a, read-only, 0260 not applied)
 
-Pending.
+URL shape in the QR: `http://localhost:3781/verify/d/<kind>/<token>[/<ref>]?p=20261008`.
+
+- Admit card (templates 1 and 2), mark sheet, progress report, admission form, fee receipt: one QR each, 112 × 112 px in print media, and its modules are identical to a QR generated from the expected URL (the owner's own token read through the API, kind, record id, today's date). 53 to 57 modules a side including the quiet zone.
+- Class routine, exam routine, seat plan, attendance template, admission template, general ledger: the labelled box, no QR. Reading `schools.public_token` returns Postgres `42703` (column does not exist), which is the fallback path.
+- Exam attendance sheet: no footer at all on the exam tried, because that exam has no seated rooms and the page prints no sheet. Not seen with a sheet.
+- Scan page, signed out: a real student token + real exam (function missing), an unknown token, an unknown kind, a malformed token, a malformed ref, two ref segments, a school kind with a junk `?p=`: all HTTP 404, all the same text, `robots: noindex, nofollow`, no error overlay, no page errors. The language switch turns it to English in place.
+- The existing `/verify/<token>` ID-card page still returns 200 with "Valid ID card".
+- PDF page counts were the same with the new footer, with the mark shrunk to the old 84 px, and with the footer removed, on every page tried. Several of those pages are already 2 pages in this headless render without any footer, so this does not prove a sheet that exactly filled one page still does.
+
+Not opened: the student portal prints, attendance book, student log, print-all, bulk ID cards, and the homework / lesson-plan / exam-answer templates. They compile and use the same footer.
+
+## Checks
+
+- `npx tsc --noEmit`: clean.
+- `npx eslint` on every changed file and directory: clean.
+- `npx vitest run tests/unit`: 173 files, 1931 tests, all passed. Two existing tests changed: `print-pieces.test.tsx` (the footer prop is now `qrSvg`) and `shift-filter-required.test.ts` (an exemption with its reason for the by-id token read).
+- `jev_review` (per file): **escalate**, composite 0.65, safe_to_apply 0.16. Limiting: the SQL on correctness (confidence 0; it has never been executed), the page and both helpers on test gap.
+- `jev_verify`: 7 claims verified, the deliberately false control ("integration test was run and passed") contradicted.
 
 ## Not verified
 
 - The SQL has never been executed: not parsed by Postgres, not applied, integration test not run.
+- No scan has returned facts, so the "Genuine" page with real facts has never rendered in a browser. Its mapping is covered by unit tests only.
 - No real phone has scanned a printed sheet.
+- The production host makes the URL longer than `localhost:3781`; the symbol grows by a version or two and stays near 0.5 mm per module at 29.6 mm, by arithmetic, not by measurement.

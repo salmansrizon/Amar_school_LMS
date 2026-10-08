@@ -31,6 +31,9 @@ const EXEMPT: [file: string, reason: string][] = [
   // --- students: bulk ID cards read by id for rows the directory already
   // resolved through schoolRoster (shift + year filtered upstream).
   ['app/school/students/print/id-cards/page.tsx', 'reads by id the rows loadDirectoryRows already shift-filtered'],
+  // --- students: the print-verification token of students the print page has
+  // already resolved (one student, or a print-all roster) — by id, not a list.
+  ['lib/print-verify-server.ts', 'reads public_token by id for students the calling print page already resolved'],
   // --- class_offerings: the Year-filter's own internal implementation
   // detail (issue #621's Students-roster follow-up) — resolves matching
   // Offerings by Academic Year only, deliberately orthogonal to Shift, not
