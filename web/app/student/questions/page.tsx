@@ -122,6 +122,7 @@ export default async function StudentQuestionsPage({
   return (
     <main className="w-full px-gutter pt-section pb-16">
       <PageHeader
+        icon="questions"
         title={t('student.questionsTitle', lang)}
         crumbs={{ lang, items: [{ label: t('student.nav.home', lang), href: '/student' }, { label: t('student.navGroup.study', lang) }] }}
         badge={waiting.length ? `${formatNumber(waiting.length, lang)} ${t('student.questionsWaitingBadge', lang)}` : undefined}
@@ -155,12 +156,14 @@ export default async function StudentQuestionsPage({
         empty={
           needle ? (
             <EmptyState
+              icon="questions"
               lang={lang}
               title={t('search.noResults', lang)}
               action={{ href: withParams(params, { find: null, view: null, q: null }), label: t('table.resetFilters', lang) }}
             />
           ) : (
             <EmptyState
+              icon="questions"
               lang={lang}
               title={t('student.noQuestions', lang)}
               body={t('student.noQuestionsHint', lang)}

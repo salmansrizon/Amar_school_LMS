@@ -96,6 +96,7 @@ export default async function SmsComposePage({ searchParams }: { searchParams: P
   return (
     <>
       <PageHeader
+        icon="sms"
         title={t('sms.centerTitle', lang)}
         subtitle={t('sms.pageSubtitle', lang)}
         crumbs={schoolCrumbs('/school/sms', lang, [{ label: t('sms.centerTitle', lang) }])}

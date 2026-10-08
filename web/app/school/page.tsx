@@ -325,6 +325,7 @@ export default async function SchoolHome() {
   return (
     <div>
       <PageHeader
+        icon="dashboard"
         title={schoolName ?? t('home.school', lang)}
         crumbs={{ lang, items: [{ label: t('dash.dashboard', lang) }] }}
         badge={todayLabel}
@@ -372,7 +373,7 @@ export default async function SchoolHome() {
           label={t('dash.attendanceToday', lang)}
           value={attToday?.rate != null ? `${fmt(attToday.rate)}%` : '—'}
           progress={attToday?.rate ?? undefined}
-          pulse={attToday?.rate != null && attToday.rate < 85}
+          pulse={!alerts.some((al) => al.tone === 'alert') && attToday?.rate != null && attToday.rate < 85}
           note={
             attToday?.rate != null
               ? `${fmt(attToday.present)}/${fmt(attToday.total)} ${t('dash.presentToday', lang)}${

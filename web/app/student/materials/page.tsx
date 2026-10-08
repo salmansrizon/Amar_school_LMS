@@ -89,8 +89,9 @@ export default async function StudentMaterialsPage({
   const kinds = [...new Set(items.map((m) => m.kind))]
 
   return (
-    <main className="w-full px-gutter pt-section pb-16">
+    <main className="w-full px-gutter pt-section pb-16 ui-rows">
       <PageHeader
+        icon="materials"
         title={t('student.materialsTitle', lang)}
         crumbs={{ lang, items: [{ label: t('student.nav.home', lang), href: '/student' }, { label: t('student.navGroup.study', lang) }] }}
         badge={data?.length ? formatNumber(data.length, lang) : undefined}
@@ -104,6 +105,7 @@ export default async function StudentMaterialsPage({
 
       {!groups.length ? (
         <EmptyState
+          icon="materials"
           lang={lang}
           title={t('student.noMaterials', lang)}
           body={t('student.noMaterialsHint', lang)}

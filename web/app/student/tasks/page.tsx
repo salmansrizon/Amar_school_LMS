@@ -103,8 +103,9 @@ export default async function StudentTasksPage({
   ]
 
   return (
-    <main className="w-full px-gutter pt-section pb-16">
+    <main className="w-full px-gutter pt-section pb-16 ui-rows">
       <PageHeader
+        icon="tasks"
         title={t('student.tasksTitle', lang)}
         crumbs={{ lang, items: [{ label: t('student.nav.home', lang), href: '/student' }, { label: t('student.navGroup.study', lang) }] }}
         subtitle={t('student.ownClaim', lang)}
@@ -119,6 +120,7 @@ export default async function StudentTasksPage({
 
       {!tasks.length ? (
         <EmptyState
+          icon="tasks"
           lang={lang}
           title={t('student.noTasks', lang)}
           action={{ href: '/student/routine', label: t('student.nav.routine', lang) }}

@@ -386,6 +386,7 @@ export default async function ClassesPage({
   return (
     <>
       <PageHeader
+        icon="classes"
         title={t('classes.title', lang)}
         subtitle={t('classes.pageSubtitle', lang)}
         crumbs={schoolCrumbs('/school/classes', lang, { label: t('classes.title', lang) })}
@@ -544,12 +545,14 @@ export default async function ClassesPage({
             empty={
               allClasses.length ? (
                 <EmptyState
+                  icon="classes"
                   title={t('classes.noMatch', lang)}
                   action={{ href: '/school/classes', label: t('students.clearFilters', lang) }}
                   lang={lang}
                 />
               ) : (
                 <EmptyState
+                  icon="classes"
                   title={t('classes.noClasses', lang)}
                   action={{ href: '/school/classes/archive', label: t('classes.oldClasses', lang) }}
                   lang={lang}
@@ -587,12 +590,14 @@ export default async function ClassesPage({
             empty={
               subjectsInSelection.length ? (
                 <EmptyState
+                  icon="classes"
                   title={t('classes.noMatch', lang)}
                   action={{ href: '/school/classes?tab=subjects', label: t('students.clearFilters', lang) }}
                   lang={lang}
                 />
               ) : (
                 <EmptyState
+                  icon="classes"
                   title={t('classes.noSubjects', lang)}
                   action={{ href: '/school/classes', label: t('classes.tabClasses', lang) }}
                   lang={lang}

@@ -253,6 +253,7 @@ export default async function EmployeeAttendancePage({
   return (
     <div>
       <PageHeader
+        icon="attendance"
         title={t('attendance.employeeTitle', lang)}
         crumbs={schoolCrumbs('/school/attendance', lang, { label: t('attendance.title', lang), href: '/school/attendance' }, { label: t('attendance.employeeTitle', lang) })}
       />

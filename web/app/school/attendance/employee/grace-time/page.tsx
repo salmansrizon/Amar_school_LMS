@@ -138,6 +138,7 @@ export default async function GraceTimePage({
   return (
     <div>
       <PageHeader
+        icon="attendance"
         title={t('attendance.tabGraceTime', lang)}
         crumbs={attendanceCrumbs('/school/attendance/employee/grace-time', lang)}
       />

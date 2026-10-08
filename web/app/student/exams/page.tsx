@@ -131,6 +131,7 @@ export default async function StudentExamsPage({
   return (
     <main className="w-full px-gutter pt-section pb-16">
       <PageHeader
+        icon="exams"
         title={t('student.examsTitle', lang)}
         crumbs={{ lang, items: [{ label: t('student.nav.home', lang), href: '/student' }, { label: t('student.navGroup.exams', lang) }] }}
         badge={upcoming ? `${formatNumber(upcoming, lang)} ${t('student.dash.upcoming', lang)}` : undefined}
@@ -144,6 +145,7 @@ export default async function StudentExamsPage({
 
       {!exams.length ? (
         <EmptyState
+          icon="exams"
           lang={lang}
           title={t('student.noExams', lang)}
           body={t('student.noExamsHint', lang)}

@@ -47,6 +47,7 @@ export default async function InstituteProfilePage({
   return (
     <>
       <PageHeader
+        icon="institute"
         title={t('institute.title', lang)}
         subtitle={t('institute.pageSubtitle', lang)}
         crumbs={schoolCrumbs('/school/institute', lang, { label: t('institute.title', lang) })}

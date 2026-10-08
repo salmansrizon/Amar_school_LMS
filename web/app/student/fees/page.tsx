@@ -96,6 +96,7 @@ export default async function StudentFeesPage({
   return (
     <main className="w-full px-gutter pt-section pb-16">
       <PageHeader
+        icon="fees"
         title={t('student.feesTitle', lang)}
         crumbs={{ lang, items: [{ label: t('student.nav.home', lang), href: '/student' }, { label: t('student.navGroup.money', lang) }] }}
         badge={status.monthsDue ? `${formatNumber(status.monthsDue, lang)} ${t('student.dash.monthsDue', lang)}` : undefined}
@@ -104,6 +105,7 @@ export default async function StudentFeesPage({
 
       {!records.length ? (
         <EmptyState
+          icon="fees"
           lang={lang}
           title={t('student.noFees', lang)}
           action={{ href: '/student', label: t('student.nav.home', lang) }}

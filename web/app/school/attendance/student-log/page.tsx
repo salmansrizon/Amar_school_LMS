@@ -57,6 +57,7 @@ export default async function StudentLogPage({
   return (
     <div>
       <PageHeader
+        icon="attendance"
         title={t('attendance.studentLogTitle', lang)}
         crumbs={schoolCrumbs('/school/attendance', lang, { label: t('attendance.title', lang), href: '/school/attendance' }, { label: t('attendance.studentLogTitle', lang) })}
       />
@@ -106,7 +107,7 @@ export default async function StudentLogPage({
           </Link>
         )}
         pagination={{ page: paged.page, totalPages: paged.totalPages, total: paged.total, pageSize }}
-        empty={<EmptyState title={t('attendance.none', lang)} action={{ href: '/school/attendance/student-log', label: t('students.clearFilters', lang) }} lang={lang} />}
+        empty={<EmptyState icon="attendance" title={t('attendance.none', lang)} action={{ href: '/school/attendance/student-log', label: t('students.clearFilters', lang) }} lang={lang} />}
       />
     </div>
   )

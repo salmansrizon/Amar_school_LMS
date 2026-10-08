@@ -78,8 +78,9 @@ export default async function StudentResultsPage({
   ]
 
   return (
-    <main className="w-full px-gutter pt-section pb-16">
+    <main className="w-full px-gutter pt-section pb-16 ui-rows">
       <PageHeader
+        icon="results"
         title={t('student.resultsTitle', lang)}
         crumbs={{ lang, items: [{ label: t('student.nav.home', lang), href: '/student' }, { label: t('student.navGroup.exams', lang) }] }}
         badge={exams.length ? fmt(exams.length) : undefined}
@@ -93,6 +94,7 @@ export default async function StudentResultsPage({
 
       {!exams.length ? (
         <EmptyState
+          icon="results"
           lang={lang}
           title={t('student.noResults', lang)}
           body={t('student.noResultsHint', lang)}

@@ -183,6 +183,7 @@ export default async function AssetsPage({
         pagination={{ page: pageData.page, totalPages: pageData.totalPages, total: pageData.total, pageSize }}
         empty={
           <EmptyState
+            icon="fees"
             title={t('assets.noAssets', lang)}
             action={{ href: '/school/fees/assets', label: t('students.clearFilters', lang) }}
             lang={lang}

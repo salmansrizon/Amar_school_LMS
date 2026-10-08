@@ -80,8 +80,9 @@ export default async function StudentNoticesPage({
   ]
 
   return (
-    <main className="w-full px-gutter pt-section pb-16">
+    <main className="w-full px-gutter pt-section pb-16 ui-rows">
       <PageHeader
+        icon="notices"
         title={t('student.noticesTitle', lang)}
         crumbs={{ lang, items: [{ label: t('student.nav.home', lang), href: '/student' }, { label: t('student.navGroup.overview', lang) }] }}
         badge={unread.size ? `${formatNumber(unread.size, lang)} ${t('student.dash.newNotices', lang)}` : undefined}
@@ -95,6 +96,7 @@ export default async function StudentNoticesPage({
 
       {!notices.length ? (
         <EmptyState
+          icon="notices"
           lang={lang}
           title={t('student.noNotices', lang)}
           action={{ href: '/student', label: t('student.nav.home', lang) }}

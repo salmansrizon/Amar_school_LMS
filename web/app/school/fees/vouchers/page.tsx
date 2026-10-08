@@ -215,6 +215,7 @@ export default async function VouchersPage({
         pagination={{ page: pageData.page, totalPages: pageData.totalPages, total: pageData.total, pageSize }}
         empty={
           <EmptyState
+            icon="fees"
             title={t('vouchers.noVouchers', lang)}
             action={{ href: '/school/fees/vouchers', label: t('students.clearFilters', lang) }}
             lang={lang}
