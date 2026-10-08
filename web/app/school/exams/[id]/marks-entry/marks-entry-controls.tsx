@@ -54,7 +54,10 @@ export function SubjectPicker({
         // without a word (audit AC10).
         if (v !== selectedId && unsavedMarks && !window.confirm(t('markEntry.unsavedConfirm', lang))) return
         if (v === selectedId) return
-        const href = `${pathname}?subject=${v}`
+        // Keep the other parameters (?from= is the Back target).
+        const next = new URLSearchParams(window.location.search)
+        next.set('subject', v)
+        const href = `${pathname}?${next}`
         if (navigation === 'soft') return router.replace(href)
         // #701: on the page itself (opened by address or refresh) a soft
         // navigation to this same route is caught by the @modal intercept and
