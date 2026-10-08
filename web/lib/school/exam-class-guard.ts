@@ -28,13 +28,32 @@ export async function mayActOnExamClass(
   examId: string,
   targetClassId: string | null = null,
 ): Promise<boolean> {
+  return (await examClassCheck(supabase, examId, targetClassId)) === 'ok'
+}
+
+/** 'unverified' = `app_class_scope` itself errored and the caller could not be
+ *  shown to be the Owner or office staff: refused, but not as "not your class". */
+type ExamClassCheck = 'ok' | 'denied' | 'unverified'
+
+async function examClassCheck(
+  supabase: SupabaseClient,
+  examId: string,
+  targetClassId: string | null,
+): Promise<ExamClassCheck> {
   // Fail closed. `classScopeFor` reads an RPC error as 'school-wide' — right for
   // explaining an empty list, wrong for a guard — so the RPC is asked directly
   // and anything but its three known answers refuses.
   const { data: scope, error: scopeError } = await supabase.rpc('app_class_scope')
-  if (scopeError) return false
-  if (scope === 'school-wide') return true
-  if (scope !== 'attached' && scope !== 'none') return false
+  if (scopeError) {
+    // The Owner and office staff have no employee row (same signal as
+    // employee-attendance-admin.ts), so a clean "no employee" answer lets them
+    // through without the failed scope call. A teacher has a row; an error here
+    // too stays refused.
+    const { data: me, error: meError } = await supabase.rpc('app_current_employee_id')
+    return !meError && !me ? 'ok' : 'unverified'
+  }
+  if (scope === 'school-wide') return 'ok'
+  if (scope !== 'attached' && scope !== 'none') return 'denied'
 
   const { data: exam } = await supabase.from('exams').select('class_id').eq('id', examId).maybeSingle()
   // Not found, not readable, or the read failed: refuse. Allowing here was only
@@ -42,16 +61,16 @@ export async function mayActOnExamClass(
   // to enrollments, so an unreadable or made-up exam id would walk past the
   // guard. Only narrowed callers reach this line — the Owner and office staff
   // returned above and still get the action's own not-found.
-  if (!exam) return false
+  if (!exam) return 'denied'
 
   for (const classId of new Set([exam.class_id as string | null, targetClassId])) {
     if (!classId) continue
     const { data: capacity } = await supabase.rpc('staff_capacity_for_class_offering', { p_offering: classId })
     // Class Teacher or Subject Teacher of the class. Whether publishing should
     // be Class Teacher only is #676's open question; tighten here if so.
-    if (!capacity) return false
+    if (!capacity) return 'denied'
   }
-  return true
+  return 'ok'
 }
 
 /** The action-shaped form: `null` when allowed, else the localized error result
@@ -61,8 +80,9 @@ export async function examClassDenied(
   examId: string,
   targetClassId: string | null = null,
 ): Promise<{ error: string } | null> {
-  if (await mayActOnExamClass(supabase, examId, targetClassId)) return null
-  return { error: t('exams.notYourClass', await currentLang()) }
+  const check = await examClassCheck(supabase, examId, targetClassId)
+  if (check === 'ok') return null
+  return { error: t(check === 'unverified' ? 'exams.permissionCheckFailed' : 'exams.notYourClass', await currentLang()) }
 }
 
 /** Marks entry asks one thing more: the teacher the exam itself names for this
@@ -89,5 +109,5 @@ export async function examMarksDenied(
   subjectId: string,
 ): Promise<{ error: string } | null> {
   if (await mayEnterExamMarks(supabase, examId, subjectId)) return null
-  return { error: t('exams.notYourClass', await currentLang()) }
+  return examClassDenied(supabase, examId)
 }

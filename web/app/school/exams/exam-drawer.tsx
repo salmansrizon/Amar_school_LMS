@@ -135,7 +135,7 @@ export function ExamDrawerBody({
             icon={<FileText className="size-4" aria-hidden />}
             title={t('examDocs.title', lang)}
             meta={[]}
-            status={<ExamDocumentsModal examId={exam.id} examLabel={`${exam.name} (${exam.exam_year})`} origin={origin} lang={lang} triggerClassName="text-xs font-semibold text-brand-600 hover:underline" />}
+            status={<ExamDocumentsModal examId={exam.id} examLabel={`${exam.name} (${exam.exam_year})`} origin={origin} lang={lang} triggerClassName="text-xs font-semibold text-brand-600 hover:underline max-sm:min-h-11" />}
           />
         </DrawerSection>
       )}

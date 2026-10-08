@@ -15,6 +15,8 @@ function fakeClient(opts: {
   scopeError?: boolean
   /** the caller's employees.id, and the teacher the exam names for the subject */
   employeeId?: string | null
+  /** app_current_employee_id itself fails */
+  employeeError?: boolean
   subjectTeacherId?: string | null
   examClassId?: string | null
   /** undefined = the exam row is not readable */
@@ -24,7 +26,8 @@ function fakeClient(opts: {
   const rpc = vi.fn(async (fn: string, args?: { p_offering?: string }) => {
     if (fn === 'app_class_scope')
       return opts.scopeError ? { data: null, error: { message: 'boom' } } : { data: opts.scope, error: null }
-    if (fn === 'app_current_employee_id') return { data: opts.employeeId ?? null, error: null }
+    if (fn === 'app_current_employee_id')
+      return opts.employeeError ? { data: null, error: { message: 'boom' } } : { data: opts.employeeId ?? null, error: null }
     if (fn === 'staff_capacity_for_class_offering')
       return { data: opts.capacity?.[args!.p_offering!] ?? null, error: null }
     throw new Error(`unexpected rpc ${fn}`)
@@ -99,10 +102,21 @@ describe('mayActOnExamClass', () => {
     expect(await mayActOnExamClass(client, 'exam-1')).toBe(false)
   })
 
-  it('fails closed when app_class_scope errors', async () => {
-    const { client, from } = fakeClient({ scope: 'school-wide', scopeError: true, examClassId: null })
+  it('fails closed for a teacher when app_class_scope errors', async () => {
+    const { client, from } = fakeClient({ scope: 'school-wide', scopeError: true, employeeId: 'emp-1', examClassId: null })
     expect(await mayActOnExamClass(client, 'exam-1')).toBe(false)
     expect(from).not.toHaveBeenCalled()
+  })
+
+  it('lets the Owner / office staff (no employee row) through when app_class_scope errors', async () => {
+    const { client, from } = fakeClient({ scope: null, scopeError: true, employeeId: null })
+    expect(await mayActOnExamClass(client, 'exam-1')).toBe(true)
+    expect(from).not.toHaveBeenCalled()
+  })
+
+  it('refuses when both app_class_scope and the employee lookup error', async () => {
+    const { client } = fakeClient({ scope: null, scopeError: true, employeeError: true })
+    expect(await mayActOnExamClass(client, 'exam-1')).toBe(false)
   })
 
   it.each([null, undefined, '', 'owner', 42])('fails closed on an unexpected scope (%s)', async (scope) => {
@@ -115,6 +129,12 @@ describe('examClassDenied', () => {
   it('returns null when allowed', async () => {
     const { client } = fakeClient({ scope: 'school-wide' })
     expect(await examClassDenied(client, 'exam-1')).toBeNull()
+  })
+
+  it('uses the separate message when the permission check itself failed', async () => {
+    const teacher = fakeClient({ scope: null, scopeError: true, employeeId: 'emp-1' }).client
+    expect(await examClassDenied(teacher, 'exam-1')).toEqual({ error: t('exams.permissionCheckFailed', 'en') })
+    expect(t('exams.permissionCheckFailed', 'en')).toBe('Could not check permission. Please try again.')
   })
 
   it('returns the localized error result when refused — it does not throw', async () => {
@@ -150,7 +170,7 @@ describe('mayEnterExamMarks', () => {
   })
 
   it('fails closed with the class guard: a scope error is not rescued by an assignment lookup', async () => {
-    const { client } = fakeClient({ scope: 'attached', scopeError: true, examClassId: 'other' })
+    const { client } = fakeClient({ scope: 'attached', scopeError: true, employeeId: 'emp-1', examClassId: 'other' })
     expect(await mayEnterExamMarks(client, 'exam-1', 'sub-1')).toBe(false)
   })
 })

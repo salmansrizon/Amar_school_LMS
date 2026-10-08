@@ -30,3 +30,17 @@
 ## Needs migration
 - A student admitted today is counted absent on earlier days (already in #703).
 - Absent on mark sheets / student rank counting incomplete results / progress report hiding a half-filled subject (view changes).
+
+## Second pass (browser, 2026-10-08)
+Fixed:
+- Bangla "In words" on the fee receipt (`web/lib/bangla-amount-words.ts`, unit tests; English unchanged, fraction amounts keep the English line): a4156ccc
+- Exam guard: Owner/office staff (no employee row) pass when `app_class_scope` errors; teachers still refused, with new `exams.permissionCheckFailed`: 31946569
+- Leave Reject reads "নামঞ্জুর করুন", confirm "নামঞ্জুর করবেন?": f6cc1167
+- 44px tap targets at 390px (student leave link, profile correction inputs/button, exam list title links, exam drawer buttons, teacher pickers, add-bands link, StatCard link): 1860d649
+- Exam documents popup now closes on Escape (a Base UI drawer swallowed it; capture-phase listener): fe86ce2b
+- Attendance sub-navigation bar no longer overflows the page at 390px (scrolls inside): see git log
+- Off-Day list shows Bangla dates instead of raw ISO: see git log
+
+Confirmed in browser (seen): exam delete toast after redirect; student follow-up Escape confirm (cancel keeps, confirm closes; Chrome closes a second Escape without activation, platform behaviour); leave pages "নামঞ্জুর" (owner and student, no "প্রত্যাখ্যাত"); fee roster pill "বকেয়া" for a due record; employee table view "এখনো আসেননি"; per-employee page no Latin digits/ISO dates; segmented bar gaps 5px top/bottom/edge at 1440 and 390; Off-Day views Bangla digits.
+Not reproduced: toasts above dialogs (dialog has its own Toaster; globals.css hides the body one; no read-only way to fire a toast inside a dialog).
+Not done: #707 receipt/ledger test (needs admitting and charging a W3 student; not authorised by the user, only relayed).

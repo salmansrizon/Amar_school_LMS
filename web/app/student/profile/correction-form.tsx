@@ -116,14 +116,14 @@ export function CorrectionForm({
           <input
             name="requested_value"
             required
-            className="h-9 w-full rounded-sm border border-line-strong bg-paper px-2 text-sm"
+            className="h-9 w-full rounded-sm border border-line-strong bg-paper px-2 text-sm max-sm:h-11"
           />
         )}
       </label>
 
       <label className="text-xs font-semibold text-muted sm:col-span-2">
         <span className="mb-1 block">{t('student.correctionNote', lang)}</span>
-        <input name="note" className="h-9 w-full rounded-sm border border-line-strong bg-paper px-2 text-sm" />
+        <input name="note" className="h-9 w-full rounded-sm border border-line-strong bg-paper px-2 text-sm max-sm:h-11" />
       </label>
 
       {error && <p className="text-sm text-alert-deep sm:col-span-2">{error}</p>}
@@ -132,7 +132,7 @@ export function CorrectionForm({
       <button
         type="submit"
         disabled={pending || busy}
-        className="cursor-pointer justify-self-start rounded-full bg-brand-500 px-5 py-1.5 text-sm font-semibold text-white hover:bg-brand-600 disabled:opacity-50 sm:col-span-2"
+        className="cursor-pointer justify-self-start rounded-full bg-brand-500 px-5 py-1.5 text-sm font-semibold text-white hover:bg-brand-600 disabled:opacity-50 max-sm:min-h-11 sm:col-span-2"
       >
         {t('student.requestCorrection', lang)}
       </button>
