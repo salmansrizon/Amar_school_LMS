@@ -178,3 +178,68 @@ a reason; the row shows the reason.
 Not exercised: a save on Office Hour and on the three Machine pages (those would
 change the school's real schedule or machine setup), and the teacher's server
 actions directly (the pages that call them are refused).
+
+### #688 archive disables the staff login: VERIFIED
+
+Records: the Students grant on the `W2-ATT emp` login (to have a permission to compare).
+
+1. Before: `w2att-emp@test.local` signed in to `/school`; `/school/students` opened.
+2. Owner, employee profile, Archive. Dialog: "This employee will move to the Old
+   Employees list — restorable later. Are you sure? / Also disable this person's staff
+   login" (bn: "এই ব্যক্তির স্টাফ লগইনও বন্ধ করুন"). Ticked, Archive. Toast "Employee moved to
+   Old Employees".
+3. Staff page row: "W2-ATT emp | Login disabled | Employee archived | Students | 1
+   screens" (bn: "লগইন বন্ধ"). Drawer: "This login is disabled. Its permissions are kept;
+   enabling it gives back the same access." with an "Enable login" button.
+4. Sign-in as that login: the page stayed on `/login` and showed
+   "ইমেইল বা পাসওয়ার্ড সঠিক নয়" (the ordinary wrong e-mail or password message). No
+   session was created.
+5. Old Employees, Restore. Toast: "The employee was restored. The staff login is still
+   disabled; enable it from the Staff page." The profile shows the same disabled notice
+   with an "Open Staff page" link (bn: "এই লগইন বন্ধ আছে। অনুমতিগুলো রাখা আছে; চালু করলে আগের
+   মতো কাজ করবে।"). Sign-in was still refused, same message.
+6. Staff drawer, "Enable login": the button turned to "Disable login", Students still
+   "Granted". Sign-in worked, landed on `/school`, the menu had Students and
+   `/school/students` opened: the same access as before.
+
+Notes, not fixed:
+- The refusal text does not say the login is disabled; a disabled person reads
+  "e-mail or password is incorrect".
+- When the login is already disabled the Archive dialog no longer offers the tick box
+  (seen on the second archive).
+- Not tested: what happens to a session that was already open when the login was
+  disabled.
+
+## Cleanup and what is left in Test School A
+
+Removed: the two ad-hoc grace exemptions; student leaves `W2-ATT leave B` and
+`W2-ATT leave C by student` (withdrawn by the student).
+
+Left in place (all `W2-ATT`): staff logins `W2-ATT office` (grants: Attendance,
+Employees) and `W2-ATT emp` (grant: Students, enabled); employee `W2-ATT emp` (active);
+students `W2-ATT Student One` (with a student login, S9297) and `W2-ATT Student Two`;
+student leave `W2-ATT leave A` (rejected); employee leaves `W2-ATT emp leave A` and
+`W2-ATT emp leave B by office` (both rejected).
+
+No code was changed. No SMS, payment, exam or result action was taken.
+
+## jev_verify (jev-1.13.0, auto_accept 0.8)
+
+10 claims against the observations above: 8 verified, 2 contradicted, 0 unsupported,
+0 needing review.
+
+| Claim | Verdict | Confidence |
+|---|---|---|
+| #690 duplicate roll refused in Bangla, unchanged save works | verified | 1.00 |
+| #680 reason shown to owner and student, home alert, decision date appears and clears | verified | 0.98 |
+| #693 office staff with Attendance see what the owner sees; no absence before start | verified | 0.95 |
+| #694 "No record", directory "Not in yet", no sync warning | verified | 0.98 |
+| #677 teacher refused on seven pages, links hidden; owner and office open and save | verified | 0.88 |
+| #688 disabled, refused, still disabled after restore, enabled with same grant | verified | 1.00 |
+| #689 counts 343 / 0 / 342 / 0 | verified | 1.00 |
+| #689 "a teacher was observed seeing an approval that the teacher had started" | contradicted | 0.98 |
+| Weekly off-days: Fri/Sat holidays, percentage over the 2 marked days | verified | 0.82 |
+| CONTROL (false on purpose): the sync warning appeared for the owner | contradicted | 0.97 |
+
+The #689 contradiction is the reason that item is PARTLY: the teacher's positive case
+was not seen.
