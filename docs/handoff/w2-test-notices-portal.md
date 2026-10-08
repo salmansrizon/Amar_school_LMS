@@ -61,3 +61,21 @@ Observation, not a defect of this item: the reply was given on the follow-up, so
 - Still marked after reply TWO.
 - After opening the conversation popup and reloading the list (twice): the mark is gone.
 - The same-title second question never carried the mark.
+
+## 5. 5.5 length limit: VERIFIED
+
+- Counter under the question editor: `০ / ৪,০০০`, `১০ / ৪,০০০` after ten typed characters (English: `0 / 4,000`). Also on the follow-up editor and on the owner's "Add another reply".
+- Typing or pasting 4001 characters: the field stops at 4000 (the browser limit on the textarea), so a student cannot reach the refusal by typing.
+- With the browser limit taken off the field by the test script, 4001 characters: counter `৪,০০১ / ৪,০০০`, the send is refused with "প্রশ্নটি অনেক বড় — ৪০০০ অক্ষরের মধ্যে লেখো।" (English: "The question is too long — keep it within 4000 characters."), and no row is added. Seen in Bangla at 1440px and 390px and English at 1440px.
+- Exactly 4000 characters (Bangla letters): "প্রশ্ন পাঠানো হয়েছে।", a new row appears, the popup shows the 4000-character body.
+
+Not tested: the database CHECK (0256) on its own. The app refuses first, and no SQL was run.
+
+## 6. 5.8 withdraw: VERIFIED
+
+- Unanswered question, popup: button "প্রশ্ন তুলে নাও". Confirm dialog: "এই প্রশ্নটি তুলে নেবে? এটি মুছে যাবে এবং শিক্ষক আর দেখতে পাবেন না।" (English: "Withdraw this question? It will be deleted and your teacher will no longer see it."). Cancel keeps the question.
+- Confirm: toast "প্রশ্নটি তুলে নেওয়া হয়েছে"; the row is gone from the student list; its `?view=` no longer opens a popup; it is gone from the owner inbox (7 rows to 6) and the owner drawer for its id does not open. Done three times (Bangla 1440px, English 390px twice).
+- Answered conversation: the popup has no withdraw button.
+- Follow-up asked after the answer: withdraw is offered for that follow-up only. After withdrawing it, the answered message and both replies are still in the timeline.
+
+Minor: after a withdraw the address bar keeps `?view=<deleted id>`. Nothing is shown for it and there is no error.
