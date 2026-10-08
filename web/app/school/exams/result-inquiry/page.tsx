@@ -136,6 +136,8 @@ export default async function ResultInquiryPage({
       .select('student_id')
       .eq('exam_id', examId)
       .eq('subject_id', subjectParam)
+      // A half-filled row (null total, migration 0223) is not entered yet.
+      .not('obtained_marks', 'is', null)
       .range(0, 4999)
     subjectStudentIds = new Set((marks ?? []).map((m) => m.student_id))
   }

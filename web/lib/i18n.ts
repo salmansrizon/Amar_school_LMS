@@ -1656,6 +1656,11 @@ const dict = {
     bn: 'খালি ঘর মানে নম্বর দেওয়া হয়নি — শূন্য পেলে ০ লিখুন।',
     en: 'A blank cell means not entered — type 0 for a zero score.',
   },
+  'markEntry.absent': { bn: 'অনুপস্থিত', en: 'Absent' },
+  'markEntry.absentHint': {
+    bn: 'পরীক্ষায় অনুপস্থিত থাকলে “অনুপস্থিত” ঘরে টিক দিন — ওই বিষয়ে নম্বর ০ ধরা হবে।',
+    en: 'Tick “Absent” for a student who missed the paper — the subject counts as 0 marks.',
+  },
   'markEntry.errOverMax': { bn: 'সর্বোচ্চ নম্বরের বেশি', en: 'Above the maximum' },
   'markEntry.errNegative': { bn: 'ঋণাত্মক নম্বর দেওয়া যাবে না', en: 'Marks cannot be negative' },
   'markEntry.errInvalid': { bn: 'সংখ্যা লিখুন', en: 'Enter a number' },

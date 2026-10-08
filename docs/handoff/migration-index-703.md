@@ -14,7 +14,7 @@ One list of every database change recommended during the owner UI overhaul, the 
 | # | Change | Why | Detail |
 |---|---|---|---|
 | 1.1 | `exams` write policy: School Owner, office staff, or a teacher attached to the exam's class. Same for the child tables (routine, seat plan, marks, co-curricular marks, combination members) | The app's server actions now refuse a teacher acting on another class's exam, but a direct API write with the teacher's own token still passes the policy | #676 |
-| 1.2 | Read policy (or a definer view) so a student can read `grading_schemes` and `grade_bands` for exams published to their class | The student portal cannot grade any result: it shows "no results published yet" and the portal mark sheet returns 404 | #702 |
+| 1.2 | **WRITTEN, NOT APPLIED: `0221_student_reads_grading_scheme.sql`.** Read policy (or a definer view) so a student can read `grading_schemes` and `grade_bands` for exams published to their class | The student portal cannot grade any result: it shows "no results published yet" and the portal mark sheet returns 404 | #702 |
 | 1.3 | A function to disable a staff login (remove `staff_permissions`, block the auth user), callable by the School Owner | Archiving an employee leaves their login active; no revoke action exists | #688 |
 | 1.4 | Scope `workflow_instances` reads (or add an RPC) to the viewer's own approver stages | Any member sees the whole school's approvals queue and count | #689 — needs a product decision first |
 | 1.5 | **WRITTEN, NOT APPLIED: `0220_employee_attendance_start.sql`** (function `employee_attendance_starts()`, gated by the attendance grant; the app falls back to the old read until it exists). Expose an attendance start date (joining date) through `employee_card` or a small view readable with the attendance permission | Non-owner roles probably cannot read `employees.joining_date`, so "no absence before joining" may not apply for them | #693 — confirm in a browser first |
@@ -34,10 +34,10 @@ One list of every database change recommended during the owner UI overhaul, the 
 
 | # | Change | Why | Detail |
 |---|---|---|---|
-| 3.1 | Nullable mark components and an `is_absent` flag on `exam_marks` | "Absent" cannot be told from "not entered"; a half-filled row (theory now, MCQ later) is refused | #679 |
-| 3.2 | One database function for the marks save (upsert + delete in one transaction) | The save runs two statements; a failure between them leaves half a save | #700 — do with 3.1, same code |
-| 3.3 | Exclusion constraint on exam routine entries (class, date, time range) | The overlap check is in the app and inside one exam only | #699 — check existing overlaps first |
-| 3.4 | **ops, then code** — clean up all-zero `exam_marks` rows saved before the marks-entry fix | They still count as entered and read as failed | #698 — do before or with 3.1 |
+| 3.1 | **WRITTEN, NOT APPLIED: `0223_exam_marks_absent_and_atomic_save.sql`.** Nullable mark components and an `is_absent` flag on `exam_marks` | "Absent" cannot be told from "not entered"; a half-filled row (theory now, MCQ later) is refused | #679 |
+| 3.2 | **WRITTEN, NOT APPLIED: in `0223`.** One database function for the marks save (upsert + delete in one transaction) | The save runs two statements; a failure between them leaves half a save | #700 — do with 3.1, same code |
+| 3.3 | **WRITTEN, NOT APPLIED: `0224_exam_routine_no_class_overlap.sql`** (a trigger with a per-class lock, not an exclusion constraint; reasons in the file). Exclusion constraint on exam routine entries (class, date, time range) | The overlap check is in the app and inside one exam only | #699 — check existing overlaps first |
+| 3.4 | **WRITTEN, NOT APPLIED: `0222_cleanup_all_zero_exam_marks.sql`** (DATA CHANGE; open, unpublished exams only; set the cutoff first). **ops, then code** — clean up all-zero `exam_marks` rows saved before the marks-entry fix | They still count as entered and read as failed | #698 — do before or with 3.1 |
 | 3.5 | Roll uniqueness per class + section + academic year: confirm the constraint, fix it if looser than intended | Two students were saved with roll 9001 in one class offering | #690 — investigate first; clean duplicates before adding |
 
 ## 4. Attendance and leave
@@ -104,6 +104,7 @@ One list of every database change recommended during the owner UI overhaul, the 
 - 2026-10-07 — 4.0 and 4.4 written as `0218`, 4.1 as `0219`, 1.5 as `0220`; none applied. 4.2 narrowed to the missing sync-time column. 4.5 added: the SMS streak walk still counts weekly off-days. Total is now 29 items. Two existing integration tests (`absent-working-days-range.test.ts`, `fee-structures.test.ts`) assert the old weekend counting and must be updated when `0218` is applied.
 - 2026-10-07 — after an independent review of `0218`–`0220`: 4.6 (anon can execute `is_absent_working_day`) and 4.7 (range and archived classmates) added. Total is now 31 items. The three files now end with a PostgREST schema reload; the `0219` rollback order is fixed; `0217` is re-runnable. `weekly_off_days` defaults to Saturday only: check each School before calling 4.0 fixed.
 - 2026-10-07 — `staging` added its own `0214`–`0216`. This branch's four files were renumbered and every reference here updated: `0217` student attendance summary (#684), `0218` weekly off-days (4.0, 4.4), `0219` leave decision note (4.1), `0220` employee attendance start (1.5). None applied. Ranges reserved for work in progress: `0221`–`0229` exams, `0230`–`0239` fees, `0240`–`0249` access, `0250`–`0262` notices and portal.
+- 2026-10-08 — exams and marks: 1.2 written as `0221`, 3.4 as `0222` (data change), 3.1 and 3.2 as `0223`, 3.3 as `0224`; none applied. Rollout notes in `docs/handoff/migrations-exams-rollout.md`. New needs found, not written: `student_exam_result` must left-join the exam's subjects (so an unmarked subject or a wholly unmarked exam reaches the portal); `student_exam_rank` should leave out students with a half-filled subject once `0223` is applied.
 
 ## Source
 

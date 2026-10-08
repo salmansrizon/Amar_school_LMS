@@ -84,6 +84,19 @@ describe('overlappingRoutineEntry', () => {
       overlappingRoutineEntry([eng], { subject_id: 'eng', exam_date: '2026-12-10', start_time: '10:30', end_time: '12:30' }),
     ).toBeNull()
   })
+
+  // #699: sittings of every exam of the class are compared.
+  it('clashes with another exam of the class, even for the same subject', () => {
+    const other = { ...eng, exam_id: 'half-yearly' }
+    const mine = { exam_id: 'model-test', subject_id: 'eng', exam_date: '2026-12-10', start_time: '11:00', end_time: '12:00' }
+    expect(overlappingRoutineEntry([other], mine)).toBe(other)
+  })
+
+  it('still skips its own sitting when exams are compared', () => {
+    const own = { ...eng, exam_id: 'model-test' }
+    const mine = { exam_id: 'model-test', subject_id: 'eng', exam_date: '2026-12-10', start_time: '11:00', end_time: '12:00' }
+    expect(overlappingRoutineEntry([own], mine)).toBeNull()
+  })
 })
 
 describe('publish readiness', () => {

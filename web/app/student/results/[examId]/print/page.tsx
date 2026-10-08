@@ -31,7 +31,7 @@ export default async function StudentMarkSheetPage({
   const lang = await currentLang()
   const { supabase, student } = await getStudentContext()
 
-  const { data } = await supabase.from('student_exam_result').select('*').eq('exam_id', examId)
+  const { data } = await supabase.from('student_exam_result').select('*').not('obtained_marks', 'is', null).eq('exam_id', examId)
   const [exam] = groupByExam((data ?? []) as ResultRow[])
   if (!exam || !exam.gradingSchemeId) notFound()
 

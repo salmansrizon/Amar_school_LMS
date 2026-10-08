@@ -8,7 +8,7 @@ import { classCatalogueLabel } from '@/lib/class-catalogue'
 import { subjectsForClass } from '@/lib/students'
 import { schoolToday } from '@/lib/school-time'
 import { EXAM_CHIP, examBasicInfoComplete, examChip, examStage, filterExams, type ExamStage, type ExamStageFacts } from '@/lib/exam-setup'
-import { loadExamReadiness } from '@/lib/exam-readiness'
+import { loadExamReadiness, loadMarksProgress } from '@/lib/exam-readiness'
 import { withOrigin } from '@/lib/back-nav'
 import { schoolCrumbs } from '@/lib/school-crumbs'
 import { PageHeader } from '@/components/ui/page'
@@ -149,33 +149,14 @@ export default async function ExamsPage({
   const subjectCountByClass = new Map(
     classIdsNeeded.map((cid) => [cid, subjectsForClass(allSubjects ?? [], cid).length]),
   )
-  const rosterCounts = await Promise.all(
-    classIdsNeeded.map((cid) =>
-      supabase
-        .from('student_enrollments')
-        .select('student_id', { count: 'exact', head: true })
-        .eq('class_offering_id', cid)
-        .is('closed_at', null),
-    ),
-  )
-  const rosterCountByClass = new Map(classIdsNeeded.map((cid, i) => [cid, rosterCounts[i].count ?? 0]))
+  // #698: the same tally as the publish dialog (current roster × the class's
+  // subjects), not a row count — marks of students who left the class or of
+  // removed subjects no longer inflate the progress.
+  const marksProgress = await loadMarksProgress(supabase, activeItems, allSubjects ?? [])
+  const rosterCountByClass = marksProgress.rosterByClass
+  const enteredByExam = new Map(activeItems.map((e) => [e.id, marksProgress.byExam.get(e.id)?.entered ?? 0]))
 
-  // exam_marks carries one row per (student, subject) actually entered
-  // (unique constraint), so a plain row count per exam is the entered count —
-  // a head-only count request, never the rows themselves, and every active
-  // exam's own count stays far under PostgREST's 1,000-row cap (a roster ×
-  // subject grid), so no .range() paging is needed here the way
-  // lib/supabase/select-all.ts warns about for larger reads.
-  const marksCounts = await Promise.all(
-    activeItems.map((e) => supabase.from('exam_marks').select('id', { count: 'exact', head: true }).eq('exam_id', e.id)),
-  )
-  const enteredByExam = new Map(activeItems.map((e, i) => [e.id, marksCounts[i].count ?? 0]))
-
-  const marksTargetFor = (e: ExamRow) => {
-    const roster = e.class_id ? (rosterCountByClass.get(e.class_id) ?? 0) : 0
-    const subjects = e.class_id ? (subjectCountByClass.get(e.class_id) ?? 0) : 0
-    return roster * subjects
-  }
+  const marksTargetFor = (e: ExamRow) => marksProgress.byExam.get(e.id)?.total ?? 0
   const stageFactsFor = (e: ExamRow): ExamStageFacts => {
     const total = marksTargetFor(e)
     const entered = enteredByExam.get(e.id) ?? 0

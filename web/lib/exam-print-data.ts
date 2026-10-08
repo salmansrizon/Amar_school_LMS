@@ -248,6 +248,9 @@ export async function loadExamRosterResults(
             .from('exam_marks')
             .select('student_id, subject_id, obtained_marks')
             .eq('exam_id', examId)
+            // A half-filled row (null total, migration 0223) is not entered
+            // yet: the student reads as incomplete, not as 0.
+            .not('obtained_marks', 'is', null)
             .range(from, to),
         ),
       ])
