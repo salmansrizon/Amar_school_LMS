@@ -28,7 +28,12 @@ function ingest(schoolId: string, body: unknown, token?: string | null, raw = fa
   return POST(request, { params: Promise.resolve({ schoolId }) })
 }
 
-const reconcile = () => anonClient().rpc('reconcile_attendance', { job_secret: RECONCILE_SECRET, target_date: DAY })
+// Reconcile DAY for one School the way the cron route now does (migration 0215):
+// mark the (School, day) pair due, then drain the queue for that School.
+const reconcile = async (school: string) => {
+  await anonClient().rpc('enqueue_attendance_reconcile_dates', { job_secret: RECONCILE_SECRET, target_date: DAY, target_school: school })
+  return anonClient().rpc('drain_attendance_reconcile_queue', { job_secret: RECONCILE_SECRET, only_school: school })
+}
 
 describe('POST /api/attendance/ingest/[schoolId] (#674)', () => {
   let ownerA: SupabaseClient
@@ -155,7 +160,7 @@ describe('POST /api/attendance/ingest/[schoolId] (#674)', () => {
     })
 
     it('resolves the student and the employee to the right person, collapsing duplicate taps', async () => {
-      expect((await reconcile()).error).toBeNull()
+      expect((await reconcile(schoolA)).error).toBeNull()
       const { data } = await ownerA
         .from('attendance_records')
         .select('person_type, person_id, entry_at, exit_at')
@@ -179,7 +184,7 @@ describe('POST /api/attendance/ingest/[schoolId] (#674)', () => {
     })
 
     it('re-running reconciliation keeps exactly one record per person', async () => {
-      expect((await reconcile()).error).toBeNull()
+      expect((await reconcile(schoolA)).error).toBeNull()
       const { data } = await ownerA
         .from('attendance_records')
         .select('person_id')

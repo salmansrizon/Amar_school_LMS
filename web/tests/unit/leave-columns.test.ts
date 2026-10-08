@@ -40,7 +40,7 @@ describe('cleanDecisionNote', () => {
   })
 })
 
-// The leave actions: what is written, and the fallback before 0216 is applied.
+// The leave actions: what is written, and the fallback before 0219 is applied.
 const updates: unknown[] = []
 let failNew = false
 vi.mock('next/cache', () => ({ revalidatePath: vi.fn() }))

@@ -81,7 +81,7 @@ export default async function EmployeeLeaveManagementPage({
           .in('employee_id', matchedIds)
           .order('from_day', { ascending: false })
           .limit(FILTERED_VIEW_LIMIT)
-      // decision_note / decided_at arrive with migration 0216; read without them until then.
+      // decision_note / decided_at arrive with migration 0219; read without them until then.
       const { data } = await withLeaveColumns(() => filtered('id, employee_id, from_day, to_day, reason, status, decision_note, decided_at'), () => filtered('id, employee_id, from_day, to_day, reason, status'))
       leaves = (data ?? []) as unknown as EmployeeLeaveRow[]
     }

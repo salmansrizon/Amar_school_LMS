@@ -6,6 +6,8 @@ import { getSchoolContext } from '@/lib/school/context'
 import { employeeCategoryLabel, matchesEmployeeQuery } from '@/lib/employees'
 import { RestoreButton } from './restore-button'
 import { filterButtonClass, inputClass } from '@/components/ui/field'
+import { PageHeader } from '@/components/ui/page'
+import { schoolCrumbs } from '@/lib/school-crumbs'
 import { pageTitle } from '@/lib/page-title'
 
 // Layout per ui/school-owner/employees-archive.html: search + table Name |
@@ -37,10 +39,12 @@ export default async function EmployeesArchivePage({
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-extrabold">{t('employees.archiveTitle', lang)}</h1>
-        <Link href="/school/employees" aria-label={t('employees.activeList', lang)} className="inline-flex size-9 max-sm:size-11 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
-      </div>
+      <PageHeader
+        title={t('employees.archiveTitle', lang)}
+        backHref="/school/employees"
+        backLabel={t('employees.activeList', lang)}
+        crumbs={schoolCrumbs('/school/employees', lang, { label: t('employees.title', lang), href: '/school/employees' }, { label: t('employees.archiveTitle', lang) })}
+      />
 
       <Form className="mb-4 flex items-center gap-2" action="/school/employees/archive">
         <input

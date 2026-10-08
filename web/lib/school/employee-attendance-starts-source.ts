@@ -3,8 +3,8 @@ import { employeeTrackingStart } from '@/lib/employee-attendance-calendar'
 
 // Each Employee's attendance start day (see employeeTrackingStart), for the
 // Employee attendance pages. Asks employee_attendance_starts() (migration
-// 0217), which answers for the School Owner AND any Staff User holding the
-// attendance Permission Grant. While 0217 is unapplied — or if it returns
+// 0220), which answers for the School Owner AND any Staff User holding the
+// attendance Permission Grant. While 0220 is unapplied — or if it returns
 // nothing — falls back to today's direct read of `employees`, which only the
 // School Owner can make (a granted non-owner gets no rows, so no clipping, as
 // before). Same keep-working-before-the-migration pattern as

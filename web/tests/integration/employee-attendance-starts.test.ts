@@ -2,9 +2,9 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { signedIn, PASSWORD } from '../helpers/auth'
 
-// WRITTEN FOR MIGRATION 0217 — NOT RUN. The migration is unapplied; the
+// WRITTEN FOR MIGRATION 0220 — NOT RUN. The migration is unapplied; the
 // database behind .env.local is shared by staging and production, so this
-// file waits for a branch database with 0217 on it.
+// file waits for a branch database with 0220 on it.
 //
 // Seam: employee_attendance_starts() (issues #693/#694) gives each non-archived
 // Employee's attendance start day to the School Owner and to a Staff User who
@@ -16,7 +16,7 @@ const STAFF = 'staff-e2e@test.local'
 const STAFF_ID = '44444444-4444-4444-4444-444444444444'
 const MARK = 'Start Day Test Employee'
 
-describe('employee_attendance_starts() (0217)', () => {
+describe('employee_attendance_starts() (0220)', () => {
   let ownerA: SupabaseClient
   let ownerB: SupabaseClient
   let staff: SupabaseClient

@@ -1,4 +1,4 @@
--- 0217_employee_attendance_start.sql — issues #693 and #694 (second half).
+-- 0220_employee_attendance_start.sql — issues #693 and #694 (second half).
 -- WRITTEN, NOT APPLIED. The app works with and without it.
 --
 -- What

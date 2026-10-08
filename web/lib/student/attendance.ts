@@ -100,10 +100,10 @@ export interface AttendanceOutcome {
  * absent cells, for the attendance page and the home alike.
  *
  * `takenDates` are the days attendance was taken for the Student's class and
- * that count for them (student_class_attendance_days, migration 0215: off-days,
+ * that count for them (student_class_attendance_days, migration 0218: off-days,
  * weekly off-days and approved leave are already left out there). null means
  * the function is not available; an empty list says nothing either (an
- * unplaced Student gets no rows). Both keep the behaviour from before 0215:
+ * unplaced Student gets no rows). Both keep the behaviour from before 0218:
  * the shared RPC's absent count, and no percentage without a present row.
  *
  * With taken days known, the Student is judged on those days only: absent on
