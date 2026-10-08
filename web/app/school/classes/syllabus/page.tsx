@@ -1,3 +1,4 @@
+import { Pager, paginate, pageSizeFrom } from '@/components/pager'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang, formatDate } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
@@ -19,7 +20,12 @@ const thClass = 'whitespace-nowrap px-4 py-3 text-left text-sm font-semibold tex
 
 export const generateMetadata = pageTitle('syllabus.title')
 
-export default async function SyllabusPage() {
+export default async function SyllabusPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string; size?: string }>
+}) {
+  const params = await searchParams
   const lang: Lang = await currentLang()
   const { supabase, shiftSelection } = await getSchoolContext()
 
@@ -31,6 +37,8 @@ export default async function SyllabusPage() {
     supabase.from('class_syllabi').select('class_id, file_name, uploaded_at, file_size'),
   ])
 
+  const pageSize = pageSizeFrom(params.size, 20)
+  const pageData = paginate(classes ?? [], params.page, pageSize)
   const byClass = new Map((syllabi ?? []).map((s) => [s.class_id, s]))
 
   return (
@@ -60,7 +68,7 @@ export default async function SyllabusPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-line">
-                {classes.map((c) => {
+                {pageData.items.map((c) => {
                   const s = byClass.get(c.id)
                   return (
                     <SyllabusRow
@@ -79,6 +87,9 @@ export default async function SyllabusPage() {
               </tbody>
             </table>
           </div>
+        )}
+        {!!classes?.length && (
+          <Pager page={pageData.page} totalPages={pageData.totalPages} total={pageData.total} lang={lang} params={params} pageSize={pageSize} />
         )}
       </section>
     </>

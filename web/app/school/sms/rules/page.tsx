@@ -7,6 +7,7 @@ import { selectAllRows } from '@/lib/supabase/select-all'
 import { Card, PageHeader } from '@/components/ui/page'
 import { StatCard, StatGrid } from '@/components/ui/widgets'
 import { DataTable, type Column } from '@/components/data-table/data-table'
+import { Pager, paginate, pageSizeFrom } from '@/components/pager'
 import { SmsTabs } from '../tabs'
 import { AddOffDayForm, DeleteOffDayButton, AddRuleForm, DeleteRuleButton, AddLeaveForm, DeleteLeaveButton } from '../sms-controls'
 import { pageTitle } from '@/lib/page-title'
@@ -45,6 +46,12 @@ export default async function SmsRulesPage({ searchParams }: { searchParams: Pro
   const offDayRows: OffDay[] = offDays.data ?? []
   const ruleRows: Rule[] = rules.data ?? []
   const leaveRows: Leave[] = leaves.data ?? []
+  // Off days and leaves are unbounded lists: each pages on its own keys
+  // (opage/osize, lpage/lsize). The few absence rules stay on one page.
+  const offDaySize = pageSizeFrom(params.osize, 20)
+  const offDayPage = paginate(offDayRows, params.opage, offDaySize)
+  const leaveSize = pageSizeFrom(params.lsize, 20)
+  const leavePg = paginate(leaveRows, params.lpage, leaveSize)
   const none = (
     <Card>
       <p className="text-sm text-muted">{t('locations.empty', lang)}</p>
@@ -116,7 +123,7 @@ export default async function SmsRulesPage({ searchParams }: { searchParams: Pro
           <AddOffDayForm lang={lang} />
         </Card>
         <DataTable
-          rows={offDayRows}
+          rows={offDayPage.items}
           rowId={(d) => d.day}
           rowLabel={(d) => d.day}
           columns={offDayCols}
@@ -126,6 +133,9 @@ export default async function SmsRulesPage({ searchParams }: { searchParams: Pro
           rowActions={(d) => <DeleteOffDayButton day={d.day} lang={lang} />}
           empty={none}
         />
+        {offDayRows.length > 0 && (
+          <Pager page={offDayPage.page} totalPages={offDayPage.totalPages} total={offDayPage.total} lang={lang} params={params} pageSize={offDaySize} pageParam="opage" sizeParam="osize" />
+        )}
       </section>
 
       <section>
@@ -134,7 +144,7 @@ export default async function SmsRulesPage({ searchParams }: { searchParams: Pro
           <AddLeaveForm lang={lang} students={students.rows} />
         </Card>
         <DataTable
-          rows={leaveRows}
+          rows={leavePg.items}
           rowId={(l) => l.id}
           rowLabel={(l) => names.get(l.student_id) ?? l.id}
           columns={leaveCols}
@@ -144,6 +154,9 @@ export default async function SmsRulesPage({ searchParams }: { searchParams: Pro
           rowActions={(l) => <DeleteLeaveButton id={l.id} lang={lang} />}
           empty={none}
         />
+        {leaveRows.length > 0 && (
+          <Pager page={leavePg.page} totalPages={leavePg.totalPages} total={leavePg.total} lang={lang} params={params} pageSize={leaveSize} pageParam="lpage" sizeParam="lsize" />
+        )}
       </section>
     </>
   )

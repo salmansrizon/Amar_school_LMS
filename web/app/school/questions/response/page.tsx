@@ -13,6 +13,7 @@ import {
   type MessageForStats,
   type ResponseStats,
 } from '@/lib/student/response-performance'
+import { paginate, pageSizeFrom } from '@/components/pager'
 import { hubSummary } from '@/lib/student/hub-source'
 import { Card, PageHeader } from '@/components/ui/page'
 import { StatCard, StatGrid } from '@/components/ui/widgets'
@@ -40,9 +41,9 @@ export const generateMetadata = pageTitle('hub.title')
 export default async function ResponsePerformancePage({
   searchParams,
 }: {
-  searchParams: Promise<{ from?: string; to?: string }>
+  searchParams: Promise<{ from?: string; to?: string; page?: string; size?: string }>
 }) {
-  const { from = '', to = '' } = await searchParams
+  const { from = '', to = '', page, size } = await searchParams
   const lang = await currentLang()
   const { supabase, role } = await getSchoolContext()
   const isOwner = role === 'school_owner'
@@ -141,6 +142,8 @@ export default async function ResponsePerformancePage({
   const schoolTimings = (schoolWide.data ?? null) as { created_at: string; replied_at: string | null }[] | null
   const overall = schoolTimings ? schoolWideOverall(schoolTimings) : report.overall
   const perTeacher = visibleTeacherRows(report, { isOwner, employeeId: me })
+  const pageSize = pageSizeFrom(size, 20)
+  const pageData = paginate(perTeacher, page, pageSize)
 
   const fmt = numberFmt(lang)
   const hours = (n: number | null) => (n === null ? '—' : `${fmt.format(n)}${t('response.hours', lang)}`)
@@ -227,13 +230,14 @@ export default async function ResponsePerformancePage({
       </Card>
 
       <DataTable
-        rows={perTeacher}
+        rows={pageData.items}
         rowId={(s) => s.teacherId ?? 'unassigned'}
         rowLabel={teacherLabel}
         columns={columns}
         lang={lang}
-        params={{ from, to }}
+        params={{ from, to, size }}
         caption={t('hub.tabResponse', lang)}
+        pagination={{ page: pageData.page, totalPages: pageData.totalPages, total: pageData.total, pageSize }}
         empty={
           <Card>
             <p className="text-sm text-muted">

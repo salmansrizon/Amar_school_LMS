@@ -1,3 +1,4 @@
+import { Pager, paginate, pageSizeFrom } from '@/components/pager'
 import { CalendarDays, List as ListIcon, Grid3x3 } from 'lucide-react'
 import { currentLang } from '@/lib/i18n-server'
 import { pageTitle } from '@/lib/page-title'
@@ -51,9 +52,10 @@ export const generateMetadata = pageTitle('attendance.offDayTitle')
 export default async function OffDayCalendarPage({
   searchParams,
 }: {
-  searchParams: Promise<{ year?: string; month?: string; view?: string }>
+  searchParams: Promise<{ year?: string; month?: string; view?: string; page?: string; size?: string }>
 }) {
-  const { year: yearParam, month: monthParam, view } = await searchParams
+  const sp = await searchParams
+  const { year: yearParam, month: monthParam, view } = sp
   const year = Number(yearParam) || currentYear()
   const lang: Lang = await currentLang()
   const { supabase, weeklyOffDays, role } = await getSchoolContext()
@@ -111,6 +113,8 @@ export default async function OffDayCalendarPage({
   const isHolidayView = view === 'holidays'
   const holidaysHref = listQuery({ view: 'holidays' })
   const { weekly: weeklyDays, rows: holidayRows } = buildOffDayList(offDays, weeklyOffDays, year)
+  const holidaySize = pageSizeFrom(sp.size, 20)
+  const holidayPage = paginate(holidayRows, sp.page, holidaySize)
   const calMonthLabel = formatMonthYear(calYear, calMonth0, lang)
   // Calendar view titles by the month on screen, not the list's ?year=.
   const titleYear = formatNumber(isListView || isHolidayView ? year : calYear, lang, { useGrouping: false })
@@ -218,7 +222,7 @@ export default async function OffDayCalendarPage({
                 </tr>
               </thead>
               <tbody className="divide-y divide-line">
-                {holidayRows.map((r) => (
+                {holidayPage.items.map((r) => (
                   <tr key={r.iso} data-iso={r.iso}>
                     <td className="py-2 pr-2">{formatDayLong(r.iso, lang)}</td>
                     <td className="py-2 pr-2">{WEEKDAY_SHORT[r.weekday][lang]}</td>
@@ -231,6 +235,9 @@ export default async function OffDayCalendarPage({
                 ))}
               </tbody>
             </table>
+          )}
+          {holidayRows.length > 0 && (
+            <Pager page={holidayPage.page} totalPages={holidayPage.totalPages} total={holidayPage.total} lang={lang} params={sp} pageSize={holidaySize} />
           )}
         </section>
       )}

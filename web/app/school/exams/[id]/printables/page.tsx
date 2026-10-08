@@ -1,3 +1,4 @@
+import { Pager, paginate, pageSizeFrom } from '@/components/pager'
 import Link from 'next/link'
 import { schoolCrumbs } from '@/lib/school-crumbs'
 import { PageHeader } from '@/components/ui/page'
@@ -20,10 +21,12 @@ export default async function ExamPrintablesPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>
-  searchParams: Promise<{ from?: string | string[] }>
+  searchParams: Promise<{ from?: string | string[]; page?: string; size?: string }>
 }) {
   const { id } = await params
-  const { from } = await searchParams
+  const { from, page, size } = await searchParams
+  const pagerParams = { from: Array.isArray(from) ? from[0] : from, size }
+  const pageSize = pageSizeFrom(size, 20)
   const backHref = resolveBackHref(from, `/school/exams/${id}`)
   // Links from here go a level deeper, so they carry *this* page's
   // address — origin included — otherwise Back from the leaf lands here
@@ -81,6 +84,8 @@ export default async function ExamPrintablesPage({
     )
   }
 
+  const rowsPage = paginate(students, page, pageSize)
+
   return (
     <div>
       {header}
@@ -95,7 +100,7 @@ export default async function ExamPrintablesPage({
             </tr>
           </thead>
           <tbody className="divide-y divide-line">
-            {students.map((s) => (
+            {rowsPage.items.map((s) => (
               <tr key={s.id}>
                 <td className="px-4 py-3">{s.roll_number ?? '—'}</td>
                 <td className="px-4 py-3">{s.full_name}</td>
@@ -130,6 +135,7 @@ export default async function ExamPrintablesPage({
             ))}
           </tbody>
         </table>
+        <Pager page={rowsPage.page} totalPages={rowsPage.totalPages} total={rowsPage.total} lang={lang} params={{ ...pagerParams, page }} pageSize={pageSize} />
       </section>
     </div>
   )

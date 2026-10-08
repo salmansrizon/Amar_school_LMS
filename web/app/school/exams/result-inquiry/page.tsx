@@ -1,3 +1,4 @@
+import { Pager, paginate, pageSizeFrom } from '@/components/pager'
 import Form from 'next/form'
 import { schoolCrumbs } from '@/lib/school-crumbs'
 import Link from 'next/link'
@@ -30,9 +31,10 @@ export const generateMetadata = pageTitle('resultInquiry.title')
 export default async function ResultInquiryPage({
   searchParams,
 }: {
-  searchParams: Promise<{ exam?: string; subject?: string; roll?: string }>
+  searchParams: Promise<{ exam?: string; subject?: string; roll?: string; page?: string; size?: string }>
 }) {
-  const { exam: examParam, subject: subjectParam = '', roll: rollParam = '' } = await searchParams
+  const params = await searchParams
+  const { exam: examParam, subject: subjectParam = '', roll: rollParam = '' } = params
   const lang: Lang = await currentLang()
   const { supabase } = await getSchoolContext()
 
@@ -149,6 +151,8 @@ export default async function ResultInquiryPage({
     return true
   })
 
+  const pageSize = pageSizeFrom(params.size, 20)
+  const pageData = paginate(rows, params.page, pageSize)
   const clsLabel = classSectionLabel(roster.cls?.name, roster.cls?.section) ?? '—'
 
   return (
@@ -171,7 +175,7 @@ export default async function ResultInquiryPage({
                 </tr>
               </thead>
               <tbody className="divide-y divide-line">
-                {rows.map((row) => {
+                {pageData.items.map((row) => {
                   const passed = row.overall?.passed ?? false
                   // Same reading as the Result Book: missing marks are an
                   // incomplete result, not a failed one.
@@ -203,6 +207,7 @@ export default async function ResultInquiryPage({
                 })}
               </tbody>
             </table>
+            <Pager page={pageData.page} totalPages={pageData.totalPages} total={pageData.total} lang={lang} params={params} pageSize={pageSize} />
           </div>
         ) : (
           <p className="text-sm text-muted">{t('resultInquiry.noMatches', lang)}</p>

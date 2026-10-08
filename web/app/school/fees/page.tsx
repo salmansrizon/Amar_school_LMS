@@ -19,7 +19,7 @@ import { Card } from '@/components/ui/page'
 import { PageHeader } from '@/components/ui/page'
 import { StatCard, StatGrid, WarningBanner, WorkflowCard } from '@/components/ui/widgets'
 import { EmptyState } from '@/components/ui/states'
-import { paginate, pageSizeFrom } from '@/components/pager'
+import { Pager, paginate, pageSizeFrom } from '@/components/pager'
 import { DataTable, Pill, type Column } from '@/components/data-table/data-table'
 import { RecordDrawer } from '@/components/data-table/record-drawer'
 import { RowActionPill } from '@/components/data-table/row-action-pill'
@@ -88,6 +88,8 @@ export default async function FeesPage({
     method?: string
     page?: string
     size?: string
+    rpage?: string
+    rsize?: string
     view?: string
   }>
 }) {
@@ -110,6 +112,8 @@ export default async function FeesPage({
     year: now.getFullYear(),
   })
   const pageSize = pageSizeFrom(size, PAGE_SIZE)
+  // The class roster above the records pages on its own keys (rpage/rsize).
+  const rosterSize = pageSizeFrom(params.rsize, PAGE_SIZE)
 
   const lang: Lang = await currentLang()
   const { supabase, role, grants, shiftSelection, startedAcademicYears, academicYearSelection } =
@@ -219,6 +223,7 @@ export default async function FeesPage({
     }
   }
 
+  const rosterPage = paginate(roster, params.rpage, rosterSize)
   const selectedRow = roster.find((s) => s.id === selectedStudent) ?? null
   const selectedExisting = selectedStudent ? (recordMap.get(selectedStudent) ?? null) : null
 
@@ -482,7 +487,7 @@ export default async function FeesPage({
 
         {cls && (
           <DataTable
-            rows={roster}
+            rows={rosterPage.items}
             rowId={(s) => s.id}
             rowLabel={(s) => s.full_name}
             columns={rosterColumns}
@@ -495,7 +500,7 @@ export default async function FeesPage({
               return (
                 <RowActionPill
                   state={collected ? 'done' : 'next'}
-                  href={`/school/fees?class=${selectedClass}&month=${month}&year=${year}&student=${s.id}#collect-form`}
+                  href={`/school/fees?class=${selectedClass}&month=${month}&year=${year}&student=${s.id}${params.rpage ? `&rpage=${params.rpage}` : ''}${params.rsize ? `&rsize=${params.rsize}` : ''}#collect-form`}
                   label={t(collected ? 'fees.editRecord' : 'fees.collectAction', lang)}
                 />
               )
@@ -506,6 +511,9 @@ export default async function FeesPage({
               </Card>
             }
           />
+        )}
+        {cls && roster.length > 0 && (
+          <Pager page={rosterPage.page} totalPages={rosterPage.totalPages} total={rosterPage.total} lang={lang} params={params} pageSize={rosterSize} pageParam="rpage" sizeParam="rsize" />
         )}
 
         {selectedRow && (
