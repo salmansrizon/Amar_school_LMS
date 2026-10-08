@@ -184,7 +184,7 @@ export default async function StudentLogDetailPage({
   const printHref = `/school/attendance/student-log/${studentId}/print?${printQuery.toString()}`
 
   const pillClass = (active: boolean) =>
-    `rounded-full border px-3 py-1 text-xs font-semibold ${
+    `inline-flex min-h-11 items-center justify-center rounded-full border px-4 text-xs font-semibold ${
       active ? 'border-brand-500 bg-brand-500 text-white' : 'border-line hover:bg-paper-muted'
     }`
 
