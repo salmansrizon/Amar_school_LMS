@@ -8,6 +8,7 @@ import { sendStudentSms } from '@/lib/sms/student-sms'
 import { recordBehaviourTriage } from '@/lib/behaviour-triage-service'
 import { photoExtension, behaviourSmsBody, parseRollNumber, rollScopeChanged, friendlyStudentError } from '@/lib/students'
 import { checkMobile } from '@/lib/bd-mobile'
+import { rollAlreadyTaken } from '@/lib/school/roll-check'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { createSignedUpload, type SignedUpload } from '@/lib/storage/signed-upload'
@@ -135,6 +136,12 @@ export async function admitStudent(
     if (!offering) return { error: 'Class not found' }
     className = offering.name
     section = offering.section
+    // #690: a typed roll must be free in this Class Offering, in both copies
+    // (the Enrollment's and the one the lists show). The unique indexes still
+    // back this up; a blank roll is assigned by the trigger and needs no check.
+    if (roll.value !== null && (await rollAlreadyTaken(supabase, classOfferingId, roll.value))) {
+      return { error: t('students.errRollDuplicate', lang) }
+    }
   }
 
   const { data, error } = await supabase
@@ -221,13 +228,27 @@ export async function updateStudent(formData: FormData): Promise<{ error?: strin
   // was never computed for.
   const { data: current } = await supabase
     .from('students')
-    .select('class_name, section, student_mobile, guardian_mobile')
+    .select('class_name, section, student_mobile, guardian_mobile, roll_number, current_enrollment_id')
     .eq('id', id)
     .maybeSingle()
   const mobiles = checkedMobiles(profileFields(formData), current, lang)
   if (mobiles.error) return { error: mobiles.error }
   const fields = mobiles.fields
   const scopeChanged = rollScopeChanged(current, fields)
+
+  // #690: a CHANGED roll must be free in the Student's Class Offering. An
+  // unchanged roll is not re-checked, so a Student who already shares a roll
+  // (older data) can still be saved; cleaning those up is a separate step.
+  if (roll.value !== null && roll.value !== current?.roll_number && current?.current_enrollment_id) {
+    const { data: enrollment } = await supabase
+      .from('student_enrollments')
+      .select('class_offering_id')
+      .eq('id', current.current_enrollment_id)
+      .maybeSingle()
+    if (enrollment && (await rollAlreadyTaken(supabase, enrollment.class_offering_id, roll.value, id))) {
+      return { error: t('students.errRollDuplicate', lang) }
+    }
+  }
 
   const { data, error } = await supabase
     .from('students')

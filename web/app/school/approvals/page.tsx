@@ -13,6 +13,7 @@ import { withParams } from '@/lib/url-params'
 import { DrawerFooter, DrawerHeader } from '@/components/data-table/drawer-parts'
 import { ApprovalDrawerBody, approvalDrawerCancelHref } from './approval-drawer'
 import { pageTitle } from '@/lib/page-title'
+import { pendingApprovalsInReach } from '@/lib/school/approvals-reach'
 
 type Labelled = { label?: { en?: string; bn?: string } | null }
 type Instance = { id: string; definition_key: string; entity_type: string; entity_id: string; current_seq: number; created_at: string }
@@ -23,8 +24,8 @@ type Instance = { id: string; definition_key: string; entity_type: string; entit
 // the only action a row has, so nothing hides behind a ⋮), then two workflow
 // cards — the oldest waiting instances and the queue split by workflow type.
 // In-progress workflow instances for the tenant; the current stage's approver
-// acts via workflow_decide (RPC-enforced). RLS ("members read own instances")
-// scopes the list to the school. There is no meaningful sub-view to point a
+// acts via workflow_decide (RPC-enforced). RLS scopes the list to the school,
+// and lib/school/approvals-reach.ts narrows it to the caller's reach (#689). There is no meaningful sub-view to point a
 // warning banner at — the table below already is the whole queue — so this
 // page has none, unlike the other section landings.
 export const generateMetadata = pageTitle('approvals.title')
@@ -35,19 +36,15 @@ export default async function ApprovalsPage({
   searchParams: Promise<{ view?: string; type?: string }>
 }) {
   const params = await searchParams
-  const { supabase } = await getSchoolContext()
+  const { supabase, role, userId, grants } = await getSchoolContext()
   const lang = await currentLang()
   const fmt = numberFmt(lang)
 
-  const [{ data }, { data: defs }] = await Promise.all([
-    supabase
-      .from('workflow_instances')
-      .select('id, definition_key, entity_type, entity_id, current_seq, created_at')
-      .eq('status', 'in_progress')
-      .order('created_at', { ascending: false }),
+  // #689: only the instances in the caller's reach (the Owner: all of them).
+  const [instances, { data: defs }]: [Instance[], { data: { key: string }[] | null }] = await Promise.all([
+    pendingApprovalsInReach(supabase, { role, userId, grants }),
     supabase.from('workflow_definitions').select('key, label'),
   ])
-  const instances = (data ?? []) as Instance[]
   const label = new Map(
     (defs ?? []).map((d) => {
       const l = (d as Labelled).label

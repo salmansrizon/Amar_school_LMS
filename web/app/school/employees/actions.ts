@@ -8,6 +8,7 @@ import { checkMobile } from '@/lib/bd-mobile'
 import { currentLang } from '@/lib/i18n-server'
 import { t } from '@/lib/i18n'
 import { pgConstraintMessage } from '@/lib/crud/pg-error'
+import { changeStaffLogin, disabledStaffLogins, staffLoginState } from '@/lib/staff-login'
 
 // RLS scopes all writes to the caller's School.
 
@@ -161,34 +162,60 @@ export async function updateEmployee(formData: FormData): Promise<{ error?: stri
   return {}
 }
 
-/** Old Employees soft-archive (§5.2) — the row stays for history/reports. */
-export async function archiveEmployee(id: string): Promise<{ error?: string }> {
+/** Old Employees soft-archive (§5.2) — the row stays for history/reports.
+ *
+ *  `disableLogin` (#688): also turn the linked Staff login off. Archive first —
+ *  it is the action asked for — then the login; if the login step fails the
+ *  archive stands and `warning` says the login is still on. Only the School
+ *  Owner can disable a login (the database function refuses others), and until
+ *  migration 0241 is applied the step reports the same warning. */
+export async function archiveEmployee(
+  id: string,
+  disableLogin = false,
+): Promise<{ error?: string; warning?: string }> {
   const supabase = await createClient()
   const { data, error } = await supabase
     .from('employees')
     .update({ archived_at: new Date().toISOString() })
     .eq('id', id)
-    .select('id')
+    .select('id, profile_id')
   if (error) return { error: error.message }
   if (!data?.length) return { error: 'Employee not found' }
   revalidatePath(PAGE)
   revalidatePath(`${PAGE}/${id}`)
   revalidatePath(`${PAGE}/archive`)
+
+  const profileId = data[0].profile_id as string | null
+  if (disableLogin && profileId) {
+    if ((await changeStaffLogin(supabase, profileId, true)) !== 'ok') {
+      return { warning: t('employees.archiveLoginNotDisabled', await currentLang()) }
+    }
+    revalidatePath('/school/staff')
+  }
   return {}
 }
 
-export async function restoreEmployee(id: string): Promise<{ error?: string }> {
+/** Un-archive. Does NOT turn a disabled Staff login back on (#688): giving
+ *  access back is the Owner's separate decision on the Staff page. `notice`
+ *  says so when the linked login is off (the Owner is the only one who can
+ *  read that, so nobody else gets the notice). */
+export async function restoreEmployee(id: string): Promise<{ error?: string; notice?: string }> {
   const supabase = await createClient()
   const { data, error } = await supabase
     .from('employees')
     .update({ archived_at: null })
     .eq('id', id)
-    .select('id')
+    .select('id, profile_id')
   if (error) return { error: error.message }
   if (!data?.length) return { error: 'Employee not found' }
   revalidatePath(PAGE)
   revalidatePath(`${PAGE}/${id}`)
   revalidatePath(`${PAGE}/archive`)
+
+  const profileId = data[0].profile_id as string | null
+  if (profileId && staffLoginState(await disabledStaffLogins(supabase), profileId) === 'disabled') {
+    return { notice: t('employees.restoreLoginStillDisabled', await currentLang()) }
+  }
   return {}
 }
 

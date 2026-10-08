@@ -2,6 +2,7 @@ import Form from 'next/form'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
+import { requireEmployeeAttendanceAdmin } from '@/lib/school/employee-attendance-admin'
 import { ACADEMIC_SHIFT_LABEL_KEY, isKnownAcademicShift } from '@/lib/institute'
 import { EMPLOYEE_CATEGORIES, EMPLOYEE_CATEGORY_LABEL_KEY } from '@/lib/employees'
 import { employeeShifts, enrollmentInfo, listMachines } from '@/lib/machine-enrollment-store'
@@ -36,6 +37,8 @@ export default async function EmployeeEnrollmentPage({
   const { shift: requested = '' } = await searchParams
   const lang: Lang = await currentLang()
   const { supabase, configuredShifts } = await getSchoolContext()
+  // #677: Owner and office staff only; a teacher is refused.
+  await requireEmployeeAttendanceAdmin('/school/attendance/machine/employees')
   // An unknown or no-longer-configured Shift in the URL falls back to all.
   const shift = requested === NO_SHIFT || configuredShifts.includes(requested) ? requested : ''
 

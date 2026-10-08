@@ -1,6 +1,7 @@
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang, formatDate } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
+import { requireEmployeeAttendanceAdmin } from '@/lib/school/employee-attendance-admin'
 import { AttendanceTabs } from '../../attendance-tabs'
 import Form from 'next/form'
 import { RequestLeaveButton, LeaveActions } from '../leave-controls'
@@ -51,6 +52,8 @@ export default async function EmployeeLeaveManagementPage({
   const pageSize = pageSizeFrom(size, PAGE_SIZE)
   const lang: Lang = await currentLang()
   const { supabase } = await getSchoolContext()
+  // #677: Owner and office staff only; a teacher is refused.
+  await requireEmployeeAttendanceAdmin('/school/attendance/leave/employee')
 
   const { data: employees } = await supabase
     .from('employee_card')

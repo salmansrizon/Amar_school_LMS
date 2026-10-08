@@ -2,6 +2,7 @@ import Form from 'next/form'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
+import { requireEmployeeAttendanceAdmin } from '@/lib/school/employee-attendance-admin'
 import { schoolRoster } from '@/lib/school/roster-source'
 import { classSectionLabel } from '@/lib/students'
 import { enrollmentInfo, listMachines } from '@/lib/machine-enrollment-store'
@@ -27,6 +28,8 @@ export default async function StudentRfidPage({
   const { classSection = '', q = '' } = await searchParams
   const lang: Lang = await currentLang()
   const { supabase, shiftSelection, startedAcademicYears, academicYearSelection } = await getSchoolContext()
+  // #677: Owner and office staff only; a teacher is refused.
+  await requireEmployeeAttendanceAdmin('/school/attendance/machine/students')
 
   const [view, machines] = await Promise.all([
     schoolRoster(supabase, {

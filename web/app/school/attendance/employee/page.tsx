@@ -3,6 +3,7 @@ import { CalendarDays, List } from 'lucide-react'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
+import { requireEmployeeAttendanceAdmin } from '@/lib/school/employee-attendance-admin'
 import { effectiveGraceWithSource, isGraceDetail, GRACE_DETAIL_LABEL_KEY, type GraceSource, type StandingGraceCandidate } from '@/lib/grace'
 import { resolveEmployeeDisplayStatus, type EmployeeDisplayStatus } from '@/lib/attendance'
 import { schoolToday } from '@/lib/school-time'
@@ -67,6 +68,8 @@ export default async function EmployeeAttendancePage({
   const { q = '', date = todayIso(), month: monthParam, view } = await searchParams
   const lang: Lang = await currentLang()
   const { supabase, weeklyOffDays } = await getSchoolContext()
+  // #677: Owner and office staff only; a teacher is refused.
+  await requireEmployeeAttendanceAdmin('/school/attendance/employee')
   const isTableView = view === 'table'
 
   const [{ data: employees }, { data: standingRules }, { data: adHocExemptions }, { data: dateOffRows }, trackingStartById] = await Promise.all([

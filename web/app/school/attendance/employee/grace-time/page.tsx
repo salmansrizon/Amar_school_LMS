@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang, type MessageKey } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
+import { requireEmployeeAttendanceAdmin } from '@/lib/school/employee-attendance-admin'
 import { exemptionCategoriesByExemptionId } from '@/lib/school/ad-hoc-grace'
 import { officeHourShiftOptions, resolveActiveShift } from '@/lib/office-hours'
 import { ACADEMIC_SHIFT_LABEL_KEY, type AcademicShift } from '@/lib/institute'
@@ -100,6 +101,8 @@ export default async function GraceTimePage({
   const { from = '', to = '', shift: requestedShift, adHocShift: requestedAdHocShift } = await searchParams
   const lang: Lang = await currentLang()
   const { supabase, configuredShifts } = await getSchoolContext()
+  // #677: Owner and office staff only; a teacher is refused.
+  await requireEmployeeAttendanceAdmin('/school/attendance/employee/grace-time')
 
   const shiftOptions = officeHourShiftOptions(configuredShifts)
   const activeShift = resolveActiveShift(shiftOptions, requestedShift ?? null)

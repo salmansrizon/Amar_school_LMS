@@ -23,6 +23,7 @@ import {
 import { daysLeft, isDaysLeftDanger, countdownKind } from '@/lib/subscription'
 import { hubSummary } from '@/lib/student/hub-source'
 import { loadSchoolSmsCredit } from '@/lib/sms/credit'
+import { pendingApprovalsInReach } from '@/lib/school/approvals-reach'
 import type { ActivityChecklistItem, ChecklistTicks } from '@/lib/institute'
 import { PageHeader } from '@/components/ui/page'
 import {
@@ -75,6 +76,7 @@ export default async function SchoolHome() {
   const {
     supabase,
     role,
+    userId,
     schoolId,
     schoolName,
     subscriptionExpiresAt,
@@ -129,7 +131,11 @@ export default async function SchoolHome() {
     studentCountQuery,
     newThisMonthQuery,
     supabase.from('employee_card').select('*', { count: 'exact', head: true }).is('archived_at', null),
-    supabase.from('workflow_instances').select('*', { count: 'exact', head: true }).eq('status', 'in_progress'),
+    // #689: the Owner keeps the head count; a Staff User counts only the
+    // approvals in their reach, the same list the inbox shows them.
+    role === 'school_owner'
+      ? supabase.from('workflow_instances').select('*', { count: 'exact', head: true }).eq('status', 'in_progress')
+      : pendingApprovalsInReach(supabase, { role, userId, grants }).then((rows) => ({ count: rows.length })),
     supabase
       .from('exams')
       .select('id, name, start_date')

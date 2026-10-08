@@ -39,9 +39,12 @@ describe('Absent working day and weekly off-days (migration 0218)', () => {
     if (error) throw new Error(error.message)
   }
   const absent = async (sid: string, day: string) => {
-    const { data, error } = await owner.rpc('is_absent_working_day', { sid, school: schoolId, d: day })
+    // Through absent_working_days_in_range, one day wide: migration 0245 (#703
+    // item 4.6) revokes direct EXECUTE on is_absent_working_day. Same per-day
+    // answer, before and after 0245.
+    const { data, error } = await owner.rpc('absent_working_days_in_range', { p_student: sid, p_start: day, p_end: day })
     if (error) throw new Error(error.message)
-    return data as boolean
+    return data === 1
   }
   const markPresent = async (sid: string, day: string) => {
     const { error } = await owner.rpc('save_student_attendance', {

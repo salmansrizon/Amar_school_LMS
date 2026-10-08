@@ -1,6 +1,7 @@
 import { currentLang } from '@/lib/i18n-server'
 import { t, formatDateTime, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
+import { requireEmployeeAttendanceAdmin } from '@/lib/school/employee-attendance-admin'
 import { isKnownAcademicShift } from '@/lib/institute'
 import { listMachines } from '@/lib/machine-enrollment-store'
 import { loadLastAgentHeartbeat } from '@/lib/school/attendance-agent-sync'
@@ -15,6 +16,8 @@ import { DownloadServiceButton } from './machine-ui'
 export default async function MachineSetupPage() {
   const lang: Lang = await currentLang()
   const { supabase, configuredShifts } = await getSchoolContext()
+  // #677: Owner and office staff only; a teacher is refused.
+  await requireEmployeeAttendanceAdmin('/school/attendance/machine')
   const [machines, lastHeartbeat] = await Promise.all([listMachines(supabase), loadLastAgentHeartbeat(supabase)])
 
   return (

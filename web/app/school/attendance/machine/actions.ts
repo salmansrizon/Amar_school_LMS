@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { getSchoolContext } from '@/lib/school/context'
+import { employeeAttendanceAdminDenied } from '@/lib/school/employee-attendance-admin'
 import { parseMachineInput } from '@/lib/machine-attendance'
 import {
   createMachine,
@@ -46,6 +47,9 @@ export async function saveMachineAction(id: string | null, formData: FormData): 
   )
   if ('error' in parsed) return parsed
   const supabase = await createClient()
+  // #677: Owner and office staff only (RLS repeats this once 0240 is applied).
+  const denied = await employeeAttendanceAdminDenied(supabase)
+  if (denied) return denied
   const result = id === null ? await createMachine(supabase, parsed) : await updateMachine(supabase, id, parsed)
   if (!result.error) revalidatePath(SETUP_PAGE)
   return result
@@ -54,6 +58,9 @@ export async function saveMachineAction(id: string | null, formData: FormData): 
 export async function deleteMachineAction(id: string): Promise<{ error?: string }> {
   if (!UUID.test(id)) return { error: 'errNotFound' }
   const supabase = await createClient()
+  // #677: Owner and office staff only (RLS repeats this once 0240 is applied).
+  const denied = await employeeAttendanceAdminDenied(supabase)
+  if (denied) return denied
   const result = await deleteMachine(supabase, id)
   if (!result.error) revalidatePath(SETUP_PAGE)
   return result
@@ -82,5 +89,9 @@ export async function saveRfidEntriesAction(entries: RfidEntry[]): Promise<RfidS
   }
   if (!valid.length) return results
   const supabase = await createClient()
+  // #677: refused callers get a per-entry failure, the shape the queue expects.
+  if (await employeeAttendanceAdminDenied(supabase)) {
+    return [...results, ...valid.map((e) => ({ personId: e.personId, ok: false as const, error: 'failed' as const }))]
+  }
   return [...results, ...(await saveRfidEntries(supabase, valid))]
 }

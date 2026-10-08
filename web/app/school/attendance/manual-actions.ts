@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { requireSchoolMember, requireSchoolOwnerProfile } from '@/lib/auth/require-role'
 import { createClient } from '@/lib/supabase/server'
+import { employeeAttendanceAdminDenied } from '@/lib/school/employee-attendance-admin'
 import { cleanDecisionNote, REJECT_REASON_REQUIRED, withLeaveColumns } from '@/lib/leave-columns'
 
 const MARK_PAGE = '/school/attendance/mark'
@@ -48,6 +49,11 @@ export async function requestLeave(formData: FormData): Promise<{ error?: string
 
   const supabase = await createClient()
   if (!(await requireSchoolMember(supabase))) return { error: 'Unauthorized' }
+  // #677: employee leave is Owner and office staff only; student leave is unchanged.
+  if (kind === 'employee') {
+    const denied = await employeeAttendanceAdminDenied(supabase)
+    if (denied) return denied
+  }
 
   const table = kind === 'student' ? 'student_leaves' : 'employee_leaves'
   const idField = kind === 'student' ? 'student_id' : 'employee_id'
@@ -66,6 +72,11 @@ async function setLeaveStatus(
   if ((kind !== 'student' && kind !== 'employee') || !id) return { error: 'Invalid leave' }
   const supabase = await createClient()
   if (!(await requireSchoolMember(supabase))) return { error: 'Unauthorized' }
+  // #677: employee leave is Owner and office staff only; student leave is unchanged.
+  if (kind === 'employee') {
+    const denied = await employeeAttendanceAdminDenied(supabase)
+    if (denied) return denied
+  }
 
   const table = kind === 'student' ? 'student_leaves' : 'employee_leaves'
   // 0219 columns: pending clears both; approve/reject stamp the time; only reject keeps a note.
