@@ -81,3 +81,20 @@ preloaded into the dev server; no app code changed). Five saves were made
 `/rest/v1/exam_marks` — the old two-statement path did not run, including the
 save that both wrote One's row and cleared Two's row. Not tested: a failure in
 the middle of a save (cannot be provoked from the browser).
+
+## #701 subject switch — VERIFIED
+
+`W2-EXF exam`, owner, English 1440px and Bangla 390px, switching Eng → Math → Eng.
+
+- Opened by address (full page): after each switch the address carries
+  `?subject=…`, the grid header changes ("Theory (100) · MCQ (0)" ↔
+  "Theory (70) · MCQ (30)"), there is one grid on the page and no dialog. A
+  marker set on `window` before the switch was gone afterwards, so the switch
+  is a full document load, as the fix intends.
+- Opened from the exams list (More actions → Marks Entry, the route popup):
+  the grid is inside the dialog before and after each switch, the header
+  changes the same way, and the `window` marker survives (no full load, the
+  list stays underneath).
+
+Seen, not a defect of this issue: inside the popup the `?from=…` part of the
+address is dropped on the first switch.
