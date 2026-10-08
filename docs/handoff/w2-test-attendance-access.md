@@ -95,3 +95,52 @@ not change the owner's 343 (the queue is `workflow_instances`, newest row 3 Oct,
 `workflow_start` is only called from `web/lib/engines/workflow/engine.ts`). So the
 teacher's "own" case could not be produced from the browser; the 0 is consistent with
 the rule but does not prove the positive half.
+
+### #693 attendance start for non-owner roles: VERIFIED (with a limit)
+
+Records: the Employees grant on `W2-ATT office` (added so the per-employee page opens;
+Attendance was granted under #689).
+
+Compared the owner with `W2-ATT office` (staff login, no employee record, Attendance
+grant). The two saw the same thing on every screen:
+
+- Employee Attendance calendar, July 2026: 7 July (the only day in June-October with
+  any employee record) reads "100% 5/5" in both roles. The school has 11 active
+  employees; the 6 who started later, `W2-ATT emp` among them, are not counted absent.
+- Table, date 2026-07-07: 5 rows, all Present 07:50-14:10; no row for `W2-ATT emp`
+  or the other later joiners, in both roles.
+- Table, dates 2026-10-05 and 2026-10-06: 10 rows, no `W2-ATT emp`. Date 2026-10-08:
+  11 rows, `W2-ATT emp` present in the list ("No record"). Both roles.
+- Per-employee page of `W2-ATT emp` (office needed the Employees grant; without it
+  the page is "Permission denied"): July 2026 every cell blank including 7 July,
+  "Absent days 0"; October blank up to 7 Oct, 8 Oct "No record". Both roles.
+
+Limit: the start day is the later of the joining date and the day the record was
+created (0220), so `W2-ATT emp` (joining date 6 Oct, created 8 Oct) starts on 8 Oct,
+not 6 Oct. And because no past day except 7 July has any record, no "Absent" status
+appeared anywhere, so "blank instead of absent" was seen as "not listed / not counted
+on a recorded day", not as a blank cell next to another employee's Absent cell.
+
+### #694 no-record state: VERIFIED
+
+- Calendar (owner and office, bn and en): past working days with no employee record
+  read "No record" / "কোনো রেকর্ড নেই" with no rate (1, 4-8 Oct; every working day of
+  June, August, September; July except the 7th). Fridays and Saturdays read
+  "Holiday / Off Day".
+- Daily table: 2026-10-05, 10 rows, each "No record" (one "On Leave"); none "Absent".
+- Per-employee page of an existing employee (Staging Teacher One, read only): July
+  shows "7 07:50-14:10" and "No record" on the other working days, off-days as
+  "Holiday / Off Day"; "Absent days 0".
+- Employees directory today: every row "Not in yet" / "এখনো আসেননি".
+- The warning "The attendance machine has not synced for this day yet..." did not
+  appear on the calendar, the table, the per-employee page or the directory, in
+  either role or language.
+- 1440px and 390px: no horizontal overflow.
+
+Notes, not fixed:
+- Today in the daily table reads "No record" for everyone while the directory reads
+  "Not in yet" for the same day (the open question in the issue).
+- Per-employee page in Bangla: "অনুপস্থিত দিন 0 / ছুটির দিন 0" use Latin digits, and
+  "Recent Leaves" prints raw ISO dates ("2026-10-14 – 2026-10-14") in both languages.
+- At 390px the calendar cells carry only dots: off-days have a red dot, a recorded
+  day a green dot, a no-record day no dot and no text.
