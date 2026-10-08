@@ -37,17 +37,25 @@ export async function addRoutineEntry(
   const supabase = await createClient()
   const denied = await examClassDenied(supabase, examId)
   if (denied) return denied
-  // One exam is one class, so two of its sittings overlapping puts the same
-  // students in two papers at once. Checked here because the table has no
-  // such constraint; a routine is a few dozen rows at most.
+  // Two sittings of one class overlapping puts the same students in two papers
+  // at once — whether they belong to this exam or to another exam of the class
+  // (#699). Read: that day's sittings of every exam of the class. Migration
+  // 0224 enforces the same rule in the database, for two saves at one moment.
+  const { data: exam } = await supabase.from('exams').select('class_id').eq('id', examId).maybeSingle()
+  const { data: classExams, error: examsError } = exam?.class_id
+    ? await supabase.from('exams').select('id').eq('class_id', exam.class_id).limit(1000)
+    : { data: [{ id: examId }], error: null }
+  if (examsError) return { error: examsError.message }
   const { data: existing, error: readError } = await supabase
     .from('exam_routine_entries')
-    .select('subject_id, exam_date, start_time, end_time')
-    .eq('exam_id', examId)
+    .select('exam_id, subject_id, exam_date, start_time, end_time')
+    .in('exam_id', [examId, ...(classExams ?? []).map((e) => e.id as string)])
+    .eq('exam_date', examDate)
     .limit(500)
   if (readError) return { error: readError.message }
   if (
     overlappingRoutineEntry(existing ?? [], {
+      exam_id: examId,
       subject_id: subjectId,
       exam_date: examDate,
       start_time: startTime,
@@ -68,6 +76,9 @@ export async function addRoutineEntry(
     },
     { onConflict: 'exam_id,subject_id' },
   )
+  // 23P01: the database refused an overlap the read above did not see (another
+  // save landed in between) — migration 0224's trigger.
+  if (error?.code === '23P01') return { error: 'Overlaps another sitting', refused: 'overlap' }
   if (error) return { error: error.message }
   revalidatePath(pagePath(examId))
   return {}

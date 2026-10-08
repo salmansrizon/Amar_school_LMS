@@ -43,6 +43,10 @@ export function sortRoutineEntries<T extends RoutineEntryOrder>(entries: T[]): T
 /** One exam sitting, as the routine stores it. Times are 'HH:MM' or
  * 'HH:MM:SS' (a Postgres `time` reads back with seconds). */
 export interface RoutineSlot {
+  /** Set when sittings of several exams of one class are compared (#699): the
+   * candidate's own sitting is then the one with the same exam AND subject —
+   * exams of one class share their subject ids. */
+  exam_id?: string
   subject_id: string
   exam_date: string
   start_time: string
@@ -60,7 +64,7 @@ export function overlappingRoutineEntry<T extends RoutineSlot>(entries: T[], can
   return (
     entries.find(
       (e) =>
-        e.subject_id !== candidate.subject_id &&
+        !(e.subject_id === candidate.subject_id && e.exam_id === candidate.exam_id) &&
         e.exam_date === candidate.exam_date &&
         hm(candidate.start_time) < hm(e.end_time) &&
         hm(candidate.end_time) > hm(e.start_time),
