@@ -27,3 +27,19 @@ export function capitalSummary(
   const opening = currentBalance - net(sinceFrom)
   return { opening, invested: sum('invest'), withdrawn: sum('withdraw'), closing: opening + net(inRange) }
 }
+
+/** The balance after each listed transaction, in the order given, starting
+ *  from the range's opening balance (#681). The table used to print the stored
+ *  `balance_after`, which was stamped in the order rows were entered and carries
+ *  whatever the balance held at that moment: with a back-dated entry, or a
+ *  balance the transactions do not explain, the column disagreed with the cards
+ *  above it (a first row of ৳3,30,500 with no opening shown). Derived from the
+ *  same opening figure, the last row always equals the closing card. Summed in
+ *  whole poisha so decimals never drift. */
+export function capitalRunningBalances(opening: number, txns: readonly CapitalTxn[]): number[] {
+  let poisha = Math.round(opening * 100)
+  return txns.map((x) => {
+    poisha += Math.round(x.amount * 100) * (x.txn_type === 'invest' ? 1 : -1)
+    return poisha / 100
+  })
+}

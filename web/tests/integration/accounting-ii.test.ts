@@ -334,8 +334,19 @@ describe('Accounting II: director capital (issue #35)', () => {
     expect(withdrawErr).toBeNull()
     expect(Number(withdrawn!.balance_after)).toBe(startBalance + 6000)
 
-    await ownerA.from('director_capital_transactions').delete().eq('note', 'AII Test invest')
-    await ownerA.from('director_capital_transactions').delete().eq('note', 'AII Test withdraw')
+    // #681: this used to DELETE its two rows as the owner. The balance is a
+    // running total kept by an insert-only trigger, so every run left +6,000 in
+    // Test School A's stored balance with no transaction to explain it
+    // (৳13,14,000 by the time it was noticed). A capital transaction is never
+    // deleted; the test puts the balance back the way a school would — with the
+    // opposite transaction. Migration 0232 refuses the delete outright.
+    const { data: settled, error: settleErr } = await ownerA
+      .from('director_capital_transactions')
+      .insert({ txn_type: 'withdraw', amount: 6000, note: 'AII Test settle' })
+      .select('balance_after')
+      .single()
+    expect(settleErr).toBeNull()
+    expect(Number(settled!.balance_after)).toBe(startBalance)
   })
 
   it('a withdrawal exceeding the running balance is rejected by the DB', async () => {

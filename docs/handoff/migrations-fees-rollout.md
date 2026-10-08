@@ -138,3 +138,77 @@ alter table public.fee_collection_records
   drop column if exists void_reason, drop column if exists void_by, drop column if exists void_at;
 notify pgrst, 'reload schema';
 ```
+
+## 3. `0232_director_capital_guard.sql` (#681)
+
+**Cause of the disagreeing figures.** `director_capital_balances.balance` is a running total kept by an insert-only trigger (0055). Deleting a transaction left its amount in the balance and its entry in the general ledger. `web/tests/integration/accounting-ii.test.ts` deleted its own two rows (+10,000, −4,000) as the School Owner on every run, so each run left ৳6,000 in Test School A's balance with no transaction behind it. That test now settles with an opposite transaction and deletes nothing.
+
+**What.** One trigger, `director_capital_transaction_guard` (before update or delete), on `director_capital_transactions`:
+
+- update: `amount`, `txn_type`, `school_id`, `balance_after` cannot change, for any caller (`txn_date` and `note` can);
+- delete by a signed-in School member: refused;
+- delete from the SQL editor, the service role or a Super Admin: allowed, and reversed — the balance moves back by the row's amount and a contra entry `dircap:<id>:reversal` is posted to the general ledger;
+- delete because the School itself is being deleted (cascade): allowed, nothing adjusted.
+
+**Pre-check (read-only). Keep the output: it is the discrepancy report for #681.**
+
+```sql
+-- a. stored balance against the transactions, per School
+select b.school_id, s.name,
+       b.balance                      as stored_balance,
+       coalesce(t.net, 0)             as net_of_transactions,
+       b.balance - coalesce(t.net, 0) as unexplained,
+       coalesce(t.txns, 0)            as transactions
+  from public.director_capital_balances b
+  join public.schools s on s.id = b.school_id
+  left join (
+    select school_id,
+           sum(case when txn_type = 'invest' then amount else -amount end) as net,
+           count(*) as txns
+      from public.director_capital_transactions group by school_id
+  ) t on t.school_id = b.school_id
+ where b.balance <> coalesce(t.net, 0);
+
+-- b. the same account in the general ledger (taka), for comparison
+select e.school_id, sum(l.credit - l.debit) / 100.0 as gl_director_capital
+  from public.gl_lines l join public.gl_entries e on e.id = l.entry_id
+ where l.account_code = '3000' group by e.school_id;
+
+-- c. the trigger name is free (expect 0 rows)
+select tgname from pg_trigger
+ where tgrelid = 'public.director_capital_transactions'::regclass
+   and tgname = 'director_capital_transaction_guard';
+```
+
+Expected for (a), from the figures the audit saw in the app: Test School A, stored ৳13,95,000, transactions ৳81,000, unexplained ৳13,14,000. This was **not** re-read from the database in this work (no SQL was run); the query is how to confirm it. Any other School in (a) is a new finding.
+
+**Expected change.** None to data. Query (a) returns the same rows after applying as before.
+
+**Not written, on purpose: the correction of the existing ৳13,14,000.** It changes a balance, so it is the owner's decision. The two honest options are (1) set the balance to the sum of the transactions (Test School A only, test data), or (2) keep the balance and record the difference as a dated opening entry. Until then the page shows it as the opening balance, and opening + invested − withdrawn = balance holds on screen.
+
+**Effect on the test-data cleanup (#686).** After 0232, deleting test capital rows from the SQL editor lowers the stored balance by their amount and posts contra ledger entries. Do the cleanup after 0232 and the balance follows the rows by itself; do it before and the balance drifts further.
+
+**Unverified.** The cascade branch relies on the School row no longer being visible to the child row's trigger during `on delete cascade`. Not tested (no School can be deleted on the shared database). Try a School delete on a branch database before relying on it.
+
+**Rollback.**
+
+```sql
+drop trigger if exists director_capital_transaction_guard on public.director_capital_transactions;
+drop function if exists public.director_capital_guard();
+notify pgrst, 'reload schema';
+```
+
+## #695 — no migration
+
+Decision taken: **keep the acknowledgement** as it is (the issue names no recommendation, and "carry forward" needs a stored credit balance, which is a data change and a product decision). What changed for #695 comes from `0230`: once the fee is stored, the advance (received − (fee + fine − adjustment)) is known for each record and the receipt prints it as its own line. Nothing is carried to another month. Carry-forward stays item 2.3 of the migration index.
+
+## Found while doing this, not fixed
+
+| Finding | Where | Why it was left |
+|---|---|---|
+| The general ledger debits cash by `pay_amount + fine_amount` (0097), but the collection form treats the received amount as **including** the fine (payable = fee + fine − adjustment; due = payable − received). A ৳500 fee with a ৳50 fine, ৳550 received, posts ৳600 to cash. The receipt's "Total" line (`pay + fine − adjust`) has the same reading | `0097_fee_gl_review_fixes.sql`, `app/school/fees/receipt/[id]/page.tsx` | Changing it rewrites what existing ledger entries mean. Needs the owner's decision on what `pay_amount` is, then a migration. The void in `0231` deliberately mirrors the existing posting so a void nets to zero either way |
+| `bank_cash_transactions` has the same insert-only balance trigger as director capital: a deleted or edited row leaves `bank_cash_accounts.balance` wrong | `0055_accounting_ii_books.sql` | Outside the four issues. Same guard as `0232` would fit |
+| Vouchers, bank/cash and director capital post to the general ledger on insert only (0098); a deleted voucher leaves its ledger entry. The integration tests delete vouchers as the owner | `0098_accounting_ii_gl.sql`, `tests/integration/accounting-ii.test.ts` | Outside the four issues |
+| A School member can delete a fee record through the API (policy `for all`, 0016). The delete trigger posts a contra, so the ledger stays right, but the row is gone | `0016_fee_collection.sql` | A Student delete cascades to fee records, so forbidding it is a wider decision |
+| `fee_post_gl_delete` posts a ledger entry with the row's `school_id` while a School is being deleted | `0097_fee_gl_review_fixes.sql` | Not verified; may make a School with paid fee records undeletable. Check on a branch database |
+| `capitalSummary` (director capital cards) adds decimals as floats | `web/lib/director-capital.ts` | Existing behaviour; whole-taka amounts are unaffected. The new running-balance column is summed in poisha |
