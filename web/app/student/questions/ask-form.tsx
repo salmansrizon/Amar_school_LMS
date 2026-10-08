@@ -5,11 +5,15 @@ import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { t, type Lang, type MessageKey } from '@/lib/i18n'
 import { askQuestion } from '@/lib/student/messages-source'
+import { ComboboxField } from '@/components/ui/combobox-field'
+import { RichTextField } from '@/components/rich-text-field'
+import { QUESTION_BODY_MAX } from '@/lib/student/messages'
 
 const ERRORS: Record<string, MessageKey> = {
   anchorRequired: 'student.anchorRequired',
   subjectRequired: 'student.subjectRequired',
   bodyRequired: 'student.bodyRequired',
+  bodyTooLong: 'student.bodyTooLong',
 }
 
 /** Asking a question (#454).
@@ -31,6 +35,11 @@ export function AskForm({
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [sent, setSent] = useState(false)
+  // ComboboxField holds its picked item as its own internal state; unlike a
+  // native `<select>`, form.reset() below clears the hidden input but not
+  // that internal display state, so a remount (via key) is what actually
+  // clears the picker between one question and the next.
+  const [subjectFieldKey, setSubjectFieldKey] = useState(0)
 
   return (
     <form
@@ -48,6 +57,7 @@ export function AskForm({
           else {
             setSent(true)
             form.reset()
+            setSubjectFieldKey((k) => k + 1)
             router.refresh()
           }
         })
@@ -68,10 +78,10 @@ export function AskForm({
         <div className="rounded-sm border border-line bg-paper-muted p-3 text-xs">
           <p className="text-muted">{t('student.noSubjectsYet', lang)}</p>
           <span className="mt-2 flex gap-3">
-            <Link href="/student/notices" className="font-semibold text-brand-600 hover:underline">
+            <Link href="/student/notices" className="inline-flex items-center font-semibold text-brand-600 hover:underline max-sm:min-h-11">
               {t('student.noticesTitle', lang)}
             </Link>
-            <Link href="/student/tasks" className="font-semibold text-brand-600 hover:underline">
+            <Link href="/student/tasks" className="inline-flex items-center font-semibold text-brand-600 hover:underline max-sm:min-h-11">
               {t('student.tasksTitle', lang)}
             </Link>
           </span>
@@ -81,21 +91,16 @@ export function AskForm({
       {!publicationId && subjects && subjects.length > 0 && (
         <label className="text-xs font-semibold text-muted">
           <span className="mb-1 block">{t('student.pickSubject', lang)}</span>
-          <select
+          <ComboboxField
+            key={subjectFieldKey}
             name="subject_id"
             required
             defaultValue=""
-            className="h-9 w-full rounded-sm border border-line-strong bg-paper px-2 text-sm"
-          >
-            <option value="" disabled>
-              —
-            </option>
-            {subjects.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}
-              </option>
-            ))}
-          </select>
+            options={[
+              { value: '', label: '—', disabled: true },
+              ...subjects.map((s) => ({ value: s.id, label: s.name })),
+            ]}
+          />
         </label>
       )}
 
@@ -105,19 +110,11 @@ export function AskForm({
           name="subject"
           required
           maxLength={120}
-          className="h-9 w-full rounded-sm border border-line-strong bg-paper px-2 text-sm"
+          className="h-11 w-full rounded-sm border border-line-strong bg-paper px-2 text-sm sm:h-9"
         />
       </label>
 
-      <label className="text-xs font-semibold text-muted">
-        <span className="mb-1 block">{t('student.questionBody', lang)}</span>
-        <textarea
-          name="body"
-          required
-          rows={3}
-          className="w-full rounded-sm border border-line-strong bg-paper p-2 text-sm"
-        />
-      </label>
+      <RichTextField key={subjectFieldKey} name="body" label={t('student.questionBody', lang)} lang={lang} maxLength={QUESTION_BODY_MAX} />
 
       {error && <p className="text-sm text-alert-deep">{error}</p>}
       {/* A bare ✓ was the only thing telling a student their question had gone
@@ -127,7 +124,7 @@ export function AskForm({
         <p className="text-sm text-mint-deep">
           {t('student.questionSent', lang)}{' '}
           {publicationId && (
-            <Link href="/student/questions" className="font-semibold underline">
+            <Link href="/student/questions" className="inline-flex items-center font-semibold underline max-sm:min-h-11">
               {t('student.seeQuestions', lang)}
             </Link>
           )}
@@ -137,7 +134,7 @@ export function AskForm({
       <button
         type="submit"
         disabled={pending}
-        className="cursor-pointer justify-self-start rounded-full bg-brand-500 px-5 py-1.5 text-sm font-semibold text-white hover:bg-brand-600 disabled:opacity-50"
+        className="cursor-pointer justify-self-start rounded-full bg-brand-500 px-5 py-1.5 text-sm font-semibold text-white hover:bg-brand-600 disabled:opacity-50 max-sm:min-h-11"
       >
         {t('student.send', lang)}
       </button>

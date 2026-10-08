@@ -8,6 +8,7 @@ import {
   latestMark,
   markedByOf,
   registerRows,
+  resolveRosterStudent,
   rosterEmptyReason,
   rosterFor,
   searchRoster,
@@ -47,7 +48,19 @@ import {
  *  ever point at an OPEN Enrollment by construction (`set_student_enrollment`
  *  closes the old one and repoints it atomically in the same transaction), so
  *  there is no separate `closed_at` to filter here. */
-const ROSTER_COLUMNS = `id, full_name, guardian_name,
+// `class_name`/`section`/`roll_number` are also read directly off `students`
+// (the legacy bridge, #587's "deliberately-unsynced" columns) purely as a
+// DISPLAY fallback for a Student with no current Enrollment embed — the same
+// fallback id-card.tsx's ID_CARD_COLUMNS/StudentIdCard and the record
+// drawer's StudentProfile already use. Before this fallback, a Student whose
+// Enrollment was never backfilled (or whose profile edit went through
+// updateStudent's unsynced path, #587) showed a real class/roll everywhere
+// except this list, which showed "—" for that same Student (map 013 fix).
+// class_offering_id — what rosterFor actually filters on — is never backed
+// by this fallback: a Student with no current Enrollment stays correctly
+// unplaced for filtering, only its label borrows the legacy text.
+const ROSTER_COLUMNS = `id, full_name, guardian_name, student_no, guardian_mobile, created_at,
+  class_name, section, roll_number,
   student_enrollments!students_current_enrollment_id_fkey(roll_number, class_offering_id,
     class_offerings(name, section, group_department, shift, academic_year))`
 
@@ -67,24 +80,19 @@ interface StudentRow {
   id: string
   full_name: string
   guardian_name: string | null
+  student_no: string | null
+  guardian_mobile: string | null
+  created_at: string
+  class_name: string | null
+  section: string | null
+  roll_number: number | null
   student_enrollments: EnrollmentEmbed[]
 }
 
 function toRosterStudent(row: StudentRow): RosterStudent {
   const enrollment = firstRelation(row.student_enrollments)
   const offering = enrollment ? firstRelation(enrollment.class_offerings) : null
-  return {
-    id: row.id,
-    full_name: row.full_name,
-    guardian_name: row.guardian_name,
-    roll_number: enrollment?.roll_number ?? null,
-    class_offering_id: enrollment?.class_offering_id ?? null,
-    class_name: offering?.name ?? null,
-    section: offering?.section ?? null,
-    group_department: offering?.group_department ?? null,
-    shift: offering?.shift ?? null,
-    academic_year: offering?.academic_year ?? null,
-  }
+  return resolveRosterStudent(row, enrollment, offering)
 }
 
 export interface RosterView {
@@ -93,6 +101,8 @@ export interface RosterView {
   section: string
   /** Filtered and ordered — what the screen renders. */
   students: RosterStudent[]
+  /** Every Student the caller may read, before the class filter and search. */
+  readable: RosterStudent[]
   /** Null when `students` is non-empty; otherwise WHY it is empty. */
   empty: RosterEmptyReason | null
   classes: ClassCatalogueRow[]
@@ -247,6 +257,7 @@ export async function schoolRoster(
     className,
     section,
     students: matched,
+    readable: read.readable,
     empty: rosterEmptyReason({ readable: read.readable.length, matched: matched.length, scope }),
     classes,
   }
@@ -289,7 +300,7 @@ export async function studentRegister(
   const ids = view.students.map((s) => s.id)
   if (!ids.length) return { ...view, rows: [], markedBy: null }
 
-  const [{ data: records }, { data: notes }] = await Promise.all([
+  const [{ data: records }, { data: notes }, { data: leaves }] = await Promise.all([
     supabase
       .from('attendance_records')
       .select('person_id, marked_by, marked_at')
@@ -302,6 +313,13 @@ export async function studentRegister(
       .eq('person_type', 'student')
       .eq('att_date', date)
       .in('person_id', ids),
+    supabase
+      .from('student_leaves')
+      .select('student_id')
+      .eq('status', 'approved')
+      .lte('from_day', date)
+      .gte('to_day', date)
+      .in('student_id', ids),
   ])
 
   const latest = latestMark([...(records ?? []), ...(notes ?? [])] as AttendanceMark[])
@@ -318,6 +336,7 @@ export async function studentRegister(
       view.students,
       new Set((records ?? []).map((r) => r.person_id as string)),
       new Map((notes ?? []).map((n) => [n.person_id as string, (n.cause as string | null) ?? ''])),
+      new Set((leaves ?? []).map((l) => l.student_id as string)),
     ),
     markedBy: markedByOf(latest, marker?.full_name ?? null, viewerId),
   }

@@ -1,14 +1,16 @@
 import Form from 'next/form'
-import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { completedCount, checklistStatus, filterChecklistRange, type ActivityChecklistItem, type ChecklistRow } from '@/lib/institute'
+import { schoolCrumbs } from '@/lib/school-crumbs'
 import { InstituteTabs } from '../tabs'
 import { ChecklistForm } from './checklist-form'
 import { ChecklistItemsManager } from './checklist-items-manager'
-import { dateInputClass } from '@/components/ui/field'
-import { railClass, type Tone } from '@/components/ui/page'
+import { dateInputClass, filterButtonClass } from '@/components/ui/field'
+import { PageHeader, railClass, type Tone } from '@/components/ui/page'
+import { pageTitle } from '@/lib/page-title'
+import { DateField } from '@/components/ui/date-field'
 
 // Administrative daily checklist + date-range report (issue #39, PRD §5.11)
 // per ui/school-owner/activity-checklist.html.
@@ -30,6 +32,8 @@ function daysAgoIso(days: number): string {
   d.setUTCDate(d.getUTCDate() - days)
   return d.toISOString().slice(0, 10)
 }
+
+export const generateMetadata = pageTitle('institute.tabChecklist')
 
 export default async function ChecklistPage({
   searchParams,
@@ -63,10 +67,10 @@ export default async function ChecklistPage({
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-extrabold">{t('institute.title', lang)}</h1>
-        <Link href="/school" aria-label={t('common.back', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
-      </div>
+      <PageHeader
+        title={t('institute.tabChecklist', lang)}
+        crumbs={schoolCrumbs('/school/institute', lang, { label: t('institute.title', lang), href: '/school/institute' }, { label: t('institute.tabChecklist', lang) })}
+      />
 
       <InstituteTabs active="/school/institute/checklist" lang={lang} />
 
@@ -87,11 +91,11 @@ export default async function ChecklistPage({
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <h3 className="font-bold">{t('institute.dateRangeReport', lang)}</h3>
           <Form className="flex flex-wrap items-center gap-2" action="/school/institute/checklist">
-            <input type="date" name="start" defaultValue={rangeStart} className={dateInputClass()} />
-            <input type="date" name="end" defaultValue={rangeEnd} className={dateInputClass()} />
+            <DateField lang={lang} name="start" aria-label={t('graceTime.filterFrom', lang)} defaultValue={rangeStart} className={dateInputClass()} />
+            <DateField lang={lang} name="end" aria-label={t('graceTime.filterTo', lang)} defaultValue={rangeEnd} className={dateInputClass()} />
             <button
               type="submit"
-              className="cursor-pointer rounded-full border border-line px-3 py-1 text-xs font-semibold hover:bg-paper-muted"
+              className={filterButtonClass()}
             >
               {t('institute.apply', lang)}
             </button>

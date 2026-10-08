@@ -1,10 +1,20 @@
-import Form from 'next/form'
-import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
-import { t, type Lang } from '@/lib/i18n'
+import { t, type Lang, formatDate } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
+import { requireEmployeeAttendanceAdmin } from '@/lib/school/employee-attendance-admin'
 import { AttendanceTabs } from '../../attendance-tabs'
+import Form from 'next/form'
 import { RequestLeaveButton, LeaveActions } from '../leave-controls'
+import { LeaveDetail, LeaveStatusPill, leaveStatusChips, leaveStatusLabel } from '../leave-shared'
+import { schoolCrumbs } from '@/lib/school-crumbs'
+import { PageHeader } from '@/components/ui/page'
+import { DataTable, type Column } from '@/components/data-table/data-table'
+import { RecordDrawer } from '@/components/data-table/record-drawer'
+import { ViewLink } from '@/components/data-table/view-link'
+import { paginate, pageSizeFrom, Pager } from '@/components/pager'
+import { leavePage } from '../leave-page'
+import { filterButtonClass, inputClass } from '@/components/ui/field'
+import { pageTitle } from '@/lib/page-title'
 
 // Split off the Employees half of the old unified Leave Management page (map
 // #664). Employee search follows the same name-substring-over-the-full-roster
@@ -12,19 +22,10 @@ import { RequestLeaveButton, LeaveActions } from '../leave-controls'
 // page.tsx) — `employee_card` is bounded by headcount, not a growth table —
 // but the leave rows themselves are now scoped to the matched employees'
 // ids in the query itself, not fetched with a flat cap and filtered after.
-const STATUS_PILL: Record<string, string> = {
-  pending: 'bg-sun-soft text-sun-deep',
-  approved: 'bg-mint-soft text-mint-deep',
-  rejected: 'bg-alert-soft text-alert-deep',
-}
-const STATUS_KEY: Record<string, 'attendance.leavePending' | 'attendance.leaveApproved' | 'attendance.leaveRejected'> = {
-  pending: 'attendance.leavePending',
-  approved: 'attendance.leaveApproved',
-  rejected: 'attendance.leaveRejected',
-}
+// Map 013: the list is the shared DataTable (status chips, pagination); a
+// row's Details opens a drawer carrying the same approve/reject actions.
 
-const DEFAULT_VIEW_LIMIT = 100
-const FILTERED_VIEW_LIMIT = 500
+const PAGE_SIZE = 20
 
 interface EmployeeLeaveRow {
   id: string
@@ -33,16 +34,24 @@ interface EmployeeLeaveRow {
   to_day: string
   reason: string | null
   status: string
+  decision_note?: string | null
+  decided_at?: string | null
 }
+
+export const generateMetadata = pageTitle('attendance.employeeLeaveTitle')
 
 export default async function EmployeeLeaveManagementPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; rosterQ?: string }>
+  searchParams: Promise<{ q?: string; status?: string; page?: string; size?: string; rpage?: string; rsize?: string; view?: string }>
 }) {
-  const { q = '', rosterQ = '' } = await searchParams
+  const params = await searchParams
+  const { q = '', status = '', page, size, rpage, rsize, view } = params
+  const pageSize = pageSizeFrom(size, PAGE_SIZE)
   const lang: Lang = await currentLang()
   const { supabase } = await getSchoolContext()
+  // #677: Owner and office staff only; a teacher is refused.
+  await requireEmployeeAttendanceAdmin('/school/attendance/leave/employee')
 
   const { data: employees } = await supabase
     .from('employee_card')
@@ -60,66 +69,88 @@ export default async function EmployeeLeaveManagementPage({
   const matched = matchByName(q)
   const matchedIds = matched.map((e) => e.id)
 
-  // Independent from `q`/`matched` above (map #668): the "who can I request
-  // leave for" roster browser has its own search, kept separate from the
-  // leave-records filter so submitting one doesn't reset the other. Same
-  // matchByName helper, so the two search boxes can't silently drift apart.
-  const rosterMatched = matchByName(rosterQ)
+  // The roster browser and the records table share q (audit F19).
+  const rosterMatched = matched
 
-  let leaves: EmployeeLeaveRow[] = []
-  if (filterActive) {
-    if (matchedIds.length) {
-      const { data } = await supabase
-        .from('employee_leaves')
-        .select('id, employee_id, from_day, to_day, reason, status')
-        .in('employee_id', matchedIds)
-        .order('from_day', { ascending: false })
-        .limit(FILTERED_VIEW_LIMIT)
-      leaves = data ?? []
-    }
-  } else {
-    const { data } = await supabase
-      .from('employee_leaves')
-      .select('id, employee_id, from_day, to_day, reason, status')
-      .order('created_at', { ascending: false })
-      .limit(DEFAULT_VIEW_LIMIT)
-    leaves = data ?? []
-  }
+  const leavesPage = await leavePage<EmployeeLeaveRow>({
+    supabase,
+    table: 'employee_leaves',
+    personCol: 'employee_id',
+    ids: filterActive ? matchedIds : null,
+    status,
+    rawPage: page,
+    pageSize,
+    viewId: view,
+  })
 
   const nameById = new Map(allEmployees.map((e) => [e.id, e.full_name]))
-  const rows = leaves.map((l) => ({ ...l, name: nameById.get(l.employee_id) ?? '—' }))
+  const withName = (l: EmployeeLeaveRow) => ({ ...l, name: nameById.get(l.employee_id) ?? '—' })
+  const rows = leavesPage.rows.map(withName)
+  const viewed = leavesPage.viewed ? withName(leavesPage.viewed) : undefined
+  type Row = (typeof rows)[number]
 
-  const counts = leaves.reduce(
-    (acc, l) => ({ ...acc, [l.status]: (acc[l.status] ?? 0) + 1 }),
-    {} as Record<string, number>,
-  )
+  // Roster (rpage/rsize) and records (page/size) page independently.
+  const rosterSize = pageSizeFrom(rsize, PAGE_SIZE)
+  const rosterPage = paginate(rosterMatched, rpage, rosterSize)
+
+  const dash = <span className="text-muted">—</span>
+  const columns: Column<Row>[] = [
+    {
+      key: 'name',
+      header: t('attendance.leaveName', lang),
+      card: 'title',
+      cell: (l) => <span className="font-semibold">{l.name}</span>,
+    },
+    { key: 'from', header: t('attendance.leaveFromCol', lang), cell: (l) => formatDate(l.from_day, lang) },
+    { key: 'to', header: t('attendance.leaveToCol', lang), cell: (l) => formatDate(l.to_day, lang) },
+    {
+      key: 'reason',
+      header: t('attendance.leaveReasonCol', lang),
+      cell: (l) => (
+        <>
+          {l.reason ? <span className="line-clamp-2">{l.reason}</span> : dash}
+          {l.decision_note && (
+            <span className="line-clamp-2 text-xs text-alert-deep">
+              {t('attendance.leaveRejectReason', lang)}: {l.decision_note}
+            </span>
+          )}
+        </>
+      ),
+    },
+    {
+      key: 'status',
+      header: t('attendance.leaveStatusCol', lang),
+      card: 'badge',
+      cell: (l) => <LeaveStatusPill status={l.status} lang={lang} />,
+    },
+  ]
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-extrabold">{t('attendance.employeeLeaveTitle', lang)}</h1>
-        <Link href="/school" aria-label={t('common.back', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
-      </div>
+      <PageHeader
+        icon="attendance"
+        title={t('attendance.employeeLeaveTitle', lang)}
+        crumbs={schoolCrumbs('/school/attendance', lang, { label: t('attendance.title', lang), href: '/school/attendance' }, { label: t('attendance.employeeLeaveTitle', lang) })}
+      />
 
       <AttendanceTabs active="/school/attendance/leave/employee" lang={lang} />
 
-      <section className="mb-6 rounded-lg border border-line bg-paper p-5">
+      <section className="mb-grid rounded-2xl border border-line bg-paper p-card">
         <h3 className="mb-3 font-bold">{t('attendance.leaveRequestTitle', lang)}</h3>
         <Form className="mb-4 flex flex-wrap items-end gap-2" action="/school/attendance/leave/employee">
-          {/* Preserves the leave-records filter below across this form's own submit. */}
-          <input type="hidden" name="q" value={q} />
+          {status && <input type="hidden" name="status" value={status} />}
           <div>
             <label className="mb-1 block text-xs font-semibold text-muted">{t('attendance.employeeSearch', lang)}</label>
             <input
-              name="rosterQ"
-              defaultValue={rosterQ}
+              name="q"
+              defaultValue={q}
               placeholder={t('attendance.employeeSearch', lang)}
-              className="w-64 rounded-md border border-line bg-paper px-3 py-1.5 text-sm"
+              className={`${inputClass()} w-64`}
             />
           </div>
           <button
             type="submit"
-            className="h-9 cursor-pointer rounded-full border border-line px-3 py-1 text-xs font-semibold hover:bg-paper-muted"
+            className={filterButtonClass()}
           >
             {t('classes.filter', lang)}
           </button>
@@ -136,7 +167,7 @@ export default async function EmployeeLeaveManagementPage({
                 </tr>
               </thead>
               <tbody>
-                {rosterMatched.map((e) => (
+                {rosterPage.items.map((e) => (
                   <tr key={e.id} className="border-b border-line last:border-0">
                     <td className="px-3 py-2 text-sm font-medium">{e.full_name}</td>
                     <td className="px-3 py-2 text-sm">
@@ -148,80 +179,49 @@ export default async function EmployeeLeaveManagementPage({
             </table>
           </div>
         )}
-      </section>
-
-      <Form className="mb-4 flex flex-wrap items-end gap-2 rounded-lg border border-line bg-paper p-5" action="/school/attendance/leave/employee">
-        {/* Preserves the roster-browser filter above across this form's own submit. */}
-        <input type="hidden" name="rosterQ" value={rosterQ} />
-        <div>
-          <label className="mb-1 block text-xs font-semibold text-muted">{t('attendance.employeeSearch', lang)}</label>
-          <input
-            name="q"
-            defaultValue={q}
-            placeholder={t('attendance.employeeSearch', lang)}
-            className="w-64 rounded-md border border-line bg-paper px-3 py-1.5 text-sm"
+        {rosterMatched.length > 0 && (
+          <Pager
+            page={rosterPage.page}
+            totalPages={rosterPage.totalPages}
+            total={rosterPage.total}
+            lang={lang}
+            params={params}
+            pageSize={rosterSize}
+            pageParam="rpage"
+            sizeParam="rsize"
           />
-        </div>
-        <button
-          type="submit"
-          className="h-9 cursor-pointer rounded-full border border-line px-3 py-1 text-xs font-semibold hover:bg-paper-muted"
-        >
-          {t('classes.filter', lang)}
-        </button>
-      </Form>
-
-      {leaves.length > 0 && (
-        <div className="mb-4 flex flex-wrap items-center gap-2">
-          <span className="text-xs font-semibold uppercase tracking-wide text-muted">
-            {t('attendance.leaveStatusSummary', lang)}:
-          </span>
-          {(['pending', 'approved', 'rejected'] as const).map(
-            (status) =>
-              counts[status] > 0 && (
-                <span key={status} className={`rounded-full px-3 py-1 text-xs font-semibold ${STATUS_PILL[status]}`}>
-                  {t(STATUS_KEY[status], lang)}: {counts[status]}
-                </span>
-              ),
-          )}
-        </div>
-      )}
-
-      <section className="rounded-lg border border-line bg-paper p-5">
-        {!rows.length ? (
-          <p className="text-sm text-muted">{t('attendance.none', lang)}</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="border-b border-line-strong">
-                  <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">{t('attendance.leaveName', lang)}</th>
-                  <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">{t('attendance.leaveFromCol', lang)}</th>
-                  <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">{t('attendance.leaveToCol', lang)}</th>
-                  <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">{t('attendance.leaveReasonCol', lang)}</th>
-                  <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">{t('attendance.leaveStatusCol', lang)}</th>
-                  <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted" />
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((l) => (
-                  <tr key={l.id} className="border-b border-line">
-                    <td className="px-3 py-2 text-sm font-medium">{l.name}</td>
-                    <td className="px-3 py-2 text-sm">{l.from_day}</td>
-                    <td className="px-3 py-2 text-sm">{l.to_day}</td>
-                    <td className="px-3 py-2 text-sm">{l.reason ?? <span className="text-muted">—</span>}</td>
-                    <td className="px-3 py-2 text-sm">
-                      <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${STATUS_PILL[l.status]}`}>
-                        {t(STATUS_KEY[l.status], lang)}
-                      </span>
-                    </td>
-                    <td className="px-3 py-2 text-sm">{l.status === 'pending' && <LeaveActions kind="employee" id={l.id} lang={lang} />}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
         )}
       </section>
+
+      <DataTable
+        rows={rows}
+        rowId={(l) => l.id}
+        rowLabel={(l) => l.name}
+        columns={columns}
+        lang={lang}
+        params={params}
+        caption={t('attendance.employeeLeaveTitle', lang)}
+        search={{ placeholder: t('attendance.employeeSearch', lang) }}
+        chips={leaveStatusChips(leavesPage.statusCounts, lang)}
+        rowActions={(l) => (
+          <>
+            {l.status === 'pending' && <LeaveActions kind="employee" id={l.id} lang={lang} />}
+            <ViewLink id={l.id} params={params} label={t('attendance.leaveDetails', lang)} name={l.name} />
+          </>
+        )}
+        pagination={{ page: leavesPage.page, totalPages: leavesPage.totalPages, total: leavesPage.total, pageSize }}
+        empty={<p className="rounded-2xl border border-line bg-paper p-card text-sm text-muted">{t('attendance.none', lang)}</p>}
+      />
+
+      <RecordDrawer
+        open={Boolean(viewed)}
+        title={viewed?.name ?? '—'}
+        subtitle={viewed ? leaveStatusLabel(viewed.status, lang) : undefined}
+        fullPageLabel=""
+        closeLabel={t('common.close', lang)}
+      >
+        {viewed && <LeaveDetail kind="employee" leave={viewed} facts={[]} lang={lang} />}
+      </RecordDrawer>
     </div>
   )
 }

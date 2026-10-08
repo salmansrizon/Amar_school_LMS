@@ -8,6 +8,7 @@ const DIM = {
   sm: 'size-8 rounded-lg text-xs',
   md: 'size-9 rounded-lg text-sm',
   lg: 'size-12 rounded-xl text-lg',
+  xl: 'size-28 rounded-md text-4xl',
 } as const
 
 export function EntityAvatar({

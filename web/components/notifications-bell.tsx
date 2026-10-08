@@ -96,7 +96,9 @@ export function NotificationsBell({
         onClick={toggle}
         className={`${buttonClass} relative text-muted hover:bg-brand-50 hover:text-brand-600`}
       >
-        <Icon name="bell" className="size-5" />
+        <span className={unread > 0 ? 'ui-ring inline-flex' : 'inline-flex'}>
+          <Icon name="bell" className="size-5" />
+        </span>
         {unread > 0 && <span className="absolute right-2.5 top-2.5 size-2 rounded-full bg-alert ring-2 ring-paper" />}
       </button>
 

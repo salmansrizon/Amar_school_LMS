@@ -5,7 +5,6 @@ import {
   GradePanelRow,
   SignatureRow,
   QrFooterRow,
-  QrMark,
   Badge,
 } from '@/components/print/pieces'
 import { t, type Lang } from '@/lib/i18n'
@@ -29,6 +28,8 @@ export interface MarkSheetSubjectRow {
   label: string | null
   gpa: number | null
   passed: boolean
+  /** False when no mark was entered for this subject (default: entered). */
+  entered?: boolean
 }
 
 export interface MarkSheetTemplateProps {
@@ -47,10 +48,27 @@ export interface MarkSheetTemplateProps {
   overallGpa: number | null
   overallLabel: string | null
   overallPassed: boolean
+  /** True while any subject's mark has not been entered. */
+  incomplete?: boolean
   rankPosition: number | null
   rankOutOf: number
   qrSvg: string
   template: 1 | 2 | 3
+}
+
+/** A sheet with marks still missing prints "Incomplete" and no GPA — not a
+ * Fail badge beside a 0.00 the student never earned. */
+function ResultBadge({ props }: { props: MarkSheetTemplateProps }) {
+  if (props.incomplete) return <Badge tone="neutral">{t('exams.incomplete', props.lang)}</Badge>
+  return (
+    <Badge tone={props.overallPassed ? 'success' : 'alert'}>
+      {props.overallPassed ? t('markSheet.pass', props.lang) : t('promotion.fail', props.lang)}
+    </Badge>
+  )
+}
+
+function overallGpaText(props: MarkSheetTemplateProps): string {
+  return !props.incomplete && props.overallGpa !== null ? props.overallGpa.toFixed(2) : '—'
 }
 
 function GradeBadge({ label, passed }: { label: string | null; passed: boolean }) {
@@ -89,13 +107,13 @@ function SubjectTable({ props, showGradeColumns }: { props: MarkSheetTemplatePro
           <tr key={s.subjectId} className="border-b border-line">
             <td className="py-2 pr-2">{s.name}</td>
             <td className="py-2 pr-2">{s.full}</td>
-            <td className="py-2 pr-2">{s.obtained}</td>
+            <td className="py-2 pr-2">{s.entered === false ? '—' : s.obtained}</td>
             {showGradeColumns && (
               <>
                 <td className="py-2 pr-2">
-                  <GradeBadge label={s.label} passed={s.passed} />
+                  <GradeBadge label={s.entered === false ? null : s.label} passed={s.passed} />
                 </td>
-                <td className="py-2">{s.gpa !== null ? s.gpa.toFixed(2) : '—'}</td>
+                <td className="py-2">{s.entered !== false && s.gpa !== null ? s.gpa.toFixed(2) : '—'}</td>
               </>
             )}
           </tr>
@@ -124,17 +142,15 @@ function ClassicTemplate(props: MarkSheetTemplateProps) {
         </span>
         {showGradeColumns && (
           <span>
-            {t('markSheet.overallGpa', lang)} {props.overallGpa !== null ? props.overallGpa.toFixed(2) : '—'}
+            {t('markSheet.overallGpa', lang)} {overallGpaText(props)}
           </span>
         )}
-        <Badge tone={props.overallPassed ? 'success' : 'alert'}>
-          {props.overallPassed ? t('markSheet.pass', lang) : t('promotion.fail', lang)}
-        </Badge>
+        <ResultBadge props={props} />
       </GradePanelRow>
       <SignatureRow
         labels={[t('markSheet.classTeacher', lang), t('markSheet.examController', lang), t('markSheet.headTeacher', lang)]}
       />
-      <QrFooterRow qrLabel={t('print.qr', lang)} poweredBy={t('print.poweredBy', lang)} qr={<QrMark svg={props.qrSvg} />} />
+      <QrFooterRow qrLabel={t('print.qr', lang)} poweredBy={t('print.poweredBy', lang)} qrSvg={props.qrSvg} />
     </PrintPage>
   )
 }
@@ -165,17 +181,15 @@ function BorderedTemplate(props: MarkSheetTemplateProps) {
         </span>
         {showGradeColumns && (
           <span>
-            {t('markSheet.overallGpa', lang)} {props.overallGpa !== null ? props.overallGpa.toFixed(2) : '—'}
+            {t('markSheet.overallGpa', lang)} {overallGpaText(props)}
           </span>
         )}
-        <Badge tone={props.overallPassed ? 'success' : 'alert'}>
-          {props.overallPassed ? t('markSheet.pass', lang) : t('promotion.fail', lang)}
-        </Badge>
+        <ResultBadge props={props} />
       </GradePanelRow>
       <SignatureRow
         labels={[t('markSheet.classTeacher', lang), t('markSheet.examController', lang), t('markSheet.headTeacher', lang)]}
       />
-      <QrFooterRow qrLabel={t('print.qr', lang)} poweredBy={t('print.poweredBy', lang)} qr={<QrMark svg={props.qrSvg} />} />
+      <QrFooterRow qrLabel={t('print.qr', lang)} poweredBy={t('print.poweredBy', lang)} qrSvg={props.qrSvg} />
     </PrintPage>
   )
 }
@@ -200,7 +214,7 @@ function ResultCardTemplate(props: MarkSheetTemplateProps) {
           </span>
           {showGradeColumns && (
             <span>
-              {t('markSheet.overallGpa', lang)} {props.overallGpa !== null ? props.overallGpa.toFixed(2) : '—'}
+              {t('markSheet.overallGpa', lang)} {overallGpaText(props)}
             </span>
           )}
           {props.rankPosition !== null && (
@@ -209,13 +223,11 @@ function ResultCardTemplate(props: MarkSheetTemplateProps) {
             </span>
           )}
         </div>
-        <Badge tone={props.overallPassed ? 'success' : 'alert'}>
-          {props.overallPassed ? t('markSheet.pass', lang) : t('promotion.fail', lang)}
-        </Badge>
+        <ResultBadge props={props} />
       </div>
       <SubjectTable props={props} showGradeColumns={showGradeColumns} />
       <SignatureRow labels={[t('markSheet.classTeacher', lang), t('markSheet.headTeacher', lang)]} />
-      <QrFooterRow qrLabel={t('print.qr', lang)} poweredBy={t('print.poweredBy', lang)} qr={<QrMark svg={props.qrSvg} />} />
+      <QrFooterRow qrLabel={t('print.qr', lang)} poweredBy={t('print.poweredBy', lang)} qrSvg={props.qrSvg} />
     </PrintPage>
   )
 }

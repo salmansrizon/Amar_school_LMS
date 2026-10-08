@@ -3,12 +3,14 @@
 import { useMemo, useRef, useState, useTransition } from 'react'
 import Link from 'next/link'
 import { t, type Lang } from '@/lib/i18n'
+import { Field } from '@/components/ui/labeled-field'
+import { mobileInputProps } from '@/lib/bd-mobile'
+import { PERSON_NAME_MAX } from '@/lib/name'
 import { compressImage, IMAGE_PRESETS } from '@/lib/image/compress'
 import {
   photoExtension,
   nextRollNumber,
   nextRollNumberForOffering,
-  classSectionLabel,
   type RollRow,
   type EnrollmentRollRow,
 } from '@/lib/students'
@@ -23,10 +25,15 @@ import { firstRelation } from '@/lib/supabase/relation'
 import { admitStudent, studentPhotoUploadTicket, recordStudentPhoto } from '../actions'
 import { recentAdmissions, type RecentAdmissionRow } from '../recent-admissions-actions'
 import { saveAdmissionDraft, loadAdmissionDraft, clearAdmissionDraft } from './admission-draft'
-import { dateInputClass, selectClass } from '@/components/ui/field'
+import { dateInputClass } from '@/components/ui/field'
 import { uploadWithSignedToken } from '@/lib/storage/upload-client'
 import { knownVocabularyValue } from '@/lib/students/stored-labels'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Card as PageCard } from '@/components/ui/page'
+import { DataTable, type Column } from '@/components/data-table/data-table'
+import { RowActionPill } from '@/components/data-table/row-action-pill'
+import { ComboboxField } from '@/components/ui/combobox-field'
+import { SelectField } from '@/components/ui/select-field'
+import { DateField } from '@/components/ui/date-field'
 
 const MAX_PHOTO_BYTES = 2 * 1024 * 1024 // mirrors the bucket's server-enforced cap
 
@@ -48,33 +55,21 @@ export const fieldClass =
   'w-full rounded-md border border-line bg-paper px-3 py-2 text-sm focus:border-brand-500 focus:outline-none'
 export const fieldLabelClass = 'mb-1 block text-xs font-semibold text-muted'
 
-/** `padded={false}` for a Card whose only child is a Table — the table
- *  supplies its own cell padding and should reach the card's edges, same
- *  convention as the shared Card in `@/components/ui/page` (see its own doc
- *  comment). The heading keeps its padding either way. */
 export function Card({
   title,
   children,
-  padded = true,
+  id,
 }: {
   title: string
   children: React.ReactNode
-  padded?: boolean
+  /** Anchor for the admission form's step strip. */
+  id?: string
 }) {
   return (
-    <section className="mb-4 rounded-lg border border-line bg-paper shadow-card">
-      <h3 className="p-5 pb-3 font-bold">{title}</h3>
-      {padded ? <div className="px-5 pb-5">{children}</div> : children}
+    <section id={id} className="mb-4 scroll-mt-24 rounded-2xl border border-line bg-paper shadow-card">
+      <h3 className="mx-5 mb-4 border-b border-line py-4 font-bold">{title}</h3>
+      <div className="px-5 pb-5">{children}</div>
     </section>
-  )
-}
-
-export function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div>
-      <label className={fieldLabelClass}>{label}</label>
-      {children}
-    </div>
   )
 }
 
@@ -163,7 +158,9 @@ export function ProfileFields({
   // Initialized from the edit form's existing text pair via
   // findClassCatalogueId so an in-progress edit still shows the right
   // option selected, even though `defaults` never carried an id.
-  const [editComboId, setEditComboId] = useState(() => findClassCatalogueId(classCatalogue, d('class_name'), d('section')))
+  const [editComboId, setEditComboId] = useState(() =>
+    findClassCatalogueId(classCatalogue, d('class_name'), d('section')),
+  )
   const [religion, setReligion] = useState(() => splitReligionDefault(d('religion')))
   // Only className is required — an empty section is itself a valid scope
   // (a class with no sections at all, e.g. most Primary classes per
@@ -179,56 +176,63 @@ export function ProfileFields({
 
   return (
     <>
-      <Card title={t('students.identity', lang)}>
+      <Card id="admission-student" title={t('students.identity', lang)}>
         <div className="grid gap-grid sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
           <Field label={t('students.name', lang)}>
-            <input name="full_name" required defaultValue={d('full_name')} className={fieldClass} />
+            <input name="full_name" required maxLength={PERSON_NAME_MAX} defaultValue={d('full_name')} className={fieldClass} />
           </Field>
           <Field label={t('students.dob', lang)}>
-            <input type="date" name="date_of_birth" defaultValue={d('date_of_birth')} className={dateInputClass({ size: 'md', fullWidth: true })} />
+            <DateField lang={lang}
+              name="date_of_birth"
+              defaultValue={d('date_of_birth')}
+              className={dateInputClass({ size: 'md', fullWidth: true })}
+            />
           </Field>
-          <Field label={t('students.gender', lang)}>
-            <select name="gender" defaultValue={d('gender')} className={selectClass({ size: 'md', fullWidth: true })}>
-              <option value="">—</option>
-              <option value="male">{t('students.male', lang)}</option>
-              <option value="female">{t('students.female', lang)}</option>
-              <option value="third_gender">{t('students.thirdGender', lang)}</option>
-            </select>
+          <Field label={t('students.gender', lang)} htmlFor="admission_gender">
+            <SelectField
+              id="admission_gender"
+              name="gender"
+              defaultValue={d('gender')}
+              options={[
+                { value: '', label: '—' },
+                { value: 'male', label: t('students.male', lang) },
+                { value: 'female', label: t('students.female', lang) },
+                { value: 'third_gender', label: t('students.thirdGender', lang) },
+              ]}
+            />
           </Field>
-          <Field label={t('students.bloodGroup', lang)}>
-            <select name="blood_group" defaultValue={d('blood_group')} className={selectClass({ size: 'md', fullWidth: true })}>
-              <option value="">—</option>
-              {BLOOD_GROUPS.map((bg) => (
-                <option key={bg} value={bg}>
-                  {bg}
-                </option>
-              ))}
-            </select>
+          <Field label={t('students.bloodGroup', lang)} htmlFor="admission_blood_group">
+            <ComboboxField
+              id="admission_blood_group"
+              name="blood_group"
+              defaultValue={d('blood_group')}
+              options={[
+                { value: '', label: '—' },
+                ...BLOOD_GROUPS.map((bg) => ({ value: bg, label: bg })),
+              ]}
+            />
           </Field>
           {usingOfferings ? (
-            <Field label={t('students.class', lang)}>
+            <Field label={t('students.class', lang)} htmlFor="admission_class_offering">
               {/* Admission mode (map #568/#582, #586): one id-based select —
                   the Class Offering already carries its own section, so
                   there's no second cascade step. Submits class_offering_id,
                   read by admitStudent and passed straight into
                   admit_student_enrollment; class_name/section are no longer
                   part of this form's submission. */}
-              <select
+              <ComboboxField
+                id="admission_class_offering"
                 name="class_offering_id"
                 value={classOfferingId}
-                onChange={(e) => setClassOfferingId(e.target.value)}
-                className={selectClass({ size: 'md', fullWidth: true })}
-              >
-                <option value="">—</option>
-                {offeringOptions.map((o) => (
-                  <option key={o.value} value={o.value}>
-                    {o.label}
-                  </option>
-                ))}
-              </select>
+                onValueChange={setClassOfferingId}
+                options={[
+                  { value: '', label: '—' },
+                  ...offeringOptions.map((o) => ({ value: o.value, label: o.label })),
+                ]}
+              />
             </Field>
           ) : (
-            <Field label={t('students.class', lang)}>
+            <Field label={t('students.class', lang)} htmlFor="admission_class_edit">
               {/* Edit mode (grilled explicitly, option A): one Class
                   Catalogue-labelled select, same shape as every other
                   Offering picker in the app. Its own value is an id, purely
@@ -236,24 +240,20 @@ export function ProfileFields({
                   one resolves straight to the className/section hidden
                   inputs below, so updateStudent's payload is byte-identical
                   in shape to the two-select cascade this replaced. */}
-              <select
+              <ComboboxField
+                id="admission_class_edit"
                 value={editComboId}
-                onChange={(e) => {
-                  const id = e.target.value
+                onValueChange={(id) => {
                   setEditComboId(id)
                   const resolved = resolveClassCatalogueSelection(classCatalogue, id)
                   setClassName(resolved.className)
                   setSection(resolved.section)
                 }}
-                className={selectClass({ size: 'md', fullWidth: true })}
-              >
-                <option value="">—</option>
-                {classCatalogue.map((c) => (
-                  <option key={c.value} value={c.value}>
-                    {c.label}
-                  </option>
-                ))}
-              </select>
+                options={[
+                  { value: '', label: '—' },
+                  ...classCatalogue.map((c) => ({ value: c.value, label: c.label })),
+                ]}
+              />
               <input type="hidden" name="class_name" value={className} />
               <input type="hidden" name="section" value={section} />
             </Field>
@@ -308,19 +308,20 @@ export function ProfileFields({
               </p>
             )}
           </Field>
-          <Field label={t('students.religion', lang)}>
-            <select
+          <Field label={t('students.religion', lang)} htmlFor="admission_religion">
+            <ComboboxField
+              id="admission_religion"
               value={religion.choice}
-              onChange={(e) => setReligion({ choice: e.target.value, other: religion.other })}
-              className={selectClass({ size: 'md', fullWidth: true })}
-            >
-              <option value="">—</option>
-              <option value="islam">{t('students.islam', lang)}</option>
-              <option value="hinduism">{t('students.hinduism', lang)}</option>
-              <option value="christianity">{t('students.christianity', lang)}</option>
-              <option value="buddhism">{t('students.buddhism', lang)}</option>
-              <option value="other">{t('students.otherReligion', lang)}</option>
-            </select>
+              onValueChange={(v) => setReligion({ choice: v, other: religion.other })}
+              options={[
+                { value: '', label: '—' },
+                { value: 'islam', label: t('students.islam', lang) },
+                { value: 'hinduism', label: t('students.hinduism', lang) },
+                { value: 'christianity', label: t('students.christianity', lang) },
+                { value: 'buddhism', label: t('students.buddhism', lang) },
+                { value: 'other', label: t('students.otherReligion', lang) },
+              ]}
+            />
             {religion.choice === 'other' && (
               <input
                 value={religion.other}
@@ -329,10 +330,20 @@ export function ProfileFields({
                 className={`${fieldClass} mt-2`}
               />
             )}
-            <input type="hidden" name="religion" value={religion.choice === 'other' ? religion.other : religion.choice} />
+            <input
+              type="hidden"
+              name="religion"
+              value={religion.choice === 'other' ? religion.other : religion.choice}
+            />
           </Field>
           <Field label={t('students.studentMobile', lang)}>
-            <input name="student_mobile" defaultValue={d('student_mobile')} className={fieldClass} placeholder="01xxxxxxxxx" />
+            <input
+              name="student_mobile"
+              defaultValue={d('student_mobile')}
+              className={fieldClass}
+              placeholder="01xxxxxxxxx"
+              {...mobileInputProps(d('student_mobile'), t('people.errMobileInvalid', lang))}
+            />
           </Field>
         </div>
       </Card>
@@ -348,27 +359,38 @@ export function ProfileFields({
         </Field>
       </Card>
 
-      <Card title={t('students.guardianInfo', lang)}>
+      <Card id="admission-guardian" title={t('students.guardianInfo', lang)}>
         <div className="grid gap-grid sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
           <Field label={t('students.guardianName', lang)}>
             <input name="guardian_name" defaultValue={d('guardian_name')} className={fieldClass} />
           </Field>
-          <Field label={t('students.relation', lang)}>
-            <select name="guardian_relation" defaultValue={d('guardian_relation')} className={selectClass({ size: 'md', fullWidth: true })}>
-              <option value="">—</option>
-              <option value="father">{t('students.father', lang)}</option>
-              <option value="mother">{t('students.mother', lang)}</option>
-              <option value="brother">{t('students.brother', lang)}</option>
-              <option value="sister">{t('students.sister', lang)}</option>
-              <option value="grandfather">{t('students.grandfather', lang)}</option>
-              <option value="grandmother">{t('students.grandmother', lang)}</option>
-              <option value="uncle">{t('students.uncle', lang)}</option>
-              <option value="aunty">{t('students.aunty', lang)}</option>
-              <option value="other">{t('students.otherRelation', lang)}</option>
-            </select>
+          <Field label={t('students.relation', lang)} htmlFor="admission_guardian_relation">
+            <ComboboxField
+              id="admission_guardian_relation"
+              name="guardian_relation"
+              defaultValue={d('guardian_relation')}
+              options={[
+                { value: '', label: '—' },
+                { value: 'father', label: t('students.father', lang) },
+                { value: 'mother', label: t('students.mother', lang) },
+                { value: 'brother', label: t('students.brother', lang) },
+                { value: 'sister', label: t('students.sister', lang) },
+                { value: 'grandfather', label: t('students.grandfather', lang) },
+                { value: 'grandmother', label: t('students.grandmother', lang) },
+                { value: 'uncle', label: t('students.uncle', lang) },
+                { value: 'aunty', label: t('students.aunty', lang) },
+                { value: 'other', label: t('students.otherRelation', lang) },
+              ]}
+            />
           </Field>
           <Field label={t('students.guardianMobile', lang)}>
-            <input name="guardian_mobile" defaultValue={d('guardian_mobile')} className={fieldClass} placeholder="01xxxxxxxxx" />
+            <input
+              name="guardian_mobile"
+              defaultValue={d('guardian_mobile')}
+              className={fieldClass}
+              placeholder="01xxxxxxxxx"
+              {...mobileInputProps(d('guardian_mobile'), t('people.errMobileInvalid', lang))}
+            />
           </Field>
           <Field label={t('students.guardianNid', lang)}>
             <input name="guardian_nid" defaultValue={d('guardian_nid')} className={fieldClass} />
@@ -376,7 +398,7 @@ export function ProfileFields({
         </div>
       </Card>
 
-      <Card title={t('students.benefitFlags', lang)}>
+      <Card id="admission-history" title={t('students.benefitFlags', lang)}>
         <div className="flex flex-wrap gap-4 text-sm">
           <label className="flex items-center gap-2">
             <input
@@ -415,11 +437,7 @@ export function ProfileFields({
 
 /** Uploads the picked photo for a student: server-derived path, client-direct
  *  bytes to the private bucket, then records photo_path on the row. */
-export async function uploadStudentPhoto(
-  studentId: string,
-  file: File,
-  lang: Lang,
-): Promise<string | null> {
+export async function uploadStudentPhoto(studentId: string, file: File, lang: Lang): Promise<string | null> {
   if (!photoExtension(file.type)) return t('students.photoType', lang)
   // Compress before the size check so large phone photos fit the 2 MB bucket cap.
   const photo = await compressImage(file, IMAGE_PRESETS.studentPhoto)
@@ -449,16 +467,17 @@ function draftDefaults(draft: Record<string, string> | null): Record<string, str
 
 /** Recent Admissions' Class cell (issue #640): the full Class Catalogue
  *  label, same convention Students List already uses (`classLabelFor` in
- *  app/school/students/page.tsx) — not the legacy bare class_name/section
- *  join. Falls back to that legacy pair when a row has no current enrollment
- *  (offering null): unlike the full Students List, where "unplaced" is a
- *  real status worth showing as blank, this is a narrow "what did we just
- *  admit" list where every row should show something. */
+ *  app/school/students/page.tsx). Falls back to the legacy class_name/section
+ *  pair when a row has no current enrollment (offering null): unlike the full
+ *  Students List, where "unplaced" is a real status worth showing as blank,
+ *  this is a narrow "what did we just admit" list where every row should show
+ *  something. The fallback goes through classCatalogueLabel too, so both
+ *  paths read "Name - Section" rather than one of them "Name / Section". */
 function recentAdmissionClassLabel(row: RecentAdmissionRow, showYear: boolean): string | null {
   const enrollment = firstRelation(row.student_enrollments)
   const offering = enrollment ? firstRelation(enrollment.class_offerings) : null
   if (offering) return classCatalogueLabel(offering, showYear)
-  return classSectionLabel(row.class_name, row.section)
+  return row.class_name ? classCatalogueLabel({ name: row.class_name, section: row.section }) : null
 }
 
 export function AdmissionForm({
@@ -511,15 +530,57 @@ export function AdmissionForm({
   // reflecting the true next roll through the whole batch — the fetched list
   // never changes underneath us since navigation never happens.
   const [enrollmentRollsState, setEnrollmentRollsState] = useState<EnrollmentRollRow[]>(enrollmentRolls)
-  const [lastSaved, setLastSaved] = useState<{ name: string; roll: number | null } | null>(null)
+  const [lastSaved, setLastSaved] = useState<{
+    name: string
+    roll: number | null
+  } | null>(null)
   // Server-sourced (issue #625): seeded from page.tsx's own fetch for the
   // initial render, replaced wholesale (never appended-to locally) after
   // each save so it's always the real last 10, not a session-local echo.
   const [recent, setRecent] = useState<RecentAdmissionRow[]>(initialRecent)
+  const dash = <span className="text-muted">—</span>
+  const recentColumns: Column<RecentAdmissionRow>[] = [
+    { key: 'roll', header: t('students.roll', lang), cell: (s) => s.roll_number ?? dash },
+    {
+      key: 'name',
+      header: t('students.name', lang),
+      card: 'title',
+      cell: (s) => <span className="font-semibold">{s.full_name}</span>,
+    },
+    { key: 'class', header: t('students.classSection', lang), cell: (s) => recentAdmissionClassLabel(s, showYear) ?? dash },
+    { key: 'guardian', header: t('students.guardian', lang), cell: (s) => s.guardian_name ?? dash },
+  ]
+
+  // Section jump links styled as the reference's step strip. Layout only: the
+  // form is still one page and one submit.
+  const steps = [
+    {
+      href: '#admission-student',
+      title: 'students.admissionStepStudent',
+      hint: 'students.admissionStepStudentHint',
+    },
+    {
+      href: '#admission-guardian',
+      title: 'students.admissionStepGuardian',
+      hint: 'students.admissionStepGuardianHint',
+    },
+    {
+      href: '#admission-history',
+      title: 'students.admissionStepHistory',
+      hint: 'students.admissionStepHistoryHint',
+    },
+    {
+      href: '#admission-photo',
+      title: 'students.admissionStepPhoto',
+      hint: 'students.admissionStepPhotoHint',
+    },
+  ] as const
+  const numFmt = new Intl.NumberFormat(lang === 'bn' ? 'bn-BD' : 'en-US')
 
   return (
     <form
       ref={formRef}
+      noValidate // the server validates and answers in the UI language into the error line
       onChange={() => {
         // Silent autosave (issue #628) — every field change snapshots the
         // whole form to localStorage, so a nav-away (sidebar, browser back)
@@ -569,7 +630,10 @@ export function AdmissionForm({
           if (classOfferingId) {
             setEnrollmentRollsState((prev) => [
               ...prev,
-              { class_offering_id: classOfferingId, roll_number: result.roll_number ?? null },
+              {
+                class_offering_id: classOfferingId,
+                roll_number: result.roll_number ?? null,
+              },
             ])
           }
           setLastClassOfferingId(classOfferingId)
@@ -594,80 +658,125 @@ export function AdmissionForm({
         </p>
       )}
 
-      <ProfileFields
-        key={formGeneration}
-        lang={lang}
-        classOfferings={classOfferings}
-        // Generation 0 restores the unsaved draft, if any (issue #628); every
-        // later generation is a post-save reset, which only carries the Class
-        // forward — the draft was already cleared at that point.
-        defaults={formGeneration === 0 ? draftDefaults(draft) : { class_offering_id: lastClassOfferingId }}
-        enrollmentRolls={enrollmentRollsState}
-        rollIncrement={rollIncrement}
-        suggestRoll
-        showYear={showYear}
-      />
+      <nav
+        aria-label={t('students.admissionTitle', lang)}
+        className="mb-4 rounded-2xl border border-line bg-paper p-3 shadow-card"
+      >
+        <ol className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+          {steps.map((s, i) => (
+            <li key={s.href}>
+              <a
+                href={s.href}
+                className="flex items-center gap-3 rounded-xl bg-paper-muted p-3 transition hover:bg-brand-50"
+              >
+                <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-brand-500 text-sm font-bold text-white">
+                  {numFmt.format(i + 1)}
+                </span>
+                <span className="min-w-0">
+                  <span className="block truncate text-sm font-semibold">{t(s.title, lang)}</span>
+                  <span className="block truncate text-xs text-muted">{t(s.hint, lang)}</span>
+                </span>
+              </a>
+            </li>
+          ))}
+        </ol>
+      </nav>
 
-      <Card title={t('students.photo', lang)}>
-        <Field label={t('students.uploadPhoto', lang)}>
-          <input ref={photoRef} type="file" accept="image/jpeg,image/png,image/webp" className={fieldClass} />
-        </Field>
-        <p className="mt-1 text-xs text-muted">{t('students.photoHint', lang)}</p>
-      </Card>
+      <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_18rem]">
+        <div className="min-w-0">
+          <ProfileFields
+            key={formGeneration}
+            lang={lang}
+            classOfferings={classOfferings}
+            // Generation 0 restores the unsaved draft, if any (issue #628); every
+            // later generation is a post-save reset, which only carries the Class
+            // forward — the draft was already cleared at that point.
+            defaults={formGeneration === 0 ? draftDefaults(draft) : { class_offering_id: lastClassOfferingId }}
+            enrollmentRolls={enrollmentRollsState}
+            rollIncrement={rollIncrement}
+            suggestRoll
+            showYear={showYear}
+          />
 
-      {error && <p className="mb-3 text-sm text-alert-deep">{error}</p>}
+          <Card id="admission-photo" title={t('students.photo', lang)}>
+            <Field label={t('students.uploadPhoto', lang)}>
+              <input ref={photoRef} type="file" accept="image/jpeg,image/png,image/webp" className={fieldClass} />
+            </Field>
+            <p className="mt-1 text-xs text-muted">{t('students.photoHint', lang)}</p>
+          </Card>
 
-      <div className="mb-4 flex items-center justify-between">
-        <Link
-          href="/school/students"
-          onClick={() => clearAdmissionDraft(schoolId, userId)}
-          className="rounded-full border border-line-strong px-4 py-1.5 text-sm font-semibold hover:bg-paper-muted"
-        >
-          {t('routine.cancel', lang)}
-        </Link>
-        <button
-          type="submit"
-          disabled={pending}
-          className="cursor-pointer rounded-full bg-brand-500 px-5 py-1.5 text-sm font-semibold text-white hover:bg-brand-600 disabled:opacity-50"
-        >
-          {t('students.saveAdmission', lang)}
-        </button>
+          {error && <p className="mb-3 text-sm text-alert-deep">{error}</p>}
+
+          {/* Sticky action bar: stays in reach while scrolling a long form. */}
+          <div className="sticky bottom-0 z-10 mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-line bg-paper/95 p-3 shadow-card backdrop-blur">
+            <span className="flex items-center gap-2 text-xs font-semibold text-mint-deep">
+              <span aria-hidden className="size-2 rounded-full bg-mint-deep" />
+              {t('students.draftAutosaved', lang)}
+            </span>
+            <div className="flex items-center gap-2">
+              <Link
+                href="/school/students"
+                onClick={() => clearAdmissionDraft(schoolId, userId)}
+                className="rounded-full border border-line-strong px-4 py-1.5 text-sm font-semibold hover:bg-paper-muted"
+              >
+                {t('routine.cancel', lang)}
+              </Link>
+              <button
+                type="submit"
+                disabled={pending}
+                className="cursor-pointer rounded-full bg-brand-500 px-5 py-1.5 text-sm font-semibold text-white hover:bg-brand-600 disabled:opacity-50"
+              >
+                {t('students.saveAdmission', lang)}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <aside className="rounded-2xl border border-line bg-paper p-5 shadow-card lg:sticky lg:top-4">
+          <h3 className="mb-3 border-b border-line pb-3 font-bold">{t('students.afterAdmission', lang)}</h3>
+          <ol className="space-y-3 text-sm">
+            {(
+              [
+                'students.afterAdmission1',
+                'students.afterAdmission2',
+                'students.afterAdmission3',
+                'students.afterAdmission4',
+              ] as const
+            ).map((key, i) => (
+              <li key={key} className="flex gap-3">
+                <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-brand-50 text-xs font-bold text-brand-700">
+                  {numFmt.format(i + 1)}
+                </span>
+                <span className="text-muted">{t(key, lang)}</span>
+              </li>
+            ))}
+          </ol>
+        </aside>
       </div>
 
-      <Card title={t('students.recentAdmissions', lang)} padded={!recent.length}>
-        {!recent.length ? (
-          <p className="text-sm text-muted">{t('students.recentAdmissionsEmpty', lang)}</p>
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t('students.roll', lang)}</TableHead>
-                <TableHead>{t('students.name', lang)}</TableHead>
-                <TableHead>{t('students.classSection', lang)}</TableHead>
-                <TableHead>{t('students.guardian', lang)}</TableHead>
-                <TableHead className="text-right">{t('students.view', lang)}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {recent.map((s) => (
-                <TableRow key={s.id}>
-                  <TableCell>{s.roll_number ?? <span className="text-muted">—</span>}</TableCell>
-                  <TableCell className="font-medium">{s.full_name}</TableCell>
-                  <TableCell>
-                    {recentAdmissionClassLabel(s, showYear) ?? <span className="text-muted">—</span>}
-                  </TableCell>
-                  <TableCell>{s.guardian_name ?? <span className="text-muted">—</span>}</TableCell>
-                  <TableCell className="text-right">
-                    <Link href={`/school/students/${s.id}`} className="text-brand-600 hover:underline">
-                      {t('students.view', lang)}
-                    </Link>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
-      </Card>
+      {/* Same DataTable + heading shape as SMS Rules' read-only lists — phone
+          cards / desktop table come with it. No search/filters/pagination:
+          it's always the last 10. */}
+      <section>
+        <h2 className="mb-3 text-lg font-bold">{t('students.recentAdmissions', lang)}</h2>
+        <DataTable
+          rows={recent}
+          rowId={(s) => s.id}
+          rowLabel={(s) => s.full_name}
+          columns={recentColumns}
+          lang={lang}
+          params={{}}
+          caption={t('students.recentAdmissions', lang)}
+          rowActions={(s) => (
+            <RowActionPill state="default" href={`/school/students/${s.id}`} label={t('students.view', lang)} />
+          )}
+          empty={
+            <PageCard>
+              <p className="text-sm text-muted">{t('students.recentAdmissionsEmpty', lang)}</p>
+            </PageCard>
+          }
+        />
+      </section>
     </form>
   )
 }

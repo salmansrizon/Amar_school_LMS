@@ -6,7 +6,9 @@ import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
 import { t, type Lang } from '@/lib/i18n'
 import { AttachmentPicker, type AttachmentMeta } from '../attachment-picker'
 import { saveAsset, saveAssetCategory } from './actions'
-import { dateInputClass, selectClass } from '@/components/ui/field'
+import { dateInputClass } from '@/components/ui/field'
+import { ComboboxField } from '@/components/ui/combobox-field'
+import { DateField } from '@/components/ui/date-field'
 
 export interface AssetCategoryOption {
   id: string
@@ -57,16 +59,16 @@ export function NewAssetForm({ categories, lang }: { categories: AssetCategoryOp
         <label className={labelClass} htmlFor="category_id">
           {t('assets.category', lang)}
         </label>
-        <select id="category_id" name="category_id" required defaultValue="" className={selectClass({ size: 'md', fullWidth: true })}>
-          <option value="" disabled>
-            {t('assets.pickCategory', lang)}
-          </option>
-          {categories.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
-        </select>
+        <ComboboxField
+          id="category_id"
+          name="category_id"
+          required
+          defaultValue=""
+          options={[
+            { value: '', label: t('assets.pickCategory', lang), disabled: true },
+            ...categories.map((c) => ({ value: c.id, label: c.name })),
+          ]}
+        />
       </div>
       <div>
         <label className={labelClass} htmlFor="name">
@@ -78,7 +80,7 @@ export function NewAssetForm({ categories, lang }: { categories: AssetCategoryOp
         <label className={labelClass} htmlFor="purchase_date">
           {t('assets.purchaseDate', lang)}
         </label>
-        <input id="purchase_date" name="purchase_date" type="date" defaultValue={today} className={dateInputClass({ size: 'md', fullWidth: true })} />
+        <DateField lang={lang} id="purchase_date" name="purchase_date" defaultValue={today} className={dateInputClass({ size: 'md', fullWidth: true })} />
       </div>
       <div>
         <label className={labelClass} htmlFor="purchase_value">

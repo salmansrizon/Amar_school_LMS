@@ -21,7 +21,7 @@ export function CreateStaffForm({ lang }: { lang: Lang }) {
   }
 
   return (
-    <form onSubmit={onSubmit} className="grid gap-3 sm:grid-cols-2">
+    <form method="post" onSubmit={onSubmit} className="grid gap-3 sm:grid-cols-2">
       <div>
         <label className={labelClass} htmlFor="full_name">{t('staff.fullName', lang)}</label>
         <input id="full_name" name="full_name" required className={inputClass} />

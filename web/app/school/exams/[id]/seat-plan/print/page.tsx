@@ -12,10 +12,12 @@ import {
   type SeatAllocation,
 } from '@/lib/seat-plan-print'
 import { PrintPage, InstituteHeader, PaginatedSheet } from '@/components/print/pieces'
-import { PrintButton } from '@/components/print/print-button'
+import { PrintTrigger } from '@/components/print/print-trigger'
+import { withParams } from '@/lib/url-params'
 import { embeddedBuildingName, roomVenueLabel } from '@/lib/venues'
 import { BackLink } from '@/components/back-link'
 import { resolveBackHref, withOrigin } from '@/lib/back-nav'
+import { PrintVerifyFooter } from '@/components/print/verify-footer'
 
 // Notice-board seat plan (issue #96, docs/improvement.md §2B; ADR 0007 —
 // browser-native print). Organised by room, because that is what a student
@@ -157,7 +159,7 @@ export default async function SeatPlanPrintPage({
               ))}
             </nav>
           )}
-          <PrintButton label={t('print.print', lang)} />
+          <PrintTrigger href={`/school/exams/${id}/seat-plan/print${withParams({ date: sittingDate }, {})}`} label={t('print.print', lang)} />
         </div>
       </div>
 
@@ -223,6 +225,7 @@ export default async function SeatPlanPrintPage({
             </div>
           )}
         </PaginatedSheet>
+        <PrintVerifyFooter lang={lang} kind="seat_plan" refId={id} />
       </PrintPage>
     </main>
   )

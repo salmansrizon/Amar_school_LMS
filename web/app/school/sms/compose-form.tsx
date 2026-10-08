@@ -2,8 +2,9 @@
 
 import { useMemo, useState, useTransition } from 'react'
 import { labelClass } from '@/components/auth-card'
-import { Button } from '@/components/ui/button'
-import { t, type Lang } from '@/lib/i18n'
+import { Button, buttonClass } from '@/components/ui/button'
+import { ConfirmDialog } from '@/components/confirm-dialog'
+import { t, numberFmt, type Lang, formatNumber } from '@/lib/i18n'
 import { countSmsSegments } from '@/lib/sms/segments'
 import {
   classTargetFromInput,
@@ -15,7 +16,8 @@ import {
 import { classCatalogueOptions, type ClassCatalogueRow } from '@/lib/class-catalogue'
 import type { TargetScope } from '@/lib/publishing'
 import { sendCompose } from './actions'
-import { selectClass } from '@/components/ui/field'
+import { ComboboxField } from '@/components/ui/combobox-field'
+import { SelectField } from '@/components/ui/select-field'
 
 // Themed to match the dashboard: rounded-2xl cards, brand-600 primary, rounded-lg
 // form controls with a visible focus ring.
@@ -67,6 +69,9 @@ export function ComposeForm({
   offerings,
   activeAcademicYear,
   categories,
+  prefillNumbers,
+  balance,
+  metered,
 }: {
   lang: Lang
   students: ComposeStudentRow[]
@@ -74,11 +79,19 @@ export function ComposeForm({
   offerings: ClassCatalogueRow[]
   activeAcademicYear: number | null
   categories: string[]
+  /** Guardian mobiles from `?students=` (the "Remind" action, map 013 FC2):
+   *  opens in Manual Numbers mode with these, ignoring any saved draft. */
+  prefillNumbers?: string
+  /** The school's SMS credit balance (0 when it has no credit record). */
+  balance: number
+  /** False when prepaid metering is off — sends are not deducted. */
+  metered: boolean
 }) {
   // Restore a locally-saved draft as the initial state (client-only; no
   // server draft storage exists for this screen — see "Save Draft" below).
   // A lazy initializer rather than an effect avoids an extra render pass.
   const [draft, setDraft] = useState<Draft>(() => {
+    if (prefillNumbers !== undefined) return { ...EMPTY_DRAFT, mode: 'manual', manualNumbers: prefillNumbers }
     if (typeof window === 'undefined') return EMPTY_DRAFT
     try {
       const raw = window.localStorage.getItem(DRAFT_KEY)
@@ -92,6 +105,7 @@ export function ComposeForm({
   const [result, setResult] = useState<{ sent: number; failed: number } | null>(null)
   const [draftSaved, setDraftSaved] = useState(false)
   const [pending, startTransition] = useTransition()
+  const fmt = numberFmt(lang)
 
   const offeringOptions = useMemo(() => classCatalogueOptions(offerings), [offerings])
   const classNameOptions = useMemo(() => distinct(offerings.map((o) => o.name)), [offerings])
@@ -128,6 +142,9 @@ export function ComposeForm({
   )
 
   const segmentInfo = useMemo(() => countSmsSegments(draft.body), [draft.body])
+  // Same arithmetic sendCompose charges by: recipients × parts (at least one).
+  const parts = segmentInfo.segments || 1
+  const creditsNeeded = recipients.length * parts
 
   function update<K extends keyof Draft>(key: K, value: Draft[K]) {
     setDraft((d) => ({ ...d, [key]: value }))
@@ -144,7 +161,9 @@ export function ComposeForm({
     }
   }
 
-  function submit() {
+  // Resolves once the send has finished, so the confirm dialog stays open and
+  // shows the error on failure. The sending itself is unchanged.
+  function submit(): Promise<{ error?: string }> {
     setError(null)
     setResult(null)
     const formData = new FormData()
@@ -158,17 +177,20 @@ export function ComposeForm({
     formData.set('category', draft.category)
     formData.set('manual_numbers', draft.manualNumbers)
     formData.set('body', draft.body)
-    startTransition(async () => {
-      const res = await sendCompose(formData)
-      if (res.error) setError(res.error)
-      else {
-        setResult({ sent: res.sent ?? 0, failed: res.failed ?? 0 })
-        try {
-          window.localStorage.removeItem(DRAFT_KEY)
-        } catch {
-          // ignore
+    return new Promise((resolve) => {
+      startTransition(async () => {
+        const res = await sendCompose(formData)
+        if (res.error) setError(res.error)
+        else {
+          setResult({ sent: res.sent ?? 0, failed: res.failed ?? 0 })
+          try {
+            window.localStorage.removeItem(DRAFT_KEY)
+          } catch {
+            // ignore
+          }
         }
-      }
+        resolve({ error: res.error })
+      })
     })
   }
 
@@ -178,27 +200,28 @@ export function ComposeForm({
         <h2 className="mb-3 text-lg font-bold">{t('sms.recipientGroup', lang)}</h2>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div>
-            <label className={labelClass}>{t('sms.buildBy', lang)}</label>
-            <select
-              className={selectClass({ size: 'md', fullWidth: true })}
+            <label htmlFor="sms_mode" className={labelClass}>{t('sms.buildBy', lang)}</label>
+            <SelectField
+              id="sms_mode"
               value={draft.mode}
-              onChange={(e) => update('mode', e.target.value as ComposeMode)}
-            >
-              <option value="class_section">{t('sms.modeClassSection', lang)}</option>
-              <option value="group">{t('sms.modeGroup', lang)}</option>
-              <option value="manual">{t('sms.modeManual', lang)}</option>
-            </select>
+              onValueChange={(v) => update('mode', v as ComposeMode)}
+              options={[
+                { value: 'class_section', label: t('sms.modeClassSection', lang) },
+                { value: 'group', label: t('sms.modeGroup', lang) },
+                { value: 'manual', label: t('sms.modeManual', lang) },
+              ]}
+            />
           </div>
 
           {draft.mode === 'class_section' && (
             <>
               <div>
-                <label className={labelClass}>{t('sms.target', lang)}</label>
-                <select
-                  className={selectClass({ size: 'md', fullWidth: true })}
+                <label htmlFor="sms_target_scope" className={labelClass}>{t('sms.target', lang)}</label>
+                <SelectField
+                  id="sms_target_scope"
                   value={draft.targetScope}
-                  onChange={(e) => {
-                    const scope = e.target.value as TargetScope
+                  onValueChange={(v) => {
+                    const scope = v as TargetScope
                     setDraftSaved(false)
                     setResult(null)
                     setDraft((d) => ({
@@ -209,92 +232,78 @@ export function ComposeForm({
                       className: scope === 'broadcast' && !d.className ? (classNameOptions[0] ?? '') : d.className,
                     }))
                   }}
-                >
-                  <option value="all">{t('sms.targetAll', lang)}</option>
-                  <option value="offering">{t('sms.targetOffering', lang)}</option>
-                  <option value="broadcast">{t('sms.targetBroadcast', lang)}</option>
-                </select>
+                  options={[
+                    { value: 'all', label: t('sms.targetAll', lang) },
+                    { value: 'offering', label: t('sms.targetOffering', lang) },
+                    { value: 'broadcast', label: t('sms.targetBroadcast', lang) },
+                  ]}
+                />
               </div>
 
               {draft.targetScope === 'offering' && (
                 <div className="sm:col-span-2">
-                  <label className={labelClass}>{t('sms.classOffering', lang)}</label>
-                  <select
-                    className={selectClass({ size: 'md', fullWidth: true })}
+                  <label htmlFor="sms_offering" className={labelClass}>{t('sms.classOffering', lang)}</label>
+                  <ComboboxField
+                    id="sms_offering"
                     value={draft.offeringId}
-                    onChange={(e) => update('offeringId', e.target.value)}
-                  >
-                    <option value="">{t('sms.selectOffering', lang)}</option>
-                    {offeringOptions.map((o) => (
-                      <option key={o.value} value={o.value}>
-                        {o.label}
-                      </option>
-                    ))}
-                  </select>
+                    onValueChange={(v) => update('offeringId', v)}
+                    options={[
+                      { value: '', label: t('sms.selectOffering', lang) },
+                      ...offeringOptions.map((o) => ({ value: o.value, label: o.label })),
+                    ]}
+                  />
                 </div>
               )}
 
               {draft.targetScope === 'broadcast' && (
                 <div className="grid gap-3 sm:col-span-2 sm:grid-cols-2">
                   <div>
-                    <label className={labelClass}>{t('sms.class', lang)}</label>
-                    <select
-                      className={selectClass({ size: 'md', fullWidth: true })}
+                    <label htmlFor="sms_target_class_name" className={labelClass}>{t('sms.class', lang)}</label>
+                    <ComboboxField
+                      id="sms_target_class_name"
                       value={draft.className}
-                      onChange={(e) => update('className', e.target.value)}
-                    >
-                      <option value="">{t('sms.selectClass', lang)}</option>
-                      {classNameOptions.map((c) => (
-                        <option key={c} value={c}>
-                          {c}
-                        </option>
-                      ))}
-                    </select>
+                      onValueChange={(v) => update('className', v)}
+                      options={[
+                        { value: '', label: t('sms.selectClass', lang) },
+                        ...classNameOptions.map((c) => ({ value: c, label: c })),
+                      ]}
+                    />
                   </div>
                   <div>
-                    <label className={labelClass}>{t('sms.shift', lang)}</label>
-                    <select
-                      className={selectClass({ size: 'md', fullWidth: true })}
+                    <label htmlFor="sms_target_shift" className={labelClass}>{t('sms.shift', lang)}</label>
+                    <ComboboxField
+                      id="sms_target_shift"
                       value={draft.shift}
-                      onChange={(e) => update('shift', e.target.value)}
-                    >
-                      <option value="">{t('sms.anyShift', lang)}</option>
-                      {shiftOptions.map((s) => (
-                        <option key={s} value={s}>
-                          {s}
-                        </option>
-                      ))}
-                    </select>
+                      onValueChange={(v) => update('shift', v)}
+                      options={[
+                        { value: '', label: t('sms.anyShift', lang) },
+                        ...shiftOptions.map((s) => ({ value: s, label: s })),
+                      ]}
+                    />
                   </div>
                   <div>
-                    <label className={labelClass}>{t('sms.groupDepartment', lang)}</label>
-                    <select
-                      className={selectClass({ size: 'md', fullWidth: true })}
+                    <label htmlFor="sms_target_group_department" className={labelClass}>{t('sms.groupDepartment', lang)}</label>
+                    <ComboboxField
+                      id="sms_target_group_department"
                       value={draft.groupDepartment}
-                      onChange={(e) => update('groupDepartment', e.target.value)}
-                    >
-                      <option value="">{t('sms.anyGroup', lang)}</option>
-                      {groupOptions.map((g) => (
-                        <option key={g} value={g}>
-                          {g}
-                        </option>
-                      ))}
-                    </select>
+                      onValueChange={(v) => update('groupDepartment', v)}
+                      options={[
+                        { value: '', label: t('sms.anyGroup', lang) },
+                        ...groupOptions.map((g) => ({ value: g, label: g })),
+                      ]}
+                    />
                   </div>
                   <div>
-                    <label className={labelClass}>{t('sms.section', lang)}</label>
-                    <select
-                      className={selectClass({ size: 'md', fullWidth: true })}
+                    <label htmlFor="sms_target_section" className={labelClass}>{t('sms.section', lang)}</label>
+                    <ComboboxField
+                      id="sms_target_section"
                       value={draft.section}
-                      onChange={(e) => update('section', e.target.value)}
-                    >
-                      <option value="">{t('sms.anySection', lang)}</option>
-                      {sectionOptions.map((s) => (
-                        <option key={s} value={s}>
-                          {s}
-                        </option>
-                      ))}
-                    </select>
+                      onValueChange={(v) => update('section', v)}
+                      options={[
+                        { value: '', label: t('sms.anySection', lang) },
+                        ...sectionOptions.map((s) => ({ value: s, label: s })),
+                      ]}
+                    />
                   </div>
                   <p className="text-xs text-muted sm:col-span-2">
                     {t('sms.academicYearPinned', lang)}: {activeAcademicYear ?? '—'}
@@ -306,15 +315,16 @@ export function ComposeForm({
 
           {draft.mode === 'group' && (
             <div>
-              <label className={labelClass}>{t('sms.category', lang)}</label>
-              <select className={selectClass({ size: 'md', fullWidth: true })} value={draft.category} onChange={(e) => update('category', e.target.value)}>
-                <option value="">—</option>
-                {categories.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
+              <label htmlFor="sms_category" className={labelClass}>{t('sms.category', lang)}</label>
+              <ComboboxField
+                id="sms_category"
+                value={draft.category}
+                onValueChange={(v) => update('category', v)}
+                options={[
+                  { value: '', label: '—' },
+                  ...categories.map((c) => ({ value: c, label: c })),
+                ]}
+              />
             </div>
           )}
 
@@ -332,7 +342,7 @@ export function ComposeForm({
           )}
         </div>
         <p className="mt-3 text-xs text-muted">
-          {t('sms.estimatedRecipients', lang)}: {recipients.length}
+          {t('sms.estimatedRecipients', lang)}: {fmt.format(recipients.length)}
           {lang === 'bn' ? ' জন' : ''}
         </p>
       </div>
@@ -341,13 +351,17 @@ export function ComposeForm({
         <h2 className="mb-3 text-lg font-bold">{t('sms.messageCard', lang)}</h2>
         <textarea
           rows={5}
+          aria-label={t('sms.messageCard', lang)}
           className="w-full rounded-lg border border-line-strong bg-paper p-3 text-sm outline-none transition focus:border-brand-500 focus-visible:ring-2 focus-visible:ring-brand-300"
           value={draft.body}
           onChange={(e) => update('body', e.target.value)}
         />
         <p className="mt-2 text-xs text-muted">
-          {segmentInfo.length}/{segmentInfo.encoding === 'gsm7' ? 160 : 70} {t('sms.characters', lang)} ·{' '}
-          {segmentInfo.segments} {t('sms.segments', lang)}
+          {formatNumber(segmentInfo.length, lang)}/{formatNumber(segmentInfo.encoding === 'gsm7' ? 160 : 70, lang)} {t('sms.characters', lang)} ·{' '}
+          {formatNumber(segmentInfo.segments, lang)} {t('sms.segments', lang)}
+        </p>
+        <p className="mt-1 text-xs text-muted">
+          {t('sms.confirmCredits', lang)}: {fmt.format(creditsNeeded)} · {t('sms.balance', lang)}: {fmt.format(balance)}
         </p>
         {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
         {result && (
@@ -358,14 +372,27 @@ export function ComposeForm({
         )}
         {draftSaved && <p className="mt-2 text-sm text-muted">{t('sms.draftSaved', lang)}</p>}
         <div className="mt-3 flex flex-wrap gap-2">
-          <Button
-            variant="primary"
-            className={actionBtn}
-            disabled={pending || recipients.length === 0 || !draft.body.trim()}
-            onClick={submit}
-          >
-            {t('sms.sendNow', lang)}
-          </Button>
+          {/* One tap used to send to every recipient. The dialog states what the
+              send costs — recipients × parts = credits — against the balance. */}
+          <ConfirmDialog
+            triggerLabel={t('sms.sendNow', lang)}
+            triggerClassName={`${buttonClass({ variant: 'primary' })} ${actionBtn}`}
+            triggerDisabled={pending || recipients.length === 0 || !draft.body.trim()}
+            confirmTone="brand"
+            title={t('sms.confirmTitle', lang)}
+            body={[
+              `${t('sms.confirmRecipients', lang)}: ${fmt.format(recipients.length)}`,
+              `${t('sms.confirmParts', lang)}: ${fmt.format(parts)}`,
+              `${t('sms.confirmCredits', lang)}: ${fmt.format(recipients.length)} × ${fmt.format(parts)} = ${fmt.format(creditsNeeded)}`,
+              `${t('sms.balance', lang)}: ${fmt.format(balance)}`,
+              !metered ? t('sms.confirmUnmetered', lang) : creditsNeeded > balance ? t('sms.confirmShort', lang) : '',
+            ]
+              .filter(Boolean)
+              .join('\n')}
+            confirmLabel={t('sms.confirmSend', lang)}
+            cancelLabel={t('routine.cancel', lang)}
+            onConfirm={submit}
+          />
           <Button variant="secondary" className={actionBtn} onClick={saveDraft}>
             {t('sms.saveDraft', lang)}
           </Button>

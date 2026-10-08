@@ -1,13 +1,16 @@
 'use client'
 
 import { usePathname, useRouter } from 'next/navigation'
-import { useState, useTransition } from 'react'
+import { useEffect, useState, useTransition } from 'react'
+import { toast } from 'sonner'
 import { primaryBtnClass } from '@/components/auth-card'
-import { subjectFullMarks } from '@/lib/exam-setup'
+import { markCellError, markRowState, subjectFullMarks, type MarkCellError, type MarkCells } from '@/lib/exam-setup'
 import { evaluateSubject, type GradingScheme } from '@/lib/grading'
-import { t, type Lang } from '@/lib/i18n'
+import { t, type Lang, type MessageKey } from '@/lib/i18n'
+import { toLatinDigits } from '@/lib/bd-mobile'
 import { saveMarks } from './actions'
-import { selectClass } from '@/components/ui/field'
+import { ComboboxField } from '@/components/ui/combobox-field'
+import { sameRouteNavigation, useInRouteModal } from '@/components/route-modal'
 
 export interface SubjectOption {
   id: string
@@ -16,6 +19,13 @@ export interface SubjectOption {
   mcq_marks: number
   practical_marks: number
 }
+
+// True while the grid below holds typed marks that are not saved. Module
+// state rather than a context: the picker and the grid are siblings rendered
+// by a server page, and all the picker needs is this one yes/no.
+let unsavedMarks = false
+// Set by the picker just before its full-page subject change (#701).
+let leavingForSubject = false
 
 /** Per marks-entry.html's subject dropdown — switching subjects navigates
  * (?subject=id) so the table below always reflects one subject's marks at a
@@ -32,37 +42,59 @@ export function SubjectPicker({
 }) {
   const router = useRouter()
   const pathname = usePathname()
+  const navigation = sameRouteNavigation(useInRouteModal())
   return (
-    <select
+    <ComboboxField
       value={selectedId}
       aria-label={t('markEntry.pickSubject', lang)}
-      onChange={(e) => router.push(`${pathname}?subject=${e.target.value}`)}
-      className={`${selectClass({ size: 'md', fullWidth: true })} max-w-56`}
-    >
-      {subjects.map((s) => (
-        <option key={s.id} value={s.id}>
-          {s.name}
-        </option>
-      ))}
-    </select>
+      // replace, not push: in the row-action popup, ✕ (router.back) must return
+      // to the list, not to the previously picked subject.
+      onValueChange={(v) => {
+        // Switching subject reloads the grid, which used to drop typed marks
+        // without a word (audit AC10).
+        if (v !== selectedId && unsavedMarks && !window.confirm(t('markEntry.unsavedConfirm', lang))) return
+        if (v === selectedId) return
+        // Keep the other parameters (?from= is the Back target).
+        const next = new URLSearchParams(window.location.search)
+        next.set('subject', v)
+        const href = `${pathname}?${next}`
+        if (navigation === 'soft') return router.replace(href)
+        // #701: on the page itself (opened by address or refresh) a soft
+        // navigation to this same route is caught by the @modal intercept and
+        // opens the new subject as a popup over the old one. A full load is
+        // never intercepted. The question above was already answered, so the
+        // browser's own "leave page?" prompt is skipped.
+        leavingForSubject = true
+        window.location.replace(href)
+      }}
+      className="max-w-56"
+      options={subjects.map((s) => ({ value: s.id, label: s.name }))}
+    />
   )
 }
 
-export interface MarkStudentRow {
+/** One roster student and the marks already saved for them, as the text each
+ * cell starts with — '' when nothing is saved (see MarkCells). */
+export interface MarkStudentRow extends MarkCells {
   id: string
   roll_number: number | null
   full_name: string
-  theory: number
-  mcq: number
-  practical: number
+  /** Absent for this subject's paper (#679). Always false before migration 0223. */
+  absent: boolean
   isOptional: boolean
 }
 
-interface RowMarks {
-  theory: number
-  mcq: number
-  practical: number
+/** One row of the grid: the typed cells and the absent tick. */
+type GridCells = MarkCells & { absent: boolean }
+
+const CELL_ERROR: Record<MarkCellError, MessageKey> = {
+  overMax: 'markEntry.errOverMax',
+  negative: 'markEntry.errNegative',
+  invalid: 'markEntry.errInvalid',
 }
+
+const COMPONENTS = ['theory', 'mcq', 'practical'] as const
+type Component = (typeof COMPONENTS)[number]
 
 function GradeBadge({ label, passed }: { label: string | null; passed: boolean }) {
   if (!label) return <span className="text-muted">—</span>
@@ -77,12 +109,16 @@ function GradeBadge({ label, passed }: { label: string | null; passed: boolean }
   )
 }
 
+const sameCells = (a: GridCells, b: GridCells) =>
+  a.absent === b.absent && COMPONENTS.every((c) => a[c].trim() === b[c].trim())
+
 export function MarksEntryTable({
   examId,
   subject,
   rows,
   scheme,
   disabled,
+  absentSupported,
   lang,
 }: {
   examId: string
@@ -90,83 +126,208 @@ export function MarksEntryTable({
   rows: MarkStudentRow[]
   scheme: GradingScheme | null
   disabled: boolean
+  /** Migration 0223 is applied: a student can be marked absent and a row can
+   * be saved half-filled. False keeps the grid as it was before. */
+  absentSupported: boolean
   lang: Lang
 }) {
   const router = useRouter()
-  const [marks, setMarks] = useState<Map<string, RowMarks>>(
-    () => new Map(rows.map((r) => [r.id, { theory: r.theory, mcq: r.mcq, practical: r.practical }])),
-  )
+  const initial = () =>
+    new Map<string, GridCells>(
+      rows.map((r) => [r.id, { theory: r.theory, mcq: r.mcq, practical: r.practical, absent: r.absent }]),
+    )
+  // `saved` is what the database holds, `marks` what the grid shows; a row is
+  // dirty while the two differ.
+  const [saved, setSaved] = useState(initial)
+  const [marks, setMarks] = useState(initial)
   const [error, setError] = useState<string | null>(null)
+  // A half-filled row is only called out once Save was tried — while typing
+  // across a row it is half-filled for a moment by nature.
+  const [attempted, setAttempted] = useState(false)
   const [pending, startTransition] = useTransition()
   const fullMarks = subjectFullMarks(subject)
+  const max: Record<Component, number> = {
+    theory: subject.theory_marks,
+    mcq: subject.mcq_marks,
+    practical: subject.practical_marks,
+  }
+  const blank: GridCells = { theory: '', mcq: '', practical: '', absent: false }
+  // A half-filled row is an error only while it cannot be stored (before 0223).
+  const rowInvalid = (m: GridCells) =>
+    !m.absent &&
+    ((!absentSupported && markRowState(m, subject) === 'partial') ||
+      COMPONENTS.some((c) => max[c] > 0 && markCellError(m[c], max[c])))
 
-  function update(studentId: string, field: keyof RowMarks, value: number, max: number) {
-    const clamped = Number.isFinite(value) ? Math.max(0, Math.min(value, max)) : 0
+  const dirtyRows = rows.filter((r) => !sameCells(marks.get(r.id) ?? blank, saved.get(r.id) ?? blank))
+  const dirty = dirtyRows.length > 0
+
+  useEffect(() => {
+    unsavedMarks = dirty
+    if (!dirty) return
+    const onUnload = (e: BeforeUnloadEvent) => {
+      if (!leavingForSubject) e.preventDefault()
+    }
+    // In-app links (sidebar, breadcrumbs, Back) do not fire beforeunload.
+    // Capture phase, so a declined prompt stops the click before the router
+    // sees it.
+    const onLinkClick = (e: MouseEvent) => {
+      const link = e.target instanceof Element ? e.target.closest('a[href]') : null
+      if (!link || link.getAttribute('target') === '_blank') return
+      if (!window.confirm(t('markEntry.unsavedConfirm', lang))) {
+        e.preventDefault()
+        e.stopPropagation()
+      }
+    }
+    window.addEventListener('beforeunload', onUnload)
+    document.addEventListener('click', onLinkClick, true)
+    return () => {
+      unsavedMarks = false
+      window.removeEventListener('beforeunload', onUnload)
+      document.removeEventListener('click', onLinkClick, true)
+    }
+  }, [dirty, lang])
+
+  function update(studentId: string, field: Component, value: string) {
     setMarks((prev) => {
       const next = new Map(prev)
-      const cur = next.get(studentId) ?? { theory: 0, mcq: 0, practical: 0 }
-      next.set(studentId, { ...cur, [field]: clamped })
+      next.set(studentId, { ...(next.get(studentId) ?? blank), [field]: toLatinDigits(value) })
       return next
     })
   }
 
-  function componentInput(row: MarkStudentRow, field: keyof RowMarks, max: number) {
-    const value = marks.get(row.id)?.[field] ?? 0
-    if (max <= 0) return <span className="text-muted">—</span>
+  // Ticking "absent" empties the row's cells: an absent student has no marks
+  // to keep, and the row is stored as 0 with the flag.
+  function setAbsent(studentId: string, absent: boolean) {
+    setMarks((prev) => new Map(prev).set(studentId, { ...blank, absent }))
+  }
+
+  function componentInput(row: MarkStudentRow, field: Component) {
+    if (max[field] <= 0 || marks.get(row.id)?.absent) return <span className="text-muted">—</span>
+    const value = marks.get(row.id)?.[field] ?? ''
+    const cellError = markCellError(value, max[field])
+    const errorId = `${row.id}-${field}-error`
     return (
-      <input
-        type="number"
-        min={0}
-        max={max}
-        value={value}
-        disabled={disabled}
-        aria-label={`${row.full_name} ${field}`}
-        onChange={(e) => update(row.id, field, Number(e.target.value), max)}
-        className="h-7 w-16 rounded-md border border-line-strong bg-paper px-2 text-center text-sm"
-      />
+      <>
+        <input
+          // Text, not number: a number input refuses the Bangla digits a Bangla
+          // keyboard types. update() turns them into Latin; markCellError rules.
+          type="text"
+          inputMode="decimal"
+          value={value}
+          disabled={disabled}
+          aria-label={`${row.full_name} ${field}`}
+          aria-invalid={cellError ? true : undefined}
+          aria-describedby={cellError ? errorId : undefined}
+          onChange={(e) => update(row.id, field, e.target.value)}
+          className={`h-7 w-16 rounded-md border bg-paper px-2 text-center text-sm ${
+            cellError ? 'border-alert text-alert-deep' : 'border-line-strong'
+          }`}
+        />
+        {cellError && (
+          <span id={errorId} role="alert" className="mt-1 block text-xs text-alert-deep">
+            {t(CELL_ERROR[cellError], lang)}
+          </span>
+        )}
+      </>
     )
+  }
+
+  function save() {
+    setAttempted(true)
+    if (rows.some((row) => rowInvalid(marks.get(row.id) ?? blank))) {
+      setError(t('markEntry.fixErrors', lang))
+      return
+    }
+    setError(null)
+    const snapshot = marks
+    startTransition(async () => {
+      // Only the rows that changed: an untouched student is neither rewritten
+      // nor — if blank — deleted.
+      const payload = dirtyRows.map((row) => ({ studentId: row.id, ...(snapshot.get(row.id) ?? blank) }))
+      const result = await saveMarks(examId, subject.id, payload)
+      if (result.invalid) setError(t('markEntry.fixErrors', lang))
+      else if (result.error) setError(result.error)
+      else {
+        setSaved(snapshot)
+        setAttempted(false)
+        toast.success(t('markEntry.saved', lang))
+        router.refresh()
+      }
+    })
   }
 
   return (
     <>
       <div className="overflow-x-auto">
         <table className="w-full min-w-160 text-sm">
-          <thead>
-            <tr className="border-b border-line text-left text-xs font-semibold text-muted">
-              <th className="py-2 pr-2">{t('students.roll', lang)}</th>
-              <th className="py-2 pr-2">{t('students.name', lang)}</th>
-              <th className="py-2 pr-2 text-right">
+          <thead className="bg-paper-muted">
+            <tr className="text-left text-sm text-muted">
+              <th className="px-4 py-3">{t('students.roll', lang)}</th>
+              <th className="px-4 py-3">{t('students.name', lang)}</th>
+              <th className="px-4 py-3 text-right">
                 {t('examSetup.theory', lang)} ({subject.theory_marks})
               </th>
-              <th className="py-2 pr-2 text-right">
+              <th className="px-4 py-3 text-right">
                 {t('examSetup.mcq', lang)} ({subject.mcq_marks})
               </th>
-              <th className="py-2 pr-2 text-right">
+              <th className="px-4 py-3 text-right">
                 {t('examSetup.practical', lang)} ({subject.practical_marks})
               </th>
-              <th className="py-2 pr-2 text-right">{t('markEntry.total', lang)}</th>
-              <th className="py-2 text-right">{t('markEntry.grade', lang)}</th>
+              {absentSupported && <th className="px-4 py-3 text-center">{t('markEntry.absent', lang)}</th>}
+              <th className="px-4 py-3 text-right">{t('markEntry.total', lang)}</th>
+              <th className="px-4 py-3 text-right">{t('markEntry.grade', lang)}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-line">
             {rows.map((row) => {
-              const m = marks.get(row.id) ?? { theory: 0, mcq: 0, practical: 0 }
-              const total = m.theory + m.mcq + m.practical
-              const evaluated = scheme
-                ? evaluateSubject(
-                    { subjectId: subject.id, fullMarks, obtainedMarks: total, isOptional: row.isOptional },
-                    scheme,
-                  )
-                : null
+              const m = marks.get(row.id) ?? blank
+              const state = markRowState(m, subject)
+              const valid = state === 'complete' && COMPONENTS.every((c) => max[c] <= 0 || !markCellError(m[c], max[c]))
+              // A total and a grade exist only for a fully entered, valid row —
+              // a blank row has no mark, which is not a mark of 0. An absent
+              // student is entered, with 0.
+              const total = m.absent
+                ? 0
+                : valid
+                  ? COMPONENTS.reduce((sum, c) => sum + (max[c] > 0 ? Number(m[c]) : 0), 0)
+                  : null
+              const evaluated =
+                scheme && total !== null
+                  ? evaluateSubject(
+                      { subjectId: subject.id, fullMarks, obtainedMarks: total, isOptional: row.isOptional },
+                      scheme,
+                    )
+                  : null
               return (
                 <tr key={row.id}>
-                  <td className="py-2 pr-2">{row.roll_number ?? '—'}</td>
-                  <td className="py-2 pr-2 font-medium">{row.full_name}</td>
-                  <td className="py-2 pr-2 text-right">{componentInput(row, 'theory', subject.theory_marks)}</td>
-                  <td className="py-2 pr-2 text-right">{componentInput(row, 'mcq', subject.mcq_marks)}</td>
-                  <td className="py-2 pr-2 text-right">{componentInput(row, 'practical', subject.practical_marks)}</td>
-                  <td className="py-2 pr-2 text-right font-semibold">{total}</td>
-                  <td className="py-2 text-right">
+                  <td className="px-4 py-3">{row.roll_number ?? '—'}</td>
+                  <td className="px-4 py-3 font-medium">
+                    {row.full_name}
+                    {attempted && !absentSupported && !m.absent && state === 'partial' && (
+                      <span role="alert" className="mt-1 block text-xs font-normal text-alert-deep">
+                        {t('markEntry.errPartial', lang)}
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-right">{componentInput(row, 'theory')}</td>
+                  <td className="px-4 py-3 text-right">{componentInput(row, 'mcq')}</td>
+                  <td className="px-4 py-3 text-right">{componentInput(row, 'practical')}</td>
+                  {absentSupported && (
+                    <td className="px-4 py-3 text-center">
+                      <input
+                        type="checkbox"
+                        checked={m.absent}
+                        disabled={disabled}
+                        aria-label={`${row.full_name} ${t('markEntry.absent', lang)}`}
+                        onChange={(e) => setAbsent(row.id, e.target.checked)}
+                        className="size-4 cursor-pointer accent-brand-600"
+                      />
+                    </td>
+                  )}
+                  <td className="px-4 py-3 text-right font-semibold">
+                    {total ?? <span className="font-normal text-muted">—</span>}
+                  </td>
+                  <td className="px-4 py-3 text-right">
                     <GradeBadge label={evaluated?.label ?? null} passed={evaluated?.passed ?? false} />
                   </td>
                 </tr>
@@ -175,29 +336,24 @@ export function MarksEntryTable({
           </tbody>
         </table>
       </div>
-      {error && <p className="mt-2 text-sm text-alert-deep">{error}</p>}
+      {error && (
+        <p role="alert" className="mt-2 text-sm text-alert-deep">
+          {error}
+        </p>
+      )}
       {!disabled && (
         <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
-          <p className="text-xs text-muted">{t('markEntry.hint', lang)}</p>
-          <button
-            type="button"
-            disabled={pending}
-            onClick={() => {
-              startTransition(async () => {
-                setError(null)
-                const payload = rows.map((row) => {
-                  const m = marks.get(row.id) ?? { theory: 0, mcq: 0, practical: 0 }
-                  return { studentId: row.id, theory: m.theory, mcq: m.mcq, practical: m.practical }
-                })
-                const result = await saveMarks(examId, subject.id, payload)
-                if (result.error) setError(result.error)
-                else router.refresh()
-              })
-            }}
-            className={primaryBtnClass}
-          >
-            {t('markEntry.save', lang)}
-          </button>
+          <p className="text-xs text-muted">
+            {t('markEntry.blankHint', lang)} {absentSupported && `${t('markEntry.absentHint', lang)} `}
+            {t('markEntry.hint', lang)}
+          </p>
+          <div className="flex items-center gap-3">
+            {dirty && <span className="text-xs font-semibold text-sun-deep">{t('markEntry.unsaved', lang)}</span>}
+            {/* Nothing typed, nothing to save — and no toast claiming a save. */}
+            <button type="button" disabled={pending || !dirty} onClick={save} className={primaryBtnClass}>
+              {t('markEntry.save', lang)}
+            </button>
+          </div>
         </div>
       )}
     </>

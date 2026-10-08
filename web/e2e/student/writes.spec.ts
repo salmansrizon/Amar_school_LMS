@@ -30,10 +30,14 @@ test.describe('@student portal writes', () => {
     // #454 is *anchored* asking: the question hangs off a subject (or a post).
     // Leaving the picker on its em-dash placeholder makes the insert fail the
     // enforce_student_message_refs trigger, silently, with the form still there.
-    const anchor = page.locator('select[name="subject_id"]')
-    const options = await anchor.locator('option').count()
+    // The picker is now the shared type-to-filter combobox (ui/combobox-field.tsx):
+    // its options only exist in the DOM while the popup is open, so open it first.
+    const anchor = page.getByRole('combobox')
+    await anchor.click()
+    const options = await page.getByRole('option').count()
     expect(options, 'no subject offered to anchor a question to').toBeGreaterThan(1)
-    await anchor.selectOption({ index: 1 })
+    // index 0 is the disabled em-dash placeholder — index 1 is the first real subject.
+    await page.getByRole('option').nth(1).click()
     await page.locator('[name="subject"]').fill(subject)
     await page.locator('[name="body"]').fill('Asked by the map #434 E2E suite.')
     await page.locator('form button[type="submit"]').first().click()
@@ -48,7 +52,9 @@ test.describe('@student portal writes', () => {
     await page.goto('/student/profile')
     // The #439 IA decision: offer "request a correction", never a dead form.
     const value = `0171${String(Date.now()).slice(-7)}`
-    await page.locator('select[name="field"]').selectOption('student_mobile')
+    // The Field picker (ui/combobox-field.tsx) already defaults to
+    // 'student_mobile' (correction-form.tsx's initial state) — no interaction
+    // needed to select it.
     await page.locator('[name="requested_value"]').fill(value)
     await page.locator('form button[type="submit"]').first().click()
 
@@ -57,9 +63,12 @@ test.describe('@student portal writes', () => {
   })
 
   test('#446 a student marks a task done, and undone again', async ({ studentPage: page }) => {
-    await page.goto('/student/tasks')
+    // state=all: the default view is open tasks only, and a task ticked done
+    // would drop out of it mid-test.
+    await page.goto('/student/tasks?state=all')
     // TaskToggle is a bare <button type="button">, not a form or a checkbox.
-    const toggles = page.locator('main button[type="button"]')
+    // Scoped to the table / phone-card rows: the filter combobox is a button too.
+    const toggles = page.locator('main :is(tbody, ul) button[type="button"]:visible')
     expect(
       await toggles.count(),
       'no task in the fixture — /student/tasks has nothing to complete',

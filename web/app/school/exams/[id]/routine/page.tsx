@@ -1,15 +1,21 @@
 import { notFound } from 'next/navigation'
+import { schoolCrumbs } from '@/lib/school-crumbs'
+import { PageHeader } from '@/components/ui/page'
 import { currentLang } from '@/lib/i18n-server'
-import { t, type Lang } from '@/lib/i18n'
+import { t, formatNumber, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
+import { mayActOnExamClass } from '@/lib/school/exam-class-guard'
 import { subjectsForClass } from '@/lib/students'
 import { AddRoutineEntryForm, RoutineTable, type Option, type RoutineEntryRow } from './routine-controls'
-import { BackLink } from '@/components/back-link'
 import { resolveBackHref } from '@/lib/back-nav'
+import { PrintTrigger } from '@/components/print/print-trigger'
+import { pageTitle } from '@/lib/page-title'
 
 // Layout per ui/school-owner/exam-routine.html: toolbar (exam label + Exam
 // Setup / Print / Save) over a Date/Day/Time/Subject/Room table. Day is
 // derived from exam_date (dateToDayOfWeek), not stored.
+
+export const generateMetadata = pageTitle('examRoutine.title')
 
 export default async function ExamRoutinePage({
   params,
@@ -31,6 +37,10 @@ export default async function ExamRoutinePage({
     .maybeSingle()
   if (!exam) notFound()
   const closed = exam.status === 'closed'
+  // #676: another class's exam is read-only to a class-attached teacher — the
+  // same answer the server actions give, asked once here.
+  const notMine = !(await mayActOnExamClass(supabase, exam.id))
+  const readOnly = closed || notMine
 
   const [{ data: entries }, { data: allSubjects }, { data: rooms }] = await Promise.all([
     supabase
@@ -45,28 +55,24 @@ export default async function ExamRoutinePage({
     ? subjectsForClass(allSubjects ?? [], exam.class_id).map((s) => ({ id: s.id, label: s.name }))
     : []
   const roomOpts: Option[] = (rooms ?? []).map((r) => ({ id: r.id, label: r.name }))
-  const examLabel = `${exam.name} (${exam.exam_year})`
+  const examLabel = `${exam.name} (${formatNumber(exam.exam_year, lang, { useGrouping: false })})`
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-extrabold">{t('examRoutine.title', lang)}</h1>
-        <BackLink href={backHref} label={t('common.back', lang)} />
-      </div>
+      <PageHeader
+        title={`${t('examRoutine.title', lang)}`}
+        crumbs={schoolCrumbs('/school/exams', lang, { label: t('exams.title', lang), href: '/school/exams' }, { label: `${t('examRoutine.title', lang)}` })}
+        backHref={backHref}
+        backLabel={t('common.back', lang)}
+      />
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <span className="text-sm text-muted">{examLabel}</span>
-        <a
-          href={`/school/exams/${exam.id}/routine/print`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="rounded-full border border-line-strong px-3 py-1.5 text-xs font-semibold hover:bg-paper-muted"
-        >
-          {t('examRoutine.print', lang)}
-        </a>
+        <PrintTrigger href={`/school/exams/${exam.id}/routine/print`} label={t('examRoutine.print', lang)} />
       </div>
 
-      <section className="rounded-lg border border-line bg-paper p-4">
+      {notMine && <p className="mb-3 text-xs text-alert-deep">{t('exams.notYourClass', lang)}</p>}
+      <section className="rounded-2xl border border-line bg-paper p-card">
         {!entries?.length ? (
           <p className="mb-4 text-sm text-muted">{t('examRoutine.none', lang)}</p>
         ) : (
@@ -76,12 +82,12 @@ export default async function ExamRoutinePage({
               entries={entries as RoutineEntryRow[]}
               subjects={subjectOpts}
               rooms={roomOpts}
-              disabled={closed}
+              disabled={readOnly}
               lang={lang}
             />
           </div>
         )}
-        {!closed &&
+        {!readOnly &&
           (subjectOpts.length ? (
             <AddRoutineEntryForm examId={exam.id} subjects={subjectOpts} rooms={roomOpts} lang={lang} />
           ) : (

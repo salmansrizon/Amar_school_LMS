@@ -7,10 +7,13 @@ import { loadInstitutePrintHeader } from '@/lib/institute-print'
 import { sittingLabel, studentsInRanges, type SheetStudent } from '@/lib/exam-attendance-sheet'
 import { enrolledStudentIds, enrolledIdFilter } from '@/lib/school/offering-roster'
 import { PrintPage, InstituteHeader, InfoGrid, PaginatedSheet, SignatureRow } from '@/components/print/pieces'
-import { PrintButton } from '@/components/print/print-button'
+import { PrintTrigger } from '@/components/print/print-trigger'
+import { withParams } from '@/lib/url-params'
 import { embeddedBuildingName } from '@/lib/venues'
 import { BackLink } from '@/components/back-link'
 import { resolveBackHref } from '@/lib/back-nav'
+import { pageTitle } from '@/lib/page-title'
+import { PrintVerifyFooter } from '@/components/print/verify-footer'
 
 // Exam attendance sheet (issue #97, docs/improvement.md §4; ADR 0007).
 //
@@ -22,6 +25,8 @@ import { resolveBackHref } from '@/lib/back-nav'
 // actually wants — invigilators are briefed together); adding `&room=<roomId>`
 // prints the single sheet. A separate batch page would duplicate this whole
 // loader for one query-string difference.
+
+export const generateMetadata = pageTitle('examAttendanceSheet.title')
 
 export default async function ExamAttendanceSheetPage({
   params,
@@ -159,7 +164,7 @@ export default async function ExamAttendanceSheetPage({
         >
           {t('examAttendanceSheet.otherSittings', lang)}
         </Link>
-        <PrintButton label={t('print.print', lang)} />
+        <PrintTrigger href={`/school/exams/${id}/attendance-sheet/print${withParams({ entry: entryId, room: roomFilter }, {})}`} label={t('print.print', lang)} />
       </div>
 
       {!roomIds.length ? (
@@ -234,6 +239,7 @@ export default async function ExamAttendanceSheetPage({
               />
               <p className="mt-3 text-center text-xs text-muted">{label}</p>
               </PaginatedSheet>
+              <PrintVerifyFooter lang={lang} kind="exam_attendance_sheet" refId={id} />
             </PrintPage>
           )
         })

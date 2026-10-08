@@ -88,3 +88,22 @@ export function evaluateExam(exam: PublishedExam, scheme: GradingScheme): Evalua
     .map((result) => ({ ...result, subjectName: names.get(result.subjectId) ?? result.subjectId }))
   return { subjects, overall: evaluateOverallResult(subjects, scheme) }
 }
+
+/** Subjects of the Student's class this exam holds no mark for — the portal's
+ *  reading of `ExamRosterResultRow.marksMissing` (lib/exam-print-data.ts): above
+ *  zero the result is INCOMPLETE and must not be shown as a pass, a fail or a GPA.
+ *
+ *  `student_exam_result` joins on exam_marks, so an unmarked subject is simply
+ *  absent from `exam.rows`; the class's own list comes from
+ *  `student_subject_option`, which is the Student's CURRENT class. Subject ids
+ *  belong to one class, so an exam sharing none of them is an earlier class's
+ *  and cannot be judged from here — it reads as complete, as it did before.
+ *
+ *  ponytail: current class only, and an exam with no mark at all never reaches
+ *  the portal. Both need student_exam_result to left-join the exam's subjects,
+ *  which is a migration. */
+export function missingSubjects<S extends { id: string }>(exam: PublishedExam, classSubjects: S[]): S[] {
+  const marked = new Set(exam.rows.map((r) => r.subject_id))
+  if (!classSubjects.some((s) => marked.has(s.id))) return []
+  return classSubjects.filter((s) => !marked.has(s.id))
+}

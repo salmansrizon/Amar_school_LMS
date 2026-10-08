@@ -106,8 +106,8 @@ export default async function VerifyCardPage({ params }: { params: Promise<{ tok
 function Badge({ tone, label }: { tone: 'valid' | 'invalid'; label: string }) {
   const cls =
     tone === 'valid'
-      ? 'bg-emerald-50 text-emerald-700 ring-emerald-600/20'
-      : 'bg-red-50 text-red-700 ring-red-600/20'
+      ? 'bg-mint-soft text-mint-deep ring-mint-deep/20'
+      : 'bg-alert-soft text-alert-deep ring-alert-deep/20'
   return (
     <span
       className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-bold ring-1 ${cls}`}

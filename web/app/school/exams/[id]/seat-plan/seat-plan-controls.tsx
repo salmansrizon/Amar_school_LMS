@@ -7,7 +7,7 @@ import { countRollsInRange, overlappingRowIds } from '@/lib/exam-setup'
 import { t, type Lang } from '@/lib/i18n'
 import { withOrigin } from '@/lib/back-nav'
 import { generateSeatPlanFor, publishSeatPlan, removeSeatPlanRow, saveSeatPlanRow } from './actions'
-import { selectClass } from '@/components/ui/field'
+import { ComboboxField } from '@/components/ui/combobox-field'
 
 export interface RoomOption {
   id: string
@@ -62,14 +62,14 @@ export function SeatPlanTable({
   return (
     <div className="overflow-x-auto">
       <table className="w-full min-w-160 text-sm">
-        <thead>
-          <tr className="border-b border-line text-left text-xs font-semibold text-muted">
-            <th className="py-2 pr-2">{t('seatPlan.room', lang)}</th>
-            <th className="py-2 pr-2 text-right">{t('seatPlan.capacity', lang)}</th>
-            <th className="py-2 pr-2">{t('seatPlan.rollRange', lang)}</th>
-            <th className="py-2 pr-2 text-right">{t('seatPlan.studentCount', lang)}</th>
-            <th className="py-2 pr-2">{t('seatPlan.status', lang)}</th>
-            {!disabled && <th className="py-2 text-right">{t('seatPlan.delete', lang)}</th>}
+        <thead className="bg-paper-muted">
+          <tr className="text-left text-sm text-muted">
+            <th className="px-4 py-3">{t('seatPlan.room', lang)}</th>
+            <th className="px-4 py-3 text-right">{t('seatPlan.capacity', lang)}</th>
+            <th className="px-4 py-3">{t('seatPlan.rollRange', lang)}</th>
+            <th className="px-4 py-3 text-right">{t('seatPlan.studentCount', lang)}</th>
+            <th className="px-4 py-3">{t('seatPlan.status', lang)}</th>
+            {!disabled && <th className="px-4 py-3 text-right">{t('seatPlan.delete', lang)}</th>}
           </tr>
         </thead>
         <tbody className="divide-y divide-line">
@@ -124,7 +124,7 @@ function SeatPlanRowView({
 
   return (
     <tr>
-      <td className="py-2 pr-2 font-medium">
+      <td className="px-4 py-3 font-medium">
         {room ? room.name : '—'}
         {room?.buildingName ? <div className="text-xs font-normal text-muted">{room.buildingName}</div> : null}
         {/* Per-room entry into the invigilator's sheet (issue #97). */}
@@ -135,8 +135,8 @@ function SeatPlanRowView({
           {t('examAttendanceSheet.title', lang)}
         </a>
       </td>
-      <td className="py-2 pr-2 text-right">{room?.capacity ?? '—'}</td>
-      <td className="py-2 pr-2">
+      <td className="px-4 py-3 text-right">{room?.capacity ?? '—'}</td>
+      <td className="px-4 py-3">
         {disabled ? (
           `${row.roll_start} – ${row.roll_end}`
         ) : (
@@ -182,8 +182,8 @@ function SeatPlanRowView({
         )}
         {error && <p className="mt-1 text-xs text-alert-deep">{error}</p>}
       </td>
-      <td className="py-2 pr-2 text-right">{studentCount}</td>
-      <td className="py-2 pr-2">
+      <td className="px-4 py-3 text-right">{studentCount}</td>
+      <td className="px-4 py-3">
         <span
           className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
             bad ? 'bg-alert-soft text-alert-deep' : 'bg-mint-soft text-mint-deep'
@@ -193,7 +193,7 @@ function SeatPlanRowView({
         </span>
       </td>
       {!disabled && (
-        <td className="py-2 text-right">
+        <td className="px-4 py-3 text-right">
           <button
             type="button"
             disabled={pending}
@@ -240,16 +240,16 @@ export function AddSeatPlanRowForm({ examId, rooms, lang }: { examId: string; ro
     >
       <div>
         <label className={labelClass} htmlFor="room_id">{t('seatPlan.room', lang)}</label>
-        <select id="room_id" name="room_id" required defaultValue="" className={selectClass({ size: 'md', fullWidth: true })}>
-          <option value="" disabled>
-            {t('seatPlan.pickRoom', lang)}
-          </option>
-          {rooms.map((r) => (
-            <option key={r.id} value={r.id}>
-              {r.name} ({r.capacity})
-            </option>
-          ))}
-        </select>
+        <ComboboxField
+          id="room_id"
+          name="room_id"
+          required
+          defaultValue=""
+          options={[
+            { value: '', label: t('seatPlan.pickRoom', lang), disabled: true },
+            ...rooms.map((r) => ({ value: r.id, label: `${r.name} (${r.capacity})` })),
+          ]}
+        />
       </div>
       <div>
         <label className={labelClass} htmlFor="roll_start">{t('seatPlan.rollStart', lang)}</label>
@@ -323,7 +323,7 @@ export function GeneratePanel({
   }
 
   return (
-    <div className="w-full rounded-lg border border-line bg-paper p-4 shadow-card">
+    <div className="w-full rounded-2xl border border-line bg-paper p-card shadow-card">
       <p className="mb-3 text-sm font-semibold">{t('seatPlan.generateTitle', lang)}</p>
 
       {otherExams.length > 0 && (

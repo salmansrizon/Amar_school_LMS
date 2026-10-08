@@ -111,13 +111,17 @@ describe('Absence SMS Rule (issue #12)', () => {
       status: 'approved',
     })
     expect(error).toBeNull()
-    const workingDay = await anonClient().rpc('is_absent_working_day', {
-      sid: studentId,
-      school: schoolId,
-      d: DAYS[4],
+    // Asked through absent_working_days_in_range as the Owner, not by calling
+    // is_absent_working_day as anon: migration 0245 (#703 item 4.6) revokes
+    // direct EXECUTE on it. One day in the range = the same per-day answer,
+    // before and after 0245.
+    const workingDay = await owner.rpc('absent_working_days_in_range', {
+      p_student: studentId,
+      p_start: DAYS[4],
+      p_end: DAYS[4],
     })
     expect(workingDay.error).toBeNull()
-    expect(workingDay.data).toBe(false)
+    expect(workingDay.data).toBe(0)
     const rows = (await candidates(DAYS[4])).filter((r) => r.student_id === studentId)
     expect(rows).toEqual([])
     await owner.from('student_leaves').delete().eq('student_id', studentId)

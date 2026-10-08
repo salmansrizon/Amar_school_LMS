@@ -21,7 +21,7 @@ export function CreateVendorForm({ lang }: { lang: Lang }) {
   }
 
   return (
-    <form onSubmit={onSubmit} className="grid gap-3 sm:grid-cols-2">
+    <form method="post" onSubmit={onSubmit} className="grid gap-3 sm:grid-cols-2">
       {/* Distributors only — Government Officials are created on their own page (#164). */}
       <input type="hidden" name="role" value="distributor" />
       <div>

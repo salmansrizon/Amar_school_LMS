@@ -1,6 +1,9 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import { Pager, paginate, pageSizeFrom } from '@/components/pager'
+import { withParams } from '@/lib/url-params'
 import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
 import { t, type Lang } from '@/lib/i18n'
 import { matchesLogisticsQuery } from '@/lib/institute'
@@ -172,13 +175,22 @@ function EntryRow({ lang, entry }: { lang: Lang; entry: LogisticsEntry }) {
 export function LogisticsTable({ entries, lang }: { entries: LogisticsEntry[]; lang: Lang }) {
   const [query, setQuery] = useState('')
   const visible = entries.filter((e) => matchesLogisticsQuery(e, query))
+  // Page lives in the URL (reload and Back keep it); searching goes back to page 1.
+  const router = useRouter()
+  const pathname = usePathname()
+  const params = Object.fromEntries(useSearchParams())
+  const pageSize = pageSizeFrom(params.size, 20)
+  const pageData = paginate(visible, params.page, pageSize)
 
   return (
     <>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <input
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => {
+            setQuery(e.target.value)
+            if (params.page) router.replace(`${pathname}${withParams(params, { page: null })}`, { scroll: false })
+          }}
           placeholder={t('institute.searchLogistics', lang)}
           className={`${inputClass} max-w-xs`}
         />
@@ -199,12 +211,15 @@ export function LogisticsTable({ entries, lang }: { entries: LogisticsEntry[]; l
               </tr>
             </thead>
             <tbody>
-              {visible.map((entry) => (
+              {pageData.items.map((entry) => (
                 <EntryRow key={entry.id} lang={lang} entry={entry} />
               ))}
             </tbody>
           </table>
         </div>
+      )}
+      {visible.length > 0 && (
+        <Pager page={pageData.page} totalPages={pageData.totalPages} total={pageData.total} lang={lang} params={params} pageSize={pageSize} />
       )}
     </>
   )

@@ -1,8 +1,11 @@
 import { notFound } from 'next/navigation'
+import { schoolCrumbs } from '@/lib/school-crumbs'
+import { PageHeader } from '@/components/ui/page'
 import type { ReactNode } from 'react'
 import { currentLang } from '@/lib/i18n-server'
-import { t, type Lang } from '@/lib/i18n'
+import { t, formatNumber, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
+import { mayActOnExamClass } from '@/lib/school/exam-class-guard'
 import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
 import { applyGlobalYearFilterToOfferings } from '@/lib/school/year-filter'
 import { excludeArchivedOfferings } from '@/lib/school/archived-offerings-filter'
@@ -29,7 +32,6 @@ import {
   type CombinationOption,
   type PromotionStudentRow,
 } from './promotion-controls'
-import { BackLink } from '@/components/back-link'
 import { resolveBackHref } from '@/lib/back-nav'
 import type { ClassCatalogueRow } from '@/lib/class-catalogue'
 import { selectAllRows } from '@/lib/supabase/select-all'
@@ -70,22 +72,22 @@ export default async function PromotionPage({
     .eq('id', id)
     .maybeSingle()
   if (!exam) notFound()
-  const examLabel = `${exam.name} (${exam.exam_year})`
+  const examLabel = `${exam.name} (${formatNumber(exam.exam_year, lang, { useGrouping: false })})`
 
   const header = (
-    <div className="mb-4 flex items-center justify-between">
-      <h1 className="text-2xl font-extrabold">
-        {t('promotion.title', lang)} — {examLabel}
-      </h1>
-      <BackLink href={backHref} label={t('common.back', lang)} />
-    </div>
+    <PageHeader
+      title={`${t('promotion.title', lang)} — ${examLabel}`}
+      crumbs={schoolCrumbs('/school/exams', lang, { label: t('exams.title', lang), href: '/school/exams' }, { label: `${t('promotion.title', lang)} — ${examLabel}` })}
+      backHref={backHref}
+      backLabel={t('common.back', lang)}
+    />
   )
 
   if (!exam.class_id) {
     return (
       <div>
         {header}
-        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted">
+        <p className="rounded-2xl border border-line bg-paper p-card text-sm text-muted">
           {t('promotion.noClassSet', lang)}
         </p>
       </div>
@@ -185,6 +187,10 @@ export default async function PromotionPage({
 
   let scheme: GradingScheme | null = null
   const overallByStudent = new Map<string, OverallResult>()
+  // Students with a mark never entered in the chosen result source. Their
+  // result is not known yet, so they are neither promoted nor told to repeat
+  // (audit AC4) — a missing exam_marks row is "not entered", not a 0.
+  const incomplete = new Set<string>()
 
   if (!selectedCombo) {
     scheme = exam.grading_scheme_id ? await loadGradingScheme(supabase, exam.grading_scheme_id) : null
@@ -200,6 +206,8 @@ export default async function PromotionPage({
           .from('exam_marks')
           .select('student_id, subject_id, obtained_marks')
           .eq('exam_id', exam.id)
+          // A half-filled row (null total, migration 0223) is not entered yet.
+          .not('obtained_marks', 'is', null)
           .range(from, to),
       )
       const marksMap = new Map(marksRows.map((m) => [`${m.student_id}:${m.subject_id}`, Number(m.obtained_marks)]))
@@ -212,6 +220,7 @@ export default async function PromotionPage({
         }))
         const results = marks.map((m) => evaluateSubject(m, scheme as GradingScheme))
         overallByStudent.set(s.id, evaluateOverallResult(results, scheme as GradingScheme))
+        if (subjects.some((sub) => !marksMap.has(`${s.id}:${sub.id}`))) incomplete.add(s.id)
       }
     }
   } else {
@@ -232,11 +241,17 @@ export default async function PromotionPage({
           .from('exam_marks')
           .select('exam_id, student_id, subject_id, obtained_marks')
           .in('exam_id', memberExamIds)
+          // A half-filled row (null total, migration 0223) is not entered yet.
+          .not('obtained_marks', 'is', null)
           .range(from, to),
       )
       const marksMap = new Map(
         marksRows.map((m) => [`${m.exam_id}:${m.student_id}:${m.subject_id}`, Number(m.obtained_marks)]),
       )
+      for (const s of roster) {
+        const missing = memberExamIds.some((examId) => subjects.some((sub) => !marksMap.has(`${examId}:${s.id}:${sub.id}`)))
+        if (missing) incomplete.add(s.id)
+      }
 
       if (selectedCombo.strategy === 'sum') {
         for (const s of roster) {
@@ -291,7 +306,8 @@ export default async function PromotionPage({
 
   const rankable: RankableResult[] = roster.map((s) => {
     const overall = overallByStudent.get(s.id)
-    return { studentId: s.id, passed: overall?.passed ?? false, gpa: overall?.gpa ?? null, percent: overall?.percent ?? 0 }
+    const passed = !incomplete.has(s.id) && (overall?.passed ?? false)
+    return { studentId: s.id, passed, gpa: overall?.gpa ?? null, percent: overall?.percent ?? 0 }
   })
   const rankedById = new Map(rankResults(rankable, basis).map((r) => [r.studentId, r]))
 
@@ -302,21 +318,28 @@ export default async function PromotionPage({
       id: s.id,
       roll_number: s.roll_number,
       full_name: s.full_name,
-      passed: overall?.passed ?? false,
+      passed: !incomplete.has(s.id) && (overall?.passed ?? false),
+      incomplete: incomplete.has(s.id),
       label: overall?.label ?? null,
       position: ranked?.position ?? null,
     }
   })
 
+  // #676: another class's exam is read-only to a class-attached teacher.
+  const notMine = !(await mayActOnExamClass(supabase, exam.id))
+
   return bodyWrap(
     <>
-      <FinalClassToggle
-        examId={exam.id}
-        classId={exam.class_id}
-        isFinalClass={cls?.is_final_class ?? false}
-        lang={lang}
-      />
-      <section className="mb-4 rounded-lg border border-line bg-paper p-5">
+      {notMine && <p className="mb-3 text-xs text-alert-deep">{t('exams.notYourClass', lang)}</p>}
+      {!notMine && (
+        <FinalClassToggle
+          examId={exam.id}
+          classId={exam.class_id}
+          isFinalClass={cls?.is_final_class ?? false}
+          lang={lang}
+        />
+      )}
+      <section className="mb-4 rounded-2xl border border-line bg-paper p-card">
         <PromotionTable
           examId={exam.id}
           rows={rows}
@@ -324,9 +347,10 @@ export default async function PromotionPage({
           currentClassName={cls?.name ?? null}
           lang={lang}
           showYear={showYear}
+          readOnly={notMine}
         />
       </section>
-      {cls?.is_final_class && <GraduatingSection examId={exam.id} rows={rows} lang={lang} />}
+      {cls?.is_final_class && !notMine && <GraduatingSection examId={exam.id} rows={rows} lang={lang} />}
     </>,
   )
 }

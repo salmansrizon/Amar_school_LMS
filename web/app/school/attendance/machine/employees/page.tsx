@@ -1,12 +1,14 @@
+import { Pager, paginate, pageSizeFrom } from '@/components/pager'
 import Form from 'next/form'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
+import { requireEmployeeAttendanceAdmin } from '@/lib/school/employee-attendance-admin'
 import { ACADEMIC_SHIFT_LABEL_KEY, isKnownAcademicShift } from '@/lib/institute'
 import { EMPLOYEE_CATEGORIES, EMPLOYEE_CATEGORY_LABEL_KEY } from '@/lib/employees'
 import { employeeShifts, enrollmentInfo, listMachines } from '@/lib/machine-enrollment-store'
 import { filterEmployeesByShift, NO_SHIFT_FILTER as NO_SHIFT } from '@/lib/machine-attendance'
-import { selectClass } from '@/components/ui/field'
+import { selectClass, filterButtonClass } from '@/components/ui/field'
 import { AttendanceTabs } from '../../attendance-tabs'
 import { MachinePageHeader } from '../page-header'
 import { EnrollButton } from '../machine-ui'
@@ -31,11 +33,14 @@ function shiftLabel(shift: string, lang: Lang): string {
 export default async function EmployeeEnrollmentPage({
   searchParams,
 }: {
-  searchParams: Promise<{ shift?: string }>
+  searchParams: Promise<{ shift?: string; page?: string; size?: string }>
 }) {
-  const { shift: requested = '' } = await searchParams
+  const params = await searchParams
+  const { shift: requested = '' } = params
   const lang: Lang = await currentLang()
   const { supabase, configuredShifts } = await getSchoolContext()
+  // #677: Owner and office staff only; a teacher is refused.
+  await requireEmployeeAttendanceAdmin('/school/attendance/machine/employees')
   // An unknown or no-longer-configured Shift in the URL falls back to all.
   const shift = requested === NO_SHIFT || configuredShifts.includes(requested) ? requested : ''
 
@@ -48,7 +53,9 @@ export default async function EmployeeEnrollmentPage({
   const [shifts, info] = await Promise.all([employeeShifts(supabase, ids), enrollmentInfo(supabase, 'employee', ids)])
 
   const visible = filterEmployeesByShift(all, shifts, shift)
-  const rows: RfidRow[] = visible.map((e) => ({
+  const pageSize = pageSizeFrom(params.size, 20)
+  const pageData = paginate(visible, params.page, pageSize)
+  const rows: RfidRow[] = pageData.items.map((e) => ({
     id: e.id,
     name: e.full_name,
     cells: [
@@ -90,7 +97,7 @@ export default async function EmployeeEnrollmentPage({
           </div>
           <button
             type="submit"
-            className="cursor-pointer rounded-full border border-line px-4 py-2 text-xs font-semibold hover:bg-paper-muted"
+            className={filterButtonClass()}
           >
             {t('classes.filter', lang)}
           </button>
@@ -103,12 +110,15 @@ export default async function EmployeeEnrollmentPage({
         </div>
       ) : (
         <RfidEntryTable
-          key={shift}
+          key={`${shift}|${pageData.page}|${pageSize}`}
           kind="employee"
           rows={rows}
           headers={[t('rfid.category', lang), ...(configuredShifts.length ? [t('rfid.shift', lang)] : [])]}
           lang={lang}
         />
+      )}
+      {visible.length > 0 && (
+        <Pager page={pageData.page} totalPages={pageData.totalPages} total={pageData.total} lang={lang} params={params} pageSize={pageSize} />
       )}
     </div>
   )

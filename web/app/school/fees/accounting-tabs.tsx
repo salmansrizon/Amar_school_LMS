@@ -35,7 +35,7 @@ export function AccountingTabs({ active, lang }: { active: AccountingTab; lang: 
             {t(tab.labelKey as 'fees.tabCollection', lang)}
           </span>
         ) : (
-          <Link key={tab.key} href={tab.href} className="shrink-0 whitespace-nowrap px-3 py-2 text-muted hover:text-ink">
+          <Link key={tab.key} href={tab.href} className="shrink-0 whitespace-nowrap px-3 py-2 text-muted hover:text-ink max-sm:py-3">
             {t(tab.labelKey as 'fees.tabCollection', lang)}
           </Link>
         ),

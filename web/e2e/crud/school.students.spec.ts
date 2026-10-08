@@ -16,7 +16,8 @@ test.describe('@crud @school students', () => {
 
     // Search is a `q` query param → look the new student up.
     await page.goto(`/school/students?q=${encodeURIComponent(name)}`)
-    await expect(page.getByText(name).first()).toBeVisible()
+    // The list renders a phone card and a desktop row per student; match the shown one.
+    await expect(page.getByText(name).filter({ visible: true }).first()).toBeVisible()
     await expectNoError(page)
   })
 

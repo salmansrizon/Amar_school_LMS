@@ -82,12 +82,12 @@ export default function ClaimPage() {
   }
 
   if (phase === 'loading') {
-    return <AuthCard lang={lang} title={t('claim.title', lang)}><p className="text-sm text-muted">…</p></AuthCard>
+    return <AuthCard lang={lang} title={t('claim.title', lang)} illustrated><p className="text-sm text-muted">…</p></AuthCard>
   }
 
   if (phase === 'confirm-email') {
     return (
-      <AuthCard lang={lang} title={t('claim.title', lang)}>
+      <AuthCard lang={lang} title={t('claim.title', lang)} illustrated>
         <p className="text-sm text-muted">{t('claim.checkEmail', lang)}</p>
       </AuthCard>
     )
@@ -95,9 +95,9 @@ export default function ClaimPage() {
 
   if (phase === 'need-account') {
     return (
-      <AuthCard lang={lang} title={t('claim.title', lang)}>
+      <AuthCard lang={lang} title={t('claim.title', lang)} illustrated>
         <p className="mb-3 text-sm text-muted">{t('claim.intro', lang)}</p>
-        <form onSubmit={onCreateAccount} className="flex flex-col gap-3">
+        <form method="post" onSubmit={onCreateAccount} className="flex flex-col gap-3">
           <div>
             <label className={labelClass} htmlFor="email">{t('login.email', lang)}</label>
             <input id="email" name="email" type="email" required className={inputClass} />
@@ -121,9 +121,9 @@ export default function ClaimPage() {
   // phase === 'claim'
   const slugError = slug.trim() ? validateSlug(slug) : null
   return (
-    <AuthCard lang={lang} title={t('claim.title', lang)}>
+    <AuthCard lang={lang} title={t('claim.title', lang)} illustrated>
       <p className="mb-3 text-sm text-muted">{t('claim.intro', lang)}</p>
-      <form onSubmit={onClaim} className="flex flex-col gap-3">
+      <form method="post" onSubmit={onClaim} className="flex flex-col gap-3">
         <div>
           <label className={labelClass} htmlFor="code">{t('claim.code', lang)}</label>
           <input

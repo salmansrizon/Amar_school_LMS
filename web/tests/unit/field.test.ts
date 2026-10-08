@@ -1,17 +1,18 @@
 import { describe, it, expect } from 'vitest'
-import { selectClass, dateInputClass } from '@/components/ui/field'
+import { selectClass, dateInputClass, inputClass, filterButtonClass, FIELD_HEIGHT } from '@/components/ui/field'
 
 // The select/date primitives replace ~10 near-duplicate ad-hoc class strings that
 // had drifted apart across the app (issue #119). These lock the contract the
 // call sites rely on: one shared look, three heights, opt-in full width.
 describe('selectClass (issue #119)', () => {
-  it('defaults to the sm height used by filter bars', () => {
-    expect(selectClass()).toContain('h-9')
+  it('defaults to the shared field height (44px phone / 40px sm+) used by filter bars', () => {
+    expect(FIELD_HEIGHT).toBe('h-11 sm:h-10')
+    expect(selectClass()).toContain(FIELD_HEIGHT)
     expect(selectClass()).toContain('text-sm')
   })
   it('supports the xs and md heights the app already uses', () => {
     expect(selectClass({ size: 'xs' })).toContain('h-8')
-    expect(selectClass({ size: 'md' })).toContain('h-10')
+    expect(selectClass({ size: 'md' })).toContain(FIELD_HEIGHT)
   })
   it('is not full width unless asked', () => {
     expect(selectClass()).not.toContain('w-full')
@@ -34,7 +35,7 @@ describe('selectClass (issue #119)', () => {
 describe('dateInputClass (issue #119)', () => {
   it('shares the select chrome so a date field matches the select beside it', () => {
     const [s, d] = [selectClass(), dateInputClass()]
-    for (const token of ['rounded-md', 'border-line-strong', 'bg-paper', 'h-9', 'focus-visible:ring-brand-300']) {
+    for (const token of ['rounded-md', 'border-line-strong', 'bg-paper', FIELD_HEIGHT, 'focus-visible:ring-brand-300']) {
       expect(s).toContain(token)
       expect(d).toContain(token)
     }
@@ -43,7 +44,16 @@ describe('dateInputClass (issue #119)', () => {
     expect(dateInputClass()).toContain('px-3')
   })
   it('honours size and fullWidth', () => {
-    expect(dateInputClass({ size: 'md', fullWidth: true })).toContain('h-10')
+    expect(dateInputClass({ size: 'md', fullWidth: true })).toContain(FIELD_HEIGHT)
     expect(dateInputClass({ size: 'md', fullWidth: true })).toContain('w-full')
+  })
+})
+
+describe('filter bar set', () => {
+  it('text inputs and the Filter button share the select height, radius and border', () => {
+    for (const c of [inputClass(), filterButtonClass()]) {
+      for (const token of [FIELD_HEIGHT, 'rounded-md', 'border-line-strong', 'bg-paper']) expect(c).toContain(token)
+    }
+    expect(filterButtonClass({ fullWidth: true })).toContain('w-full')
   })
 })

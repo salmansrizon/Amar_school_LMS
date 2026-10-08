@@ -1,9 +1,13 @@
 import Form from 'next/form'
-import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
-import { t, type Lang } from '@/lib/i18n'
+import { t, type Lang, formatDate } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { RestoreButton } from './restore-button'
+import { filterButtonClass, inputClass } from '@/components/ui/field'
+import { PageHeader } from '@/components/ui/page'
+import { schoolCrumbs } from '@/lib/school-crumbs'
+import { Pager, paginate, pageSizeFrom } from '@/components/pager'
+import { pageTitle } from '@/lib/page-title'
 
 // Old Classes (ADR 0024) — mirrors Employees'/Students' own soft-archive
 // list exactly: search + table, Restore only (no per-class detail page to
@@ -14,12 +18,15 @@ import { RestoreButton } from './restore-button'
 const thClass = 'px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted'
 const tdClass = 'px-3 py-2 text-sm'
 
+export const generateMetadata = pageTitle('classes.oldClasses')
+
 export default async function ClassesArchivePage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string }>
+  searchParams: Promise<{ q?: string; page?: string; size?: string }>
 }) {
-  const { q = '' } = await searchParams
+  const params = await searchParams
+  const { q = '' } = params
   const lang: Lang = await currentLang()
   const { supabase } = await getSchoolContext()
 
@@ -33,34 +40,29 @@ export default async function ClassesArchivePage({
   const visible = (classes ?? []).filter(
     (c) => !query || c.name.toLowerCase().includes(query) || (c.section ?? '').toLowerCase().includes(query),
   )
-  const locale = lang === 'bn' ? 'bn-BD' : 'en-GB'
+  const pageSize = pageSizeFrom(params.size, 20)
+  const pageData = paginate(visible, params.page, pageSize)
   const dash = <span className="text-muted">—</span>
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-extrabold">{t('classes.oldClasses', lang)}</h1>
-        <Link
-          href="/school/classes"
-          aria-label={t('classes.activeList', lang)}
-          className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true">
-            <path d="m15 18-6-6 6-6" />
-          </svg>
-        </Link>
-      </div>
+      <PageHeader
+        title={t('classes.oldClasses', lang)}
+        backHref="/school/classes"
+        backLabel={t('classes.activeList', lang)}
+        crumbs={schoolCrumbs('/school/classes', lang, { label: t('classes.title', lang), href: '/school/classes' }, { label: t('classes.oldClasses', lang) })}
+      />
 
       <Form className="mb-4 flex items-center gap-2" action="/school/classes/archive">
         <input
           name="q"
           defaultValue={q}
           placeholder={t('classes.archiveSearch', lang)}
-          className="w-64 rounded-md border border-line bg-paper px-3 py-1.5 text-sm"
+          className={`${inputClass()} w-64`}
         />
         <button
           type="submit"
-          className="cursor-pointer rounded-full border border-line px-3 py-1 text-xs font-semibold hover:bg-paper-muted"
+          className={filterButtonClass()}
         >
           {t('classes.filter', lang)}
         </button>
@@ -84,14 +86,14 @@ export default async function ClassesArchivePage({
                 </tr>
               </thead>
               <tbody>
-                {visible.map((c) => (
+                {pageData.items.map((c) => (
                   <tr key={c.id} className="border-b border-line">
                     <td className={`${tdClass} font-medium`}>{c.name}</td>
                     <td className={tdClass}>{c.section ?? dash}</td>
                     <td className={tdClass}>{c.education_level ?? dash}</td>
                     <td className={tdClass}>{c.group_department ?? dash}</td>
                     <td className={tdClass}>
-                      {c.archived_at ? new Date(c.archived_at).toLocaleDateString(locale) : dash}
+                      {c.archived_at ? formatDate(c.archived_at, lang) : dash}
                     </td>
                     <td className={tdClass}>
                       <span className="rounded-full bg-paper-muted px-2 py-0.5 text-xs font-semibold text-muted">
@@ -106,6 +108,9 @@ export default async function ClassesArchivePage({
               </tbody>
             </table>
           </div>
+        )}
+        {visible.length > 0 && (
+          <Pager page={pageData.page} totalPages={pageData.totalPages} total={pageData.total} lang={lang} params={params} pageSize={pageSize} />
         )}
       </section>
     </div>

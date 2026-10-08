@@ -1,6 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { isKnownAcademicShift, isBuiltInGroupDepartment } from '@/lib/institute'
 import { classOfferingIsUsed } from '@/lib/school/class-offering-usage'
@@ -147,6 +148,15 @@ export async function copySubjectsToClass(
   const row = Array.isArray(data) ? data[0] : data
   revalidatePath(PAGE)
   return { copied: Number(row?.copied ?? 0), skipped: Number(row?.skipped ?? 0) }
+}
+
+/** DataTable bulk bar -> "Copy to Class" (issue #642, map 013 A1): the bulk
+ *  bar posts the selected ids; the target-class picker is a form, so it opens
+ *  on the page (`?copy=`) rather than in the bar. The page re-intersects the
+ *  ids with the visible Subjects, and the RPC stays the authority. */
+export async function stageSubjectCopy(formData: FormData): Promise<void> {
+  const ids = formData.getAll('ids').map(String).filter(Boolean)
+  redirect(`${PAGE}?tab=subjects${ids.length ? `&copy=${encodeURIComponent(ids.join(','))}` : ''}`)
 }
 
 export async function addSubject(formData: FormData): Promise<{ error?: string }> {

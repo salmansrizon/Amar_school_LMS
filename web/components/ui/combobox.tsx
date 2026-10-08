@@ -4,6 +4,7 @@ import * as React from 'react'
 import { Autocomplete } from '@base-ui/react/autocomplete'
 import { ChevronDownIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { FIELD_HEIGHT } from './field'
 
 // A free-typeable text field with a styled, scrollable suggestion dropdown
 // (issue #504, follow-on to #503's subject picker, which used a native
@@ -16,8 +17,7 @@ import { cn } from '@/lib/utils'
 // "Family design system" — issue #119) rather than the newer shadcn-based
 // `select.tsx`, since that's what the Class picker beside it still uses.
 
-const FIELD_BASE =
-  'flex h-10 w-full items-stretch rounded-md border border-line-strong bg-paper text-sm outline-none transition focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-300'
+const FIELD_BASE = `flex ${FIELD_HEIGHT} w-full items-stretch rounded-md border border-line-strong bg-paper text-sm outline-none transition focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-300`
 
 /** The root — carries `items`, `name`/`required` (for native form
  *  submission, same as a plain `<input name>`), and `defaultValue`. */
@@ -36,7 +36,7 @@ export function ComboboxInputGroup({ className, ...props }: Autocomplete.InputGr
 export function ComboboxInput({ className, ...props }: Autocomplete.Input.Props) {
   return (
     <Autocomplete.Input
-      className={cn('h-full min-w-0 flex-1 rounded-l-md bg-transparent px-3 outline-none', className)}
+      className={cn('h-full min-w-0 flex-1 rounded-l-md bg-transparent px-3 outline-none placeholder:text-muted', className)}
       {...props}
     />
   )
@@ -76,7 +76,7 @@ export function ComboboxPopup({
       <Autocomplete.Positioner sideOffset={4} className="z-50 outline-none">
         <Autocomplete.Popup
           className={cn(
-            'w-(--anchor-width) max-w-(--available-width) overflow-hidden rounded-md border border-line bg-paper shadow-card',
+            'min-w-(--anchor-width) w-max max-w-[min(var(--available-width),28rem)] overflow-hidden rounded-md border border-line bg-paper shadow-card',
             className,
           )}
         >

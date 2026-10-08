@@ -1,6 +1,16 @@
 import { test, expect } from '../fixtures/roles'
-import { expectNoError } from '../helpers'
+import { expectNoError, pickOption } from '../helpers'
 import { ownerClient, createClass, createStudent } from './factories'
+
+// ClassSectionSelect (components/ui/class-section-select.tsx) now renders the
+// shared ComboboxField, not a native <select> — its accessible name is the
+// aria-label every call site passes (attendance.classSection: bn 'শ্রেণি/শাখা').
+// The value that actually gets submitted lives on ComboboxField's own hidden
+// `<input name="classSection">` (a real, visually-hidden text input, not
+// type="hidden" — base-ui renders it that way for autofill support), so
+// reading it after picking an option is the post-conversion equivalent of
+// reading a native `<option>`'s `value` attribute.
+const CLASS_SECTION_LABEL_BN = 'শ্রেণি/শাখা'
 
 // Class + Section dropdown consolidation (map #398, docs/011_student_module.md;
 // Mark/Book/Student-log migrated to the Class Catalogue by map #421). The
@@ -36,20 +46,22 @@ test.describe('@crud @school class-section-select', () => {
     const studentB = await createStudent(owner, { className, section: sectionB })
 
     await page.goto('/school/attendance/mark')
-    const select = page.locator('select[name="classSection"]')
-    await expect(select).toBeVisible()
+    const combo = page.getByRole('combobox', { name: CLASS_SECTION_LABEL_BN })
+    const hiddenValue = page.locator('input[name="classSection"]')
+    await expect(combo).toBeVisible()
 
     // Combinations are correct and not duplicated: exactly one option per
     // distinct class+section pair, regardless of how many students share it.
-    await expect(select.locator('option', { hasText: labelA })).toHaveCount(1)
-    await expect(select.locator('option', { hasText: labelB })).toHaveCount(1)
+    await combo.click()
+    await expect(page.getByRole('option', { name: labelA })).toHaveCount(1)
+    await expect(page.getByRole('option', { name: labelB })).toHaveCount(1)
 
     // Selection filters to just that combination's students. Asserting the
     // exact encoded value (not just that the param name is present) catches
     // a submit that silently lands on "All classes" instead of the intended
     // combo.
-    const optionValueA = await select.locator('option', { hasText: labelA }).getAttribute('value')
-    await select.selectOption({ label: labelA })
+    await page.getByRole('option', { name: labelA }).click()
+    const optionValueA = await hiddenValue.inputValue()
     await page.getByRole('button', { name: FILTER }).click()
     await expect(page).toHaveURL(/classSection=/)
     expect(new URL(page.url()).searchParams.get('classSection')).toBe(optionValueA)
@@ -61,7 +73,7 @@ test.describe('@crud @school class-section-select', () => {
     // regression MarkAttendanceForm's key fix (below) addresses: without a
     // key tied to the filter, the roster's client-side state would keep
     // showing the previous selection after a soft navigation.
-    await page.locator('select[name="classSection"]').selectOption({ label: labelB })
+    await pickOption(page, combo, labelB)
     await page.getByRole('button', { name: FILTER }).click()
     await expect(page.locator('tr', { hasText: studentB.name })).toBeVisible()
     await expect(page.locator('tr', { hasText: studentA1.name })).toHaveCount(0)
@@ -87,11 +99,11 @@ test.describe('@crud @school class-section-select', () => {
     const studentB = await createStudent(owner, { className, section: sectionB })
 
     await page.goto('/school/attendance/book')
-    const select = page.locator('select[name="classSection"]')
-    await expect(select).toBeVisible()
-    await expect(select.locator('option', { hasText: labelA })).toHaveCount(1)
-
-    await select.selectOption({ label: labelA })
+    const combo = page.getByRole('combobox', { name: CLASS_SECTION_LABEL_BN })
+    await expect(combo).toBeVisible()
+    await combo.click()
+    await expect(page.getByRole('option', { name: labelA })).toHaveCount(1)
+    await page.getByRole('option', { name: labelA }).click()
     await page.getByRole('button', { name: FILTER }).click()
     await expect(page).toHaveURL(/classSection=/)
     // PaginatedSheet renders the same row twice (a hidden measurement copy for
@@ -119,11 +131,11 @@ test.describe('@crud @school class-section-select', () => {
     const studentB = await createStudent(owner, { className, section: sectionB })
 
     await page.goto('/school/attendance/student-log')
-    const select = page.locator('select[name="classSection"]')
-    await expect(select).toBeVisible()
-    await expect(select.locator('option', { hasText: labelA })).toHaveCount(1)
-
-    await select.selectOption({ label: labelA })
+    const combo = page.getByRole('combobox', { name: CLASS_SECTION_LABEL_BN })
+    await expect(combo).toBeVisible()
+    await combo.click()
+    await expect(page.getByRole('option', { name: labelA })).toHaveCount(1)
+    await page.getByRole('option', { name: labelA }).click()
     await page.getByRole('button', { name: FILTER }).click()
     await expect(page).toHaveURL(/classSection=/)
     await expect(page.locator('tr', { hasText: studentA.name })).toBeVisible()
@@ -137,13 +149,14 @@ test.describe('@crud @school class-section-select', () => {
   })
 
   test('Students List: dropdown loads and filters the list', async ({ ownerPage: page }) => {
-    // Students List renders the combined combo through a Base UI Select
-    // (components/ui/select.tsx) rather than a native <select> — a client
-    // component with instant filter-on-change, not a Filter-button GET form
-    // like the other three pages. Interaction is trigger-click then
-    // option-click; the underlying option list now comes from the Class
-    // Catalogue (map #421), same as the other three, so this needs a real
-    // classes row too, not just a student with a matching class/section text.
+    // Students List renders the combined combo through DataTableFilters'
+    // ComboboxField (components/data-table/filters.tsx) rather than a native
+    // <select> — a client component with instant filter-on-change, not a
+    // Filter-button GET form like the other three pages. Interaction is
+    // trigger-click then option-click; the underlying option list now comes
+    // from the Class Catalogue (map #421), same as the other three, so this
+    // needs a real classes row too, not just a student with a matching
+    // class/section text.
     const owner = await ownerClient()
     const className = `E2E CSStudents ${Date.now()}`
     const sectionA = 'A'
@@ -186,7 +199,8 @@ test.describe('@crud @school class-section-select', () => {
     await page.context().addCookies([{ name: 'asm-lang', value: 'en', domain: new URL(page.url()).hostname, path: '/' }])
     await page.reload()
     await expect(page.getByText('Class/Section', { exact: true })).toBeVisible()
-    await expect(page.locator('select[name="classSection"] option', { hasText: 'All Classes' })).toHaveCount(1)
+    await page.getByRole('combobox', { name: 'Class/Section' }).click()
+    await expect(page.getByRole('option', { name: 'All Classes' })).toHaveCount(1)
 
     await page.goto('/school/students')
     await page.getByRole('combobox', { name: 'Class' }).click()

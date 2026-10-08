@@ -12,7 +12,10 @@ test.describe('@crud @super-admin invoices', () => {
   test('bill a distributor → invoice row with party + taka total', async ({ superAdminPage: page }) => {
     const desc = `E2E SMS credit ${Date.now()}`
     await page.goto(PATH)
-    await page.locator('select[name="distributor"]').selectOption({ index: 1 })
+    // The distributor picker has no label/aria-label (bare grid form) but is
+    // the only combobox on the page; index 0 is its disabled placeholder.
+    await page.getByRole('combobox').first().click()
+    await page.getByRole('option').nth(1).click()
     await page.locator('input[name="description"]').fill(desc)
     await page.locator('input[name="amount"]').fill('500')
     await page.getByRole('button', { name: 'Issue invoice' }).click()

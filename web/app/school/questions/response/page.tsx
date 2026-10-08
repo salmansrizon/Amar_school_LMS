@@ -1,7 +1,9 @@
 import Form from 'next/form'
+import { Inbox, CheckCircle2, AlertTriangle, Timer } from 'lucide-react'
 import { currentLang } from '@/lib/i18n-server'
-import { t } from '@/lib/i18n'
+import { t, numberFmt } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
+import { schoolCrumbs } from '@/lib/school-crumbs'
 import {
   responseReport,
   withinRange,
@@ -11,9 +13,14 @@ import {
   type MessageForStats,
   type ResponseStats,
 } from '@/lib/student/response-performance'
+import { paginate, pageSizeFrom } from '@/components/pager'
 import { hubSummary } from '@/lib/student/hub-source'
 import { Card, PageHeader } from '@/components/ui/page'
+import { StatCard, StatGrid } from '@/components/ui/widgets'
+import { DataTable, type Column } from '@/components/data-table/data-table'
 import { HubTabs } from '../../messages-hub-tabs'
+import { pageTitle } from '@/lib/page-title'
+import { DateField } from '@/components/ui/date-field'
 
 // The Response tab of বার্তা ও অনুরোধ (#455 report, #509 section).
 //
@@ -30,12 +37,14 @@ import { HubTabs } from '../../messages-hub-tabs'
 // 0152 scopes her SELECT to her own classes, so her Σ has to come from
 // `school_question_timings`, which returns timestamps and nothing else. See the
 // comment at the call.
+export const generateMetadata = pageTitle('hub.title')
+
 export default async function ResponsePerformancePage({
   searchParams,
 }: {
-  searchParams: Promise<{ from?: string; to?: string }>
+  searchParams: Promise<{ from?: string; to?: string; page?: string; size?: string }>
 }) {
-  const { from = '', to = '' } = await searchParams
+  const { from = '', to = '', page, size } = await searchParams
   const lang = await currentLang()
   const { supabase, role } = await getSchoolContext()
   const isOwner = role === 'school_owner'
@@ -134,114 +143,110 @@ export default async function ResponsePerformancePage({
   const schoolTimings = (schoolWide.data ?? null) as { created_at: string; replied_at: string | null }[] | null
   const overall = schoolTimings ? schoolWideOverall(schoolTimings) : report.overall
   const perTeacher = visibleTeacherRows(report, { isOwner, employeeId: me })
+  const pageSize = pageSizeFrom(size, 20)
+  const pageData = paginate(perTeacher, page, pageSize)
 
-  const hours = (n: number | null) => (n === null ? '—' : `${n}${t('response.hours', lang)}`)
+  const fmt = numberFmt(lang)
+  const hours = (n: number | null) => (n === null ? '—' : `${fmt.format(n)}${t('response.hours', lang)}`)
 
-  const StatRow = ({ stats, label }: { stats: ResponseStats; label: string }) => (
-    <tr className="border-b border-line last:border-0">
-      <td className="px-3 py-2 text-sm font-medium">{label}</td>
-      <td className="px-3 py-2 text-sm">{stats.received}</td>
-      <td className="px-3 py-2 text-sm">{stats.answered}</td>
-      <td className="px-3 py-2 text-sm">
-        {stats.unanswered > 0 ? (
-          <span className="font-semibold text-sun-deep">{stats.unanswered}</span>
-        ) : (
-          '—'
-        )}
-      </td>
-      <td className="px-3 py-2 text-sm">{hours(stats.medianHours)}</td>
-      <td className="px-3 py-2 text-sm">{hours(stats.slowestHours)}</td>
-      <td className="px-3 py-2 text-sm">
-        {stats.oldestWaiting ? (
-          <span title={stats.oldestWaiting.subject}>
-            {hours(stats.oldestWaiting.hours)}
-            <span className="ml-1 text-xs text-muted">· {stats.oldestWaiting.subject}</span>
+  // Same label rule as the old StatRow: "mine" for the caller's own row,
+  // "owner" for the bucket a reply with no Employee record falls into,
+  // otherwise the teacher's name (ADR 0018/0019, see the query comments above).
+  const teacherLabel = (stats: ResponseStats) =>
+    !isOwner && stats.teacherId === me
+      ? t('response.mine', lang)
+      : stats.teacherId === OWNER_BUCKET
+        ? t('response.owner', lang)
+        : (stats.teacherName ?? t('response.unassigned', lang))
+
+  const columns: Column<ResponseStats>[] = [
+    { key: 'teacher', header: t('response.teacher', lang), card: 'title', cell: (s) => <span className="font-medium">{teacherLabel(s)}</span> },
+    { key: 'received', header: t('response.received', lang), cell: (s) => s.received },
+    { key: 'answered', header: t('response.answered', lang), cell: (s) => s.answered },
+    {
+      key: 'unanswered',
+      header: t('response.unanswered', lang),
+      cell: (s) => (s.unanswered > 0 ? <span className="font-semibold text-sun-deep">{s.unanswered}</span> : '—'),
+    },
+    { key: 'median', header: t('response.median', lang), cell: (s) => hours(s.medianHours) },
+    { key: 'slowest', header: t('response.slowest', lang), cell: (s) => hours(s.slowestHours) },
+    {
+      key: 'oldest',
+      header: t('response.oldestWaiting', lang),
+      card: 'hidden',
+      cell: (s) =>
+        s.oldestWaiting ? (
+          <span title={s.oldestWaiting.subject}>
+            {hours(s.oldestWaiting.hours)}
+            <span className="ml-1 text-xs text-muted">· {s.oldestWaiting.subject}</span>
           </span>
         ) : (
           '—'
-        )}
-      </td>
-    </tr>
-  )
+        ),
+    },
+  ]
 
   return (
     <>
-      <PageHeader title={t('hub.title', lang)} />
+      <PageHeader
+        title={t('hub.title', lang)}
+        crumbs={schoolCrumbs('/school/questions/response', lang, [
+          { label: t('hub.title', lang), href: '/school/questions' },
+          { label: t('hub.tabResponse', lang) },
+        ])}
+        badge={`${t('response.schoolWide', lang)} Σ: ${fmt.format(overall.received)}`}
+      />
       <HubTabs active="/school/questions/response" lang={lang} summary={summary} />
 
-      <Card>
+      <StatGrid>
+        <StatCard icon={<Inbox className="size-5" />} label={t('response.received', lang)} value={fmt.format(overall.received)} />
+        <StatCard icon={<CheckCircle2 className="size-5" />} tone="mint" label={t('response.answered', lang)} value={fmt.format(overall.answered)} />
+        <StatCard
+          icon={<AlertTriangle className="size-5" />}
+          tone={overall.unanswered > 0 ? 'alert' : 'muted'}
+          label={t('response.unanswered', lang)}
+          value={fmt.format(overall.unanswered)}
+        />
+        <StatCard icon={<Timer className="size-5" />} tone="sky" label={t('response.median', lang)} value={hours(overall.medianHours)} />
+      </StatGrid>
+
+      <Card className="mb-grid">
         <p className="mb-4 text-sm text-muted">
           {t(isOwner ? 'response.intro' : 'response.introTeacher', lang)}
         </p>
 
-        <Form action="/school/questions/response" className="mb-4 flex flex-wrap items-end gap-2">
+        <Form action="/school/questions/response" className="flex flex-wrap items-end gap-2">
           <label className="text-xs font-semibold text-muted">
             <span className="mb-1 block">{t('response.from', lang)}</span>
-            <input name="from" type="date" defaultValue={from} className="h-9 rounded-sm border border-line-strong bg-paper px-2 text-sm" />
+            <DateField lang={lang} name="from" defaultValue={from} className="h-9 rounded-sm border border-line-strong bg-paper px-2 text-sm" />
           </label>
           <label className="text-xs font-semibold text-muted">
             <span className="mb-1 block">{t('response.to', lang)}</span>
-            <input name="to" type="date" defaultValue={to} className="h-9 rounded-sm border border-line-strong bg-paper px-2 text-sm" />
+            <DateField lang={lang} name="to" defaultValue={to} className="h-9 rounded-sm border border-line-strong bg-paper px-2 text-sm" />
           </label>
           <button type="submit" className="h-9 cursor-pointer rounded-full border border-line-strong px-4 text-xs font-semibold hover:bg-paper-muted">
             {t('response.apply', lang)}
           </button>
         </Form>
-
-        {!report.overall.received ? (
-          <p className="text-sm text-muted">
-            {summary.reachesAnyClass ? t('response.none', lang) : t('hub.noClasses', lang)}
-          </p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="border-b border-line-strong">
-                  {[
-                    'response.teacher',
-                    'response.received',
-                    'response.answered',
-                    'response.unanswered',
-                    'response.median',
-                    'response.slowest',
-                    'response.oldestWaiting',
-                  ].map((key) => (
-                    <th key={key} className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">
-                      {t(key as Parameters<typeof t>[0], lang)}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                <tr className="border-b-2 border-line-strong bg-paper-muted font-semibold">
-                  <td className="px-3 py-2 text-sm">
-                    Σ <span className="ml-1 text-xs font-normal text-muted">{t('response.schoolWide', lang)}</span>
-                  </td>
-                  <td className="px-3 py-2 text-sm">{overall.received}</td>
-                  <td className="px-3 py-2 text-sm">{overall.answered}</td>
-                  <td className="px-3 py-2 text-sm">{overall.unanswered || '—'}</td>
-                  <td className="px-3 py-2 text-sm">{hours(overall.medianHours)}</td>
-                  <td className="px-3 py-2 text-sm">{hours(overall.slowestHours)}</td>
-                  <td className="px-3 py-2 text-sm">{hours(overall.oldestWaiting?.hours ?? null)}</td>
-                </tr>
-                {perTeacher.map((stats) => (
-                  <StatRow
-                    key={stats.teacherId ?? 'unassigned'}
-                    stats={stats}
-                    label={
-                      !isOwner && stats.teacherId === me
-                        ? t('response.mine', lang)
-                        : stats.teacherId === OWNER_BUCKET
-                          ? t('response.owner', lang)
-                          : (stats.teacherName ?? t('response.unassigned', lang))
-                    }
-                  />
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
       </Card>
+
+      <DataTable
+        rows={pageData.items}
+        rowId={(s) => s.teacherId ?? 'unassigned'}
+        rowLabel={teacherLabel}
+        columns={columns}
+        lang={lang}
+        params={{ from, to, size }}
+        caption={t('hub.tabResponse', lang)}
+        pagination={{ page: pageData.page, totalPages: pageData.totalPages, total: pageData.total, pageSize }}
+        empty={
+          <Card>
+            <p className="text-sm text-muted">
+              {summary.reachesAnyClass ? t('response.none', lang) : t('hub.noClasses', lang)}
+            </p>
+          </Card>
+        }
+      />
     </>
   )
 }

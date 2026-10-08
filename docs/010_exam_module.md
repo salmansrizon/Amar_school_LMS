@@ -29,6 +29,10 @@ Do NOT duplicate these pages or create parallel implementations.
 Find the existing navigation/routes/components and reuse them.
 Each button must open the corresponding page for the specific exam whose row was clicked.
 
+Update (map 013, 2026-09-26, new_ui/03-academics/exams-results): the row itself now shows ONE
+contextual next-step button; the same six actions, in the same order, open behind the row's ⋮.
+Nothing else about them changed.
+
 2. EXAM DOCUMENTS POPUP
 The existing Exam Documents button opens a popup containing options such as:
 Exam Routine

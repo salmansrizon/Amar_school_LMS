@@ -1,4 +1,4 @@
-import { PrintPage, InstituteHeader, InfoGrid, PhotoBox, SignatureRow, QrFooterRow, QrMark } from '@/components/print/pieces'
+import { PrintPage, InstituteHeader, InfoGrid, PhotoBox, SignatureRow, QrFooterRow } from '@/components/print/pieces'
 import { t, type Lang } from '@/lib/i18n'
 import type { InstitutePrintHeader } from '@/lib/institute-print'
 import type { PrintTheme } from '@/lib/print-themes'
@@ -56,7 +56,7 @@ function ClassicTemplate(props: AdmitCardTemplateProps) {
         <PhotoBox src={props.photoSrc} label={t('admitCard.photo', lang)} />
       </div>
       <SignatureRow labels={[t('markSheet.headTeacher', lang), t('admitCard.classTeacher', lang)]} />
-      <div className="mt-6 border-t border-line pt-4 text-center text-xs text-muted">{t('print.poweredBy', lang)}</div>
+      <QrFooterRow qrLabel={t('print.qr', lang)} poweredBy={t('print.poweredBy', lang)} qrSvg={props.qrSvg} />
     </PrintPage>
   )
 }
@@ -83,7 +83,7 @@ function BorderedTemplate(props: AdmitCardTemplateProps) {
         <PhotoBox src={props.photoSrc} label={t('admitCard.photo', lang)} />
       </div>
       <SignatureRow labels={[t('markSheet.headTeacher', lang), t('admitCard.classTeacher', lang)]} />
-      <QrFooterRow qrLabel={t('print.qr', lang)} poweredBy={t('print.poweredBy', lang)} qr={<QrMark svg={props.qrSvg} />} />
+      <QrFooterRow qrLabel={t('print.qr', lang)} poweredBy={t('print.poweredBy', lang)} qrSvg={props.qrSvg} />
     </PrintPage>
   )
 }

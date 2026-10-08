@@ -2,8 +2,11 @@
 
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { t, type Lang, type MessageKey } from '@/lib/i18n'
 import { withOrigin } from '@/lib/back-nav'
+import { PrintTrigger } from '@/components/print/print-trigger'
+import { isPrintPath } from '@/lib/print-path'
 
 // Map #366 moves the Exam Documents index (issue #99) out of the Basic Info
 // page's bottom card and into a modal, so it is reachable from the exam row
@@ -46,24 +49,43 @@ export function ExamDocumentsModal({
   triggerClassName: string
 }) {
   const [open, setOpen] = useState(false)
+  // A print click only hides this popup: the preview it opens lives in this
+  // subtree (portalled out), so unmounting here would kill it on the spot.
+  const [hidden, setHidden] = useState(false)
 
   useEffect(() => {
     if (!open) return
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false)
+      // One Escape closes one layer: capture it before the record drawer behind
+      // this popup (Base UI) sees it, and keep it from reaching the drawer.
+      if (e.key === 'Escape') {
+        e.stopPropagation()
+        setOpen(false)
+      }
     }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
+    window.addEventListener('keydown', onKey, true)
+    return () => window.removeEventListener('keydown', onKey, true)
   }, [open])
 
   return (
     <>
-      <button type="button" onClick={() => setOpen(true)} className={triggerClassName}>
+      <button
+        type="button"
+        onClick={() => {
+          setOpen(true)
+          setHidden(false)
+        }}
+        className={triggerClassName}
+      >
         {t('examDocs.title', lang)}
       </button>
-      {open && (
+      {/* Portalled: opened from a row's ⋮ or the record drawer, both of which
+          are transformed, so a nested `fixed` overlay would be trapped inside. */}
+      {open &&
+        createPortal(
         <div
           role="dialog"
+          hidden={hidden}
           aria-modal="true"
           aria-label={t('examDocs.title', lang)}
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
@@ -75,22 +97,37 @@ export function ExamDocumentsModal({
           >
             <h3 className="font-bold">{t('examDocs.title', lang)}</h3>
             <p className="mb-3 text-sm text-muted">{examLabel}</p>
-            <ul className="-mx-1 flex-1 divide-y divide-line overflow-y-auto px-1">
-              {EXAM_DOCUMENTS.map((doc) => (
-                <li key={doc.href} className="flex items-start justify-between gap-4 py-2">
-                  <div>
-                    <p className="text-sm font-semibold">{t(doc.label, lang)}</p>
-                    <p className="text-xs text-muted">{t(doc.hint, lang)}</p>
-                  </div>
-                  <Link
-                    href={docHref(examId, doc.href, origin)}
-                    onClick={() => setOpen(false)}
-                    className="shrink-0 text-sm text-brand-600 hover:underline"
-                  >
-                    {t('examDocs.open', lang)}
-                  </Link>
-                </li>
-              ))}
+            {/* A printable (href has a /print segment, ADR 0007's isPrintPath) opens
+                in the shared PrintTrigger preview instead of navigating away — the
+                origin/back-nav machinery below only matters for the destinations
+                that are still real pages (roster pickers etc.). A link closes this
+                popup; a print button hides it (see `hidden`). */}
+            <ul
+              onClick={(e) => {
+                const el = (e.target as HTMLElement).closest('a,button')
+                if (el?.tagName === 'A') setOpen(false)
+                else if (el) setHidden(true)
+              }}
+              className="-mx-1 flex-1 divide-y divide-line overflow-y-auto px-1"
+            >
+              {EXAM_DOCUMENTS.map((doc) => {
+                const href = docHref(examId, doc.href, origin)
+                return (
+                  <li key={doc.href} className="flex items-start justify-between gap-4 py-2">
+                    <div>
+                      <p className="text-sm font-semibold">{t(doc.label, lang)}</p>
+                      <p className="text-xs text-muted">{t(doc.hint, lang)}</p>
+                    </div>
+                    {isPrintPath(doc.href) ? (
+                      <PrintTrigger iconOnly href={href} label={`${t('print.print', lang)} ${t(doc.label, lang)}`} />
+                    ) : (
+                      <Link href={href} className="shrink-0 text-sm text-brand-600 hover:underline">
+                        {t('examDocs.open', lang)}
+                      </Link>
+                    )}
+                  </li>
+                )
+              })}
             </ul>
             <div className="mt-4 flex justify-end">
               <button
@@ -102,8 +139,9 @@ export function ExamDocumentsModal({
               </button>
             </div>
           </div>
-        </div>
-      )}
+        </div>,
+          document.body,
+        )}
     </>
   )
 }

@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import {
   matchesEmployeeQuery,
   filterEmployees,
+  employeeCategoryLabel,
   validateOptionalLogin,
   validateEmployeeCategory,
   EMPLOYEE_CATEGORIES,
@@ -84,5 +85,22 @@ describe('validateEmployeeCategory', () => {
     expect(validateEmployeeCategory('Guard', 'admin').error).toBe(
       `Category must be one of: ${EMPLOYEE_CATEGORIES.join(', ')}`,
     )
+  })
+})
+
+describe('employeeCategoryLabel', () => {
+  // map 013 fix: the record drawer rendered the raw DB value ("Teacher")
+  // untranslated while the directory list beside it, using the same fixed
+  // category list, already translated it (bn "শিক্ষক"). One function, both
+  // callers, so they can't drift again.
+  it('translates a fixed category', () => {
+    expect(employeeCategoryLabel('Teacher', 'bn')).toBe('শিক্ষক')
+    expect(employeeCategoryLabel('Teacher', 'en')).toBe('Teacher')
+  })
+
+  it('falls back to the raw value for a legacy category outside the fixed list', () => {
+    // "admin" is a real, lowercase category value on this staging DB, from
+    // before the field was locked down (issue #567) — there is no key for it.
+    expect(employeeCategoryLabel('admin', 'bn')).toBe('admin')
   })
 })

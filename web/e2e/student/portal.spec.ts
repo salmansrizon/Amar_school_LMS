@@ -34,11 +34,26 @@ test.describe('@student portal read surfaces', () => {
     })
   }
 
-  test('the shell carries all twelve nav entries', async ({ studentPage: page }) => {
+  // WP-A menu: 5 groups. Sidebar sections other than the active one are collapsed,
+  // so the 11 menu links are checked in the DOM, not for visibility; Profile
+  // moved into the avatar popover.
+  test('the shell carries the eleven grouped nav entries, Profile in the avatar menu', async ({ studentPage: page }) => {
     await page.goto('/student')
-    for (const s of SCREENS) {
-      await expect(page.locator(`a[href="${s.path}"]`).first()).toBeVisible()
+    for (const s of SCREENS.filter((x) => x.path !== '/student/profile')) {
+      await expect(page.locator(`a[href="${s.path}"]`).first()).toBeAttached()
     }
+    await expect(page.locator('button[aria-haspopup="dialog"][aria-label]').first()).toBeVisible()
+    await page.locator('button[aria-haspopup="dialog"][aria-label]').first().click()
+    await expect(page.locator('a[href="/student/profile"]').first()).toBeVisible()
+    await expectNoError(page)
+  })
+
+  test('the phone bottom bar has five tabs and follows the route', async ({ studentPage: page }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.goto('/student/leave')
+    const bar = page.locator('nav.md\\:hidden')
+    await expect(bar.locator('a')).toHaveCount(5)
+    await expect(bar.locator('a[aria-current="page"]')).toHaveAttribute('href', '/student/attendance')
     await expectNoError(page)
   })
 

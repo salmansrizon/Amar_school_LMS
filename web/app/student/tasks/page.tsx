@@ -1,86 +1,189 @@
 import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
-import { t, localeOf, numberFmt, type Lang, type MessageKey } from '@/lib/i18n'
+import { t, formatDate, formatNumber, type MessageKey } from '@/lib/i18n'
 import { getStudentContext, isReadOnly } from '@/lib/student/context'
 import { loadStudentTasks } from '@/lib/student/tasks-read'
-import { splitTasks, type StudentTask, type TaskBucket } from '@/lib/student/tasks'
+import type { StudentTask } from '@/lib/student/tasks'
+import { dashboardTaskCounts, taskUrgency, type TaskUrgency } from '@/lib/student/dashboard'
+import { TASK_PILES, taskPiles } from '@/lib/student/daily'
+import { matchesQ, pageOf, taskStateMatches } from '@/lib/student/table'
+import { schoolToday } from '@/lib/school-time'
+import { studentGroupTabs } from '@/lib/student-nav'
 import { TaskToggle } from './task-toggle'
-import { pageTitle } from '@/lib/student/metadata'
+import { pageTitle } from '@/lib/page-title'
+import { PageHeader } from '@/components/ui/page'
+import { SectionTabs } from '@/components/ui/section-tabs'
+import { EmptyState } from '@/components/ui/states'
+import { railClass } from '@/components/ui/page'
+import { ToneDot } from '@/components/ui/widgets'
+import { DataTable, Pill, type Column } from '@/components/data-table/data-table'
+import { NoMatch } from '@/components/student/no-match'
+import { PhoneRows, PhoneRowsShell } from '@/components/student/phone-rows'
 
-// The Student's homework (#446), split into the piles that make a list useful:
-// overdue, due soon, later, done. Done beats overdue — finished late is still
-// finished, and red forever would nag rather than inform.
+// The Student's homework (#446) as one table. The four piles (overdue, due
+// within the horizon, later, done) are the `state` filter; the default view is
+// every open task. Done beats overdue: finished late is still finished. A task
+// handed in but not yet ticked counts as done too (decision D2; see
+// isTaskHandled). Placement is by school day, in lib/student/daily.ts.
+export const generateMetadata = pageTitle('student.tasksTitle')
 
-const SECTIONS: { bucket: TaskBucket; titleKey: MessageKey; tone: string }[] = [
-  { bucket: 'overdue', titleKey: 'student.taskOverdue', tone: 'text-alert-deep' },
-  { bucket: 'dueSoon', titleKey: 'student.taskDueSoon', tone: 'text-sun-deep' },
-  { bucket: 'later', titleKey: 'student.taskLater', tone: 'text-muted' },
-  { bucket: 'done', titleKey: 'student.taskDone', tone: 'text-mint-deep' },
-]
+const PILE: Record<TaskUrgency, { labelKey: MessageKey; tone: 'alert' | 'sun' | 'muted' | 'mint'; text: string }> = {
+  overdue: { labelKey: 'student.taskOverdue', tone: 'alert', text: 'text-alert-deep' },
+  dueSoon: { labelKey: 'student.taskDueSoon', tone: 'sun', text: 'text-sun-deep' },
+  later: { labelKey: 'student.taskLater', tone: 'muted', text: 'text-muted' },
+  done: { labelKey: 'student.taskDone', tone: 'mint', text: 'text-mint-deep' },
+}
 
-function TaskRow({ task, lang, readOnly }: { task: StudentTask; lang: Lang; readOnly: boolean }) {
-  const locale = localeOf(lang)
-  return (
-    <li className="flex items-start justify-between gap-3 py-3">
-      <span className="min-w-0">
+export default async function StudentTasksPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | undefined>>
+}) {
+  const params = await searchParams
+  const lang = await currentLang()
+  const ctx = await getStudentContext()
+  const today = schoolToday()
+  const tasks = await loadStudentTasks(ctx.supabase)
+  const piles = taskPiles(tasks, today)
+  const counts = dashboardTaskCounts(tasks, today)
+  const readOnly = isReadOnly(ctx)
+
+  // Pile order (overdue, soon, later, done) is the table's order.
+  const ordered = TASK_PILES.flatMap((p) => piles[p])
+  const shown = ordered.filter(
+    (task) => taskStateMatches(params.state, taskUrgency(task, today)) && matchesQ(params.q, task.title),
+  )
+  const paged = pageOf(shown, params)
+  // One pulse on the page: the first overdue row names the state.
+  const firstOverdueId = shown.find((task) => taskUrgency(task, today) === 'overdue')?.id
+
+  const columns: Column<StudentTask>[] = [
+    {
+      key: 'title',
+      header: t('student.col.title', lang),
+      card: 'title',
+      cell: (task) => (
         <Link
           href={`/student/tasks/${task.id}`}
-          className="block text-sm font-medium hover:text-brand-600"
+          className="inline-flex min-h-11 items-center font-semibold hover:text-brand-600 hover:underline md:min-h-0"
         >
           {task.title}
         </Link>
-        <span className="mt-0.5 flex flex-wrap items-center gap-2">
-          {task.due_at && (
-            <span className="text-xs text-muted">
-              {t('student.taskDue', lang)}:{' '}
-              {new Date(task.due_at).toLocaleDateString(locale, { day: 'numeric', month: 'short' })}
-            </span>
-          )}
-          {task.submitted && (
-            <span className="rounded-full bg-mint-soft px-2 py-0.5 text-[11px] font-semibold text-mint-deep">
-              {t('student.handedIn', lang)}
-            </span>
-          )}
-        </span>
-      </span>
-      <TaskToggle lang={lang} taskId={task.id} done={Boolean(task.completed_at)} disabled={readOnly} />
-    </li>
-  )
-}
-
-export const generateMetadata = pageTitle('student.tasksTitle')
-
-export default async function StudentTasksPage() {
-  const lang = await currentLang()
-  const ctx = await getStudentContext()
-  const buckets = splitTasks(await loadStudentTasks(ctx.supabase), new Date())
-  const readOnly = isReadOnly(ctx)
-  const empty = SECTIONS.every((s) => buckets[s.bucket].length === 0)
+      ),
+    },
+    {
+      key: 'due',
+      header: t('student.taskDue', lang),
+      cell: (task) => (task.due_at ? formatDate(task.due_at, lang) : <span className="text-muted">—</span>),
+    },
+    {
+      key: 'state',
+      header: t('student.col.state', lang),
+      card: 'badge',
+      cell: (task) => {
+        const u = taskUrgency(task, today)
+        return (
+          <span className="inline-flex items-center gap-1.5">
+            {u === 'overdue' && task.id === firstOverdueId && <ToneDot tone="alert" pulse />}
+            <Pill tone={PILE[u].tone}>{t(PILE[u].labelKey, lang)}</Pill>
+          </span>
+        )
+      },
+    },
+    {
+      key: 'handedIn',
+      header: t('student.col.handedIn', lang),
+      cell: (task) =>
+        task.submitted ? (
+          <span className="font-semibold text-mint-deep">✓ {t('student.handedIn', lang)}</span>
+        ) : (
+          <span className="text-muted">—</span>
+        ),
+    },
+  ]
 
   return (
-    <main className="w-full max-w-3xl p-6">
-      <h1 className="mb-1 text-2xl font-extrabold">{t('student.tasksTitle', lang)}</h1>
-      <p className="mb-4 text-xs text-muted">{t('student.ownClaim', lang)}</p>
+    <main className="w-full px-gutter pt-section pb-16 ui-rows">
+      <PageHeader
+        icon="tasks"
+        title={t('student.tasksTitle', lang)}
+        crumbs={{ lang, items: [{ label: t('student.nav.home', lang), href: '/student' }, { label: t('student.navGroup.study', lang) }] }}
+        subtitle={t('student.ownClaim', lang)}
+        badge={counts.overdue ? `${formatNumber(counts.overdue, lang)} ${t('student.dash.overdueNote', lang)}` : undefined}
+      />
+      <SectionTabs
+        tabs={studentGroupTabs('study', { tasks: counts.pending })}
+        active="/student/tasks"
+        lang={lang}
+        label={t('student.navGroup.study', lang)}
+      />
 
-      {empty ? (
-        <p className="rounded-lg border border-line bg-paper p-6 text-sm text-muted">
-          {t('student.noTasks', lang)}
-        </p>
+      {!tasks.length ? (
+        <EmptyState
+          icon="tasks"
+          lang={lang}
+          title={t('student.noTasks', lang)}
+          action={{ href: '/student/routine', label: t('student.nav.routine', lang) }}
+        />
       ) : (
-        <div className="space-y-4">
-          {SECTIONS.filter((s) => buckets[s.bucket].length > 0).map((s) => (
-            <section key={s.bucket} className="rounded-lg border border-line bg-paper p-5">
-              <h2 className={`mb-2 text-sm font-bold ${s.tone}`}>
-                {t(s.titleKey, lang)} · {numberFmt(lang).format(buckets[s.bucket].length)}
-              </h2>
-              <ul className="divide-y divide-line">
-                {buckets[s.bucket].map((task) => (
-                  <TaskRow key={task.id} task={task} lang={lang} readOnly={readOnly} />
-                ))}
-              </ul>
-            </section>
-          ))}
-        </div>
+        <PhoneRowsShell
+          rows={
+            <PhoneRows label={t('student.tasksTitle', lang)}>
+              {paged.items.map((task) => {
+                const u = taskUrgency(task, today)
+                return (
+                  <li key={task.id} className={`flex items-center gap-2 pr-2 pl-3 ${railClass(PILE[u].tone)}`}>
+                    <Link
+                      href={`/student/tasks/${task.id}`}
+                      className="flex min-h-14 min-w-0 flex-1 flex-col justify-center hover:text-brand-600"
+                    >
+                      <span className="truncate text-sm font-medium">{task.title}</span>
+                      <span className="truncate text-xs text-muted">
+                        {task.due_at && `${formatDate(task.due_at, lang)} · `}
+                        {u === 'overdue' && task.id === firstOverdueId && (
+                          <span className="mr-1.5 inline-flex align-middle">
+                            <ToneDot tone="alert" pulse />
+                          </span>
+                        )}
+                        <span className={`font-semibold ${PILE[u].text}`}>{t(PILE[u].labelKey, lang)}</span>
+                        {task.submitted && (
+                          <span className="font-semibold text-mint-deep"> · ✓ {t('student.handedIn', lang)}</span>
+                        )}
+                      </span>
+                    </Link>
+                    <TaskToggle lang={lang} taskId={task.id} done={Boolean(task.completed_at)} disabled={readOnly} />
+                  </li>
+                )
+              })}
+            </PhoneRows>
+          }
+        >
+        <DataTable
+          rows={paged.items}
+          rowId={(task) => task.id}
+          rowLabel={(task) => task.title}
+          columns={columns}
+          lang={lang}
+          params={params}
+          caption={t('student.tasksTitle', lang)}
+          search={{ placeholder: t('student.col.search', lang) }}
+          filters={[
+            {
+              param: 'state',
+              label: t('student.col.openTasks', lang),
+              options: [
+                ...TASK_PILES.map((p) => ({ value: p, label: t(PILE[p].labelKey, lang) })),
+                { value: 'all', label: t('student.col.allTasks', lang) },
+              ],
+            },
+          ]}
+          rowActions={(task) => (
+            <TaskToggle lang={lang} taskId={task.id} done={Boolean(task.completed_at)} disabled={readOnly} />
+          )}
+          pagination={{ page: paged.page, totalPages: paged.totalPages, total: paged.total, pageSize: paged.pageSize }}
+          empty={<NoMatch lang={lang} />}
+        />
+        </PhoneRowsShell>
       )}
     </main>
   )

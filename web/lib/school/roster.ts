@@ -1,4 +1,5 @@
 import type { ClassScope } from '@/lib/school/class-scope'
+import { toLatinDigits } from '@/lib/bd-mobile'
 
 // The School-side roster, as a model rather than as a query repeated on every
 // screen that needs one.
@@ -23,7 +24,15 @@ import type { ClassScope } from '@/lib/school/class-scope'
  *  legacy `students.class_name`/`section` text bridge, which only ever
  *  agreed with the Enrollment by construction (kept in sync by
  *  admit/transfer/promote) and could drift via `updateStudent`'s
- *  deliberately-unsynced profile-edit path (#587's own carry-forward note). */
+ *  deliberately-unsynced profile-edit path (#587's own carry-forward note).
+ *
+ *  `class_name`/`section`/`roll_number` DO still fall back to that legacy text
+ *  bridge (`roster-source.ts`'s `toRosterStudent`) when the Enrollment embed
+ *  is empty — the same fallback the record drawer and the ID card already
+ *  render, so a Student the backfill never reached shows the same class/roll
+ *  everywhere instead of "—" only in this list (map 013 fix). Only the
+ *  *label* borrows the legacy value; `class_offering_id` (what `rosterFor`
+ *  filters on) is never backed by it. */
 export interface RosterStudent {
   id: string
   full_name: string
@@ -31,6 +40,12 @@ export interface RosterStudent {
   class_name: string | null
   section: string | null
   guardian_name: string | null
+  /** Student Number (CONTEXT.md) — optional so screens that build rosters by
+   *  hand need not carry it. */
+  student_no?: string | null
+  guardian_mobile?: string | null
+  /** Admission time — the Student row's own created_at. */
+  created_at?: string
   /** The Offering this Student's current Enrollment points at, or null when
    *  unplaced. What `rosterFor` actually filters on — never the text pair. */
   class_offering_id: string | null
@@ -42,6 +57,61 @@ export interface RosterStudent {
   group_department: string | null
   shift: string | null
   academic_year: number | null
+}
+
+/** A Student row plus its (already-unwrapped) current-Enrollment Offering, if
+ *  any — the shape `roster-source.ts`'s adapter hands in after its Supabase
+ *  embed is unwrapped by `firstRelation`. */
+export interface RosterStudentInput {
+  id: string
+  full_name: string
+  guardian_name: string | null
+  student_no?: string | null
+  guardian_mobile?: string | null
+  created_at?: string
+  /** The legacy text-bridge columns (#587) — display fallback only. */
+  class_name: string | null
+  section: string | null
+  roll_number: number | null
+}
+
+export interface EnrollmentInput {
+  roll_number: number | null
+  class_offering_id: string | null
+}
+
+export interface OfferingInput {
+  name: string
+  section: string | null
+  group_department: string | null
+  shift: string | null
+  academic_year: number | null
+}
+
+/** Fold a Student with its current Enrollment's Offering (or null, unplaced)
+ *  into the roster's display shape — the fallback-to-legacy-text decision
+ *  (see `RosterStudent`'s own doc) kept here, not in `roster-source.ts`, so
+ *  it is tested without a database (this file's own stated purpose). */
+export function resolveRosterStudent(
+  row: RosterStudentInput,
+  enrollment: EnrollmentInput | null,
+  offering: OfferingInput | null,
+): RosterStudent {
+  return {
+    id: row.id,
+    full_name: row.full_name,
+    guardian_name: row.guardian_name,
+    student_no: row.student_no,
+    guardian_mobile: row.guardian_mobile,
+    created_at: row.created_at,
+    roll_number: enrollment?.roll_number ?? row.roll_number,
+    class_offering_id: enrollment?.class_offering_id ?? null,
+    class_name: offering?.name ?? row.class_name,
+    section: offering ? offering.section : row.section,
+    group_department: offering?.group_department ?? null,
+    shift: offering?.shift ?? null,
+    academic_year: offering?.academic_year ?? null,
+  }
 }
 
 /**
@@ -87,13 +157,23 @@ export function rosterFor(students: readonly RosterStudent[], classOfferingId: s
     })
 }
 
+/** "Complete" means a guardian's mobile is on file — the one contact field every
+ *  downstream feature (Remind, SMS, ID card) depends on. The students page's
+ *  "profiles incomplete" card and the `incomplete=1` directory filter share
+ *  this one definition, so the number on the card is the length of the list. */
+export function isIncompleteProfile(s: Pick<RosterStudent, 'guardian_mobile'>): boolean {
+  return !s.guardian_mobile
+}
+
 /** Free-text search over the three fields an office actually searches by. */
 export function searchRoster(students: readonly RosterStudent[], q: string): RosterStudent[] {
-  const term = q.trim().toLowerCase()
+  const term = toLatinDigits(q.trim().toLowerCase())
   if (!term) return [...students]
+  // Fields are coerced with String() — never assume a column's runtime type —
+  // and digits normalised, so a Bangla-digit query finds Latin-digit data.
   return students.filter((s) =>
-    [s.full_name, s.guardian_name ?? '', s.roll_number?.toString() ?? ''].some((f) =>
-      f.toLowerCase().includes(term),
+    [s.full_name, s.guardian_name, s.roll_number, s.student_no, s.guardian_mobile].some((f) =>
+      toLatinDigits(String(f ?? '').toLowerCase()).includes(term),
     ),
   )
 }
@@ -153,6 +233,10 @@ export interface RegisterRow {
   roll_number: number | null
   present: boolean
   cause: string
+  /** Approved leave covers the day and nobody has marked this Student yet:
+   *  the form shows "on leave" and asks for an explicit Present/Absent
+   *  rather than defaulting them to present (audit F20). */
+  onLeave: boolean
 }
 
 /**
@@ -167,6 +251,7 @@ export function registerRows(
   students: readonly RosterStudent[],
   presentIds: ReadonlySet<string>,
   causeByStudent: ReadonlyMap<string, string>,
+  leaveIds: ReadonlySet<string> = new Set(),
 ): RegisterRow[] {
   return students.map((s) => ({
     id: s.id,
@@ -174,5 +259,6 @@ export function registerRows(
     roll_number: s.roll_number,
     present: presentIds.has(s.id) || !causeByStudent.has(s.id),
     cause: causeByStudent.get(s.id) ?? '',
+    onLeave: leaveIds.has(s.id) && !presentIds.has(s.id) && !causeByStudent.has(s.id),
   }))
 }

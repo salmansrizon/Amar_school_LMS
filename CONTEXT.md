@@ -65,8 +65,20 @@ The status of a School that has had no revenue event yet — no paid invoice and
 _Avoid_: Free tier, demo mode (imply something time-boxed or feature-limited, which Trial is not by default)
 
 **Fee Collection Record**:
-The single record of a Student's fee status for one month, holding cumulative `pay_amount`/`fine_amount`/`adjust_amount`/`due_amount`. Exactly one exists per Student per month (preserve legacy exactly) — a second payment toward the same month **edits this same record's totals in place**, it does not append a new payment-history line. There is intentionally no per-payment-event audit trail underneath it; only the current cumulative totals are retained — so what a Student can be shown is a *statement*, never a transaction receipt. Corresponds to the legacy `student_fee_collection` table. Its `adjust_amount` (*ছাড়/বৃত্তি*) conflates two different things — a scholarship the child earned and a hardship waiver the family had to ask for — and nothing distinguishes them, which is why a Student sees the net figure and never the adjustment itself (ADR 0015).
+The single record of a Student's fee status for one month, holding cumulative `pay_amount`/`fine_amount`/`adjust_amount`/`due_amount`. Exactly one exists per Student per month (preserve legacy exactly) — a second payment toward the same month **edits this same record's totals in place**, it does not append a new payment-history line. There is intentionally no per-payment-event audit trail underneath it; only the current cumulative totals are retained — so what a Student can be shown is a *statement*, never a transaction receipt. Corresponds to the legacy `student_fee_collection` table. A record made in error is **voided**, never deleted: once migration `0231` is applied it keeps its amounts and gains who / when / why (`void_at`, `void_by`, `void_reason`), a reversing entry goes to the ledger, the row can no longer be changed, and "exactly one per Student per month" then means exactly one that is *not voided* — so the month can be collected again as a new record (#683). Only the School Owner voids. Its `adjust_amount` (*ছাড়/বৃত্তি*) conflates two different things — a scholarship the child earned and a hardship waiver the family had to ask for — and nothing distinguishes them, which is why a Student sees the net figure and never the adjustment itself (ADR 0015).
 _Avoid_: Payment, transaction (implies an individual event/line item, which this is not — it's a cumulative monthly total)
+
+**Monthly Fee Standing**:
+Where a Student stands on the current month's **Fee Collection Record**: **Paid** (nothing due — including a month fully waived), **Partial** (something received, something still due) or **Due** (nothing received, something due). A month with no Fee Collection Record yet has no standing — not billed is not the same as unpaid. Always one month; arrears from earlier months are a separate question.
+_Avoid_: Fee status (already means the Fee Collection Record itself), payment status
+
+**Attendance Rate**:
+A Student's present days as a share of recorded attendance days in the current Academic Year so far. Banded for display: **Regular** (90% and above), **Irregular** (75–89%), **At risk** (below 75%). The band is always shown as text beside its colour.
+_Avoid_: Attendance status (reads like one day's present/absent)
+
+**Monthly Attendance Rate**:
+The same share counted from the first day of the current month. Shown on the attendance mark page, where the teacher needs this month's picture; it uses the same bands. Report cards and summaries keep the **Attendance Rate**.
+_Avoid_: MTD rate, monthly attendance (reads like a count of days)
 
 **Behaviour Log Entry**:
 An incident note + numeric rating + remind date recorded against a Student. Becomes read-only 3 days after it was **created** (not 3 days after the incident date it describes, which is free-text and not a trustworthy anchor) — preserves the legacy rule against retroactively rewriting a Student's recorded history.

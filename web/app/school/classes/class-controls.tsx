@@ -2,12 +2,13 @@
 
 import { useMemo, useState, useTransition } from 'react'
 import Link from 'next/link'
+import { toast } from 'sonner'
 import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
 import { t, type Lang } from '@/lib/i18n'
 import { ACADEMIC_SHIFT_LABEL_KEY, GROUP_DEPARTMENTS, type AcademicShift } from '@/lib/institute'
 import { Modal } from '@/components/modal'
 import { addClass, addSubject, archiveClassOffering, copyClassesFromYear, removeItem } from './actions'
-import { selectClass } from '@/components/ui/field'
+import { ComboboxField } from '@/components/ui/combobox-field'
 import { ConfirmDialog } from '@/components/confirm-dialog'
 import { classCatalogueLabel, type ClassCatalogueRow } from '@/lib/class-catalogue'
 import {
@@ -126,42 +127,30 @@ export function AddClassForm({
       </div>
       <div>
         <label className={labelClass} htmlFor="class_level">{t('classes.educationLevel', lang)}</label>
-        <select
+        <ComboboxField
           id="class_level"
           name="education_level"
           defaultValue=""
-          className={selectClass({ size: 'md', fullWidth: true })}
-        >
-          <option value="">{t('institute.selectOne', lang)}</option>
-          {educationLevels.map((lvl) => (
-            <option key={lvl.key} value={lvl.key}>
-              {lvl.label[lang]}
-            </option>
-          ))}
-        </select>
+          options={[
+            { value: '', label: t('institute.selectOne', lang) },
+            ...educationLevels.map((lvl) => ({ value: lvl.key, label: lvl.label[lang] })),
+          ]}
+        />
       </div>
       <div>
         <label className={labelClass} htmlFor="class_group">{t('classes.groupDept', lang)}</label>
-        <select
+        <ComboboxField
           id="class_group"
           value={groupDept.choice}
-          onChange={(e) => setGroupDept({ choice: e.target.value, other: groupDept.other })}
-          className={selectClass({ size: 'md', fullWidth: true })}
-        >
-          <option value="">{t('institute.selectOne', lang)}</option>
-          {GROUP_DEPARTMENTS.map((g) => (
-            <option key={g} value={g}>
-              {g}
-            </option>
-          ))}
-          <option disabled>──────────</option>
-          {groupDepartmentOptions.map((g) => (
-            <option key={g} value={g}>
-              {g}
-            </option>
-          ))}
-          <option value="other">{t('classes.groupOther', lang)}</option>
-        </select>
+          onValueChange={(v) => setGroupDept({ choice: v, other: groupDept.other })}
+          options={[
+            { value: '', label: t('institute.selectOne', lang) },
+            ...GROUP_DEPARTMENTS.map((g) => ({ value: g, label: g })),
+            { value: '──────────', label: '──────────', disabled: true },
+            ...groupDepartmentOptions.map((g) => ({ value: g, label: g })),
+            { value: 'other', label: t('classes.groupOther', lang) },
+          ]}
+        />
         {groupDept.choice === 'other' && (
           <input
             value={groupDept.other}
@@ -179,19 +168,15 @@ export function AddClassForm({
       {shiftChoices.length > 0 && (
         <div>
           <label className={labelClass} htmlFor="class_shift">{t('classes.shift', lang)}</label>
-          <select
+          <ComboboxField
             id="class_shift"
             name="shift"
             defaultValue=""
-            className={selectClass({ size: 'md', fullWidth: true })}
-          >
-            <option value="">{t('institute.selectOne', lang)}</option>
-            {shiftChoices.map((shift) => (
-              <option key={shift} value={shift}>
-                {t(ACADEMIC_SHIFT_LABEL_KEY[shift], lang)}
-              </option>
-            ))}
-          </select>
+            options={[
+              { value: '', label: t('institute.selectOne', lang) },
+              ...shiftChoices.map((shift) => ({ value: shift, label: t(ACADEMIC_SHIFT_LABEL_KEY[shift], lang) })),
+            ]}
+          />
         </div>
       )}
       {/* Pairs with Shift on one row (issue #636); goes full-width only when
@@ -202,20 +187,16 @@ export function AddClassForm({
         {/* Required once the school has any Employee to pick — mandatory as a
             product rule (#435), but never a wall in front of a brand-new school
             that has not entered its staff yet. */}
-        <select
+        <ComboboxField
           id="class_teacher"
           name="class_teacher_id"
           required={teachers.length > 0}
           defaultValue=""
-          className={selectClass({ size: 'md', fullWidth: true })}
-        >
-          <option value="">{t('classes.classTeacherNone', lang)}</option>
-          {teachers.map((teacher) => (
-            <option key={teacher.id} value={teacher.id}>
-              {teacher.full_name}
-            </option>
-          ))}
-        </select>
+          options={[
+            { value: '', label: t('classes.classTeacherNone', lang) },
+            ...teachers.map((teacher) => ({ value: teacher.id, label: teacher.full_name })),
+          ]}
+        />
       </div>
       {error && <p className="text-sm text-alert-deep sm:col-span-2">{error}</p>}
       <button type="submit" disabled={pending} className={`${primaryBtnClass} sm:col-span-2`}>
@@ -300,21 +281,15 @@ export function CopyClassesControl({
   return (
     <div className="flex flex-wrap items-center gap-2">
       {showSelector && (
-        <select
+        <ComboboxField
           aria-label={t('classes.copySourceLabel', lang)}
-          value={sourceYear}
-          onChange={(e) => {
-            setSourceYear(Number(e.target.value))
+          value={String(sourceYear)}
+          onValueChange={(v) => {
+            setSourceYear(Number(v))
             setResult(null)
           }}
-          className={selectClass()}
-        >
-          {sourceYears.map((s) => (
-            <option key={s.year} value={s.year}>
-              {s.year}
-            </option>
-          ))}
-        </select>
+          options={sourceYears.map((s) => ({ value: String(s.year), label: String(s.year) }))}
+        />
       )}
       <ConfirmDialog
         triggerLabel={t('classes.copyClasses', lang).replace('{year}', String(sourceYear))}
@@ -412,6 +387,7 @@ export function AddSubjectForm({
   // fields; a key remount guarantees a fresh, empty field every time.
   const [subjectFieldKey, setSubjectFieldKey] = useState(0)
   const { error, pending, onSubmit } = useSubmit(addSubject, () => {
+    toast.success(t('classes.subjectAdded', lang))
     setClassId('')
     setSubjectFieldKey((k) => k + 1)
     onCreated?.()
@@ -423,23 +399,17 @@ export function AddSubjectForm({
     <form className="grid gap-3 sm:grid-cols-3" onSubmit={onSubmit}>
       <div>
         <label className={labelClass} htmlFor="subject_class">{t('classes.class', lang)}</label>
-        <select
+        <ComboboxField
           id="subject_class"
           name="class_id"
           required
           value={classId}
-          onChange={(e) => setClassId(e.target.value)}
-          className={selectClass({ size: 'md', fullWidth: true })}
-        >
-          <option value="" disabled>
-            {t('classes.selectClass', lang)}
-          </option>
-          {classes.map((c) => (
-            <option key={c.id} value={c.id}>
-              {classCatalogueLabel(c, showYear)}
-            </option>
-          ))}
-        </select>
+          onValueChange={setClassId}
+          options={[
+            { value: '', label: t('classes.selectClass', lang), disabled: true },
+            ...classes.map((c) => ({ value: c.id, label: classCatalogueLabel(c, showYear) })),
+          ]}
+        />
       </div>
       <div>
         <label className={labelClass} htmlFor="subject_name">{t('classes.name', lang)}</label>

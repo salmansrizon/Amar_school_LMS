@@ -2,6 +2,8 @@
 
 import { useRef, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
+import { Camera, Pencil, RotateCcw, Trash2 } from 'lucide-react'
 import { t, type Lang } from '@/lib/i18n'
 import { ProfileFields, uploadStudentPhoto } from '../new/admission-form'
 import { archiveStudent, restoreStudent, updateStudent } from '../actions'
@@ -12,10 +14,10 @@ import type { ClassCatalogueRow } from '@/lib/class-catalogue'
 // the Upload Photo / Replace Photo and Archive / Restore controls the UAT pass
 // measured at 26-30px.
 const btnSecondary =
-  'inline-flex min-h-11 cursor-pointer items-center justify-center rounded-full border border-line-strong px-4 text-xs font-semibold hover:bg-paper-muted disabled:opacity-50 sm:min-h-9'
+  'inline-flex min-h-11 cursor-pointer items-center justify-center gap-1.5 rounded-full border border-line-strong px-4 text-xs font-semibold hover:bg-paper-muted disabled:opacity-50 sm:min-h-9'
 // Destructive tone for archive/delete triggers (#365).
 const btnDanger =
-  'inline-flex min-h-11 cursor-pointer items-center justify-center rounded-full border border-alert px-4 text-xs font-semibold text-alert-deep hover:bg-alert-soft disabled:opacity-50 sm:min-h-9'
+  'inline-flex min-h-11 cursor-pointer items-center justify-center gap-1.5 rounded-full border border-alert px-4 text-xs font-semibold text-alert-deep hover:bg-alert-soft disabled:opacity-50 sm:min-h-9'
 
 /** Read-mode profile with an Edit toggle; edit reuses the admission sections. */
 export function ProfileEditor({
@@ -44,6 +46,7 @@ export function ProfileEditor({
       <div>
         <div className="mb-3 flex justify-end">
           <button type="button" onClick={() => setEditing(true)} className={btnSecondary}>
+            <Pencil className="size-3.5" aria-hidden />
             {t('students.editProfile', lang)}
           </button>
         </div>
@@ -54,6 +57,7 @@ export function ProfileEditor({
 
   return (
     <form
+      noValidate // the server validates and answers in the UI language into the error line
       onSubmit={(e) => {
         e.preventDefault()
         const data = new FormData(e.currentTarget)
@@ -66,6 +70,7 @@ export function ProfileEditor({
             return
           }
           setEditing(false)
+          toast.success(t('students.toastSaved', lang))
           router.refresh()
         })
       }}
@@ -122,10 +127,10 @@ export function PhotoControl({
         <img
           src={`/api/student-photo?student=${studentId}`}
           alt=""
-          className="mx-auto mb-2 h-28 w-28 rounded-md border border-line object-cover"
+          className="mx-auto mb-3 aspect-square w-full max-w-44 rounded-md border border-line object-cover"
         />
       ) : (
-        <div className="mx-auto mb-2 flex h-28 w-28 items-center justify-center rounded-md border border-dashed border-line-strong text-xs text-muted">
+        <div className="mx-auto mb-3 flex aspect-square w-full max-w-44 items-center justify-center rounded-md border border-dashed border-line-strong text-xs text-muted">
           {t('students.photo', lang)}
         </div>
       )}
@@ -142,6 +147,7 @@ export function PhotoControl({
         onClick={() => inputRef.current?.click()}
         className={btnSecondary}
       >
+        <Camera className="size-3.5" aria-hidden />
         {busy
           ? t('syllabus.uploading', lang)
           : hasPhoto
@@ -185,6 +191,7 @@ export function ArchiveToggle({
           }
           className={btnSecondary}
         >
+          <RotateCcw className="size-3.5" aria-hidden />
           {t('students.restore', lang)}
         </button>
         {error && <span className="ml-2 text-xs text-alert-deep">{error}</span>}
@@ -194,7 +201,12 @@ export function ArchiveToggle({
 
   return (
     <ConfirmDialog
-      triggerLabel={t('students.archive', lang)}
+      triggerLabel={
+        <>
+          <Trash2 className="size-3.5" aria-hidden />
+          {t('students.archive', lang)}
+        </>
+      }
       triggerClassName={btnDanger}
       title={t('students.archive', lang)}
       body={t('students.archiveConfirm', lang)}
@@ -202,7 +214,10 @@ export function ArchiveToggle({
       cancelLabel={t('routine.cancel', lang)}
       onConfirm={async () => {
         const res = await archiveStudent(studentId)
-        if (!res.error) router.refresh()
+        if (!res.error) {
+          toast.success(t('students.toastArchived', lang))
+          router.push('/school/students/archive')
+        }
         return res
       }}
     />

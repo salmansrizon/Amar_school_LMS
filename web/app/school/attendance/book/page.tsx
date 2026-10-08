@@ -1,20 +1,26 @@
 import Form from 'next/form'
 import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
-import { t, type Lang } from '@/lib/i18n'
+import { t, formatNumber, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { schoolRoster } from '@/lib/school/roster-source'
 import {
   monthGrid,
-  registerDayStatus,
+  studentLogDayStatus,
+  studentTrackingStart,
   type OffDay,
 } from '@/lib/attendance-manual'
 import { PrintPage, InstituteHeader, PaginatedSheet } from '@/components/print/pieces'
-import { PrintButton } from '@/components/print/print-button'
+import { PrintTrigger } from '@/components/print/print-trigger'
 import { AttendanceTabs } from '../attendance-tabs'
 import { loadInstitutePrintHeader } from '@/lib/institute-print'
 import { ClassSectionSelect } from '@/components/ui/class-section-select'
 import { selectAllRows } from '@/lib/supabase/select-all'
+import { schoolCrumbs } from '@/lib/school-crumbs'
+import { PageHeader } from '@/components/ui/page'
+import { filterButtonClass, inputClass } from '@/components/ui/field'
+import { pageTitle } from '@/lib/page-title'
+import { PrintVerifyFooter } from '@/components/print/verify-footer'
 
 // Layout per ui/school-owner/attendance-book.html: class/section + month
 // filter, Filled/Blank toggle, print button, monthly P/A register grid
@@ -22,6 +28,8 @@ import { selectAllRows } from '@/lib/supabase/select-all'
 // printable composes). "Blank" mode is the paper-fallback: same roster/day
 // grid, no data, for hand-filling — same spirit as BlankRosterTable (#39)
 // but shaped as a day grid instead of a roll/name/present roster.
+
+const BOOK_SYMBOL = { present: 'P', absent: 'A', on_leave: 'L', holiday: 'H', none: '' } as const
 
 function todayIso(): string {
   return new Date().toISOString().slice(0, 10)
@@ -35,6 +43,8 @@ function monthLabel(year: number, month: number, lang: Lang): string {
   const locale = lang === 'bn' ? 'bn-BD' : 'en-GB'
   return new Date(Date.UTC(year, month, 1)).toLocaleDateString(locale, { month: 'long', year: 'numeric' })
 }
+
+export const generateMetadata = pageTitle('attendance.bookTitle')
 
 export default async function AttendanceBookPage({
   searchParams,
@@ -116,9 +126,12 @@ export default async function AttendanceBookPage({
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between print:hidden">
-        <h1 className="text-2xl font-extrabold">{t('attendance.bookTitle', lang)}</h1>
-        <Link href="/school" aria-label={t('common.back', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
+      <div className="print:hidden">
+        <PageHeader
+          icon="attendance"
+          title={t('attendance.bookTitle', lang)}
+          crumbs={schoolCrumbs('/school/attendance', lang, { label: t('attendance.title', lang), href: '/school/attendance' }, { label: t('attendance.bookTitle', lang) })}
+        />
       </div>
 
       <div className="print:hidden">
@@ -136,13 +149,14 @@ export default async function AttendanceBookPage({
           <input
             type="month"
             name="month"
+            aria-label={t('attendance.bookMonth', lang)}
             defaultValue={monthParam}
-            className="rounded-md border border-line bg-paper px-3 py-1.5 text-sm"
+            className={inputClass()}
           />
           <input type="hidden" name="mode" value={mode} />
           <button
             type="submit"
-            className="cursor-pointer rounded-full border border-line px-3 py-1 text-xs font-semibold hover:bg-paper-muted"
+            className={filterButtonClass()}
           >
             {t('classes.filter', lang)}
           </button>
@@ -150,7 +164,7 @@ export default async function AttendanceBookPage({
         <div className="flex gap-2">
           <Link
             href={buildLink({ mode: 'filled' })}
-            className={`rounded-full border px-3 py-1 text-xs font-semibold ${
+            className={`inline-flex min-h-11 items-center justify-center rounded-full border px-4 text-xs font-semibold ${
               mode === 'filled' ? 'border-brand-500 bg-brand-500 text-white' : 'border-line hover:bg-paper-muted'
             }`}
           >
@@ -158,18 +172,23 @@ export default async function AttendanceBookPage({
           </Link>
           <Link
             href={buildLink({ mode: 'blank' })}
-            className={`rounded-full border px-3 py-1 text-xs font-semibold ${
+            className={`inline-flex min-h-11 items-center justify-center rounded-full border px-4 text-xs font-semibold ${
               mode === 'blank' ? 'border-brand-500 bg-brand-500 text-white' : 'border-line hover:bg-paper-muted'
             }`}
           >
             {t('attendance.bookBlank', lang)}
           </Link>
-          <PrintButton label={t('print.print', lang)} />
+          {visible.length > 0 && (
+            <PrintTrigger
+              href={`/school/attendance/book/print${buildLink({}).slice('/school/attendance/book'.length)}`}
+              label={t('print.print', lang)}
+            />
+          )}
         </div>
       </Form>
 
       {!visible.length ? (
-        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted print:hidden">
+        <p className="rounded-2xl border border-line bg-paper p-card text-sm text-muted print:hidden">
           {t('attendance.bookNoRoster', lang)}
         </p>
       ) : (
@@ -183,16 +202,16 @@ export default async function AttendanceBookPage({
             }
           >
 
-          <div className="overflow-x-auto print:overflow-visible">
+          <div className="overflow-x-auto rounded-2xl border border-line print:overflow-visible print:rounded-none print:border-0">
             <table className="w-full border-collapse text-xs whitespace-nowrap">
-              <thead>
+              <thead className="bg-paper-muted">
                 <tr>
-                  <th className="min-w-30 border border-line-strong px-2 py-1 text-left font-semibold">
+                  <th className="min-w-30 border border-line-strong px-2 py-1 text-left font-semibold text-muted">
                     {t('attendance.nameCol', lang)}
                   </th>
                   {grid.map((cell) => (
-                    <th key={cell.iso} className="border border-line-strong px-1.5 py-1 text-center font-semibold">
-                      {cell.day}
+                    <th key={cell.iso} className={`border border-line-strong px-1.5 py-1 text-center font-semibold ${cell.isOff ? 'text-alert-deep' : 'text-muted'}`}>
+                      {cell.day == null ? '' : formatNumber(cell.day, lang)}
                     </th>
                   ))}
                 </tr>
@@ -201,28 +220,31 @@ export default async function AttendanceBookPage({
                 {visible.map((s) => (
                   <tr key={s.id}>
                     <td className="border border-line px-2 py-1 text-left">
-                      {s.roll_number != null ? `${String(s.roll_number).padStart(2, '0')} ` : ''}
+                      {s.roll_number != null ? `${formatNumber(s.roll_number, lang, { minimumIntegerDigits: 2 })} ` : ''}
                       {s.full_name}
                     </td>
                     {grid.map((cell) => {
                       if (mode === 'blank') {
                         return <td key={cell.iso} className="border border-line px-1.5 py-1 text-center">&nbsp;</td>
                       }
-                      const status = registerDayStatus({
+                      // The four-state sibling, so approved leave and holidays get
+                      // their own symbols instead of a blank an unmarked day shares.
+                      const status = studentLogDayStatus({
                         iso: cell.iso!,
                         today,
                         isOff: cell.isOff,
                         onApprovedLeave: onApprovedLeave(s.id, cell.iso!),
                         hasRecord: presentSet.has(`${s.id}:${cell.iso}`),
+                        startDay: studentTrackingStart(s.created_at),
                       })
                       return (
                         <td
                           key={cell.iso}
                           className={`border border-line px-1.5 py-1 text-center ${
-                            status === 'absent' ? 'font-semibold text-alert-deep' : ''
+                            status === 'absent' ? 'font-semibold text-alert-deep' : status === 'on_leave' ? 'font-semibold text-sky-deep' : 'text-muted'
                           }`}
                         >
-                          {status === 'present' ? 'P' : status === 'absent' ? 'A' : ''}
+                          {BOOK_SYMBOL[status ?? 'none']}
                         </td>
                       )
                     })}
@@ -236,6 +258,8 @@ export default async function AttendanceBookPage({
             <p className="mt-3 text-xs text-muted">{t('attendance.bookLegend', lang)}</p>
           )}
           </PaginatedSheet>
+          {/* One class on the sheet: the scan names it. Several: school and document only. */}
+          <PrintVerifyFooter lang={lang} kind="attendance_book" refId={new Set(visible.map((s) => s.class_offering_id)).size === 1 ? visible[0].class_offering_id : null} />
         </PrintPage>
       )}
     </div>

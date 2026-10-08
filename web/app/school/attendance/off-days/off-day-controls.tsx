@@ -1,11 +1,12 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useId, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { inputClass, labelClass } from '@/components/auth-card'
 import { t, type Lang } from '@/lib/i18n'
 import { addOffDay, deleteOffDay, importCentralOffDays, updateWeeklyOffDays } from '../manual-actions'
 import { dateInputClass } from '@/components/ui/field'
+import { DateField } from '@/components/ui/date-field'
 
 // Sun-first (0..6), matching monthGrid's own week start and
 // dayOffInfo's Date.getUTCDay() convention.
@@ -75,9 +76,23 @@ export function WeeklyOffDayForm({ value, lang }: { value: readonly number[]; la
   )
 }
 
-export function AddOffDayForm({ lang }: { lang: Lang }) {
+export function AddOffDayForm({
+  lang,
+  defaultDay,
+}: {
+  lang: Lang
+  /** Pre-fills the date, e.g. from the Leave Calendar's "add this day" click
+   *  (map 013 follow-up). Still a plain editable field, not locked to it. */
+  defaultDay?: string
+}) {
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
+  // useId, not a literal "day"/"label": the Leave Calendar can render this
+  // form a second time at once (the page's own always-visible copy, plus one
+  // inside whichever day's popover is open) — duplicate ids would break both
+  // copies' <label for> association, silently, in a way only a real browser
+  // (not tsc/eslint) would ever catch.
+  const uid = useId()
 
   return (
     <form
@@ -95,16 +110,22 @@ export function AddOffDayForm({ lang }: { lang: Lang }) {
       }}
     >
       <div>
-        <label className={labelClass} htmlFor="day">
+        <label className={labelClass} htmlFor={`${uid}-day`}>
           {t('attendance.offDayDate', lang)}
         </label>
-        <input id="day" name="day" type="date" required className={dateInputClass({ size: 'md', fullWidth: true })} />
+        <DateField lang={lang}
+          id={`${uid}-day`}
+          name="day"
+          required
+          defaultValue={defaultDay}
+          className={dateInputClass({ size: 'md', fullWidth: true })}
+        />
       </div>
       <div>
-        <label className={labelClass} htmlFor="label">
+        <label className={labelClass} htmlFor={`${uid}-label`}>
           {t('attendance.offDayLabelField', lang)}
         </label>
-        <input id="label" name="label" className={inputClass} />
+        <input id={`${uid}-label`} name="label" className={inputClass} />
       </div>
       <label className="flex h-10 items-center gap-2 text-sm">
         <input type="checkbox" name="is_significant" />

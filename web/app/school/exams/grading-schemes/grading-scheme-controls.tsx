@@ -10,7 +10,7 @@ import {
   addGradeBand,
   removeGradeBand,
 } from './actions'
-import { selectClass } from '@/components/ui/field'
+import { SelectField } from '@/components/ui/select-field'
 
 function useSubmit(action: (data: FormData) => Promise<{ error?: string }>) {
   const [error, setError] = useState<string | null>(null)
@@ -39,11 +39,17 @@ export function AddGradingSchemeForm({ lang }: { lang: Lang }) {
       </div>
       <div>
         <label className={labelClass} htmlFor="scheme_type">{t('grading.schemeType', lang)}</label>
-        <select id="scheme_type" name="scheme_type" required defaultValue="grade_point" className={selectClass({ size: 'md', fullWidth: true })}>
-          <option value="grade_point">{t('grading.typeGradePoint', lang)}</option>
-          <option value="letter">{t('grading.typeLetter', lang)}</option>
-          <option value="numeric">{t('grading.typeNumeric', lang)}</option>
-        </select>
+        <SelectField
+          id="scheme_type"
+          name="scheme_type"
+          required
+          defaultValue="grade_point"
+          options={[
+            { value: 'grade_point', label: t('grading.typeGradePoint', lang) },
+            { value: 'letter', label: t('grading.typeLetter', lang) },
+            { value: 'numeric', label: t('grading.typeNumeric', lang) },
+          ]}
+        />
       </div>
       <div>
         <label className={labelClass} htmlFor="pass_mark_percent">{t('grading.passMark', lang)}</label>
@@ -61,17 +67,17 @@ export function AddGradingSchemeForm({ lang }: { lang: Lang }) {
       </div>
       <div>
         <label className={labelClass} htmlFor="pass_rule_strategy">{t('grading.passRule', lang)}</label>
-        <select
+        <SelectField
           id="pass_rule_strategy"
           name="pass_rule_strategy"
           required
           defaultValue="individual"
-          className={selectClass({ size: 'md', fullWidth: true })}
-        >
-          <option value="individual">{t('grading.ruleIndividual', lang)}</option>
-          <option value="combined_average">{t('grading.ruleCombinedAverage', lang)}</option>
-          <option value="optional_conditional">{t('grading.ruleOptionalConditional', lang)}</option>
-        </select>
+          options={[
+            { value: 'individual', label: t('grading.ruleIndividual', lang) },
+            { value: 'combined_average', label: t('grading.ruleCombinedAverage', lang) },
+            { value: 'optional_conditional', label: t('grading.ruleOptionalConditional', lang) },
+          ]}
+        />
       </div>
       <div className="flex items-center gap-2 sm:col-span-4">
         <input id="combine_subject_groups" name="combine_subject_groups" type="checkbox" className="size-4" />
@@ -133,7 +139,7 @@ export function GradingSchemeCard({
   const showGradePoint = scheme.scheme_type === 'grade_point'
 
   return (
-    <div className="rounded-lg border border-line bg-paper p-4 shadow-card">
+    <div className="rounded-2xl border border-line bg-paper p-card shadow-card">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <span className="font-semibold">{scheme.name}</span>{' '}
@@ -207,23 +213,23 @@ function GradeBandTable({
   return (
     <div className="mb-3 overflow-x-auto">
     <table className="w-full min-w-[36rem] text-left text-sm">
-      <thead>
-        <tr className="border-b border-line-strong text-xs uppercase tracking-wide text-muted">
-          <th className="py-1 pr-2 font-semibold">{t('grading.label', lang)}</th>
-          <th className="py-1 pr-2 font-semibold">{t('grading.minPercent', lang)}</th>
-          <th className="py-1 pr-2 font-semibold">{t('grading.maxPercent', lang)}</th>
-          {showGradePoint && <th className="py-1 pr-2 font-semibold">{t('grading.gradePoint', lang)}</th>}
-          <th className="py-1"></th>
+      <thead className="bg-paper-muted">
+        <tr className="text-sm text-muted">
+          <th className="px-4 py-3 font-semibold">{t('grading.label', lang)}</th>
+          <th className="px-4 py-3 font-semibold">{t('grading.minPercent', lang)}</th>
+          <th className="px-4 py-3 font-semibold">{t('grading.maxPercent', lang)}</th>
+          {showGradePoint && <th className="px-4 py-3 font-semibold">{t('grading.gradePoint', lang)}</th>}
+          <th className="px-4 py-3"></th>
         </tr>
       </thead>
-      <tbody>
+      <tbody className="divide-y divide-line">
         {bands.map((b) => (
-          <tr key={b.id} className="border-b border-line">
-            <td className="py-1 pr-2">{b.label}</td>
-            <td className="py-1 pr-2">{b.min_percent}</td>
-            <td className="py-1 pr-2">{b.max_percent}</td>
-            {showGradePoint && <td className="py-1 pr-2">{b.grade_point ?? '—'}</td>}
-            <td className="py-1">
+          <tr key={b.id}>
+            <td className="px-4 py-3">{b.label}</td>
+            <td className="px-4 py-3">{b.min_percent}</td>
+            <td className="px-4 py-3">{b.max_percent}</td>
+            {showGradePoint && <td className="px-4 py-3">{b.grade_point ?? '—'}</td>}
+            <td className="px-4 py-3">
               <button
                 type="button"
                 disabled={pending}

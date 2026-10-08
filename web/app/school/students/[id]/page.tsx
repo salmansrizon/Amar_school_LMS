@@ -1,16 +1,19 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { ArrowRightLeft, FileText, IdCard } from 'lucide-react'
 import { averageRating, isEntryLocked } from '@/lib/behaviour'
 import { BEHAVIOUR_TRIAGE_FLAG, triageView, type BehaviourTriage } from '@/lib/behaviour-triage'
 import { currentLang } from '@/lib/i18n-server'
-import { t, type Lang, type MessageKey } from '@/lib/i18n'
-import { genderLabel, guardianRelationLabel, religionLabel } from '@/lib/students/stored-labels'
+import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
-import { classSectionLabel } from '@/lib/students'
-import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
-import { applyGlobalYearFilterToOfferings } from '@/lib/school/year-filter'
+import { studentClassLabel } from '@/lib/students'
+import { schoolCrumbs } from '@/lib/school-crumbs'
+import { Crumbs } from '@/components/ui/page'
+import { ProfileHeader } from '@/components/ui/profile'
+import { Pill } from '@/components/data-table/data-table'
 import { AddEntryForm, EditableEntry } from './behaviour-controls'
-import { ArchiveToggle, PhotoControl, ProfileEditor } from './profile-controls'
+import { ArchiveToggle } from './profile-controls'
+import { StudentProfile, getStudent } from './student-profile'
 import { StudentSubjects, type AssignedSubject } from './subject-controls'
 import { StudentLoginPanel, type StudentLoginStatus } from './login-controls'
 import { PrintTrigger } from '@/components/print/print-trigger'
@@ -21,24 +24,6 @@ import { PrintTrigger } from '@/components/print/print-trigger'
 // assignment (issue #46), and the behaviour log (issue #22) at the bottom.
 // Edit reuses the admission sections.
 
-function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
-  return (
-    <div>
-      <dt className="text-xs font-semibold text-muted">{label}</dt>
-      <dd className="text-sm">{value ?? <span className="text-muted">—</span>}</dd>
-    </div>
-  )
-}
-
-function InfoCard({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <section className="mb-4 rounded-lg border border-line bg-paper p-5">
-      <h3 className="mb-3 font-bold">{title}</h3>
-      <dl className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">{children}</dl>
-    </section>
-  )
-}
-
 export default async function StudentDetailPage({
   params,
 }: {
@@ -46,12 +31,9 @@ export default async function StudentDetailPage({
 }) {
   const { id } = await params
   const lang: Lang = await currentLang()
-  const { supabase, role, shiftSelection, startedAcademicYears, academicYearSelection } = await getSchoolContext()
-  // Started-year history is the signal (#609/#612), same boolean T6/#615
-  // threaded into the Fee Structures Offering picker.
-  const showYear = startedAcademicYears.length > 1
+  const { supabase, role } = await getSchoolContext()
 
-  const { data: student } = await supabase.from('students').select('*').eq('id', id).single()
+  const student = await getStudent(id)
   if (!student) notFound()
 
   // Login status is owner-only (#442) — issuing and resetting a child's password
@@ -60,7 +42,6 @@ export default async function StudentDetailPage({
 
   const [
     { data: entries },
-    { data: classes },
     { data: subjects },
     { data: assignments },
     loginRes,
@@ -72,16 +53,6 @@ export default async function StudentDetailPage({
       .select('id, note, rating, remind_date, created_at')
       .eq('student_id', id)
       .order('created_at', { ascending: false }),
-    applyGlobalYearFilterToOfferings(
-      applyGlobalShiftFilterToOfferings(
-        supabase
-          .from('class_offerings')
-          .select('id, name, section, group_department, shift, academic_year')
-          .order('created_at'),
-        shiftSelection,
-      ),
-      academicYearSelection,
-    ),
     supabase.from('subjects').select('id, name').order('name'),
     supabase.from('student_subjects').select('subject_id, is_optional').eq('student_id', id),
     isOwner
@@ -119,129 +90,54 @@ export default async function StudentDetailPage({
     ((triageRows ?? []) as (BehaviourTriage & { entry_id: string })[]).map((r) => [r.entry_id, r]),
   )
   const archived = student.archived_at !== null
-  const locale = lang === 'bn' ? 'bn-BD' : 'en-GB'
-  const flag = (on: boolean, onKey: MessageKey, offKey: MessageKey) => (
-    <span
-      className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
-        on ? 'bg-sky-soft text-sky-deep' : 'bg-paper-muted text-muted'
-      }`}
-    >
-      {t(on ? onKey : offKey, lang)}
-    </span>
-  )
-
+  const classSection = studentClassLabel(student.class_name, student.section)
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-extrabold">{student.full_name}</h1>
-        <Link href="/school/students" aria-label={t('students.listTitle', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
-      </div>
+      <Crumbs {...schoolCrumbs(
+          '/school/students',
+          lang,
+          { label: t('students.listTitle', lang), href: '/school/students' },
+          { label: student.full_name },
+        )} />
 
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2 text-sm text-muted">
-          <span
-            className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
-              archived ? 'bg-paper-muted text-muted' : 'bg-mint-soft text-mint-deep'
-            }`}
-          >
+      <ProfileHeader
+        name={student.full_name}
+        status={
+          <Pill tone={archived ? 'muted' : 'mint'} live={!archived}>
             {t(archived ? 'students.oldStudent' : 'students.active', lang)}
-          </span>
-          <span>
-            {[
-              student.roll_number !== null ? `${t('students.roll', lang)} ${student.roll_number}` : null,
-              classSectionLabel(student.class_name, student.section),
-            ]
-              .filter(Boolean)
-              .join(' · ')}
-          </span>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <PrintTrigger
-            href={`/school/students/${id}/print/admission`}
-            label={t('students.printAdmission', lang)}
-          />
-          <PrintTrigger
-            href={`/school/students/${id}/print/id-card`}
-            label={t('students.printIdCard', lang)}
-          />
-          <Link
-            href={`/school/students/${id}/transfer`}
-            className="rounded-full border border-line-strong px-4 py-1.5 text-xs font-semibold hover:bg-paper-muted"
-          >
-            {t('students.transfer', lang)}
-          </Link>
-          <ArchiveToggle lang={lang} studentId={id} archived={archived} />
-        </div>
-      </div>
-
-      <div className="mb-6 grid gap-4 sm:grid-cols-[10rem_1fr]">
-        <div className="rounded-lg border border-line bg-paper p-4 self-start">
-          <PhotoControl lang={lang} studentId={id} hasPhoto={student.photo_path !== null} />
-        </div>
-
-        <ProfileEditor lang={lang} student={student} classes={classes ?? []} showYear={showYear}>
-          <InfoCard title={t('students.identity', lang)}>
-            <InfoRow label={t('students.name', lang)} value={student.full_name} />
-            <InfoRow
-              label={t('students.dob', lang)}
-              value={
-                student.date_of_birth ? new Date(student.date_of_birth).toLocaleDateString(locale) : null
-              }
+          </Pill>
+        }
+        meta={[
+          classSection ? `${t('students.classSection', lang)}: ${classSection}` : null,
+          student.roll_number !== null ? `${t('students.roll', lang)}: ${student.roll_number}` : null,
+        ]
+          .filter(Boolean)
+          .join('   |   ')}
+        actions={
+          <>
+            <PrintTrigger
+              href={`/school/students/${id}/print/admission`}
+              label={t('students.printAdmission', lang)}
+              icon={<FileText className="size-4" aria-hidden />}
             />
-            <InfoRow
-              label={t('students.gender', lang)}
-              value={genderLabel(student.gender, lang)}
+            <PrintTrigger
+              href={`/school/students/${id}/print/id-card`}
+              label={t('students.printIdCard', lang)}
+              icon={<IdCard className="size-4" aria-hidden />}
             />
-            <InfoRow label={t('students.bloodGroup', lang)} value={student.blood_group} />
-            <InfoRow label={t('students.studentNo', lang)} value={student.student_no} />
-            {/* Read-only — unique_id is server-assigned and immutable (#564),
-                never editable via ProfileFields. */}
-            <InfoRow label={t('students.uniqueId', lang)} value={student.unique_id} />
-            <InfoRow
-              label={t('students.classSection', lang)}
-              value={classSectionLabel(student.class_name, student.section)}
-            />
-            <InfoRow label={t('students.roll', lang)} value={student.roll_number} />
-            <InfoRow label={t('students.religion', lang)} value={religionLabel(student.religion, lang)} />
-            <InfoRow label={t('students.studentMobile', lang)} value={student.student_mobile} />
-          </InfoCard>
+            <Link
+              href={`/school/students/${id}/transfer`}
+              className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-full border border-line-strong px-4 text-xs font-semibold hover:bg-paper-muted sm:min-h-9"
+            >
+              <ArrowRightLeft className="size-4" aria-hidden />
+              {t('students.transfer', lang)}
+            </Link>
+            <ArchiveToggle lang={lang} studentId={id} archived={archived} />
+          </>
+        }
+      />
 
-          <InfoCard title={t('students.address', lang)}>
-            <InfoRow label={t('students.address', lang)} value={student.address} />
-          </InfoCard>
-
-          <InfoCard title={t('students.guardianInfo', lang)}>
-            <InfoRow label={t('students.guardianName', lang)} value={student.guardian_name} />
-            <InfoRow
-              label={t('students.relation', lang)}
-              value={guardianRelationLabel(student.guardian_relation, lang)}
-            />
-            <InfoRow label={t('students.guardianMobile', lang)} value={student.guardian_mobile} />
-            <InfoRow label={t('students.guardianNid', lang)} value={student.guardian_nid} />
-          </InfoCard>
-
-          <section className="mb-4 rounded-lg border border-line bg-paper p-5">
-            <h3 className="mb-3 font-bold">{t('students.benefitFlags', lang)}</h3>
-            <div className="flex flex-wrap gap-2">
-              {flag(
-                student.is_freedom_fighter_child,
-                'students.freedomFighterChild',
-                'students.notFreedomFighterChild',
-              )}
-              {flag(student.is_indigenous, 'students.indigenous', 'students.notIndigenous')}
-            </div>
-          </section>
-
-          <InfoCard title={t('students.previousInstitute', lang)}>
-            <InfoRow label={t('students.previousInstituteName', lang)} value={student.previous_institute} />
-            <InfoRow label={t('students.previousClass', lang)} value={student.previous_class} />
-          </InfoCard>
-
-          <InfoCard title={t('students.siblingInfo', lang)}>
-            <InfoRow label={t('students.siblingDetails', lang)} value={student.sibling_info} />
-          </InfoCard>
-        </ProfileEditor>
-      </div>
+      <StudentProfile id={id} lang={lang} />
 
       {isOwner && (
         <StudentLoginPanel

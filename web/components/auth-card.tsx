@@ -2,6 +2,7 @@
 
 import { LangSwitch } from '@/components/lang-switch'
 import { BrandMark } from '@/components/brand-logo'
+import { PoweredByFooter } from '@/components/powered-by-footer'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { useThemePreference } from '@/lib/use-theme-preference'
 import { t, type Lang } from '@/lib/i18n'
@@ -11,12 +12,15 @@ export function AuthCard({
   lang,
   title,
   brand,
+  illustrated = false,
   children,
 }: {
   lang: Lang
   title: string
   /** When present, render the school's logo + name beside the form (issue #110). */
   brand?: SchoolBrand | null
+  /** Use the school illustration on login and account-claim screens only. */
+  illustrated?: boolean
   children: React.ReactNode
 }) {
   // Every AuthCard caller renders inside a client boundary with no server
@@ -25,6 +29,39 @@ export function AuthCard({
   // via useLang() at each call site (map #370 gate #372's follow-up: the
   // theme control was entirely missing from these pages before).
   const themePreference = useThemePreference()
+
+  if (illustrated) {
+    return (
+      <main className="relative flex min-h-dvh flex-1 items-center justify-center overflow-hidden bg-paper-muted p-3 before:pointer-events-none before:absolute before:inset-[-12px] before:z-0 before:bg-[url('/images/auth-school-background.gif')] before:bg-cover before:bg-[position:38%_center] before:blur-md before:content-[''] sm:p-4 md:justify-end md:px-10 md:before:inset-0 md:before:bg-center md:before:blur-none lg:px-20 xl:px-28">
+        <div className="relative z-10 max-h-[calc(100dvh-1.5rem)] w-full max-w-sm overflow-y-auto rounded-lg border border-white/60 bg-paper/95 p-5 shadow-modal backdrop-blur-[2px] sm:max-h-[calc(100dvh-2rem)] sm:p-6">
+          <div className="mb-6">
+            <div className="flex origin-top-right justify-end gap-2 max-[359px]:-mr-3 max-[359px]:scale-[0.85]">
+              <ThemeSwitch preference={themePreference} lang={lang} />
+              <LangSwitch lang={lang} />
+            </div>
+            <div className="mt-3 flex items-center gap-2">
+              {brand?.logoUrl ? (
+                <span className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-sm border border-line bg-white p-1">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={brand.logoUrl} alt={`${brand.name} logo`} className="size-full object-contain" />
+                </span>
+              ) : (
+                <span className="flex size-9 shrink-0 items-center justify-center rounded-sm bg-brand-500 text-white">
+                  {brand ? <span className="font-bold">{brandInitial(brand.name)}</span> : <BrandMark className="size-5" />}
+                </span>
+              )}
+              <span className="min-w-0 break-words text-base font-extrabold">
+                {brand?.name ?? t('app.name', lang)}
+              </span>
+            </div>
+          </div>
+          <h1 className="mb-4 text-xl font-bold">{title}</h1>
+          {children}
+          <PoweredByFooter className="mt-5 border-t border-line pt-3" />
+        </div>
+      </main>
+    )
+  }
 
   if (brand) {
     return (

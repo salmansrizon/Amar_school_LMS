@@ -1,37 +1,31 @@
-import Form from 'next/form'
-import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
-import { t, type Lang } from '@/lib/i18n'
+import { t, type Lang, formatDate, formatNumber } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { schoolRosterRead, filterSchoolRoster } from '@/lib/school/roster-source'
 import { AttendanceTabs } from '../../attendance-tabs'
+import Form from 'next/form'
 import { RequestLeaveButton, LeaveActions } from '../leave-controls'
+import { LeaveDetail, LeaveStatusPill, leaveStatusChips, leaveStatusLabel } from '../leave-shared'
+import { PageHeader } from '@/components/ui/page'
+import { schoolCrumbs } from '@/lib/school-crumbs'
+import { DataTable, type Column } from '@/components/data-table/data-table'
+import { RecordDrawer } from '@/components/data-table/record-drawer'
+import { ViewLink } from '@/components/data-table/view-link'
+import { paginate, pageSizeFrom, Pager } from '@/components/pager'
+import { leavePage } from '../leave-page'
 import { ClassSectionSelect } from '@/components/ui/class-section-select'
-import { railClass, type Tone } from '@/components/ui/page'
+import { filterButtonClass, inputClass } from '@/components/ui/field'
+import { pageTitle } from '@/lib/page-title'
 
 // Split off the Students half of the old unified Leave Management page (map
 // #664): search is now Class (schoolRoster's own picker) + name/roll text,
 // resolved into a Supabase query scoped to the matched students' ids rather
 // than fetching a flat 200-row cap and filtering in memory — a filter that
 // matches students outside that cap can no longer silently disappear.
-const STATUS_PILL: Record<string, string> = {
-  pending: 'bg-sun-soft text-sun-deep',
-  approved: 'bg-mint-soft text-mint-deep',
-  rejected: 'bg-alert-soft text-alert-deep',
-}
-const STATUS_RAIL: Record<string, Tone> = {
-  pending: 'sun',
-  approved: 'mint',
-  rejected: 'alert',
-}
-const STATUS_KEY: Record<string, 'attendance.leavePending' | 'attendance.leaveApproved' | 'attendance.leaveRejected'> = {
-  pending: 'attendance.leavePending',
-  approved: 'attendance.leaveApproved',
-  rejected: 'attendance.leaveRejected',
-}
+// Map 013: the list is the shared DataTable (status chips, pagination); a
+// row's Details opens a drawer carrying the same approve/reject actions.
 
-const DEFAULT_VIEW_LIMIT = 100
-const FILTERED_VIEW_LIMIT = 500
+const PAGE_SIZE = 20
 
 interface StudentLeaveRow {
   id: string
@@ -40,90 +34,123 @@ interface StudentLeaveRow {
   to_day: string
   reason: string | null
   status: string
+  decision_note?: string | null
+  decided_at?: string | null
 }
+
+export const generateMetadata = pageTitle('attendance.studentLeaveTitle')
 
 export default async function StudentLeaveManagementPage({
   searchParams,
 }: {
-  searchParams: Promise<{ classSection?: string; q?: string; rosterClass?: string; rosterQ?: string }>
+  searchParams: Promise<{ classSection?: string; q?: string; status?: string; page?: string; size?: string; rpage?: string; rsize?: string; view?: string }>
 }) {
-  const { classSection = '', q = '', rosterClass = '', rosterQ = '' } = await searchParams
+  const params = await searchParams
+  const { classSection = '', q = '', status = '', page, size, rpage, rsize, view } = params
+  const pageSize = pageSizeFrom(size, PAGE_SIZE)
   const lang: Lang = await currentLang()
   const { supabase, shiftSelection, startedAcademicYears, academicYearSelection } = await getSchoolContext()
   const showYear = startedAcademicYears.length > 1
 
-  // One roster read, filtered two independent ways (map #668): the "who can I
-  // request leave for" browser below has its own class/search filter
-  // (rosterClass/rosterQ), kept separate from this filter (classSection/q,
-  // which scopes the leave-records table further down) so neither section's
-  // filter resets the other on submit — each Form below carries the other's
-  // current values as hidden fields for exactly that reason. Reading once via
-  // schoolRosterRead and filtering twice avoids paying for the students +
-  // class_offerings round trip a second time just to apply a second filter.
+  // One filter, two views of it: the roster browser ("who can I request leave
+  // for") and the leave-records table below share classSection/q, so searching
+  // a student narrows both and a ?classSection= link from another attendance
+  // page is honoured (audit F19).
   const read = await schoolRosterRead(supabase, { shiftSelection, academicYearSelection })
   const { combos, students: matched } = filterSchoolRoster(read, { classSection, q, showYear })
-  const { students: rosterStudents } = filterSchoolRoster(read, { classSection: rosterClass, q: rosterQ, showYear })
+  const rosterStudents = matched
 
   const filterActive = Boolean(classSection || q)
   const matchedIds = matched.map((s) => s.id)
-  let leaves: StudentLeaveRow[] = []
-  if (filterActive) {
-    if (matchedIds.length) {
-      const { data } = await supabase
-        .from('student_leaves')
-        .select('id, student_id, from_day, to_day, reason, status')
-        .in('student_id', matchedIds)
-        .order('from_day', { ascending: false })
-        .limit(FILTERED_VIEW_LIMIT)
-      leaves = data ?? []
-    }
-  } else {
-    const { data } = await supabase
-      .from('student_leaves')
-      .select('id, student_id, from_day, to_day, reason, status')
-      .order('created_at', { ascending: false })
-      .limit(DEFAULT_VIEW_LIMIT)
-    leaves = data ?? []
-  }
+  const leavesPage = await leavePage<StudentLeaveRow>({
+    supabase,
+    table: 'student_leaves',
+    personCol: 'student_id',
+    ids: filterActive ? matchedIds : null,
+    status,
+    rawPage: page,
+    pageSize,
+    viewId: view,
+  })
+  const leaves = leavesPage.rows
 
   // Looked up by the leave rows' own student_ids, not from `matched` — the
   // roster is also narrowed by the caller's Global Academic Year Selection
   // (schoolRoster/applyGlobalYearFilterToStudents), which would otherwise
   // blank out the name/roll/class of a leave belonging to a student outside
   // the selected year(s) while leaving the row itself fully actionable.
-  const leaveStudentIds = [...new Set(leaves.map((l) => l.student_id))]
+  const leaveStudentIds = [...new Set([...leaves, ...(leavesPage.viewed ? [leavesPage.viewed] : [])].map((l) => l.student_id))]
   const { data: leaveStudents } = leaveStudentIds.length
     ? await supabase.from('students').select('id, full_name, roll_number, class_name, section').in('id', leaveStudentIds)
     : { data: [] }
   const infoById = new Map((leaveStudents ?? []).map((s) => [s.id, s]))
-  const rows = leaves.map((l) => ({ ...l, student: infoById.get(l.student_id) ?? null }))
+  const withStudent = (l: StudentLeaveRow) => ({ ...l, student: infoById.get(l.student_id) ?? null })
+  const rows = leaves.map(withStudent)
+  type Row = (typeof rows)[number]
 
-  const counts = leaves.reduce(
-    (acc, l) => ({ ...acc, [l.status]: (acc[l.status] ?? 0) + 1 }),
-    {} as Record<string, number>,
-  )
+  // Two tables on this page, two independent pagers: the roster (rpage/rsize)
+  // is already in memory for the filter; the records page (page/size) is
+  // paged by the database.
+  const rosterSize = pageSizeFrom(rsize, PAGE_SIZE)
+  const rosterPage = paginate(rosterStudents, rpage, rosterSize)
+  const viewed = leavesPage.viewed ? withStudent(leavesPage.viewed) : undefined
+
+  const dash = <span className="text-muted">—</span>
+  const classOf = (s: Row['student']) => (s?.class_name ? `${s.class_name}${s.section ? ` / ${s.section}` : ''}` : null)
+
+  const columns: Column<Row>[] = [
+    { key: 'roll', header: t('attendance.rollCol', lang), cell: (l) => l.student?.roll_number != null ? formatNumber(l.student?.roll_number, lang) : dash },
+    {
+      key: 'name',
+      header: t('attendance.leaveName', lang),
+      card: 'title',
+      cell: (l) => <span className="font-semibold">{l.student?.full_name ?? '—'}</span>,
+    },
+    { key: 'class', header: t('attendance.classSection', lang), cell: (l) => classOf(l.student) ?? dash },
+    { key: 'from', header: t('attendance.leaveFromCol', lang), cell: (l) => formatDate(l.from_day, lang) },
+    { key: 'to', header: t('attendance.leaveToCol', lang), cell: (l) => formatDate(l.to_day, lang) },
+    {
+      key: 'reason',
+      header: t('attendance.leaveReasonCol', lang),
+      cell: (l) => (
+        <>
+          {l.reason ? <span className="line-clamp-2">{l.reason}</span> : dash}
+          {l.decision_note && (
+            <span className="line-clamp-2 text-xs text-alert-deep">
+              {t('attendance.leaveRejectReason', lang)}: {l.decision_note}
+            </span>
+          )}
+        </>
+      ),
+    },
+    {
+      key: 'status',
+      header: t('attendance.leaveStatusCol', lang),
+      card: 'badge',
+      cell: (l) => <LeaveStatusPill status={l.status} lang={lang} />,
+    },
+  ]
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-extrabold">{t('attendance.studentLeaveTitle', lang)}</h1>
-        <Link href="/school" aria-label={t('common.back', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
-      </div>
+      <PageHeader
+        icon="attendance"
+        title={t('attendance.studentLeaveTitle', lang)}
+        crumbs={schoolCrumbs('/school/attendance', lang, { label: t('attendance.title', lang), href: '/school/attendance' }, { label: t('attendance.studentLeaveTitle', lang) })}
+      />
 
       <AttendanceTabs active="/school/attendance/leave/student" lang={lang} />
 
-      <section className="mb-6 rounded-lg border border-line bg-paper p-5">
+      <section className="mb-grid rounded-2xl border border-line bg-paper p-card">
         <h3 className="mb-3 font-bold">{t('attendance.leaveRequestTitle', lang)}</h3>
         <Form className="mb-4 flex flex-wrap items-end gap-2" action="/school/attendance/leave/student">
-          {/* Preserves the leave-records filter below across this form's own submit. */}
-          <input type="hidden" name="classSection" value={classSection} />
-          <input type="hidden" name="q" value={q} />
+          {/* Same params as the records table's own bar, so the two never disagree. */}
+          {status && <input type="hidden" name="status" value={status} />}
           <div>
             <label className="mb-1 block text-xs font-semibold text-muted">{t('attendance.classSection', lang)}</label>
             <ClassSectionSelect
               combos={combos}
-              value={rosterClass}
-              name="rosterClass"
+              value={classSection}
               ariaLabel={t('attendance.classSection', lang)}
               allLabel={t('attendance.allClasses', lang)}
             />
@@ -131,15 +158,16 @@ export default async function StudentLeaveManagementPage({
           <div>
             <label className="mb-1 block text-xs font-semibold text-muted">{t('attendance.leaveSearchStudent', lang)}</label>
             <input
-              name="rosterQ"
-              defaultValue={rosterQ}
+              name="q"
+              defaultValue={q}
+              aria-label={t('attendance.leaveSearchStudent', lang)}
               placeholder={t('attendance.leaveSearchStudent', lang)}
-              className="w-64 rounded-md border border-line bg-paper px-3 py-1.5 text-sm"
+              className={`${inputClass()} w-64`}
             />
           </div>
           <button
             type="submit"
-            className="h-9 cursor-pointer rounded-full border border-line px-3 py-1 text-xs font-semibold hover:bg-paper-muted"
+            className={filterButtonClass()}
           >
             {t('classes.filter', lang)}
           </button>
@@ -158,9 +186,9 @@ export default async function StudentLeaveManagementPage({
                 </tr>
               </thead>
               <tbody>
-                {rosterStudents.map((s) => (
+                {rosterPage.items.map((s) => (
                   <tr key={s.id} className="border-b border-line last:border-0">
-                    <td className="px-3 py-2 text-sm">{s.roll_number ?? '—'}</td>
+                    <td className="px-3 py-2 text-sm">{s.roll_number != null ? formatNumber(s.roll_number, lang) : '—'}</td>
                     <td className="px-3 py-2 text-sm font-medium">{s.full_name}</td>
                     <td className="px-3 py-2 text-sm">
                       {s.class_name ?? '—'}
@@ -175,97 +203,63 @@ export default async function StudentLeaveManagementPage({
             </table>
           </div>
         )}
-      </section>
-
-      <Form className="mb-4 flex flex-wrap items-end gap-2 rounded-lg border border-line bg-paper p-5" action="/school/attendance/leave/student">
-        {/* Preserves the roster-browser filter above across this form's own submit. */}
-        <input type="hidden" name="rosterClass" value={rosterClass} />
-        <input type="hidden" name="rosterQ" value={rosterQ} />
-        <div>
-          <label className="mb-1 block text-xs font-semibold text-muted">{t('attendance.classSection', lang)}</label>
-          <ClassSectionSelect
-            combos={combos}
-            value={classSection}
-            ariaLabel={t('attendance.classSection', lang)}
-            allLabel={t('attendance.allClasses', lang)}
+        {rosterStudents.length > 0 && (
+          <Pager
+            page={rosterPage.page}
+            totalPages={rosterPage.totalPages}
+            total={rosterPage.total}
+            lang={lang}
+            params={params}
+            pageSize={rosterSize}
+            pageParam="rpage"
+            sizeParam="rsize"
           />
-        </div>
-        <div>
-          <label className="mb-1 block text-xs font-semibold text-muted">{t('attendance.leaveSearchStudent', lang)}</label>
-          <input
-            name="q"
-            defaultValue={q}
-            placeholder={t('attendance.leaveSearchStudent', lang)}
-            className="w-64 rounded-md border border-line bg-paper px-3 py-1.5 text-sm"
-          />
-        </div>
-        <button
-          type="submit"
-          className="h-9 cursor-pointer rounded-full border border-line px-3 py-1 text-xs font-semibold hover:bg-paper-muted"
-        >
-          {t('classes.filter', lang)}
-        </button>
-      </Form>
-
-      {leaves.length > 0 && (
-        <div className="mb-4 flex flex-wrap items-center gap-2">
-          <span className="text-xs font-semibold uppercase tracking-wide text-muted">
-            {t('attendance.leaveStatusSummary', lang)}:
-          </span>
-          {(['pending', 'approved', 'rejected'] as const).map(
-            (status) =>
-              counts[status] > 0 && (
-                <span key={status} className={`rounded-full px-3 py-1 text-xs font-semibold ${STATUS_PILL[status]}`}>
-                  {t(STATUS_KEY[status], lang)}: {counts[status]}
-                </span>
-              ),
-          )}
-        </div>
-      )}
-
-      <section className="rounded-lg border border-line bg-paper p-5">
-        {!rows.length ? (
-          <p className="text-sm text-muted">{t('attendance.none', lang)}</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="border-b border-line-strong">
-                  <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">{t('attendance.rollCol', lang)}</th>
-                  <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">{t('attendance.leaveName', lang)}</th>
-                  <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">{t('attendance.classSection', lang)}</th>
-                  <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">{t('attendance.leaveFromCol', lang)}</th>
-                  <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">{t('attendance.leaveToCol', lang)}</th>
-                  <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">{t('attendance.leaveReasonCol', lang)}</th>
-                  <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">{t('attendance.leaveStatusCol', lang)}</th>
-                  <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted" />
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((l) => (
-                  <tr key={l.id} className="border-b border-line">
-                    <td className={`px-3 py-2 text-sm ${railClass(STATUS_RAIL[l.status])}`}>{l.student?.roll_number ?? '—'}</td>
-                    <td className="px-3 py-2 text-sm font-medium">{l.student?.full_name ?? '—'}</td>
-                    <td className="px-3 py-2 text-sm">
-                      {l.student?.class_name ?? '—'}
-                      {l.student?.section ? ` / ${l.student.section}` : ''}
-                    </td>
-                    <td className="px-3 py-2 text-sm">{l.from_day}</td>
-                    <td className="px-3 py-2 text-sm">{l.to_day}</td>
-                    <td className="px-3 py-2 text-sm">{l.reason ?? <span className="text-muted">—</span>}</td>
-                    <td className="px-3 py-2 text-sm">
-                      <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${STATUS_PILL[l.status]}`}>
-                        {t(STATUS_KEY[l.status], lang)}
-                      </span>
-                    </td>
-                    <td className="px-3 py-2 text-sm">{l.status === 'pending' && <LeaveActions kind="student" id={l.id} lang={lang} />}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
         )}
       </section>
+
+      <DataTable
+        rows={rows}
+        rowId={(l) => l.id}
+        rowLabel={(l) => l.student?.full_name ?? '—'}
+        columns={columns}
+        lang={lang}
+        params={params}
+        caption={t('attendance.studentLeaveTitle', lang)}
+        search={{ placeholder: t('attendance.leaveSearchStudent', lang) }}
+        filters={[{ param: 'classSection', label: t('attendance.classSection', lang), options: combos }]}
+        chips={leaveStatusChips(leavesPage.statusCounts, lang)}
+        rowActions={(l) => (
+          <>
+            {l.status === 'pending' && <LeaveActions kind="student" id={l.id} lang={lang} />}
+            <ViewLink id={l.id} params={params} label={t('attendance.leaveDetails', lang)} name={l.student?.full_name ?? '—'} />
+          </>
+        )}
+        pagination={{ page: leavesPage.page, totalPages: leavesPage.totalPages, total: leavesPage.total, pageSize }}
+        empty={<p className="rounded-2xl border border-line bg-paper p-card text-sm text-muted">{t('attendance.none', lang)}</p>}
+      />
+
+      <RecordDrawer
+        open={Boolean(viewed)}
+        title={viewed?.student?.full_name ?? '—'}
+        subtitle={viewed ? leaveStatusLabel(viewed.status, lang) : undefined}
+        fullPageLabel=""
+        closeLabel={t('common.close', lang)}
+      >
+        {viewed && (
+          <LeaveDetail
+            kind="student"
+            leave={viewed}
+            facts={[
+              {
+                label: t('attendance.rollCol', lang),
+                value: viewed.student?.roll_number != null ? formatNumber(viewed.student.roll_number, lang) : '—',
+              },
+              { label: t('attendance.classSection', lang), value: classOf(viewed.student) ?? '—' },
+            ]}
+            lang={lang}
+          />
+        )}
+      </RecordDrawer>
     </div>
   )
 }

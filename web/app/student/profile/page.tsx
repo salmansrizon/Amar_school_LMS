@@ -1,11 +1,14 @@
 import { currentLang } from '@/lib/i18n-server'
-import { t, type MessageKey } from '@/lib/i18n'
+import { t, formatDate, formatNumber, type MessageKey } from '@/lib/i18n'
+import { Droplet, GraduationCap, Hash, IdCard, Landmark, Link2, MapPin, Phone, User, Users } from 'lucide-react'
+import { Card, PageHeader } from '@/components/ui/page'
+import { ProfileAside, ProfileField, ProfileSection } from '@/components/ui/profile'
 import { storedFieldLabel } from '@/lib/students/stored-labels'
 import { getStudentContext, isReadOnly } from '@/lib/student/context'
 import { sortRequests, isPhotoRequest, type CorrectionRequest } from '@/lib/student/corrections'
 import { classSectionLabel } from '@/lib/students'
 import { CorrectionForm } from './correction-form'
-import { pageTitle } from '@/lib/student/metadata'
+import { pageTitle } from '@/lib/page-title'
 
 // The Student's own profile (#456): strictly read-only, with a way to ask.
 //
@@ -53,77 +56,84 @@ export default async function StudentProfilePage() {
     Object.entries(FIELD_LABELS).map(([field, key]) => [field, t(key, lang)]),
   )
 
-  const rows: [string, string | null][] = [
-    ['students.name', ctx.student.full_name],
-    ['students.studentNo', ctx.student.student_no],
-    ['students.classSection', classSectionLabel(ctx.student.class_name, ctx.student.section)],
-    ['students.roll', ctx.student.roll_number !== null ? String(ctx.student.roll_number) : null],
-    ...Object.entries(FIELD_LABELS)
-      .filter(([field]) => field !== 'photo_path')
-      // Stored values are rendered as stored, except where the value is a
-      // vocabulary rather than the guardian's own words: `father` in the middle
-      // of a Bangla page is the child reading a column name (#539).
-      // Dispatched by field name rather than special-casing one column: this list
-      // is generic, so the next vocabulary added to stored-labels is covered here
-      // without touching this file.
-      .map(([field, key]) => [key, storedFieldLabel(field, record[field], lang)] as [string, string | null]),
-  ]
-
-  const locale = lang === 'bn' ? 'bn-BD' : 'en-GB'
+  const field = (f: string) => storedFieldLabel(f, record[f], lang) || null
+  const classSection = classSectionLabel(ctx.student.class_name, ctx.student.section)
+  // Roll is a number (Bangla digits in Bangla, as on the home); the student
+  // number is an identifier and stays as issued.
+  const roll = ctx.student.roll_number !== null ? formatNumber(ctx.student.roll_number, lang) : null
 
   return (
-    <main className="w-full max-w-3xl p-6">
-      <h1 className="mb-1 text-2xl font-extrabold">{t('student.profileTitle', lang)}</h1>
-      <p className="mb-4 text-sm text-muted">{t('student.profileReadOnly', lang)}</p>
+    <main className="w-full px-gutter pt-section pb-16">
+      <PageHeader
+        icon="profile"
+        title={t('student.profileTitle', lang)}
+        crumbs={{ lang, items: [{ label: t('student.nav.home', lang), href: '/student' }, { label: t('student.profileTitle', lang) }] }}
+        subtitle={t('student.profileReadOnly', lang)}
+      />
 
-      <section className="mb-6 rounded-lg border border-line bg-paper p-5">
-        {/* Their own face, which the profile never showed — while offering a
-            correction request for it. /api/student/photo is the Student-guarded
-            route the admit card already uses; it 404s when no photo is on file,
-            so a missing one degrades to the placeholder. */}
-        <div className="mb-4 flex items-center gap-4">
-          {record.photo_path ? (
-            // eslint-disable-next-line @next/next/no-img-element -- private object behind a signed-URL redirect, not an optimizable asset
-            <img
-              src="/api/student/photo"
-              alt={t('student.myPhoto', lang)}
-              className="size-20 rounded-lg border border-line object-cover"
-            />
-          ) : (
-            <span className="flex size-20 items-center justify-center rounded-lg border border-dashed border-line-strong text-xs text-muted">
-              {t('student.myPhoto', lang)}
-            </span>
-          )}
-          <span>
-            <span className="block text-lg font-bold">{ctx.student.full_name}</span>
-            <span className="block text-sm text-muted">{ctx.student.student_no}</span>
-          </span>
+      <div className="@container mb-section">
+        <div className="grid gap-4 @lg:grid-cols-[13rem_1fr]">
+          <ProfileAside
+            photo={
+              // Their own face, which the profile never showed — while offering a
+              // correction request for it. /api/student/photo is the Student-guarded
+              // route the admit card already uses; it 404s when no photo is on file,
+              // so a missing one degrades to the placeholder.
+              record.photo_path ? (
+                // eslint-disable-next-line @next/next/no-img-element -- private object behind a signed-URL redirect, not an optimizable asset
+                <img
+                  src="/api/student/photo"
+                  alt={t('student.myPhoto', lang)}
+                  className="mx-auto size-32 rounded-lg border border-line object-cover"
+                />
+              ) : (
+                <span className="mx-auto flex size-32 items-center justify-center rounded-lg border border-dashed border-line-strong text-xs text-muted">
+                  {t('student.myPhoto', lang)}
+                </span>
+              )
+            }
+            facts={
+              <>
+                <ProfileField icon={User} label={t('students.name', lang)} value={ctx.student.full_name} />
+                <ProfileField icon={GraduationCap} label={t('students.classSection', lang)} value={classSection || null} />
+                <ProfileField icon={Hash} label={t('students.roll', lang)} value={roll} />
+              </>
+            }
+            highlight={<ProfileField icon={IdCard} label={t('students.studentNo', lang)} value={ctx.student.student_no} />}
+          />
+
+          <div>
+            <ProfileSection icon={User} title={t('students.identity', lang)} cols={2}>
+              <ProfileField icon={Phone} label={t('students.studentMobile', lang)} value={field('student_mobile')} />
+              <ProfileField icon={Droplet} label={t('students.bloodGroup', lang)} value={field('blood_group')} />
+              <ProfileField icon={Landmark} label={t('students.religion', lang)} value={field('religion')} />
+              <ProfileField icon={MapPin} label={t('students.address', lang)} value={field('address')} />
+            </ProfileSection>
+            <ProfileSection icon={Users} title={t('students.guardianInfo', lang)} cols={2}>
+              <ProfileField icon={Users} label={t('students.guardianName', lang)} value={field('guardian_name')} />
+              <ProfileField icon={Link2} label={t('students.relation', lang)} value={field('guardian_relation')} />
+              <ProfileField icon={Phone} label={t('students.guardianMobile', lang)} value={field('guardian_mobile')} />
+            </ProfileSection>
+          </div>
         </div>
+      </div>
 
-        <dl className="grid gap-3 sm:grid-cols-2">
-          {rows.map(([key, value]) => (
-            <div key={key}>
-              <dt className="text-xs font-semibold text-muted">{t(key as MessageKey, lang)}</dt>
-              <dd className="text-sm">{value || <span className="text-muted">—</span>}</dd>
-            </div>
-          ))}
-        </dl>
-      </section>
-
+      <div className="grid gap-grid lg:grid-cols-2">
       {!isReadOnly(ctx) && (
-        <section className="mb-6 rounded-lg border border-line bg-paper p-5">
+        <Card>
           <h2 className="mb-3 font-bold">{t('student.requestCorrection', lang)}</h2>
           <CorrectionForm lang={lang} current={record} labels={labels} />
-        </section>
+        </Card>
       )}
 
-      <h2 className="mb-2 font-bold">{t('student.myRequests', lang)}</h2>
+      <Card padded={false} className="self-start">
+      <h2 className="p-card pb-2 font-bold">{t('student.myRequests', lang)}</h2>
       {!requests?.length ? (
-        <p className="rounded-lg border border-line bg-paper p-6 text-sm text-muted">
+        <p className="p-card pt-0 text-sm text-muted">
           {t('student.noRequests', lang)}
         </p>
       ) : (
-        <ul className="divide-y divide-line rounded-lg border border-line bg-paper">
+        <ul className="divide-y divide-line border-t border-line">
           {sortRequests(requests as CorrectionRequest[]).map((r) => (
             <li key={r.id} className="flex flex-wrap items-start justify-between gap-2 p-4">
               <span className="min-w-0">
@@ -134,7 +144,7 @@ export default async function StudentProfilePage() {
                   )}
                 </span>
                 <span className="block text-xs text-muted">
-                  {new Date(r.created_at).toLocaleDateString(locale, { day: 'numeric', month: 'short' })}
+                  {formatDate(r.created_at, lang)}
                 </span>
                 {r.reject_reason && (
                   <span className="mt-1 block text-xs text-alert-deep">{r.reject_reason}</span>
@@ -147,6 +157,8 @@ export default async function StudentProfilePage() {
           ))}
         </ul>
       )}
+      </Card>
+      </div>
     </main>
   )
 }

@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useTransition } from 'react'
 import { t, type Lang } from '@/lib/i18n'
-import { selectClass } from '@/components/ui/field'
+import { ComboboxField } from '@/components/ui/combobox-field'
 import { countSmsSegments } from '@/lib/sms/segments'
 import {
   schoolsUnderLocation,
@@ -50,15 +50,14 @@ export function SmsComposer({
     <div className="flex flex-col gap-4">
       <div>
         <label className="mb-1 block text-xs font-semibold text-muted">{t('sa.sms.location', lang)}</label>
-        <select value={locationId} onChange={(e) => setLocationId(e.target.value)} className={selectClass({ fullWidth: true })}>
-          <option value="">{t('sa.sms.allLocations', lang)}</option>
-          {locationOptions.map((o) => (
-            <option key={o.id} value={o.id}>
-              {' '.repeat(o.depth * 2)}
-              {o.label}
-            </option>
-          ))}
-        </select>
+        <ComboboxField
+          value={locationId}
+          onValueChange={setLocationId}
+          options={[
+            { value: '', label: t('sa.sms.allLocations', lang) },
+            ...locationOptions.map((o) => ({ value: o.id, label: `${' '.repeat(o.depth * 2)}${o.label}` })),
+          ]}
+        />
       </div>
 
       <div>

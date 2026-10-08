@@ -8,3 +8,8 @@ export function avatarInitials(name: string): string {
   if (parts.length === 0) return 'A'
   return (parts[0][0] + (parts[1]?.[0] ?? '')).toUpperCase()
 }
+
+/** Longest student/employee name the forms accept. The column is unbounded
+ *  text, so this is only a UI guard against one absurd value wrecking a profile
+ *  header or printed card. */
+export const PERSON_NAME_MAX = 100

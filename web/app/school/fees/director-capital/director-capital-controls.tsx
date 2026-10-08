@@ -4,9 +4,10 @@ import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
 import { insufficientBalance } from '@/lib/accounting'
-import { t, type Lang } from '@/lib/i18n'
+import { t, formatMoney, type Lang } from '@/lib/i18n'
 import { recordDirectorCapitalTransaction } from './actions'
 import { dateInputClass } from '@/components/ui/field'
+import { DateField } from '@/components/ui/date-field'
 
 /** Invest/Withdraw panel, opened from the "+ Invest"/"+ Withdraw" toolbar
  *  buttons (ui/school-owner/director-capital.html). Confirm is disabled
@@ -35,7 +36,7 @@ export function TransactionForm({
         {t(action === 'withdraw' ? 'directorCapital.withdrawTitle' : 'directorCapital.investTitle', lang)}
       </h3>
       <p className="mb-4 text-sm text-muted">
-        {t('directorCapital.currentBalance', lang)}: ৳{balance.toLocaleString()}
+        {t('directorCapital.currentBalance', lang)}: {formatMoney(balance, lang)}
       </p>
       <form
         className="grid gap-3 sm:grid-cols-2"
@@ -78,7 +79,7 @@ export function TransactionForm({
           <label className={labelClass} htmlFor="txn_date">
             {t('directorCapital.date', lang)}
           </label>
-          <input id="txn_date" name="txn_date" type="date" defaultValue={today} className={dateInputClass({ size: 'md', fullWidth: true })} />
+          <DateField lang={lang} id="txn_date" name="txn_date" defaultValue={today} className={dateInputClass({ size: 'md', fullWidth: true })} />
         </div>
         <div className="sm:col-span-2">
           <label className={labelClass} htmlFor="note">

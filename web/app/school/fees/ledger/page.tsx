@@ -1,16 +1,22 @@
 import Form from 'next/form'
-import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
-import { t, type Lang } from '@/lib/i18n'
+import { t, formatMoney, type Lang, formatDate, localeOf } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
-import { buildGeneralLedger, type LedgerSource, type LedgerSourceRow } from '@/lib/accounting'
-import { PrintPage, InstituteHeader, PaginatedSheet, QrFooterRow } from '@/components/print/pieces'
+import { feePeriodLabel } from '@/lib/fees'
+import { buildGeneralLedger, feeLedgerRows, type LedgerSource, type LedgerSourceRow } from '@/lib/accounting'
+import { feeColumns, feeSelect } from '@/lib/fee-columns'
+import { PrintPage, InstituteHeader, PaginatedSheet } from '@/components/print/pieces'
 import { PrintButton } from '@/components/print/print-button'
 import { AccountingTabs } from '../accounting-tabs'
 import { loadInstitutePrintHeader } from '@/lib/institute-print'
-import { dateInputClass } from '@/components/ui/field'
+import { dateInputClass, filterButtonClass } from '@/components/ui/field'
 import { selectAllRows } from '@/lib/supabase/select-all'
+import { PageHeader } from '@/components/ui/page'
+import { schoolCrumbs } from '@/lib/school-crumbs'
+import { pageTitle } from '@/lib/page-title'
+import { PrintVerifyFooter } from '@/components/print/verify-footer'
+import { DateField } from '@/components/ui/date-field'
 
 // Layout per ui/school-owner/general-ledger.html: a date-range toolbar over a
 // Date | Source | Description | Debit | Credit | Balance table, combining
@@ -46,12 +52,25 @@ const SOURCE_BADGE: Record<LedgerSource, string> = {
   director_capital: 'bg-sky-soft text-sky-deep',
 }
 
+type LedgerFeeRecord = {
+  id: string
+  month: number
+  year: number
+  pay_amount: number
+  updated_at: string
+  /** Migration 0231 (#683); absent before it. */
+  void_at?: string | null
+  students: { full_name: string } | null
+}
+
 function monthBounds(): { from: string; to: string } {
   const now = new Date()
   const first = new Date(now.getFullYear(), now.getMonth(), 1)
   const last = new Date(now.getFullYear(), now.getMonth() + 1, 0)
   return { from: first.toISOString().slice(0, 10), to: last.toISOString().slice(0, 10) }
 }
+
+export const generateMetadata = pageTitle('ledger.title')
 
 export default async function GeneralLedgerPage({
   searchParams,
@@ -66,6 +85,8 @@ export default async function GeneralLedgerPage({
   const institute = await loadInstitutePrintHeader(supabase, lang)
   if (!institute) notFound()
 
+  // 0231 (#683): a voided record also carries the day it was voided.
+  const feeCols = { ...(await feeColumns(supabase)), feeAmount: false }
   const [{ data: feeRecords }, { data: vouchers }, { data: assets }, { data: bankTxns }, { data: directorTxns }] =
     await Promise.all([
       // All five are all-time reads folded into one income/expense statement
@@ -74,9 +95,9 @@ export default async function GeneralLedgerPage({
       selectAllRows((from, to) =>
         supabase
           .from('fee_collection_records')
-          .select('id, month, year, pay_amount, updated_at, students(full_name)')
+          .select(feeSelect('id, month, year, pay_amount, updated_at, students(full_name)', feeCols))
           .range(from, to),
-      ).then(({ rows }) => ({ data: rows })),
+      ).then(({ rows }) => ({ data: rows as unknown as LedgerFeeRecord[] })),
       selectAllRows((from, to) =>
         supabase
           .from('vouchers')
@@ -103,15 +124,13 @@ export default async function GeneralLedgerPage({
   const rows: LedgerSourceRow[] = []
 
   for (const r of feeRecords ?? []) {
-    const student = r.students as unknown as { full_name: string } | null
-    rows.push({
-      date: new Date(r.updated_at).toISOString().slice(0, 10),
-      sortKey: r.updated_at,
-      source: 'fee_collection',
-      description: `${student?.full_name ?? '—'} — ${r.month}/${r.year}`,
-      debit: 0,
-      credit: Number(r.pay_amount),
-    })
+    rows.push(
+      ...feeLedgerRows(
+        { pay_amount: Number(r.pay_amount), updated_at: r.updated_at, void_at: r.void_at },
+        `${r.students?.full_name ?? '—'} — ${feePeriodLabel(r.month, r.year, localeOf(lang))}`,
+        t('fees.voided', lang),
+      ),
+    )
   }
 
   for (const v of vouchers ?? []) {
@@ -165,13 +184,14 @@ export default async function GeneralLedgerPage({
   }
 
   const entries = buildGeneralLedger(rows, from, to)
-  const locale = lang === 'bn' ? 'bn-BD' : 'en-GB'
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between print:hidden">
-        <h1 className="text-2xl font-extrabold">{t('ledger.title', lang)}</h1>
-        <Link href="/school" aria-label={t('common.back', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
+      <div className="print:hidden">
+        <PageHeader
+          title={t('ledger.title', lang)}
+          crumbs={schoolCrumbs('/school/fees', lang, { label: t('fees.title', lang), href: '/school/fees' }, { label: t('ledger.title', lang) })}
+        />
       </div>
 
       <div className="print:hidden">
@@ -179,12 +199,12 @@ export default async function GeneralLedgerPage({
       </div>
 
       <Form className="mb-4 flex flex-wrap items-center gap-2 print:hidden" action="/school/fees/ledger">
-        <label className="text-xs text-muted">{t('ledger.dateRange', lang)}</label>
-        <input name="from" type="date" defaultValue={from} className={dateInputClass()} />
-        <input name="to" type="date" defaultValue={to} className={dateInputClass()} />
+        <label htmlFor="ledger_from" className="text-xs text-muted">{t('ledger.dateRange', lang)}</label>
+        <DateField lang={lang} id="ledger_from" name="from" defaultValue={from} className={dateInputClass()} />
+        <DateField lang={lang} aria-label={t('ledger.dateRange', lang)} name="to" defaultValue={to} className={dateInputClass()} />
         <button
           type="submit"
-          className="cursor-pointer rounded-full border border-line px-3 py-1 text-xs font-semibold hover:bg-paper-muted"
+          className={filterButtonClass()}
         >
           {t('ledger.apply', lang)}
         </button>
@@ -199,7 +219,7 @@ export default async function GeneralLedgerPage({
             <>
               <InstituteHeader institute={institute ?? undefined} docTitle={t('ledger.title', lang)} />
               <p className="mb-2 text-center text-xs text-muted">
-                {new Date(from).toLocaleDateString(locale)} – {new Date(to).toLocaleDateString(locale)}
+                {formatDate(from, lang)} – {formatDate(to, lang)}
               </p>
             </>
           }
@@ -223,16 +243,16 @@ export default async function GeneralLedgerPage({
             <tbody>
               {entries.map((e, idx) => (
                 <tr key={idx} className="border-b border-line">
-                  <td className={tdClass}>{new Date(e.date).toLocaleDateString(locale)}</td>
+                  <td className={tdClass}>{formatDate(e.date, lang)}</td>
                   <td className={tdClass}>
                     <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${SOURCE_BADGE[e.source]}`}>
                       {t(SOURCE_LABEL[e.source] as 'ledger.sourceVoucher', lang)}
                     </span>
                   </td>
                   <td className={tdClass}>{e.description}</td>
-                  <td className={tdClass}>{e.debit ? `৳${e.debit.toLocaleString()}` : '—'}</td>
-                  <td className={tdClass}>{e.credit ? `৳${e.credit.toLocaleString()}` : '—'}</td>
-                  <td className={`${tdClass} font-medium`}>৳{e.balance.toLocaleString()}</td>
+                  <td className={tdClass}>{e.debit ? formatMoney(e.debit, lang) : '—'}</td>
+                  <td className={tdClass}>{e.credit ? formatMoney(e.credit, lang) : '—'}</td>
+                  <td className={`${tdClass} font-medium`}>{formatMoney(e.balance, lang)}</td>
                 </tr>
               ))}
             </tbody>
@@ -240,7 +260,7 @@ export default async function GeneralLedgerPage({
           </div>
         )}
 
-        <QrFooterRow qrLabel={t('print.qr', lang)} poweredBy={t('print.poweredBy', lang)} />
+        <PrintVerifyFooter lang={lang} kind="general_ledger" />
         </PaginatedSheet>
       </PrintPage>
     </div>

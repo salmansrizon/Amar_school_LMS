@@ -1,111 +1,164 @@
-import Form from 'next/form'
-import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
-import { t, type Lang } from '@/lib/i18n'
+import { t, numberFmt, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
-import { matchesStudentQuery } from '@/lib/students'
+import { navGroupFor } from '@/lib/school-nav'
+import { matchesStudentQuery, type StudentListRow } from '@/lib/students'
+import { selectAllRows } from '@/lib/supabase/select-all'
+import { PageHeader } from '@/components/ui/page'
+import { EmptyState } from '@/components/ui/states'
+import { paginate, pageSizeFrom } from '@/components/pager'
+import { EntityAvatar } from '@/components/entity-avatar'
+import { DataTable, Pill, type Column } from '@/components/data-table/data-table'
+import { RecordDrawer } from '@/components/data-table/record-drawer'
+import { ViewLink } from '@/components/data-table/view-link'
+import { getStudent, StudentProfile } from '../[id]/student-profile'
 import { RestoreButton } from './restore-button'
+import { pageTitle } from '@/lib/page-title'
 
-// Layout per ui/school-owner/students-archive.html: search + table Roll |
-// Name | Last Class/Section | Guardian | Archived On | Status | actions
-// (View, Restore). Soft-archive only — rows stay for history/reports.
+// Old students (soft-archived) — DataTable + the same record drawer the active
+// directory uses (map 013, S1). Search and Restore are the only existing
+// features; class/fee filters live on the active list, not here. Rows stay for
+// history/reports — restore just clears archived_at, same RPC as before.
 
-const thClass = 'px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted'
-const tdClass = 'px-3 py-2 text-sm'
+const PAGE_SIZE = 20
+
+export const generateMetadata = pageTitle('students.archiveTitle')
 
 export default async function StudentsArchivePage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string }>
+  searchParams: Promise<{ q?: string; page?: string; size?: string; view?: string }>
 }) {
-  const { q = '' } = await searchParams
+  const params = await searchParams
+  const { q = '', page, size, view } = params
+  const pageSize = pageSizeFrom(size, PAGE_SIZE)
   const lang: Lang = await currentLang()
   const { supabase } = await getSchoolContext()
 
-  const { data: students } = await supabase
-    .from('students')
-    .select('id, full_name, roll_number, class_name, section, guardian_name, archived_at')
-    .not('archived_at', 'is', null)
-    .order('archived_at', { ascending: false })
+  const [{ rows: students }, viewed] = await Promise.all([
+    selectAllRows((from, to) =>
+      supabase
+        .from('students')
+        .select('id, full_name, roll_number, class_name, section, guardian_name, archived_at')
+        .not('archived_at', 'is', null)
+        .order('archived_at', { ascending: false })
+        .range(from, to),
+    ),
+    view ? getStudent(view) : Promise.resolve(null),
+  ])
 
-  const visible = (students ?? []).filter((s) => matchesStudentQuery(s, q))
-  const locale = lang === 'bn' ? 'bn-BD' : 'en-GB'
+  const visible = students.filter((s) => matchesStudentQuery(s, q))
+  const pageData = paginate(visible, page, pageSize)
+  const fmt = numberFmt(lang)
+  const dateFmt = new Intl.DateTimeFormat(lang === 'bn' ? 'bn-BD' : 'en-GB', {
+    dateStyle: 'medium',
+    timeZone: 'Asia/Dhaka',
+  })
+  const group = navGroupFor('/school/students/archive')?.group
   const dash = <span className="text-muted">—</span>
 
-  return (
-    <div>
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-extrabold">{t('students.archiveTitle', lang)}</h1>
-        <Link href="/school/students" aria-label={t('students.activeList', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
-      </div>
-
-      <Form className="mb-4 flex items-center gap-2" action="/school/students/archive">
-        <input
-          name="q"
-          defaultValue={q}
-          placeholder={t('students.archiveSearch', lang)}
-          className="w-64 rounded-md border border-line bg-paper px-3 py-1.5 text-sm"
-        />
-        <button
-          type="submit"
-          className="cursor-pointer rounded-full border border-line px-3 py-1 text-xs font-semibold hover:bg-paper-muted"
-        >
-          {t('classes.filter', lang)}
-        </button>
-      </Form>
-
-      <section className="rounded-lg border border-line bg-paper p-5">
-        {!visible.length ? (
-          <p className="text-sm text-muted">{t('students.noArchived', lang)}</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="border-b border-line-strong">
-                  <th className={thClass}>{t('students.roll', lang)}</th>
-                  <th className={thClass}>{t('students.name', lang)}</th>
-                  <th className={thClass}>{t('students.lastClassSection', lang)}</th>
-                  <th className={thClass}>{t('students.guardian', lang)}</th>
-                  <th className={thClass}>{t('students.archivedOn', lang)}</th>
-                  <th className={thClass}>{t('students.status', lang)}</th>
-                  <th className={thClass} />
-                </tr>
-              </thead>
-              <tbody>
-                {visible.map((s) => (
-                  <tr key={s.id} className="border-b border-line">
-                    <td className={tdClass}>{s.roll_number ?? dash}</td>
-                    <td className={`${tdClass} font-medium`}>{s.full_name}</td>
-                    <td className={tdClass}>
-                      {[s.class_name, s.section].filter(Boolean).join(' / ') || dash}
-                    </td>
-                    <td className={tdClass}>{s.guardian_name ?? dash}</td>
-                    <td className={tdClass}>
-                      {s.archived_at ? new Date(s.archived_at).toLocaleDateString(locale) : dash}
-                    </td>
-                    <td className={tdClass}>
-                      <span className="rounded-full bg-paper-muted px-2 py-0.5 text-xs font-semibold text-muted">
-                        {t('students.oldStudent', lang)}
-                      </span>
-                    </td>
-                    <td className={tdClass}>
-                      <div className="flex items-center gap-2">
-                        <Link
-                          href={`/school/students/${s.id}`}
-                          className="text-brand-600 hover:underline"
-                        >
-                          {t('students.view', lang)}
-                        </Link>
-                        <RestoreButton lang={lang} studentId={s.id} />
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+  const columns: Column<StudentListRow>[] = [
+    {
+      key: 'name',
+      header: t('students.name', lang),
+      card: 'title',
+      cell: (s) => (
+        <div className="flex items-center gap-3">
+          <EntityAvatar name={s.full_name} id={s.id} />
+          <div className="min-w-0">
+            <div className="truncate font-semibold">{s.full_name}</div>
+            <div className="text-xs text-muted">
+              {t('students.roll', lang)} {s.roll_number ?? '—'}
+            </div>
           </div>
+        </div>
+      ),
+    },
+    {
+      key: 'class',
+      header: t('students.lastClassSection', lang),
+      cell: (s) => [s.class_name, s.section].filter(Boolean).join(' / ') || dash,
+    },
+    {
+      key: 'guardian',
+      header: t('students.guardian', lang),
+      cell: (s) => s.guardian_name ?? dash,
+    },
+    {
+      key: 'archivedOn',
+      header: t('students.archivedOn', lang),
+      cell: (s) => (s.archived_at ? dateFmt.format(new Date(s.archived_at)) : dash),
+    },
+    {
+      key: 'status',
+      header: t('students.status', lang),
+      card: 'badge',
+      cell: () => <Pill tone="muted">{t('students.oldStudent', lang)}</Pill>,
+    },
+  ]
+
+  return (
+    <>
+      <PageHeader
+        title={t('students.archiveTitle', lang)}
+        crumbs={{
+          lang,
+          items: [
+            { label: t('dash.dashboard', lang), href: '/school' },
+            ...(group ? [{ label: t(group.labelKey, lang) }] : []),
+            { label: t('students.listTitle', lang), href: '/school/students' },
+            { label: t('students.archiveTitle', lang) },
+          ],
+        }}
+        badge={`${t('pager.total', lang)}: ${fmt.format(students.length)}`}
+      />
+
+      <DataTable
+        rows={pageData.items}
+        rowId={(s) => s.id}
+        rowLabel={(s) => s.full_name}
+        columns={columns}
+        lang={lang}
+        params={params}
+        caption={t('students.archiveTitle', lang)}
+        search={{ placeholder: t('students.archiveSearch', lang) }}
+        rowActions={(s) => (
+          <>
+            <ViewLink id={s.id} params={params} label={t('table.profile', lang)} name={s.full_name} />
+            <RestoreButton lang={lang} studentId={s.id} />
+          </>
         )}
-      </section>
-    </div>
+        rowMenu={(s) => [{ label: t('table.openFullPage', lang), href: `/school/students/${s.id}` }]}
+        pagination={{ page: pageData.page, totalPages: pageData.totalPages, total: pageData.total, pageSize }}
+        empty={
+          students.length ? (
+            <EmptyState
+              icon="students"
+              title={t('students.noMatch', lang)}
+              action={{ href: '/school/students/archive', label: t('students.clearFilters', lang) }}
+              lang={lang}
+            />
+          ) : (
+            <EmptyState
+              icon="students"
+              title={t('students.noArchived', lang)}
+              action={{ href: '/school/students', label: t('students.activeList', lang) }}
+              lang={lang}
+            />
+          )
+        }
+      />
+
+      <RecordDrawer
+        open={Boolean(viewed)}
+        title={viewed?.full_name ?? ''}
+        subtitle={viewed?.roll_number != null ? `${t('students.roll', lang)} ${viewed.roll_number}` : undefined}
+        fullPageHref={viewed ? `/school/students/${viewed.id}` : undefined}
+        fullPageLabel={t('table.openFullPage', lang)}
+        closeLabel={t('common.close', lang)}
+      >
+        {viewed && <StudentProfile id={viewed.id} lang={lang} />}
+      </RecordDrawer>
+    </>
   )
 }

@@ -72,11 +72,11 @@ if (examId) {
   await page.goto(`${BASE}/school/exams/${examId}/marks-entry`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(1500)
   const marksText = await main(page)
-  const numberInputs = await page.locator('input[type=number]').count()
+  const numberInputs = await page.locator('input[inputmode=decimal]').count()
   record('marks entry opens with the roster', numberInputs > 0 ? 'pass' : 'info',
     numberInputs ? `${numberInputs} mark fields` : marksText.slice(0, 140))
   if (numberInputs > 0) {
-    await page.locator('input[type=number]').first().fill('72')
+    await page.locator('input[inputmode=decimal]').first().fill('72')
     const save = page.locator('button', { hasText: /সংরক্ষণ|Save/ }).first()
     if (await save.count()) {
       await save.click()
@@ -91,6 +91,11 @@ if (examId) {
   const publishBtn = page.locator('button', { hasText: /প্রকাশ|Publish/ }).first()
   if (await publishBtn.count()) {
     await publishBtn.click()
+    // Publishing asks first now; the confirm is disabled while the exam has no
+    // grading scheme with grade bands, which this run never sets — so a
+    // disabled confirm here is the designed refusal, not a failure to click.
+    const confirm = page.locator('[role=dialog][aria-modal=true] button', { hasText: /প্রকাশ করুন|Publish/ }).last()
+    if (await confirm.isEnabled().catch(() => false)) await confirm.click()
     await page.waitForTimeout(2500)
     record('owner publishes results', /প্রকাশিত|Published/.test(await main(page)) ? 'pass' : 'fail')
   } else {

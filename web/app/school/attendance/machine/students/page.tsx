@@ -1,16 +1,18 @@
+import { Pager, paginate, pageSizeFrom } from '@/components/pager'
 import Form from 'next/form'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
+import { requireEmployeeAttendanceAdmin } from '@/lib/school/employee-attendance-admin'
 import { schoolRoster } from '@/lib/school/roster-source'
 import { classSectionLabel } from '@/lib/students'
 import { enrollmentInfo, listMachines } from '@/lib/machine-enrollment-store'
 import { ClassSectionSelect } from '@/components/ui/class-section-select'
-import { inputClass } from '@/components/auth-card'
 import { AttendanceTabs } from '../../attendance-tabs'
 import { MachinePageHeader } from '../page-header'
 import { EnrollButton } from '../machine-ui'
 import { RfidEntryTable, type RfidRow } from '../rfid-entry-table'
+import { filterButtonClass, inputClass } from '@/components/ui/field'
 
 // Student RFID Enrollment (issue #675). The roster is the same one Mark
 // Attendance uses: the global Academic Year Selection narrows the students,
@@ -22,11 +24,14 @@ import { RfidEntryTable, type RfidRow } from '../rfid-entry-table'
 export default async function StudentRfidPage({
   searchParams,
 }: {
-  searchParams: Promise<{ classSection?: string; q?: string }>
+  searchParams: Promise<{ classSection?: string; q?: string; page?: string; size?: string }>
 }) {
-  const { classSection = '', q = '' } = await searchParams
+  const params = await searchParams
+  const { classSection = '', q = '' } = params
   const lang: Lang = await currentLang()
   const { supabase, shiftSelection, startedAcademicYears, academicYearSelection } = await getSchoolContext()
+  // #677: Owner and office staff only; a teacher is refused.
+  await requireEmployeeAttendanceAdmin('/school/attendance/machine/students')
 
   const [view, machines] = await Promise.all([
     schoolRoster(supabase, {
@@ -38,12 +43,16 @@ export default async function StudentRfidPage({
     }),
     listMachines(supabase),
   ])
+  // The roster is already loaded for the filter; only the page's students need
+  // their card lookup.
+  const pageSize = pageSizeFrom(params.size, 20)
+  const pageData = paginate(view.students, params.page, pageSize)
   const info = await enrollmentInfo(
     supabase,
     'student',
-    view.students.map((s) => s.id),
+    pageData.items.map((s) => s.id),
   )
-  const rows: RfidRow[] = view.students.map((s) => ({
+  const rows: RfidRow[] = pageData.items.map((s) => ({
     id: s.id,
     name: s.full_name,
     cells: [classSectionLabel(s.class_name, s.section) ?? '', s.roll_number == null ? '' : String(s.roll_number)],
@@ -79,12 +88,12 @@ export default async function StudentRfidPage({
           <label htmlFor="q" className="mb-1 block text-xs font-semibold text-muted">
             {t('rfid.name', lang)}
           </label>
-          <input id="q" name="q" type="search" defaultValue={q} className={inputClass} />
+          <input id="q" name="q" type="search" defaultValue={q} className={inputClass({ fullWidth: true })} />
         </div>
         <div className="flex items-end">
           <button
             type="submit"
-            className="w-full cursor-pointer rounded-full border border-line px-4 py-2 text-xs font-semibold hover:bg-paper-muted"
+            className={filterButtonClass({ fullWidth: true })}
           >
             {t('classes.filter', lang)}
           </button>
@@ -98,12 +107,15 @@ export default async function StudentRfidPage({
       ) : (
         <RfidEntryTable
           // A new filter is a new list: start its inputs fresh.
-          key={`${classSection}|${q}`}
+          key={`${classSection}|${q}|${pageData.page}|${pageSize}`}
           kind="student"
           rows={rows}
           headers={[t('rfid.class', lang), t('students.roll', lang)]}
           lang={lang}
         />
+      )}
+      {view.students.length > 0 && (
+        <Pager page={pageData.page} totalPages={pageData.totalPages} total={pageData.total} lang={lang} params={params} pageSize={pageSize} />
       )}
     </div>
   )

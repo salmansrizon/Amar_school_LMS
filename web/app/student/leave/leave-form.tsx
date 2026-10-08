@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { t, type Lang, type MessageKey } from '@/lib/i18n'
 import { requestLeave, withdrawLeave } from '@/lib/student/leave-source'
+import { DateField } from '@/components/ui/date-field'
 
 // Every failure the action can return, in the reader's language. The action
 // returns codes precisely so this table exists in one place; anything it does
@@ -37,7 +38,7 @@ export function LeaveRequestForm({
 
   return (
     <form
-      className="grid gap-3 sm:grid-cols-4"
+      className="grid gap-3"
       onSubmit={(e) => {
         e.preventDefault()
         const form = e.currentTarget
@@ -57,25 +58,23 @@ export function LeaveRequestForm({
     >
       <label className="text-xs font-semibold text-muted">
         <span className="mb-1 block">{t('student.leaveFrom', lang)}</span>
-        <input
+        <DateField lang={lang}
           name="from_day"
-          type="date"
           required
           min={today}
-          className="h-9 w-full rounded-sm border border-line-strong bg-paper px-2 text-sm"
+          className="h-11 w-full rounded-sm border border-line-strong bg-paper px-2 text-sm sm:h-9"
         />
       </label>
       <label className="text-xs font-semibold text-muted">
         <span className="mb-1 block">{t('student.leaveTo', lang)}</span>
-        <input
+        <DateField lang={lang}
           name="to_day"
-          type="date"
           required
           min={today}
-          className="h-9 w-full rounded-sm border border-line-strong bg-paper px-2 text-sm"
+          className="h-11 w-full rounded-sm border border-line-strong bg-paper px-2 text-sm sm:h-9"
         />
       </label>
-      <label className="text-xs font-semibold text-muted sm:col-span-2">
+      <label className="text-xs font-semibold text-muted">
         <span className="mb-1 block">{t('student.leaveReason', lang)}</span>
         {/* A reason is a sentence to a teacher, not a field — one line was not
             enough room to write one. */}
@@ -86,12 +85,12 @@ export function LeaveRequestForm({
           className="w-full rounded-sm border border-line-strong bg-paper px-2 py-1.5 text-sm"
         />
       </label>
-      {error && <p className="text-sm text-alert-deep sm:col-span-4">{error}</p>}
-      {sent && <p className="text-sm text-mint-deep sm:col-span-4">{t('student.leaveSubmitted', lang)}</p>}
+      {error && <p className="text-sm text-alert-deep">{error}</p>}
+      {sent && <p className="text-sm text-mint-deep">{t('student.leaveSubmitted', lang)}</p>}
       <button
         type="submit"
         disabled={pending || disabled}
-        className="cursor-pointer rounded-full bg-brand-500 px-5 py-1.5 text-sm font-semibold text-white hover:bg-brand-600 disabled:opacity-50 sm:col-span-4"
+        className="cursor-pointer rounded-full bg-brand-500 px-5 py-1.5 text-sm font-semibold text-white hover:bg-brand-600 disabled:opacity-50 max-sm:min-h-11 justify-self-start"
       >
         {t('student.requestLeave', lang)}
       </button>
@@ -127,7 +126,7 @@ export function WithdrawLeaveButton({
             else router.refresh()
           })
         }
-        className="cursor-pointer rounded-full border border-line-strong px-3 py-1 text-xs font-semibold text-muted transition hover:bg-alert-soft hover:text-alert-deep disabled:opacity-50"
+        className="cursor-pointer rounded-full border border-line-strong px-3 py-1 text-xs font-semibold text-muted max-sm:min-h-11 transition hover:bg-alert-soft hover:text-alert-deep disabled:opacity-50"
       >
         {t('student.leaveWithdraw', lang)}
       </button>

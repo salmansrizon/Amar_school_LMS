@@ -1,4 +1,6 @@
 import Link from 'next/link'
+import { t, type Lang } from '@/lib/i18n'
+import { CONCEPT_ICON, type ConceptKey } from '@/lib/ui/concept-icons'
 
 // Page archetype kit (map #370, gate #372).
 //
@@ -22,44 +24,102 @@ import Link from 'next/link'
 // Density comes from the tokens (`--spacing-card` / `-grid` / `-section` / `-row`),
 // so a change to the rhythm is one edit, not 121.
 
+export type Crumb = { label: string; href?: string }
+
+/** The breadcrumb trail on its own, for pages whose title lives elsewhere
+ *  (the profile header card). The last crumb is the current page. */
+export function Crumbs({ lang, items }: { lang: Lang; items: Crumb[] }) {
+  return (
+    <nav data-page-crumbs aria-label={t('page.breadcrumb', lang)} className="mb-2">
+      <ol className="flex flex-wrap items-center gap-1.5 text-sm text-muted">
+        {items.map((c, i) => {
+          const last = i === items.length - 1
+          return (
+            <li key={`${c.label}-${i}`} className="flex items-center gap-1.5">
+              {c.href && !last ? (
+                <Link href={c.href} className="relative hover:text-ink hover:underline max-sm:after:absolute max-sm:after:-inset-y-3 max-sm:after:inset-x-0">
+                  {c.label}
+                </Link>
+              ) : (
+                <span aria-current={last ? 'page' : undefined} className={last ? 'font-semibold text-ink' : ''}>
+                  {c.label}
+                </span>
+              )}
+              {!last && <span aria-hidden>›</span>}
+            </li>
+          )
+        })}
+      </ol>
+    </nav>
+  )
+}
+
 export function PageHeader({
   title,
   backHref,
   backLabel,
   actions,
+  crumbs,
+  subtitle,
+  badge,
+  icon,
 }: {
   title: string
   /** Omit on a top-level page; the sidebar is the way back from there. */
   backHref?: string
   backLabel?: string
   actions?: React.ReactNode
+  /** Trail above the title; the last crumb is the current page. */
+  crumbs?: { lang: Lang; items: Crumb[] }
+  /** One muted line under the title. */
+  subtitle?: string
+  /** Short count/status pill beside the title, e.g. "Total: 1,485". */
+  badge?: string
+  /** The page's concept glyph, drawn in a soft tile before the title. Decorative. */
+  icon?: ConceptKey
 }) {
+  const Glyph = icon ? CONCEPT_ICON[icon] : null
   return (
-    <div className="mb-section flex flex-wrap items-center justify-between gap-3">
-      <div className="flex min-w-0 items-center gap-2">
-        {backHref && (
-          <Link
-            href={backHref}
-            aria-label={backLabel}
-            className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"
-          >
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="size-5"
-              aria-hidden="true"
+    <div className="mb-section">
+      {crumbs && <Crumbs lang={crumbs.lang} items={crumbs.items} />}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-2">
+          {backHref && (
+            <Link
+              data-page-back
+              href={backHref}
+              aria-label={backLabel}
+              className="inline-flex size-9 max-sm:size-11 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"
             >
-              <path d="m15 18-6-6 6-6" />
-            </svg>
-          </Link>
-        )}
-        <h1 className="truncate text-2xl font-extrabold">{title}</h1>
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="size-5"
+                aria-hidden="true"
+              >
+                <path d="m15 18-6-6 6-6" />
+              </svg>
+            </Link>
+          )}
+          {Glyph && (
+            <span className="ui-pop flex size-9 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600" aria-hidden>
+              <Glyph className="size-5" />
+            </span>
+          )}
+          <h1 className="truncate text-2xl font-extrabold">{title}</h1>
+          {badge && (
+            <span className="shrink-0 rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700">
+              {badge}
+            </span>
+          )}
+        </div>
+        {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
       </div>
-      {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
+      {subtitle && <p className="mt-1 text-sm text-muted">{subtitle}</p>}
     </div>
   )
 }
@@ -173,29 +233,13 @@ export const cellCapClass = 'max-w-64 truncate'
  * whole point of the archetype rule for forms: legibility comes from the *field*
  * measure, which each control sets for itself, not from squeezing the page.
  */
-export function FormGrid({
-  children,
-  className = '',
-}: {
-  children: React.ReactNode
-  className?: string
-}) {
-  return (
-    <div className={`grid gap-grid sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 ${className}`}>
-      {children}
-    </div>
-  )
+export function FormGrid({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+  return <div className={`grid gap-grid sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 ${className}`}>{children}</div>
 }
 
 /** A labelled group inside a form, spanning the full grid so its own fields can
  *  subdivide the width. */
-export function FormSection({
-  title,
-  children,
-}: {
-  title: string
-  children: React.ReactNode
-}) {
+export function FormSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <Card className="mb-grid">
       <h2 className="mb-grid font-bold">{title}</h2>

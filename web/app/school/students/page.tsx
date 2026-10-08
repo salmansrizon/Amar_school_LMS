@@ -1,30 +1,42 @@
 import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
-import { t, type Lang } from '@/lib/i18n'
+import { t, localeOf, type Lang, formatNumber } from '@/lib/i18n'
+import { feePeriodLabel } from '@/lib/fees'
 import { getSchoolContext } from '@/lib/school/context'
-import { schoolRoster } from '@/lib/school/roster-source'
-import { behaviourAverages } from '@/lib/students'
+import { canOpenScreen } from '@/lib/auth/screens'
+import { numberFmt } from '@/lib/i18n'
+import { loadDirectoryRows } from './directory-rows'
 import { classCatalogueLabel } from '@/lib/class-catalogue'
-import type { RosterStudent } from '@/lib/school/roster'
-import { Badge } from '@/components/ui/badge'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
-import { Card, PageHeader, Toolbar, railClass } from '@/components/ui/page'
+import { isIncompleteProfile, type RosterStudent } from '@/lib/school/roster'
+import { schoolCrumbs } from '@/lib/school-crumbs'
+import { PageHeader } from '@/components/ui/page'
 import { EmptyState } from '@/components/ui/states'
-import { StudentFilters } from './student-filters'
+import { paginate, pageSizeFrom } from '@/components/pager'
+import { EntityAvatar } from '@/components/entity-avatar'
+import { DataTable, Pill, type Column } from '@/components/data-table/data-table'
+import { RecordDrawer } from '@/components/data-table/record-drawer'
+import { RowMenu } from '@/components/data-table/row-menu'
+import { PrintTrigger } from '@/components/print/print-trigger'
+import { StatCard, StatGrid, WarningBanner, WorkflowCard } from '@/components/ui/widgets'
+import { RowActionPill } from '@/components/data-table/row-action-pill'
+import { withParams } from '@/lib/url-params'
+import { IdCard, SquarePen, UserPlus, Users, Wallet, HandCoins } from 'lucide-react'
+import { getStudent, StudentProfile } from './[id]/student-profile'
+import { RowMore } from '@/components/data-table/row-more'
+import { bulkRemindStudents } from './actions'
+import type { BulkAction } from '@/components/data-table/selection'
+import { DrawerFooter, DrawerHeader } from '@/components/data-table/drawer-parts'
+import { StudentDrawerBody, loadStudentDrawerData, studentDrawerCancelHref } from './student-drawer'
+import { pageTitle } from '@/lib/page-title'
 
-// Layout per ui/school-owner/students-list.html: search (name/roll/guardian) +
-// class/section filters, table Roll | Name | Class | Guardian |
-// Behaviour Avg | Status | View, with Old Students + New Admission actions.
-// The Class column renders the full shared Class Catalogue label (issue
-// #621's follow-up), not a bare class_name/section join — same format every
-// picker in the app already uses.
+// Layout per Design System/new_ui/02-people/student-directory (map 013, P1),
+// following the exam landing pattern (013 A3): header + subtitle, a one-line
+// fee-due warning banner, four stat cards, a titled DataTable (one contextual
+// next-step pill per row, everything else behind ⋮), then two workflow cards
+// — admissions/profile completion and fee-due follow-up. The Class column
+// renders the full shared Class Catalogue label (issue #621's follow-up), not
+// a bare class_name/section join — same format every picker in the app
+// already uses.
 //
 // List archetype (gate #372): renders bare content — the shell owns the <main>,
 // the width and the gutters — so the table fills the viewport instead of sitting
@@ -44,169 +56,433 @@ function classLabelFor(s: RosterStudent, showYear: boolean): string | null {
   )
 }
 
-function avgBadge(avg: number | undefined) {
-  if (avg === undefined) return <span className="text-muted">—</span>
-  const tone =
-    avg >= 4 ? 'bg-mint-soft text-mint-deep' : avg >= 3 ? 'bg-sun-soft text-sun-deep' : 'bg-alert-soft text-alert-deep'
-  return <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${tone}`}>{avg}</span>
-}
+const FEE_TONE = { paid: 'mint', partial: 'sun', due: 'alert' } as const
+const FEE_LABEL = { paid: 'students.feePaid', partial: 'students.feePartial', due: 'students.feeDue' } as const
+
+const PAGE_SIZE = 20
+const primaryClass =
+  'inline-flex h-11 items-center rounded-full bg-brand-500 px-4 text-xs font-semibold text-white hover:bg-brand-600'
+
+export const generateMetadata = pageTitle('students.listTitle')
 
 export default async function StudentsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; classSection?: string }>
+  searchParams: Promise<{ q?: string; classSection?: string; fee?: string; admitted?: string; incomplete?: string; month?: string; year?: string; page?: string; size?: string; view?: string }>
 }) {
-  const { q = '', classSection = '' } = await searchParams
+  const params = await searchParams
+  const { q = '', classSection = '', fee, admitted, incomplete, month, year, page, size, view } = params
+  const pageSize = pageSizeFrom(size, PAGE_SIZE)
   const lang: Lang = await currentLang()
-  const { supabase, role, shiftSelection, startedAcademicYears, academicYearSelection } = await getSchoolContext()
-  // Started-year history is the signal (#609/#612), same boolean T6/#615
-  // threaded into the Fee Structures Offering picker.
-  const showYear = startedAcademicYears.length > 1
-
-  const [roster, { data: ratings }] = await Promise.all([
-    schoolRoster(supabase, { classSection, q, shiftSelection, showYear, academicYearSelection }),
-    // ponytail: whole-table scan capped at 10k rows, mirrors the classes page.
-    supabase.from('behaviour_log_entries').select('student_id, rating').limit(10000),
+  const { role, grants } = await getSchoolContext()
+  // The Remind row action opens SMS Center, which rides the `sms` grant.
+  const canSms = canOpenScreen(role, grants, 'sms')
+  // new_ui/02-people: the directory's checkbox + bulk-action bar (map 013),
+  // wired to the one bulk action that already has somewhere to go — SMS
+  // Center's existing `?students=` prefill (bulkRemindStudents). Bulk ID-card
+  // print isn't here: unlike this, it needs the PrintTrigger popup opened
+  // from the CURRENT client selection, which the bulk bar's plain
+  // <form action> shape can't drive without a components/data-table change.
+  const bulkActions: BulkAction[] = canSms ? [{ label: t('students.remind', lang), action: bulkRemindStudents }] : []
+  const [{ roster, fees, rows, showYear, admittedThisMonth, feePeriod }, viewed, studentDrawerData] = await Promise.all([
+    loadDirectoryRows({ q, classSection, fee, admitted, incomplete, month, year }),
+    view ? getStudent(view) : Promise.resolve(null),
+    view ? loadStudentDrawerData(view) : Promise.resolve(null),
   ])
-  const visible = roster.students
-  const avgs = behaviourAverages(ratings ?? [])
+  const viewedRoster = view ? (roster.students.find((s) => s.id === view) ?? null) : null
+  const pageData = paginate(rows, page, pageSize)
+  const fmt = numberFmt(lang)
+  const n = (x: number) => fmt.format(x)
+  const dash = <span className="text-muted">—</span>
+  // Fee standings are for the current month unless the fees page's dues links
+  // sent a month along (`?month=&year=`). Then every fee figure, link and label
+  // on this page is for that month, and says so instead of "this month".
+  const feeParams = feePeriod.isCurrent ? {} : { month: String(feePeriod.month), year: String(feePeriod.year) }
+  const feePeriodText = feePeriodLabel(feePeriod.month, feePeriod.year, localeOf(lang))
+  const feeColumnLabel = feePeriod.isCurrent
+    ? t('students.feeStanding', lang)
+    : `${t('students.feeStandingFor', lang)} (${feePeriodText})`
+  const dueList = roster.readable.filter((s) => fees.get(s.id)?.standing === 'due')
+  const partialList = roster.readable.filter((s) => fees.get(s.id)?.standing === 'partial')
+  const totalDueAmt = dueList.reduce((sum, s) => sum + (fees.get(s.id)?.due ?? 0), 0)
+  const newThisMonthList = roster.readable.filter(admittedThisMonth)
+  const newThisMonth = newThisMonthList.length
+  const incompleteProfiles = newThisMonthList.filter(isIncompleteProfile)
+
+  const columns: Column<RosterStudent>[] = [
+    {
+      key: 'name',
+      header: t('students.name', lang),
+      card: 'title',
+      cell: (s) => (
+        <div className="flex items-center gap-3">
+          <EntityAvatar name={s.full_name} id={s.id} />
+          <div className="min-w-0">
+            <Link
+              href={withParams(params, { view: s.id })}
+              scroll={false}
+              data-view-link={s.id}
+              className="truncate font-semibold hover:text-brand-600 hover:underline max-sm:-my-3 max-sm:block max-sm:py-3"
+            >
+              {s.full_name}
+            </Link>
+            <div className="text-xs text-muted">
+              {t('students.roll', lang)} {s.roll_number != null ? formatNumber(s.roll_number, lang) : '—'}
+              {s.student_no ? ` · ${s.student_no}` : ''}
+            </div>
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: 'class',
+      header: t('students.classSection', lang),
+      cell: (s) => classLabelFor(s, showYear) ?? <span className="text-muted">—</span>,
+    },
+    {
+      key: 'guardian',
+      header: t('students.contact', lang),
+      cell: (s) =>
+        s.guardian_name || s.guardian_mobile ? (
+          <div className="min-w-0">
+            <div className="truncate">{s.guardian_name ?? '—'}</div>
+            {s.guardian_mobile && <div className="font-mono text-xs text-muted">{s.guardian_mobile}</div>}
+          </div>
+        ) : (
+          <span className="text-muted">—</span>
+        ),
+    },
+    {
+      key: 'fee',
+      header: feeColumnLabel,
+      card: 'badge',
+      cell: (s) => {
+        const f = fees.get(s.id)
+        if (!f) return <Pill tone="muted">{t('students.feeNotBilled', lang)}</Pill>
+        return (
+          // Due fees need attention now; paid/partial are informational, no pulse.
+          <Pill tone={FEE_TONE[f.standing]} pulse={f.standing === 'due' && s.id === firstDueId}>
+            {t(FEE_LABEL[f.standing], lang)}
+            {f.standing !== 'paid' && ` ৳${fmt.format(f.due)}`}
+          </Pill>
+        )
+      },
+    },
+  ]
+
+  // #538: an empty list says which kind of empty it is and offers the one
+  // action that changes it (lib/school/roster.ts decides which).
+  const empty =
+    roster.empty === 'unassigned' ? (
+      <EmptyState
+        icon="students"
+        title={t('students.noClassAssigned', lang)}
+        body={t('students.noClassAssignedHelp', lang)}
+        action={{ href: '/school', label: t('denied.back', lang) }}
+        lang={lang}
+      />
+    ) : roster.empty === 'no-match' || roster.students.length > 0 ? (
+      <EmptyState
+        icon="students"
+        title={t('students.noMatch', lang)}
+        body={t('students.noMatchHelp', lang)}
+        action={{ href: '/school/students', label: t('students.clearFilters', lang) }}
+        lang={lang}
+      />
+    ) : (
+      <EmptyState
+        icon="students"
+        title={t('students.none', lang)}
+        action={{ href: '/school/students/new', label: t('students.newAdmission', lang) }}
+        lang={lang}
+      />
+    )
+
+  const secondary =
+    'inline-flex h-11 items-center rounded-full border border-line-strong px-4 text-xs font-semibold hover:bg-paper-muted'
+
+  // One pulse per list: only the first row that needs a look keeps it.
+  const firstDueId = pageData.items.find((s) => fees.get(s.id)?.standing === 'due')?.id
 
   return (
-    <>
+    <div className="ui-rows">
       <PageHeader
+        icon="students"
         title={t('students.listTitle', lang)}
+        subtitle={t('students.pageSubtitle', lang)}
+        crumbs={schoolCrumbs('/school/students', lang, { label: t('students.listTitle', lang) })}
+        badge={`${t('students.totalBadge', lang)}: ${fmt.format(roster.readable.length)}`}
         actions={
           <>
-            <Link
-              href="/school/students/archive"
-              className="inline-flex h-11 items-center rounded-full border border-line-strong px-4 text-xs font-semibold hover:bg-paper-muted"
-            >
+            <Link href="/school/students/archive" className={secondary}>
               {t('students.oldStudents', lang)}
+            </Link>
+            <PrintTrigger
+              href={`/school/students/print/id-cards${withParams(params, { view: null, page: null, size: null })}`}
+              label={t('students.idCardBulk', lang)}
+              icon={<IdCard className="size-4" aria-hidden />}
+            />
+            <a href={`/school/students/export${withParams(params, { view: null, page: null, size: null })}`} className={secondary} download>
+              {t('students.exportCsv', lang)}
+            </a>
+            <Link href="/school/students/new" className={primaryClass}>
+              + {t('students.newAdmission', lang)}
             </Link>
             {/* Issuing logins is owner-only (#442) — the screen redirects Staff. */}
             {role === 'school_owner' && (
-              <Link
-                href="/school/students/logins"
-                className="inline-flex h-11 items-center rounded-full border border-line-strong px-4 text-xs font-semibold hover:bg-paper-muted"
-              >
-                {t('students.loginBulk', lang)}
-              </Link>
+              <RowMenu
+                label={t('students.more', lang)}
+                items={[{ label: t('students.loginBulk', lang), href: '/school/students/logins' }]}
+              />
             )}
-            <Link
-              href="/school/students/new"
-              className="inline-flex h-11 items-center rounded-full bg-brand-500 px-4 text-xs font-semibold text-white hover:bg-brand-600"
-            >
-              + {t('students.newAdmission', lang)}
-            </Link>
           </>
         }
       />
 
-      <Toolbar
-        filters={
-          <StudentFilters q={q} classSection={classSection} combos={roster.combos} lang={lang} />
-        }
+      {dueList.length > 0 && (
+        <WarningBanner
+          label={t('students.statFeeDue', lang)}
+          text={`${dueList
+            .slice(0, 3)
+            .map((s) => s.full_name)
+            .join(', ')}${dueList.length > 3 ? ` +${n(dueList.length - 3)}` : ''}`}
+          href={`/school/students${withParams(feeParams, { fee: 'due' })}`}
+          linkLabel={t('students.viewDueList', lang)}
+        />
+      )}
+
+      <StatGrid>
+        <StatCard
+          icon={<Users className="size-5" />}
+          tone="mint"
+          label={t('students.statTotal', lang)}
+          value={n(roster.readable.length)}
+          note={`${n(roster.classes.length)} ${t('students.classesWord', lang)}`}
+          noteTone="muted"
+          action={{ href: '/school/students/new', label: t('students.newAdmission', lang) }}
+        />
+        <StatCard
+          icon={<Wallet className="size-5" />}
+          tone={dueList.length ? 'alert' : 'muted'}
+          label={t('students.statFeeDue', lang)}
+          value={n(dueList.length)}
+          note={dueList.length ? `৳${fmt.format(totalDueAmt)} ${t('students.statFeeDueNote', lang)}` : undefined}
+          noteTone="alert"
+          action={dueList.length ? { href: withParams(feeParams, { fee: 'due' }), label: t('students.statView', lang) } : undefined}
+        />
+        <StatCard
+          icon={<HandCoins className="size-5" />}
+          tone={partialList.length ? 'sun' : 'muted'}
+          label={t('students.statFeePartial', lang)}
+          value={n(partialList.length)}
+          note={partialList.length ? `${n(partialList.length)} ${t('students.statFeePartialNote', lang)}` : undefined}
+          noteTone="sun"
+          action={
+            partialList.length ? { href: withParams(feeParams, { fee: 'partial' }), label: t('students.statView', lang) } : undefined
+          }
+        />
+        <StatCard
+          icon={<UserPlus className="size-5" />}
+          tone="sky"
+          label={t('students.statNew', lang)}
+          value={`+${n(newThisMonth)}`}
+          note={
+            newThisMonth ? `${n(incompleteProfiles.length)} ${t('students.incompleteProfilesNote', lang)}` : undefined
+          }
+          noteTone={incompleteProfiles.length ? 'alert' : 'muted'}
+          action={
+            newThisMonth
+              ? {
+                  // The note counts incomplete profiles, so "View" opens exactly those.
+                  href: withParams({}, incompleteProfiles.length ? { incomplete: '1' } : { admitted: 'month' }),
+                  label: t('students.statView', lang),
+                }
+              : undefined
+          }
+        />
+      </StatGrid>
+
+      <h2 className="mb-grid mt-section text-lg font-extrabold">{t('students.tableTitle', lang)}</h2>
+      <DataTable
+        rows={pageData.items}
+        rowId={(s) => s.id}
+        rowLabel={(s) => s.full_name}
+        columns={columns}
+        lang={lang}
+        params={params}
+        caption={t('students.listTitle', lang)}
+        search={{ placeholder: t('students.search', lang) }}
+        bulkActions={bulkActions}
+        filters={[
+          { param: 'classSection', label: t('students.classSection', lang), options: roster.combos },
+          {
+            param: 'fee',
+            label: feeColumnLabel,
+            options: (['paid', 'partial', 'due'] as const).map((v) => ({ value: v, label: t(FEE_LABEL[v], lang) })),
+          },
+        ]}
+        chips={[
+          { param: 'fee', value: 'due', label: `${t('students.chipFeeDue', lang)} (${n(dueList.length)})` },
+          { param: 'fee', value: 'partial', label: `${t('students.chipFeePartial', lang)} (${n(partialList.length)})` },
+          { param: 'admitted', value: 'month', label: `${t('students.chipNewThisMonth', lang)} (${n(newThisMonth)})` },
+          { param: 'incomplete', value: '1', label: `${t('students.incompleteFilter', lang)} (${n(incompleteProfiles.length)})` },
+        ]}
+        rowActions={(s) => {
+          const dueOrPartial = fees.get(s.id)?.standing === 'due' || fees.get(s.id)?.standing === 'partial'
+          const next =
+            canSms && dueOrPartial
+              ? { state: 'next' as const, href: `/school/sms?students=${s.id}`, label: t('students.remind', lang), scroll: true }
+              : {
+                  state: 'default' as const,
+                  href: withParams(params, { view: s.id }),
+                  label: t('students.view', lang),
+                  scroll: false,
+                }
+          return (
+            <div className="flex items-center justify-end gap-1">
+              <RowActionPill state={next.state} href={next.href} label={next.label} scroll={next.scroll} />
+              <RowMore label={`${t('students.moreActions', lang)}: ${s.full_name}`}>
+                <div className="flex flex-wrap items-center justify-end gap-2">
+                  <PrintTrigger
+                    href={`/school/students/${s.id}/print/id-card`}
+                    label={`${t('students.idCard', lang)}: ${s.full_name}`}
+                    icon={<IdCard className="size-4" aria-hidden />}
+                  />
+                  <Link
+                    href={`/school/students/${s.id}`}
+                    className="inline-flex h-9 items-center rounded-full border border-line-strong px-4 text-xs font-semibold hover:bg-paper-muted"
+                  >
+                    {t('students.view', lang)}
+                  </Link>
+                  <Link
+                    href={`/school/students/${s.id}/transfer`}
+                    className="inline-flex h-9 items-center rounded-full border border-line-strong px-4 text-xs font-semibold hover:bg-paper-muted"
+                  >
+                    {t('students.transfer', lang)}
+                  </Link>
+                </div>
+              </RowMore>
+            </div>
+          )
+        }}
+        pagination={{ page: pageData.page, totalPages: pageData.totalPages, total: pageData.total, pageSize }}
+        empty={empty}
       />
 
-      <Card padded={!visible.length}>
-        {/* #538: an empty list says which kind of empty it is and offers the one
-            action that changes it. Three kinds, and the model decides which
-            (lib/school/roster.ts) — this page only renders the answer.
-            An unassigned Employee is not sent to the admission form: she cannot
-            admit anyone (ADR 0021), and her way out is an Owner assigning her a
-            class, which is not a button she has. A filter that matched nothing
-            is not sent there either — the school HAS students, and offering to
-            admit another is the conflation #538 exists to forbid. */}
-        {roster.empty ? (
-          roster.empty === 'unassigned' ? (
-            <EmptyState
-              title={t('students.noClassAssigned', lang)}
-              body={t('students.noClassAssignedHelp', lang)}
-              action={{ href: '/school', label: t('denied.back', lang) }}
-              lang={lang}
+      <div className="mt-section grid gap-grid lg:grid-cols-2">
+        <WorkflowCard
+          icon={<UserPlus className="size-5" />}
+          title={t('students.workflowAdmissionsTitle', lang)}
+          tag={t('students.thisMonthTag', lang)}
+        >
+          {newThisMonth === 0 ? (
+            <p className="mb-4 rounded-xl border border-dashed border-line p-6 text-center text-sm text-muted">
+              {t('students.workflowAdmissionsEmpty', lang)}
+            </p>
+          ) : incompleteProfiles.length === 0 ? (
+            <p className="mb-4 rounded-xl border border-mint-100 bg-mint-soft p-4 text-center text-sm font-semibold text-mint-deep">
+              {t('students.workflowAdmissionsAllComplete', lang)} ({n(newThisMonth)})
+            </p>
+          ) : (
+            <ul className="mb-4 divide-y divide-line">
+              {incompleteProfiles.slice(0, 5).map((s) => (
+                <li key={s.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
+                  <div className="min-w-0">
+                    <p className="truncate font-semibold">{s.full_name}</p>
+                    <p className="text-xs text-muted">{classLabelFor(s, showYear) ?? dash}</p>
+                  </div>
+                  <RowActionPill
+                    state="next"
+                    href={withParams(params, { view: s.id })}
+                    label={t('students.completeProfile', lang)}
+                  />
+                </li>
+              ))}
+            </ul>
+          )}
+          <div className="mt-auto border-t border-line pt-4 text-center">
+            <Link href="/school/students/new" className={primaryClass}>
+              + {t('students.newAdmission', lang)}
+            </Link>
+          </div>
+        </WorkflowCard>
+
+        <WorkflowCard icon={<Wallet className="size-5" />} title={t('students.workflowFeeTitle', lang)} tag={feePeriod.isCurrent ? t('students.thisMonthTag', lang) : feePeriodText}>
+          {dueList.length === 0 ? (
+            <p className="mb-4 rounded-xl border border-dashed border-line p-6 text-center text-sm text-muted">
+              {t('students.workflowFeeEmpty', lang)}
+            </p>
+          ) : (
+            <ul className="mb-4 divide-y divide-line">
+              {dueList.slice(0, 5).map((s) => {
+                const due = fees.get(s.id)?.due ?? 0
+                return (
+                  <li key={s.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
+                    <div className="min-w-0">
+                      <p className="truncate font-semibold">{s.full_name}</p>
+                      <p className="text-xs text-muted">৳{fmt.format(due)}</p>
+                    </div>
+                    {canSms ? (
+                      <RowActionPill state="next" href={`/school/sms?students=${s.id}`} label={t('students.remind', lang)} />
+                    ) : (
+                      <RowActionPill state="default" href={`/school/students/${s.id}`} label={t('students.view', lang)} />
+                    )}
+                  </li>
+                )
+              })}
+            </ul>
+          )}
+          {canSms && dueList.length > 0 && (
+            <div className="mt-auto border-t border-line pt-4 text-center">
+              <Link href={`/school/sms?students=${dueList.slice(0, 50).map((s) => s.id).join(',')}`} className={primaryClass}>
+                {t('students.workflowFeeRemindAll', lang)}
+              </Link>
+            </div>
+          )}
+        </WorkflowCard>
+      </div>
+
+      <RecordDrawer
+        open={Boolean(viewed)}
+        title={viewed?.full_name ?? ''}
+        header={
+          viewed && (
+            <DrawerHeader
+              name={viewed.full_name}
+              avatarId={viewed.id}
+              subtitle={viewed.roll_number != null ? `${t('students.roll', lang)} ${formatNumber(viewed.roll_number, lang)}` : undefined}
             />
-          ) : roster.empty === 'no-match' ? (
-            <EmptyState
-              title={t('students.noMatch', lang)}
-              body={t('students.noMatchHelp', lang)}
-              action={{ href: '/school/students', label: t('students.clearFilters', lang) }}
+          )
+        }
+        footer={
+          viewed && (
+            <DrawerFooter
+              cancelHref={studentDrawerCancelHref(params)}
+              cancelLabel={t('routine.cancel', lang)}
+              primary={{
+                href: `/school/students/${viewed.id}`,
+                label: t('students.editProfile', lang),
+                icon: <SquarePen className="size-4" aria-hidden />,
+              }}
+            />
+          )
+        }
+        fullPageLabel={t('table.openFullPage', lang)}
+        closeLabel={t('common.close', lang)}
+      >
+        {viewed &&
+          (viewedRoster ? (
+            <StudentDrawerBody
+              student={viewedRoster}
+              currentFee={fees.get(viewed.id)}
+              data={studentDrawerData ?? { recentFees: [], recentLeaves: [] }}
+              showYear={showYear}
               lang={lang}
             />
           ) : (
-            <EmptyState
-              title={t('students.none', lang)}
-              action={{ href: '/school/students/new', label: t('students.newAdmission', lang) }}
-              lang={lang}
-            />
-          )
-        ) : (
-          <>
-          {/* Phone: cards, no horizontal scroll for the one action that matters
-              (#540). Desktop keeps the seven-column grid. */}
-          <ul className="flex flex-col gap-2 md:hidden">
-            {visible.map((s) => (
-              <li key={s.id} className="rounded-lg border border-line bg-paper p-3">
-                <div className="flex items-baseline justify-between gap-2">
-                  <span className="font-medium">{s.full_name}</span>
-                  <span className="text-xs text-muted">
-                    {t('students.roll', lang)} {s.roll_number ?? '—'}
-                  </span>
-                </div>
-                <p className="mt-0.5 text-xs text-muted">
-                  {classLabelFor(s, showYear) ?? '—'}
-                  {s.guardian_name ? ` · ${s.guardian_name}` : ''}
-                </p>
-                <Link
-                  href={`/school/students/${s.id}`}
-                  className="mt-2 inline-flex h-11 w-full items-center justify-center rounded-full border border-line-strong text-sm font-semibold hover:bg-paper-muted"
-                >
-                  {t('students.view', lang)}
-                </Link>
-              </li>
-            ))}
-          </ul>
-
-          <Table className="hidden md:table">
-            <TableHeader>
-              <TableRow>
-                <TableHead className={railClass(undefined)}>{t('students.roll', lang)}</TableHead>
-                <TableHead>{t('students.name', lang)}</TableHead>
-                <TableHead>{t('students.classSection', lang)}</TableHead>
-                <TableHead>{t('students.guardian', lang)}</TableHead>
-                <TableHead>{t('students.behaviourAvg', lang)}</TableHead>
-                <TableHead>{t('students.status', lang)}</TableHead>
-                <TableHead className="text-right">{t('students.view', lang)}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {visible.map((s) => (
-                <TableRow key={s.id}>
-                  {/* Rail carries "active" visually; the Status cell still spells
-                      it out, so colour is never the only signal. */}
-                  <TableCell className={railClass('mint')}>
-                    {s.roll_number ?? <span className="text-muted">—</span>}
-                  </TableCell>
-                  <TableCell className="font-medium">{s.full_name}</TableCell>
-                  <TableCell>
-                    {classLabelFor(s, showYear) ?? <span className="text-muted">—</span>}
-                  </TableCell>
-                  <TableCell>{s.guardian_name ?? <span className="text-muted">—</span>}</TableCell>
-                  <TableCell>{avgBadge(avgs.get(s.id))}</TableCell>
-                  <TableCell>
-                    <Badge variant="secondary">{t('students.active', lang)}</Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Link href={`/school/students/${s.id}`} className="text-brand-600 hover:underline">
-                      {t('students.view', lang)}
-                    </Link>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-          </>
-        )}
-      </Card>
-    </>
+            <StudentProfile id={viewed.id} lang={lang} />
+          ))}
+      </RecordDrawer>
+    </div>
   )
 }

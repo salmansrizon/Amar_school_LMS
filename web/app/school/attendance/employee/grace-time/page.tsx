@@ -1,8 +1,10 @@
+import { Pager, paginate, pageSizeFrom } from '@/components/pager'
 import Form from 'next/form'
 import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang, type MessageKey } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
+import { requireEmployeeAttendanceAdmin } from '@/lib/school/employee-attendance-admin'
 import { exemptionCategoriesByExemptionId } from '@/lib/school/ad-hoc-grace'
 import { officeHourShiftOptions, resolveActiveShift } from '@/lib/office-hours'
 import { ACADEMIC_SHIFT_LABEL_KEY, type AcademicShift } from '@/lib/institute'
@@ -10,7 +12,11 @@ import { EMPLOYEE_CATEGORIES, EMPLOYEE_CATEGORY_LABEL_KEY } from '@/lib/employee
 import { GRACE_DETAIL_LABEL_KEY, isGraceDetail } from '@/lib/grace'
 import { AttendanceTabs } from '../../attendance-tabs'
 import { AddStandingRuleForm, AddAdHocExemptionForm, DeleteGraceEntryButton } from './grace-time-controls'
-import { dateInputClass } from '@/components/ui/field'
+import { dateInputClass, filterButtonClass } from '@/components/ui/field'
+import { pageTitle } from '@/lib/page-title'
+import { PageHeader } from '@/components/ui/page'
+import { attendanceCrumbs } from '@/lib/school-crumbs'
+import { DateField } from '@/components/ui/date-field'
 
 // Grace Time (issue #671, redesigned by #673 / ADR 0032). Two sections:
 // Standing Grace Rules (Grace Detail + Categories + minutes, one per Shift +
@@ -87,14 +93,19 @@ function ShiftFilter({
   )
 }
 
+export const generateMetadata = pageTitle('attendance.tabGraceTime')
+
 export default async function GraceTimePage({
   searchParams,
 }: {
-  searchParams: Promise<{ from?: string; to?: string; shift?: string; adHocShift?: string }>
+  searchParams: Promise<{ from?: string; to?: string; shift?: string; adHocShift?: string; page?: string; size?: string }>
 }) {
-  const { from = '', to = '', shift: requestedShift, adHocShift: requestedAdHocShift } = await searchParams
+  const sp = await searchParams
+  const { from = '', to = '', shift: requestedShift, adHocShift: requestedAdHocShift } = sp
   const lang: Lang = await currentLang()
   const { supabase, configuredShifts } = await getSchoolContext()
+  // #677: Owner and office staff only; a teacher is refused.
+  await requireEmployeeAttendanceAdmin('/school/attendance/employee/grace-time')
 
   const shiftOptions = officeHourShiftOptions(configuredShifts)
   const activeShift = resolveActiveShift(shiftOptions, requestedShift ?? null)
@@ -125,14 +136,17 @@ export default async function GraceTimePage({
 
   const ruleRows = (rules ?? []) as StandingRuleRow[]
   const exemptionRows: AdHocExemptionRow[] = exemptions ?? []
+  const pageSize = pageSizeFrom(sp.size, 20)
+  const exemptionPage = paginate(exemptionRows, sp.page, pageSize)
   const current = { shift: activeShift, adHocShift: activeAdHocShift, from: from || null, to: to || null }
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-extrabold">{t('attendance.tabGraceTime', lang)}</h1>
-        <Link href="/school" aria-label={t('common.back', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
-      </div>
+      <PageHeader
+        icon="attendance"
+        title={t('attendance.tabGraceTime', lang)}
+        crumbs={attendanceCrumbs('/school/attendance/employee/grace-time', lang)}
+      />
 
       <AttendanceTabs active="/school/attendance/employee/grace-time" lang={lang} />
 
@@ -207,16 +221,16 @@ export default async function GraceTimePage({
           {activeShift && <input type="hidden" name="shift" value={activeShift} />}
           {activeAdHocShift && <input type="hidden" name="adHocShift" value={activeAdHocShift} />}
           <div>
-            <label className="mb-1 block text-xs font-semibold text-muted">{t('graceTime.filterFrom', lang)}</label>
-            <input type="date" name="from" defaultValue={from} className={dateInputClass()} />
+            <label htmlFor="gt_from" className="mb-1 block text-xs font-semibold text-muted">{t('graceTime.filterFrom', lang)}</label>
+            <DateField lang={lang} id="gt_from" name="from" defaultValue={from} className={dateInputClass()} />
           </div>
           <div>
-            <label className="mb-1 block text-xs font-semibold text-muted">{t('graceTime.filterTo', lang)}</label>
-            <input type="date" name="to" defaultValue={to} className={dateInputClass()} />
+            <label htmlFor="gt_to" className="mb-1 block text-xs font-semibold text-muted">{t('graceTime.filterTo', lang)}</label>
+            <DateField lang={lang} id="gt_to" name="to" defaultValue={to} className={dateInputClass()} />
           </div>
           <button
             type="submit"
-            className="h-9 cursor-pointer rounded-full border border-line px-3 py-1 text-xs font-semibold hover:bg-paper-muted"
+            className={filterButtonClass()}
           >
             {t('classes.filter', lang)}
           </button>
@@ -237,7 +251,7 @@ export default async function GraceTimePage({
                 </tr>
               </thead>
               <tbody>
-                {exemptionRows.map((ex) => (
+                {exemptionPage.items.map((ex) => (
                   <tr key={ex.id} className="border-b border-line last:border-0">
                     <td className="px-3 py-2 text-sm">{ex.exemption_date}</td>
                     <td className="px-3 py-2 text-sm">
@@ -253,6 +267,9 @@ export default async function GraceTimePage({
               </tbody>
             </table>
           </div>
+        )}
+        {exemptionRows.length > 0 && (
+          <Pager page={exemptionPage.page} totalPages={exemptionPage.totalPages} total={exemptionPage.total} lang={lang} params={sp} pageSize={pageSize} />
         )}
       </section>
     </div>

@@ -1,4 +1,3 @@
-import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
@@ -8,10 +7,15 @@ import { excludeArchivedOfferings } from '@/lib/school/archived-offerings-filter
 import { subjectsForClass } from '@/lib/students'
 import { ClassPicker } from '../../classes/routine/routine-cell'
 import { BulkAssignForm } from './bulk-assign-form'
+import { PageHeader } from '@/components/ui/page'
+import { schoolCrumbs } from '@/lib/school-crumbs'
+import { pageTitle } from '@/lib/page-title'
 
 // Bulk "assign all" per class (issue #46, PRD §5.1 second half): pick a class,
 // check which subjects apply and which of those are optional, assign to every
 // student in that class. Per-student overrides live on the student detail page.
+
+export const generateMetadata = pageTitle('subjects.title')
 
 export default async function SubjectAssignmentPage({
   searchParams,
@@ -41,10 +45,12 @@ export default async function SubjectAssignmentPage({
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-extrabold">{t('subjects.title', lang)}</h1>
-        <Link href="/school/classes" aria-label={t('classes.title', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
-      </div>
+      <PageHeader
+        title={t('subjects.title', lang)}
+        backHref="/school/classes"
+        backLabel={t('classes.title', lang)}
+        crumbs={schoolCrumbs('/school/students', lang, { label: t('students.listTitle', lang), href: '/school/students' }, { label: t('subjects.title', lang) })}
+      />
 
       {!classes?.length ? (
         <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted">

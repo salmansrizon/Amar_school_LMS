@@ -1,3 +1,6 @@
+import { isPrintPath } from '@/lib/print-path'
+
+export { isPrintPath }
 // Content-Security-Policy for the App Router (#528, from the #543 research).
 //
 // Two things here are not stylistic and will break the app if changed casually;
@@ -26,7 +29,7 @@ const SONNER_STYLE_HASHES = [
   "'sha256-StEaX+se6YS7pqjzrzMIA0KaX9zF/8zAhvQXZAe5epY='", // sonner 2.0.8's own CSS
 ]
 
-export function cspFor(nonce: string): string {
+export function cspFor(nonce: string, framable = false): string {
   const origin = supabaseOrigin()
   const ws = origin.replace(/^http/, 'ws')
   const isDev = process.env.NODE_ENV === 'development'
@@ -67,8 +70,9 @@ export function cspFor(nonce: string): string {
     `base-uri 'none'`,
     // form-action does NOT inherit from default-src, so Server Actions need it named.
     `form-action 'self'`,
-    `frame-ancestors 'none'`,
-    `frame-src 'none'`,
+    framable ? `frame-ancestors 'self'` : `frame-ancestors 'none'`,
+    // Only our own print routes are ever framed (the print preview popup).
+    `frame-src 'self'`,
     `report-to csp-endpoint`,
     // Deprecated in CSP3 in favour of report-to, but still the one several shipping
     // browsers actually honour. Both may be present.

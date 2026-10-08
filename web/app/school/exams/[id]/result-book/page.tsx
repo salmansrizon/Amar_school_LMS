@@ -1,14 +1,16 @@
+import { Pager, paginate, pageSizeFrom } from '@/components/pager'
 import Link from 'next/link'
+import { PrintTrigger } from '@/components/print/print-trigger'
+import { schoolCrumbs } from '@/lib/school-crumbs'
 import { notFound } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
-import { t, type Lang } from '@/lib/i18n'
+import { t, formatNumber, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { classSectionLabel } from '@/lib/students'
 import { loadExamRosterResults } from '@/lib/exam-print-data'
-import { Badge } from '@/components/print/pieces'
+import { Pill } from '@/components/data-table/data-table'
 import { ExamPicker, type ExamOption } from './result-book-controls'
-import { railClass } from '@/components/ui/page'
-import { BackLink } from '@/components/back-link'
+import { railClass, PageHeader } from '@/components/ui/page'
 import { resolveBackHref, selfOrigin, withOrigin } from '@/lib/back-nav'
 
 // Result Book (issue #48, PRD §5.5), per ui/school-owner/result-book.html —
@@ -20,10 +22,10 @@ import { resolveBackHref, selfOrigin, withOrigin } from '@/lib/back-nav'
 /** Mirrors the mockup's low-but-passing grade getting a distinct "warning"
  * badge (its sample C-grade/GPA-2.00 row) instead of the plain pass/fail
  * success/alert split every other printable uses. */
-function gradeTone(passed: boolean, gpa: number | null): 'success' | 'warning' | 'alert' {
+function gradeTone(passed: boolean, gpa: number | null): 'mint' | 'sun' | 'alert' {
   if (!passed) return 'alert'
-  if (gpa !== null && gpa < 3) return 'warning'
-  return 'success'
+  if (gpa !== null && gpa < 3) return 'sun'
+  return 'mint'
 }
 
 export default async function ResultBookPage({
@@ -31,10 +33,12 @@ export default async function ResultBookPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>
-  searchParams: Promise<{ from?: string | string[] }>
+  searchParams: Promise<{ from?: string | string[]; page?: string; size?: string }>
 }) {
   const { id } = await params
-  const { from } = await searchParams
+  const { from, page, size } = await searchParams
+  const pagerParams = { from: Array.isArray(from) ? from[0] : from, size }
+  const pageSize = pageSizeFrom(size, 20)
   const backHref = resolveBackHref(from, `/school/exams/${id}`)
   // Links from here go a level deeper, so they carry *this* page's
   // address — origin included — otherwise Back from the leaf lands here
@@ -62,18 +66,18 @@ export default async function ResultBookPage({
   const examOptions: ExamOption[] = (exams ?? []).map((e) => {
     const cls = e.class_id ? classById.get(e.class_id) : null
     const clsLabel = cls ? classSectionLabel(cls.name, cls.section) : null
-    return { id: e.id, label: `${e.name} ${e.exam_year}${clsLabel ? ` - ${clsLabel}` : ''}` }
+    return { id: e.id, label: `${e.name} ${formatNumber(e.exam_year, lang, { useGrouping: false })}${clsLabel ? ` - ${clsLabel}` : ''}` }
   })
 
-  const examLabel = `${roster.exam.name} ${roster.exam.exam_year}`
+  const examLabel = `${roster.exam.name} ${formatNumber(roster.exam.exam_year, lang, { useGrouping: false })}`
 
   const header = (
-    <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-      <h1 className="text-2xl font-extrabold">
-        {t('resultBook.title', lang)} — {examLabel}
-      </h1>
-      <BackLink href={backHref} label={t('common.back', lang)} />
-    </div>
+    <PageHeader
+      title={`${t('resultBook.title', lang)} — ${examLabel}`}
+      crumbs={schoolCrumbs('/school/exams', lang, { label: t('exams.title', lang), href: '/school/exams' }, { label: `${t('resultBook.title', lang)} — ${examLabel}` })}
+      backHref={backHref}
+      backLabel={t('common.back', lang)}
+    />
   )
 
   const toolbar = (
@@ -101,7 +105,7 @@ export default async function ResultBookPage({
       <div>
         {header}
         {toolbar}
-        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted">
+        <p className="rounded-2xl border border-line bg-paper p-card text-sm text-muted">
           {t('markEntry.noClassSet', lang)}
         </p>
       </div>
@@ -112,7 +116,7 @@ export default async function ResultBookPage({
       <div>
         {header}
         {toolbar}
-        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted">{t('promotion.noScheme', lang)}</p>
+        <p className="rounded-2xl border border-line bg-paper p-card text-sm text-muted">{t('promotion.noScheme', lang)}</p>
       </div>
     )
   }
@@ -121,56 +125,76 @@ export default async function ResultBookPage({
       <div>
         {header}
         {toolbar}
-        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted">{t('markEntry.noStudents', lang)}</p>
+        <p className="rounded-2xl border border-line bg-paper p-card text-sm text-muted">{t('markEntry.noStudents', lang)}</p>
       </div>
     )
   }
+
+  const rowsPage = paginate(roster.rows, page, pageSize)
 
   return (
     <div>
       {header}
       {toolbar}
-      <section className="rounded-lg border border-line bg-paper p-4">
+      <section className="overflow-hidden rounded-2xl border border-line bg-paper">
         <div className="overflow-x-auto">
           <table className="w-full min-w-180 text-sm">
-            <thead>
-              <tr className="border-b border-line-strong text-left text-xs uppercase tracking-wide text-muted">
-                <th className="py-2 pr-2 font-semibold">{t('promotion.position', lang)}</th>
-                <th className="py-2 pr-2 font-semibold">{t('students.roll', lang)}</th>
-                <th className="py-2 pr-2 font-semibold">{t('students.name', lang)}</th>
-                <th className="py-2 pr-2 font-semibold">{t('resultBook.totalMarks', lang)}</th>
-                <th className="py-2 pr-2 font-semibold">{t('markSheet.gpa', lang)}</th>
-                <th className="py-2 pr-2 font-semibold">{t('markSheet.grade', lang)}</th>
-                <th className="py-2 pr-2 font-semibold">{t('promotion.result', lang)}</th>
-                <th className="py-2 font-semibold">{t('resultBook.actions', lang)}</th>
+            <thead className="bg-paper-muted">
+              <tr className="text-left text-sm text-muted">
+                <th className="px-4 py-3 font-semibold">{t('promotion.position', lang)}</th>
+                <th className="px-4 py-3 font-semibold">{t('students.roll', lang)}</th>
+                <th className="px-4 py-3 font-semibold">{t('students.name', lang)}</th>
+                <th className="px-4 py-3 font-semibold">{t('resultBook.totalMarks', lang)}</th>
+                <th className="px-4 py-3 font-semibold">{t('markSheet.gpa', lang)}</th>
+                <th className="px-4 py-3 font-semibold">{t('markSheet.grade', lang)}</th>
+                <th className="px-4 py-3 font-semibold">{t('promotion.result', lang)}</th>
+                <th className="px-4 py-3 font-semibold">{t('resultBook.actions', lang)}</th>
               </tr>
             </thead>
-            <tbody>
-              {roster.rows.map((row) => {
+            <tbody className="divide-y divide-line">
+              {rowsPage.items.map((row) => {
                 const passed = row.overall?.passed ?? false
+                // Marks still missing: the result is not known yet, so it is
+                // shown as incomplete — never as 0 / F / failed (audit AC4).
+                const incomplete = row.marksMissing > 0
+                const noMarks = row.marksMissing === row.subjectResults.length
                 return (
-                  <tr key={row.studentId} className="border-b border-line">
-                    <td className={`py-2 pr-2 ${railClass(passed ? 'mint' : 'alert')}`}>{row.rankPosition ?? '—'}</td>
-                    <td className="py-2 pr-2">{row.rollNumber ?? '—'}</td>
-                    <td className="py-2 pr-2 font-medium">{row.fullName}</td>
-                    <td className="py-2 pr-2">
-                      {row.totalObtained} / {row.totalFull}
+                  <tr key={row.studentId}>
+                    <td className={`px-4 py-3 ${railClass(incomplete ? undefined : passed ? 'mint' : 'alert')}`}>{row.rankPosition != null ? formatNumber(row.rankPosition, lang) : '—'}</td>
+                    <td className="px-4 py-3">{row.rollNumber != null ? formatNumber(row.rollNumber, lang) : '—'}</td>
+                    <td className="px-4 py-3 font-medium">{row.fullName}</td>
+                    <td className="px-4 py-3">
+                      {noMarks ? '—' : `${formatNumber(row.totalObtained, lang)} / ${formatNumber(row.totalFull, lang)}`}
                     </td>
-                    <td className="py-2 pr-2">{row.overall?.gpa !== null && row.overall?.gpa !== undefined ? row.overall.gpa.toFixed(2) : '—'}</td>
-                    <td className="py-2 pr-2">
-                      {row.overall?.label ? <Badge tone={gradeTone(passed, row.overall.gpa)}>{row.overall.label}</Badge> : '—'}
+                    <td className="px-4 py-3">{!incomplete && row.overall?.gpa !== null && row.overall?.gpa !== undefined ? formatNumber(row.overall.gpa, lang, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '—'}</td>
+                    <td className="px-4 py-3">
+                      {!incomplete && row.overall?.label ? <Pill tone={gradeTone(passed, row.overall.gpa)}>{row.overall.label}</Pill> : '—'}
                     </td>
-                    <td className="py-2 pr-2">
-                      <Badge tone={passed ? 'success' : 'alert'}>{passed ? t('promotion.pass', lang) : t('promotion.fail', lang)}</Badge>
+                    <td className="px-4 py-3">
+                      {incomplete ? (
+                        <Pill tone="sun">{t(noMarks ? 'exams.marksNotEntered' : 'exams.incomplete', lang)}</Pill>
+                      ) : (
+                        <Pill tone={passed ? 'mint' : 'alert'}>{passed ? t('promotion.pass', lang) : t('promotion.fail', lang)}</Pill>
+                      )}
                     </td>
-                    <td className="py-2">
-                      <div className="flex gap-2">
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2">
                         <Link href={withOrigin(`/school/exams/${id}/mark-sheet/${row.studentId}`, deeper)} className="text-brand-600 hover:underline">
                           {t('markSheet.docWord', lang)}
                         </Link>
+                        <PrintTrigger
+                          iconOnly
+                          href={`/school/exams/${id}/mark-sheet/${row.studentId}/print`}
+                          label={`${t('print.print', lang)} ${t('markSheet.docWord', lang)}: ${row.fullName}`}
+                        />
                         <Link href={withOrigin(`/school/exams/${id}/progress-report/${row.studentId}`, deeper)} className="text-brand-600 hover:underline">
                           {t('progressReport.docWord', lang)}
                         </Link>
+                        <PrintTrigger
+                          iconOnly
+                          href={`/school/exams/${id}/progress-report/${row.studentId}/print`}
+                          label={`${t('print.print', lang)} ${t('progressReport.docWord', lang)}: ${row.fullName}`}
+                        />
                       </div>
                     </td>
                   </tr>
@@ -179,6 +203,7 @@ export default async function ResultBookPage({
             </tbody>
           </table>
         </div>
+        <Pager page={rowsPage.page} totalPages={rowsPage.totalPages} total={rowsPage.total} lang={lang} params={{ ...pagerParams, page }} pageSize={pageSize} />
       </section>
     </div>
   )

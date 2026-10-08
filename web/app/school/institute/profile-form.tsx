@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
+import { GraduationCap, Hash, Landmark, MapPin, Palette, Phone } from 'lucide-react'
 import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
 import { t, type Lang } from '@/lib/i18n'
 import { EDUCATION_LEVELS, ACADEMIC_SHIFTS, ACADEMIC_SHIFT_LABEL_KEY } from '@/lib/institute'
@@ -15,9 +16,11 @@ import {
   schoolLogoUploadTicket,
   updateInstituteProfile,
 } from './actions'
-import { selectClass } from '@/components/ui/field'
+import { ComboboxField } from '@/components/ui/combobox-field'
+import { SelectField } from '@/components/ui/select-field'
 import { removeUploadedObject } from '@/lib/storage/remove-object'
 import { uploadWithSignedToken } from '@/lib/storage/upload-client'
+import { SectionCard } from './section-card'
 
 type SchoolRow = {
   id: string
@@ -160,8 +163,12 @@ export function ProfileForm({
           </p>
         )}
 
-        <div className="mb-4 rounded-lg border border-line bg-paper p-5 shadow-card">
-          <h3 className="mb-3 font-bold">{t('institute.basicInfo', lang)}</h3>
+        <div className="grid gap-grid lg:grid-cols-2">
+        <SectionCard
+          icon={<Landmark className="size-5" />}
+          title={t('institute.basicInfo', lang)}
+          hint={t('institute.basicInfoHint', lang)}
+        >
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="sm:col-span-2">
               <label className={labelClass} htmlFor="name">
@@ -190,15 +197,15 @@ export function ProfileForm({
               <label className={labelClass} htmlFor="mpo_enlisted">
                 {t('institute.mpoEnlisted', lang)}
               </label>
-              <select
+              <SelectField
                 id="mpo_enlisted"
                 name="mpo_enlisted"
                 defaultValue={String(school.mpo_enlisted)}
-                className={selectClass({ size: 'md', fullWidth: true })}
-              >
-                <option value="true">{t('institute.yes', lang)}</option>
-                <option value="false">{t('institute.no', lang)}</option>
-              </select>
+                options={[
+                  { value: 'true', label: t('institute.yes', lang) },
+                  { value: 'false', label: t('institute.no', lang) },
+                ]}
+              />
             </div>
             <div>
               <label className={labelClass} htmlFor="mpo_code">
@@ -221,24 +228,27 @@ export function ProfileForm({
               <label className={labelClass} htmlFor="cluster_id">
                 {t('institute.cluster', lang)}
               </label>
-              <select id="cluster_id" name="cluster_id" defaultValue={school.cluster_id ?? ''} className={selectClass({ size: 'md', fullWidth: true })}>
-                <option value="">{t('institute.clusterNone', lang)}</option>
-                {clusters.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
+              <ComboboxField
+                id="cluster_id"
+                name="cluster_id"
+                defaultValue={school.cluster_id ?? ''}
+                options={[
+                  { value: '', label: t('institute.clusterNone', lang) },
+                  ...clusters.map((c) => ({ value: c.id, label: c.name })),
+                ]}
+              />
             </div>
           </div>
-        </div>
+        </SectionCard>
 
         {/* Print header (issue #92): these three lines plus the logo are what
             every printable shows at the top. Address is free text on purpose —
             the location hierarchy below has no street line. */}
-        <div className="mb-4 rounded-lg border border-line bg-paper p-5 shadow-card">
-          <h3 className="mb-1 font-bold">{t('institute.printHeader', lang)}</h3>
-          <p className="mb-3 text-xs text-muted">{t('institute.printHeaderHint', lang)}</p>
+        <SectionCard
+          icon={<Phone className="size-5" />}
+          title={t('institute.printHeader', lang)}
+          hint={t('institute.printHeaderHint', lang)}
+        >
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="sm:col-span-2">
               <label className={labelClass} htmlFor="address_line">
@@ -270,95 +280,94 @@ export function ProfileForm({
               />
             </div>
           </div>
-          <div className="mt-4">
+        </SectionCard>
+
+        {/* Logo + admit-card theme save on change, not with the form. */}
+        <SectionCard
+          icon={<Palette className="size-5" />}
+          title={t('institute.branding', lang)}
+          hint={t('institute.brandingHint', lang)}
+        >
+          <div>
             <span className={labelClass}>{t('institute.logo', lang)}</span>
             <LogoControl lang={lang} isOwner={isOwner} hasLogo={!!school.logo_path} />
           </div>
           <div className="mt-4">
             <ThemeControl lang={lang} isOwner={isOwner} selected={admitCardTheme ?? DEFAULT_THEME_KEY} />
           </div>
-        </div>
+        </SectionCard>
 
-        <div className="mb-4 rounded-lg border border-line bg-paper p-5 shadow-card">
-          <h3 className="mb-3 font-bold">{t('institute.address', lang)}</h3>
-          <div className="grid gap-3 sm:grid-cols-4">
+        <SectionCard
+          icon={<MapPin className="size-5" />}
+          title={t('institute.address', lang)}
+          hint={t('institute.addressHint', lang)}
+        >
+          <div className="grid gap-3 sm:grid-cols-2">
             <div>
-              <label className={labelClass}>{t('institute.division', lang)}</label>
-              <select
-                className={selectClass({ size: 'md', fullWidth: true })}
+              <label className={labelClass} htmlFor="division_id">{t('institute.division', lang)}</label>
+              <ComboboxField
+                id="division_id"
                 value={divisionId}
-                onChange={(e) => {
-                  setDivisionId(e.target.value)
+                onValueChange={(v) => {
+                  setDivisionId(v)
                   setDistrictId('')
                   setUpazilaId('')
                   setUnionId('')
                 }}
-              >
-                <option value="">{t('institute.selectOne', lang)}</option>
-                {divisions.map((d) => (
-                  <option key={d.id} value={d.id}>
-                    {d.name}
-                  </option>
-                ))}
-              </select>
+                options={[
+                  { value: '', label: t('institute.selectOne', lang) },
+                  ...divisions.map((d) => ({ value: d.id, label: d.name })),
+                ]}
+              />
             </div>
             <div>
-              <label className={labelClass}>{t('institute.district', lang)}</label>
-              <select
-                className={selectClass({ size: 'md', fullWidth: true })}
+              <label className={labelClass} htmlFor="district_id">{t('institute.district', lang)}</label>
+              <ComboboxField
+                id="district_id"
                 value={districtId}
                 disabled={!divisionId}
-                onChange={(e) => {
-                  setDistrictId(e.target.value)
+                onValueChange={(v) => {
+                  setDistrictId(v)
                   setUpazilaId('')
                   setUnionId('')
                 }}
-              >
-                <option value="">{t('institute.selectOne', lang)}</option>
-                {districts.map((d) => (
-                  <option key={d.id} value={d.id}>
-                    {d.name}
-                  </option>
-                ))}
-              </select>
+                options={[
+                  { value: '', label: t('institute.selectOne', lang) },
+                  ...districts.map((d) => ({ value: d.id, label: d.name })),
+                ]}
+              />
             </div>
             <div>
-              <label className={labelClass}>{t('institute.upazila', lang)}</label>
-              <select
-                className={selectClass({ size: 'md', fullWidth: true })}
+              <label className={labelClass} htmlFor="upazila_id">{t('institute.upazila', lang)}</label>
+              <ComboboxField
+                id="upazila_id"
                 value={upazilaId}
                 disabled={!districtId}
-                onChange={(e) => {
-                  setUpazilaId(e.target.value)
+                onValueChange={(v) => {
+                  setUpazilaId(v)
                   setUnionId('')
                 }}
-              >
-                <option value="">{t('institute.selectOne', lang)}</option>
-                {upazilas.map((d) => (
-                  <option key={d.id} value={d.id}>
-                    {d.name}
-                  </option>
-                ))}
-              </select>
+                options={[
+                  { value: '', label: t('institute.selectOne', lang) },
+                  ...upazilas.map((d) => ({ value: d.id, label: d.name })),
+                ]}
+              />
             </div>
             <div>
-              <label className={labelClass}>{t('institute.union', lang)}</label>
-              <select
-                className={selectClass({ size: 'md', fullWidth: true })}
+              <label className={labelClass} htmlFor="union_id">{t('institute.union', lang)}</label>
+              <ComboboxField
+                id="union_id"
                 value={unionId}
                 disabled={!upazilaId}
-                onChange={(e) => setUnionId(e.target.value)}
-              >
-                <option value="">{t('institute.selectOne', lang)}</option>
-                {unions.map((d) => (
-                  <option key={d.id} value={d.id}>
-                    {d.name}
-                  </option>
-                ))}
-              </select>
+                onValueChange={setUnionId}
+                options={[
+                  { value: '', label: t('institute.selectOne', lang) },
+                  ...unions.map((d) => ({ value: d.id, label: d.name })),
+                ]}
+              />
             </div>
           </div>
-        </div>
+        </SectionCard>
 
         {/* Roll numbering (issue #503): step used by assign_student_roll when
             the admission form's Roll Number field is left blank. id + ref are
@@ -367,10 +376,13 @@ export function ProfileForm({
         <div
           ref={rollNumberingRef}
           id="roll-numbering"
-          className="mb-4 rounded-lg border border-line bg-paper p-5 shadow-card transition-shadow duration-500"
+          className="rounded-2xl transition-shadow duration-500"
         >
-          <h3 className="mb-1 font-bold">{t('institute.rollNumbering', lang)}</h3>
-          <p className="mb-3 text-xs text-muted">{t('institute.rollIncrementHint', lang)}</p>
+          <SectionCard
+            icon={<Hash className="size-5" />}
+            title={t('institute.rollNumbering', lang)}
+            hint={t('institute.rollIncrementHint', lang)}
+          >
           <div className="max-w-40">
             <label className={labelClass} htmlFor="roll_number_increment">
               {t('institute.rollIncrement', lang)}
@@ -385,10 +397,15 @@ export function ProfileForm({
               className={inputClass}
             />
           </div>
+          </SectionCard>
         </div>
 
-        <div className="mb-4 rounded-lg border border-line bg-paper p-5 shadow-card">
-          <h3 className="mb-3 font-bold">{t('institute.educationLevels', lang)}</h3>
+        <SectionCard
+          icon={<GraduationCap className="size-5" />}
+          title={t('institute.academicSettings', lang)}
+          hint={t('institute.academicSettingsHint', lang)}
+        >
+          <h3 className="mb-2 text-sm font-semibold">{t('institute.educationLevels', lang)}</h3>
           <div className="flex flex-wrap gap-4">
             {EDUCATION_LEVELS.map((lvl) => (
               <label key={lvl.key} className="flex items-center gap-2 text-sm">
@@ -402,13 +419,12 @@ export function ProfileForm({
               </label>
             ))}
           </div>
-        </div>
 
         {/* Shift Configuration (issue #576, Wave 5/#590): empty
             configured_shifts means No Shift — there's no separate boolean,
             the radio here is purely a rendering choice over that one array. */}
-        <div className="mb-4 rounded-lg border border-line bg-paper p-5 shadow-card">
-          <h3 className="mb-1 font-bold">{t('institute.shiftConfiguration', lang)}</h3>
+        <div className="mt-4 border-t border-line pt-4">
+          <h3 className="mb-1 text-sm font-semibold">{t('institute.shiftConfiguration', lang)}</h3>
           <p className="mb-3 text-xs text-muted">{t('institute.shiftConfigurationHint', lang)}</p>
           <div className="mb-3 flex gap-4">
             <label className="flex items-center gap-2 text-sm">
@@ -444,16 +460,23 @@ export function ProfileForm({
             </div>
           )}
         </div>
-
-        <div className="mb-4 rounded-lg border border-line bg-paper p-5 shadow-card">
-          {error && <p className="text-sm text-alert-deep">{error}</p>}
-          {saved && !error && <p className="mt-3 text-sm text-mint-deep">{t('institute.saved', lang)}</p>}
-          {isOwner && (
-            <button type="submit" disabled={pending} className={`${primaryBtnClass} mt-4 w-auto px-6`}>
-              {t('institute.save', lang)}
-            </button>
-          )}
+        </SectionCard>
         </div>
+
+        {/* Save bar: sticks to the viewport bottom so Save is reachable from
+            any section. One submit for every field, as before. */}
+        {(isOwner || error || saved) && (
+          <div className="sticky bottom-0 z-10 mt-grid flex flex-wrap items-center gap-3 rounded-2xl border border-line bg-paper p-card shadow-card">
+            <p className="flex-1 text-xs text-muted">{t('institute.saveBarHint', lang)}</p>
+            {error && <p className="w-full text-sm text-alert-deep sm:order-first sm:w-auto">{error}</p>}
+            {saved && !error && <p className="text-sm text-mint-deep">{t('institute.saved', lang)}</p>}
+            {isOwner && (
+              <button type="submit" disabled={pending} className={`${primaryBtnClass} w-auto px-6`}>
+                {t('institute.save', lang)}
+              </button>
+            )}
+          </div>
+        )}
       </fieldset>
     </form>
   )
@@ -588,12 +611,11 @@ function ThemeControl({ lang, isOwner, selected }: { lang: Lang; isOwner: boolea
         {t('admitCard.theme', lang)}
       </label>
       <div className="flex flex-wrap items-center gap-3">
-        <select
+        <ComboboxField
           id="admit_card_theme"
           value={value}
           disabled={!isOwner || pending}
-          onChange={(e) => {
-            const next = e.target.value
+          onValueChange={(next) => {
             setValue(next)
             startTransition(async () => {
               setError(null)
@@ -602,14 +624,9 @@ function ThemeControl({ lang, isOwner, selected }: { lang: Lang; isOwner: boolea
               else router.refresh()
             })
           }}
-          className={`${selectClass({ size: 'md', fullWidth: true })} max-w-56`}
-        >
-          {PRINT_THEMES.map((theme) => (
-            <option key={theme.key} value={theme.key}>
-              {theme.label[lang]}
-            </option>
-          ))}
-        </select>
+          className="max-w-56"
+          options={PRINT_THEMES.map((theme) => ({ value: theme.key, label: theme.label[lang] }))}
+        />
         {/* Swatch: the preset as it will actually print. */}
         {PRINT_THEMES.filter((theme) => theme.key === value).map((theme) => (
           <span

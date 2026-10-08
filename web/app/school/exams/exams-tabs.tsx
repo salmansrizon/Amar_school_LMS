@@ -23,7 +23,7 @@ export function ExamsTabs({ active, lang }: { active: string; lang: Lang }) {
         <Link
           key={tab.href}
           href={tab.href}
-          className={`shrink-0 whitespace-nowrap rounded-t-md px-4 py-2 ${
+          className={`shrink-0 whitespace-nowrap rounded-t-md px-4 py-2 max-sm:py-3 ${
             tab.href === active
               ? 'border-b-2 border-brand-500 text-brand-600'
               : 'text-muted hover:bg-paper hover:text-ink'

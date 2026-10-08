@@ -1,4 +1,5 @@
-import { selectClass, type FieldOptions } from './field'
+import { ComboboxField } from './combobox-field'
+import type { FieldOptions } from './field'
 import type { ClassCatalogueOption } from '@/lib/class-catalogue'
 
 // The one `<select name="classSection">` rendering shared by Mark Attendance,
@@ -17,7 +18,7 @@ export function ClassSectionSelect({
   ariaLabel,
   allLabel,
   name = 'classSection',
-  size,
+  submitOnChange,
   fullWidth,
 }: {
   combos: ClassCatalogueOption[]
@@ -25,15 +26,20 @@ export function ClassSectionSelect({
   ariaLabel: string
   allLabel: string
   name?: string
+  /** Apply the pick immediately — see ComboboxField. */
+  submitOnChange?: boolean
 } & FieldOptions) {
   return (
-    <select name={name} defaultValue={value} aria-label={ariaLabel} className={selectClass({ size, fullWidth })}>
-      <option value="">{allLabel}</option>
-      {combos.map((c) => (
-        <option key={c.value} value={c.value}>
-          {c.label}
-        </option>
-      ))}
-    </select>
+    <ComboboxField
+      name={name}
+      defaultValue={value}
+      submitOnChange={submitOnChange}
+      aria-label={ariaLabel}
+      className={fullWidth ? 'w-full' : undefined}
+      options={[
+        { value: '', label: allLabel },
+        ...combos.map((c) => ({ value: c.value, label: c.label })),
+      ]}
+    />
   )
 }

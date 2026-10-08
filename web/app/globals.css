@@ -13,7 +13,7 @@
   --color-paper-muted: #f4f4f6;
   --color-line: #ececec;
   --color-line-strong: #d8d8d8;
-  --color-muted: #767676;
+  --color-muted: #6b6b6b; /* 4.67:1 on brand-50, 4.85:1 on paper-muted (#767676 was 3.98 / 4.14) */
 
   --color-brand-50: #f1eefe;
   --color-brand-100: #e3dcfd;
@@ -26,13 +26,13 @@
   --color-mint-deep: #0a7a48;
   --color-mint-soft: #e6f9ef;
   --color-sun: #ffc94a;
-  --color-sun-deep: #c98a00;
+  --color-sun-deep: #8a5a00; /* 5.51:1 on sun-soft (#c98a00 was 2.74) */
   --color-sun-soft: #fff6e0;
   --color-alert: #ef4444;
-  --color-alert-deep: #dc2626;
+  --color-alert-deep: #c81e1e; /* 4.95:1 on alert-soft (#dc2626 was 4.17) */
   --color-alert-soft: #fdeaea;
   --color-sky: #00b2ff;
-  --color-sky-deep: #0077b8;
+  --color-sky-deep: #006ba6; /* 5.19:1 on sky-soft (#0077b8 was 4.38) */
   --color-sky-soft: #e5f6ff;
 
   /* Hairline-first surfaces (map #370). ERP/CRM interfaces separate surfaces with
@@ -86,9 +86,13 @@
   --dk-brand-50: #1a1430;
   --dk-brand-100: #241c45;
   --dk-brand-300: #6250c4;
-  --dk-brand-500: #7f63ff;
+  --dk-brand-500: #7253f9; /* white on it: 4.86:1 (#7f63ff was 4.09) */
   --dk-brand-600: #6d4dfb;
   --dk-brand-700: #5a37e8;
+  /* Brand as TEXT on dark surfaces. brand-600/700 are also button backgrounds,
+     so they cannot be lightened without breaking white-on-brand; text uses of
+     them are re-pointed here instead. 7.45:1 on paper, 7.3:1 on brand-50. */
+  --dk-brand-text: #a899ff;
 
   /* The solid status hues need lifting too, not just their deep/soft variants:
      they carry `bg-alert` buttons, the shell gradient and status dots, and
@@ -112,7 +116,7 @@
      custom property — the hex is baked into the data-URI. Keeping both variants
      here as one token means the rule below needs no dark counterpart, and the
      two hexes sit next to the `--color-muted` values they must match. */
-  --select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%23767676' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5.5 8 4.5 4.5L14.5 8'/%3E%3C/svg%3E");
+  --select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%236b6b6b' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5.5 8 4.5 4.5L14.5 8'/%3E%3C/svg%3E");
   --dk-select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%23a0a0aa' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5.5 8 4.5 4.5L14.5 8'/%3E%3C/svg%3E");
 }
 
@@ -183,6 +187,12 @@
   --shadow-modal: var(--dk-shadow-modal);
   --select-chevron: var(--dk-select-chevron);
 }
+
+/* Dark: brand-coloured text. See --dk-brand-text. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) :is(.text-brand-600, .text-brand-700, .hover\:text-brand-600:hover, .hover\:text-brand-700:hover, .group:hover .group-hover\:text-brand-600) { color: var(--dk-brand-text); }
+}
+:root[data-theme='dark'] :is(.text-brand-600, .text-brand-700, .hover\:text-brand-600:hover, .hover\:text-brand-700:hover, .group:hover .group-hover\:text-brand-600) { color: var(--dk-brand-text); }
 
 /* shadcn/ui compatibility layer (map #370).
    The Family tokens above stay the single source of truth; shadcn's vocabulary is
@@ -346,7 +356,7 @@ body {
     --color-paper-muted: #f4f4f6;
     --color-line: #ececec;
     --color-line-strong: #d8d8d8;
-    --color-muted: #767676;
+    --color-muted: #6b6b6b; /* 4.67:1 on brand-50, 4.85:1 on paper-muted (#767676 was 3.98 / 4.14) */
 
     --color-brand-50: #f1eefe;
     --color-brand-100: #e3dcfd;
@@ -359,16 +369,16 @@ body {
     --color-mint-deep: #0a7a48;
     --color-mint-soft: #e6f9ef;
     --color-sun: #ffc94a;
-    --color-sun-deep: #c98a00;
+    --color-sun-deep: #8a5a00; /* 5.51:1 on sun-soft (#c98a00 was 2.74) */
     --color-sun-soft: #fff6e0;
     --color-alert: #ef4444;
-    --color-alert-deep: #dc2626;
+    --color-alert-deep: #c81e1e; /* 4.95:1 on alert-soft (#dc2626 was 4.17) */
     --color-alert-soft: #fdeaea;
     --color-sky: #00b2ff;
-    --color-sky-deep: #0077b8;
+    --color-sky-deep: #006ba6; /* 5.19:1 on sky-soft (#0077b8 was 4.38) */
     --color-sky-soft: #e5f6ff;
 
-    --select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%23767676' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5.5 8 4.5 4.5L14.5 8'/%3E%3C/svg%3E");
+    --select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%236b6b6b' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5.5 8 4.5 4.5L14.5 8'/%3E%3C/svg%3E");
   }
 
   /* The app shell locks the document to one viewport height (html/body are
@@ -444,6 +454,172 @@ body {
   }
 }
 
+/* Small motion vocabulary for the dashboards (owner and student). Entrance
+   only, short, and purely decorative: every state it accompanies is also said
+   in text. The reduce-motion block below turns all of it off. */
+@keyframes ui-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+@keyframes ui-bar {
+  from {
+    transform: scaleX(0);
+  }
+}
+/* Children appear one after another (stat cards, alert rows). */
+.ui-stagger > * {
+  animation: ui-rise 0.45s ease-out both;
+}
+.ui-stagger > *:nth-child(2) {
+  animation-delay: 60ms;
+}
+.ui-stagger > *:nth-child(3) {
+  animation-delay: 120ms;
+}
+.ui-stagger > *:nth-child(4) {
+  animation-delay: 180ms;
+}
+.ui-stagger > *:nth-child(n + 5) {
+  animation-delay: 240ms;
+}
+/* A progress fill grows from the start edge on first paint. */
+.ui-bar {
+  transform-origin: left center;
+  animation: ui-bar 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* More vocabulary, same rules: 150-300ms, ease-out, transform and opacity only,
+   nothing loops except the live pulse (ToneDot / Pill). Pages opt in by class;
+   no page writes its own animate-*. */
+@keyframes ui-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+}
+@keyframes ui-fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes ui-flash {
+  from {
+    background-color: var(--color-brand-100);
+  }
+}
+@keyframes ui-ink {
+  from {
+    transform: scaleX(0);
+  }
+}
+@keyframes ui-ring {
+  20% {
+    rotate: 14deg;
+  }
+  40% {
+    rotate: -12deg;
+  }
+  60% {
+    rotate: 8deg;
+  }
+  80% {
+    rotate: -4deg;
+  }
+}
+@keyframes ui-sheen {
+  to {
+    transform: translateX(100%);
+  }
+}
+/* Empty and success marks: a soft scale-in. */
+.ui-pop {
+  animation: ui-pop 0.3s ease-out both;
+}
+/* A row that was just saved: brand wash that fades out (opacity of the wash, not layout). */
+.ui-flash {
+  animation: ui-flash 1.2s ease-out both;
+}
+/* Active tab underline grows from the start edge. */
+.ui-ink {
+  transform-origin: left center;
+  animation: ui-ink 0.25s ease-out both;
+}
+/* The bell tilts once, e.g. on mount when something is unread. */
+.ui-ring {
+  transform-origin: 50% 0;
+  animation: ui-ring 0.8s ease-out 0.4s both;
+}
+/* Press feedback and hover lift for clickable cards and chips. */
+/* Individual transform properties (translate, scale, rotate) compose with the
+   entrance animations above instead of being overridden by their fill. */
+.ui-press {
+  transition: scale 0.15s ease-out;
+}
+.ui-press:active {
+  scale: 0.96;
+}
+.ui-lift {
+  transition:
+    translate 0.2s ease-out,
+    box-shadow 0.2s ease-out;
+}
+@media (hover: hover) {
+  .ui-lift:hover {
+    translate: 0 -2px;
+    box-shadow: var(--shadow-md, 0 4px 12px rgb(0 0 0 / 0.08));
+  }
+}
+/* Icon micro-motion: the child .ui-nudge moves when its .group parent is hovered. */
+.ui-nudge {
+  display: inline-block;
+  transition: translate 0.2s ease-out;
+}
+.group:hover .ui-nudge,
+.group:focus-visible .ui-nudge {
+  translate: 3px 0;
+}
+.ui-tilt {
+  display: inline-flex;
+  transition:
+    rotate 0.2s ease-out,
+    scale 0.2s ease-out;
+}
+.group:hover .ui-tilt {
+  rotate: -8deg;
+  scale: 1.08;
+}
+/* First-load table rows: only the first twelve, opacity only (a transformed <tr>
+   would contain its fixed descendants). */
+.ui-rows tbody > tr:nth-child(-n + 12) {
+  animation: ui-fade 0.35s ease-out both;
+}
+.ui-rows tbody > tr:nth-child(2) { animation-delay: 30ms; }
+.ui-rows tbody > tr:nth-child(3) { animation-delay: 60ms; }
+.ui-rows tbody > tr:nth-child(4) { animation-delay: 90ms; }
+.ui-rows tbody > tr:nth-child(n + 5):nth-child(-n + 12) { animation-delay: 120ms; }
+/* Loading skeleton: one soft sheen across the whole block (replaces opacity pulsing). */
+.ui-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+.ui-shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-paper) 55%, transparent), transparent);
+  animation: ui-sheen 1.4s ease-in-out infinite;
+}
+/* Native dialogs (Modal, ConfirmDialog) fade and rise in. Opacity and transform only. */
+dialog[open] {
+  animation: ui-pop 0.2s ease-out;
+}
+dialog[open]::backdrop {
+  animation: ui-fade 0.2s ease-out;
+}
+
 /* Respect the OS "reduce motion" setting: neutralise animations, transitions and
    the shell's motion-safe hover lifts for users who opt out (#301 UX pass). */
 @media (prefers-reduced-motion: reduce) {
@@ -455,4 +631,43 @@ body {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+  /* Loops and one-shots end up static; the pulse dots are motion-safe only. */
+  .ui-shimmer::after,
+  .ui-ring {
+    animation: none !important;
+  }
+  .ui-lift:hover {
+    translate: none !important;
+  }
+  .ui-press:active {
+    scale: none !important;
+  }
+  .group:hover .ui-nudge,
+  .group:focus-visible .ui-nudge {
+    translate: none !important;
+  }
+  .group:hover .ui-tilt {
+    rotate: none !important;
+    scale: none !important;
+  }
 }
+
+/* A native dialog sits in the top layer and makes <body> inert, so the shell's
+   toaster is hidden while one is open; the dialog renders its own (NativeDialog).
+   Only the toaster inside the innermost open dialog stays. */
+body:has(dialog[open]) [data-sonner-toaster]:not(dialog[open]:not(:has(dialog[open])) [data-sonner-toaster]) {
+  display: none;
+}
+
+/* DateField popup (components/ui/date-field.tsx): a short rise on open, a
+   slide-up for the phone sheet. The global reduced-motion rule flattens both. */
+@keyframes datefield-pop {
+  from { opacity: 0; transform: translateY(-4px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes datefield-sheet {
+  from { transform: translateY(100%); }
+  to { transform: none; }
+}
+.datefield-pop { animation: datefield-pop 0.12s ease-out both; }
+.datefield-sheet { animation: datefield-sheet 0.2s cubic-bezier(0.22, 1, 0.36, 1) both; }

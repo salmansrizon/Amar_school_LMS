@@ -2,6 +2,7 @@
 
 import { useMemo, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
 import { t, type Lang } from '@/lib/i18n'
 import { compressImage, IMAGE_PRESETS } from '@/lib/image/compress'
@@ -16,42 +17,67 @@ import {
   type TargetScope,
 } from '@/lib/publishing'
 import { classCatalogueOptions, type ClassCatalogueRow } from '@/lib/class-catalogue'
-import { createPublication, publicationImageUploadTicket } from '../actions'
-import { selectClass } from '@/components/ui/field'
+import { createPublication, updatePublication, publicationImageUploadTicket } from '../actions'
+import { ComboboxField } from '@/components/ui/combobox-field'
+import { SelectField } from '@/components/ui/select-field'
 import { removeUploadedObject } from '@/lib/storage/remove-object'
 import { uploadWithSignedToken } from '@/lib/storage/upload-client'
-
-const textareaClass =
-  'w-full rounded-sm border border-line-strong bg-paper px-3 py-2 text-sm outline-none focus:border-brand-500'
+import { RichTextField } from '@/components/rich-text-field'
+import { DateField } from '@/components/ui/date-field'
 
 function distinct(values: (string | null | undefined)[]): string[] {
   return [...new Set(values.filter((v): v is string => !!v))].sort()
+}
+
+/** An existing row, when the form is editing rather than creating. */
+export interface NoticeFormInitial {
+  id: string
+  kind: PublicationKind
+  importance: Importance
+  title: string
+  content: string
+  targetScope: TargetScope
+  offeringId: string
+  targetClassName: string
+  targetShift: string
+  targetGroupDepartment: string
+  targetSection: string
+  linkUrl: string
+  hasImage: boolean
+  /** The stored due day, `YYYY-MM-DD` in school time; '' when there is none. */
+  dueDate?: string
 }
 
 export function CreateNoticeForm({
   lang,
   offerings,
   activeAcademicYear,
+  initial,
 }: {
   lang: Lang
   offerings: ClassCatalogueRow[]
+  /** The Year a broadcast target is pinned to: the School's active year for a
+   *  new notice, the row's own for an edited broadcast. */
   activeAcademicYear: number | null
+  /** Present = edit this row (same fields, same validation); absent = create. */
+  initial?: NoticeFormInitial
 }) {
   const router = useRouter()
-  const [kind, setKind] = useState<PublicationKind>('notice')
-  const [importance, setImportance] = useState<Importance>('normal')
-  const [title, setTitle] = useState('')
-  const [content, setContent] = useState('')
+  const [kind, setKind] = useState<PublicationKind>(initial?.kind ?? 'notice')
+  const [importance, setImportance] = useState<Importance>(initial?.importance ?? 'normal')
+  const [title, setTitle] = useState(initial?.title ?? '')
+  const [dueDate, setDueDate] = useState(initial?.dueDate ?? '')
+  const [content, setContent] = useState(initial?.content ?? '')
   // Targeting onto map #598's three-scope contract (#607): All / exact Class
   // Offering / broadcast predicate (Class + Any-or-specific Shift/Group/
   // Section, Year pinned to the School's active Academic Year).
-  const [targetScope, setTargetScope] = useState<TargetScope>('all')
-  const [offeringId, setOfferingId] = useState('')
-  const [targetClassName, setTargetClassName] = useState('')
-  const [targetShift, setTargetShift] = useState('')
-  const [targetGroupDepartment, setTargetGroupDepartment] = useState('')
-  const [targetSection, setTargetSection] = useState('')
-  const [linkUrl, setLinkUrl] = useState('')
+  const [targetScope, setTargetScope] = useState<TargetScope>(initial?.targetScope ?? 'all')
+  const [offeringId, setOfferingId] = useState(initial?.offeringId ?? '')
+  const [targetClassName, setTargetClassName] = useState(initial?.targetClassName ?? '')
+  const [targetShift, setTargetShift] = useState(initial?.targetShift ?? '')
+  const [targetGroupDepartment, setTargetGroupDepartment] = useState(initial?.targetGroupDepartment ?? '')
+  const [targetSection, setTargetSection] = useState(initial?.targetSection ?? '')
+  const [linkUrl, setLinkUrl] = useState(initial?.linkUrl ?? '')
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
@@ -113,7 +139,7 @@ export function CreateNoticeForm({
         }
         imagePath = upload.path
       }
-      const res = await createPublication({
+      const input = {
         kind,
         title,
         content,
@@ -126,7 +152,10 @@ export function CreateNoticeForm({
         targetSection,
         imagePath,
         linkUrl,
-      })
+        // Only homework carries a due date; the action enforces the same rule.
+        dueDate: kind === 'homework' ? dueDate || null : null,
+      }
+      const res = initial ? await updatePublication(initial.id, input) : await createPublication(input)
       if (res.error) {
         // The row insert failed after the image was already uploaded — clean
         // up the now-orphaned object rather than leaving it unreferenced
@@ -135,6 +164,7 @@ export function CreateNoticeForm({
         setError(res.error)
         return
       }
+      toast.success(t(initial ? 'notices.updated' : 'notices.published', lang))
       router.push('/school/notices')
       router.refresh()
     })
@@ -142,135 +172,126 @@ export function CreateNoticeForm({
 
   return (
     <div className="rounded-lg border border-line bg-paper p-5 shadow-card">
-      <form className="grid gap-4 sm:grid-cols-2" onSubmit={onSubmit}>
+      <form className="grid grid-cols-1 gap-4 sm:grid-cols-2" onSubmit={onSubmit}>
         <div>
-          <label className={labelClass}>{t('notices.type', lang)}</label>
-          <select
-            className={selectClass({ size: 'md', fullWidth: true })}
+          <label htmlFor="notice_kind" className={labelClass}>{t('notices.type', lang)}</label>
+          <SelectField
+            id="notice_kind"
             value={kind}
-            onChange={(e) => setKind(e.target.value as PublicationKind)}
-          >
-            {PUBLICATION_KINDS.map((k) => (
-              <option key={k.key} value={k.key}>
-                {k.label[lang]}
-              </option>
-            ))}
-          </select>
+            onValueChange={(v) => setKind(v as PublicationKind)}
+            options={PUBLICATION_KINDS.map((k) => ({ value: k.key, label: k.label[lang] }))}
+          />
         </div>
         <div>
-          <label className={labelClass}>{t('notices.importance', lang)}</label>
-          <select
-            className={selectClass({ size: 'md', fullWidth: true })}
+          <label htmlFor="notice_importance" className={labelClass}>{t('notices.importance', lang)}</label>
+          <SelectField
+            id="notice_importance"
             value={importance}
-            onChange={(e) => setImportance(e.target.value as Importance)}
-          >
-            {IMPORTANCE_LEVELS.map((i) => (
-              <option key={i.key} value={i.key}>
-                {i.label[lang]}
-              </option>
-            ))}
-          </select>
+            onValueChange={(v) => setImportance(v as Importance)}
+            options={IMPORTANCE_LEVELS.map((i) => ({ value: i.key, label: i.label[lang] }))}
+          />
         </div>
         <div className="sm:col-span-2">
-          <label className={labelClass}>{t('notices.colTitle', lang)}</label>
-          <input
+          <label htmlFor="notice_f_1" className={labelClass}>{t('notices.colTitle', lang)}</label>
+          <input id="notice_f_1"
             className={inputClass}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             required
           />
         </div>
+        {kind === 'homework' && (
+          <div>
+            <label htmlFor="notice_due_date" className={labelClass}>{t('notices.dueDate', lang)}</label>
+            <div className="flex items-center gap-2">
+              <DateField lang={lang}
+                id="notice_due_date"
+                className={`${inputClass} max-sm:h-11`}
+                value={dueDate}
+                onChange={setDueDate}
+                aria-describedby="notice_due_date_hint"
+              />
+            </div>
+            <p id="notice_due_date_hint" className="mt-1 text-xs text-muted">{t('notices.dueDateHint', lang)}</p>
+          </div>
+        )}
         <div>
-          <label className={labelClass}>{t('notices.colTarget', lang)}</label>
-          <select
-            className={selectClass({ size: 'md', fullWidth: true })}
+          <label htmlFor="notice_target_scope" className={labelClass}>{t('notices.colTarget', lang)}</label>
+          <SelectField
+            id="notice_target_scope"
             value={targetScope}
-            onChange={(e) => chooseScope(e.target.value as TargetScope)}
-          >
-            <option value="all">{t('notices.targetAll', lang)}</option>
-            <option value="offering">{t('notices.targetOffering', lang)}</option>
-            <option value="broadcast">{t('notices.targetBroadcast', lang)}</option>
-          </select>
+            onValueChange={(v) => chooseScope(v as TargetScope)}
+            options={[
+              { value: 'all', label: t('notices.targetAll', lang) },
+              { value: 'offering', label: t('notices.targetOffering', lang) },
+              { value: 'broadcast', label: t('notices.targetBroadcast', lang) },
+            ]}
+          />
         </div>
-        <div />
+        {kind !== 'homework' && <div />}
         {targetScope === 'offering' && (
           <div className="sm:col-span-2">
-            <label className={labelClass}>{t('notices.classOffering', lang)}</label>
-            <select
-              className={selectClass({ size: 'md', fullWidth: true })}
+            <label htmlFor="notice_offering" className={labelClass}>{t('notices.classOffering', lang)}</label>
+            <ComboboxField
+              id="notice_offering"
               value={offeringId}
-              onChange={(e) => setOfferingId(e.target.value)}
-            >
-              <option value="">{t('notices.selectOffering', lang)}</option>
-              {offeringOptions.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.label}
-                </option>
-              ))}
-            </select>
+              onValueChange={setOfferingId}
+              options={[
+                { value: '', label: t('notices.selectOffering', lang) },
+                ...offeringOptions.map((o) => ({ value: o.value, label: o.label })),
+              ]}
+            />
           </div>
         )}
         {targetScope === 'broadcast' && (
           <div className="grid gap-4 sm:col-span-2 sm:grid-cols-2">
             <div>
-              <label className={labelClass}>{t('classes.class', lang)}</label>
-              <select
-                className={selectClass({ size: 'md', fullWidth: true })}
+              <label htmlFor="notice_target_class_name" className={labelClass}>{t('classes.class', lang)}</label>
+              <ComboboxField
+                id="notice_target_class_name"
                 value={targetClassName}
-                onChange={(e) => setTargetClassName(e.target.value)}
-              >
-                <option value="">{t('notices.selectClass', lang)}</option>
-                {classNameOptions.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
+                onValueChange={setTargetClassName}
+                options={[
+                  { value: '', label: t('notices.selectClass', lang) },
+                  ...classNameOptions.map((c) => ({ value: c, label: c })),
+                ]}
+              />
             </div>
             <div>
-              <label className={labelClass}>{t('sms.shift', lang)}</label>
-              <select
-                className={selectClass({ size: 'md', fullWidth: true })}
+              <label htmlFor="notice_target_shift" className={labelClass}>{t('sms.shift', lang)}</label>
+              <ComboboxField
+                id="notice_target_shift"
                 value={targetShift}
-                onChange={(e) => setTargetShift(e.target.value)}
-              >
-                <option value="">{t('sms.anyShift', lang)}</option>
-                {shiftOptions.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
-              </select>
+                onValueChange={setTargetShift}
+                options={[
+                  { value: '', label: t('sms.anyShift', lang) },
+                  ...shiftOptions.map((s) => ({ value: s, label: s })),
+                ]}
+              />
             </div>
             <div>
-              <label className={labelClass}>{t('sms.groupDepartment', lang)}</label>
-              <select
-                className={selectClass({ size: 'md', fullWidth: true })}
+              <label htmlFor="notice_target_group_department" className={labelClass}>{t('sms.groupDepartment', lang)}</label>
+              <ComboboxField
+                id="notice_target_group_department"
                 value={targetGroupDepartment}
-                onChange={(e) => setTargetGroupDepartment(e.target.value)}
-              >
-                <option value="">{t('sms.anyGroup', lang)}</option>
-                {groupOptions.map((g) => (
-                  <option key={g} value={g}>
-                    {g}
-                  </option>
-                ))}
-              </select>
+                onValueChange={setTargetGroupDepartment}
+                options={[
+                  { value: '', label: t('sms.anyGroup', lang) },
+                  ...groupOptions.map((g) => ({ value: g, label: g })),
+                ]}
+              />
             </div>
             <div>
-              <label className={labelClass}>{t('classes.section', lang)}</label>
-              <select
-                className={selectClass({ size: 'md', fullWidth: true })}
+              <label htmlFor="notice_target_section" className={labelClass}>{t('classes.section', lang)}</label>
+              <ComboboxField
+                id="notice_target_section"
                 value={targetSection}
-                onChange={(e) => setTargetSection(e.target.value)}
-              >
-                <option value="">{t('sms.anySection', lang)}</option>
-                {sectionOptions.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
-              </select>
+                onValueChange={setTargetSection}
+                options={[
+                  { value: '', label: t('sms.anySection', lang) },
+                  ...sectionOptions.map((s) => ({ value: s, label: s })),
+                ]}
+              />
             </div>
             <p className="text-xs text-muted sm:col-span-2">
               {t('sms.academicYearPinned', lang)}: {activeAcademicYear ?? '—'}
@@ -278,17 +299,22 @@ export function CreateNoticeForm({
           </div>
         )}
         <div className="sm:col-span-2">
-          <label className={labelClass}>{t('notices.content', lang)}</label>
-          <textarea
-            rows={5}
-            className={textareaClass}
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
+          {/* Shown on screen only (owner detail, student notice and task
+              pages) — never sent by SMS, printed or exported — so formatting
+              is safe here. */}
+          <RichTextField
+            name="content"
+            label={t('notices.content', lang)}
+            lang={lang}
+            required={false}
+            formal
+            defaultValue={content}
+            onValue={setContent}
           />
         </div>
         <div>
-          <label className={labelClass}>{t('notices.image', lang)}</label>
-          <input
+          <label htmlFor="notice_f_3" className={labelClass}>{t(initial?.hasImage ? 'notices.imageReplace' : 'notices.image', lang)}</label>
+          <input id="notice_f_3"
             type="file"
             accept="image/jpeg,image/png,image/webp"
             className="text-sm"
@@ -296,8 +322,8 @@ export function CreateNoticeForm({
           />
         </div>
         <div>
-          <label className={labelClass}>{t('notices.link', lang)}</label>
-          <input
+          <label htmlFor="notice_f_4" className={labelClass}>{t('notices.link', lang)}</label>
+          <input id="notice_f_4"
             className={inputClass}
             value={linkUrl}
             onChange={(e) => setLinkUrl(e.target.value)}
@@ -307,7 +333,11 @@ export function CreateNoticeForm({
         {error && <p className="text-sm text-alert-deep sm:col-span-2">{error}</p>}
         <div className="flex gap-2 sm:col-span-2">
           <button type="submit" disabled={pending} className={`${primaryBtnClass} w-auto px-6`}>
-            {pending ? t('notices.publishing', lang) : t('notices.publish', lang)}
+            {initial
+              ? t(pending ? 'notices.saving' : 'notices.saveChanges', lang)
+              : pending
+                ? t('notices.publishing', lang)
+                : t('notices.publish', lang)}
           </button>
         </div>
       </form>
