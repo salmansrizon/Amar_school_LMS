@@ -4,7 +4,7 @@ import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { classSectionLabel } from '@/lib/students'
 import { roomForRoll } from '@/lib/exam-setup'
-import { renderAuthenticityQr } from '@/lib/qr'
+import { printVerifyQr } from '@/lib/print-verify-server'
 import { PrintTrigger } from '@/components/print/print-trigger'
 import { withParams } from '@/lib/url-params'
 import { TemplatePicker2 } from '@/components/print/template-picker'
@@ -91,9 +91,7 @@ export default async function AdmitCardPage({
   }
 
   const examLabel = `${exam.name} ${exam.exam_year}`
-  const qrSvg = await renderAuthenticityQr(
-    `ADMITCARD|school:${institute.name}|exam:${examId}|student:${studentId}|roll:${student.roll_number ?? ''}`,
-  )
+  const qrSvg = await printVerifyQr({ kind: 'admit_card', studentId, refId: examId })
 
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 p-6">

@@ -5,7 +5,6 @@ import {
   GradePanelRow,
   SignatureRow,
   QrFooterRow,
-  QrMark,
   Badge,
 } from '@/components/print/pieces'
 import { t, type Lang } from '@/lib/i18n'
@@ -151,7 +150,7 @@ function ClassicTemplate(props: MarkSheetTemplateProps) {
       <SignatureRow
         labels={[t('markSheet.classTeacher', lang), t('markSheet.examController', lang), t('markSheet.headTeacher', lang)]}
       />
-      <QrFooterRow qrLabel={t('print.qr', lang)} poweredBy={t('print.poweredBy', lang)} qr={<QrMark svg={props.qrSvg} />} />
+      <QrFooterRow qrLabel={t('print.qr', lang)} poweredBy={t('print.poweredBy', lang)} qrSvg={props.qrSvg} />
     </PrintPage>
   )
 }
@@ -190,7 +189,7 @@ function BorderedTemplate(props: MarkSheetTemplateProps) {
       <SignatureRow
         labels={[t('markSheet.classTeacher', lang), t('markSheet.examController', lang), t('markSheet.headTeacher', lang)]}
       />
-      <QrFooterRow qrLabel={t('print.qr', lang)} poweredBy={t('print.poweredBy', lang)} qr={<QrMark svg={props.qrSvg} />} />
+      <QrFooterRow qrLabel={t('print.qr', lang)} poweredBy={t('print.poweredBy', lang)} qrSvg={props.qrSvg} />
     </PrintPage>
   )
 }
@@ -228,7 +227,7 @@ function ResultCardTemplate(props: MarkSheetTemplateProps) {
       </div>
       <SubjectTable props={props} showGradeColumns={showGradeColumns} />
       <SignatureRow labels={[t('markSheet.classTeacher', lang), t('markSheet.headTeacher', lang)]} />
-      <QrFooterRow qrLabel={t('print.qr', lang)} poweredBy={t('print.poweredBy', lang)} qr={<QrMark svg={props.qrSvg} />} />
+      <QrFooterRow qrLabel={t('print.qr', lang)} poweredBy={t('print.poweredBy', lang)} qrSvg={props.qrSvg} />
     </PrintPage>
   )
 }

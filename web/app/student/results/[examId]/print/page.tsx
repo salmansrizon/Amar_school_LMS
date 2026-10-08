@@ -6,6 +6,7 @@ import { loadInstitutePrintHeader } from '@/lib/institute-print'
 import { groupByExam, evaluateExam, missingSubjects, type ResultRow } from '@/lib/student/results'
 import { MarkSheetTemplate } from '@/app/school/exams/[id]/mark-sheet/[studentId]/templates'
 import { classSectionLabel } from '@/lib/students'
+import { printVerifyQr } from '@/lib/print-verify-server'
 
 // The Student's own mark sheet, printed browser-native (ADR 0007).
 //
@@ -78,9 +79,7 @@ export default async function StudentMarkSheetPage({
       incomplete={incomplete}
       rankPosition={rank?.rank ?? null}
       rankOutOf={rank?.out_of ?? 0}
-      // The QR on the school's copy verifies the document against the student
-      // card route; a student's own copy is not a credential, so it carries none.
-      qrSvg=""
+      qrSvg={await printVerifyQr({ kind: 'mark_sheet', self: true, refId: examId })}
       template={parseTemplate(templateParam)}
     />
   )

@@ -20,6 +20,7 @@ import { schoolCrumbs } from '@/lib/school-crumbs'
 import { PageHeader } from '@/components/ui/page'
 import { filterButtonClass, inputClass } from '@/components/ui/field'
 import { pageTitle } from '@/lib/page-title'
+import { PrintVerifyFooter } from '@/components/print/verify-footer'
 
 // Layout per ui/school-owner/attendance-book.html: class/section + month
 // filter, Filled/Blank toggle, print button, monthly P/A register grid
@@ -256,6 +257,8 @@ export default async function AttendanceBookPage({
             <p className="mt-3 text-xs text-muted">{t('attendance.bookLegend', lang)}</p>
           )}
           </PaginatedSheet>
+          {/* One class on the sheet: the scan names it. Several: school and document only. */}
+          <PrintVerifyFooter lang={lang} kind="attendance_book" refId={new Set(visible.map((s) => s.class_offering_id)).size === 1 ? visible[0].class_offering_id : null} />
         </PrintPage>
       )}
     </div>

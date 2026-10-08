@@ -6,7 +6,6 @@ import {
   KeyValueTable,
   ChecklistGrid,
   QrFooterRow,
-  QrMark,
   Badge,
 } from '@/components/print/pieces'
 import { t, type Lang } from '@/lib/i18n'
@@ -159,7 +158,7 @@ function ClassicTemplate(props: ProgressReportTemplateProps) {
       <SubjectTable rows={props.subjectRows} lang={lang} />
       <BehaviourSection props={props} />
       <ChecklistSection props={props} />
-      <QrFooterRow qrLabel={t('print.qr', lang)} poweredBy={t('print.poweredBy', lang)} qr={<QrMark svg={props.qrSvg} />} />
+      <QrFooterRow qrLabel={t('print.qr', lang)} poweredBy={t('print.poweredBy', lang)} qrSvg={props.qrSvg} />
     </PrintPage>
   )
 }
@@ -181,7 +180,7 @@ function BorderedTemplate(props: ProgressReportTemplateProps) {
       </div>
       <BehaviourSection props={props} />
       <ChecklistSection props={props} />
-      <QrFooterRow qrLabel={t('print.qr', lang)} poweredBy={t('print.poweredBy', lang)} qr={<QrMark svg={props.qrSvg} />} />
+      <QrFooterRow qrLabel={t('print.qr', lang)} poweredBy={t('print.poweredBy', lang)} qrSvg={props.qrSvg} />
     </PrintPage>
   )
 }
@@ -204,7 +203,7 @@ function SideBySideTemplate(props: ProgressReportTemplateProps) {
           <ChecklistSection props={props} />
         </div>
       </div>
-      <QrFooterRow qrLabel={t('print.qr', lang)} poweredBy={t('print.poweredBy', lang)} qr={<QrMark svg={props.qrSvg} />} />
+      <QrFooterRow qrLabel={t('print.qr', lang)} poweredBy={t('print.poweredBy', lang)} qrSvg={props.qrSvg} />
     </PrintPage>
   )
 }

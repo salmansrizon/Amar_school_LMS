@@ -5,7 +5,7 @@ import { getSchoolContext } from '@/lib/school/context'
 import { classSectionLabel } from '@/lib/students'
 import { loadExamPrintContext } from '@/lib/exam-print-data'
 import { loadProgressReportExtras } from '@/lib/progress-report-data'
-import { renderAuthenticityQr } from '@/lib/qr'
+import { printVerifyQr } from '@/lib/print-verify-server'
 import { PrintTrigger } from '@/components/print/print-trigger'
 import { withParams } from '@/lib/url-params'
 import { TemplatePicker } from '@/components/print/template-picker'
@@ -82,9 +82,7 @@ export default async function ProgressReportPage({
 
   const extras = await loadProgressReportExtras(supabase, examId, studentId, ctx.exam.exam_year)
 
-  const qrSvg = await renderAuthenticityQr(
-    `PROGRESSREPORT|school:${school.name}|exam:${examId}|student:${studentId}|roll:${ctx.student.roll_number ?? ''}`,
-  )
+  const qrSvg = await printVerifyQr({ kind: 'progress_report', studentId, refId: examId })
 
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 p-6">

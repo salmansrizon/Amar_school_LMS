@@ -13,6 +13,7 @@ import { embeddedBuildingName } from '@/lib/venues'
 import { BackLink } from '@/components/back-link'
 import { resolveBackHref } from '@/lib/back-nav'
 import { pageTitle } from '@/lib/page-title'
+import { PrintVerifyFooter } from '@/components/print/verify-footer'
 
 // Exam attendance sheet (issue #97, docs/improvement.md §4; ADR 0007).
 //
@@ -238,6 +239,7 @@ export default async function ExamAttendanceSheetPage({
               />
               <p className="mt-3 text-center text-xs text-muted">{label}</p>
               </PaginatedSheet>
+              <PrintVerifyFooter lang={lang} kind="exam_attendance_sheet" refId={id} />
             </PrintPage>
           )
         })

@@ -4,13 +4,14 @@ import { t, formatDate, formatNumber, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { dateToDayOfWeek, sortRoutineEntries } from '@/lib/exam-setup'
 import { dayLabel } from '@/lib/routine'
-import { PrintPage, InstituteHeader, PaginatedSheet, QrFooterRow } from '@/components/print/pieces'
+import { PrintPage, InstituteHeader, PaginatedSheet } from '@/components/print/pieces'
 import { loadInstitutePrintHeader } from '@/lib/institute-print'
 import { PrintTrigger } from '@/components/print/print-trigger'
 import { embeddedBuildingName, roomVenueLabel } from '@/lib/venues'
 import { BackLink } from '@/components/back-link'
 import { resolveBackHref } from '@/lib/back-nav'
 import { PrintPreflight } from '@/components/print/preflight'
+import { PrintVerifyFooter } from '@/components/print/verify-footer'
 
 // Printable exam routine (ADR 0007: browser-native print), mirrors the class
 // routine print page's shape.
@@ -132,7 +133,7 @@ export default async function ExamRoutinePrintPage({
             </tbody>
           </table>
 
-          <QrFooterRow qrLabel={t('print.qr', lang)} poweredBy={t('print.poweredBy', lang)} />
+          <PrintVerifyFooter lang={lang} kind="exam_routine" refId={id} />
         </PaginatedSheet>
       </PrintPage>
     </main>
