@@ -10,6 +10,7 @@ import { studentRegister } from '@/lib/school/roster-source'
 import { classScopeFor } from '@/lib/school/class-scope'
 import { isOffDayIso } from '@/lib/attendance-manual'
 import { studentAttendanceRates } from '@/lib/school/attendance-rate-source'
+import { schoolToday } from '@/lib/school-time'
 import { attendanceRate, unmarkedOfferings } from '@/lib/dashboard'
 import { selectAllRows } from '@/lib/supabase/select-all'
 import { attendanceCrumbs } from '@/lib/school-crumbs'
@@ -68,7 +69,7 @@ export default async function MarkAttendancePage({
   // One call, one model. This used to be ~60 lines of assembly: two Promise.all
   // waves, an .in(visibleIds) guard, a conditional profiles lookup for the
   // marker's name and three Map/Set joins — none of it reachable by a test.
-  const [register, rateMap, scope, { data: dateOffRows }] = await Promise.all([
+  const [register, { map: rateMap, key: rateLabelKey }, scope, { data: dateOffRows }] = await Promise.all([
     studentRegister(supabase, {
       classSection,
       date,
@@ -77,9 +78,12 @@ export default async function MarkAttendancePage({
       showYear,
       academicYearSelection,
     }),
-    // Attendance Rate (YTD, CONTEXT.md). Null while migration 0217 is
-    // unapplied — the column and the card then hide rather than show zeros.
-    studentAttendanceRates(supabase),
+    // This month so far (owner's decision 2026-10-09; migration 0261). Until
+    // 0261 is applied it falls back to the Academic Year figure (0217), and the
+    // label says which one is shown. Null hides the column and the card.
+    studentAttendanceRates(supabase, `${schoolToday().slice(0, 7)}-01`).then(async (mtd) =>
+      mtd ? { map: mtd, key: 'attendance.statRateMtd' as const } : { map: await studentAttendanceRates(supabase), key: 'attendance.statRateYtd' as const },
+    ),
     classScopeFor(supabase),
     // Is `date` a weekly off-day or an off_days row? Marking it is accepted but
     // the teacher should be told (audit F7).
@@ -249,7 +253,7 @@ export default async function MarkAttendancePage({
               <StatCard
                 icon={<TrendingUp className="size-5" />}
                 tone={ytdRate >= 90 ? 'mint' : ytdRate >= 75 ? 'sun' : 'alert'}
-                label={t('attendance.statRateYtd', lang)}
+                label={t(rateLabelKey, lang)}
                 value={`${fmt.format(ytdRate)}%`}
                 action={{ href: '/school/attendance/student-log', label: t('attendance.tabStudentLog', lang) }}
               />
@@ -329,6 +333,7 @@ export default async function MarkAttendancePage({
           students={register.rows}
           markedBy={register.markedBy}
           rates={rates}
+          rateLabel={t(rateLabelKey, lang)}
           isToday={isToday}
         />
       )}

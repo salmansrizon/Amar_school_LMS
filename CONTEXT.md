@@ -76,6 +76,10 @@ _Avoid_: Fee status (already means the Fee Collection Record itself), payment st
 A Student's present days as a share of recorded attendance days in the current Academic Year so far. Banded for display: **Regular** (90% and above), **Irregular** (75–89%), **At risk** (below 75%). The band is always shown as text beside its colour.
 _Avoid_: Attendance status (reads like one day's present/absent)
 
+**Monthly Attendance Rate**:
+The same share counted from the first day of the current month. Shown on the attendance mark page, where the teacher needs this month's picture; it uses the same bands. Report cards and summaries keep the **Attendance Rate**.
+_Avoid_: MTD rate, monthly attendance (reads like a count of days)
+
 **Behaviour Log Entry**:
 An incident note + numeric rating + remind date recorded against a Student. Becomes read-only 3 days after it was **created** (not 3 days after the incident date it describes, which is free-text and not a trustworthy anchor) — preserves the legacy rule against retroactively rewriting a Student's recorded history.
 _Avoid_: Incident report (implies something more formal/investigative than this lightweight rating+note record)

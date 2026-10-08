@@ -47,6 +47,7 @@ export function MarkAttendanceForm({
   students,
   markedBy,
   rates = null,
+  rateLabel,
   isToday = true,
 }: {
   lang: Lang
@@ -57,6 +58,8 @@ export function MarkAttendanceForm({
   markedBy: MarkedBy | null
   /** Attendance Rate (YTD) per student id; null hides the column (0217 unapplied). */
   rates?: Record<string, number | null> | null
+  /** Column heading for `rates` (this month, or the year while 0261 is unapplied). */
+  rateLabel?: string
 }) {
   const [rows, setRows] = useState<Row[]>(students)
   const [error, setError] = useState<string | null>(null)
@@ -230,7 +233,7 @@ export function MarkAttendanceForm({
             <tr>
               <th className={thClass}>{t('attendance.rollCol', lang)}</th>
               <th className={thClass}>{t('employees.name', lang)}</th>
-              {rates && <th className={thClass}>{t('attendance.statRateYtd', lang)}</th>}
+              {rates && <th className={thClass}>{rateLabel ?? t('attendance.statRateYtd', lang)}</th>}
               <th className={thClass}>{t('attendance.presentCol', lang)}</th>
               <th className={thClass}>{t('attendance.absentCol', lang)}</th>
               <th className={thClass}>{t('attendance.causeCol', lang)}</th>

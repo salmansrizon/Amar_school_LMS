@@ -3130,6 +3130,7 @@ const dict = {
   'attendance.statPresent': { bn: 'আজ উপস্থিত', en: 'Present today' },
   'attendance.statAbsent': { bn: 'আজ অনুপস্থিত', en: 'Absent today' },
   'attendance.statRateYtd': { bn: 'উপস্থিতির হার (বছরে)', en: 'Attendance Rate (YTD)' },
+  'attendance.statRateMtd': { bn: 'উপস্থিতির হার (এই মাসে)', en: 'Attendance Rate (MTD)' },
   'attendance.class': { bn: 'শ্রেণি', en: 'Class' },
   'attendance.section': { bn: 'শাখা', en: 'Section' },
   'attendance.classSection': { bn: 'শ্রেণি/শাখা', en: 'Class/Section' },
