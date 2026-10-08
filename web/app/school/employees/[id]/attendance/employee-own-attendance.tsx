@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import { CalendarCheck, CalendarX, CalendarClock } from 'lucide-react'
 import { currentLang } from '@/lib/i18n-server'
-import { t, type Lang } from '@/lib/i18n'
+import { t, formatDate, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { employeeCategoryLabel } from '@/lib/employees'
 import { schoolToday } from '@/lib/school-time'
@@ -265,10 +265,10 @@ export async function EmployeeOwnAttendance({ params, searchParams, inModal }: E
           icon={<CalendarCheck />}
           tone="mint"
           label={t('attendance.presentRateCard', lang)}
-          value={summary.rate !== null ? `${summary.rate}%` : '—'}
+          value={summary.rate !== null ? `${localizeNumber(summary.rate, lang)}%` : '—'}
         />
-        <StatCard icon={<CalendarX />} tone="alert" label={t('attendance.absentDaysCard', lang)} value={String(summary.absentDays)} />
-        <StatCard icon={<CalendarClock />} tone="sky" label={t('attendance.leaveDaysCard', lang)} value={String(summary.leaveDays)} />
+        <StatCard icon={<CalendarX />} tone="alert" label={t('attendance.absentDaysCard', lang)} value={localizeNumber(summary.absentDays, lang)} />
+        <StatCard icon={<CalendarClock />} tone="sky" label={t('attendance.leaveDaysCard', lang)} value={localizeNumber(summary.leaveDays, lang)} />
       </StatGrid>
 
       <section className="rounded-2xl border border-line bg-paper p-card">
@@ -281,7 +281,7 @@ export async function EmployeeOwnAttendance({ params, searchParams, inModal }: E
               <li key={l.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
                 <div>
                   <p className="font-semibold">
-                    {l.from_day} – {l.to_day}
+                    {formatDate(l.from_day, lang)} – {formatDate(l.to_day, lang)}
                   </p>
                   {l.reason && <p className="text-xs text-muted">{l.reason}</p>}
                 </div>

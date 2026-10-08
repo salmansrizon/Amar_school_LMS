@@ -177,3 +177,23 @@ export function threadSiblings<M extends { id: string; student_id: string; creat
     .filter((m) => m.id !== viewedId && m.student_id === viewed.student_id && key(m) === k)
     .sort((a, b) => a.created_at.localeCompare(b.created_at) || a.id.localeCompare(b.id))
 }
+
+/**
+ * Teacher's inbox: unanswered messages whose thread has a LATER answered one.
+ * The Student sees such a conversation as answered (buildConversations judges
+ * the last row), so the inbox must not list its first message as waiting.
+ * Returns message id -> the answering sibling's replied_at. Derived only;
+ * nothing is stored. Same thread and same Student, as threadSiblings.
+ */
+export function supersededMessages<
+  M extends { id: string; student_id: string; created_at: string; status: MessageStatus; replied_at: string | null },
+>(messages: M[], threadOf: Map<string, string>): Map<string, string | null> {
+  const key = (m: M) => `${m.student_id}|${threadOf.get(m.id) ?? m.id}`
+  const out = new Map<string, string | null>()
+  for (const m of messages) {
+    if (isAnswered(m)) continue
+    const later = messages.find((o) => o.id !== m.id && key(o) === key(m) && o.created_at > m.created_at && isAnswered(o))
+    if (later) out.set(m.id, later.replied_at)
+  }
+  return out
+}

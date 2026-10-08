@@ -564,7 +564,7 @@ export function AppShell({
           onClose={() => setSearchOpen(false)}
         />}
 
-      <Toaster theme={theme} position="top-right" richColors closeButton />
+      <Toaster theme={theme} position="top-right" richColors closeButton toastOptions={{ classNames: { actionButton: 'max-sm:!h-11' } }} />
     </div>
   )
 }

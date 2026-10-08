@@ -19,7 +19,7 @@ export function MarkSeen({ ids }: { ids: string[] }) {
 
 /** Withdraw an unanswered question (#703 item 5.8). The database decides; a
  *  refusal is shown in the dialog. */
-export function WithdrawQuestionButton({ id, lang }: { id: string; lang: Lang }) {
+export function WithdrawQuestionButton({ id, lang, closeHref }: { id: string; lang: Lang; closeHref: string }) {
   const router = useRouter()
   return (
     <ConfirmDialog
@@ -32,6 +32,8 @@ export function WithdrawQuestionButton({ id, lang }: { id: string; lang: Lang })
         const res = await withdrawQuestion(id)
         if (res.error) return { error: res.error === 'cannotWithdraw' ? t('student.cannotWithdraw', lang) : res.error }
         toast.success(t('student.questionWithdrawn', lang))
+        // The open conversation no longer exists: drop ?view=<id> from the address.
+        router.replace(closeHref)
         router.refresh()
       }}
     />

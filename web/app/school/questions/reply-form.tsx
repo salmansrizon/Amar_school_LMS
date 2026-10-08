@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 import { t, type Lang, type MessageKey } from '@/lib/i18n'
 import { RichTextField } from '@/components/rich-text-field'
 import { addReply, answerQuestion } from '@/lib/student/messages-source'
@@ -35,6 +36,7 @@ export function ReplyForm({ lang, messageId, further = false }: { lang: Lang; me
           if (result.error) setError(ERRORS[result.error] ? t(ERRORS[result.error], lang) : result.error)
           else {
             setFieldKey((k) => k + 1)
+            toast.success(t('questions.replied', lang))
             router.refresh()
           }
         })

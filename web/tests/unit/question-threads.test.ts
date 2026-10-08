@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildConversations, findConversation, type ThreadRow } from '@/lib/student/question-threads'
+import { buildConversations, findConversation, supersededMessages, type ThreadRow } from '@/lib/student/question-threads'
 
 const row = (id: string, o: Partial<ThreadRow> = {}): ThreadRow => ({
   id,
@@ -61,5 +61,20 @@ describe('buildConversations', () => {
     const list = buildConversations([row('a'), row('b', { created_at: '2026-10-02T10:00:00Z' })])
     expect(findConversation(list, 'b')?.id).toBe('a')
     expect(findConversation(list, 'zz')).toBeNull()
+  })
+})
+
+describe('supersededMessages', () => {
+  const m = (id: string, o: Record<string, unknown> = {}) => ({
+    id, student_id: 'st', created_at: '2026-10-01T10:00:00Z', status: 'unread' as const, replied_at: null as string | null, ...o,
+  })
+  it('flags an unanswered first message when a later one in its thread is answered', () => {
+    const list = [m('a'), m('b', { created_at: '2026-10-02T10:00:00Z', status: 'answered', replied_at: '2026-10-03T10:00:00Z' })]
+    expect([...supersededMessages(list, new Map([['b', 'a']]))]).toEqual([['a', '2026-10-03T10:00:00Z']])
+  })
+  it('leaves other threads and other students alone', () => {
+    const list = [m('a'), m('b', { created_at: '2026-10-02T10:00:00Z', status: 'answered' })]
+    expect(supersededMessages(list, new Map()).size).toBe(0)
+    expect(supersededMessages([m('a'), m('b', { student_id: 'x', created_at: '2026-10-02T10:00:00Z', status: 'answered' })], new Map([['b', 'a']])).size).toBe(0)
   })
 })
