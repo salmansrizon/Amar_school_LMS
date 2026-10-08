@@ -224,7 +224,7 @@ export default async function StudentQuestionsPage({
               {/* #703 item 5.8: the latest message can be withdrawn while nobody has replied to it. */}
               {!isAnswered(open.last) && !open.last.reply_body && (
                 <div className="mt-4">
-                  <WithdrawQuestionButton id={open.last.id} lang={lang} />
+                  <WithdrawQuestionButton id={open.last.id} lang={lang} closeHref={closeHref} />
                 </div>
               )}
             </div>
