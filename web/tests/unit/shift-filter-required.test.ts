@@ -111,6 +111,10 @@ const EXEMPT: [file: string, reason: string][] = [
   ],
   ['app/school/page.tsx', 'dashboard total-student count is schoolwide, no class dimension'],
   ['app/school/sms/rules/page.tsx', 'student picker here has no class/section dimension at all'],
+  [
+    'lib/school/roll-check.ts',
+    'roll uniqueness pre-check (#690): reads the members of ONE Class Offering by enrollment id; narrowing by the Shift Selection would hide a classmate who holds the roll',
+  ],
   ['lib/search/actions.ts', 'global search has no class dimension today'],
 
   // --- students: deliberately not shift-narrowed.

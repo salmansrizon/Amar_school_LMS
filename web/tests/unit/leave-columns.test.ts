@@ -44,6 +44,9 @@ describe('cleanDecisionNote', () => {
 const updates: unknown[] = []
 let failNew = false
 vi.mock('next/cache', () => ({ revalidatePath: vi.fn() }))
+// #677: employee leave asks this guard first; these tests act as an allowed caller
+// (the guard has its own tests in employee-attendance-admin.test.ts).
+vi.mock('@/lib/school/employee-attendance-admin', () => ({ employeeAttendanceAdminDenied: async () => null }))
 vi.mock('@/lib/auth/require-role', () => ({
   requireSchoolMember: vi.fn().mockResolvedValue(true),
   requireSchoolOwnerProfile: vi.fn(),
