@@ -47,6 +47,8 @@ other order is also safe.
   does not appear, and an unmarked subject of an earlier class cannot be judged.
   That needs the view to left-join the exam's subjects — a new database need.
 
+> **2026-10-08: `0222` was removed from the branch.** A read-only count on the shared database found no `exam_marks` row with all three components at 0, so there is nothing to clean. Left in the repo, the file would delete real typed zeros if someone ran it later. The section below is kept as a record only.
+
 ## 0222 — DATA CHANGE: delete ambiguous all-zero marks (#698)
 
 - **Deletes** `exam_marks` rows where all three components are 0, the exam is
