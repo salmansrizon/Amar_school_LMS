@@ -1506,6 +1506,7 @@ const dict = {
   'examSetup.title': { bn: 'পরীক্ষা সেটআপ', en: 'Exam Setup' },
   'examSetup.basicInfo': { bn: 'মূল তথ্য', en: 'Basic Info' },
   'examSetup.save': { bn: 'সংরক্ষণ করুন', en: 'Save' },
+  'exams.deleted': { bn: 'পরীক্ষাটি মুছে ফেলা হয়েছে', en: 'Exam deleted' },
   'examSetup.saved': { bn: 'সংরক্ষিত হয়েছে', en: 'Saved' },
   'examSetup.noBandsOption': { bn: '(গ্রেড ব্যান্ড নেই)', en: '(no grade bands)' },
   'examSetup.schemeNoBands': {

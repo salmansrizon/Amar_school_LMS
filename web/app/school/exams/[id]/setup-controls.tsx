@@ -67,6 +67,7 @@ function DeleteExamButton({ examId, examLabel, lang }: { examId: string; examLab
         if (result.error === 'not-found') return { error: t('exams.deleteMissing', lang) }
         if (result.error) return result
         // The page this button is on no longer exists.
+        toast.success(t('exams.deleted', lang))
         router.push('/school/exams')
       }}
     />
