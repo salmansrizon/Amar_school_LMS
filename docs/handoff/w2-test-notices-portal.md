@@ -79,3 +79,15 @@ Not tested: the database CHECK (0256) on its own. The app refuses first, and no 
 - Follow-up asked after the answer: withdraw is offered for that follow-up only. After withdrawing it, the answered message and both replies are still in the timeline.
 
 Minor: after a withdraw the address bar keeps `?view=<deleted id>`. Nothing is shown for it and there is no error.
+
+## 7. Machine sync read side (#694 part): VERIFIED
+
+`/school/attendance/machine` as owner, Bangla and English, 1440px and 390px: HTTP 200, the page renders (tabs, new-machine form, registered machines table), no error overlay, no console errors, no horizontal scroll. No line on the page mentions a sync or the Agent: no "last synced" line and no warning.
+
+Not tested: the positive case (a heartbeat exists). Nothing writes a heartbeat today and no SQL was run. The warnings on the Employee Attendance pages were not looked at.
+
+## 8. Regression of the three evaluation fixes: VERIFIED (two of three; the third was not identified)
+
+- Direct load of `/student/questions?view=<id>` (fresh navigation, Bangla 1440px and English 390px, and many more times during items 2 to 6): HTTP 200, the popup opens, no console error, no error overlay. The dev server log holds 0 occurrences of "document is not defined".
+- Multi-line question (`W2-NOT Multiline`: three single-line-break lines, a blank line, a paragraph, a two-item list). Editor preview and stored render in the popup have the same structure: one `<p>` holding the three lines separated by `<br>`, a second `<p>`, then a `<ul>` with two `<li>`. Single line breaks did not become paragraphs.
+- The brief names two fixes; the third was not named, so it was not tested as such.
