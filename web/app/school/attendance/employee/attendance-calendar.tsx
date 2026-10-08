@@ -92,6 +92,7 @@ export function EmployeeAttendanceDayCell({
       <div
         role="gridcell"
         aria-label={dayAriaLabel(cell, lang)}
+        aria-current={isToday ? 'date' : undefined}
         data-iso={cell.iso}
         className={`${cellFrame} ${weekendTint}`}
       >
@@ -114,6 +115,7 @@ export function EmployeeAttendanceDayCell({
         delay={150}
         role="gridcell"
         aria-label={dayAriaLabel(cell, lang)}
+        aria-current={isToday ? 'date' : undefined}
         data-iso={cell.iso}
         className={`${cellFrame} ${weekendTint} cursor-pointer hover:bg-paper-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300`}
       >

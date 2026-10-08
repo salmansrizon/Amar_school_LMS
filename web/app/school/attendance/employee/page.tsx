@@ -367,7 +367,7 @@ export default async function EmployeeAttendancePage({
                     <td className="px-4 py-3 text-sm">{hhmm(r.entry)}</td>
                     <td className="px-4 py-3 text-sm">{hhmm(r.exit)}</td>
                     <td className="px-4 py-3 text-sm">
-                      <Pill tone={STATUS_TONE[r.status]}>{t(`status.${r.status}` as 'status.on_time', lang)}</Pill>
+                      <Pill tone={STATUS_TONE[r.status]}>{r.status === 'no_record' && date === today ? t('employees.notInYet', lang) : t(`status.${r.status}` as 'status.on_time', lang)}</Pill>
                     </td>
                     <td className="px-4 py-3 text-xs text-muted">
                       {r.status === 'absent' || r.status === 'on_leave' || r.status === 'holiday' || r.status === 'no_record' ? (
