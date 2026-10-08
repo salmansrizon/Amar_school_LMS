@@ -31,7 +31,7 @@ export default async function MyClassesPage() {
   if (!myEmployeeId) {
     return (
       <>
-        <PageHeader title={t('myClasses.title', lang)} crumbs={schoolCrumbs('/school/my-classes', lang, { label: t('myClasses.title', lang) })} />
+        <PageHeader icon="my-classes" title={t('myClasses.title', lang)} crumbs={schoolCrumbs('/school/my-classes', lang, { label: t('myClasses.title', lang) })} />
         <Card>
           <p className="text-sm text-muted">{t('myClasses.notLinked', lang)}</p>
         </Card>
@@ -73,7 +73,7 @@ export default async function MyClassesPage() {
 
   return (
     <>
-      <PageHeader title={t('myClasses.title', lang)} crumbs={schoolCrumbs('/school/my-classes', lang, { label: t('myClasses.title', lang) })} />
+      <PageHeader icon="my-classes" title={t('myClasses.title', lang)} crumbs={schoolCrumbs('/school/my-classes', lang, { label: t('myClasses.title', lang) })} />
       <Card>
         {!classes?.length ? (
           <p className="text-sm text-muted">{t('myClasses.none', lang)}</p>

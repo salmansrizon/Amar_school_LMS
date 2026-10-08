@@ -328,7 +328,7 @@ export default async function FeesPage({
         r.voided ? (
           <Pill tone="muted">{t('fees.voided', lang)}</Pill>
         ) : (
-          <Pill tone={STANDING_TONE[r.standing]} pulse={r.standing === 'due'}>
+          <Pill tone={STANDING_TONE[r.standing]} pulse={r.standing === 'due' && r.id === firstDueId}>
             {t(STANDING_LABEL[r.standing], lang)}
           </Pill>
         ),
@@ -373,9 +373,13 @@ export default async function FeesPage({
     },
   ]
 
+  // One pulse per list: only the first row that needs a look keeps it.
+  const firstDueId = pageData.items.find((r) => !r.voided && r.standing === 'due')?.id
+
   return (
-    <>
+    <div className="ui-rows">
       <PageHeader
+        icon="fees"
         title={t('fees.title', lang)}
         subtitle={t('fees.pageSubtitle', lang)}
         crumbs={schoolCrumbs('/school/fees', lang, [{ label: t('fees.title', lang) }])}
@@ -573,12 +577,13 @@ export default async function FeesPage({
         empty={
           all.length ? (
             <EmptyState
+              icon="fees"
               title={t('fees.noMatch', lang)}
               action={{ href: `/school/fees?month=${month}&year=${year}`, label: t('students.clearFilters', lang) }}
               lang={lang}
             />
           ) : (
-            <EmptyState title={t('fees.none', lang)} action={{ href: '#collect', label: t('fees.collect', lang) }} lang={lang} />
+            <EmptyState icon="fees" title={t('fees.none', lang)} action={{ href: '#collect', label: t('fees.collect', lang) }} lang={lang} />
           )
         }
       />
@@ -660,6 +665,6 @@ export default async function FeesPage({
           />
         )}
       </RecordDrawer>
-    </>
+    </div>
   )
 }

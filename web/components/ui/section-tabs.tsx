@@ -1,5 +1,7 @@
 import Link from 'next/link'
 import { t, formatNumber, type Lang, type MessageKey } from '@/lib/i18n'
+import { CONCEPT_ICON, type ConceptKey } from '@/lib/ui/concept-icons'
+import { ToneDot } from '@/components/ui/widgets'
 
 // One tab bar for a section whose tabs are real routes.
 //
@@ -19,6 +21,11 @@ export interface SectionTab {
   labelKey: MessageKey
   /** Omit, or pass null, for no badge. Zero is not a badge — see `badgeCount`. */
   count?: number | null
+  /** The tab's concept glyph (lib/ui/concept-icons). Omit for none. */
+  icon?: ConceptKey
+  /** Ping a dot beside the count: this backlog is waiting on the reader now.
+   *  Ignored when the count is zero; set it on at most one tab. */
+  pulse?: boolean
 }
 
 export function SectionTabs({
@@ -46,21 +53,24 @@ export function SectionTabs({
             key={tab.href}
             href={tab.href}
             aria-current={current ? 'page' : undefined}
-            className={`flex shrink-0 items-center gap-2 whitespace-nowrap rounded-t-md px-4 py-2 max-sm:min-h-11 ${
+            className={`relative flex shrink-0 items-center gap-2 whitespace-nowrap rounded-t-md px-4 py-2 max-sm:min-h-11 ${
               current
-                ? 'border-b-2 border-brand-500 text-brand-600'
+                ? 'border-b-2 border-transparent text-brand-600'
                 : 'text-muted hover:bg-paper hover:text-ink'
             }`}
           >
+            {tab.icon && <TabGlyph name={tab.icon} />}
             {t(tab.labelKey, lang)}
+            {current && <span aria-hidden className="ui-ink absolute inset-x-0 -bottom-0.5 h-0.5 rounded-full bg-brand-500" />}
             {tab.count ? (
               // The count is decoration over a label that already says what it
               // counts, so it needs no separate accessible text beyond its own.
               <span
-                className={`rounded-full px-1.5 py-0.5 text-xs font-bold tabular-nums ${
+                className={`inline-flex items-center gap-1.5 rounded-full px-1.5 py-0.5 text-xs font-bold tabular-nums ${
                   current ? 'bg-brand-50 text-brand-600' : 'bg-paper-muted text-muted'
                 }`}
               >
+                {tab.pulse && <ToneDot tone="alert" pulse />}
                 {formatNumber(tab.count, lang)}
               </span>
             ) : null}
@@ -69,4 +79,9 @@ export function SectionTabs({
       })}
     </nav>
   )
+}
+
+function TabGlyph({ name }: { name: ConceptKey }) {
+  const Glyph = CONCEPT_ICON[name]
+  return <Glyph className="size-4 shrink-0" aria-hidden />
 }

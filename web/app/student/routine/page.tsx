@@ -37,6 +37,7 @@ export default async function StudentRoutinePage() {
   return (
     <main className="w-full px-gutter pt-section pb-16">
       <PageHeader
+        icon="routine"
         title={t('student.routineTitle', lang)}
         crumbs={{ lang, items: [{ label: t('student.nav.home', lang), href: '/student' }, { label: t('student.navGroup.study', lang) }] }}
         actions={
@@ -54,6 +55,7 @@ export default async function StudentRoutinePage() {
 
       {!periods.length ? (
         <EmptyState
+          icon="routine"
           lang={lang}
           title={t('student.noRoutine', lang)}
           action={{ href: '/student', label: t('student.nav.home', lang) }}

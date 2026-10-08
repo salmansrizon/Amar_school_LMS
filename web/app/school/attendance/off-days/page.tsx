@@ -118,6 +118,7 @@ export default async function OffDayCalendarPage({
   return (
     <div>
       <PageHeader
+        icon="attendance"
         title={`${t('attendance.offDayTitle', lang)} — ${titleYear}`}
         crumbs={schoolCrumbs('/school/attendance', lang, { label: t('attendance.title', lang), href: '/school/attendance' }, { label: `${t('attendance.offDayTitle', lang)} — ${titleYear}` })}
       />

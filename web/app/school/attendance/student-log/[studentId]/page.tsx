@@ -194,6 +194,7 @@ export default async function StudentLogDetailPage({
     <div className="mx-auto w-full max-w-3xl">
       <div className="print:hidden">
         <PageHeader
+          icon="attendance"
           title={student.full_name}
           crumbs={schoolCrumbs(
             '/school/attendance',

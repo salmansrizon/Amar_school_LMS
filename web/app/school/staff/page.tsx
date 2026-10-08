@@ -155,16 +155,20 @@ export default async function StaffPage({
           </Pill>
         ) : (
           // No screens granted needs attention; a granted count is a steady fact.
-          <Pill tone="muted" pulse>
+          <Pill tone="muted" pulse={r.id === firstNoAccessId}>
             {t('staff.noAccess', lang)}
           </Pill>
         ),
     },
   ]
 
+  // One pulse per list: only the first row without access keeps it.
+  const firstNoAccessId = pageData.items.find((r) => !r.screens.length)?.id
+
   return (
     <>
       <PageHeader
+        icon="staff"
         title={t('staff.title', lang)}
         subtitle={t('staff.pageSubtitle', lang)}
         crumbs={schoolCrumbs('/school/staff', lang, { label: t('staff.title', lang) })}
@@ -238,12 +242,14 @@ export default async function StaffPage({
         empty={
           all.length ? (
             <EmptyState
+              icon="staff"
               title={t('staff.noMatch', lang)}
               action={{ href: '/school/staff', label: t('students.clearFilters', lang) }}
               lang={lang}
             />
           ) : (
             <EmptyState
+              icon="staff"
               title={t('staff.none', lang)}
               action={{ href: `/school/staff?view=${NEW}`, label: t('staff.create', lang) }}
               lang={lang}

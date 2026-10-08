@@ -208,7 +208,7 @@ export default async function ExamsPage({
   const publishPill = (e: ExamRow) => {
     const chip = examChip(stageOf(e), e.results_published_at)
     return (
-      <Pill tone={EXAM_CHIP[chip].tone} live={chip === 'running'} pulse={chip === 'marksPending' || chip === 'setup'}>
+      <Pill tone={EXAM_CHIP[chip].tone} live={chip === 'running'} pulse={(chip === 'marksPending' || chip === 'setup') && e.id === firstUrgentId}>
         {chip === 'closed' && <Lock className="mr-1 size-3" aria-hidden />}
         {t(EXAM_CHIP[chip].label, lang)}
       </Pill>
@@ -345,9 +345,16 @@ export default async function ExamsPage({
   const toApprove = readyUnpublished[0]
   const toApproveFacts = toApprove ? await loadExamReadiness(supabase, toApprove) : null
 
+  // One pulse per list: the first exam that is waiting on marks or setup.
+  const firstUrgentId = paged.items.find((e) => {
+    const chip = examChip(stageOf(e), e.results_published_at)
+    return chip === 'marksPending' || chip === 'setup'
+  })?.id
+
   return (
-    <>
+    <div className="ui-rows">
       <PageHeader
+        icon="exams"
         title={t('exams.pageTitle', lang)}
         subtitle={t('exams.pageSubtitle', lang)}
         crumbs={schoolCrumbs('/school/exams', lang, { label: t('exams.title', lang) })}
@@ -464,12 +471,14 @@ export default async function ExamsPage({
         empty={
           all.length ? (
             <EmptyState
+              icon="exams"
               title={t('classes.noMatch', lang)}
               action={{ href: '/school/exams', label: t('students.clearFilters', lang) }}
               lang={lang}
             />
           ) : (
             <EmptyState
+              icon="exams"
               title={t('exams.none', lang)}
               action={{ href: '/school/exams/grading-schemes', label: t('grading.title', lang) }}
               lang={lang}
@@ -602,6 +611,6 @@ export default async function ExamsPage({
           />
         )}
       </RecordDrawer>
-    </>
+    </div>
   )
 }

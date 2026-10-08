@@ -100,6 +100,7 @@ export default async function ActivityLogPage({
   return (
     <>
       <PageHeader
+        icon="activity"
         title={t('activity.title', lang)}
         crumbs={{
           lang,
@@ -130,12 +131,14 @@ export default async function ActivityLogPage({
         empty={
           activity.length ? (
             <EmptyState
+              icon="activity"
               title={t('activity.noMatch', lang)}
               action={{ href: '/school/activity', label: t('students.clearFilters', lang) }}
               lang={lang}
             />
           ) : (
             <EmptyState
+              icon="activity"
               title={t('dash.raNone', lang)}
               action={{ href: '/school', label: t('denied.back', lang) }}
               lang={lang}

@@ -184,8 +184,9 @@ export default async function SchoolQuestionsPage({
   ]
 
   return (
-    <>
+    <div className="ui-rows">
       <PageHeader
+        icon="questions"
         title={t('hub.title', lang)}
         subtitle={t('hub.pageSubtitle', lang)}
         crumbs={schoolCrumbs('/school/questions', lang, [
@@ -382,6 +383,6 @@ export default async function SchoolQuestionsPage({
           />
         )}
       </RecordDrawer>
-    </>
+    </div>
   )
 }

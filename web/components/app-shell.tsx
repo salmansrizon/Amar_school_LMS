@@ -9,7 +9,7 @@ import { ThemeSwitch } from '@/components/theme-switch'
 import type { ThemePreference } from '@/lib/ui-prefs'
 import { LogoutButton } from '@/components/logout-button'
 import { Icon } from '@/components/school-icons'
-import { t, type Lang } from '@/lib/i18n'
+import { t, formatNumber, type Lang } from '@/lib/i18n'
 import { FOCUS_RING, ICON_BUTTON } from '@/lib/ui-tokens'
 import { avatarInitials } from '@/lib/name'
 import { sidebarCookieAssignment } from '@/lib/ui-prefs'
@@ -39,6 +39,8 @@ export interface AppNavItem {
    *  `href` (map #667) — for an item fronting several unrelated pages that
    *  share no URL prefix with each other (a nav group's default tab, say). */
   matchPrefixes?: string[]
+  /** Waiting-on-you count shown beside the label. Zero or missing shows nothing. */
+  badge?: number
 }
 
 export interface AppShellBrand {
@@ -101,14 +103,21 @@ function NavLinks({
         onClick={onNavigate}
         aria-current={active ? 'page' : undefined}
         title={collapsed ? item.label : undefined}
-        className={`flex min-h-11 items-center gap-3 rounded-xl py-2.5 text-sm font-semibold transition-[background-color,color,transform] duration-200 ease-out active:scale-[0.98] ${FOCUS_RING} ${
+        className={`relative flex min-h-11 items-center gap-3 rounded-xl py-2.5 text-sm font-semibold transition-[background-color,color,transform] duration-200 ease-out active:scale-[0.98] ${FOCUS_RING} ${
           collapsed ? 'justify-center px-0' : isChild ? 'pr-3 pl-8' : 'px-3'
         } ${active ? 'bg-brand-50 text-brand-700' : 'text-muted hover:bg-brand-50/60 hover:text-brand-600'}`}
       >
         <span className={`grid size-5 shrink-0 place-items-center ${active ? 'text-brand-600' : 'text-muted'}`}>
           {item.icon}
         </span>
-        {!collapsed && <span className="truncate">{item.label}</span>}
+        {!collapsed && <span className="min-w-0 flex-1 truncate">{item.label}</span>}
+        {item.badge ? (
+          <span
+            className={`rounded-full bg-brand-500 px-1.5 text-[11px] font-bold tabular-nums text-white ${collapsed ? 'absolute right-1 top-1 px-1 text-[10px]' : ''}`}
+          >
+            {formatNumber(item.badge, lang)}
+          </span>
+        ) : null}
       </Link>
     )
   }

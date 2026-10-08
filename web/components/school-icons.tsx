@@ -1,4 +1,5 @@
 import type { ScreenKey } from '@/lib/auth/screens'
+import { CONCEPT_ICON, isConcept, type ConceptKey } from '@/lib/ui/concept-icons'
 
 // Inline Lucide-style icons (no icon dependency in web/). 24x24, stroke=currentColor,
 // so they inherit text color. Keyed by nav screen for the sidebar; standalone icons
@@ -6,6 +7,7 @@ import type { ScreenKey } from '@/lib/auth/screens'
 
 type IconName =
   | ScreenKey
+  | ConceptKey
   | 'dashboard'
   | 'search'
   | 'bell'
@@ -159,6 +161,11 @@ export function Icon({
   className?: string
   strokeWidth?: number
 }) {
+  // Named concepts (attendance, fees, ...) share one glyph set across both portals.
+  if (isConcept(name)) {
+    const Concept = CONCEPT_ICON[name]
+    return <Concept className={className} strokeWidth={strokeWidth} aria-hidden="true" />
+  }
   return (
     <svg
       viewBox="0 0 24 24"

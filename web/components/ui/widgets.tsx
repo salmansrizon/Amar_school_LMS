@@ -92,7 +92,7 @@ export function StatCard({
 }) {
   return (
     <section
-      className={`relative flex min-h-36 flex-col overflow-hidden rounded-3xl bg-gradient-to-br p-card shadow-sm ring-1 ring-line/60 motion-safe:transition motion-safe:hover:-translate-y-0.5 motion-safe:hover:shadow-md ${WASH[tone]}`}
+      className={`relative flex min-h-36 flex-col overflow-hidden rounded-3xl bg-gradient-to-br p-card shadow-sm ring-1 ring-line/60 ui-lift ${WASH[tone]}`}
     >
       {icon && (
         <span
@@ -116,9 +116,9 @@ export function StatCard({
       {action && (
         <Link
           href={action.href}
-          className="relative mt-auto self-start pt-4 max-sm:min-w-11 max-sm:pb-3 text-xs font-bold text-ink/80 hover:underline"
+          className="group relative mt-auto self-start pt-4 max-sm:min-w-11 max-sm:pb-3 text-xs font-bold text-ink/80 hover:underline"
         >
-          {action.label} <span aria-hidden>→</span>
+          {action.label} <span aria-hidden className="ui-nudge">→</span>
         </Link>
       )}
     </section>
@@ -134,16 +134,19 @@ export type Alert = { tone: WidgetTone; title: string; body?: string; action?: W
 /** Things needing attention today. Renders nothing when there are none. */
 export function AlertStrip({ title, alerts }: { title: string; alerts: Alert[] }) {
   if (!alerts.length) return null
+  // One pulse per strip: the first alert-tone row (callers order by urgency).
+  // The rest keep their static dot and tone.
+  const pulsing = alerts.findIndex((a) => a.tone === 'alert')
   return (
     <section className="mb-section rounded-2xl border border-line bg-paper p-card">
       <h2 className="mb-3 font-bold">{title}</h2>
       <ul className="ui-stagger grid gap-grid md:grid-cols-2 xl:grid-cols-3">
-        {alerts.map((a) => (
+        {alerts.map((a, i) => (
           <li
             key={a.title}
             className={`flex items-center gap-3 rounded-xl border border-line p-3 ${SOFT[a.tone].split(' ')[0]}`}
           >
-            <ToneDot tone={a.tone} pulse={a.tone === 'alert'} />
+            <ToneDot tone={a.tone} pulse={i === pulsing} />
             <div className="min-w-0 flex-1">
               <p className={`text-sm font-semibold ${TEXT[a.tone]}`}>{a.title}</p>
               {a.body && <p className="text-xs text-muted">{a.body}</p>}
@@ -151,9 +154,12 @@ export function AlertStrip({ title, alerts }: { title: string; alerts: Alert[] }
             {a.action && (
               <Link
                 href={a.action.href}
-                className="inline-flex h-9 max-sm:h-11 shrink-0 items-center rounded-full border border-line-strong bg-paper px-3 text-xs font-semibold hover:bg-paper-muted"
+                className="group ui-press inline-flex h-9 max-sm:h-11 shrink-0 items-center gap-1 rounded-full border border-line-strong bg-paper px-3 text-xs font-semibold hover:bg-paper-muted"
               >
                 {a.action.label}
+                <span aria-hidden className="ui-nudge">
+                  →
+                </span>
               </Link>
             )}
           </li>
@@ -176,13 +182,17 @@ export function QuickActions({ title, actions }: { title: string; actions: Quick
           <li key={a.href}>
             <Link
               href={a.href}
-              className={`inline-flex h-11 items-center gap-2 rounded-xl px-4 text-sm font-semibold transition motion-safe:active:scale-95 ${
+              className={`group ui-press inline-flex h-11 items-center gap-2 rounded-xl px-4 text-sm font-semibold transition-colors ${
                 a.primary
                   ? 'bg-brand-500 text-white hover:bg-brand-600'
                   : 'border border-line bg-paper-muted text-ink hover:bg-line'
               }`}
             >
-              {a.icon && <span aria-hidden>{a.icon}</span>}
+              {a.icon && (
+                <span aria-hidden className="ui-tilt">
+                  {a.icon}
+                </span>
+              )}
               {a.label}
               {a.count ? (
                 <span className="rounded-full bg-brand-500 px-2 text-xs text-white">{a.count}</span>

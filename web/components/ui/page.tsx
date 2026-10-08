@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { t, type Lang } from '@/lib/i18n'
+import { CONCEPT_ICON, type ConceptKey } from '@/lib/ui/concept-icons'
 
 // Page archetype kit (map #370, gate #372).
 //
@@ -61,6 +62,7 @@ export function PageHeader({
   crumbs,
   subtitle,
   badge,
+  icon,
 }: {
   title: string
   /** Omit on a top-level page; the sidebar is the way back from there. */
@@ -73,7 +75,10 @@ export function PageHeader({
   subtitle?: string
   /** Short count/status pill beside the title, e.g. "Total: 1,485". */
   badge?: string
+  /** The page's concept glyph, drawn in a soft tile before the title. Decorative. */
+  icon?: ConceptKey
 }) {
+  const Glyph = icon ? CONCEPT_ICON[icon] : null
   return (
     <div className="mb-section">
       {crumbs && <Crumbs lang={crumbs.lang} items={crumbs.items} />}
@@ -99,6 +104,11 @@ export function PageHeader({
                 <path d="m15 18-6-6 6-6" />
               </svg>
             </Link>
+          )}
+          {Glyph && (
+            <span className="ui-pop flex size-9 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600" aria-hidden>
+              <Glyph className="size-5" />
+            </span>
           )}
           <h1 className="truncate text-2xl font-extrabold">{title}</h1>
           {badge && (

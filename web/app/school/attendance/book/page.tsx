@@ -127,6 +127,7 @@ export default async function AttendanceBookPage({
     <div>
       <div className="print:hidden">
         <PageHeader
+          icon="attendance"
           title={t('attendance.bookTitle', lang)}
           crumbs={schoolCrumbs('/school/attendance', lang, { label: t('attendance.title', lang), href: '/school/attendance' }, { label: t('attendance.bookTitle', lang) })}
         />

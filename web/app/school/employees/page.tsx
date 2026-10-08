@@ -204,7 +204,7 @@ export default async function EmployeesPage({
       <Pill tone="muted">{t('status.holiday', lang)}</Pill>
     ) : (
       // Not checked in yet needs a look; on_leave/present are steady facts, no pulse.
-      <Pill tone="muted" pulse>
+      <Pill tone="muted" pulse={e.id === firstNotInId}>
         {t('employees.notInYet', lang)}
       </Pill>
     )
@@ -271,9 +271,13 @@ export default async function EmployeesPage({
   const primaryClass =
     'inline-flex h-11 items-center rounded-full bg-brand-500 px-4 text-xs font-semibold text-white hover:bg-brand-600'
 
+  // One pulse per list: only the first row that needs a look keeps it.
+  const firstNotInId = pageData.items.find((e) => !['present', 'on_leave', 'holiday'].includes(e.presence))?.id
+
   return (
-    <>
+    <div className="ui-rows">
       <PageHeader
+        icon="employees"
         title={t('employees.title', lang)}
         subtitle={t('employees.pageSubtitle', lang)}
         crumbs={schoolCrumbs('/school/employees', lang, { label: t('employees.title', lang) })}
@@ -426,12 +430,14 @@ export default async function EmployeesPage({
         empty={
           all.length ? (
             <EmptyState
+              icon="employees"
               title={t('employees.noMatch', lang)}
               action={{ href: '/school/employees', label: t('students.clearFilters', lang) }}
               lang={lang}
             />
           ) : (
             <EmptyState
+              icon="employees"
               title={t('employees.none', lang)}
               action={{ href: '/school/employees/new', label: t('employees.add', lang) }}
               lang={lang}
@@ -565,6 +571,6 @@ export default async function EmployeesPage({
             <EmployeeProfile id={viewed.id} lang={lang} />
           ))}
       </RecordDrawer>
-    </>
+    </div>
   )
 }

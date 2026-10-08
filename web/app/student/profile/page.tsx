@@ -65,6 +65,7 @@ export default async function StudentProfilePage() {
   return (
     <main className="w-full px-gutter pt-section pb-16">
       <PageHeader
+        icon="profile"
         title={t('student.profileTitle', lang)}
         crumbs={{ lang, items: [{ label: t('student.nav.home', lang), href: '/student' }, { label: t('student.profileTitle', lang) }] }}
         subtitle={t('student.profileReadOnly', lang)}

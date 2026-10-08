@@ -169,6 +169,7 @@ export default async function FeeStructuresPage({
         pagination={{ page: pageData.page, totalPages: pageData.totalPages, total: pageData.total, pageSize }}
         empty={
           <EmptyState
+            icon="fees"
             title={t('fees.noStructures', lang)}
             action={{ href: '/school/fees/structures', label: t('students.clearFilters', lang) }}
             lang={lang}

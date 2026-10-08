@@ -196,6 +196,7 @@ export default async function MarkAttendancePage({
   return (
     <div>
       <PageHeader
+        icon="attendance"
         title={t('attendance.markTitle', lang)}
         subtitle={t('attendance.pageSubtitle', lang)}
         badge={`${n(register.readable.length)} ${t('attendance.studentsTotal', lang)}`}
@@ -313,6 +314,7 @@ export default async function MarkAttendancePage({
           class attachment is not told her school has no students (#538). */}
       {register.empty ? (
         <EmptyState
+          icon="attendance"
           title={t(EMPTY_TITLE[register.empty], lang)}
           body={register.empty === 'unassigned' ? t('students.noClassAssignedHelp', lang) : undefined}
           action={{
