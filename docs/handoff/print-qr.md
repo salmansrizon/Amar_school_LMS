@@ -138,3 +138,11 @@ Not opened: the student portal prints, attendance book, student log, print-all, 
 - No scan has returned facts, so the "Genuine" page with real facts has never rendered in a browser. Its mapping is covered by unit tests only.
 - No real phone has scanned a printed sheet.
 - The production host makes the URL longer than `localhost:3781`; the symbol grows by a version or two and stays near 0.5 mm per module at 29.6 mm, by arithmetic, not by measurement.
+
+## Revision: total marks only (2026-10-08)
+
+- 0260 result section rewritten; pre-check is now 12 columns (dropped `exams.grading_scheme_id`, `subjects.class_id`, `grade_bands.sort_order`). The rollback text did not mention the removed parts and is unchanged.
+- Merged `7eb7cf5e`; two import-only conflicts (student log, general ledger), both sides kept.
+- Checks on the merged tree: `tsc` clean, `eslint` clean, unit suite 175 files / 1941 tests passed.
+- `jev_review` on the new SQL (executable part in full): **escalate**, composite 0.411, safe_to_apply 0.22, limiting rubric correctness (score 0.81, confidence 0). It names no defect; the SQL has still never been executed.
+- The browser check above predates this revision and the merge; it was not repeated.
