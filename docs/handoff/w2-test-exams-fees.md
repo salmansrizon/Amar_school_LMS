@@ -214,3 +214,50 @@ With a live record of ৳0 received (fee 100, due 100) the roster row reads
 while the records table below shows the same record as "৳0 · Due ৳100 · Due".
 The roster label only says that a record exists
 (`web/app/school/fees/page.tsx`, the roster's status cell). Wording left alone.
+
+## #681 director capital guard — PARTLY (what the screen can show is right)
+
+Owner, English 1440px and Bangla 390px.
+
+| Moment | Opening | Invest | Withdraw | Current balance | Rows | Last Running Balance row |
+|---|---|---|---|---|---|---|
+| Before | ৳13,14,000 | ৳81,000 | ৳0 | ৳13,95,000 | 162 | ৳13,95,000 |
+| After invest ৳7, note `W2-EXF` | ৳13,14,000 | ৳81,007 | ৳0 | ৳13,95,007 | 163 | ৳13,95,007 |
+| After withdraw ৳7, note `W2-EXF` | ৳13,14,000 | ৳81,007 | ৳7 | ৳13,95,000 | 164 | ৳13,95,000 |
+
+- The last Running Balance row equals the Current Balance card at each step.
+- The page has no delete control: its only controls are "+ Invest",
+  "+ Withdraw", the tabs, the date filter, the type filter and the pager.
+- Net effect of this run on the balance: zero.
+- NOT tested: the guard of migration `0232` itself (a delete being refused or
+  reversed). Nothing on the screen deletes a capital transaction, and SQL was
+  out of bounds. The stored drift (opening ৳13,14,000) was left as it is.
+
+## Records made in this run
+
+| Record | State at the end |
+|---|---|
+| Students `W2-EXF Student One` (roll 91, S9295) and `W2-EXF Student Two` (roll 92), class `UXA-Att 1790996221552 - A — 2032` | left in place |
+| Student login for Student One (`s9295@…students.invalid`) | left in place |
+| Grading scheme `W2-EXF scheme` with four bands | deleted |
+| Exam `W2-EXF exam` (routine, marks, published then unpublished) | deleted, with its routine and marks |
+| Exam `W2-EXF exam 2` (one routine sitting) | deleted |
+| Fee record `13ed80e5-…` (10/2026, received ৳130, fine ৳10) | voided, reason "W2-EXF test void" |
+| Fee record `9505eaeb-…` (10/2026, fee ৳100, received ৳0) | voided, reason "W2-EXF cleanup" |
+| Director capital: invest ৳7 and withdraw ৳7, note `W2-EXF`, 8 Oct 2026 | left in place (no delete exists); net zero |
+
+Fee cards for 10/2026 at the end: Collected ৳500, Due ৳500, Records 2 — the
+same as before this run. No SMS was sent. No record of another tester or of the
+seed data was changed.
+
+## Checks
+
+- No application code was changed, so `tsc` and the unit tests were not run.
+- The dev server ran with a preloaded logger for server-side Supabase calls
+  (`.w2test/fetchlog.cjs`, not committed) — test harness only.
+- jev (`jev_verify`, jev-1.13.0) on ten claims against the observations:
+  8 verified (#699 0.89, #679 0.97, #700 1.00, #701 1.00, #702 0.99,
+  #678 0.94, #683 owner side 0.98, #681 0.99). The deliberate false control
+  ("the receipt Total equals the amount received") came back contradicted
+  (0.66, review). The claim "a staff member who can open the fee screens has
+  no void control" came back unsupported (review) — it was not seen.
