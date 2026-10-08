@@ -162,3 +162,55 @@ the fine, although the received amount already covers the fine.
 
 Small: in Bangla the "In words" line stays English ("কথায়: One Hundred Forty
 Taka Only").
+
+## #683 void — VERIFIED as owner; staff side only PARTLY
+
+Record `13ed80e5-…` (Student One, 10/2026, received ৳130, fine ৳10), English
+1440px and Bangla 390px.
+
+- The receipt has "Void record" ("রেকর্ড বাতিল করুন") for the owner. The dialog
+  explains that the record stays and a reversing entry is posted, shows
+  "Received Amount ৳130 · Fine ৳10" as what is reversed, and asks for a reason.
+  "Confirm void" is disabled with an empty reason and with a reason of spaces
+  only, in both languages.
+- Voided with reason "W2-EXF test void". The receipt then shows a block
+  "VOIDED · Voided on: 08/10/2026 · Reason for voiding: W2-EXF test void"
+  ("বাতিলকৃত"), and "Void record" is gone.
+- Print: the Print button calls the browser's print; in print media the page
+  text starts "Receipt | Voided | Voided on: 08/10/2026 | Reason for voiding:
+  W2-EXF test void | …".
+- Ledger: the receipt's ledger impact gained "4300 Debit ৳130 / 4400 Debit ৳10
+  / 1000 Credit ৳140", which cancels the two earlier entries exactly. The
+  General Ledger tab shows two lines: "Fee Collection · W2-EXF Student One —
+  10/2026 · ৳130" and "… — 10/2026 — Voided · ৳130" on the other side.
+- Fee page: the record is listed with the status "Voided" and a "Receipt"
+  action only. The cards went back to the figures from before the record
+  existed: Collected ৳500, Due ৳500, Records 2 (they were ৳560 / ৳550 / 3 while
+  the record was live with ৳60 received).
+- Collect again: the roster shows Student One as "Not Collected · Collect" for
+  10/2026, and a second record for the same month saved (receipt `9505eaeb-…`,
+  fee 100, received 0). That one was voided too at the end as cleanup; with
+  nothing received the receipt reads "No ledger entry for this record".
+- Student: signed in as Student One, before the void the fee page listed
+  "Oct 2026 · Paid"; after the void "No fee records yet."; with the second
+  record only that one ("Oct 2026 · ৳100 · Due").
+
+Not shown on the receipt: who voided it.
+
+Staff side: `teacher-e2e@test.local` and `staff-e2e@test.local` both get
+"Permission denied" for the receipt address — neither fixture has any access to
+fees. So "refused" was seen, but a staff member who can open fees and still has
+no void control was NOT seen; there is no such fixture and permissions of
+existing accounts were not changed.
+
+Seen on the student fee page before the void: "Payable ৳130 · Paid ৳130 ·
+Fine ৳10" for a month whose fee + fine is ৳110 — the advance is shown as
+payable.
+
+## Fee roster label (item 8) — CONFIRMED, not changed
+
+With a live record of ৳0 received (fee 100, due 100) the roster row reads
+"W2-EXF Student One · 10/2026 · **Collected** · Edit record" ("আদায় হয়েছে"),
+while the records table below shows the same record as "৳0 · Due ৳100 · Due".
+The roster label only says that a record exists
+(`web/app/school/fees/page.tsx`, the roster's status cell). Wording left alone.
