@@ -164,38 +164,42 @@ export async function updateEmployee(formData: FormData): Promise<{ error?: stri
 
 /** Old Employees soft-archive (§5.2) — the row stays for history/reports.
  *
- *  `disableLogin` (#688): also turn the linked Staff login off. Archive first —
- *  it is the action asked for — then the login; if the login step fails the
- *  archive stands and `warning` says the login is still on. Only the School
- *  Owner can disable a login (the database function refuses others), and until
- *  migration 0241 is applied the step reports the same warning. */
+ *  #688 / #708: a linked Staff login is disabled first; if that cannot be done
+ *  (the caller is not the School Owner) the archive is refused. */
 export async function archiveEmployee(
   id: string,
-  disableLogin = false,
+  // Kept for callers; the login is always disabled (see below).
+  _disableLogin = true,
 ): Promise<{ error?: string; warning?: string }> {
   const supabase = await createClient()
+  const { data: found, error: readError } = await supabase.from('employees').select('id, profile_id').eq('id', id)
+  if (readError) return { error: readError.message }
+  if (!found?.length) return { error: 'Employee not found' }
+
+  // Owner's decision 2026-10-08: an Employee with a Staff login is archived
+  // only together with disabling that login, and the login goes first. An
+  // archived employee's login would otherwise count as office staff
+  // (app_current_employee_id ignores archived rows) and read the whole School.
+  // Only the School Owner can disable a login, so anyone else is refused here
+  // and nothing is archived.
+  const profileId = found[0].profile_id as string | null
+  if (profileId) {
+    if ((await changeStaffLogin(supabase, profileId, true)) !== 'ok') {
+      return { error: t('employees.archiveNeedsOwner', await currentLang()) }
+    }
+    revalidatePath('/school/staff')
+  }
+
   const { data, error } = await supabase
     .from('employees')
     .update({ archived_at: new Date().toISOString() })
     .eq('id', id)
-    .select('id, profile_id')
+    .select('id')
   if (error) return { error: error.message }
   if (!data?.length) return { error: 'Employee not found' }
   revalidatePath(PAGE)
   revalidatePath(`${PAGE}/${id}`)
   revalidatePath(`${PAGE}/archive`)
-
-  const profileId = data[0].profile_id as string | null
-  // Owner's decision 2026-10-08: always. An archived employee's login would
-  // otherwise count as office staff (app_current_employee_id ignores archived
-  // rows) and read the whole School. `disableLogin` is kept for callers only.
-  void disableLogin
-  if (profileId) {
-    if ((await changeStaffLogin(supabase, profileId, true)) !== 'ok') {
-      return { warning: t('employees.archiveLoginNotDisabled', await currentLang()) }
-    }
-    revalidatePath('/school/staff')
-  }
   return {}
 }
 

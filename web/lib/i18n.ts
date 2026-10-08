@@ -1222,6 +1222,10 @@ const dict = {
     bn: 'এই ব্যক্তির স্টাফ লগইনও বন্ধ করুন',
     en: "Also disable this person's staff login",
   },
+  'employees.archiveNeedsOwner': {
+    bn: 'এই কর্মচারীর একটি স্টাফ লগইন আছে। শুধু প্রতিষ্ঠান মালিক তাঁকে পুরাতন তালিকায় পাঠাতে পারেন, কারণ লগইনটিও বন্ধ করতে হয়।',
+    en: 'This employee has a staff login. Only the School Owner can archive them, because the login must be disabled too.',
+  },
   'employees.archiveLoginNotDisabled': {
     bn: 'কর্মচারীকে পুরাতন তালিকায় পাঠানো হয়েছে, কিন্তু স্টাফ লগইন বন্ধ করা যায়নি। স্টাফ পাতা থেকে বন্ধ করুন।',
     en: 'The employee was archived, but the staff login could not be disabled. Disable it from the Staff page.',
