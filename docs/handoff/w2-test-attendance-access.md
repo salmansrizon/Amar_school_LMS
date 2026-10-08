@@ -144,3 +144,37 @@ Notes, not fixed:
   "Recent Leaves" prints raw ISO dates ("2026-10-14 – 2026-10-14") in both languages.
 - At 390px the calendar cells carry only dots: off-days have a red dot, a recorded
   day a green dot, a no-record day no dot and no text.
+
+### #677 employee-side attendance is Owner and office staff only: VERIFIED
+
+Records: employee leave `W2-ATT emp leave B by office` (21 Oct 2026, rejected), made
+and rejected by `W2-ATT office`. Two ad-hoc grace exemptions `W2-ATT exemption owner`
+and `W2-ATT exemption office` (30 Dec 2026, 5 min, Transport Staff) were added and
+deleted again; the list is back to "No Ad-Hoc Grace Exemptions".
+
+Teacher fixture `teacher-e2e@test.local` (staff with an employee record, holds
+Attendance), en 1440 and bn 390:
+
+- Student side opens: Mark ("Student Attendance — Mark"), Attendance Book, Student
+  Log, Student Leave Management, Off-Day Calendar.
+- The Attendance navigation has no Employees and no Machine link (links present:
+  mark, book, student-log, leave/student, off-days).
+- Opening each of `/school/attendance/employee`, `/employee/office-hour`,
+  `/employee/grace-time`, `/leave/employee`, `/machine`, `/machine/students`,
+  `/machine/employees` lands on `/school/permission-denied?from=...`: "Permission
+  denied. You do not have access to this screen. Contact your School Owner." (bn:
+  "অনুমতি নেই").
+
+Owner (bn 390) and `W2-ATT office` with Attendance (en 1440): all seven pages open
+with their own heading (Employee Attendance, Office Hour, Grace Time, Employee Leave
+Management, Machine Setup, Student RFID Enrollment, Employee Enrollment), and the
+Employees and Machine links are present. No horizontal overflow.
+
+Saves: on Grace Time both the owner and `W2-ATT office` added an ad-hoc exemption
+(it appeared in the list) and deleted it ("Delete this entry?" -> gone). On Employee
+Leave Management `W2-ATT office` made a request for `W2-ATT emp` and rejected it with
+a reason; the row shows the reason.
+
+Not exercised: a save on Office Hour and on the three Machine pages (those would
+change the school's real schedule or machine setup), and the teacher's server
+actions directly (the pages that call them are refused).
