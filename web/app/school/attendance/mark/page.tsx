@@ -22,6 +22,7 @@ import { dateInputClass, filterButtonClass } from '@/components/ui/field'
 import { ClassSectionSelect } from '@/components/ui/class-section-select'
 import { EmptyState } from '@/components/ui/states'
 import { pageTitle } from '@/lib/page-title'
+import { DateField } from '@/components/ui/date-field'
 
 // Layout per ui/school-owner/attendance-student-mark.html, chromed to the
 // exam-landing pattern (map 013, new_ui/03-academics/attendance): header +
@@ -297,7 +298,7 @@ export default async function MarkAttendancePage({
 
         <div>
           <label htmlFor="mark_date" className="mb-1 block text-xs font-semibold text-muted">{t('attendance.date', lang)}</label>
-          <input id="mark_date" type="date" name="date" defaultValue={date} className={dateInputClass({ fullWidth: true })} />
+          <DateField lang={lang} id="mark_date" name="date" defaultValue={date} className={dateInputClass({ fullWidth: true })} />
         </div>
         <div className="flex items-end">
           <button

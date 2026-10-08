@@ -509,3 +509,16 @@ body {
 body:has(dialog[open]) [data-sonner-toaster]:not(dialog[open]:not(:has(dialog[open])) [data-sonner-toaster]) {
   display: none;
 }
+
+/* DateField popup (components/ui/date-field.tsx): a short rise on open, a
+   slide-up for the phone sheet. The global reduced-motion rule flattens both. */
+@keyframes datefield-pop {
+  from { opacity: 0; transform: translateY(-4px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes datefield-sheet {
+  from { transform: translateY(100%); }
+  to { transform: none; }
+}
+.datefield-pop { animation: datefield-pop 0.12s ease-out both; }
+.datefield-sheet { animation: datefield-sheet 0.2s cubic-bezier(0.22, 1, 0.36, 1) both; }

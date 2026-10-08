@@ -12,6 +12,7 @@ import { PrintTrigger } from '@/components/print/print-trigger'
 import { PageHeader } from '@/components/ui/page'
 import { schoolCrumbs } from '@/lib/school-crumbs'
 import { loadInstitutePrintHeader } from '@/lib/institute-print'
+import { DateField } from '@/components/ui/date-field'
 
 // Individual Student Log (map #380, docs/011_student_module.md): one
 // student's attendance history, with Today / Monthly / Custom filters and
@@ -234,9 +235,9 @@ export default async function StudentLogDetailPage({
             <Form action={`/school/attendance/student-log/${studentId}`} className="flex flex-wrap items-center gap-2">
               <input type="hidden" name="classSection" value={classSection} />
               <input type="hidden" name="view" value="custom" />
-              <input type="date" name="from" defaultValue={fromParam} max={today} className={dateInputClass()} />
+              <DateField lang={lang} name="from" defaultValue={fromParam} max={today} className={dateInputClass()} />
               <span className="text-sm text-muted">–</span>
-              <input type="date" name="to" defaultValue={toParam} max={today} className={dateInputClass()} />
+              <DateField lang={lang} name="to" defaultValue={toParam} max={today} className={dateInputClass()} />
               <button type="submit" className={filterButtonClass()}>
                 {t('classes.filter', lang)}
               </button>

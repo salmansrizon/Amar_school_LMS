@@ -8,6 +8,7 @@ import { dayLabel } from '@/lib/routine'
 import { toast } from 'sonner'
 import { t, formatDate, type Lang, type MessageKey } from '@/lib/i18n'
 import { addRoutineEntry, removeRoutineEntry, type RoutineEntryRefusal } from './actions'
+import { DateField } from '@/components/ui/date-field'
 
 const REFUSAL: Record<RoutineEntryRefusal, MessageKey> = {
   required: 'examRoutine.errRequired',
@@ -142,7 +143,7 @@ export function AddRoutineEntryForm({
     >
       <div>
         <label className={labelClass} htmlFor="exam_date">{t('examRoutine.date', lang)}</label>
-        <input id="exam_date" name="exam_date" type="date" required className={dateInputClass({ size: 'md', fullWidth: true })} />
+        <DateField lang={lang} id="exam_date" name="exam_date" required className={dateInputClass({ size: 'md', fullWidth: true })} />
       </div>
       <div>
         <label className={labelClass} htmlFor="start_time">{t('examRoutine.startTime', lang)}</label>

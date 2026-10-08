@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { t, type Lang, type MessageKey } from '@/lib/i18n'
 import { requestLeave, withdrawLeave } from '@/lib/student/leave-source'
+import { DateField } from '@/components/ui/date-field'
 
 // Every failure the action can return, in the reader's language. The action
 // returns codes precisely so this table exists in one place; anything it does
@@ -57,9 +58,8 @@ export function LeaveRequestForm({
     >
       <label className="text-xs font-semibold text-muted">
         <span className="mb-1 block">{t('student.leaveFrom', lang)}</span>
-        <input
+        <DateField lang={lang}
           name="from_day"
-          type="date"
           required
           min={today}
           className="h-11 w-full rounded-sm border border-line-strong bg-paper px-2 text-sm sm:h-9"
@@ -67,9 +67,8 @@ export function LeaveRequestForm({
       </label>
       <label className="text-xs font-semibold text-muted">
         <span className="mb-1 block">{t('student.leaveTo', lang)}</span>
-        <input
+        <DateField lang={lang}
           name="to_day"
-          type="date"
           required
           min={today}
           className="h-11 w-full rounded-sm border border-line-strong bg-paper px-2 text-sm sm:h-9"
