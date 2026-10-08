@@ -72,3 +72,26 @@ Test School A shows Friday and Saturday as off-days on the student calendar.
 Observation, not part of this item: `W2-ATT Student One` was admitted on 8 Oct and is
 counted absent on 4 and 5 Oct, before admission, so a student admitted today lands on
 "Attendance is low this month 0%". Not fixed.
+
+### #689 approvals scoped: PARTLY
+
+Records: student leave `W2-ATT leave C by student` (15 Oct 2026, pending), made by the
+student login; the Attendance grant on `W2-ATT office`.
+
+- Owner: `/school/approvals` "Total: 343", 3 workflow types (Leave Approval,
+  Attendance Correction and one more); dashboard "343 approvals pending".
+- `W2-ATT office` with no grant: `/school/approvals` "Total: 0 / No pending approvals";
+  the dashboard has no "Needs attention" approvals line.
+- `W2-ATT office` after the owner granted Attendance (Staff drawer, Attendance ->
+  "Granted"): "Total: 342", 2 workflow types; dashboard "342 approvals pending". One
+  fewer than the owner: the item of the third workflow type is not shown.
+- Teacher fixture `teacher-e2e@test.local` (employee record, holds the Attendance
+  grant): "Total: 0 / No pending approvals", no approvals line on the dashboard.
+- 390px bn, owner and office: same totals (৩৪৩ / ৩৪২), no horizontal overflow.
+
+Not seen: a teacher seeing an approval they started or can decide. No screen starts
+a workflow instance: the leave requests made today by the owner and by the student did
+not change the owner's 343 (the queue is `workflow_instances`, newest row 3 Oct, and
+`workflow_start` is only called from `web/lib/engines/workflow/engine.ts`). So the
+teacher's "own" case could not be produced from the browser; the 0 is consistent with
+the rule but does not prove the positive half.
