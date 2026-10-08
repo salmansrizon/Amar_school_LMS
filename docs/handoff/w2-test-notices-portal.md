@@ -27,3 +27,18 @@ Notes:
 - **Original date: PARTLY.** The date shown before and after republish is the same (৮ অক্টো ২০২৬), but the notice was created, unpublished and republished on the same day and the pages show the day only. This does not prove `created_at` is untouched.
 - The direct URL of an unpublished notice answers HTTP 200 with the 404 page body (dev server). The student sees a 404 page; the status code is not 404.
 - The class already holds other fixture students (`UXA-Att`, `DEMO`): they saw the `W2-NOT` notice while it was published.
+
+## 2. 5.4 threads: VERIFIED (owner side; class teacher NOT TESTED)
+
+As the student, general question on subject `UXA-Acad Eng 10030858`, title `W2-NOT Thread Title`:
+
+| Step | Seen |
+|---|---|
+| Question 1 "W2-NOT first question body" | One row, Messages = ১ |
+| Follow-up "W2-NOT follow-up one" from the conversation popup | Popup timeline shows both messages in order; the list still has one row, Messages = ২ |
+| Question 2 "W2-NOT second unrelated question", SAME title and SAME subject | A second, separate row (Messages = ১). The first row keeps Messages = ২. Not merged |
+| Owner inbox `/school/questions` | Three rows (one per message). Drawer of the follow-up shows the heading "এই আলোচনার অন্য বার্তা" / "Other messages in this conversation" with the first question under it. Drawer of the first question lists the follow-up. Drawer of the same-title second question lists nothing |
+
+Student list and owner drawer seen in Bangla and English at 1440px and 390px: no horizontal scroll, no console errors.
+
+Not tested: the class-teacher fixture (`teacher-e2e@test.local`) does not reach this class. Her inbox showed 0 `W2-NOT` rows, so the teacher's drawer was not seen. I did not change who teaches the class (not my record).
