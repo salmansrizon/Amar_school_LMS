@@ -32,15 +32,14 @@
 --         student_name, class_name, section, roll_number, exam_name, exam_year,
 --         changed_at (= results_published_at)
 --         + results, ONLY when valid (published and student not archived):
---             results.scheme   the exam's grading scheme and its bands
---             results.subjects one {full_marks, obtained, optional} per subject,
---                              with NO subject id and NO subject name, ordered
---                              by mark so position says nothing about subject.
---           GPA / grade / pass / total are computed by the app's existing
---           TypeScript grading (lib/grading.ts) from these; a second grading
---           algorithm in SQL would drift. The page shows only the four
---           figures. A direct RPC caller holding a valid token + exam id can
---           read the unnamed numbers. That is the known cost of this design.
+--             results.complete        false when the student has no mark row
+--                                     in the exam, or any of them is not
+--                                     entered yet; then no totals are returned
+--             results.total_obtained  sum of the student's marks in the exam
+--             results.total_full      sum of the full marks of the subjects
+--                                     the student has a mark row for
+--           Owner's decision 2026-10-08: TOTAL MARKS ONLY. Nothing per
+--           subject, no grading scheme, no GPA, no grade, no pass/fail.
 --         valid = student not archived AND results published
 --         reason = 'archived' | 'unpublished'
 --     admit_card (p_ref = exams.id, required)
@@ -89,17 +88,15 @@
 --   /verify/<token> page and student_by_public_token are not touched.
 --
 -- PRE-CHECK (read-only; run before applying)
---   -- a. every column the function reads exists (expect 15 rows)
+--   -- a. every column the function reads exists (expect 12 rows)
 --   select table_name, column_name from information_schema.columns
 --    where table_schema = 'public' and (table_name, column_name) in (
 --      ('students','public_token'), ('students','archived_at'),
 --      ('students','student_no'), ('students','roll_number'),
 --      ('students','profile_id'), ('students','current_enrollment_id'),
 --      ('schools','logo_path'), ('exams','results_published_at'),
---      ('exams','class_id'), ('exams','grading_scheme_id'),
---      ('fee_collection_records','void_at'), ('subjects','class_id'),
---      ('class_offerings','academic_year'), ('student_enrollments','class_offering_id'),
---      ('grade_bands','sort_order'))
+--      ('exams','class_id'), ('fee_collection_records','void_at'),
+--      ('class_offerings','academic_year'), ('student_enrollments','class_offering_id'))
 --    order by 1, 2;
 --   -- b. the column is not there yet (expect 0 rows; 1 row = already applied)
 --   select 1 from information_schema.columns
@@ -156,8 +153,6 @@ declare
   v_exam_name text;
   v_exam_year int;
   v_exam_open boolean;
-  v_exam_class uuid;
-  v_exam_scheme uuid;
   v_published_at timestamptz;
 
   v_month int;
@@ -252,8 +247,8 @@ begin
   -- school that this student actually belongs to (has a mark in it, or was
   -- ever enrolled in its class). Without the second half, any student's token
   -- plus any exam id of the school would read as a genuine document.
-  select e.name, e.exam_year, e.status = 'open', e.class_id, e.grading_scheme_id, e.results_published_at
-    into v_exam_name, v_exam_year, v_exam_open, v_exam_class, v_exam_scheme, v_published_at
+  select e.name, e.exam_year, e.status = 'open', e.results_published_at
+    into v_exam_name, v_exam_year, v_exam_open, v_published_at
     from exams e
    where e.id = p_ref and e.school_id = v_school_id
      and (exists (select 1 from exam_marks m where m.exam_id = e.id and m.student_id = v_student_id)
@@ -279,35 +274,21 @@ begin
     return v_out;
   end if;
 
-  -- Published: the raw inputs of lib/grading.ts, and nothing that names a subject.
-  return v_out || jsonb_build_object('results', jsonb_build_object(
-    'scheme', (
-      select jsonb_build_object(
-               'scheme_type', gs.scheme_type,
-               'pass_mark_percent', gs.pass_mark_percent,
-               'pass_rule_strategy', gs.pass_rule_strategy,
-               'combine_subject_groups', gs.combine_subject_groups,
-               'bands', coalesce((
-                 select jsonb_agg(jsonb_build_object(
-                          'label', b.label, 'min_percent', b.min_percent,
-                          'max_percent', b.max_percent, 'grade_point', b.grade_point)
-                        order by b.sort_order)
-                   from grade_bands b where b.grading_scheme_id = gs.id), '[]'::jsonb))
-        from grading_schemes gs
-       where gs.id = v_exam_scheme and gs.school_id = v_school_id),
-    'subjects', coalesce((
-      select jsonb_agg(jsonb_build_object(
-               'full_marks', sub.theory_marks + sub.mcq_marks + sub.practical_marks,
-               'obtained', m.obtained_marks,
-               'optional', coalesce(ss.is_optional, false))
-             order by m.obtained_marks desc nulls last, sub.theory_marks + sub.mcq_marks + sub.practical_marks)
-        from subjects sub
-        left join exam_marks m
-          on m.exam_id = p_ref and m.student_id = v_student_id and m.subject_id = sub.id
-        left join student_subjects ss
-          on ss.student_id = v_student_id and ss.subject_id = sub.id
-       where sub.school_id = v_school_id
-         and (sub.class_id is null or sub.class_id = v_exam_class)), '[]'::jsonb)));
+  -- Published: the student's totals for this exam, and nothing else. One
+  -- aggregate row always comes back. No mark row, or a mark not entered yet
+  -- (obtained_marks is null, 0223), is "not complete" and carries no totals.
+  return v_out || jsonb_build_object('results', (
+    select case
+             when count(*) > 0 and count(*) = count(m.obtained_marks) then
+               jsonb_build_object(
+                 'complete', true,
+                 'total_obtained', sum(m.obtained_marks),
+                 'total_full', sum(sub.theory_marks + sub.mcq_marks + sub.practical_marks))
+             else jsonb_build_object('complete', false)
+           end
+      from exam_marks m
+      join subjects sub on sub.id = m.subject_id
+     where m.exam_id = p_ref and m.student_id = v_student_id));
 end;
 $$;
 

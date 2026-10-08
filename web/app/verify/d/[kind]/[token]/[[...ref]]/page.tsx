@@ -61,19 +61,14 @@ function factRows(f: Facts, lang: Lang): [string, string][] {
       t('verifyDoc.exam', lang),
       f.examName ? `${f.examName}${f.examYear !== undefined ? ` ${year(f.examYear as number)}` : ''}` : null,
     ],
-    [t('verifyDoc.result', lang), f.incomplete ? t('exams.incomplete', lang) : null],
     [
-      t('verifyDoc.result', lang),
-      f.passed !== undefined ? t(f.passed ? 'markSheet.pass' : 'promotion.fail', lang) : null,
+      t('verifyDoc.totalObtained', lang),
+      f.incomplete
+        ? t('exams.incomplete', lang)
+        : f.totalObtained !== undefined && f.totalFull !== undefined
+          ? `${formatNumber(f.totalObtained as number, lang)} / ${formatNumber(f.totalFull as number, lang)}`
+          : null,
     ],
-    [
-      t('markSheet.gpa', lang),
-      f.gpa !== undefined
-        ? formatNumber(f.gpa as number, lang, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-        : null,
-    ],
-    [t('markSheet.grade', lang), (f.grade as string) ?? null],
-    [t('verifyDoc.totalObtained', lang), f.totalObtained !== undefined ? formatNumber(f.totalObtained as number, lang) : null],
     [
       t('fees.month', lang),
       f.month !== undefined && f.year !== undefined

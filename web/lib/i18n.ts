@@ -2143,7 +2143,6 @@ const dict = {
   'verifyDoc.admissionForm': { bn: 'ভর্তি ফরম', en: 'Admission Form' },
   'verifyDoc.feeStatement': { bn: 'ফি বিবরণী', en: 'Fee Statement' },
   'verifyDoc.exam': { bn: 'পরীক্ষা', en: 'Exam' },
-  'verifyDoc.result': { bn: 'ফলাফল', en: 'Result' },
   'verifyDoc.totalObtained': { bn: 'মোট প্রাপ্ত নম্বর', en: 'Total marks obtained' },
   'verifyDoc.paidOn': { bn: 'পরিশোধের তারিখ', en: 'Payment date' },
   'markSheet.sampleNote': {

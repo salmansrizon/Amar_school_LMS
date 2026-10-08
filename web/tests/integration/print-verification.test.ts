@@ -159,21 +159,23 @@ describe('print verification — print_document_facts (0260, NOT RUN)', () => {
     expect(toVerifyModel('mark_sheet', data)!.facts).not.toHaveProperty('totalObtained')
   })
 
-  it('published exam: unnamed raw marks in, the page model computes the figures', async () => {
+  it('published exam: total marks only, nothing per subject and no grading scheme', async () => {
     await ownerA.from('exams').update({ results_published_at: new Date().toISOString() }).eq('id', examId)
     const data = await facts('progress_report', studentToken, examId)
     expect(data).toMatchObject({ valid: true, reason: null })
-    const results = data!.results as { subjects: Record<string, unknown>[] }
-    expect(results.subjects).toEqual([{ full_marks: 100, obtained: 90, optional: false }])
-    expect(JSON.stringify(data)).not.toContain('PV Test Subject')
+    expect(data!.results).toEqual({ complete: true, total_obtained: 90, total_full: 100 })
+    const text = JSON.stringify(data)
+    for (const never of ['PV Test Subject', 'PV Test Scheme', 'scheme', 'subjects', 'bands', 'Pass'])
+      expect(text).not.toContain(never)
 
     const model = toVerifyModel('progress_report', data)!
-    expect(model.facts).toMatchObject({ passed: true, totalObtained: 90, grade: 'Pass' })
+    expect(model.facts).toMatchObject({ totalObtained: 90, totalFull: 100 })
     expect(model.changedAt).not.toBeNull()
 
-    // The student who has no mark in it is still on the roster: Incomplete.
-    const other = toVerifyModel('mark_sheet', await facts('mark_sheet', otherStudentToken, examId))!
-    expect(other.facts.incomplete).toBe(true)
+    // The student with no mark row in it is on the roster but not complete.
+    const other = await facts('mark_sheet', otherStudentToken, examId)
+    expect(other!.results).toEqual({ complete: false })
+    expect(toVerifyModel('mark_sheet', other)!.facts.incomplete).toBe(true)
     await ownerA.from('exams').update({ results_published_at: null }).eq('id', examId)
   })
 

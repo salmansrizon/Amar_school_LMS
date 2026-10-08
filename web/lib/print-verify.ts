@@ -6,8 +6,6 @@
 // returns into a VerifyModel. The database already returns an allow-list per
 // kind; toVerifyModel applies the SAME allow-list again, so a wider function
 // result can never reach the page.
-import { assembleRosterRows } from '@/lib/exam-print-data'
-import type { GradingScheme } from '@/lib/grading'
 import type { MessageKey } from '@/lib/i18n'
 import { schoolToday } from '@/lib/school-time'
 
@@ -146,10 +144,8 @@ export type FactKey =
   | 'studentNo'
   | 'examName'
   | 'examYear'
-  | 'gpa'
-  | 'grade'
-  | 'passed'
   | 'totalObtained'
+  | 'totalFull'
   | 'incomplete'
   | 'month'
   | 'year'
@@ -160,7 +156,7 @@ export type FactKey =
 
 const STUDENT: FactKey[] = ['studentName', 'className', 'section']
 const EXAM: FactKey[] = ['examName', 'examYear']
-const RESULT: FactKey[] = ['gpa', 'grade', 'passed', 'totalObtained', 'incomplete']
+const RESULT: FactKey[] = ['totalObtained', 'totalFull', 'incomplete']
 
 /** THE allow-list: the only facts a page model may carry, per kind. Mirrors
  *  the header of migration 0260. */
@@ -245,59 +241,16 @@ export function toVerifyModel(kind: PrintKind, raw: unknown): VerifyModel | null
     delete facts.amount
     delete facts.paidAt
   }
-  if (valid && allowed.includes('gpa')) Object.assign(facts, resultFacts(raw.results))
+  if (valid && allowed.includes('totalObtained')) Object.assign(facts, resultFacts(raw.results))
 
   return { kind, valid, reason, schoolName, logoPath: str(raw.school_logo_path), facts, changedAt: str(raw.changed_at) }
 }
 
-function parseScheme(raw: unknown): GradingScheme | null {
-  if (!isRecord(raw) || !Array.isArray(raw.bands)) return null
-  if (!['grade_point', 'letter', 'numeric'].includes(raw.scheme_type as string)) return null
-  if (!['individual', 'combined_average', 'optional_conditional'].includes(raw.pass_rule_strategy as string)) return null
-  return {
-    schemeType: raw.scheme_type as GradingScheme['schemeType'],
-    passMarkPercent: Number(raw.pass_mark_percent),
-    passRuleStrategy: raw.pass_rule_strategy as GradingScheme['passRuleStrategy'],
-    combineSubjectGroups: raw.combine_subject_groups === true,
-    bands: raw.bands.filter(isRecord).map((b) => ({
-      label: String(b.label),
-      minPercent: Number(b.min_percent),
-      maxPercent: Number(b.max_percent),
-      gradePoint: b.grade_point == null ? null : Number(b.grade_point),
-    })),
-  }
-}
-
-/** GPA / grade / pass / total from the raw published marks, through the same
- *  assembleRosterRows the school's own mark sheet prints from. The per-subject
- *  numbers stop here: only the four figures go into the model. A subject with
- *  no mark makes the result Incomplete, with no figures, as on paper. */
+/** Total marks only (owner's decision 2026-10-08): obtained out of full, or
+ *  Incomplete with no figures. Nothing else of a result exists to map. */
 function resultFacts(raw: unknown): Facts {
-  if (!isRecord(raw) || !Array.isArray(raw.subjects)) return {}
-  const scheme = parseScheme(raw.scheme)
-  const subjects = raw.subjects.filter(isRecord)
-  if (!scheme || !subjects.length) return { incomplete: true }
-
-  const marks = new Map<string, number>()
-  const optional = new Map<string, boolean>()
-  const config = subjects.map((s, i) => {
-    const id = String(i)
-    if (s.obtained != null) marks.set(`s:${id}`, Number(s.obtained))
-    optional.set(`s:${id}`, s.optional === true)
-    return { id, name: '', theory_marks: Number(s.full_marks), mcq_marks: 0, practical_marks: 0 }
-  })
-  const [row] = assembleRosterRows(
-    config,
-    [{ id: 's', full_name: '', roll_number: null, guardian_name: null }],
-    marks,
-    optional,
-    scheme,
-    'grade',
-  )
-  if (!row?.overall || row.marksMissing > 0) return { incomplete: true }
-
-  const facts: Facts = { passed: row.overall.passed, totalObtained: row.totalObtained }
-  if (row.overall.gpa !== null) facts.gpa = row.overall.gpa
-  if (row.overall.label !== null) facts.grade = row.overall.label
-  return facts
+  if (!isRecord(raw)) return {}
+  const { total_obtained: obtained, total_full: full } = raw
+  if (raw.complete !== true || typeof obtained !== 'number' || typeof full !== 'number') return { incomplete: true }
+  return { totalObtained: obtained, totalFull: full }
 }

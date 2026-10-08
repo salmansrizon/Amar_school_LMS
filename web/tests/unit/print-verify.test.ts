@@ -81,18 +81,6 @@ describe('changedAfterPrint', () => {
   })
 })
 
-const SCHEME = {
-  scheme_type: 'grade_point',
-  pass_mark_percent: 33,
-  pass_rule_strategy: 'individual',
-  combine_subject_groups: false,
-  bands: [
-    { label: 'A+', min_percent: 80, max_percent: 100, grade_point: 5 },
-    { label: 'A', min_percent: 70, max_percent: 79.99, grade_point: 4 },
-    { label: 'F', min_percent: 0, max_percent: 32.99, grade_point: 0 },
-  ],
-}
-
 /** Everything the function could ever return, plus things it must never. */
 const EVERYTHING = {
   valid: true,
@@ -113,12 +101,16 @@ const EVERYTHING = {
   void_at: '2026-09-12T04:00:00Z',
   class_year: 2026,
   changed_at: '2026-09-12T04:00:00Z',
+  // what 0260 returns, plus what an older or wider function might
   results: {
-    scheme: SCHEME,
-    subjects: [
-      { full_marks: 100, obtained: 85, optional: false },
-      { full_marks: 100, obtained: 90, optional: false },
-    ],
+    complete: true,
+    total_obtained: 175,
+    total_full: 200,
+    scheme: { scheme_type: 'grade_point', bands: [{ label: 'A+', grade_point: 5 }] },
+    subjects: [{ full_marks: 100, obtained: 85 }, { full_marks: 100, obtained: 90 }],
+    gpa: 5,
+    grade: 'A+',
+    passed: true,
   },
   // never allowed
   guardian_name: 'Mr Rahman',
@@ -143,8 +135,8 @@ describe('toVerifyModel', () => {
       const text = JSON.stringify(model)
       for (const secret of ['Mr Rahman', '01700000000', 'Dhaka', '2012-01-01', TOKEN, REF, 'x.jpg', 'Bangla', 'student_count'])
         expect(text, `${kind} leaks ${secret}`).not.toContain(secret)
-      // The per-subject numbers and the grading scheme stop at the model.
-      expect(text, kind).not.toMatch(/"obtained"|"full_marks"|"subjects"|"scheme"|"bands"|\b85\b|\b90\b/)
+      // Totals only: nothing per subject, no scheme, no GPA / grade / pass.
+      expect(text, kind).not.toMatch(/"obtained"|"full_marks"|"subjects"|"scheme"|"bands"|gpa|grade|passed|A\+|\b85\b|\b90\b/i)
     }
   })
 
@@ -159,7 +151,7 @@ describe('toVerifyModel', () => {
     expect(toVerifyModel('class_routine', raw('class_routine'))!.facts).toEqual({ className: 'Nine', section: 'A', classYear: 2026 })
   })
 
-  it('mark sheet / progress report: identity, exam and the four computed figures', () => {
+  it('mark sheet / progress report: identity, exam and total marks only', () => {
     for (const kind of ['mark_sheet', 'progress_report'] as const)
       expect(toVerifyModel(kind, raw(kind))!.facts).toEqual({
         studentName: 'Ayesha Rahman',
@@ -168,10 +160,8 @@ describe('toVerifyModel', () => {
         roll: 7,
         examName: 'Annual',
         examYear: 2026,
-        gpa: 5,
-        grade: 'A+',
-        passed: true,
         totalObtained: 175,
+        totalFull: 200,
       })
   })
 
@@ -180,24 +170,17 @@ describe('toVerifyModel', () => {
       const model = toVerifyModel('mark_sheet', raw('mark_sheet', { valid: false, reason }))!
       expect(model.valid).toBe(false)
       expect(model.reason).toBe(reason)
-      for (const key of ['gpa', 'grade', 'passed', 'totalObtained', 'incomplete']) expect(model.facts).not.toHaveProperty(key)
+      for (const key of ['totalObtained', 'totalFull', 'incomplete']) expect(model.facts).not.toHaveProperty(key)
     }
   })
 
-  it('a missing mark is Incomplete with no figures', () => {
-    const results = { scheme: SCHEME, subjects: [{ full_marks: 100, obtained: 85, optional: false }, { full_marks: 100, obtained: null, optional: false }] }
-    const { facts } = toVerifyModel('mark_sheet', raw('mark_sheet', { results }))!
-    expect(facts.incomplete).toBe(true)
-    expect(facts).not.toHaveProperty('gpa')
-    expect(facts).not.toHaveProperty('totalObtained')
-  })
-
-  it('a failed subject fails the result through the app grading rules', () => {
-    const results = { scheme: SCHEME, subjects: [{ full_marks: 100, obtained: 85, optional: false }, { full_marks: 100, obtained: 10, optional: false }] }
-    const { facts } = toVerifyModel('progress_report', raw('progress_report', { results }))!
-    expect(facts.passed).toBe(false)
-    expect(facts.gpa).toBe(0)
-    expect(facts.totalObtained).toBe(95)
+  it('not complete, or totals missing, is Incomplete with no figures', () => {
+    for (const results of [{ complete: false }, { complete: false, total_obtained: 85, total_full: 200 }, { complete: true }, { complete: true, total_obtained: '175', total_full: 200 }]) {
+      const { facts } = toVerifyModel('mark_sheet', raw('mark_sheet', { results }))!
+      expect(facts.incomplete).toBe(true)
+      expect(facts).not.toHaveProperty('totalObtained')
+      expect(facts).not.toHaveProperty('totalFull')
+    }
   })
 
   it('admit card: identity and exam, no results', () => {

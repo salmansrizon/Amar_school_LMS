@@ -28,7 +28,7 @@ Every kind: school name and logo, document type, Genuine / Not valid.
 
 | Kind | Token | Ref | Facts | Not valid when |
 | --- | --- | --- | --- | --- |
-| `mark_sheet`, `progress_report` | student | exam | name, class + section, roll, exam + year; if published: result (pass/fail), GPA, grade, total obtained (or "Incomplete" with no figures when a mark is missing) | results not published; student archived |
+| `mark_sheet`, `progress_report` | student | exam | name, class + section, roll, exam + year; if published: "Total marks obtained: X / Y" (or "Incomplete" with no figures when the student has no mark, or one is not entered) | results not published; student archived |
 | `admit_card` | student | exam | name, class + section, roll, exam + year | exam closed; student archived |
 | `fee_receipt` | student | fee record | name, class, month/year, amount received, payment date | voided (shows "Voided on <date>", no amount, no payment date) |
 | `admission_form` | student | none | name, class, student number | student archived |
@@ -42,7 +42,7 @@ Every kind: school name and logo, document type, Genuine / Not valid.
 
 ## Decisions made while building (owner should know)
 
-1. **GPA is computed in TypeScript, so raw marks cross from the database to the server.** `lib/grading.ts` is the only grading algorithm and nothing stores GPA. For a published result the function returns the grading scheme and one `{full_marks, obtained, optional}` per subject, with no subject id or name and ordered by mark, and `toVerifyModel` runs the same `assembleRosterRows` the school's mark sheet prints from. The page shows only the four figures. **Residual:** someone who holds a valid mark-sheet QR and calls the RPC directly (not the page) can read those unnamed per-subject numbers. Closing that fully needs either a stored GPA or a server-only key for this call; the app has neither today.
+1. **Total marks only (owner, 2026-10-08).** For a published result the function returns `results: { complete, total_obtained, total_full }` and nothing else: no per-subject numbers, no grading scheme, no GPA, grade or pass/fail. `total_full` is the full marks of the subjects the student has a mark row for. `complete` is false when the student has no mark row in the exam or any row is not entered; then no totals are returned. (The first draft returned unnamed per-subject marks and the scheme so the server could compute GPA; that is gone.)
 2. **A student must belong to the exam.** Student token + exam id only resolves when the student has a mark in that exam or was ever enrolled in its class. Otherwise any student's token (it is on their ID card) plus any exam id would read as a genuine admit card.
 3. **`exam_print_all` is not a kind.** Print-all prints per-student admit cards / mark sheets / progress reports, so each sheet carries that student's own QR (`admit_card` / `mark_sheet` / `progress_report`).
 4. **Student portal needs its own token.** A Student cannot select `students`, and `student_self` has no token, so 0260 adds `print_tokens_self()` (authenticated only, own row only).
@@ -104,11 +104,12 @@ All under `verifyDoc.*` in `web/lib/i18n.ts`, for wording review:
 | admissionForm | ভর্তি ফরম | Admission Form |
 | feeStatement | ফি বিবরণী | Fee Statement |
 | exam | পরীক্ষা | Exam |
-| result | ফলাফল | Result |
 | totalObtained | মোট প্রাপ্ত নম্বর | Total marks obtained |
 | paidOn | পরিশোধের তারিখ | Payment date |
 
-Reused for document types and labels: `markSheet.docWord`, `progressReport.docWord`, `admitCard.docWord`, `fees.receipt`, `attendance.studentLogTitle`, `attendance.bookRegisterWord`, `routine.docWord`, `examAttendanceSheet.docWord`, `seatPlan.docWord`, `examRoutine.docWord`, `students.idCard`, `ledger.title`, `institute.template*`, `verify.issuedBy`, `markSheet.studentName`, `students.class`, `students.roll`, `students.studentNo`, `exams.year`, `exams.incomplete`, `markSheet.pass`, `promotion.fail`, `markSheet.gpa`, `markSheet.grade`, `fees.month`, `fees.receivedAmount`, `fees.voidedOn`.
+Reused for document types and labels: `markSheet.docWord`, `progressReport.docWord`, `admitCard.docWord`, `fees.receipt`, `attendance.studentLogTitle`, `attendance.bookRegisterWord`, `routine.docWord`, `examAttendanceSheet.docWord`, `seatPlan.docWord`, `examRoutine.docWord`, `students.idCard`, `ledger.title`, `institute.template*`, `verify.issuedBy`, `markSheet.studentName`, `students.class`, `students.roll`, `students.studentNo`, `exams.year`, `exams.incomplete`, `fees.month`, `fees.receivedAmount`, `fees.voidedOn`.
+
+Removed again with the totals-only decision: `verifyDoc.result` (the only new string that lost its use). `markSheet.pass`, `promotion.fail`, `markSheet.gpa` and `markSheet.grade` are no longer used by the scan page but belong to other screens and stay.
 
 ## Browser check (2026-10-08, headless Chromium, owner-a, read-only, 0260 not applied)
 
