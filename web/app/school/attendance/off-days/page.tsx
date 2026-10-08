@@ -1,7 +1,7 @@
 import { CalendarDays, List as ListIcon, Grid3x3 } from 'lucide-react'
 import { currentLang } from '@/lib/i18n-server'
 import { pageTitle } from '@/lib/page-title'
-import { t, formatNumber, type Lang } from '@/lib/i18n'
+import { t, formatNumber, formatDate, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { monthGrid, type OffDay } from '@/lib/attendance-manual'
 import { schoolToday } from '@/lib/school-time'
@@ -290,7 +290,7 @@ export default async function OffDayCalendarPage({
                 {offDays.map((od) => (
                   <li key={od.day} className="flex items-center justify-between py-2">
                     <span>
-                      {od.day}
+                      {formatDate(od.day, lang)}
                       {od.label ? ` — ${od.label}` : ''}
                       {od.is_significant && (
                         <span className="ml-2 rounded-full bg-sky-soft px-2 py-0.5 text-xs font-semibold text-sky-deep">
