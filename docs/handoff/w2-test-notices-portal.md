@@ -42,3 +42,22 @@ As the student, general question on subject `UXA-Acad Eng 10030858`, title `W2-N
 Student list and owner drawer seen in Bangla and English at 1440px and 390px: no horizontal scroll, no console errors.
 
 Not tested: the class-teacher fixture (`teacher-e2e@test.local`) does not reach this class. Her inbox showed 0 `W2-NOT` rows, so the teacher's drawer was not seen. I did not change who teaches the class (not my record).
+
+## 3. 5.6 several replies: VERIFIED
+
+Owner, drawer of "W2-NOT follow-up one":
+
+- First reply "W2-NOT reply ONE": saved, row status becomes "০ঘণ্টায় উত্তর", the drawer now offers "আরও একটি উত্তর যোগ করুন" / "Add another reply" with a `০ / ৪,০০০` counter.
+- Second reply "W2-NOT reply TWO" through that form: after a reload the drawer shows reply ONE, then reply TWO (with its time), then the form again. Reply ONE is unchanged.
+- Student timeline, in order: first question, follow-up, "শিক্ষকের উত্তর … W2-NOT reply ONE", "শিক্ষকের উত্তর … W2-NOT reply TWO". The conversation status stays "শিক্ষকের উত্তর" and Messages goes ৩ then ৪.
+- Owner drawer seen in English at 1440px and Bangla at 390px: no horizontal scroll, no console errors.
+
+Observation, not a defect of this item: the reply was given on the follow-up, so the original message of the same conversation ("W2-NOT first question body") stays in the owner inbox as unanswered with a "উত্তর দাও" pill, while the student sees the whole conversation as answered.
+
+## 4. 5.2 new reply mark: VERIFIED
+
+- Before any reply: no mark.
+- After reply ONE, without opening the conversation: the row status reads "শিক্ষকের উত্তর নতুন উত্তর" ("New reply" in English). Seen in Bangla and English at 1440px and 390px.
+- Still marked after reply TWO.
+- After opening the conversation popup and reloading the list (twice): the mark is gone.
+- The same-title second question never carried the mark.
