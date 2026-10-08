@@ -116,7 +116,7 @@ export function StatCard({
       {action && (
         <Link
           href={action.href}
-          className="relative mt-auto self-start pt-4 max-sm:pb-3 text-xs font-bold text-ink/80 hover:underline"
+          className="relative mt-auto self-start pt-4 max-sm:min-w-11 max-sm:pb-3 text-xs font-bold text-ink/80 hover:underline"
         >
           {action.label} <span aria-hidden>→</span>
         </Link>
@@ -220,7 +220,7 @@ export function WarningBanner({
       <p className="min-w-0 flex-1 text-sm">
         <span className="font-bold text-sun-deep">{label}:</span> {text}
       </p>
-      <Link href={href} className="shrink-0 text-sm font-semibold text-brand-600 hover:underline">
+      <Link href={href} className="shrink-0 text-sm font-semibold text-brand-600 hover:underline max-sm:inline-flex max-sm:min-h-11 max-sm:min-w-11 max-sm:items-center">
         {linkLabel} <span aria-hidden>→</span>
       </Link>
     </div>

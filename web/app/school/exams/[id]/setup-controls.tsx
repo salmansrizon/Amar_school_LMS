@@ -290,7 +290,7 @@ export function GradingSchemeSelect({
       {unusable && (
         <p role="alert" className="mt-2 rounded-lg border border-alert bg-alert-soft p-3 text-xs font-semibold text-alert-deep">
           {t('examSetup.schemeNoBands', lang)}{' '}
-          <Link href="/school/exams/grading-schemes" className="underline">
+          <Link href="/school/exams/grading-schemes" className="underline max-sm:inline-flex max-sm:min-h-11 max-sm:items-center">
             {t('examSetup.addBands', lang)}
           </Link>
         </p>
@@ -361,7 +361,7 @@ function SubjectTeacherRow({
           defaultValue={subject.teacher_id ?? ''}
           disabled={disabled || pending}
           aria-label={t('examSetup.assignedTeacher', lang)}
-          className="h-8 text-xs sm:h-8"
+          className="h-11 text-xs sm:h-8"
           onValueChange={(v) => {
             const teacherId = v || null
             startTransition(async () => {

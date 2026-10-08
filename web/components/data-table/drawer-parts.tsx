@@ -152,14 +152,14 @@ export function DrawerFooter({
       <Link
         href={cancelHref}
         scroll={false}
-        className="inline-flex h-10 items-center rounded-full border border-line-strong px-4 text-sm font-semibold hover:bg-paper-muted"
+        className="inline-flex h-10 max-sm:h-11 items-center rounded-full border border-line-strong px-4 text-sm font-semibold hover:bg-paper-muted"
       >
         {cancelLabel}
       </Link>
       {primary && (
         <Link
           href={primary.href}
-          className="inline-flex h-10 items-center gap-1.5 rounded-full bg-brand-500 px-4 text-sm font-semibold text-white hover:bg-brand-600"
+          className="inline-flex h-10 max-sm:h-11 items-center gap-1.5 rounded-full bg-brand-500 px-4 text-sm font-semibold text-white hover:bg-brand-600"
         >
           {primary.icon}
           {primary.label}

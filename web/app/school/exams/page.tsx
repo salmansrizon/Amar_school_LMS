@@ -258,7 +258,7 @@ export default async function ExamsPage({
               href={withParams(params, { view: e.id })}
               scroll={false}
               data-view-link={e.id}
-              className="font-semibold hover:text-brand-600 hover:underline"
+              className="font-semibold hover:text-brand-600 hover:underline max-sm:inline-flex max-sm:min-h-11 max-sm:items-center"
             >
               {e.name}
             </Link>
