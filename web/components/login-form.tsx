@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useState, useSyncExternalStore } from 'react'
 import { AuthCard, inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
 import { signInAction } from '@/lib/auth/session-actions'
+import { SIGN_IN_ERROR_KEY } from '@/lib/auth/sign-in-error'
 import { t } from '@/lib/i18n'
 import { useLang } from '@/lib/use-lang'
 import type { SchoolBrand } from '@/lib/school-branding'
@@ -14,7 +15,7 @@ import type { SchoolBrand } from '@/lib/school-branding'
 export function LoginForm({ brand }: { brand: SchoolBrand | null }) {
   const lang = useLang()
   const router = useRouter()
-  const [error, setError] = useState(false)
+  const [error, setError] = useState<'failed' | 'banned' | null>(null)
   const [blocked, setBlocked] = useState(false)
   const [busy, setBusy] = useState(false)
   // The handler below only exists after hydration. Before it, a native submit
@@ -30,7 +31,7 @@ export function LoginForm({ brand }: { brand: SchoolBrand | null }) {
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setBusy(true)
-    setError(false)
+    setError(null)
     setBlocked(false)
     // Sign-in, the suspension check (#161) and the role routing all run in one
     // server action now. The session is established server-side and the browser
@@ -39,7 +40,7 @@ export function LoginForm({ brand }: { brand: SchoolBrand | null }) {
     const result = await signInAction(String(form.get('email')), String(form.get('password')))
     if ('error' in result) {
       if (result.error === 'blocked') setBlocked(true)
-      else setError(true)
+      else setError(result.error)
       setBusy(false)
       return
     }
@@ -57,7 +58,7 @@ export function LoginForm({ brand }: { brand: SchoolBrand | null }) {
           <label className={labelClass} htmlFor="password">{t('login.password', lang)}</label>
           <input id="password" name="password" type="password" required className={inputClass} />
         </div>
-        {error && <p className="text-sm text-alert-deep">{t('login.failed', lang)}</p>}
+        {error && <p className="text-sm text-alert-deep">{t(SIGN_IN_ERROR_KEY[error], lang)}</p>}
         {blocked && <p className="text-sm text-alert-deep">{t('blocked.message', lang)}</p>}
         <button type="submit" disabled={busy || !ready} className={primaryBtnClass}>
           {t('login.submit', lang)}

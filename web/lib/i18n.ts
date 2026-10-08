@@ -56,6 +56,7 @@ const dict = {
   'login.submit': { bn: 'লগইন করুন', en: 'Log in' },
   'login.forgot': { bn: 'পাসওয়ার্ড ভুলে গেছেন?', en: 'Forgot password?' },
   'login.noAccount': { bn: 'অ্যাকাউন্ট নেই? স্কুল নিবন্ধন করুন', en: 'No account? Register a school' },
+  'login.banned': { bn: 'এই লগইনটি বন্ধ করা আছে। প্রতিষ্ঠান মালিকের সাথে যোগাযোগ করুন।', en: 'This login has been disabled. Please contact the School Owner.' },
   'login.failed': { bn: 'ইমেইল বা পাসওয়ার্ড সঠিক নয়', en: 'Invalid email or password' },
   'signup.title': { bn: 'স্কুল নিবন্ধন', en: 'Register School' },
   'signup.schoolName': { bn: 'প্রতিষ্ঠানের নাম', en: 'School name' },
@@ -1505,6 +1506,7 @@ const dict = {
   'examSetup.title': { bn: 'পরীক্ষা সেটআপ', en: 'Exam Setup' },
   'examSetup.basicInfo': { bn: 'মূল তথ্য', en: 'Basic Info' },
   'examSetup.save': { bn: 'সংরক্ষণ করুন', en: 'Save' },
+  'exams.deleted': { bn: 'পরীক্ষাটি মুছে ফেলা হয়েছে', en: 'Exam deleted' },
   'examSetup.saved': { bn: 'সংরক্ষিত হয়েছে', en: 'Saved' },
   'examSetup.noBandsOption': { bn: '(গ্রেড ব্যান্ড নেই)', en: '(no grade bands)' },
   'examSetup.schemeNoBands': {
@@ -1705,6 +1707,10 @@ const dict = {
   'markEntry.fixErrors': {
     bn: 'লাল চিহ্নিত ঘরগুলো ঠিক করে আবার সংরক্ষণ করুন।',
     en: 'Fix the cells marked in red, then save again.',
+  },
+  'student.followUpDiscardConfirm': {
+    bn: 'লেখা ফলো-আপ সংরক্ষণ করা হয়নি। বন্ধ করলে মুছে যাবে। বন্ধ করবেন?',
+    en: 'Your follow-up is not sent. Closing will discard it. Close anyway?',
   },
   'markEntry.unsaved': { bn: 'সংরক্ষণ করা হয়নি', en: 'Unsaved changes' },
   'markEntry.unsavedConfirm': {
@@ -3157,7 +3163,7 @@ const dict = {
   },
   'attendance.leaveApprovedToast': { bn: 'ছুটি অনুমোদিত হয়েছে', en: 'Leave approved' },
   'attendance.leaveUndo': { bn: 'পূর্বাবস্থায়', en: 'Undo' },
-  'attendance.leaveRejectReason': { bn: 'প্রত্যাখ্যানের কারণ', en: 'Reason for rejection' },
+  'attendance.leaveRejectReason': { bn: 'নামঞ্জুরের কারণ', en: 'Reason for rejection' },
   'attendance.leaveRejectReasonHint': { bn: 'আবেদনকারী এটি দেখতে পাবেন।', en: 'The requester will see this.' },
   'attendance.leaveOptional': { bn: 'ঐচ্ছিক', en: 'optional' },
   'attendance.leaveDecidedOn': { bn: 'সিদ্ধান্তের তারিখ', en: 'Decided on' },
@@ -3189,7 +3195,7 @@ const dict = {
   'attendance.leaveReject': { bn: 'প্রত্যাখ্যান', en: 'Reject' },
   'attendance.leavePending': { bn: 'অপেক্ষমাণ', en: 'Pending' },
   'attendance.leaveApproved': { bn: 'অনুমোদিত', en: 'Approved' },
-  'attendance.leaveRejected': { bn: 'প্রত্যাখ্যাত', en: 'Rejected' },
+  'attendance.leaveRejected': { bn: 'নামঞ্জুর', en: 'Rejected' },
   'attendance.leaveRequestTitle': { bn: 'নতুন ছুটির আবেদন', en: 'Request Leave' },
   'attendance.leavePerson': { bn: 'ব্যক্তি', en: 'Person' },
   'attendance.leaveSubmit': { bn: 'আবেদন জমা দিন', en: 'Submit Request' },

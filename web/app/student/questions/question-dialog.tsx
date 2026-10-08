@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useId } from 'react'
+import { useEffect, useId, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { X } from 'lucide-react'
 import { NativeDialog } from '@/components/native-dialog'
@@ -26,7 +26,14 @@ export function QuestionDialog({
 }) {
   const router = useRouter()
   const titleId = useId()
-  const close = () => router.replace(closeHref, { scroll: false })
+  const bodyRef = useRef<HTMLDivElement>(null)
+  // Escape, the backdrop and the X all come through here. A typed, unsent
+  // follow-up is asked about first (same window.confirm the marks-entry uses).
+  const close = () => {
+    const typed = bodyRef.current?.querySelector<HTMLTextAreaElement>('textarea[name="body"]')?.value.trim()
+    if (typed && !window.confirm(t('student.followUpDiscardConfirm', lang))) return
+    router.replace(closeHref, { scroll: false })
+  }
 
   useEffect(
     () => () => {
@@ -63,7 +70,7 @@ export function QuestionDialog({
           <X className="size-5" aria-hidden />
         </button>
       </div>
-      {children}
+      <div ref={bodyRef}>{children}</div>
     </NativeDialog>
   )
 }
