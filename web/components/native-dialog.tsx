@@ -13,6 +13,8 @@ const DialogContainer = createContext<HTMLElement | null>(null)
 export const useDialogContainer = () => useContext(DialogContainer)
 
 const toasterTheme = () => {
+  // A dialog that is open on first render is also rendered on the server.
+  if (typeof document === 'undefined') return 'system'
   const t = document.documentElement.dataset.theme
   return t === 'light' || t === 'dark' ? t : 'system'
 }

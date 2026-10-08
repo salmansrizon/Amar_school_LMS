@@ -62,7 +62,9 @@ export function indentTwo(value: string, start: number, end: number): Edit {
 /** Old questions are plain text with single newlines the Student meant. CommonMark
  *  folds those into a space, so turn them into hard breaks, outside code fences. */
 export function softBreaksToHard(md: string): string {
-  const lines = md.split('\n')
+  // Text posted from a <textarea> in a form arrives with CRLF line ends. A
+  // stray \r before the added spaces reads as a blank line (a new paragraph).
+  const lines = md.replace(/\r\n?/g, '\n').split('\n')
   let fenced = false
   return lines
     .map((line, i) => {
