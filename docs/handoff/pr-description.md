@@ -1,10 +1,10 @@
 # Owner UI overhaul, student portal redesign, and the audit fixes
 
-Base: `staging` (`0ae8197`). Head: `merge/staging-sync`. The branch contains all of `staging` and merges as a fast-forward. 370 commits, 744 files.
+Base: `staging` (`0ae8197`). Head: `merge/staging-sync`. The branch contains all of `staging` and merges as a fast-forward.
 
 ## Read this first
 
-1. **The database is already changed.** Staging and production share one database, and the 25 migration files in this branch (`0217`–`0259`, listed below) are applied to it. The rules in "Behaviour that changed in the database" are live now, for the deployed app too, before this merge.
+1. **The database is already changed.** Staging and production share one database, and the 26 migration files in this branch (`0217`–`0261`, listed below) are applied to it. The rules in "Behaviour that changed in the database" are live now, for the deployed app too, before this merge.
 2. **Integration and e2e have not been run on this branch.** Typecheck, unit tests and a production build pass (figures below). The branch edits 32 existing integration/e2e test files to match the new rules, so the suites must run in the pipeline before merging.
 3. **One security header changes.** Print routes can now be framed by our own pages, for the print preview popup: `frame-ancestors 'self'` on print routes, and `frame-src 'self'` everywhere. `staging` has `'none'` for both (`web/lib/auth/csp.ts`, `web/proxy.ts`).
 4. **This reverses map #667 / issue #101**: the School Owner sidebar is regrouped, and Attendance is one sidebar item with its areas (Students, Employees, Off-Day Calendar, Machine) as tabs inside the page.
@@ -19,6 +19,13 @@ Base: `staging` (`0ae8197`). Head: `merge/staging-sync`. The branch contains all
 - Fees: stored fee amount and advance line on the receipt; void with a reason and a reversing ledger entry; receipt total equals the amount received; Bangla amount in words.
 - Notices: homework due date; unpublish and republish for notices.
 - Staff: a login can be disabled and re-enabled; an employee with a staff login is archived only together with disabling that login (School Owner only).
+
+**Both portals (added last)**
+- One shared date picker replaces the browser's on every date field (Bangla digits and month names, month and year jump, keyboard support, bottom sheet on phones). Forms still receive `YYYY-MM-DD`.
+- Every unbounded list is paged with the existing pager; leave requests page on the server.
+- Live pulse only on the first item that needs attention in a region; one icon per concept across both sidebars; short transitions, all off under reduced motion.
+- The attendance mark page shows this month's attendance rate (`0261`); the yearly Attendance Rate stays the definition elsewhere (CONTEXT.md gains "Monthly Attendance Rate").
+- Every print button opens the shared print popup (the class routine opened a new tab before).
 
 **Student portal**
 - Short menu, home with what is pending and urgent, tables with search and filters, compact rows on phones.
@@ -46,18 +53,18 @@ Existing ledger entries are not rewritten. `docs/handoff/migrations-fees-rollout
 
 ## Migrations (all applied)
 
-`0217` student attendance summary · `0218` weekly off-days · `0219` leave decision note · `0220` employee attendance start · `0221` student reads grading scheme · `0223` absent marks and atomic save · `0224` routine overlap · `0230` fee amount · `0231` fee void · `0232` director capital guard · `0240` employee attendance admin · `0241` staff login disable · `0243` approvals scope · `0244` roll edit check · `0245` revoke `is_absent_working_day` · `0250` SMS streak · `0251` class attendance days · `0252` notice unpublish · `0253`–`0257` student questions · `0258` fee ledger fine rule · `0259` absences from admission.
+`0217` student attendance summary · `0218` weekly off-days · `0219` leave decision note · `0220` employee attendance start · `0221` student reads grading scheme · `0223` absent marks and atomic save · `0224` routine overlap · `0230` fee amount · `0231` fee void · `0232` director capital guard · `0240` employee attendance admin · `0241` staff login disable · `0243` approvals scope · `0244` roll edit check · `0245` revoke `is_absent_working_day` · `0250` SMS streak · `0251` class attendance days · `0252` notice unpublish · `0253`–`0257` student questions · `0258` fee ledger fine rule · `0259` absences from admission · `0261` attendance summary from a given day.
 
 Numbers `0222` and `0242` are intentionally absent. `staging`'s own `0214`–`0216` are untouched. Rollout notes with pre-checks and rollback: `docs/handoff/migrations-*-rollout.md`.
 
 ## Tested
 
 - `tsc --noEmit`: clean.
-- Unit tests: 172 files, 1907 passed.
+- Unit tests: 1923 passed.
 - `next build --webpack`: passes.
 - eslint: one error, `web/app/claim/page.tsx:33`, identical on `staging`.
 - Browser tests in Test School A as owner, office staff, teacher and student (reports in `docs/handoff/w2-test-*.md`, `docs/handoff/evaluation-2.md`, `docs/handoff/704-fixes.md`).
-- Database: objects of all 25 migrations present; read-only role checks as student, teacher and owner.
+- Database: objects of all 26 migrations present; read-only role checks as student, teacher and owner.
 - Fee ledger under `0258`, on a test record: received 60 with fine 10 posts cash 60, fine income 10, fee income 50; an edit to 130 moves cash by 70; a void returns every account to zero.
 
 ## Not tested
