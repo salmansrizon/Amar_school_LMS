@@ -56,6 +56,7 @@ const dict = {
   'login.submit': { bn: 'লগইন করুন', en: 'Log in' },
   'login.forgot': { bn: 'পাসওয়ার্ড ভুলে গেছেন?', en: 'Forgot password?' },
   'login.noAccount': { bn: 'অ্যাকাউন্ট নেই? স্কুল নিবন্ধন করুন', en: 'No account? Register a school' },
+  'login.banned': { bn: 'এই লগইনটি বন্ধ করা আছে। প্রতিষ্ঠান মালিকের সাথে যোগাযোগ করুন।', en: 'This login has been disabled. Please contact the School Owner.' },
   'login.failed': { bn: 'ইমেইল বা পাসওয়ার্ড সঠিক নয়', en: 'Invalid email or password' },
   'signup.title': { bn: 'স্কুল নিবন্ধন', en: 'Register School' },
   'signup.schoolName': { bn: 'প্রতিষ্ঠানের নাম', en: 'School name' },
