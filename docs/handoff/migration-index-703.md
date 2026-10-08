@@ -87,7 +87,7 @@ One list of every database change recommended during the owner UI overhaul, the 
 ## Rules for whoever implements these
 
 - `staging` and production share one database: a migration applied to staging is live for production data.
-- Next free migration number after this branch is `0218` (`0217` attendance summary draft, `0218`, `0219`, `0220` are written and not applied; apply in that order, on a branch database first; rollout notes in `docs/handoff/migrations-attendance-rollout.md`). Re-check before numbering; another developer is working on `staging`.
+- `staging` took `0214`–`0216` on 2026-10-07 (attendance local day, reconcile queue, agents), so this branch's files were renumbered. Next free migration number after this branch is `0221` (`0217` attendance summary draft, `0218`, `0219`, `0220` are written and not applied; apply in that order, on a branch database first; rollout notes in `docs/handoff/migrations-attendance-rollout.md`). Re-check before numbering; another developer is working on `staging`.
 - Policies that narrow access (1.1, 1.4) need a check that the School Owner and office staff are unaffected. The app-level guards in `web/lib/school/exam-class-guard.ts` and `web/lib/auth/require-grant.ts` show the intended rule and have unit tests to mirror.
 - `web/tests/integration/accounting-ii.test.ts` deletes rows as the owner on the shared database. Fix that test with 2.4, or it will drift the balance again.
 
@@ -103,6 +103,7 @@ One list of every database change recommended during the owner UI overhaul, the 
 - 2026-10-05 — 5.7 changed from optional to requested by the owner, with the 1 MB total limit.
 - 2026-10-07 — 4.0 and 4.4 written as `0218`, 4.1 as `0219`, 1.5 as `0220`; none applied. 4.2 narrowed to the missing sync-time column. 4.5 added: the SMS streak walk still counts weekly off-days. Total is now 29 items. Two existing integration tests (`absent-working-days-range.test.ts`, `fee-structures.test.ts`) assert the old weekend counting and must be updated when `0218` is applied.
 - 2026-10-07 — after an independent review of `0218`–`0220`: 4.6 (anon can execute `is_absent_working_day`) and 4.7 (range and archived classmates) added. Total is now 31 items. The three files now end with a PostgREST schema reload; the `0219` rollback order is fixed; `0217` is re-runnable. `weekly_off_days` defaults to Saturday only: check each School before calling 4.0 fixed.
+- 2026-10-07 — `staging` added its own `0214`–`0216`. This branch's four files were renumbered and every reference here updated: `0217` student attendance summary (#684), `0218` weekly off-days (4.0, 4.4), `0219` leave decision note (4.1), `0220` employee attendance start (1.5). None applied. Ranges reserved for work in progress: `0221`–`0229` exams, `0230`–`0239` fees, `0240`–`0249` access, `0250`–`0262` notices and portal.
 
 ## Source
 

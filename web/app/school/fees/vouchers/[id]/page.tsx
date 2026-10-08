@@ -1,8 +1,9 @@
-import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
 import { t, formatMoney, formatDate } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
+import { PageHeader } from '@/components/ui/page'
+import { schoolCrumbs } from '@/lib/school-crumbs'
 
 /** The vouchers-list.html "View" action target: a read-only detail of one
  *  Voucher, including its attachment (opened via the signed-URL API route)
@@ -25,14 +26,14 @@ export default async function VoucherDetailPage({ params }: { params: Promise<{ 
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between">
-        <Link href="/school/fees/vouchers" aria-label={t('vouchers.title', lang)} className="inline-flex size-9 max-sm:size-11 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
-      </div>
+      <PageHeader
+        title={voucher.voucher_no}
+        backHref="/school/fees/vouchers"
+        backLabel={t('vouchers.title', lang)}
+        crumbs={schoolCrumbs('/school/fees', lang, { label: t('vouchers.title', lang), href: '/school/fees/vouchers' }, { label: voucher.voucher_no })}
+      />
 
       <section className="rounded-lg border border-line bg-paper p-6">
-        <header className="mb-4 border-b border-line pb-3">
-          <h1 className="text-lg font-extrabold">{voucher.voucher_no}</h1>
-        </header>
         <dl className="flex flex-col gap-1.5 text-sm">
           <div className="flex justify-between">
             <dt className="text-muted">{t('vouchers.date', lang)}</dt>
