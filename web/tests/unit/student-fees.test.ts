@@ -54,6 +54,18 @@ describe('totalFees', () => {
     // asked for 1,050 — not 1,100.
     expect(payableOf(rec({ id: 'a', pay_amount: 600, fine_amount: 50, due_amount: 450 }))).toBe(1050)
   })
+
+  it('does not show an advance as payable (#707)', () => {
+    // Fee 100 + fine 10 = 110 billed, 130 received: the month asked for 110.
+    const overpaid = rec({ id: 'a', pay_amount: 130, fine_amount: 10, due_amount: 0, advance_amount: 20 })
+    expect(payableOf(overpaid)).toBe(110)
+    expect(totalFees([overpaid])).toEqual({ payable: 110, paid: 130, fine: 10, due: 0 })
+  })
+
+  it('reads as before while the view has no advance_amount (before 0258)', () => {
+    expect(payableOf(rec({ id: 'a', pay_amount: 60, fine_amount: 10, due_amount: 50 }))).toBe(110)
+    expect(payableOf(rec({ id: 'a', pay_amount: 130, fine_amount: 10, due_amount: 0 }))).toBe(130)
+  })
 })
 
 describe('monthLabel', () => {

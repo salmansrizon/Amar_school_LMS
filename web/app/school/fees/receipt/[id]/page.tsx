@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { takaInWords } from '@/lib/amount-words'
 import {
-  totalPayable,
+  receiptTotal,
   feePeriodLabel,
   feeGlRefPattern,
   FEE_GL_ORDER_COLUMN,
@@ -92,9 +92,9 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
   const glLines = (glEntries ?? []).flatMap(
     (e) => (e.gl_lines as unknown as { account_code: string; debit: number; credit: number }[]) ?? [],
   )
-  // Adjustment is a discount/scholarship — it reduces what was actually collected.
-  // Shared with the collection form's live preview (lib/fees.ts).
-  const total = totalPayable(Number(record.pay_amount), Number(record.fine_amount), Number(record.adjust_amount))
+  // #707: the total is what was received. The received amount already includes
+  // the fine, and the adjustment was never collected, so neither is applied here.
+  const total = receiptTotal({ pay_amount: Number(record.pay_amount) })
   // #678: the billed fee, printed only when it is known — stored, or exactly
   // derivable because something is still due. #695: the advance is whatever was
   // received beyond fee + fine − adjustment, known only from a stored fee.

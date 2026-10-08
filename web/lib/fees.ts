@@ -149,6 +149,16 @@ export function advanceAmount(record: StoredFigures): number {
   return overpaidAmount(totalPayable(record.fee_amount, record.fine_amount, record.adjust_amount), record.pay_amount)
 }
 
+/** The "Total" a receipt prints, and the amount it spells out in words: the
+ *  money received, nothing added (#707). Owner's decision: `pay_amount`
+ *  INCLUDES the fine — fee 100, fine 10, received 110 means 110 was paid in
+ *  all. The fine and the adjustment are lines on the receipt, not additions to
+ *  what was received; the receipt used to pass the received amount to
+ *  totalPayable as if it were the fee, which counted the fine twice. */
+export function receiptTotal(record: { pay_amount: number }): number {
+  return record.pay_amount
+}
+
 /** One collection's figures from what the operator entered. The collection
  *  form's live preview and saveFeeRecord both call this, so the due amount that
  *  is stored is the one the server worked out — not a number the browser sent. */
