@@ -13,6 +13,14 @@ import { enrollCard, unenrollCards } from '../helpers/machine-enroll'
 // observe the exemption actually widening it.
 const RECONCILE_SECRET = process.env.RECONCILE_SECRET!
 const DAY = '2026-08-01' // fixed historical date, isolated from other runs
+
+// Reconcile DAY for one School the way the cron route now does (migration 0215):
+// mark the (School, day) pair due, then drain the queue for that School.
+const reconcileDay = async (school: string) => {
+  await anonClient().rpc('enqueue_attendance_reconcile_dates', { job_secret: RECONCILE_SECRET, target_date: DAY, target_school: school })
+  return anonClient().rpc('drain_attendance_reconcile_queue', { job_secret: RECONCILE_SECRET, only_school: school })
+}
+
 // A canonical Employee Category (issue #666's fixed, global, seeded list) —
 // employee_categories is Super-Admin-write-only (ADR 0028), so a test can't
 // insert its own category; it must use one of the 20 already there. Only
@@ -82,7 +90,7 @@ describe('Ad-Hoc Grace Exemption (issue #671)', () => {
       token: ingestToken,
       events: [{ card_number: 'ADHOC-CARD-1', tapped_at: `${DAY}T08:30:00Z` }],
     })
-    await anonClient().rpc('reconcile_attendance', { job_secret: RECONCILE_SECRET, target_date: DAY })
+    await reconcileDay(schoolId)
 
     const { data } = await ownerA
       .from('attendance_records')
@@ -149,7 +157,7 @@ describe('Ad-Hoc Grace Exemption (issue #671)', () => {
       token: ingestToken,
       events: [{ card_number: 'ADHOC-CARD-1', tapped_at: `${DAY}T08:30:00Z` }],
     })
-    await anonClient().rpc('reconcile_attendance', { job_secret: RECONCILE_SECRET, target_date: DAY })
+    await reconcileDay(schoolId)
 
     const { data } = await ownerA
       .from('attendance_records')

@@ -168,7 +168,7 @@ export async function EmployeeOwnAttendance({ params, searchParams, inModal }: E
       .eq('employee_id', id)
       .order('created_at', { ascending: false })
       .limit(10),
-    // 0217's function (Owner and attendance-grant staff), else the Owner-only
+    // 0220's function (Owner and attendance-grant staff), else the Owner-only
     // table read; no entry just means no start clip.
     loadEmployeeAttendanceStarts(supabase, id),
     // Which days anyone in the School has a record: a day with none is "no

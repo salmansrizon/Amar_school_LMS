@@ -1,5 +1,4 @@
 import Form from 'next/form'
-import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
 import { t, formatMoney, type Lang, formatDate, localeOf } from '@/lib/i18n'
@@ -13,6 +12,8 @@ import { AccountingTabs } from '../accounting-tabs'
 import { loadInstitutePrintHeader } from '@/lib/institute-print'
 import { dateInputClass, filterButtonClass } from '@/components/ui/field'
 import { selectAllRows } from '@/lib/supabase/select-all'
+import { PageHeader } from '@/components/ui/page'
+import { schoolCrumbs } from '@/lib/school-crumbs'
 import { pageTitle } from '@/lib/page-title'
 
 // Layout per ui/school-owner/general-ledger.html: a date-range toolbar over a
@@ -184,9 +185,11 @@ export default async function GeneralLedgerPage({
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between print:hidden">
-        <h1 className="text-2xl font-extrabold">{t('ledger.title', lang)}</h1>
-        <Link href="/school" aria-label={t('common.back', lang)} className="inline-flex size-9 max-sm:size-11 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
+      <div className="print:hidden">
+        <PageHeader
+          title={t('ledger.title', lang)}
+          crumbs={schoolCrumbs('/school/fees', lang, { label: t('fees.title', lang), href: '/school/fees' }, { label: t('ledger.title', lang) })}
+        />
       </div>
 
       <div className="print:hidden">

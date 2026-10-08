@@ -98,11 +98,11 @@ describe('monthRange / daysInMonth / shiftMonth', () => {
   })
 })
 
-// Migration 0215 (#703 item 4.4). takenDates is what
+// Migration 0218 (#703 item 4.4). takenDates is what
 // student_class_attendance_days returns; null is "function not there yet".
 describe('attendanceOutcome', () => {
   const today = '2026-10-15'
-  // What the pages did before 0215, spelled out so the fallback is pinned to it.
+  // What the pages did before 0218, spelled out so the fallback is pinned to it.
   const before = (present: string[], absent: number) => ({
     percent: present.length ? attendancePercent(present.length, absent) : null,
     absentDays: absent,
@@ -166,7 +166,7 @@ describe('classAttendanceDays', () => {
   const client = (reply: { data: unknown; error: unknown }) =>
     ({ rpc: async () => reply }) as unknown as SupabaseClient
 
-  it('is null while the function is missing (0215 not applied)', async () => {
+  it('is null while the function is missing (0218 not applied)', async () => {
     const missing = { data: null, error: { code: 'PGRST202', message: 'Could not find the function' } }
     expect(await classAttendanceDays(client(missing), '2026-10-01', '2026-10-15')).toBeNull()
   })

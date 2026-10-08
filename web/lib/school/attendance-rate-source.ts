@@ -2,11 +2,11 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { attendanceRate } from '@/lib/dashboard'
 
 // Attendance Rate (CONTEXT.md) for every Student the caller can read, counted
-// in the database by student_attendance_summary() (migration 0214). RLS-scoped:
+// in the database by student_attendance_summary() (migration 0217). RLS-scoped:
 // the function is security invoker. One row per Student, so a school is a few
 // 1000-row pages (the REST cap).
 //
-// Returns null while 0214 is unapplied (function missing), so a page can hide
+// Returns null while 0217 is unapplied (function missing), so a page can hide
 // the column instead of showing zeros.
 const PAGE = 1000
 
@@ -42,7 +42,7 @@ export async function studentAttendanceRates(
   return out
 }
 
-/** School-wide, Student-day weighted. Null while 0214 is unapplied. */
+/** School-wide, Student-day weighted. Null while 0217 is unapplied. */
 export async function schoolAttendanceRate(supabase: SupabaseClient): Promise<AttendanceRateRow | null> {
   const { data, error } = await supabase.rpc('school_attendance_summary').single()
   if (missingFunction(error)) return null

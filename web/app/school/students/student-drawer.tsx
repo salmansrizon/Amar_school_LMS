@@ -19,10 +19,10 @@ import { StudentProfile } from './[id]/student-profile'
 // only wires this in at the call site.
 //
 // Attendance Rate (map's third suggested section) is deliberately omitted:
-// it depends on migration 0214's student_attendance_summary() RPC, which is
+// it depends on migration 0217's student_attendance_summary() RPC, which is
 // not applied on the shared DB yet — showing it would mean guessing at a
 // number the database cannot yet produce (the honesty rule this drawer runs
-// on). Add it back once 0214 ships (lib/school/attendance-rate-source.ts
+// on). Add it back once 0217 ships (lib/school/attendance-rate-source.ts
 // already returns null gracefully until then).
 
 type FeeHistoryRow = { month: number; year: number; standing: FeeStanding; due: number }

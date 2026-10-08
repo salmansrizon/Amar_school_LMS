@@ -2,8 +2,8 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { signedIn, anonClient } from '../helpers/auth'
 
-// Written for migration 0215 — not run (the integration suite writes to the
-// shared database). Needs 0215 applied; before that the weekly off-day cases
+// Written for migration 0218 — not run (the integration suite writes to the
+// shared database). Needs 0218 applied; before that the weekly off-day cases
 // fail and student_class_attendance_days does not exist.
 //
 // Seam: is_absent_working_day skips schools.weekly_off_days (#703 item 4.0),
@@ -21,7 +21,7 @@ const SAT = '2098-03-08'
 const WEEK = [SUN, MON, TUE, WED, THU, FRI, SAT]
 const TAG = 'M0215'
 
-describe('Absent working day and weekly off-days (migration 0215)', () => {
+describe('Absent working day and weekly off-days (migration 0218)', () => {
   let owner: SupabaseClient
   let student: SupabaseClient
   let schoolId: string

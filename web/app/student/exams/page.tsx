@@ -132,7 +132,7 @@ export default async function StudentExamsPage({
     <main className="w-full px-gutter pt-section pb-16">
       <PageHeader
         title={t('student.examsTitle', lang)}
-        crumbs={{ lang, items: [{ label: t('student.nav.home', lang), href: '/student' }, { label: t('student.examsTitle', lang) }] }}
+        crumbs={{ lang, items: [{ label: t('student.nav.home', lang), href: '/student' }, { label: t('student.navGroup.exams', lang) }] }}
         badge={upcoming ? `${formatNumber(upcoming, lang)} ${t('student.dash.upcoming', lang)}` : undefined}
       />
       <SectionTabs

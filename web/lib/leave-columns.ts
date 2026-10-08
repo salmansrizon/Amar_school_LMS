@@ -1,4 +1,4 @@
-// Migration 0216 adds decision_note / decided_at to student_leaves and
+// Migration 0219 adds decision_note / decided_at to student_leaves and
 // employee_leaves. Until it is applied, anything naming them errors; callers
 // retry without them (same idea as attendance-rate-source.ts).
 
@@ -18,7 +18,7 @@ export async function withLeaveColumns<R extends { error: { code?: string; messa
   return isMissingColumnError(res.error) ? without() : res
 }
 
-/** Same number as the CHECK in migration 0216. */
+/** Same number as the CHECK in migration 0219. */
 export const DECISION_NOTE_MAX = 500
 
 /** Make the reject reason mandatory by flipping this one constant (UI and action both read it). */
