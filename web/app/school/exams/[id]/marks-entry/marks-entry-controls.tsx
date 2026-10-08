@@ -10,6 +10,7 @@ import { t, type Lang, type MessageKey } from '@/lib/i18n'
 import { toLatinDigits } from '@/lib/bd-mobile'
 import { saveMarks } from './actions'
 import { ComboboxField } from '@/components/ui/combobox-field'
+import { sameRouteNavigation, useInRouteModal } from '@/components/route-modal'
 
 export interface SubjectOption {
   id: string
@@ -23,6 +24,8 @@ export interface SubjectOption {
 // state rather than a context: the picker and the grid are siblings rendered
 // by a server page, and all the picker needs is this one yes/no.
 let unsavedMarks = false
+// Set by the picker just before its full-page subject change (#701).
+let leavingForSubject = false
 
 /** Per marks-entry.html's subject dropdown — switching subjects navigates
  * (?subject=id) so the table below always reflects one subject's marks at a
@@ -39,6 +42,7 @@ export function SubjectPicker({
 }) {
   const router = useRouter()
   const pathname = usePathname()
+  const navigation = sameRouteNavigation(useInRouteModal())
   return (
     <ComboboxField
       value={selectedId}
@@ -49,7 +53,16 @@ export function SubjectPicker({
         // Switching subject reloads the grid, which used to drop typed marks
         // without a word (audit AC10).
         if (v !== selectedId && unsavedMarks && !window.confirm(t('markEntry.unsavedConfirm', lang))) return
-        router.replace(`${pathname}?subject=${v}`)
+        if (v === selectedId) return
+        const href = `${pathname}?subject=${v}`
+        if (navigation === 'soft') return router.replace(href)
+        // #701: on the page itself (opened by address or refresh) a soft
+        // navigation to this same route is caught by the @modal intercept and
+        // opens the new subject as a popup over the old one. A full load is
+        // never intercepted. The question above was already answered, so the
+        // browser's own "leave page?" prompt is skipped.
+        leavingForSubject = true
+        window.location.replace(href)
       }}
       className="max-w-56"
       options={subjects.map((s) => ({ value: s.id, label: s.name }))}
@@ -148,7 +161,9 @@ export function MarksEntryTable({
   useEffect(() => {
     unsavedMarks = dirty
     if (!dirty) return
-    const onUnload = (e: BeforeUnloadEvent) => e.preventDefault()
+    const onUnload = (e: BeforeUnloadEvent) => {
+      if (!leavingForSubject) e.preventDefault()
+    }
     // In-app links (sidebar, breadcrumbs, Back) do not fire beforeunload.
     // Capture phase, so a declined prompt stops the click before the router
     // sees it.

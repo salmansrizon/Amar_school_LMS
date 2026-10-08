@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Dialog } from '@base-ui/react/dialog'
 import { X } from 'lucide-react'
@@ -12,6 +12,17 @@ import { X } from 'lucide-react'
 // page untouched. The page's breadcrumbs and Back chevron are hidden in here:
 // the chevron is a Link, so it would push a new entry and browser Back would
 // reopen the closed popup (docs/010 test H). ✕ is the way back.
+
+const InRouteModal = createContext(false)
+
+/** True when the page is being shown inside a route popup. A page that
+ *  navigates to its own route (a picker changing `?subject=`) needs to know:
+ *  from the full page a soft navigation is intercepted and opens the popup over
+ *  the page (#701), so there it must be a full load — see `sameRouteNavigation`. */
+export const useInRouteModal = () => useContext(InRouteModal)
+
+/** How a page should move to another address of its OWN route. */
+export const sameRouteNavigation = (inRouteModal: boolean): 'soft' | 'full' => (inRouteModal ? 'soft' : 'full')
 
 export function RouteModal({
   title,
@@ -44,7 +55,7 @@ export function RouteModal({
             </Dialog.Close>
           </header>
           <div className="@container min-h-0 flex-1 overflow-y-auto p-card [&_[data-page-back]]:hidden [&_[data-page-crumbs]]:hidden">
-            {children}
+            <InRouteModal.Provider value>{children}</InRouteModal.Provider>
           </div>
         </Dialog.Popup>
       </Dialog.Portal>
