@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import Link from 'next/link'
 import { CalendarDays, Tag } from 'lucide-react'
 import { t, type Lang } from '@/lib/i18n'
 import { withParams, type Params } from '@/lib/url-params'
@@ -17,12 +18,15 @@ export function QuestionDrawerBody({
   askedAt,
   body,
   replyArea,
+  earlier = [],
   lang,
 }: {
   topic: string
   askedAt: string
   body: string
   replyArea: ReactNode
+  /** Other messages of the same thread (#703 item 5.4), oldest first. */
+  earlier?: { id: string; href: string; askedAt: string; body: string }[]
   lang: Lang
 }) {
   const facts: DrawerFact[] = [
@@ -36,6 +40,21 @@ export function QuestionDrawerBody({
         <Markdown text={body} />
       </Card>
       {replyArea}
+      {earlier.length > 0 && (
+        <section>
+          <h3 className="mb-2 text-xs font-semibold text-muted">{t('questions.earlierInThread', lang)}</h3>
+          <ul className="space-y-2">
+            {earlier.map((m) => (
+              <li key={m.id} className="rounded-md border border-line p-3">
+                <Link href={m.href} scroll={false} className="text-xs font-semibold text-brand-600 hover:underline">
+                  {m.askedAt}
+                </Link>
+                <Markdown className="mt-1" text={m.body} />
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </div>
   )
 }

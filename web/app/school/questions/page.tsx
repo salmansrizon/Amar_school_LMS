@@ -21,6 +21,8 @@ import { ReplyForm } from './reply-form'
 import { DrawerFooter, DrawerHeader } from '@/components/data-table/drawer-parts'
 import { QuestionDrawerBody, questionDrawerCancelHref } from './question-drawer'
 import { pageTitle } from '@/lib/page-title'
+import { loadExtraReplies, loadThreadIds } from '@/lib/student/questions-source'
+import { threadSiblings } from '@/lib/student/question-threads'
 
 // The Questions tab of বার্তা ও অনুরোধ (#454 inbox, #509 section), following
 // the exam-landing pattern (013 FC4/013 A3): a one-line late-question warning
@@ -88,6 +90,15 @@ export default async function SchoolQuestionsPage({
   )
   const pageData = paginate(shown, page, pageSize)
   const viewed = view ? (messages.find((m) => m.id === view) ?? null) : null
+  // #703 items 5.4 and 5.6, only for the question that is open. Both answer
+  // "not available" until migrations 0253 / 0254 are applied: no earlier
+  // messages are shown and no "add a reply" form is offered.
+  const [furtherReplies, earlier] = viewed
+    ? await Promise.all([
+        loadExtraReplies(supabase, [viewed.id]),
+        loadThreadIds(supabase).then((threadOf) => threadSiblings(messages, threadOf, viewed.id)),
+      ])
+    : [null, []]
   const lateList = messages.filter((m) => !isAnswered(m) && waitingHours(m) >= WAITING_LATE_HOURS)
   const late = lateList.length
   // Oldest-waiting-first — the ordering the workflow card needs, distinct from
@@ -328,12 +339,31 @@ export default async function SchoolQuestionsPage({
             askedAt={formatDateTime(viewed.created_at, lang)}
             body={viewed.body}
             lang={lang}
+            earlier={earlier.map((m) => ({
+              id: m.id,
+              href: withParams(params, { view: m.id }),
+              askedAt: formatDateTime(m.created_at, lang),
+              body: m.body,
+            }))}
             replyArea={
               viewed.reply_body ? (
-                <div className="rounded-md bg-mint-soft p-3">
-                  <span className="text-xs font-semibold text-mint-deep">{t('questions.replied', lang)}</span>
-                  <Markdown className="mt-1" text={viewed.reply_body} />
-                </div>
+                <>
+                  <div className="rounded-md bg-mint-soft p-3">
+                    <span className="text-xs font-semibold text-mint-deep">{t('questions.replied', lang)}</span>
+                    <Markdown className="mt-1" text={viewed.reply_body} />
+                  </div>
+                  {(furtherReplies ?? []).map((r) => (
+                    <div key={r.id} className="rounded-md bg-mint-soft p-3">
+                      <span className="text-xs font-semibold text-mint-deep">
+                        {t('questions.replied', lang)} · <span className="text-muted">{formatDateTime(r.created_at, lang)}</span>
+                      </span>
+                      <Markdown className="mt-1" text={r.body} />
+                    </div>
+                  ))}
+                  {furtherReplies !== null && (answerable === null || answerable.has(viewed.id)) && (
+                    <ReplyForm lang={lang} messageId={viewed.id} further />
+                  )}
+                </>
               ) : answerable === null || answerable.has(viewed.id) ? (
                 <ReplyForm lang={lang} messageId={viewed.id} />
               ) : (

@@ -2,14 +2,24 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { t, type Lang } from '@/lib/i18n'
+import { t, type Lang, type MessageKey } from '@/lib/i18n'
 import { RichTextField } from '@/components/rich-text-field'
-import { answerQuestion } from '@/lib/student/messages-source'
+import { addReply, answerQuestion } from '@/lib/student/messages-source'
+import { QUESTION_BODY_MAX } from '@/lib/student/messages'
 
-export function ReplyForm({ lang, messageId }: { lang: Lang; messageId: string }) {
+const ERRORS: Record<string, MessageKey> = {
+  notYours: 'questions.notYours',
+  replyUnavailable: 'questions.replyUnavailable',
+  bodyTooLong: 'questions.replyTooLong',
+}
+
+/** `further`: add a reply to a question that already has one (#703 item 5.6,
+ *  migration 0254) instead of writing the first reply. */
+export function ReplyForm({ lang, messageId, further = false }: { lang: Lang; messageId: string; further?: boolean }) {
   const router = useRouter()
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
+  const [fieldKey, setFieldKey] = useState(0)
 
   return (
     <form
@@ -19,16 +29,26 @@ export function ReplyForm({ lang, messageId }: { lang: Lang; messageId: string }
         const data = new FormData(e.currentTarget)
         startTransition(async () => {
           setError(null)
-          const result = await answerQuestion(messageId, data)
+          const result = await (further ? addReply : answerQuestion)(messageId, data)
           // 'notYours' is the one refusal with a sentence of its own; anything
           // else is a database message and is shown as-is rather than swallowed.
-          if (result.error)
-            setError(result.error === 'notYours' ? t('questions.notYours', lang) : result.error)
-          else router.refresh()
+          if (result.error) setError(ERRORS[result.error] ? t(ERRORS[result.error], lang) : result.error)
+          else {
+            setFieldKey((k) => k + 1)
+            router.refresh()
+          }
         })
       }}
     >
-      <RichTextField name="reply_body" label={t('questions.replyLabel', lang)} lang={lang} rows={4} formal />
+      <RichTextField
+        key={fieldKey}
+        name="reply_body"
+        label={t(further ? 'questions.addReply' : 'questions.replyLabel', lang)}
+        lang={lang}
+        rows={4}
+        formal
+        maxLength={further ? QUESTION_BODY_MAX : undefined}
+      />
       <button
         type="submit"
         disabled={pending}

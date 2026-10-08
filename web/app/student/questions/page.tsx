@@ -5,9 +5,12 @@ import { getStudentContext, isReadOnly } from '@/lib/student/context'
 import { AskForm } from './ask-form'
 import { FollowUpForm } from './follow-up-form'
 import { QuestionDialog } from './question-dialog'
+import { MarkSeen, WithdrawQuestionButton } from './question-controls'
+import { loadExtraReplies, loadOwnQuestions, loadSeenMarks } from '@/lib/student/questions-source'
+import { isAnswered } from '@/lib/student/messages'
 import { groupQuestions } from '@/lib/student/daily'
 import { waitingTone } from '@/lib/student/hub'
-import { buildConversations, findConversation, type Conversation, type ThreadRow } from '@/lib/student/question-threads'
+import { buildConversations, findConversation, type Conversation } from '@/lib/student/question-threads'
 import { studentGroupTabs } from '@/lib/student-nav'
 import { pageTitle } from '@/lib/page-title'
 import { Card, PageHeader } from '@/components/ui/page'
@@ -37,11 +40,12 @@ export default async function StudentQuestionsPage({
   const lang = await currentLang()
   const ctx = await getStudentContext()
 
-  const [{ data: mine }, { data: subjectRows }] = await Promise.all([
-    ctx.supabase
-      .from('student_messages')
-      .select('id, subject, body, status, reply_body, replied_at, created_at, publication_id, subject_id')
-      .order('created_at', { ascending: false }),
+  // thread_id, further replies and seen marks arrive with migrations 0253-0255;
+  // each read answers "not available" until then (lib/student/questions-source.ts).
+  const [mine, extraReplies, seenMarks, { data: subjectRows }] = await Promise.all([
+    loadOwnQuestions(ctx.supabase),
+    loadExtraReplies(ctx.supabase),
+    loadSeenMarks(ctx.supabase),
     // A general question must name a subject, and the anchor needs its id —
     // student_subject_option is the one place a Student may read that.
     ctx.supabase.from('student_subject_option').select('id, name').order('name'),
@@ -63,7 +67,7 @@ export default async function StudentQuestionsPage({
   const { waiting } = groupQuestions(mine ?? [])
   const readOnly = isReadOnly(ctx)
 
-  const all = buildConversations((mine ?? []) as ThreadRow[])
+  const all = buildConversations(mine, extraReplies ?? [], seenMarks, now)
   const open = openId ? findConversation(all, openId) : null
   const needle = (params.find ?? '').trim().toLowerCase()
   const filtered = needle
@@ -104,6 +108,11 @@ export default async function StudentQuestionsPage({
         <span className="inline-flex items-center gap-2 text-xs font-semibold">
           <ToneDot tone={toneOf(c)} />
           {statusOf(c)}
+          {c.newReply && (
+            <span className="rounded-full bg-brand-500 px-2 py-0.5 text-[11px] font-semibold text-white">
+              {t('student.newReply', lang)}
+            </span>
+          )}
         </span>
       ),
     },
@@ -202,6 +211,7 @@ export default async function StudentQuestionsPage({
               </li>
             ))}
           </ol>
+          {!readOnly && <MarkSeen ids={open.repliedRowIds} />}
           {!readOnly && (
             <div className="mt-6 border-t border-line pt-4">
               <FollowUpForm
@@ -209,7 +219,14 @@ export default async function StudentQuestionsPage({
                 title={open.first.subject}
                 publicationId={open.first.publication_id}
                 subjectId={open.first.subject_id}
+                threadId={open.first.id}
               />
+              {/* #703 item 5.8: the latest message can be withdrawn while nobody has replied to it. */}
+              {!isAnswered(open.last) && !open.last.reply_body && (
+                <div className="mt-4">
+                  <WithdrawQuestionButton id={open.last.id} lang={lang} />
+                </div>
+              )}
             </div>
           )}
         </QuestionDialog>

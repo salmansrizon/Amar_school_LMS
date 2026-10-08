@@ -17,6 +17,8 @@ import {
 } from '@/lib/employee-attendance-calendar'
 import { loadEmployeeAttendanceStarts } from '@/lib/school/employee-attendance-starts-source'
 import { selectAllRows } from '@/lib/supabase/select-all'
+import { loadLastAgentHeartbeat, agentNotSyncedFor } from '@/lib/school/attendance-agent-sync'
+import { AgentSyncWarning } from '@/app/school/attendance/agent-sync-warning'
 import { schoolCrumbs } from '@/lib/school-crumbs'
 import { PageHeader } from '@/components/ui/page'
 import { StatCard, StatGrid } from '@/components/ui/widgets'
@@ -198,6 +200,9 @@ export async function EmployeeOwnAttendance({ params, searchParams, inModal }: E
     schoolRecordedDays: schoolRecordsError ? undefined : new Set(schoolRecords.map((r) => r.att_date as string)),
   })
   const summary = summarizeEmployeeMonth(cells)
+  // #694: see the same check on the School's Employee Attendance page.
+  const lastHeartbeat = await loadLastAgentHeartbeat(supabase)
+  const agentNotSynced = cells.some((c) => c.status === 'no_record' && !!c.iso && agentNotSyncedFor(c.iso, lastHeartbeat))
 
   const prevHref = `?month=${shiftYearMonth(monthPrefix, -1)}`
   const nextHref = `?month=${shiftYearMonth(monthPrefix, 1)}`
@@ -216,6 +221,8 @@ export async function EmployeeOwnAttendance({ params, searchParams, inModal }: E
           { label: t('employees.viewAttendance', lang) },
         )}
       />
+
+      {agentNotSynced && lastHeartbeat && <AgentSyncWarning lastHeartbeat={lastHeartbeat} lang={lang} />}
 
       <section className="mb-grid rounded-2xl border border-line bg-paper p-card">
         <div className="mb-3">

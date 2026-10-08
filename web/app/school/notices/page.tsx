@@ -30,6 +30,8 @@ import { getNotice, noticeMeta } from './[id]/notice-detail'
 import { DrawerFooter, DrawerHeader } from '@/components/data-table/drawer-parts'
 import { NoticeDrawerBody, noticeDrawerCancelHref } from './notice-drawer'
 import { pageTitle } from '@/lib/page-title'
+import { isMissingColumnError } from '@/lib/leave-columns'
+import { isUnpublished } from '@/lib/school/publication-status'
 
 // Notices (map 013 FC3, new_ui/04-finance-communication/notices), following
 // the exam-landing pattern (013 A3): header + subtitle, a one-line urgent-
@@ -53,6 +55,8 @@ type Row = {
   target_section: string | null
   created_at: string
   due_at: string | null
+  /** Absent until migration 0252 is applied (#696). */
+  unpublished_at?: string | null
 }
 
 const PAGE_SIZE = 20
@@ -72,16 +76,22 @@ export default async function NoticesPage({
   const { supabase } = await getSchoolContext()
 
   const [{ rows }, { data: offeringRows }, viewed] = await Promise.all([
-    selectAllRows<Row>((from, to) =>
-      supabase
-        .from('publications')
-        .select(
-          'id, kind, title, importance, target_scope, class_offering_id, target_class_name, target_academic_year, target_shift, target_group_department, target_section, created_at, due_at',
+    (async () => {
+      const load = (columns: string) =>
+        selectAllRows<Row>((from, to) =>
+          supabase
+            .from('publications')
+            .select(columns)
+            .order('created_at', { ascending: false })
+            .order('id')
+            .range(from, to)
+            .returns<Row[]>(),
         )
-        .order('created_at', { ascending: false })
-        .order('id')
-        .range(from, to),
-    ),
+      const columns = 'id, kind, title, importance, target_scope, class_offering_id, target_class_name, target_academic_year, target_shift, target_group_department, target_section, created_at, due_at'
+      // unpublished_at arrives with migration 0252; read without it until then.
+      const withStatus = await load(`${columns}, unpublished_at`)
+      return withStatus.error && isMissingColumnError({ message: withStatus.error }) ? load(columns) : withStatus
+    })(),
     // Resolve an 'offering'-scope row's label back to its Class Catalogue
     // name (map #598 Wave 6, #607). One fetch, indexed by id.
     supabase.from('class_offerings').select('id, name, section, group_department, shift'),
@@ -112,6 +122,11 @@ export default async function NoticesPage({
       cell: (r) => (
         <>
           <span className="font-semibold">{r.title}</span>
+          {isUnpublished(r.unpublished_at) && (
+            <span className="ml-2 inline-flex rounded-full bg-paper-muted px-2 py-0.5 text-xs font-semibold text-muted">
+              {t('notices.unpublishedChip', lang)}
+            </span>
+          )}
           {r.kind === 'homework' && r.due_at && (
             <span className="block text-xs font-normal text-muted">
               {t('student.taskDue', lang)}: {formatDate(r.due_at, lang)}

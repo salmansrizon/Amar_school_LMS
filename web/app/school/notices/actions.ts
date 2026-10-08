@@ -14,6 +14,7 @@ import {
 } from '@/lib/publishing'
 import type { Importance, PublicationKind, TargetScope } from '@/lib/publishing'
 import { createSignedUpload, type SignedUpload } from '@/lib/storage/signed-upload'
+import { isMissingColumnError } from '@/lib/leave-columns'
 
 // The image bytes are uploaded client-side straight to the private
 // 'publications' bucket (avoids the Next server-action body limit, mirrors
@@ -162,6 +163,27 @@ export async function updatePublication(id: string, input: PublicationInput): Pr
   if (input.imagePath && existing.image_path && existing.image_path !== input.imagePath) {
     await me.supabase.storage.from('publications').remove([existing.image_path])
   }
+  revalidatePath(LIST_PAGE)
+  revalidatePath(`${LIST_PAGE}/${id}`)
+  return {}
+}
+
+/** Unpublish or republish a notice (#696, migration 0252). Unpublishing hides
+ *  it from Students without deleting it; republishing clears the mark and
+ *  keeps the notice's original date. Notices only. While 0252 is not applied
+ *  the column is missing and this says so instead of pretending to succeed. */
+export async function setNoticePublished(id: string, published: boolean): Promise<{ error?: string }> {
+  const me = await currentActor()
+  if ('error' in me) return { error: me.error }
+  const { data, error } = await me.supabase
+    .from('publications')
+    .update({ unpublished_at: published ? null : new Date().toISOString() })
+    .eq('id', id)
+    .eq('kind', 'notice')
+    .select('id')
+  if (isMissingColumnError(error)) return { error: t('notices.unpublishUnavailable', await currentLang()) }
+  if (error) return { error: error.message }
+  if (!data?.length) return { error: 'Not found' }
   revalidatePath(LIST_PAGE)
   revalidatePath(`${LIST_PAGE}/${id}`)
   return {}

@@ -105,6 +105,10 @@ export function groupByTopic(messages: InboxMessage[]): TopicGroup[] {
   )
 }
 
+/** Longest question or further reply, in characters. The same number as the
+ *  CHECKs in migrations 0254 and 0256 (#703 item 5.5): change them together. */
+export const QUESTION_BODY_MAX = 4000
+
 /** A question needs an anchor: the post it was asked from, or a subject. The
  *  DB enforces this too (student_message_has_anchor) — this is the early,
  *  legible refusal. */
@@ -116,6 +120,7 @@ export function validateQuestion(input: {
 }): string | null {
   if (!input.subject.trim()) return 'subjectRequired'
   if (!input.body.trim()) return 'bodyRequired'
+  if (input.body.trim().length > QUESTION_BODY_MAX) return 'bodyTooLong'
   if (!input.publicationId && !input.subjectId) return 'anchorRequired'
   return null
 }

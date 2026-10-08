@@ -183,6 +183,31 @@ const dict = {
     en: 'Pick the post or the subject your question is about.',
   },
   'student.subjectRequired': { bn: 'বিষয় লেখো।', en: 'A subject is required.' },
+  'student.bodyTooLong': {
+    bn: 'প্রশ্নটি অনেক বড় — ৪০০০ অক্ষরের মধ্যে লেখো।',
+    en: 'The question is too long — keep it within 4000 characters.',
+  },
+  'student.newReply': { bn: 'নতুন উত্তর', en: 'New reply' },
+  'student.withdrawQuestion': { bn: 'প্রশ্ন তুলে নাও', en: 'Withdraw question' },
+  'student.confirmWithdraw': {
+    bn: 'এই প্রশ্নটি তুলে নেবে? এটি মুছে যাবে এবং শিক্ষক আর দেখতে পাবেন না।',
+    en: 'Withdraw this question? It will be deleted and your teacher will no longer see it.',
+  },
+  'student.questionWithdrawn': { bn: 'প্রশ্নটি তুলে নেওয়া হয়েছে', en: 'Question withdrawn' },
+  'student.cannotWithdraw': {
+    bn: 'প্রশ্নটি তুলে নেওয়া যায়নি। উত্তর দেওয়া হয়ে গেলে প্রশ্ন আর তোলা যায় না।',
+    en: 'The question could not be withdrawn. A question that has been answered cannot be withdrawn.',
+  },
+  'questions.addReply': { bn: 'আরও একটি উত্তর যোগ করুন', en: 'Add another reply' },
+  'questions.replyUnavailable': {
+    bn: 'আরও উত্তর যোগ করার সুবিধাটি এখনো চালু হয়নি',
+    en: 'Adding another reply is not available yet',
+  },
+  'questions.replyTooLong': {
+    bn: 'উত্তরটি অনেক বড় — ৪০০০ অক্ষরের মধ্যে লিখুন',
+    en: 'The reply is too long — keep it within 4000 characters',
+  },
+  'questions.earlierInThread': { bn: 'এই আলোচনার অন্য বার্তা', en: 'Other messages in this conversation' },
   'student.bodyRequired': { bn: 'প্রশ্ন লেখো।', en: 'A question is required.' },
   // বার্তা ও অনুরোধ — the merged section (#509). Three sidebar entries became
   // one, so the section needs a name of its own that neither queue owns.
@@ -2944,6 +2969,11 @@ const dict = {
   'machine.errNotFound': { bn: 'মেশিনটি পাওয়া যায়নি — পাতাটি রিফ্রেশ করুন', en: 'Machine not found — refresh the page' },
   'machine.errSave': { bn: 'সংরক্ষণ করা যায়নি — আবার চেষ্টা করুন', en: 'Could not save — please try again' },
   'machine.downloadService': { bn: 'উইন্ডোজ সার্ভিস ডাউনলোড', en: 'Download Windows Service' },
+  'machine.agentLastSync': { bn: 'অ্যাটেনডেন্স এজেন্টের সর্বশেষ সিঙ্ক', en: 'Attendance Agent last synced' },
+  'attendance.agentNotSynced': {
+    bn: 'এই দিনের জন্য হাজিরা মেশিন এখনো সিঙ্ক হয়নি, তাই “কোনো রেকর্ড নেই” মানে অনুপস্থিত নাও হতে পারে।',
+    en: 'The attendance machine has not synced for this day yet, so "No record" may not mean absent.',
+  },
   'machine.upcoming': { bn: 'শীঘ্রই আসছে', en: 'Upcoming' },
   'machine.serviceUpcomingBody': {
     bn: 'উইন্ডোজ সিঙ্ক্রোনাইজেশন সার্ভিস পরবর্তী রিলিজে আসবে। এটি প্রতিষ্ঠানের একটি কম্পিউটারে চলবে এবং হাজিরা মেশিন ও এই সিস্টেমের মধ্যে তথ্য আদান-প্রদান করবে — শিক্ষার্থী ও কর্মচারীর তথ্য মেশিনে পাঠাবে এবং মেশিনের হাজিরা এখানে নিয়ে আসবে।',
@@ -3586,6 +3616,19 @@ const dict = {
   'notices.imageTooBig': { bn: 'ছবির আকার অনেক বড়', en: 'Image is too large' },
   'notices.confirmDelete': { bn: 'এই প্রকাশনাটি মুছে যাবে — নিশ্চিত?', en: 'Delete this publication?' },
   'notices.deleting': { bn: 'মুছে ফেলা হচ্ছে…', en: 'Deleting…' },
+  'notices.unpublish': { bn: 'প্রকাশ বন্ধ করুন', en: 'Unpublish' },
+  'notices.republish': { bn: 'আবার প্রকাশ করুন', en: 'Republish' },
+  'notices.unpublishedChip': { bn: 'অপ্রকাশিত', en: 'Unpublished' },
+  'notices.confirmUnpublish': {
+    bn: 'এই নোটিশের প্রকাশ বন্ধ করবেন? শিক্ষার্থীরা এটি আর দেখতে পাবে না। পরে আবার প্রকাশ করা যাবে।',
+    en: 'Unpublish this notice? Students will no longer see it. You can republish it later.',
+  },
+  'notices.unpublished': { bn: 'নোটিশের প্রকাশ বন্ধ করা হয়েছে', en: 'Notice unpublished' },
+  'notices.republished': { bn: 'নোটিশটি আবার প্রকাশ করা হয়েছে', en: 'Notice republished' },
+  'notices.unpublishUnavailable': {
+    bn: 'প্রকাশ বন্ধ করার সুবিধাটি এখনো চালু হয়নি',
+    en: 'Unpublish is not available yet',
+  },
   'notices.deleted': { bn: 'প্রকাশনাটি মুছে ফেলা হয়েছে', en: 'Publication deleted' },
   'notices.published': { bn: 'প্রকাশিত হয়েছে', en: 'Published' },
   'notices.editTitle': { bn: 'প্রকাশনা সম্পাদনা', en: 'Edit publication' },

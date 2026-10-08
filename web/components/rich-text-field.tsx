@@ -2,7 +2,7 @@
 
 import { useId, useLayoutEffect, useRef, useState } from 'react'
 import { Bold, Code, Heading2, Heading3, Italic, Link as LinkIcon, List, ListOrdered, Quote, SquareCode } from 'lucide-react'
-import { t, type Lang, type MessageKey } from '@/lib/i18n'
+import { t, formatNumber, type Lang, type MessageKey } from '@/lib/i18n'
 import { Markdown } from '@/components/markdown'
 import {
   fencedBlock,
@@ -57,6 +57,7 @@ export function RichTextField({
   formal = false,
   defaultValue = '',
   onValue,
+  maxLength,
 }: {
   name: string
   label: string
@@ -68,6 +69,8 @@ export function RichTextField({
   /** Text to start with (an edit form). */
   defaultValue?: string
   onValue?: (v: string) => void
+  /** Longest text accepted; shows a counter under the field. */
+  maxLength?: number
 }) {
   const id = useId()
   const ref = useRef<HTMLTextAreaElement>(null)
@@ -154,6 +157,7 @@ export function RichTextField({
           name={name}
           required={required}
           rows={rows}
+          maxLength={maxLength}
           value={value}
           hidden={mode === 'preview'}
           aria-describedby={`${id}-hint`}
@@ -188,6 +192,11 @@ export function RichTextField({
       </div>
       <p id={`${id}-hint`} className="text-xs text-muted">
         {t(formal ? 'editor.hint' : 'student.editor.hint', lang)}
+        {maxLength !== undefined && (
+          <span className="float-right tabular-nums">
+            {formatNumber(value.length, lang)} / {formatNumber(maxLength, lang)}
+          </span>
+        )}
       </p>
     </div>
   )
