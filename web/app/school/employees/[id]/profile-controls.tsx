@@ -107,7 +107,6 @@ export function ArchiveToggle({
   const router = useRouter()
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
-  const [disableLogin, setDisableLogin] = useState(true)
   const canDisableLogin = Boolean(staffLoginId) && loginState === 'enabled'
 
   // Restore is non-destructive → plain button. Archive → in-app ConfirmDialog (#365).
@@ -151,7 +150,7 @@ export function ArchiveToggle({
       confirmLabel={t('employees.archive', lang)}
       cancelLabel={t('routine.cancel', lang)}
       onConfirm={async () => {
-        const res = await archiveEmployee(employeeId, canDisableLogin && disableLogin)
+        const res = await archiveEmployee(employeeId, true)
         if (!res.error) {
           // Archived either way; a warning means the login is still on.
           if (res.warning) toast.warning(res.warning)
@@ -162,11 +161,12 @@ export function ArchiveToggle({
       }}
     >
       {canDisableLogin ? (
-        <label className="mb-4 flex cursor-pointer items-start gap-2 rounded-md bg-sun-soft px-3 py-2 text-sm text-sun-deep">
+        <label className="mb-4 flex items-start gap-2 rounded-md bg-sun-soft px-3 py-2 text-sm text-sun-deep">
           <input
             type="checkbox"
-            checked={disableLogin}
-            onChange={(e) => setDisableLogin(e.target.checked)}
+            checked
+            disabled
+            readOnly
             className="mt-0.5 size-4"
           />
           <span>{t('employees.archiveDisableLogin', lang)}</span>

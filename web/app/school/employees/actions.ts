@@ -186,7 +186,11 @@ export async function archiveEmployee(
   revalidatePath(`${PAGE}/archive`)
 
   const profileId = data[0].profile_id as string | null
-  if (disableLogin && profileId) {
+  // Owner's decision 2026-10-08: always. An archived employee's login would
+  // otherwise count as office staff (app_current_employee_id ignores archived
+  // rows) and read the whole School. `disableLogin` is kept for callers only.
+  void disableLogin
+  if (profileId) {
     if ((await changeStaffLogin(supabase, profileId, true)) !== 'ok') {
       return { warning: t('employees.archiveLoginNotDisabled', await currentLang()) }
     }
