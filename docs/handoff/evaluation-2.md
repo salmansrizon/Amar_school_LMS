@@ -250,3 +250,10 @@ Seen instead: a student admitted after the marked days (my EVAL2 student, class 
 - Removed paths are named only as history: `docs/README.md:7` (retired prototype note), `docs/adr/0006`, `docs/_revamp/inventory.md`, the handoff / plan / cleanup records, the student audit.
 - Note: `docs/research/2026-08-29-bangladesh-market-compliance-gap-analysis.md` has 10 links written as absolute paths on the author's machine
   (`/Users/salmansakib/Documents/Projects/Amar_school_LMS/...`) — they work nowhere else. Older file, only moved into version control by the docs revamp.
+
+### Cleanup (2026-10-08, through the app)
+- Leave request withdrawn by the EVAL2 student ("কোনো ছুটির আবেদন নেই।").
+- All 8 remaining EVAL2 publications deleted (owner list shows none). Exam deleted earlier.
+- Student `EVAL2-শিক্ষার্থী পরীক্ষক` archived ("পুরাতন শিক্ষার্থী"; 0 rows in the active list).
+- LEFT BEHIND (no removal in the app): the archived student row and its login `s9293@sch3d5b6aaf.students.invalid`; three question rows by that student
+  (`EVAL2-xss প্রশ্ন`, `EVAL2-ফরম্যাট প্রশ্ন` + one follow-up, one of them answered by the owner) and whatever notifications those created.
