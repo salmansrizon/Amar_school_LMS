@@ -34,7 +34,7 @@ export function SegmentedControl({
     <div
       role="group"
       aria-label={ariaLabel}
-      className="inline-flex max-w-full items-center gap-0.5 overflow-x-auto rounded-full border border-line bg-paper p-0.5"
+      className="inline-flex max-w-full items-center gap-1 overflow-x-auto rounded-full border border-line bg-paper p-1"
     >
       {items.map((item) => {
         const current = item.href === active
