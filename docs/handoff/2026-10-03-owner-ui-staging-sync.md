@@ -1094,6 +1094,453 @@ Update this section at every milestone.
   tsc clean, eslint clean, unit 1696/1696. e2e spec
   `school.attendance-calendars.spec.ts` uses `data-iso` selectors, which
   were not touched; not run.
+- 2026-10-05 ~16:40 — **State check + grilling + plan (user: "verify the
+  unfinished job and recommendation and create a plan to execute").**
+  Plan file: `docs/handoff/plan-2026-10-05-finish-and-merge.md` (read it
+  first in a new session). `jev_verify` on the state: nothing pushed (0.90);
+  docs revamp not merged then (0.98); only 2 of 4 done-bar commands run
+  (1.0); 28 issues open (1.0).
+  **Decisions from the grilling:** (1) database-writing test suites are NOT
+  run here — the pipeline / other developer runs them; (2) exam guard stays
+  as ADR 0021 (an employee with no class cannot change an exam that has a
+  class); (3) English keeps lakh grouping; (4) build the homework due date
+  (#705) now; (5) student tasks and notices: compact rows on phones, table
+  from 640px; (6) the user deleted `ui/` on purpose — prototype site
+  retired; (7) ONE pull request: docs revamp and repo cleanup go into
+  `merge/staging-sync`; (8) create a DEMO student in an active-year class.
+  User said **Go**.
+- 2026-10-05 ~16:50 — **Phase 1 launched** (three agents, own worktrees
+  from `1db79d4`):
+  - 1A homework due date #705 (Opus 5.5, port 3721,
+    `worktree-agent-a160b0cd30eeffbc2`) — owns `app/school/notices/**`,
+    `app/school/my-classes/**`.
+  - 1B compact phone rows for student tasks + notices (Sonnet 5.5, port
+    3722, `worktree-agent-a25ed3758333b9b0d`).
+  - 1C small #704 defects: toasts above dialogs, one Escape per layer,
+    select/menu in dialog check, Bangla format leftovers, Bangla digits in
+    the marks grid, tap targets, page titles (Sonnet 5.5, port 3723,
+    `worktree-agent-a626a2cf526a68acf`).
+- 2026-10-05 ~17:10 — **Phase 2 done by me** on `merge/staging-sync`:
+  - merged `docs/revamp` (30 files, no conflicts);
+  - `8c2580c` docs: current handoff, migration index, plan, demo manifest;
+  - `11f53ab` removed `ui/` (147 files), root `index.html`, `.nojekyll`,
+    `figma/`, `handsoff/`, `dashboard-desktop.png`, `docs.code-workspace`;
+    `docs/README.md` notes the retired prototype. Checked before removing:
+    nothing in `web/` reads those paths (only 46 code comments and ADR 0006
+    name `ui/…` files); tsc clean, unit 1696/1696 after.
+  - `merge/staging-sync` at `11f53ab`: 0 behind / 227 ahead of
+    `origin/staging`. `feat/student-portal-overhaul` is now BEHIND it (still
+    `1db79d4`) and no longer needed; work continues on `merge/staging-sync`.
+  - The handoff copy inside the branch is a snapshot from 17:05; the working
+    copy in the main checkout is the live one — re-copy it before the PR.
+  - Kept at the repo root: `graphify-out/`, `home.yml`, `routes.txt`,
+    `Design System/` (user is reorganising it).
+- 2026-10-05 ~17:40 — **Phase 1B merged (compact phone rows). Verdict:
+  accept with one condition.** `merge/staging-sync` now includes `e732dc9`,
+  `26e321a`. tsc clean, unit 1696/1696.
+  - Below 640px tasks and notices are one-line rows (56–57px, was ~180px;
+    5 tasks on the first screen); from 640px the `DataTable`. Both render
+    from the same paged rows. Search 44px, filters 44px (were 42), pager
+    44px, toggle 44px. Only one layout is in the accessibility tree.
+    `components/data-table/` untouched.
+  - New `web/components/student/phone-rows.tsx`. **Condition (brittle):**
+    it hides `DataTable`'s own phone cards and reorders its parts with CSS
+    selectors on a wrapper (`ul.divide-y:not([aria-label])`,
+    `div.overflow-x-auto`). If `DataTable`'s markup changes, this breaks
+    silently. Proper fix later: a `renderPhoneRows` prop on `DataTable`.
+  - I looked at the 390px screenshot: rows, rails and dates read well. The
+    Bangla done-toggle label ("শেষ হয়েছে চিহ্নিত করো") takes ~140px and
+    squeezes the title — candidate for an icon-only toggle on phones.
+  - "All open tasks" label fixed; unused `student.col.action` removed.
+  - jev (agent, abbreviated diffs): review escalate 0.62; verify 4 verified,
+    1 review ("desktop unchanged" — the 640–767px range changed on purpose).
+- 2026-10-05 ~18:10 — **Phase 1A merged (homework due date, #705).
+  Verdict: accept.** `merge/staging-sync` at `c61a009` (agent commits
+  `2400f3d`, `999a6a6`, `f183e92`, `b84cb26`). tsc clean, eslint 0 errors,
+  unit tests 1709/1709. No migration (still only 0214 differs from staging).
+  - I read the store logic: `dueDateToTimestamp` / `publicationDueAt` in
+    `web/lib/publishing.ts` — a date is stored as end of that day in Dhaka
+    (`T23:59:59+06:00`); empty → null; malformed or > 2 years ahead →
+    the action's normal `{ error }`; a past date is allowed; any non-homework
+    kind stores null; `dueDate` undefined leaves the column out of the write,
+    so existing callers store what they stored before.
+  - Form: optional date + clear button, homework type only; edit page
+    prefills. Shown on the owner list, detail, drawer and the teacher's class
+    list (which selected `due_at` but never rendered it before).
+  - Agent's browser check with five `DUE-EVAL` tasks (all removed): student
+    home showed the red overdue row first, then the amber due-soon row;
+    tasks page states matched; moving and clearing a date as owner changed
+    the student view. `jev_verify` 4/4 (0.89–1.0); `jev_review` escalate
+    0.64 (correctness 1.37–1.93; limits blast radius / test gap).
+  - Side effects: the notice form no longer overflows its card at 390px
+    (it did before, for every type); a non-homework row that somehow had a
+    due date loses it when edited through the form.
+  - 5 new strings `notices.dueDate*` for wording review.
+  - #705 can be closed once Phase 4 confirms.
+- 2026-10-05 ~18:15 — **Phase 3 launched**: DEMO student + data agent
+  (Sonnet 5.5, no worktree, uses the dev server on port 3700, browser session
+  only). Told to stop a step, not work around it, if the permission system
+  refuses. Manifest heading "Fourth pass — DEMO student". Still running: 1C.
+- 2026-10-05 ~19:00 — **Phase 1C merged (small #704 defects). Verdict:
+  accept with conditions. Phase 1 is complete.** Agent commits `166d1d5`,
+  `3b398ec`, `12b78e3`, `e07656b`, `7b971dd`, `e7a822f`; plus my
+  "row view links are 44px high on phones". tsc clean, eslint 0 errors,
+  unit tests 1711/1711.
+  - Fixed: (1) toasts stay visible and clickable while a dialog is open —
+    `NativeDialog` mounts its own sonner `<Toaster>` and `globals.css` hides
+    the body one while a dialog is open; (2) one Escape closes one layer
+    (`stopPropagation` on Escape in `NativeDialog`) — exam Basic Info →
+    Delete → Escape now keeps the form and the typed text; (4) Bangla dates
+    and digits on leave pages, exam list/drawer/routine, result book,
+    promotion, mark form, off-day heading; (5) Bangla digits accepted in the
+    marks grid (input is now `type="text" inputMode="decimal"`; rules still
+    enforced by `markCellError`; stored values unchanged; e2e
+    `uat-pass3-exam.mjs` selectors updated); (6) Approve / Reject and exam
+    controls 44px on phones; (7) titles on dashboard, exam setup, off-day
+    calendar; search input labelled.
+  - I read `native-dialog.tsx` after the change and re-ran my own browser
+    checks on port 3700: dropdown inside the Add Subject dialog still works
+    at 1440 and 390 (option picked, Escape on the popup keeps the dialog);
+    student question popup opens at 1280 and 390 with 0 errors.
+  - Conditions / handed back: no real `SelectField` or `DropdownMenu` lives
+    inside a dialog today (checked only on a throwaway page); exam routine
+    times still `09:00 - 11:00` (12-hour format is a decision); receipt
+    amount in words is English only (a Bangla converter is a feature);
+    filter comboboxes 42px (shared); toast timer restarts when it moves into
+    a dialog; Safari/Firefox not checked; the dev log printed a fixture
+    password once (test account).
+  - jev (agent, condensed diffs): review escalate 0.44 — `native-dialog`
+    correctness 1.36 at confidence 0.04; verify 5/5 (0.86–1.0).
+  - Waiting: Phase 3 (DEMO student). Then Phase 4 evaluation.
+- 2026-10-05 ~20:00 — **Phase 3 done: DEMO student with data. Verdict:
+  accept.** Nothing was refused by the permission system. Manifest heading
+  "Fourth pass — DEMO student" in
+  `docs/handoff/student-demo-data-2026-10-05.md`.
+  - Student `DEMO শিক্ষার্থী রাফি`, roll 88, S9292, class
+    `UXA-Att 1790996221552 - A` (2032). Login
+    `s9292@sch3d5b6aaf.students.invalid`; password in
+    `<scratchpad>/demo2/cred.txt` (owner can reset it on the student's
+    profile page).
+  - Created: 5 dated homework + 2 notices (class only), routine Mon/Tue
+    (published), exam `DEMO মডেল টেস্ট` with 3 papers, attendance 5 Oct
+    present / 4 Oct absent, fee ৳500 due ৳0 received, 2 materials; as the
+    student: pending leave, a question, one task ticked.
+  - Home as that student shows 6 alert rows: overdue homework, urgent
+    notice, fee due ৳৫০০, 2 due soon, attendance low ২০%, exam soon. Stat
+    cards: attendance ২০% red, fees ৳৫০০ amber, homework ৯ red, result "—".
+  - Attendance reads present 1, absent 4 (marked: 1 present, 1 absent; the
+    other 2 are Fri/Sat off-days — #703 item 4.0), and that alone fires the
+    "attendance low" alert.
+  - Side effects: saving attendance wrote default "present" rows for the 12
+    other `UXA-Att` test students on 4 and 5 Oct; the exam uses the only
+    grading scheme, which has no bands, so its results can never be
+    published; routine slots cannot carry a DEMO prefix.
+  - Observed by the agent, not yet triaged: the OWNER fee list labels the
+    ৳0-received record "আদায় হয়েছে" although ৳500 is due (Phase 4 item J).
+- 2026-10-05 ~20:20 — **Security defect found and fixed by me (`8d903dd`),
+  filed as #706.** The login form had only `onSubmit` and no `method`; a
+  submit before hydration did a native GET and put the email and password
+  in the URL. It is on `staging` too. Fix: login `method="post"` + the
+  button disabled until the handler exists (`useSyncExternalStore`);
+  `method="post"` on claim, reset-password (2), staff login and employee
+  create forms. Checked: with JavaScript off the form is `method="post"` and
+  the button disabled; with it on, login works and no URL carries
+  `password=`. tsc clean, unit 1711/1711. #706 asks the other developer to
+  search the logs for `/login?…password=`.
+- 2026-10-05 ~20:30 — **Phase 4 launched**: independent evaluation of
+  `b40c47b..HEAD` (Opus 5.5, own worktree, port 3724, branch
+  `worktree-agent-ac0937a6d72959e4e`). Writes `EVALUATION-2.md` in its
+  scratch directory. Uses the DEMO student; `EVAL2-` test records only.
+  `merge/staging-sync` at `8d903dd`.
+- 2026-10-05 22:15 — **Session restarted.** The Phase 4 evaluator and both
+  dev servers had stopped with the previous session. State found:
+  `merge/staging-sync` and the evaluator's branch both at `8d903dd`, no
+  commits from the evaluator, no `EVALUATION-2.md` on disk, `origin/staging`
+  still `4e6f955`. Actions: evaluator resumed (same id) with a priority
+  order (dialogs and Markdown security first) and told to list any `EVAL2-`
+  records it already created; dev server restarted on port 3700 from
+  `.claude/worktrees/staging-sync/web`. Port 3716 is not restarted (not
+  needed — 3700 serves both portals).
+- 2026-10-06 20:25 — **Phase 4 resumed a second time** (it hit the session
+  limit ~22:30 on 5 Oct). What survived: its findings file
+  `<scratchpad>/eval2/EVALUATION-2.md` and one commit on
+  `worktree-agent-ac0937a6d72959e4e`: `78ff910` "super-admin account forms
+  with a password post instead of GET" (same defect class as #706, in
+  `super-admin/gov-officials/create-gov-form.tsx` and
+  `super-admin/partners/create-vendor-form.tsx`; code-read only).
+  - **The scratchpad was wiped between sessions**: all my check scripts,
+    saved login states and `demo2/cred.txt` (the DEMO student's password)
+    are gone. The DEMO student `s9292@…` needs a password reset from the
+    owner's student profile page before anyone can log in as them.
+  - Evaluator's results so far (all PASS): staging contained; only
+    migration 0214 differs; no policy change; removed exports
+    (`DayPlanCard`, `FeesDue`, `LatestNotices`) have no references left;
+    only two server-action files changed (`notices/actions.ts`,
+    `marks-entry/actions.ts`); tsc clean; unit 1711/1711; eslint errors only
+    in `app/claim/page.tsx` and `e2e/fixtures/roles.ts`; login form safe with
+    and without JavaScript (0 of 43 URLs carry the password); Markdown path
+    inert at every display site for 7 attack payloads (0 script / iframe /
+    img / handlers / `javascript:` / `data:` links, 0 alerts, 0 requests to
+    the external host).
+  - Evaluator's test records (it could not use the DEMO login): student
+    `EVAL2-শিক্ষার্থী পরীক্ষক` (roll 89, S9293, id
+    `c48f8abf-c180-49f8-92c0-8fd6f410741d`) with a login; three `EVAL2-xss…`
+    publications; one `EVAL2-xss প্রশ্ন` question. The student, login and
+    question cannot be removed from the app → add to #686 when it finishes.
+  - Remaining for it: dialogs in depth, shared components on owner pages,
+    requirement items A–O, jev. It now keeps a "VERDICT SO FAR" block at the
+    top of its file.
+  - Ports listening: 3700 (merged branch), 3724 (evaluator).
+- 2026-10-06 ~21:10 — **New request (user, screenshot of the sidebar):
+  the উপস্থিতি (Attendance) sub-menu should work "like Exams"; find the best
+  UX; deep research + grilling.**
+  - Facts from the code (`web/lib/school-nav.ts`): Exams is ONE sidebar
+    item, sub-pages reached inside the page. Attendance is a child of
+    "Classes" with FOUR always-visible grandchildren (Off-Day Calendar,
+    Students, Employees, Machine), all with the same icon; each of those has
+    2–4 more sub-pages as in-page tabs (`web/lib/attendance-nav.ts`,
+    `attendance-tabs.tsx`). **This sidebar layout was a deliberate decision
+    on `staging` (map #667, by the other developer): tabs were moved INTO
+    the sidebar.** Changing it reverses that.
+  - Research done (3 researchers + writer, Sonnet):
+    `reports/Sidebar sub menu UX patterns.md`, notes in
+    `research_notes/Sidebar sub menu UX patterns/` (main checkout,
+    untracked). Recommendation: make Attendance a single sidebar item like
+    Exams, with the four areas as ONE visible row of page links at the top
+    of the page (`<nav>` links with `aria-current="page"`, not ARIA tabs),
+    and a lighter control or flattening for each area's own sub-pages (two
+    stacked tab rows are a known trap). Fallback: one-level click-to-expand
+    group, no child icons. Basis: Carbon / Fluent 2 / Apple cap a sidebar at
+    two tiers and send deeper levels to in-page tabs; only Fluent has an
+    icon rule (icons on categories, none on sub-items); NN/g measured that
+    hidden navigation is used less and is slower (so the four areas must
+    stay visible). Weak points: Apple and Material pages did not render
+    (snippets only); no study compares nested sidebar vs in-page tabs for
+    admin apps; consistency argument is inference; Bangla label fit at
+    360px untested.
+  - **Next: grill the user (one question at a time), then implement on
+    `merge/staging-sync`.** Open questions: (1) which pattern; (2) what to
+    do with each area's second row of tabs; (3) keep Attendance under
+    "Classes" or make it a top-level item like Exams; (4) phone drawer /
+    bottom bar behaviour; (5) whether reversing map #667 needs the other
+    developer's agreement.
+  - The user asked to compact the context — everything needed to continue
+    is in this file and in `plan-2026-10-05-finish-and-merge.md`.
+  - Phase 4 evaluator still running (`<scratchpad>/eval2/EVALUATION-2.md`).
+- 2026-10-06 ~22:30 — **Attendance navigation rebuilt (`ed7284f` on
+  `merge/staging-sync`).** Grilling decisions: (1) one sidebar item with the
+  areas as a row in the page; (2) Attendance is its OWN item between
+  Class & Curriculum and Exams (not a child of Classes); (3) areas as
+  underlined tabs, each area's pages as the small pill switch.
+  - `web/lib/school-nav.ts`: Attendance item, no children; Classes has no
+    children. `web/app/school/attendance/attendance-tabs.tsx`: area row
+    (`SectionTabs`: শিক্ষার্থী, কর্মচারী, ছুটির দিন ক্যালেন্ডার, মেশিন হাজিরা)
+    above the existing `SegmentedControl`. `attendanceGroupTabHrefs` removed
+    (unused). Tests updated: `school-nav-groups.test.ts`, `routing.test.ts`
+    (two tests encoded the old placement).
+  - User then reported "tabs miss the page hierarchy at the top". Fixed for
+    Attendance: new `attendanceCrumbs(activeHref, lang)` in
+    `web/lib/school-crumbs.ts`; Machine (3 pages, via `MachinePageHeader`)
+    and Grace Time had no breadcrumb and a hand-made title row — now
+    `PageHeader` with "ড্যাশবোর্ড › পাঠদান ও অ্যাকাডেমিক › উপস্থিতি › area".
+  - Browser, Bangla, 1440 and 390, five Attendance pages: sidebar shows one
+    "উপস্থিতি" link (active), area row with the right area marked, breadcrumb
+    on each, no overflow, 0 console errors. tsc clean, eslint clean, unit
+    tests 1713/1713.
+  - This reverses map #667 / issue #101 (the other developer's sidebar
+    layout on staging) — say so in the PR description.
+  - **Breadcrumb sweep agent launched** (Sonnet 5.5, port 3725, branch
+    `worktree-agent-a1f2e2278eca4f6ca`): inventory of every owner and
+    student page, add the trail where missing (about 20 owner pages have
+    none), replace hand-made title rows with `PageHeader`; findings file
+    `CRUMBS.md` in its scratch directory. Not to touch `attendance/**`.
+  - Still running: Phase 4 evaluator (its range does not include `ed7284f`;
+    the Attendance nav change needs a look in Phase 5).
+- 2026-10-06 ~22:50 — **Issue + migration + staging-gap evaluation (user
+  asked).** State: #676–#706, 29 open, 2 closed (#687, #692).
+  `origin/staging` `4e6f955`; branch 0 behind / 245 ahead. `jev_verify` 5/5
+  (0.91–0.99): only migration 0214 differs; no API route changed; frame
+  headers relaxed for print routes only, same-origin; "all students" SMS can
+  reach more than 1000 recipients on the branch; staging fully contained.
+  - Ready to close after merge (built + verified on the branch): #705
+    (pending Phase 4), #706 (plus the super-admin forms in the evaluator's
+    commit `78ff910`, not merged yet).
+  - Non-UI behaviour that differs from staging (the "gaps" list given to the
+    user): exam class guard on 18 exam actions; `saveFeeRecord` fees-grant
+    check, server-side due, overpayment refusal; publish blocked without
+    class/scheme/bands and marks rules (blank ≠ 0, half-filled row refused,
+    Bangla digits); routine overlap refusal; `revertLeave` (new action);
+    attendance save leaves out unmarked on-leave students; mobile validation
+    on student/employee saves; `due_at` on homework; `updatePublication`
+    (new); SMS "all" paging past 1000; `stageSubjectCopy` (new redirect
+    action); `frame-src 'self'` + framable print routes; password forms
+    `method="post"`; English locale `en-IN`.
+  - Server-action files that differ from staging (16): attendance
+    `manual-actions`, classes, employees, exams (7 files), fees, notices,
+    sms, staff, students.
+- 2026-10-06 ~23:30 — **Issue execution wave started (user: "create a
+  plan to execute the issues and start, spawn multiple agents").**
+  Decisions: **migrations are WRITTEN, never applied** (shared database);
+  scope this wave = **attendance and leave only**. Plan:
+  `docs/handoff/plan-2026-10-06-attendance-migrations.md`. Code must work
+  before and after each migration (fallback when a column/function is
+  missing). Three agents, own worktrees from `ed7284f`:
+  - M1 (Opus 5.5, port 3726, `worktree-agent-a787dc32a3ac1ee5a`):
+    `0215_absent_day_skips_weekly_off_days.sql` — `is_absent_working_day`
+    skips `schools.weekly_off_days`; student-callable "attendance was taken"
+    function; student attendance page/home use it; impact on fines and SMS.
+  - M2 (Sonnet 5.5, port 3727, `worktree-agent-a819a6e302dd534e8`):
+    `0216_leave_decision_note.sql` — `decision_note`, `decided_at` on both
+    leave tables; reject reason; alert uses `decided_at` (#680).
+  - M3 (Sonnet 5.5, port 3728, `worktree-agent-abf2cad6b1c722a28`):
+    `0217_employee_attendance_start.sql` — start day readable with the
+    attendance grant (#693); "no record" state (#694).
+  Each writes a section in `docs/handoff/migrations-attendance-rollout.md`
+  (in its worktree — expect a three-way merge of that file).
+  When they report: read the SQL first, merge, checks, jev on raw SQL,
+  update #703 source file (`migration-index-703.md`) marking items
+  "written, not applied", then an independent review of the three
+  migrations together. Apply order later: 0214 → 0215 → 0216 → 0217.
+- 2026-10-06 ~23:40 — User (screenshot): striped off-day cells → "more like
+  Google Calendar". Done in the latest commit on `merge/staging-sync`
+  ("off-days on the Off-Day Calendar are chips, not striped cells"),
+  `off-days/leave-calendar.tsx`: chip in a plain cell, dot on phones.
+  Browser: 0 striped cells, 10 chips, no overflow. **Same stripes remain on
+  the Employee Attendance Calendar (`employee/attendance-calendar.tsx:95`) —
+  left for now because M3 owns that file; remove after M3 merges.**
+  - Agents running: Phase 4 evaluator, breadcrumb sweep, M1, M2, M3.
+### 2026-10-07 ~21:00 — attendance migrations merged (written, not applied)
+
+- `merge/staging-sync` is now `ea9537b`: `a036195` (last striped calendar cells removed), `f50a32d` (merge M3, `0217`), `78f00f6` (merge M1, `0215`), `ea9537b` (merge M2, `0216`). Conflicts resolved keeping both sides: `web/app/student/page.tsx`, `docs/handoff/migrations-attendance-rollout.md` (now sections 0215, 0216, 0217 in order).
+- Checks on the merged branch: `tsc --noEmit` clean; `vitest run tests/unit` 155 files, 1748 passed; eslint has 1 error, `web/app/claim/page.tsx:33` (setState in effect), identical on `origin/staging` and not touched.
+- I read the SQL of 0215 and 0216 and checked the schema facts they rely on (`schools.weekly_off_days smallint[]` 0206, `attendance_absence_notes` columns 0046, the 0146 trigger). `jev_review` on the raw SQL and the leave action: escalate, composite 0.61, correctness confidence 0.16–0.17 on both SQL files (low confidence, no named defect).
+- #703 updated (29 items): 1.5, 4.0, 4.1, 4.4 marked "written, not applied"; 4.2 narrowed to a sync-time column; 4.5 added (SMS streak walk still counts weekly off-days). Comments on #680, #693, #694.
+- Running: independent review of 0215–0217 together; breadcrumb sweep (resumed); Phase 4 evaluation (resumed; its branch has `78ff910` and `e6ace1e`, not merged).
+- Not done: M3 not seen in a browser as owner and as class teacher; nothing applied; integration tests for the three migrations written and never run.
+- The scratchpad was wiped again (login scripts, evaluator's findings file). The evaluator was told to keep findings in `docs/handoff/evaluation-2.md` on its branch.
+- Owner decisions open: (1) SMS streak walk fix (4.5) changes which SMS is sent; (2) the portal absent figure can differ from the fine's count after 0215; (3) `absent-working-days-range.test.ts` and `fee-structures.test.ts` will fail once 0215 is applied; (4) should today with nobody recorded read "No record"; (5) should a reject reason be required; (6) two rejected `M2-EVAL` leaves to add to #686.
+
+### 2026-10-07 ~21:30 — review of 0215–0217 acted on
+
+- Independent review verdict: all three "apply as written"; 9 findings, none in the forward SQL. `jev_verify`: 10 verified, 0 contradicted, 1 for review (the 0216 rollback order, 0.59).
+- `dd9653c` on `merge/staging-sync`: 0216 rollback order fixed (function before columns); 0215/0216/0217 end with `notify pgrst, 'reload schema'`; 0214 uses `create or replace`; Employees directory keeps "Not in yet" for today; rollout note corrected and given a review section. tsc clean, unit 1748/1748.
+- Not changed, by choice: a reject reason typed before 0216 is applied is still not stored (returning an error there would fail every reject with a reason until the migration is applied).
+- #703 now 31 items: 4.6 (anon can execute `is_absent_working_day`), 4.7 (range and archived classmates in `student_class_attendance_days`).
+- Still running: breadcrumb sweep, Phase 4 evaluation.
+
+### 2026-10-07 ~22:15 — staging adopted, migrations renumbered, issue wave 2 started
+
+- `origin/staging` moved to `0ae8197` (4 commits: attendance school-local day, reconcile queue, Windows Attendance Agent schema; its own migrations `0214`–`0216`). Merged into `merge/staging-sync` with no conflict; branch is 0 behind.
+- **Number collision fixed:** this branch's migrations renamed `0214`→`0217` (student attendance summary), `0215`→`0218` (weekly off-days), `0216`→`0219` (leave decision note), `0217`→`0220` (employee attendance start). References updated in `web/` and in the index, rollout note and 10-06 plan. Older entries of THIS log and the 10-05 plan still use the old numbers.
+- Breadcrumb sweep merged (`b234fa5`): 21 files, trails on 11 pages that had none, 4 institute tabs, 5 student pages. Read by me: `fees/ledger` (back arrow to `/school` dropped, trail replaces it) and `fees/vouchers/[id]` (voucher number moved from the card to the page header). Not seen in a browser by the agent: 7 record pages with no seed data.
+- Checks on `b234fa5`: tsc clean, unit 156 files / 1756, eslint only the inherited `app/claim/page.tsx:33`.
+- Closed: #705, #676, #691 (not planned). #706 left open for the log check.
+- Owner's answers (question tool): migrations "Apply on the shared database"; "one agent per group"; decisions "use your recommendation".
+- **Applying is blocked from this session:** the connected Supabase account has only a project named `portfolio`, not the LMS project; the linked Supabase CLI call was refused by the permission system. Nothing was applied. Not to be worked around.
+- Wave 2 agents (write migrations, never apply; base `fcb9600`): exams `0221`–`0229` (#702, #700, #679, #699, #698, #701); fees `0230`–`0239` (#678, #683, #695, #681); access `0240`–`0249` (#677, #688, #689, #690, #697, item 4.6); notices/portal `0250`–`0262` (#696, items 4.5, 4.2, 4.7, 5.x). Phase 4 evaluator still running.
+- #703 source file updated for the renumbering; the GitHub edit failed 3 times with a server error — retry `gh issue edit 703 --body-file docs/handoff/migration-index-703.md`.
+
+### 2026-10-08 ~07:05 — 0217–0220 applied to the shared database
+
+- The owner connected the Supabase account that holds the LMS project and said to apply and test. Applied in order through the connector: `0217` student attendance summary, `0218` weekly off-days, `0219` leave decision note, `0220` employee attendance start. Recorded there as versions `20261008010230`, `20261008010300`, `20261008010325`, `20261008010334`.
+- Found before applying: staging's own `0214`–`0216` were already in the database; none of ours was.
+- Checked after, read-only: functions exist with `search_path = public`, new functions executable by `authenticated` only (`is_absent_working_day` still open to anon — #703 item 4.6), columns + 500-character checks + trigger in place. Sample of 200 students in schools with weekly off-days Fri+Sat, 1–7 Oct: absent days 1074 → 837, absences on Fri/Sat 237 → 0.
+- 50 of 52 schools have Saturday only as weekly off-day (the default); for those, Fridays still count as absences.
+- **Integration tests not run:** the run of the three new test files was refused by the permission system (shared database). Not worked around. `leave-decision-note.test.ts` deletes every leave of the seed student; narrow it to its own 2099 rows before anyone runs it.
+- A detailed issue comment was refused for carrying database detail; issues got short notes instead. #684 closed. #680, #693 stay open until tested.
+- All five agents hit the session limit at ~01:40 and were resumed (exams, fees, access, notices/portal, Phase 4 evaluation). They write migrations and never apply.
+
+### 2026-10-08 ~07:50 — wave 2: three branches merged, second apply declined
+
+- Merged into `merge/staging-sync` (tip `cdbb4972`), no conflicts: Phase 4 evaluation fixes (`78ff910` super-admin password forms, `e6ace1e` dialog SSR, `db69a5b` CRLF line ends; findings in `docs/handoff/evaluation-2.md`), notices/portal (`0250`–`0257`), exams (`0221`, `0223`, `0224`). Checks: tsc clean, unit 162 files / 1794, eslint only `app/claim/page.tsx:33`.
+- Phase 4 verdict: ready with conditions. Open from it: fee roster says "collected" for a record with ৳0 received (`web/app/school/fees/page.tsx:319`), Bangla-digit leftovers on owner pages, `aria-current` on two calendars, small tap targets, DEMO student pages never checked (password lost).
+- I read all 11 SQL files and ran their pre-checks read-only on the live database: all pass (live `absence_sms_candidates` and the publications policy match what 0250 and 0252 replace; no question over 4000 characters; no existing routine overlap; names free).
+- **`0222` removed**: no all-zero marks row exists anywhere; #698 closed.
+- **Apply of `0221` was declined at the permission prompt.** Nothing from wave 2 is applied. Not retried. Written, not applied: `0221`, `0223`, `0224`, `0250`–`0257`.
+- Riskiest of the set: `0223` (marks columns lose NOT NULL; `student_exam_rank` counts a half-filled subject as 0) and `0250` (changes which absence SMS is sent).
+- Not built: 5.9 (subject on homework/material), 5.7 (attachments), "absent" shown on mark sheet / result book / portal, staff delete of a question.
+- Still running: fees agent (`0230`–`0239`), access agent (`0240`–`0249`).
+
+### 2026-10-08 ~08:20 — fees branch merged
+
+- Merged fees (`6b3345a1`): `0230` fee amount column (#678), `0231` void flow (#683), `0232` director capital guard (#681); #695 keeps the acknowledgement, no migration. Checks: tsc clean, unit 1830.
+- Read the SQL and ran pre-checks read-only: constraint `one_record_per_student_month` present, no duplicate (student, month, year), live `fee_post_gl_delete` and `student_fee_record` match what `0231` replaces, helpers exist, 1 school has director-capital drift (Test School A, known). No app code on `staging` or the branch upserts on `(student_id, month, year)`, so dropping the named constraint breaks no caller. `fee_gl_post` fires only on `pay_amount`/`fine_amount` updates, so a void posts exactly one reversal.
+- Not applied (apply was declined earlier; waiting for the owner). Whole void path never seen running.
+- New finance needs from the agent, in the index change log: fine counted twice in the ledger when received includes it; `bank_cash_transactions` balance trigger is insert-only; a school member can delete a fee record through the API.
+- Still running: access agent (`0240`–`0249`).
+
+### 2026-10-08 ~09:00 — all wave 2 branches merged; partial apply
+
+- `merge/staging-sync` tip `eb0d48e3`, 0 behind `origin/staging`, nothing pushed. Access branch merged (`0240`–`0245`; one conflict in `attendance/machine/page.tsx`, both sides kept). Checks: tsc clean, unit 168 files / 1858, eslint only `app/claim/page.tsx:33`.
+- Owner said "approved" for the queue of 14. Applied: `0230`, `0250`, `0251` (verified read-only afterwards). **Declined by the Supabase connector: `0221` and `0223`.** Pattern: every file that applied had no `drop`/`delete` statement; both declined files have one (`drop policy if exists`, `drop not null`, a `delete` in a function body). The connector asks the user to confirm destructive statements and this session cannot show that prompt. I did not strip statements to get past it. Not attempted after that: `0224`, `0231`, `0232`, `0252`–`0257`.
+- Applied in total on the shared database: `0217`, `0218`, `0219`, `0220`, `0230`, `0250`, `0251`.
+- Access migrations `0240`–`0245` were not in the approved queue and I have not read their SQL line by line. Read-only facts: every caller of `is_absent_working_day` is a definer function and no policy or view calls it (so `0245` is safe); live `app_current_school_id()` is the 0131 body that `0242` expects; 2 staff logins belong to archived employees.
+- Short status comments posted on #677–#683, #688–#690, #695–#697, #699–#702. #703 updated.
+- Integration tests: still not run (refused by the permission system).
+- Open issues that still need work or a decision: #682 (subscription page, needs product research, untouched), #685, #686 (test data cleanup; do it after `0232`), #704 (small defects + Phase 4 leftovers), #706 (log check).
+
+### 2026-10-08 ~09:40 — apply file handed to the owner
+
+- Connector declined `0221` a third time. Owner's answers (question tool): apply path = "I paste one SQL file"; access set = "all except optional 0242"; testing = "browser test in Test School A" (records prefixed `W2-`, read-only SQL checks; close an issue only when seen working); decisions = "#695 keep acknowledgement" only. Not accepted, so still open decisions: #697 (soft 404), #681 (Test School A drift), #682 (park).
+- Built `docs/handoff/apply-wave2.sql` (2218 lines, one transaction, guard block first): `0221, 0223, 0224, 0231, 0232, 0240, 0241, 0243, 0244, 0245, 0252–0257`. Committed on the branch as `6f4a4f2b`; copy in the main checkout.
+- I read the SQL of `0240`, `0241`, `0243`, `0244` and checked live: the 7 policy names `0240` replaces exist as expected; `owner_manages_staff`, `record_audit` (11 args) and the auth tables exist; `refresh_tokens.user_id` is varchar (the cast in `0241` is right); the live `workflow_instances` policy is the one `0243` replaces.
+- Effect to watch right after applying, before the branch is deployed: 3 teacher logins hold the Attendance grant; with `0240` they can no longer write machines, machine enrollments, office hours or grace rules. The deployed app still shows them those pages until the PR is merged.
+- #695 closed.
+- NEXT, after the owner runs the file: verify read-only that every object exists; start the dev server (`npx next dev --webpack --port 3700` in the worktree's `web/`); browser-test each issue as owner / teacher / student; close the ones seen working; list the rest.
+
+### 2026-10-08 ~10:15 — wave 2 applied by the owner; browser testing started
+
+- The owner ran `docs/handoff/apply-wave2.sql`. Checked read-only: all 7 columns, 11 functions, 7 triggers, 2 tables (RLS on), the new policies, the partial unique fee index (old constraint gone), `is_absent_working_day` now executable by postgres and service_role only, publications policy carries `unpublished_at`. Old policies replaced by `0240`/`0243` are gone. Not applied: optional `0242`.
+- Owner: "all decisions are approved" → #697 closed (soft 404 accepted), #682 parked, #681: leave Test School A drift, close once the guard is seen working. #695 closed earlier.
+- `merge/staging-sync` tip `2e930672`. #703 updated.
+- Three browser testers started (own worktrees from `2e930672`, own dev servers): attendance + access (port 3741, prefix `W2-ATT`, findings `docs/handoff/w2-test-attendance-access.md`), exams + fees (3742, `W2-EXF`, `w2-test-exams-fees.md`), notices + portal (3743, `W2-NOT`, `w2-test-notices-portal.md`). They may commit small fixes on their branches.
+- NEXT: read each report, merge fixes, run checks, close each issue that was seen working; list the rest; add the `W2-` records to #686.
+
+### 2026-10-08 ~20:40 — browser tests done; issues closed
+
+- All three testers reported; findings merged into the branch: `docs/handoff/w2-test-{attendance-access,exams-fees,notices-portal}.md`. No tester changed application code. `merge/staging-sync` tip `6a0c9f84`, not pushed.
+- Closed after being seen working: #677, #678, #679, #680, #683, #688, #689, #690, #693, #694, #696, #699, #700, #701, #702. Closed earlier today: #676, #684, #691, #695, #697, #698, #705.
+- Still open: #681 (guard `0232` applied but never triggered; needs one refused delete through the API), #682 (parked), #685, #686 (test data: `W2-ATT`, `W2-EXF`, `W2-NOT`, `EVAL2-` lists are on the issue), #703 (index; new item 4.8), #704 (small defects, updated three times today), #706 (log check), #707 (NEW: fine counted twice on receipt and ledger).
+- Not seen by any tester: a teacher seeing an approval they started (#689); a staff login with fee access but no void control (#683); the sync warning with a real heartbeat (#694); an already-open session of a disabled login (#688).
+- UI: `3e9b114a` segmented control gets an even 4px gap (the Haiku agent's version was rejected, not merged); Year view of the Off-Day Calendar uses localized digits (merged). The user's two screenshots came from a stale dev server on port 3725 (old breadcrumb worktree); stopped. Current build runs on port 3700 from the staging-sync worktree.
+- New standing rules saved to memory: verify context with jev on resume; Haiku for simple tasks; keep context small.
+- Integration and e2e suites: still never run.
+
+### 2026-10-08 ~21:10 — last wave started
+
+- Owner's answers (question tool): #707 "received includes the fine"; #686 "through the app only" (DEMO data stays); #685 "not now"; #704 + item 4.8 "fix code ones, write 4.8".
+- Running from tip `6a0c9f84`: (1) Opus, worktree: #707 code fix + `0258_fee_gl_fine_inside_received.sql`, and `0259_absent_days_start_at_admission.sql` (4.8) — writes, never applies; (2) Sonnet, worktree, port 3762: #704 code-only fixes, list in `docs/handoff/704-fixes.md`; (3) Sonnet, no worktree, uses the app on port 3700: #686 cleanup of `W2-ATT`/`W2-EXF`/`W2-NOT`/`EVAL2-`/`M2-EVAL` records through the app, plus one refused-delete check for #681 (guard `0232`).
+- NEXT: review each diff (SQL first), merge, checks, pre-checks read-only, apply 0258/0259 (through the connector if no drop statement, else a paste file for the owner), close #681/#686/#707 on evidence, update #703/#704, final PR checklist.
+
+### 2026-10-08 ~22:30 — last wave merged; 0259 applied; 0258 waits for approval
+
+- `merge/staging-sync` tip `f63b5542`, 0 behind `origin/staging`, not pushed. tsc clean, unit 1886, eslint only `app/claim/page.tsx:33`. Dev server for this branch on port 3700.
+- Merged: #704 code fixes (8, ledger `docs/handoff/704-fixes.md`), wording changes (owner said "Wording decisions approved"; applied as: leave status "নামঞ্জুর", disabled-login message `login.banned`, exam-deleted toast, follow-up discard confirm via `window.confirm`, "No record" unchanged, fee roster Due/Partial), fees agent (#707 receipt total = received; `0258`; `0259`).
+- `0259` applied through the connector and checked: 0 of 31 sampled students absent before admission; function still not executable by anon/authenticated. Rule: admission day = day the student record was created (not the current enrollment's day, which changes on transfer/promotion).
+- `0258` NOT applied: the owner approved the reading "received includes the fine" and asked for the migration to be written; applying a ledger posting change was not approved yet. It has no drop statement. 19 fee records carry a fine (8 outside test/demo schools by name).
+- #686 closed (cleanup through the app). #681 open: the refused-delete check was blocked by the permission system (session token read); needs `director-capital-guard.test.ts` run by the owner or a permission rule.
+- Open now: #681, #682 (parked), #685 (not now), #703 (index), #704 (remaining small items), #706 (owner's log check), #707 (until 0258 is applied).
+- None of today's last-wave fixes was seen in a browser. Integration and e2e suites never run.
+- PR checklist for the owner when ready: push `merge/staging-sync`; open PR to `staging`; description must note the reversal of map #667 / issue #101, the 23 migration files `0217`–`0259` (all applied except optional `0242` and `0258`), and that integration/e2e are an open gate.
+
+### 2026-10-08 ~23:10 — closing round
+
+- Owner's answers (question tool): #707 "I run it in the SQL editor"; #681 "close on what was verified"; #706/#682/#685 "close with a handover note"; #703 "close, move the rest to one new issue".
+- Closed: #681, #682 (not planned), #685 (not planned), #703, #706. New: **#708** "Database follow-ups after the owner UI overhaul" holds every database need not yet written (memory rule updated: new migration needs go to #708).
+- Applying `0258` through the connector was refused by the permission system ("production deploy"); so was copying the file into `docs/handoff/`. The owner pastes `web/supabase/migrations/0258_fee_gl_fine_inside_received.sql` (in the `staging-sync` worktree) into the Supabase SQL editor. After that: verify read-only (functions `fee_gl_fine_part`, `fee_gl_reverse`; view column `advance_amount`), check one receipt and the student fee page, close #707.
+- Running: Sonnet agent (worktree from `f63b5542`, port 3771) on the remaining #704 items (tap targets, Escape layers, toasts over dialogs, Bangla amount in words, exam guard on scope error, leave Reject wording) plus a browser confirmation of this wave's fixes. When it reports: merge, checks, close #704 with what is left moved to #708 or a note.
+- Open issues now: #704, #707, #708.
+
+### 2026-10-08 ~22:40 — merge readiness round
+
+- `0258` applied by the owner (paste); verified read-only: functions, fine split, view column `advance_amount`, triggers. Role checks run read-only as student / teacher / owner inside rolled-back transactions: all as expected. All 25 applied migrations have their objects in place.
+- Owner decisions (grill for approvals): `0242` removed from the branch (`ddf2ff1b`); archiving an employee ALWAYS disables the linked staff login (code, tick box is fixed on).
+- #704 second pass merged (`b831c3e5`): tap targets, Escape layers, sub-navigation at 390px, Bangla amount in words, exam guard on scope error, leave Reject wording. #704 closed.
+- Checks at `b831c3e5`: tsc clean; unit 172 files / 1907; eslint only `app/claim/page.tsx:33`; `next build --webpack` exit 0 (206 dynamic routes listed). The project's plain `next build` (Turbopack) cannot run in this worktree (symlinked node_modules).
+- #707: code fix + migration applied and verified read-only. The browser receipt check was NOT run: the permission system refused the agent's admission script. Open until the owner checks one receipt or decides to close.
+- Open issues: #707, #708 (backlog, stays open).
+- Left before the PR: integration + e2e (never run; 32 existing test files modified); the owner pushes and opens the PR; PR text must mention map #667 / issue #101 reversal, the CSP frame change on print routes, 25 migrations applied, and that migrations already changed live behaviour.
+
 - If the session dies: find the implementer branches with
   `git branch --list 'worktree-agent-*' --sort=-committerdate | head` and
   `git log merge/staging-sync..<branch> --oneline`; merge finished ones into
