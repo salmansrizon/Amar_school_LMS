@@ -5,7 +5,7 @@ import { t, formatNumber, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { monthGrid, type OffDay } from '@/lib/attendance-manual'
 import { schoolToday } from '@/lib/school-time'
-import { parseMonthParam, shiftYearMonth, formatMonthYear, buildLeaveCalendarMonth, isWeekendColumn, buildOffDayList, formatDayLong, WEEKDAY_SHORT } from '@/lib/employee-attendance-calendar'
+import { parseMonthParam, shiftYearMonth, formatMonthYear, buildLeaveCalendarMonth, isWeekendColumn, buildOffDayList, formatDayLong, localizeNumber, WEEKDAY_SHORT } from '@/lib/employee-attendance-calendar'
 import { AttendanceTabs } from '../attendance-tabs'
 import { CalendarToolbar, MonthGridFrame } from '../calendar-shell'
 import { AddOffDayForm, DeleteOffDayButton, ImportCentralButton, WeeklyOffDayForm } from './off-day-controls'
@@ -262,7 +262,8 @@ export default async function OffDayCalendarPage({
                       <span
                         key={i}
                         title={cell.label ?? undefined}
-                        className={`rounded-sm px-0.5 py-0.5 text-center ${
+                        aria-current={cell.iso === today ? 'date' : undefined}
+                        className={`rounded-sm px-0.5 py-0.5 text-center ${cell.iso === today ? 'ring-2 ring-brand-600 ' : ''}${
                           cell.isSignificant
                             ? 'bg-sky-soft font-semibold text-sky-deep'
                             : cell.isOff
@@ -270,7 +271,7 @@ export default async function OffDayCalendarPage({
                               : ''
                         }`}
                       >
-                        {cell.day ?? ''}
+                        {cell.day ? localizeNumber(cell.day, lang) : ''}
                       </span>
                     ))}
                   </div>
