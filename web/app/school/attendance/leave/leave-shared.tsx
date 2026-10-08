@@ -27,11 +27,12 @@ export const leaveStatusLabel = (status: string, lang: Lang) =>
   status in KEY ? t(KEY[status as keyof typeof KEY], lang) : status
 
 /** One chip per status, with its count over the fetched (unfiltered-by-status) list. */
-export function leaveStatusChips(leaves: { status: string }[], lang: Lang): Chip[] {
+export function leaveStatusChips(leaves: { status: string }[] | Record<string, number>, lang: Lang): Chip[] {
+  const countOf = (s: string) => (Array.isArray(leaves) ? leaves.filter((l) => l.status === s).length : (leaves[s] ?? 0))
   return LEAVE_STATUSES.map((s) => ({
     param: 'status',
     value: s,
-    label: `${t(KEY[s], lang)} (${formatNumber(leaves.filter((l) => l.status === s).length, lang)})`,
+    label: `${t(KEY[s], lang)} (${formatNumber(countOf(s), lang)})`,
   }))
 }
 

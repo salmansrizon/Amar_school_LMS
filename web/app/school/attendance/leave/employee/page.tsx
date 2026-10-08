@@ -11,10 +11,10 @@ import { PageHeader } from '@/components/ui/page'
 import { DataTable, type Column } from '@/components/data-table/data-table'
 import { RecordDrawer } from '@/components/data-table/record-drawer'
 import { ViewLink } from '@/components/data-table/view-link'
-import { paginate, pageSizeFrom } from '@/components/pager'
+import { paginate, pageSizeFrom, Pager } from '@/components/pager'
+import { leavePage } from '../leave-page'
 import { filterButtonClass, inputClass } from '@/components/ui/field'
 import { pageTitle } from '@/lib/page-title'
-import { withLeaveColumns } from '@/lib/leave-columns'
 
 // Split off the Employees half of the old unified Leave Management page (map
 // #664). Employee search follows the same name-substring-over-the-full-roster
@@ -25,8 +25,6 @@ import { withLeaveColumns } from '@/lib/leave-columns'
 // Map 013: the list is the shared DataTable (status chips, pagination); a
 // row's Details opens a drawer carrying the same approve/reject actions.
 
-const DEFAULT_VIEW_LIMIT = 100
-const FILTERED_VIEW_LIMIT = 500
 const PAGE_SIZE = 20
 
 interface EmployeeLeaveRow {
@@ -45,10 +43,10 @@ export const generateMetadata = pageTitle('attendance.employeeLeaveTitle')
 export default async function EmployeeLeaveManagementPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; status?: string; page?: string; size?: string; view?: string}>
+  searchParams: Promise<{ q?: string; status?: string; page?: string; size?: string; rpage?: string; rsize?: string; view?: string }>
 }) {
   const params = await searchParams
-  const { q = '', status = '', page, size, view } = params
+  const { q = '', status = '', page, size, rpage, rsize, view } = params
   const pageSize = pageSizeFrom(size, PAGE_SIZE)
   const lang: Lang = await currentLang()
   const { supabase } = await getSchoolContext()
@@ -74,34 +72,26 @@ export default async function EmployeeLeaveManagementPage({
   // The roster browser and the records table share q (audit F19).
   const rosterMatched = matched
 
-  let leaves: EmployeeLeaveRow[] = []
-  if (filterActive) {
-    if (matchedIds.length) {
-      const filtered = (cols: string) =>
-        supabase
-          .from('employee_leaves')
-          .select(cols)
-          .in('employee_id', matchedIds)
-          .order('from_day', { ascending: false })
-          .limit(FILTERED_VIEW_LIMIT)
-      // decision_note / decided_at arrive with migration 0219; read without them until then.
-      const { data } = await withLeaveColumns(() => filtered('id, employee_id, from_day, to_day, reason, status, decision_note, decided_at'), () => filtered('id, employee_id, from_day, to_day, reason, status'))
-      leaves = (data ?? []) as unknown as EmployeeLeaveRow[]
-    }
-  } else {
-    const recent = (cols: string) =>
-      supabase.from('employee_leaves').select(cols).order('created_at', { ascending: false }).limit(DEFAULT_VIEW_LIMIT)
-    const { data } = await withLeaveColumns(() => recent('id, employee_id, from_day, to_day, reason, status, decision_note, decided_at'), () => recent('id, employee_id, from_day, to_day, reason, status'))
-    leaves = (data ?? []) as unknown as EmployeeLeaveRow[]
-  }
+  const leavesPage = await leavePage<EmployeeLeaveRow>({
+    supabase,
+    table: 'employee_leaves',
+    personCol: 'employee_id',
+    ids: filterActive ? matchedIds : null,
+    status,
+    rawPage: page,
+    pageSize,
+    viewId: view,
+  })
 
   const nameById = new Map(allEmployees.map((e) => [e.id, e.full_name]))
-  const rows = leaves.map((l) => ({ ...l, name: nameById.get(l.employee_id) ?? '—' }))
+  const withName = (l: EmployeeLeaveRow) => ({ ...l, name: nameById.get(l.employee_id) ?? '—' })
+  const rows = leavesPage.rows.map(withName)
+  const viewed = leavesPage.viewed ? withName(leavesPage.viewed) : undefined
   type Row = (typeof rows)[number]
 
-  const visible = status ? rows.filter((l) => l.status === status) : rows
-  const pageData = paginate(visible, page, pageSize)
-  const viewed = view ? rows.find((l) => l.id === view) : undefined
+  // Roster (rpage/rsize) and records (page/size) page independently.
+  const rosterSize = pageSizeFrom(rsize, PAGE_SIZE)
+  const rosterPage = paginate(rosterMatched, rpage, rosterSize)
 
   const dash = <span className="text-muted">—</span>
   const columns: Column<Row>[] = [
@@ -177,7 +167,7 @@ export default async function EmployeeLeaveManagementPage({
                 </tr>
               </thead>
               <tbody>
-                {rosterMatched.map((e) => (
+                {rosterPage.items.map((e) => (
                   <tr key={e.id} className="border-b border-line last:border-0">
                     <td className="px-3 py-2 text-sm font-medium">{e.full_name}</td>
                     <td className="px-3 py-2 text-sm">
@@ -189,10 +179,22 @@ export default async function EmployeeLeaveManagementPage({
             </table>
           </div>
         )}
+        {rosterMatched.length > 0 && (
+          <Pager
+            page={rosterPage.page}
+            totalPages={rosterPage.totalPages}
+            total={rosterPage.total}
+            lang={lang}
+            params={params}
+            pageSize={rosterSize}
+            pageParam="rpage"
+            sizeParam="rsize"
+          />
+        )}
       </section>
 
       <DataTable
-        rows={pageData.items}
+        rows={rows}
         rowId={(l) => l.id}
         rowLabel={(l) => l.name}
         columns={columns}
@@ -200,14 +202,14 @@ export default async function EmployeeLeaveManagementPage({
         params={params}
         caption={t('attendance.employeeLeaveTitle', lang)}
         search={{ placeholder: t('attendance.employeeSearch', lang) }}
-        chips={leaveStatusChips(leaves, lang)}
+        chips={leaveStatusChips(leavesPage.statusCounts, lang)}
         rowActions={(l) => (
           <>
             {l.status === 'pending' && <LeaveActions kind="employee" id={l.id} lang={lang} />}
             <ViewLink id={l.id} params={params} label={t('attendance.leaveDetails', lang)} name={l.name} />
           </>
         )}
-        pagination={{ page: pageData.page, totalPages: pageData.totalPages, total: pageData.total, pageSize }}
+        pagination={{ page: leavesPage.page, totalPages: leavesPage.totalPages, total: leavesPage.total, pageSize }}
         empty={<p className="rounded-2xl border border-line bg-paper p-card text-sm text-muted">{t('attendance.none', lang)}</p>}
       />
 

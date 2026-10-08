@@ -6,6 +6,7 @@ import { RestoreButton } from './restore-button'
 import { filterButtonClass, inputClass } from '@/components/ui/field'
 import { PageHeader } from '@/components/ui/page'
 import { schoolCrumbs } from '@/lib/school-crumbs'
+import { Pager, paginate, pageSizeFrom } from '@/components/pager'
 import { pageTitle } from '@/lib/page-title'
 
 // Old Classes (ADR 0024) — mirrors Employees'/Students' own soft-archive
@@ -22,9 +23,10 @@ export const generateMetadata = pageTitle('classes.oldClasses')
 export default async function ClassesArchivePage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string }>
+  searchParams: Promise<{ q?: string; page?: string; size?: string }>
 }) {
-  const { q = '' } = await searchParams
+  const params = await searchParams
+  const { q = '' } = params
   const lang: Lang = await currentLang()
   const { supabase } = await getSchoolContext()
 
@@ -38,6 +40,8 @@ export default async function ClassesArchivePage({
   const visible = (classes ?? []).filter(
     (c) => !query || c.name.toLowerCase().includes(query) || (c.section ?? '').toLowerCase().includes(query),
   )
+  const pageSize = pageSizeFrom(params.size, 20)
+  const pageData = paginate(visible, params.page, pageSize)
   const dash = <span className="text-muted">—</span>
 
   return (
@@ -82,7 +86,7 @@ export default async function ClassesArchivePage({
                 </tr>
               </thead>
               <tbody>
-                {visible.map((c) => (
+                {pageData.items.map((c) => (
                   <tr key={c.id} className="border-b border-line">
                     <td className={`${tdClass} font-medium`}>{c.name}</td>
                     <td className={tdClass}>{c.section ?? dash}</td>
@@ -104,6 +108,9 @@ export default async function ClassesArchivePage({
               </tbody>
             </table>
           </div>
+        )}
+        {visible.length > 0 && (
+          <Pager page={pageData.page} totalPages={pageData.totalPages} total={pageData.total} lang={lang} params={params} pageSize={pageSize} />
         )}
       </section>
     </div>

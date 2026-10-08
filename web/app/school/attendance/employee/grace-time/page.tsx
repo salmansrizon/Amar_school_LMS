@@ -1,3 +1,4 @@
+import { Pager, paginate, pageSizeFrom } from '@/components/pager'
 import Form from 'next/form'
 import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
@@ -97,9 +98,10 @@ export const generateMetadata = pageTitle('attendance.tabGraceTime')
 export default async function GraceTimePage({
   searchParams,
 }: {
-  searchParams: Promise<{ from?: string; to?: string; shift?: string; adHocShift?: string }>
+  searchParams: Promise<{ from?: string; to?: string; shift?: string; adHocShift?: string; page?: string; size?: string }>
 }) {
-  const { from = '', to = '', shift: requestedShift, adHocShift: requestedAdHocShift } = await searchParams
+  const sp = await searchParams
+  const { from = '', to = '', shift: requestedShift, adHocShift: requestedAdHocShift } = sp
   const lang: Lang = await currentLang()
   const { supabase, configuredShifts } = await getSchoolContext()
   // #677: Owner and office staff only; a teacher is refused.
@@ -134,6 +136,8 @@ export default async function GraceTimePage({
 
   const ruleRows = (rules ?? []) as StandingRuleRow[]
   const exemptionRows: AdHocExemptionRow[] = exemptions ?? []
+  const pageSize = pageSizeFrom(sp.size, 20)
+  const exemptionPage = paginate(exemptionRows, sp.page, pageSize)
   const current = { shift: activeShift, adHocShift: activeAdHocShift, from: from || null, to: to || null }
 
   return (
@@ -247,7 +251,7 @@ export default async function GraceTimePage({
                 </tr>
               </thead>
               <tbody>
-                {exemptionRows.map((ex) => (
+                {exemptionPage.items.map((ex) => (
                   <tr key={ex.id} className="border-b border-line last:border-0">
                     <td className="px-3 py-2 text-sm">{ex.exemption_date}</td>
                     <td className="px-3 py-2 text-sm">
@@ -263,6 +267,9 @@ export default async function GraceTimePage({
               </tbody>
             </table>
           </div>
+        )}
+        {exemptionRows.length > 0 && (
+          <Pager page={exemptionPage.page} totalPages={exemptionPage.totalPages} total={exemptionPage.total} lang={lang} params={sp} pageSize={pageSize} />
         )}
       </section>
     </div>

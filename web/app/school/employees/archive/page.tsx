@@ -8,6 +8,7 @@ import { RestoreButton } from './restore-button'
 import { filterButtonClass, inputClass } from '@/components/ui/field'
 import { PageHeader } from '@/components/ui/page'
 import { schoolCrumbs } from '@/lib/school-crumbs'
+import { Pager, paginate, pageSizeFrom } from '@/components/pager'
 import { pageTitle } from '@/lib/page-title'
 
 // Layout per ui/school-owner/employees-archive.html: search + table Name |
@@ -22,9 +23,10 @@ export const generateMetadata = pageTitle('employees.archiveTitle')
 export default async function EmployeesArchivePage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string }>
+  searchParams: Promise<{ q?: string; page?: string; size?: string }>
 }) {
-  const { q = '' } = await searchParams
+  const params = await searchParams
+  const { q = '' } = params
   const lang: Lang = await currentLang()
   const { supabase } = await getSchoolContext()
 
@@ -35,6 +37,8 @@ export default async function EmployeesArchivePage({
     .order('archived_at', { ascending: false })
 
   const visible = (employees ?? []).filter((e) => matchesEmployeeQuery(e, q))
+  const pageSize = pageSizeFrom(params.size, 20)
+  const pageData = paginate(visible, params.page, pageSize)
   const dash = <span className="text-muted">—</span>
 
   return (
@@ -78,7 +82,7 @@ export default async function EmployeesArchivePage({
                 </tr>
               </thead>
               <tbody>
-                {visible.map((e) => (
+                {pageData.items.map((e) => (
                   <tr key={e.id} className="border-b border-line">
                     <td className={`${tdClass} font-medium`}>{e.full_name}</td>
                     <td className={tdClass}>{e.category ? employeeCategoryLabel(e.category, lang) : dash}</td>
@@ -107,6 +111,9 @@ export default async function EmployeesArchivePage({
               </tbody>
             </table>
           </div>
+        )}
+        {visible.length > 0 && (
+          <Pager page={pageData.page} totalPages={pageData.totalPages} total={pageData.total} lang={lang} params={params} pageSize={pageSize} />
         )}
       </section>
     </div>

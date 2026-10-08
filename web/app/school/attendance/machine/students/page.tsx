@@ -1,3 +1,4 @@
+import { Pager, paginate, pageSizeFrom } from '@/components/pager'
 import Form from 'next/form'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
@@ -23,9 +24,10 @@ import { filterButtonClass, inputClass } from '@/components/ui/field'
 export default async function StudentRfidPage({
   searchParams,
 }: {
-  searchParams: Promise<{ classSection?: string; q?: string }>
+  searchParams: Promise<{ classSection?: string; q?: string; page?: string; size?: string }>
 }) {
-  const { classSection = '', q = '' } = await searchParams
+  const params = await searchParams
+  const { classSection = '', q = '' } = params
   const lang: Lang = await currentLang()
   const { supabase, shiftSelection, startedAcademicYears, academicYearSelection } = await getSchoolContext()
   // #677: Owner and office staff only; a teacher is refused.
@@ -41,12 +43,16 @@ export default async function StudentRfidPage({
     }),
     listMachines(supabase),
   ])
+  // The roster is already loaded for the filter; only the page's students need
+  // their card lookup.
+  const pageSize = pageSizeFrom(params.size, 20)
+  const pageData = paginate(view.students, params.page, pageSize)
   const info = await enrollmentInfo(
     supabase,
     'student',
-    view.students.map((s) => s.id),
+    pageData.items.map((s) => s.id),
   )
-  const rows: RfidRow[] = view.students.map((s) => ({
+  const rows: RfidRow[] = pageData.items.map((s) => ({
     id: s.id,
     name: s.full_name,
     cells: [classSectionLabel(s.class_name, s.section) ?? '', s.roll_number == null ? '' : String(s.roll_number)],
@@ -101,12 +107,15 @@ export default async function StudentRfidPage({
       ) : (
         <RfidEntryTable
           // A new filter is a new list: start its inputs fresh.
-          key={`${classSection}|${q}`}
+          key={`${classSection}|${q}|${pageData.page}|${pageSize}`}
           kind="student"
           rows={rows}
           headers={[t('rfid.class', lang), t('students.roll', lang)]}
           lang={lang}
         />
+      )}
+      {view.students.length > 0 && (
+        <Pager page={pageData.page} totalPages={pageData.totalPages} total={pageData.total} lang={lang} params={params} pageSize={pageSize} />
       )}
     </div>
   )

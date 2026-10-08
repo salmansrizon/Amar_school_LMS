@@ -1,3 +1,4 @@
+import { paginate, pageSizeFrom } from '@/components/pager'
 import Link from 'next/link'
 import { Hourglass, ListChecks, Timer } from 'lucide-react'
 import { getSchoolContext } from '@/lib/school/context'
@@ -33,7 +34,7 @@ export const generateMetadata = pageTitle('approvals.title')
 export default async function ApprovalsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ view?: string; type?: string }>
+  searchParams: Promise<{ view?: string; type?: string; page?: string; size?: string }>
 }) {
   const params = await searchParams
   const { supabase, role, userId, grants } = await getSchoolContext()
@@ -54,7 +55,9 @@ export default async function ApprovalsPage({
   const name = (i: Instance) => label.get(i.definition_key) ?? i.definition_key
   const date = (i: Instance) => formatDate(i.created_at, lang)
   const viewed = params.view ? (instances.find((i) => i.id === params.view) ?? null) : null
-  const shown = params.type ? instances.filter((i) => i.definition_key === params.type) : instances
+  const filtered = params.type ? instances.filter((i) => i.definition_key === params.type) : instances
+  const pageSize = pageSizeFrom(params.size, 20)
+  const pageData = paginate(filtered, params.page, pageSize)
 
   // Oldest-first (the fetch itself is newest-first for the table's default
   // read order), and the distinct workflow types currently waiting — both
@@ -110,7 +113,7 @@ export default async function ApprovalsPage({
       </StatGrid>
 
       <DataTable
-        rows={shown}
+        rows={pageData.items}
         rowId={(i) => i.id}
         rowLabel={name}
         columns={columns}
@@ -121,6 +124,7 @@ export default async function ApprovalsPage({
         rowActions={(i) => (
           <RowActionPill state="next" href={withParams(params, { view: i.id })} label={t('approvals.decide', lang)} />
         )}
+        pagination={{ page: pageData.page, totalPages: pageData.totalPages, total: pageData.total, pageSize }}
         empty={
           <Card>
             <p className="text-sm text-muted">{t('approvals.none', lang)}</p>
