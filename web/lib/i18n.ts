@@ -2122,6 +2122,38 @@ const dict = {
     en: 'This QR code does not match any ID card.',
   },
   'verify.issuedBy': { bn: 'প্রদানকারী', en: 'Issued by' },
+  // Public verification of any printed document (migration 0260).
+  'verifyDoc.title': { bn: 'নথি যাচাই', en: 'Document verification' },
+  'verifyDoc.genuine': { bn: 'আসল', en: 'Genuine' },
+  'verifyDoc.notValid': { bn: 'বৈধ নয়', en: 'Not valid' },
+  'verifyDoc.genuineNote': {
+    bn: 'এই নথিটি প্রতিষ্ঠানের রেকর্ডের সাথে মিলেছে। নিচের তথ্য এই মুহূর্তের রেকর্ড থেকে দেখানো হচ্ছে।',
+    en: 'This document matches the school records. The facts below are read from the records right now.',
+  },
+  'verifyDoc.codeNotValid': { bn: 'এই কোডটি বৈধ নয়', en: 'This code is not valid' },
+  'verifyDoc.codeNotValidNote': {
+    bn: 'এই QR কোডটি কোনো নথির সাথে মেলে না।',
+    en: 'This QR code does not match any document.',
+  },
+  'verifyDoc.reasonArchived': {
+    bn: 'শিক্ষার্থী আর এই প্রতিষ্ঠানে নথিভুক্ত নেই।',
+    en: 'The student is no longer enrolled at this school.',
+  },
+  'verifyDoc.reasonUnpublished': {
+    bn: 'এই পরীক্ষার ফলাফল প্রকাশিত নয়।',
+    en: 'The results of this exam are not published.',
+  },
+  'verifyDoc.reasonExamClosed': { bn: 'এই পরীক্ষা বন্ধ হয়ে গেছে।', en: 'This exam is closed.' },
+  'verifyDoc.reasonVoided': { bn: 'এই রসিদটি বাতিল করা হয়েছে।', en: 'This receipt was voided.' },
+  'verifyDoc.changedAfter': {
+    bn: 'এই রেকর্ডটি {date} তারিখে প্রিন্ট করার পর পরিবর্তন করা হয়েছে',
+    en: 'This record was changed after it was printed on {date}',
+  },
+  'verifyDoc.admissionForm': { bn: 'ভর্তি ফরম', en: 'Admission Form' },
+  'verifyDoc.feeStatement': { bn: 'ফি বিবরণী', en: 'Fee Statement' },
+  'verifyDoc.exam': { bn: 'পরীক্ষা', en: 'Exam' },
+  'verifyDoc.totalObtained': { bn: 'মোট প্রাপ্ত নম্বর', en: 'Total marks obtained' },
+  'verifyDoc.paidOn': { bn: 'পরিশোধের তারিখ', en: 'Payment date' },
   'markSheet.sampleNote': {
     bn: 'নমুনা তথ্য — প্রকৃত ফলাফল পরীক্ষার মডিউল চালু হলে দেখা যাবে।',
     en: 'Sample data — real results appear when the exams module lands.',

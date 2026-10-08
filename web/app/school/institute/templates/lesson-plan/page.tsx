@@ -6,6 +6,7 @@ import { PrintPage, InstituteHeader, InfoGrid, BlankLine } from '@/components/pr
 import { PrintButton } from '@/components/print/print-button'
 import { loadInstitutePrintHeader } from '@/lib/institute-print'
 import { pageTitle } from '@/lib/page-title'
+import { PrintVerifyFooter } from '@/components/print/verify-footer'
 
 // Blank Lesson Plan Sheet (issue #39, PRD §5.11) — paper-fallback template.
 
@@ -50,6 +51,7 @@ export default async function BlankLessonPlanPage() {
         <RuledLines count={3} />
         <div className="mt-4 text-xs font-semibold text-muted">{t('institute.homeworkGiven', lang)}</div>
         <RuledLines count={2} />
+        <PrintVerifyFooter lang={lang} kind="template_lesson_plan" />
       </PrintPage>
     </main>
   )

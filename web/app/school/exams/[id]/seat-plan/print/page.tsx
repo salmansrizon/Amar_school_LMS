@@ -17,6 +17,7 @@ import { withParams } from '@/lib/url-params'
 import { embeddedBuildingName, roomVenueLabel } from '@/lib/venues'
 import { BackLink } from '@/components/back-link'
 import { resolveBackHref, withOrigin } from '@/lib/back-nav'
+import { PrintVerifyFooter } from '@/components/print/verify-footer'
 
 // Notice-board seat plan (issue #96, docs/improvement.md §2B; ADR 0007 —
 // browser-native print). Organised by room, because that is what a student
@@ -224,6 +225,7 @@ export default async function SeatPlanPrintPage({
             </div>
           )}
         </PaginatedSheet>
+        <PrintVerifyFooter lang={lang} kind="seat_plan" refId={id} />
       </PrintPage>
     </main>
   )

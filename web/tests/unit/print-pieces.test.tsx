@@ -191,12 +191,17 @@ describe('QrFooterRow', () => {
     expect(html).toContain('Powered by X')
   })
 
-  it('a real QR node replaces the placeholder', () => {
+  it('a real QR replaces the placeholder', () => {
     const html = renderToStaticMarkup(
-      <QrFooterRow qrLabel="QR কোড" poweredBy="Powered by X" qr={<svg data-real-qr />} />,
+      <QrFooterRow qrLabel="QR কোড" poweredBy="Powered by X" qrSvg="<svg data-real-qr></svg>" />,
     )
     expect(html).toContain('data-real-qr')
     expect(html).not.toContain('QR কোড')
+  })
+
+  it('no QR yet (empty string) keeps the placeholder', () => {
+    const html = renderToStaticMarkup(<QrFooterRow qrLabel="QR কোড" poweredBy="Powered by X" qrSvg="" />)
+    expect(html).toContain('QR কোড')
   })
 })
 

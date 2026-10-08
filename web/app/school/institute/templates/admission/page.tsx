@@ -6,6 +6,7 @@ import { PrintPage, InstituteHeader, InfoGrid, BlankLine, SignatureRow } from '@
 import { PrintButton } from '@/components/print/print-button'
 import { loadInstitutePrintHeader } from '@/lib/institute-print'
 import { pageTitle } from '@/lib/page-title'
+import { PrintVerifyFooter } from '@/components/print/verify-footer'
 
 // Blank Admission Form (issue #39, PRD §5.11) — paper-fallback template.
 // Same seam as the filled admission printable (#46): shared print pieces,
@@ -42,6 +43,7 @@ export default async function BlankAdmissionPage() {
           ]}
         />
         <SignatureRow labels={[t('institute.guardianName', lang), t('institute.signature', lang)]} />
+        <PrintVerifyFooter lang={lang} kind="template_admission" />
       </PrintPage>
     </main>
   )

@@ -19,6 +19,7 @@ import { VoidFeeButton } from './void-fee-button'
 import { loadInstitutePrintHeader } from '@/lib/institute-print'
 import { InstituteHeader } from '@/components/print/pieces'
 import { pageTitle } from '@/lib/page-title'
+import { PrintVerifyFooter } from '@/components/print/verify-footer'
 
 export const generateMetadata = pageTitle('fees.receipt')
 
@@ -52,7 +53,7 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
     .from('fee_collection_records')
     .select(
       feeSelect(
-        'id, month, year, pay_amount, fine_amount, adjust_amount, due_amount, payment_method, note, updated_at, students(full_name, class_name, section), schools(name)',
+        'id, month, year, pay_amount, fine_amount, adjust_amount, due_amount, payment_method, note, updated_at, students(full_name, class_name, section, public_token), schools(name)',
         cols,
         'void_at, void_by, void_reason',
       ),
@@ -66,6 +67,7 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
     full_name: string
     class_name: string | null
     section: string | null
+    public_token: string
   } | null
   const institute = await loadInstitutePrintHeader(supabase, lang)
   // #683: who voided it — by name where the reader may see that profile.
@@ -236,6 +238,7 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
           {t('fees.method', lang)}: {t(`fees.${record.payment_method}` as 'fees.cash', lang)} ·{' '}
           {formatDate(record.updated_at, lang, 'form')}
         </footer>
+        <PrintVerifyFooter lang={lang} kind="fee_receipt" token={student?.public_token ?? null} refId={record.id} />
       </section>
     </main>
   )

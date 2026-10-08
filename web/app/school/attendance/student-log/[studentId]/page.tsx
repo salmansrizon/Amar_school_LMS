@@ -12,6 +12,7 @@ import { PrintTrigger } from '@/components/print/print-trigger'
 import { PageHeader } from '@/components/ui/page'
 import { schoolCrumbs } from '@/lib/school-crumbs'
 import { loadInstitutePrintHeader } from '@/lib/institute-print'
+import { PrintVerifyFooter } from '@/components/print/verify-footer'
 import { DateField } from '@/components/ui/date-field'
 
 // Individual Student Log (map #380, docs/011_student_module.md): one
@@ -300,6 +301,7 @@ export default async function StudentLogDetailPage({
               </table>
             </div>
           </PaginatedSheet>
+          <PrintVerifyFooter lang={lang} kind="student_log" studentId={studentId} />
         </PrintPage>
       )}
     </div>

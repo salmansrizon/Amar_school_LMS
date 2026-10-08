@@ -220,40 +220,32 @@ export function BlankRosterTable({
   )
 }
 
-/** Bottom strip: QR authenticity slot + "powered by" footer. Pass a real
- *  QR as `qr` when the printable has one; the labelled box is the default. */
+/** Bottom strip: verification QR + "powered by" footer. Pass the SVG from
+ *  printVerifyQr (lib/print-verify-server.ts) as `qrSvg`; while there is none
+ *  (the token column is not there yet) the labelled box stands in. */
 export function QrFooterRow({
   qrLabel,
   poweredBy,
-  qr,
+  qrSvg,
 }: {
   qrLabel: string
   poweredBy: string
-  qr?: ReactNode
+  qrSvg?: string | null
 }) {
   return (
     <div className="print-keep mt-6 flex items-center justify-between border-t border-line pt-4">
-      {qr ?? (
+      {qrSvg ? (
+        // 112 px = 29.6 mm on paper. The SVG carries its own quiet zone, so no
+        // border may sit against it. It comes from web/lib/qr.ts (the `qrcode`
+        // package), never from user input — safe to inject directly.
+        <div className="size-28 shrink-0" dangerouslySetInnerHTML={{ __html: qrSvg }} />
+      ) : (
         <div className="flex size-21 items-center justify-center rounded-sm border border-dashed border-line-strong text-center text-xs text-muted">
           {qrLabel}
         </div>
       )}
       <div className="text-center text-xs text-muted">{poweredBy}</div>
     </div>
-  )
-}
-
-/** A rendered QR SVG (web/lib/qr.ts) sized to fill QrFooterRow's default
- * slot — pass as QrFooterRow's `qr` prop wherever a printable has a real
- * authenticity mark instead of the placeholder box (issue #33). */
-export function QrMark({ svg }: { svg: string }) {
-  return (
-    <div
-      className="flex size-21 items-center justify-center overflow-hidden rounded-sm border border-line-strong"
-      // The SVG string comes from web/lib/qr.ts (the `qrcode` package), never
-      // from user input — safe to inject directly.
-      dangerouslySetInnerHTML={{ __html: svg }}
-    />
   )
 }
 

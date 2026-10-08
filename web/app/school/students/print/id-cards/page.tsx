@@ -10,6 +10,7 @@ import { loadInstitutePrintHeader } from '@/lib/institute-print'
 import { renderAuthenticityQr } from '@/lib/qr'
 import { ID_CARD_COLUMNS, StudentIdCard, type IdCardStudent } from '../../id-card'
 import { loadDirectoryRows, type DirectoryParams } from '../../directory-rows'
+import { PrintVerifyFooter } from '@/components/print/verify-footer'
 
 // Bulk ID cards for the directory's current filter (map 013, P1): the same
 // rows the list shows, the same card the single print page uses.
@@ -58,6 +59,7 @@ export default async function BulkIdCardsPage({ searchParams }: { searchParams: 
             </div>
           ))}
         </div>
+        <PrintVerifyFooter lang={lang} kind="id_cards" />
       </PrintPage>
     </main>
   )

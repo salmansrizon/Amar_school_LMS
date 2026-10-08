@@ -4,11 +4,12 @@ import { currentLang } from '@/lib/i18n-server'
 import { t } from '@/lib/i18n'
 import { genderLabel, guardianRelationLabel, religionLabel } from '@/lib/students/stored-labels'
 import { getSchoolContext } from '@/lib/school/context'
-import { PrintPage, InstituteHeader, InfoGrid, SignatureRow, QrFooterRow } from '@/components/print/pieces'
+import { PrintPage, InstituteHeader, InfoGrid, SignatureRow } from '@/components/print/pieces'
 import { PrintButton } from '@/components/print/print-button'
 import { loadInstitutePrintHeader } from '@/lib/institute-print'
 import { studentClassLabel } from '@/lib/students'
 import { pageTitle } from '@/lib/page-title'
+import { PrintVerifyFooter } from '@/components/print/verify-footer'
 
 // Printable admission form (issue #46, PRD §5.1: "Printable admission/ID
 // templates"). ADR 0007: browser-native print, composed from the shared
@@ -69,7 +70,7 @@ export default async function AdmissionPrintPage({ params }: { params: Promise<{
         />
 
         <SignatureRow labels={[t('students.sigGuardian', lang), t('students.sigPrincipal', lang)]} />
-        <QrFooterRow qrLabel={t('print.qr', lang)} poweredBy={t('print.poweredBy', lang)} />
+        <PrintVerifyFooter lang={lang} kind="admission_form" studentId={id} />
       </PrintPage>
     </main>
   )

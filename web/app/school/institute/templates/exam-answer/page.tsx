@@ -6,6 +6,7 @@ import { PrintPage, InstituteHeader, InfoGrid, BlankLine } from '@/components/pr
 import { PrintButton } from '@/components/print/print-button'
 import { loadInstitutePrintHeader } from '@/lib/institute-print'
 import { pageTitle } from '@/lib/page-title'
+import { PrintVerifyFooter } from '@/components/print/verify-footer'
 
 // Blank Exam Answer Sheet (issue #39, PRD §5.11) — paper-fallback template.
 
@@ -48,6 +49,7 @@ export default async function BlankExamAnswerPage() {
         />
         <div className="text-xs font-semibold text-muted">{t('institute.answerSheet', lang)}</div>
         <RuledLines count={18} />
+        <PrintVerifyFooter lang={lang} kind="template_exam_answer" />
       </PrintPage>
     </main>
   )

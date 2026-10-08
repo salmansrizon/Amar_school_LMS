@@ -6,7 +6,7 @@ import { getSchoolContext } from '@/lib/school/context'
 import { feePeriodLabel } from '@/lib/fees'
 import { buildGeneralLedger, feeLedgerRows, type LedgerSource, type LedgerSourceRow } from '@/lib/accounting'
 import { feeColumns, feeSelect } from '@/lib/fee-columns'
-import { PrintPage, InstituteHeader, PaginatedSheet, QrFooterRow } from '@/components/print/pieces'
+import { PrintPage, InstituteHeader, PaginatedSheet } from '@/components/print/pieces'
 import { PrintButton } from '@/components/print/print-button'
 import { AccountingTabs } from '../accounting-tabs'
 import { loadInstitutePrintHeader } from '@/lib/institute-print'
@@ -15,6 +15,7 @@ import { selectAllRows } from '@/lib/supabase/select-all'
 import { PageHeader } from '@/components/ui/page'
 import { schoolCrumbs } from '@/lib/school-crumbs'
 import { pageTitle } from '@/lib/page-title'
+import { PrintVerifyFooter } from '@/components/print/verify-footer'
 import { DateField } from '@/components/ui/date-field'
 
 // Layout per ui/school-owner/general-ledger.html: a date-range toolbar over a
@@ -259,7 +260,7 @@ export default async function GeneralLedgerPage({
           </div>
         )}
 
-        <QrFooterRow qrLabel={t('print.qr', lang)} poweredBy={t('print.poweredBy', lang)} />
+        <PrintVerifyFooter lang={lang} kind="general_ledger" />
         </PaginatedSheet>
       </PrintPage>
     </div>
