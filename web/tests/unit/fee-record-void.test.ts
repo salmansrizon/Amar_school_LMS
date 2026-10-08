@@ -91,6 +91,11 @@ describe('migration 0231', () => {
     expect(statements).toContain('new.updated_at := old.updated_at')
   })
 
+  it('void_by is not a foreign key: deleting a profile must not try to update a voided row', () => {
+    expect(statements).toMatch(/add column if not exists void_by uuid,/)
+    expect(statements).not.toMatch(/void_by uuid references/)
+  })
+
   it('the database, not the request, decides who voided and when', () => {
     expect(statements).toContain('new.void_at := now()')
     expect(statements).toContain('new.void_by := auth.uid()')

@@ -19,7 +19,9 @@
 --     i.e. deliberate operations work — is allowed and REVERSES the row: the
 --     balance moves back by the row's amount and a contra entry
 --     `dircap:<id>:reversal` is posted to the general ledger. The balance can
---     no longer drift whoever deletes.
+--     no longer drift whoever deletes. No floor is applied: deleting an
+--     investment that was later withdrawn leaves a negative balance, which is
+--     what the remaining rows add up to.
 --   * DELETE because the School itself is being deleted (cascade): nothing to
 --     keep straight, the row just goes.
 -- Effect on existing data: NONE. No balance, no transaction and no ledger entry

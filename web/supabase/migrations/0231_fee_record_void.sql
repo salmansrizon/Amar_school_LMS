@@ -111,14 +111,18 @@
 
 alter table public.fee_collection_records
   add column if not exists void_at timestamptz,
-  add column if not exists void_by uuid references public.profiles (id) on delete set null,
+  add column if not exists void_by uuid,
   add column if not exists void_reason text;
 
 comment on column public.fee_collection_records.void_at is
   'When the record was voided (#683). NULL = active. Set only by fee_record_void_guard; a voided row is immutable.';
 
--- void_by may go NULL later (the profile is deleted), so it is not part of the
--- rule; the reason is.
+-- void_by is the auth user id of whoever voided, and deliberately NOT a foreign
+-- key to profiles. With `on delete set null` Postgres would UPDATE the voided
+-- row when that profile is deleted, the guard below refuses any change to a
+-- voided row, and the profile could never be deleted. An audit stamp should
+-- outlive the profile anyway. It is not part of the check for the same reason
+-- a service-role void is refused: only the trigger sets it.
 do $$
 begin
   if not exists (
