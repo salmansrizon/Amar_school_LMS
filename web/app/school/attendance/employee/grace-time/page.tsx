@@ -15,6 +15,7 @@ import { dateInputClass, filterButtonClass } from '@/components/ui/field'
 import { pageTitle } from '@/lib/page-title'
 import { PageHeader } from '@/components/ui/page'
 import { attendanceCrumbs } from '@/lib/school-crumbs'
+import { DateField } from '@/components/ui/date-field'
 
 // Grace Time (issue #671, redesigned by #673 / ADR 0032). Two sections:
 // Standing Grace Rules (Grace Detail + Categories + minutes, one per Shift +
@@ -217,11 +218,11 @@ export default async function GraceTimePage({
           {activeAdHocShift && <input type="hidden" name="adHocShift" value={activeAdHocShift} />}
           <div>
             <label htmlFor="gt_from" className="mb-1 block text-xs font-semibold text-muted">{t('graceTime.filterFrom', lang)}</label>
-            <input id="gt_from" type="date" name="from" defaultValue={from} className={dateInputClass()} />
+            <DateField lang={lang} id="gt_from" name="from" defaultValue={from} className={dateInputClass()} />
           </div>
           <div>
             <label htmlFor="gt_to" className="mb-1 block text-xs font-semibold text-muted">{t('graceTime.filterTo', lang)}</label>
-            <input id="gt_to" type="date" name="to" defaultValue={to} className={dateInputClass()} />
+            <DateField lang={lang} id="gt_to" name="to" defaultValue={to} className={dateInputClass()} />
           </div>
           <button
             type="submit"

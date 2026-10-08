@@ -6,6 +6,7 @@ import { inputClass, labelClass } from '@/components/auth-card'
 import { t, type Lang } from '@/lib/i18n'
 import { addOffDay, deleteOffDay, importCentralOffDays, updateWeeklyOffDays } from '../manual-actions'
 import { dateInputClass } from '@/components/ui/field'
+import { DateField } from '@/components/ui/date-field'
 
 // Sun-first (0..6), matching monthGrid's own week start and
 // dayOffInfo's Date.getUTCDay() convention.
@@ -112,10 +113,9 @@ export function AddOffDayForm({
         <label className={labelClass} htmlFor={`${uid}-day`}>
           {t('attendance.offDayDate', lang)}
         </label>
-        <input
+        <DateField lang={lang}
           id={`${uid}-day`}
           name="day"
-          type="date"
           required
           defaultValue={defaultDay}
           className={dateInputClass({ size: 'md', fullWidth: true })}

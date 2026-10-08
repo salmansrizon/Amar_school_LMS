@@ -19,6 +19,7 @@ import { StatCard, StatGrid } from '@/components/ui/widgets'
 import { DataTable, type Column } from '@/components/data-table/data-table'
 import { HubTabs } from '../../messages-hub-tabs'
 import { pageTitle } from '@/lib/page-title'
+import { DateField } from '@/components/ui/date-field'
 
 // The Response tab of বার্তা ও অনুরোধ (#455 report, #509 section).
 //
@@ -214,11 +215,11 @@ export default async function ResponsePerformancePage({
         <Form action="/school/questions/response" className="flex flex-wrap items-end gap-2">
           <label className="text-xs font-semibold text-muted">
             <span className="mb-1 block">{t('response.from', lang)}</span>
-            <input name="from" type="date" defaultValue={from} className="h-9 rounded-sm border border-line-strong bg-paper px-2 text-sm" />
+            <DateField lang={lang} name="from" defaultValue={from} className="h-9 rounded-sm border border-line-strong bg-paper px-2 text-sm" />
           </label>
           <label className="text-xs font-semibold text-muted">
             <span className="mb-1 block">{t('response.to', lang)}</span>
-            <input name="to" type="date" defaultValue={to} className="h-9 rounded-sm border border-line-strong bg-paper px-2 text-sm" />
+            <DateField lang={lang} name="to" defaultValue={to} className="h-9 rounded-sm border border-line-strong bg-paper px-2 text-sm" />
           </label>
           <button type="submit" className="h-9 cursor-pointer rounded-full border border-line-strong px-4 text-xs font-semibold hover:bg-paper-muted">
             {t('response.apply', lang)}

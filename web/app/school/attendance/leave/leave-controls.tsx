@@ -10,6 +10,7 @@ import { ConfirmDialog } from '@/components/confirm-dialog'
 import { dateInputClass } from '@/components/ui/field'
 import { Modal } from '@/components/modal'
 import { DECISION_NOTE_MAX, REJECT_REASON_REQUIRED } from '@/lib/leave-columns'
+import { DateField } from '@/components/ui/date-field'
 
 // Replaces the old dropdown-of-every-person-in-the-institute form (map #668)
 // — a row action on an already-filtered roster instead, so the person is
@@ -67,10 +68,9 @@ export function RequestLeaveButton({
             <label className={labelClass} htmlFor={`from_day-${kind}-${personId}`}>
               {t('attendance.leaveFromCol', lang)}
             </label>
-            <input
+            <DateField lang={lang}
               id={`from_day-${kind}-${personId}`}
               name="from_day"
-              type="date"
               required
               className={dateInputClass({ size: 'md', fullWidth: true })}
             />
@@ -79,10 +79,9 @@ export function RequestLeaveButton({
             <label className={labelClass} htmlFor={`to_day-${kind}-${personId}`}>
               {t('attendance.leaveToCol', lang)}
             </label>
-            <input
+            <DateField lang={lang}
               id={`to_day-${kind}-${personId}`}
               name="to_day"
-              type="date"
               required
               className={dateInputClass({ size: 'md', fullWidth: true })}
             />

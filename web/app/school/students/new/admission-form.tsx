@@ -33,6 +33,7 @@ import { DataTable, type Column } from '@/components/data-table/data-table'
 import { RowActionPill } from '@/components/data-table/row-action-pill'
 import { ComboboxField } from '@/components/ui/combobox-field'
 import { SelectField } from '@/components/ui/select-field'
+import { DateField } from '@/components/ui/date-field'
 
 const MAX_PHOTO_BYTES = 2 * 1024 * 1024 // mirrors the bucket's server-enforced cap
 
@@ -181,8 +182,7 @@ export function ProfileFields({
             <input name="full_name" required maxLength={PERSON_NAME_MAX} defaultValue={d('full_name')} className={fieldClass} />
           </Field>
           <Field label={t('students.dob', lang)}>
-            <input
-              type="date"
+            <DateField lang={lang}
               name="date_of_birth"
               defaultValue={d('date_of_birth')}
               className={dateInputClass({ size: 'md', fullWidth: true })}

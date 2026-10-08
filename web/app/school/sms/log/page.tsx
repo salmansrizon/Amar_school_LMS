@@ -15,6 +15,7 @@ import { DataTable, Pill, type Column } from '@/components/data-table/data-table
 import { RecordDrawer } from '@/components/data-table/record-drawer'
 import { ViewLink } from '@/components/data-table/view-link'
 import { pageTitle } from '@/lib/page-title'
+import { DateField } from '@/components/ui/date-field'
 
 // Send Log (issue #36, PRD §5.7 "send summary/log with date-range totals"),
 // map 013 FC2: range totals as stat cards, then one DataTable row per send
@@ -106,8 +107,8 @@ export default async function SmsLogPage({
       <SmsTabs active="/school/sms/log" lang={lang} />
 
       <Form className="mb-grid flex flex-wrap items-center gap-2" action="/school/sms/log">
-        <input type="date" name="start" defaultValue={rangeStart} aria-label={t('vouchers.from', lang)} className={dateInputClass()} />
-        <input type="date" name="end" defaultValue={rangeEnd} aria-label={t('vouchers.to', lang)} className={dateInputClass()} />
+        <DateField lang={lang} name="start" defaultValue={rangeStart} aria-label={t('vouchers.from', lang)} className={dateInputClass()} />
+        <DateField lang={lang} name="end" defaultValue={rangeEnd} aria-label={t('vouchers.to', lang)} className={dateInputClass()} />
         <button type="submit" className={rowAction}>
           {t('sms.apply', lang)}
         </button>

@@ -13,6 +13,7 @@ import { ACADEMIC_SHIFT_LABEL_KEY, type AcademicShift } from '@/lib/institute'
 import { ComboboxField } from '@/components/ui/combobox-field'
 import { mobileInputProps } from '@/lib/bd-mobile'
 import { PERSON_NAME_MAX } from '@/lib/name'
+import { DateField } from '@/components/ui/date-field'
 
 export const fieldClass =
   'w-full rounded-md border border-line bg-paper px-3 py-2 text-sm focus:border-brand-500 focus:outline-none'
@@ -82,10 +83,10 @@ export function ProfileFields({
             />
           </Field>
           <Field label={t('employees.dob', lang)}>
-            <input type="date" name="date_of_birth" defaultValue={d('date_of_birth')} className={dateInputClass({ size: 'md', fullWidth: true })} />
+            <DateField lang={lang} name="date_of_birth" defaultValue={d('date_of_birth')} className={dateInputClass({ size: 'md', fullWidth: true })} />
           </Field>
           <Field label={t('employees.joiningDate', lang)}>
-            <input type="date" name="joining_date" defaultValue={d('joining_date')} className={dateInputClass({ size: 'md', fullWidth: true })} />
+            <DateField lang={lang} name="joining_date" defaultValue={d('joining_date')} className={dateInputClass({ size: 'md', fullWidth: true })} />
           </Field>
         </div>
       </Card>

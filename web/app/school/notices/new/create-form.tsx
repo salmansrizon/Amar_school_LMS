@@ -23,6 +23,7 @@ import { SelectField } from '@/components/ui/select-field'
 import { removeUploadedObject } from '@/lib/storage/remove-object'
 import { uploadWithSignedToken } from '@/lib/storage/upload-client'
 import { RichTextField } from '@/components/rich-text-field'
+import { DateField } from '@/components/ui/date-field'
 
 function distinct(values: (string | null | undefined)[]): string[] {
   return [...new Set(values.filter((v): v is string => !!v))].sort()
@@ -203,23 +204,13 @@ export function CreateNoticeForm({
           <div>
             <label htmlFor="notice_due_date" className={labelClass}>{t('notices.dueDate', lang)}</label>
             <div className="flex items-center gap-2">
-              <input
+              <DateField lang={lang}
                 id="notice_due_date"
-                type="date"
                 className={`${inputClass} max-sm:h-11`}
                 value={dueDate}
-                onChange={(e) => setDueDate(e.target.value)}
+                onChange={setDueDate}
                 aria-describedby="notice_due_date_hint"
               />
-              {dueDate && (
-                <button
-                  type="button"
-                  onClick={() => setDueDate('')}
-                  className="h-10 shrink-0 cursor-pointer rounded-full border border-line-strong px-3 text-xs font-semibold hover:bg-paper-muted max-sm:h-11"
-                >
-                  {t('notices.dueDateClear', lang)}
-                </button>
-              )}
             </div>
             <p id="notice_due_date_hint" className="mt-1 text-xs text-muted">{t('notices.dueDateHint', lang)}</p>
           </div>
