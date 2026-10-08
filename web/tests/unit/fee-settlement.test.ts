@@ -6,7 +6,9 @@ import {
   feeGlRefPattern,
   feePeriodFromParams,
   feePeriodLabel,
+  advanceAmount,
   overpaidAmount,
+  receiptTotal,
   settleFee,
   FEE_GL_ORDER_COLUMN,
 } from '@/lib/fees'
@@ -76,6 +78,42 @@ describe('billedFeeAmount', () => {
 
   it('never goes negative', () => {
     expect(billedFeeAmount({ pay_amount: 0, fine_amount: 100, adjust_amount: 0, due_amount: 0 })).toBe(0)
+  })
+})
+
+// #707, owner's decision: the received amount INCLUDES the fine.
+describe('receipt total (#707)', () => {
+  const saved = (received: number) => {
+    const { due } = settleFee({ fee: 100, fine: 10, adjust: 0, received })
+    return { fee_amount: 100, fine_amount: 10, adjust_amount: 0, pay_amount: received, due_amount: due }
+  }
+
+  it('fee 100, fine 10, received 60: total received 60, 50 still due', () => {
+    const record = saved(60)
+    expect(receiptTotal(record)).toBe(60)
+    expect(record.due_amount).toBe(50)
+    expect(advanceAmount(record)).toBe(0)
+  })
+
+  it('fee 100, fine 10, received 110: 110 was paid in all, nothing due', () => {
+    const record = saved(110)
+    expect(receiptTotal(record)).toBe(110)
+    expect(record.due_amount).toBe(0)
+    expect(advanceAmount(record)).toBe(0)
+  })
+
+  it('fee 100, fine 10, received 130: total received 130, advance 20', () => {
+    const record = saved(130)
+    expect(receiptTotal(record)).toBe(130)
+    expect(record.due_amount).toBe(0)
+    expect(advanceAmount(record)).toBe(20)
+  })
+
+  it('the receipt page takes its total and its amount in words from receiptTotal', () => {
+    const page = readFileSync(join(__dirname, '../../app/school/fees/receipt/[id]/page.tsx'), 'utf8')
+    expect(page).toContain('const total = receiptTotal(')
+    expect(page).not.toContain('totalPayable(')
+    expect(page).toContain('takaInWords(total)')
   })
 })
 

@@ -7,6 +7,7 @@ Three migration files, written on a worktree branch and **not applied**. Staging
 | 1 | `web/supabase/migrations/0230_fee_collection_fee_amount.sql` | #678 | No |
 | 2 | `web/supabase/migrations/0231_fee_record_void.sql` | #683 | No |
 | 3 | `web/supabase/migrations/0232_director_capital_guard.sql` | #681 | No |
+| 4 | `web/supabase/migrations/0258_fee_gl_fine_inside_received.sql` | #707 | No. **Needs 0230 and 0231 first** (the file stops itself otherwise). See section 4 |
 
 The three are independent: the app probes for each one (`web/lib/fee-columns.ts`) and works with any subset applied. The order above is only the suggested one. Each file carries its own header with the same pre-check and rollback given here.
 
@@ -198,6 +199,167 @@ drop function if exists public.director_capital_guard();
 notify pgrst, 'reload schema';
 ```
 
+## 4. `0258_fee_gl_fine_inside_received.sql` (#707)
+
+Written, **not applied**. Needs `0230` and `0231` applied first; its first statement raises if `fee_amount` or `void_at` is missing.
+
+**Owner's decision.** The received amount (`fee_collection_records.pay_amount`) **includes** the fine. Fee 100, fine 10, received 110: 110 was paid in all.
+
+**What was wrong.** The collection form already worked that way. Two places did not:
+
+| Place | Before | After |
+|---|---|---|
+| Receipt "Total" and amount in words | `pay + fine − adjust` (received 60, fine 10: "Total 70") | The received amount (60). Code only, live without the migration |
+| Ledger, cash debit | `pay + fine` (70) | `pay` (60). Needs `0258` |
+| Student fee page "Payable" for an overpaid month | `pay + due` (130 for a month billed 110) | `pay + due − advance` (110). Needs `0258`: the Student view had no way to tell an advance from a payment |
+
+**The posting rule (one function, `fee_gl_fine_part`).** Cash is debited by the received amount. Fine income (4400) is credited `least(fine, received)`; fee income (4300) gets the rest. The fine is taken out of the money first, so nothing is credited that was not received.
+
+| Fee | Fine | Received | Cash | Fine income | Fee income |
+|---|---|---|---|---|---|
+| 100 | 10 | 60 | 60 | 10 | 50 |
+| 100 | 10 | 110 | 110 | 10 | 100 |
+| 100 | 10 | 130 | 130 | 10 | 120 (the advance of 20 stays in fee income; there is no advance account) |
+| 100 | 10 | 6 | 6 | 6 | 0 |
+| 100 | 10 | 0 | nothing posted | | |
+
+- **Insert / update** post the difference between the old and the new figures, both split by the rule. Cash moves by exactly the change in the received amount. A change of the fine alone moves money between 4300 and 4400 and leaves cash alone.
+- **Void / delete** no longer work a figure out from the row. They reverse what the ledger actually holds for the record (the net of every `fee:<record id>:%` entry, per account). The record nets to zero whichever rule its entries were posted under.
+- `fee_gl_apply` now skips a cash leg of zero. `gl_lines` refuses a line with neither a debit nor a credit, so without this a fine-only edit would fail.
+- `student_fee_record` gets a ninth column, `advance_amount` (0 when the fee is not stored). `fee_amount` and `adjust_amount` stay out of the view (ADR 0015).
+
+**Effect on existing data.** None. No row is written and no existing ledger entry is changed or corrected.
+
+**Records posted before `0258` (old rule).** Their entries stay: cash is overstated by the fine the record carried.
+
+| Later action on such a record | Result |
+|---|---|
+| Edit | The edit itself is right (cash moves by the change in the received amount). The old overstatement stays exactly as large as it was. It is not silently corrected |
+| Void or delete | Everything the record ever posted is reversed, the overstatement included. The record nets to zero |
+| Nothing | Stays overstated until the accountant corrects it |
+
+No marker column or cut-off date is needed: the ledger itself says what was posted. If the accountant posts a correcting entry per record, give it the ref `fee:<record id>:fix`, so a later void still nets to zero. A correction posted under any other ref is not seen by the void, which would then take the overstatement out a second time.
+
+**Pre-check (read-only).**
+
+```sql
+-- a. how many records carry a fine, and how much, per school
+select f.school_id, s.name,
+       count(*)                                  as records_with_fine,
+       sum(f.fine_amount)                        as fine_total,
+       count(*) filter (where f.void_at is null) as of_which_active,
+       sum(f.fine_amount) filter (where f.void_at is null) as fine_total_active
+  from public.fee_collection_records f
+  join public.schools s on s.id = f.school_id
+ where f.fine_amount > 0
+ group by f.school_id, s.name
+ order by fine_total desc;
+
+-- b. the difference the old rule left in the ledger, per school: the cash the
+--    ledger holds for a record minus what the record says was received.
+--    Reads the same before and after applying.
+with standing as (
+  select split_part(e.ref, ':', 2) as record_id,
+         sum(l.debit - l.credit) filter (where l.account_code in ('1000', '1050')) as cash_poisha
+    from public.gl_entries e
+    join public.gl_lines l on l.entry_id = e.id
+   where e.ref like 'fee:%'
+   group by 1
+)
+select f.school_id,
+       count(*) as records_off,
+       sum(coalesce(st.cash_poisha, 0) - round(f.pay_amount * 100)) / 100.0 as cash_overstated_taka
+  from public.fee_collection_records f
+  join standing st on st.record_id = f.id::text
+ where f.void_at is null
+   and coalesce(st.cash_poisha, 0) <> round(f.pay_amount * 100)
+ group by f.school_id;
+
+-- c. the objects this file replaces are still as 0097 / 0231 wrote them
+select pg_get_functiondef(p.oid) from pg_proc p
+ where p.pronamespace = 'public'::regnamespace
+   and p.proname in ('fee_gl_apply', 'fee_post_gl', 'fee_post_gl_void', 'fee_post_gl_delete');
+select pg_get_viewdef('public.student_fee_record'::regclass, true);
+
+-- d. the two new names are free (expect 0 rows)
+select proname from pg_proc
+ where pronamespace = 'public'::regnamespace and proname in ('fee_gl_fine_part', 'fee_gl_reverse');
+```
+
+Query b only sees records that have at least one ledger entry. A record with no entry at all (saved before `0093`, if any) is not in it.
+
+**For the accountant: the entries posted with the fine added twice (read-only).** First the records, one line each; then every ledger entry of those records with its lines.
+
+```sql
+-- 1. Records whose ledger cash is not what was received
+with standing as (
+  select split_part(e.ref, ':', 2) as record_id,
+         sum(l.debit - l.credit) filter (where l.account_code in ('1000', '1050')) as cash_poisha,
+         sum(l.credit - l.debit) filter (where l.account_code = '4300')            as fee_income_poisha,
+         sum(l.credit - l.debit) filter (where l.account_code = '4400')            as fine_income_poisha,
+         min(e.posted_at) as first_posted, max(e.posted_at) as last_posted, count(distinct e.id) as entries
+    from public.gl_entries e
+    join public.gl_lines l on l.entry_id = e.id
+   where e.ref like 'fee:%'
+   group by 1
+)
+select sc.name as school, stu.full_name as student, f.month, f.year, f.id as record_id,
+       f.pay_amount as received, f.fine_amount as fine,
+       coalesce(st.cash_poisha, 0) / 100.0        as ledger_cash,
+       coalesce(st.fee_income_poisha, 0) / 100.0  as ledger_fee_income,
+       coalesce(st.fine_income_poisha, 0) / 100.0 as ledger_fine_income,
+       (coalesce(st.cash_poisha, 0) - round(f.pay_amount * 100)) / 100.0 as cash_overstated,
+       st.entries, st.first_posted, st.last_posted
+  from public.fee_collection_records f
+  join standing st on st.record_id = f.id::text
+  join public.schools sc on sc.id = f.school_id
+  join public.students stu on stu.id = f.student_id
+ where f.void_at is null
+   and coalesce(st.cash_poisha, 0) <> round(f.pay_amount * 100)
+ order by sc.name, f.year, f.month, stu.full_name;
+
+-- 2. Every ledger entry of those records, line by line
+with standing as (
+  select split_part(e.ref, ':', 2) as record_id,
+         sum(l.debit - l.credit) filter (where l.account_code in ('1000', '1050')) as cash_poisha
+    from public.gl_entries e
+    join public.gl_lines l on l.entry_id = e.id
+   where e.ref like 'fee:%'
+   group by 1
+), off as (
+  select f.id
+    from public.fee_collection_records f
+    join standing st on st.record_id = f.id::text
+   where f.void_at is null
+     and coalesce(st.cash_poisha, 0) <> round(f.pay_amount * 100)
+)
+select e.school_id, e.ref, e.posted_at, e.memo, l.account_code,
+       l.debit / 100.0 as debit, l.credit / 100.0 as credit
+  from off
+  join public.gl_entries e on e.ref like 'fee:' || off.id || ':%'
+  join public.gl_lines l on l.entry_id = e.id
+ order by e.school_id, e.ref, l.account_code;
+```
+
+The list compares the total across the two cash accounts (1000 and 1050), so a record whose payment method was changed is not listed for that reason alone.
+
+**Post-check (read-only).**
+
+```sql
+select column_name from information_schema.columns
+ where table_schema = 'public' and table_name = 'student_fee_record'
+ order by ordinal_position;          -- 9 columns, advance_amount last
+-- pre-check query b returns the same rows as before applying
+```
+
+**Rollback.** The exact text is in the file's header (the `0097` bodies of `fee_gl_apply` and `fee_post_gl`, the `0231` bodies of `fee_post_gl_void` and `fee_post_gl_delete`, the `0231` view, then the two drops). Know before using it: a record saved while `0258` was live is posted with the fine inside the received amount, and the old void and delete reverse `pay + fine`, so such a record would be over-reversed by its fine. Restoring only the posting rule (steps 1 and 2) and keeping the ledger-based void and delete avoids that.
+
+**Tests.** Unit: `web/tests/unit/fee-gl-fine-inside-received.test.ts` (the text of the rule, and the rule replayed in poisha, including an old-rule record that is edited and then voided), `fee-settlement.test.ts` (receipt total), `student-fees.test.ts` (payable). Integration, **not run**: `web/tests/integration/fee-gl-fine-inside-received.test.ts`.
+
+**One existing test changes meaning.** `web/tests/integration/fee-record-void.test.ts` (written for `0231`, not run) expects a cash net of `55000` for received 500 with a fine of 50. That is the old rule. After `0258` the figure is `50000`. The file was left as it is, because which figure is right depends on whether `0258` is applied.
+
+**Not changed.** The void dialog still lists "received" and "fine" under "what is reversed in the ledger". It shows no sum, and both figures are true: the fine is part of the received amount.
+
 ## #695 — no migration
 
 Decision taken: **keep the acknowledgement** as it is (the issue names no recommendation, and "carry forward" needs a stored credit balance, which is a data change and a product decision). What changed for #695 comes from `0230`: once the fee is stored, the advance (received − (fee + fine − adjustment)) is known for each record and the receipt prints it as its own line. Nothing is carried to another month. Carry-forward stays item 2.3 of the migration index.
@@ -206,7 +368,7 @@ Decision taken: **keep the acknowledgement** as it is (the issue names no recomm
 
 | Finding | Where | Why it was left |
 |---|---|---|
-| The general ledger debits cash by `pay_amount + fine_amount` (0097), but the collection form treats the received amount as **including** the fine (payable = fee + fine − adjustment; due = payable − received). A ৳500 fee with a ৳50 fine, ৳550 received, posts ৳600 to cash. The receipt's "Total" line (`pay + fine − adjust`) has the same reading | `0097_fee_gl_review_fixes.sql`, `app/school/fees/receipt/[id]/page.tsx` | Changing it rewrites what existing ledger entries mean. Needs the owner's decision on what `pay_amount` is, then a migration. The void in `0231` deliberately mirrors the existing posting so a void nets to zero either way |
+| The general ledger debits cash by `pay_amount + fine_amount` (0097), but the collection form treats the received amount as **including** the fine (payable = fee + fine − adjustment; due = payable − received). A ৳500 fee with a ৳50 fine, ৳550 received, posts ৳600 to cash. The receipt's "Total" line (`pay + fine − adjust`) has the same reading | `0097_fee_gl_review_fixes.sql`, `app/school/fees/receipt/[id]/page.tsx` | Changing it rewrites what existing ledger entries mean. Needs the owner's decision on what `pay_amount` is, then a migration. The void in `0231` deliberately mirrors the existing posting so a void nets to zero either way. **Now #707: decided (the received amount includes the fine) and written as `0258`, section 4** |
 | `bank_cash_transactions` has the same insert-only balance trigger as director capital: a deleted or edited row leaves `bank_cash_accounts.balance` wrong | `0055_accounting_ii_books.sql` | Outside the four issues. Same guard as `0232` would fit |
 | Vouchers, bank/cash and director capital post to the general ledger on insert only (0098); a deleted voucher leaves its ledger entry. The integration tests delete vouchers as the owner | `0098_accounting_ii_gl.sql`, `tests/integration/accounting-ii.test.ts` | Outside the four issues |
 | A School member can delete a fee record through the API (policy `for all`, 0016). The delete trigger posts a contra, so the ledger stays right, but the row is gone | `0016_fee_collection.sql` | A Student delete cascades to fee records, so forbidding it is a wider decision |
