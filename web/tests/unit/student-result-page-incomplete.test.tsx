@@ -28,7 +28,7 @@ const scheme: GradingScheme = {
 
 function query(data: unknown) {
   const q: Record<string, unknown> = {}
-  for (const m of ['select', 'eq', 'order']) q[m] = () => q
+  for (const m of ['select', 'eq', 'not', 'order']) q[m] = () => q
   q.then = (resolve: (v: unknown) => unknown) => resolve({ data, error: null })
   return q
 }

@@ -41,7 +41,8 @@ export async function loadExamDrawerData(examId: string, classId: string | null)
     supabase.from('subjects').select('id, name').eq('class_id', classId).order('created_at'),
     supabase.from('student_enrollments').select('student_id', { count: 'exact', head: true }).eq('class_offering_id', classId).is('closed_at', null),
     selectAllRows<{ subject_id: string }>((from, to) =>
-      supabase.from('exam_marks').select('subject_id').eq('exam_id', examId).order('id').range(from, to),
+      // A half-filled row (null total, migration 0223) is not entered yet.
+      supabase.from('exam_marks').select('subject_id').eq('exam_id', examId).not('obtained_marks', 'is', null).order('id').range(from, to),
     ),
   ])
   const enteredBySubject = new Map<string, number>()

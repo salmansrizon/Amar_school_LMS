@@ -10,6 +10,7 @@ import { loadGradingScheme } from '@/lib/grading-scheme-loader'
 import { enrolledStudentIds, enrolledIdFilter } from '@/lib/school/offering-roster'
 import { MarksEntryTable, SubjectPicker, type MarkStudentRow, type SubjectOption } from './marks-entry-controls'
 import { resolveBackHref } from '@/lib/back-nav'
+import { isMissingColumnError } from '@/lib/leave-columns'
 
 // Layout per ui/school-owner/marks-entry.html: subject-picker toolbar over
 // the Roll/Name/Theory/MCQ/Practical/Total/Grade table, one Save per subject.
@@ -92,14 +93,30 @@ export default async function MarksEntryPage({
     .is('archived_at', null)
     .order('roll_number', { ascending: true, nullsFirst: false })
 
-  const [{ data: students }, { data: marksRows }, { data: optionalRows }, scheme] = await Promise.all([
+  // Migration 0223 adds is_absent (and lets a component be null). Until it is
+  // applied the column is missing: read without it, and the grid offers
+  // neither "absent" nor a half-filled row — what it did before.
+  type SavedMark = {
+    student_id: string
+    theory_obtained: number | null
+    mcq_obtained: number | null
+    practical_obtained: number | null
+    is_absent?: boolean
+  }
+  const MARK_COLUMNS = 'student_id, theory_obtained, mcq_obtained, practical_obtained'
+  const readMarks = (columns: string) =>
+    supabase.from('exam_marks').select(columns).eq('exam_id', id).eq('subject_id', selectedSubject.id).range(0, 4999)
+  const loadMarks = async () => {
+    const withAbsent = await readMarks(`${MARK_COLUMNS}, is_absent`)
+    if (!isMissingColumnError(withAbsent.error)) {
+      return { marksRows: withAbsent.data as unknown as SavedMark[] | null, absentSupported: !withAbsent.error }
+    }
+    return { marksRows: (await readMarks(MARK_COLUMNS)).data as unknown as SavedMark[] | null, absentSupported: false }
+  }
+
+  const [{ data: students }, { marksRows, absentSupported }, { data: optionalRows }, scheme] = await Promise.all([
     studentsQuery,
-    supabase
-      .from('exam_marks')
-      .select('student_id, theory_obtained, mcq_obtained, practical_obtained')
-      .eq('exam_id', id)
-      .eq('subject_id', selectedSubject.id)
-      .range(0, 4999),
+    loadMarks(),
     supabase.from('student_subjects').select('student_id, is_optional').eq('subject_id', selectedSubject.id),
     exam.grading_scheme_id ? loadGradingScheme(supabase, exam.grading_scheme_id) : Promise.resolve(null),
   ])
@@ -119,10 +136,14 @@ export default async function MarksEntryPage({
   const optionalByStudent = new Map((optionalRows ?? []).map((o) => [o.student_id, o.is_optional]))
   // No exam_marks row means the mark was never entered: the cells start blank,
   // not 0 (audit AC3). A component the subject does not have stays blank too.
-  const cell = (saved: number | string | undefined, max: number) =>
-    saved !== undefined && max > 0 ? String(Number(saved)) : ''
+  // A null component (0223) is one not entered yet, and an absent row shows
+  // its tick, not the zeros it is stored as.
+  const cell = (saved: number | string | null | undefined, max: number) =>
+    saved !== undefined && saved !== null && max > 0 ? String(Number(saved)) : ''
   const rows: MarkStudentRow[] = students.map((s) => {
-    const m = marksByStudent.get(s.id)
+    const saved = marksByStudent.get(s.id)
+    const absent = saved?.is_absent === true
+    const m = absent ? undefined : saved
     return {
       id: s.id,
       roll_number: s.roll_number,
@@ -130,6 +151,7 @@ export default async function MarksEntryPage({
       theory: cell(m?.theory_obtained, selectedSubject.theory_marks),
       mcq: cell(m?.mcq_obtained, selectedSubject.mcq_marks),
       practical: cell(m?.practical_obtained, selectedSubject.practical_marks),
+      absent,
       isOptional: optionalByStudent.get(s.id) ?? false,
     }
   })
@@ -160,6 +182,7 @@ export default async function MarksEntryPage({
           rows={rows}
           scheme={scheme}
           disabled={closed || notMine}
+          absentSupported={absentSupported}
           lang={lang}
         />
       </section>

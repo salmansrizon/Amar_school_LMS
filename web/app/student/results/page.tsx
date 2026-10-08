@@ -27,7 +27,7 @@ export default async function StudentResultsPage({
   const { supabase } = await getStudentContext()
 
   const [{ data }, { data: classSubjects }] = await Promise.all([
-    supabase.from('student_exam_result').select('*'),
+    supabase.from('student_exam_result').select('*').not('obtained_marks', 'is', null),
     supabase.from('student_subject_option').select('id'),
   ])
   const exams = groupByExam((data ?? []) as ResultRow[])

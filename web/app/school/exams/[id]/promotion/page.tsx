@@ -206,6 +206,8 @@ export default async function PromotionPage({
           .from('exam_marks')
           .select('student_id, subject_id, obtained_marks')
           .eq('exam_id', exam.id)
+          // A half-filled row (null total, migration 0223) is not entered yet.
+          .not('obtained_marks', 'is', null)
           .range(from, to),
       )
       const marksMap = new Map(marksRows.map((m) => [`${m.student_id}:${m.subject_id}`, Number(m.obtained_marks)]))
@@ -239,6 +241,8 @@ export default async function PromotionPage({
           .from('exam_marks')
           .select('exam_id, student_id, subject_id, obtained_marks')
           .in('exam_id', memberExamIds)
+          // A half-filled row (null total, migration 0223) is not entered yet.
+          .not('obtained_marks', 'is', null)
           .range(from, to),
       )
       const marksMap = new Map(

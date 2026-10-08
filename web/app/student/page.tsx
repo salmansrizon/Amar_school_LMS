@@ -118,7 +118,7 @@ export default async function StudentHome() {
     // The rank needs the exam id, so it chains on the result rows rather than
     // costing a second round trip after everything else.
     Promise.all([
-      supabase.from('student_exam_result').select('*'),
+      supabase.from('student_exam_result').select('*').not('obtained_marks', 'is', null),
       supabase.from('student_subject_option').select('id'),
     ]).then(async ([rows, subjects]) => {
       const latest = latestResult((rows.data ?? []) as ResultRow[], (subjects.data ?? []) as { id: string }[])

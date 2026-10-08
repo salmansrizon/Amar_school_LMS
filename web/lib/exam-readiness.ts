@@ -15,8 +15,8 @@ type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>
  * a blank component (possible once migration 0223 makes them nullable) has a
  * null generated total and is not entered yet; before 0223 no total is null and
  * the filter changes nothing. */
-function enteredMarks(supabase: SupabaseServerClient, examId: string) {
-  return supabase.from('exam_marks').select('student_id, subject_id').eq('exam_id', examId).not('obtained_marks', 'is', null)
+function enteredMarks(supabase: SupabaseServerClient, examId: string, from: number, to: number) {
+  return supabase.from('exam_marks').select('student_id, subject_id').eq('exam_id', examId).not('obtained_marks', 'is', null).order('id').range(from, to)
 }
 
 export interface ExamReadiness extends PublishFacts {
@@ -45,7 +45,7 @@ export async function loadExamReadiness(
       : Promise.resolve({ data: [] as { id: string; name: string; class_id: string | null }[] }),
     exam.class_id
       ? selectAllRows<{ student_id: string; subject_id: string }>((from, to) =>
-          enteredMarks(supabase, exam.id).order('id').range(from, to),
+          enteredMarks(supabase, exam.id, from, to),
         )
       : Promise.resolve({ rows: [] as { student_id: string; subject_id: string }[] }),
   ])
@@ -93,7 +93,7 @@ export async function loadMarksProgress(
     exams.map(async (e) => {
       if (!e.class_id) return [e.id, { entered: 0, total: 0 }] as const
       const marks = await selectAllRows<{ student_id: string; subject_id: string }>((from, to) =>
-        enteredMarks(supabase, e.id).order('id').range(from, to),
+        enteredMarks(supabase, e.id, from, to),
       )
       const { entered, total } = tallyMarks(
         rosterIds.get(e.class_id) ?? [],
