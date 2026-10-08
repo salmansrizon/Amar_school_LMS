@@ -51,6 +51,8 @@ type RecordRow = {
   due: number
   method: string
   standing: FeeStanding
+  /** Voided (#683): listed, counted in no figure and in no follow-up list. */
+  voided: boolean
 }
 
 /** A roster student's record for the month, as read for the collection form. */
@@ -118,7 +120,7 @@ export default async function FeesPage({
   // Which optional fee columns the database has (0230 fee_amount, 0231 void).
   const cols = await feeColumns(supabase)
 
-  const [{ data: classes }, { rows: monthRecords }] = await Promise.all([
+  const [{ data: classes }, { rows: monthRows }] = await Promise.all([
     applyGlobalYearFilterToOfferings(
       applyGlobalShiftFilterToOfferings(
         supabase
@@ -133,7 +135,10 @@ export default async function FeesPage({
       supabase
         .from('fee_collection_records')
         .select(
-          'id, student_id, pay_amount, fine_amount, adjust_amount, due_amount, payment_method, students(full_name, roll_number)',
+          feeSelect(
+            'id, student_id, pay_amount, fine_amount, adjust_amount, due_amount, payment_method, students(full_name, roll_number)',
+            { ...cols, feeAmount: false },
+          ),
         )
         .eq('month', month)
         .eq('year', year)
@@ -142,6 +147,11 @@ export default async function FeesPage({
         .range(from, to),
     ),
   ])
+
+  const monthRecords = monthRows as unknown as (RosterFeeRow & {
+    void_at?: string | null
+    students: { full_name: string; roll_number: number | null } | null
+  })[]
 
   const cls = classes?.find((c) => c.id === selectedClass) ?? null
 
@@ -177,7 +187,7 @@ export default async function FeesPage({
     finePerDay = Number(structure?.fine_per_absent_day ?? 0)
 
     if (roster.length) {
-      const { data } = await supabase
+      let rosterRecords = supabase
         .from('fee_collection_records')
         .select(feeSelect('id, student_id, pay_amount, fine_amount, adjust_amount, due_amount, payment_method, note', cols))
         .eq('month', month)
@@ -186,6 +196,10 @@ export default async function FeesPage({
           'student_id',
           roster.map((s) => s.id),
         )
+      // A voided record (#683) is not this month's collection: the Student
+      // reads "not collected" again and the form opens empty for a new record.
+      if (cols.void) rosterRecords = rosterRecords.is('void_at', null)
+      const { data } = await rosterRecords
       const records = (data ?? []) as unknown as RosterFeeRow[]
       recordMap = new Map(
         records.map((r) => [
@@ -210,7 +224,7 @@ export default async function FeesPage({
 
   // The month's records → table rows + headline figures.
   const all: RecordRow[] = monthRecords.map((r) => {
-    const st = r.students as unknown as { full_name: string; roll_number: number | null } | null
+    const st = r.students
     const rec = { pay_amount: Number(r.pay_amount), due_amount: Number(r.due_amount) }
     return {
       id: r.id,
@@ -223,14 +237,17 @@ export default async function FeesPage({
       due: rec.due_amount,
       method: r.payment_method,
       standing: feeStanding(rec) ?? 'due',
+      voided: Boolean(r.void_at),
     }
   })
-  const summary = summarizeMonthFees(all.map((r) => ({ pay_amount: r.pay, due_amount: r.due })))
+  // Every figure, chip and follow-up list below counts active records only.
+  const active = all.filter((r) => !r.voided)
+  const summary = summarizeMonthFees(active.map((r) => ({ pay_amount: r.pay, due_amount: r.due })))
   const needle = q.trim().toLowerCase()
   const visible = all.filter(
     (r) =>
       (!needle || r.name.toLowerCase().includes(needle) || String(r.roll ?? '') === needle) &&
-      (!standing || r.standing === standing) &&
+      (!standing || (!r.voided && r.standing === standing)) &&
       (!method || r.method === method),
   )
   const pageData = paginate(visible, page, pageSize)
@@ -253,11 +270,12 @@ export default async function FeesPage({
   // The record's one contextual next step: a Due/Partial standing still needs
   // money, so Remind (SMS) leads; a settled record's next step is its Receipt.
   const nextStepFor = (r: RecordRow): { state: 'next' | 'default'; href: string; label: string } =>
-    canSms && r.standing !== 'paid'
+    canSms && !r.voided && r.standing !== 'paid'
       ? { state: 'next', href: `/school/sms?students=${r.student_id}`, label: t('students.remind', lang) }
       : { state: 'default', href: `/school/fees/receipt/${r.id}`, label: t('fees.receipt', lang) }
-  const dueRows = all.filter((r) => r.standing === 'due')
-  const partialRows = all.filter((r) => r.standing === 'partial')
+  const dueRows = active.filter((r) => r.standing === 'due')
+  const partialRows = active.filter((r) => r.standing === 'partial')
+  const canVoid = cols.void && role === 'school_owner'
 
   const columns: Column<RecordRow>[] = [
     {
@@ -306,11 +324,14 @@ export default async function FeesPage({
       header: t('fees.status', lang),
       card: 'badge',
       // Due fees need attention now; paid/partial are informational, no pulse.
-      cell: (r) => (
-        <Pill tone={STANDING_TONE[r.standing]} pulse={r.standing === 'due'}>
-          {t(STANDING_LABEL[r.standing], lang)}
-        </Pill>
-      ),
+      cell: (r) =>
+        r.voided ? (
+          <Pill tone="muted">{t('fees.voided', lang)}</Pill>
+        ) : (
+          <Pill tone={STANDING_TONE[r.standing]} pulse={r.standing === 'due'}>
+            {t(STANDING_LABEL[r.standing], lang)}
+          </Pill>
+        ),
     },
   ]
 
@@ -620,7 +641,14 @@ export default async function FeesPage({
         fullPageLabel={t('table.openFullPage', lang)}
         closeLabel={t('common.close', lang)}
       >
-        {viewed && <FeeDrawerBody record={viewed} data={feeDrawerData ?? { history: [] }} lang={lang} />}
+        {viewed && (
+          <FeeDrawerBody
+            record={viewed}
+            data={feeDrawerData ?? { history: [] }}
+            lang={lang}
+            voidHref={canVoid ? `/school/fees/receipt/${viewed.id}` : undefined}
+          />
+        )}
       </RecordDrawer>
     </>
   )

@@ -161,6 +161,19 @@ export function settleFee(entry: { fee: number; fine: number; adjust: number; re
   return { total, due: dueAmount(total, entry.received), overpaid: overpaidAmount(total, entry.received) }
 }
 
+// Voiding a Fee Collection Record (#683, migration 0231).
+
+/** Same number as the CHECK in migration 0231. */
+export const VOID_REASON_MAX = 500
+
+/** The trimmed reason, or null when it is empty or longer than the column
+ *  allows. A void always carries a reason, and a too-long one is refused rather
+ *  than clipped: what is stored is what the owner wrote. */
+export function cleanVoidReason(reason: string | null | undefined): string | null {
+  const trimmed = (reason ?? '').trim()
+  return trimmed.length >= 1 && trimmed.length <= VOID_REASON_MAX ? trimmed : null
+}
+
 // The general-ledger postings of one Fee Collection Record.
 
 /** `gl_entries.ref` LIKE pattern for one record's postings. The fee_gl_post

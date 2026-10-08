@@ -1,11 +1,12 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { requireSchoolMember } from '@/lib/auth/require-role'
+import { requireSchoolMember, requireSchoolOwnerProfile } from '@/lib/auth/require-role'
 import { screenGrantDenied } from '@/lib/auth/require-grant'
 import { createClient } from '@/lib/supabase/server'
-import { absentFineAmount, settleFee } from '@/lib/fees'
+import { absentFineAmount, cleanVoidReason, settleFee } from '@/lib/fees'
 import { feeColumns } from '@/lib/fee-columns'
+import { isMissingColumnError } from '@/lib/leave-columns'
 import { currentLang } from '@/lib/i18n-server'
 import { t } from '@/lib/i18n'
 
@@ -71,11 +72,13 @@ export async function saveFeeRecord(formData: FormData): Promise<SaveFeeResult> 
   const stored = cols.feeAmount && feeKnown ? { ...amounts, fee_amount: fee } : amounts
 
   if (editId) {
-    const { data, error } = await supabase
+    let edit = supabase
       .from('fee_collection_records')
       .update({ ...stored, payment_method: method, note })
       .eq('id', editId)
-      .select('id')
+    // A voided record (#683) is closed; the database refuses the edit too.
+    if (cols.void) edit = edit.is('void_at', null)
+    const { data, error } = await edit.select('id')
     if (error) return { error: error.message }
     if (!data?.length) return { error: 'Record not found or not accessible' }
     revalidatePath('/school/fees')
@@ -90,20 +93,53 @@ export async function saveFeeRecord(formData: FormData): Promise<SaveFeeResult> 
 
   if (error) {
     if (error.code === '23505') {
-      // Legacy behavior: redirect to editing the existing record.
-      const { data: existing } = await supabase
+      // Legacy behavior: redirect to editing the existing record — the one
+      // that is not voided (#683: a voided month can be collected again).
+      let lookup = supabase
         .from('fee_collection_records')
         .select('id')
         .eq('student_id', studentId)
         .eq('month', month)
         .eq('year', year)
-        .single()
+      if (cols.void) lookup = lookup.is('void_at', null)
+      const { data: existing } = await lookup.single()
       if (existing) return { existingId: existing.id }
     }
     return { error: error.message }
   }
   revalidatePath('/school/fees')
   return { savedId: data.id }
+}
+
+// Void (#683). The record is never deleted and none of its amounts change: it
+// gains who / when / why, and the fee_gl_void trigger (0231) posts the reversing
+// ledger entry in the same transaction. The database decides who and when
+// (fee_record_void_guard stamps auth.uid() and now()); this action only carries
+// the reason. School Owner only — the conservative reading of the issue's open
+// question, enforced again by the trigger.
+export async function voidFeeRecord(recordId: string, reasonRaw: string): Promise<{ error?: string }> {
+  const lang = await currentLang()
+  const reason = cleanVoidReason(reasonRaw)
+  if (!reason) return { error: t('fees.voidReasonRequired', lang) }
+
+  const supabase = await createClient()
+  if (!(await requireSchoolMember(supabase))) return { error: 'Unauthorized' }
+  if (!(await requireSchoolOwnerProfile(supabase)).ok) return { error: t('fees.voidOwnerOnly', lang) }
+  // Without migration 0231 a void cannot be stored at all: say so, never
+  // pretend it happened.
+  if (!(await feeColumns(supabase)).void) return { error: t('fees.voidUnavailable', lang) }
+
+  const { data, error } = await supabase
+    .from('fee_collection_records')
+    .update({ void_at: new Date().toISOString(), void_reason: reason })
+    .eq('id', recordId)
+    .is('void_at', null)
+    .select('id')
+  if (error) return { error: isMissingColumnError(error) ? t('fees.voidUnavailable', lang) : error.message }
+  if (!data?.length) return { error: t('fees.voidNotFound', lang) }
+  revalidatePath('/school/fees')
+  revalidatePath(`/school/fees/receipt/${recordId}`)
+  return {}
 }
 
 // Absent-fine calculator (issue #34, PRD §5.6): absent working days come from

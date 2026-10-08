@@ -1,6 +1,8 @@
 import { AlertTriangle, HandCoins, Receipt, Wallet } from 'lucide-react'
 import { getSchoolContext } from '@/lib/school/context'
+import Link from 'next/link'
 import { feeStanding, feePeriodLabel, type FeeStanding } from '@/lib/fees'
+import { feeColumns, feeSelect } from '@/lib/fee-columns'
 import { t, numberFmt, localeOf, type Lang } from '@/lib/i18n'
 import { withParams, type Params } from '@/lib/url-params'
 import { Pill } from '@/components/data-table/data-table'
@@ -15,7 +17,7 @@ const STANDING_TONE = { paid: 'mint', partial: 'sun', due: 'alert' } as const
 const STANDING_LABEL = { paid: 'students.feePaid', partial: 'students.feePartial', due: 'students.feeDue' } as const
 const METHODS = ['cash', 'cheque', 'bank'] as const
 
-type HistoryRow = { id: string; month: number; year: number; standing: FeeStanding; due: number }
+type HistoryRow = { id: string; month: number; year: number; standing: FeeStanding; due: number; voided: boolean }
 export type FeeDrawerData = { history: HistoryRow[] }
 
 export type FeeDrawerRecord = {
@@ -27,6 +29,8 @@ export type FeeDrawerRecord = {
   due: number
   method: string
   standing: FeeStanding
+  /** Voided (#683): kept and shown, counted nowhere. */
+  voided?: boolean
 }
 
 /** The same student's other Fee Collection Records (up to 4, most recent
@@ -34,25 +38,46 @@ export type FeeDrawerRecord = {
  *  `view` id. */
 export async function loadFeeDrawerData(studentId: string, excludeId: string): Promise<FeeDrawerData> {
   const { supabase } = await getSchoolContext()
-  const { data } = await supabase
+  const cols = { ...(await feeColumns(supabase)), feeAmount: false }
+  const { data: rows } = await supabase
     .from('fee_collection_records')
-    .select('id, month, year, pay_amount, due_amount')
+    .select(feeSelect('id, month, year, pay_amount, due_amount', cols))
     .eq('student_id', studentId)
     .neq('id', excludeId)
     .order('year', { ascending: false })
     .order('month', { ascending: false })
     .limit(4)
-  const history: HistoryRow[] = (data ?? []).map((r) => ({
+  const data = (rows ?? []) as unknown as {
+    id: string
+    month: number
+    year: number
+    pay_amount: number
+    due_amount: number
+    void_at?: string | null
+  }[]
+  const history: HistoryRow[] = data.map((r) => ({
     id: r.id,
     month: r.month,
     year: r.year,
+    voided: Boolean(r.void_at),
     due: Number(r.due_amount),
     standing: feeStanding({ pay_amount: Number(r.pay_amount), due_amount: Number(r.due_amount) }) ?? 'due',
   }))
   return { history }
 }
 
-export function FeeDrawerBody({ record, data, lang }: { record: FeeDrawerRecord; data: FeeDrawerData; lang: Lang }) {
+export function FeeDrawerBody({
+  record,
+  data,
+  lang,
+  voidHref,
+}: {
+  record: FeeDrawerRecord
+  data: FeeDrawerData
+  lang: Lang
+  /** Where the School Owner voids this record (the receipt); absent when they cannot. */
+  voidHref?: string
+}) {
   const fmt = numberFmt(lang)
   const tk = (n: number) => `৳${fmt.format(n)}`
   const methodLabel = (m: string) => ((METHODS as readonly string[]).includes(m) ? t(`fees.${m}` as 'fees.cash', lang) : m)
@@ -68,11 +93,20 @@ export function FeeDrawerBody({ record, data, lang }: { record: FeeDrawerRecord;
   return (
     <div className="space-y-1">
       <div className="mb-1">
-        <Pill tone={STANDING_TONE[record.standing]} pulse={record.standing === 'due'}>
-          {t(STANDING_LABEL[record.standing], lang)}
-        </Pill>
+        {record.voided ? (
+          <Pill tone="muted">{t('fees.voided', lang)}</Pill>
+        ) : (
+          <Pill tone={STANDING_TONE[record.standing]} pulse={record.standing === 'due'}>
+            {t(STANDING_LABEL[record.standing], lang)}
+          </Pill>
+        )}
       </div>
       <DrawerFacts facts={facts} />
+      {voidHref && !record.voided && (
+        <Link href={voidHref} className="inline-block text-xs font-semibold text-alert-deep hover:underline">
+          {t('fees.voidAction', lang)}
+        </Link>
+      )}
 
       <DrawerSection title={t('fees.historySectionTitle', lang)} count={data.history.length} defaultOpen={data.history.length > 0}>
         {data.history.length > 0 ? (
@@ -82,8 +116,14 @@ export function FeeDrawerBody({ record, data, lang }: { record: FeeDrawerRecord;
                 key={h.id}
                 icon={<Wallet className="size-4" aria-hidden />}
                 title={feePeriodLabel(h.month, h.year, localeOf(lang))}
-                meta={h.standing !== 'paid' ? [tk(h.due)] : []}
-                status={<Pill tone={STANDING_TONE[h.standing]}>{t(STANDING_LABEL[h.standing], lang)}</Pill>}
+                meta={!h.voided && h.standing !== 'paid' ? [tk(h.due)] : []}
+                status={
+                  h.voided ? (
+                    <Pill tone="muted">{t('fees.voided', lang)}</Pill>
+                  ) : (
+                    <Pill tone={STANDING_TONE[h.standing]}>{t(STANDING_LABEL[h.standing], lang)}</Pill>
+                  )
+                }
                 href={`/school/fees/receipt/${h.id}`}
               />
             ))}

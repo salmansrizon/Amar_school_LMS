@@ -2251,6 +2251,37 @@ const dict = {
   },
   // #695: the part of the received amount beyond fee + fine − adjustment.
   'fees.advance': { bn: 'অগ্রিম (৳)', en: 'Advance (Tk)' },
+  // #683: void — the record stays, marked, with a reversing ledger entry.
+  'fees.voided': { bn: 'বাতিলকৃত', en: 'Voided' },
+  'fees.voidAction': { bn: 'রেকর্ড বাতিল করুন', en: 'Void record' },
+  'fees.voidTitle': { bn: 'এই ফি রেকর্ড বাতিল করবেন?', en: 'Void this fee record?' },
+  'fees.voidBody': {
+    bn: 'রেকর্ডটি মুছে যাবে না — বাতিলকৃত হিসেবে থেকে যাবে, আর খতিয়ানে বিপরীত এন্ট্রি হবে। বাতিল ফেরানো যায় না; প্রয়োজনে এই মাসের ফি নতুন করে আদায় করুন।',
+    en: 'The record is not deleted — it stays, marked as voided, and a reversing entry is posted to the ledger. A void cannot be undone; collect the month again if needed.',
+  },
+  'fees.voidReversal': { bn: 'খতিয়ানে যা উল্টে যাবে', en: 'What is reversed in the ledger' },
+  'fees.voidReason': { bn: 'বাতিলের কারণ', en: 'Reason for voiding' },
+  'fees.voidReasonRequired': {
+    bn: 'বাতিলের কারণ লিখুন (সর্বোচ্চ ৫০০ অক্ষর)।',
+    en: 'Enter a reason for voiding (up to 500 characters).',
+  },
+  'fees.voidConfirm': { bn: 'বাতিল নিশ্চিত করুন', en: 'Confirm void' },
+  'fees.voidKeep': { bn: 'রেকর্ড রেখে দিন', en: 'Keep the record' },
+  'fees.voidDone': { bn: 'ফি রেকর্ড বাতিল করা হয়েছে', en: 'Fee record voided' },
+  'fees.voidOwnerOnly': {
+    bn: 'শুধু প্রতিষ্ঠান মালিক ফি রেকর্ড বাতিল করতে পারেন।',
+    en: 'Only the School Owner can void a fee record.',
+  },
+  'fees.voidUnavailable': {
+    bn: 'রেকর্ড বাতিলের সুবিধা এখনও চালু হয়নি — ডেটাবেস হালনাগাদ বাকি আছে। কিছুই পরিবর্তন হয়নি।',
+    en: 'Voiding is not available yet — a database update is pending. Nothing was changed.',
+  },
+  'fees.voidNotFound': {
+    bn: 'রেকর্ডটি পাওয়া যায়নি, অথবা আগেই বাতিল করা হয়েছে।',
+    en: 'Record not found, or it is already voided.',
+  },
+  'fees.voidedOn': { bn: 'বাতিলের তারিখ', en: 'Voided on' },
+  'fees.voidedBy': { bn: 'বাতিল করেছেন', en: 'Voided by' },
   'fees.ledgerImpact': { bn: 'খতিয়ানে প্রভাব', en: 'Ledger impact' },
   'fees.ledgerDebit': { bn: 'ডেবিট', en: 'Debit' },
   'fees.ledgerCredit': { bn: 'ক্রেডিট', en: 'Credit' },

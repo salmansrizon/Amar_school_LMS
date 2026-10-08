@@ -14,6 +14,7 @@ import { currentLang } from '@/lib/i18n-server'
 import { t, formatMoney, formatDate, localeOf } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { PrintButton } from './print-button'
+import { VoidFeeButton } from './void-fee-button'
 import { loadInstitutePrintHeader } from '@/lib/institute-print'
 import { InstituteHeader } from '@/components/print/pieces'
 import { pageTitle } from '@/lib/page-title'
@@ -33,13 +34,17 @@ type ReceiptRecord = {
   payment_method: string
   note: string | null
   updated_at: string
+  /** Migration 0231 (#683); absent before it, null on a record that is not voided. */
+  void_at?: string | null
+  void_by?: string | null
+  void_reason?: string | null
   students: unknown
 }
 
 export default async function ReceiptPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const lang = await currentLang()
-  const { supabase } = await getSchoolContext()
+  const { supabase, role } = await getSchoolContext()
 
   const cols = await feeColumns(supabase)
   const { data } = await supabase
@@ -48,6 +53,7 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
       feeSelect(
         'id, month, year, pay_amount, fine_amount, adjust_amount, due_amount, payment_method, note, updated_at, students(full_name, class_name, section), schools(name)',
         cols,
+        'void_at, void_by, void_reason',
       ),
     )
     .eq('id', id)
@@ -61,6 +67,12 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
     section: string | null
   } | null
   const institute = await loadInstitutePrintHeader(supabase, lang)
+  // #683: who voided it — by name where the reader may see that profile.
+  const { data: voider } = record.void_by
+    ? await supabase.from('profiles').select('full_name').eq('id', record.void_by).maybeSingle()
+    : { data: null }
+  // School Owner only, and only once migration 0231 gives the void somewhere to be stored.
+  const canVoid = cols.void && !record.void_at && role === 'school_owner'
 
   // #531 asks the owner to see the ledger impact without leaving the flow. The
   // posting is made by the fee_gl_post trigger (0097) in the same transaction as
@@ -100,11 +112,35 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
     <main className="mx-auto w-full max-w-md flex-1 p-6">
       <div className="mb-4 flex items-center justify-between print:hidden">
         <Link href="/school/fees" aria-label={t('fees.title', lang)} className="inline-flex size-9 max-sm:size-11 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
-        <PrintButton label={t('fees.print', lang)} />
+        <div className="flex items-center gap-2">
+          {canVoid && (
+            <VoidFeeButton
+              recordId={record.id}
+              pay={Number(record.pay_amount)}
+              fine={Number(record.fine_amount)}
+              lang={lang}
+            />
+          )}
+          <PrintButton label={t('fees.print', lang)} />
+        </div>
       </div>
 
       <section className="rounded-lg border border-line bg-paper p-6 shadow-card print:border-0 print:shadow-none">
         <InstituteHeader institute={institute ?? undefined} docTitle={t('fees.receipt', lang)} />
+
+        {/* Not print:hidden — a voided receipt must say so on paper too. */}
+        {record.void_at && (
+          <div role="alert" className="mb-4 rounded-lg border-2 border-alert bg-alert-soft p-3 text-sm text-alert-deep">
+            <p className="text-base font-extrabold uppercase tracking-wide">{t('fees.voided', lang)}</p>
+            <p className="mt-1">
+              {t('fees.voidedOn', lang)}: {formatDate(record.void_at, lang, 'form')}
+              {voider?.full_name ? ` · ${t('fees.voidedBy', lang)}: ${voider.full_name}` : ''}
+            </p>
+            <p className="mt-1">
+              {t('fees.voidReason', lang)}: {record.void_reason}
+            </p>
+          </div>
+        )}
 
         <dl className="flex flex-col gap-1.5 text-sm">
           <div className="flex justify-between">
