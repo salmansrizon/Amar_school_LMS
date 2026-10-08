@@ -1,30 +1,65 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { takaInWords } from '@/lib/amount-words'
-import { totalPayable, feePeriodLabel, feeGlRefPattern, FEE_GL_ORDER_COLUMN } from '@/lib/fees'
+import {
+  totalPayable,
+  feePeriodLabel,
+  feeGlRefPattern,
+  FEE_GL_ORDER_COLUMN,
+  recordFeeAmount,
+  advanceAmount,
+} from '@/lib/fees'
+import { feeColumns, feeSelect } from '@/lib/fee-columns'
 import { currentLang } from '@/lib/i18n-server'
 import { t, formatMoney, formatDate, localeOf } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { PrintButton } from './print-button'
+import { VoidFeeButton } from './void-fee-button'
 import { loadInstitutePrintHeader } from '@/lib/institute-print'
 import { InstituteHeader } from '@/components/print/pieces'
 import { pageTitle } from '@/lib/page-title'
 
 export const generateMetadata = pageTitle('fees.receipt')
 
+type ReceiptRecord = {
+  id: string
+  month: number
+  year: number
+  pay_amount: number
+  fine_amount: number
+  adjust_amount: number
+  due_amount: number
+  /** Migration 0230 (#678); absent before it, null on older rows. */
+  fee_amount?: number | null
+  payment_method: string
+  note: string | null
+  updated_at: string
+  /** Migration 0231 (#683); absent before it, null on a record that is not voided. */
+  void_at?: string | null
+  void_by?: string | null
+  void_reason?: string | null
+  students: unknown
+}
+
 export default async function ReceiptPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const lang = await currentLang()
-  const { supabase } = await getSchoolContext()
+  const { supabase, role } = await getSchoolContext()
 
-  const { data: record } = await supabase
+  const cols = await feeColumns(supabase)
+  const { data } = await supabase
     .from('fee_collection_records')
     .select(
-      'id, month, year, pay_amount, fine_amount, adjust_amount, due_amount, payment_method, note, updated_at, students(full_name, class_name, section), schools(name)',
+      feeSelect(
+        'id, month, year, pay_amount, fine_amount, adjust_amount, due_amount, payment_method, note, updated_at, students(full_name, class_name, section), schools(name)',
+        cols,
+        'void_at, void_by, void_reason',
+      ),
     )
     .eq('id', id)
     .single()
-  if (!record) notFound()
+  if (!data) notFound()
+  const record = data as unknown as ReceiptRecord
 
   const student = record.students as unknown as {
     full_name: string
@@ -32,6 +67,12 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
     section: string | null
   } | null
   const institute = await loadInstitutePrintHeader(supabase, lang)
+  // #683: who voided it — by name where the reader may see that profile.
+  const { data: voider } = record.void_by
+    ? await supabase.from('profiles').select('full_name').eq('id', record.void_by).maybeSingle()
+    : { data: null }
+  // School Owner only, and only once migration 0231 gives the void somewhere to be stored.
+  const canVoid = cols.void && !record.void_at && role === 'school_owner'
 
   // #531 asks the owner to see the ledger impact without leaving the flow. The
   // posting is made by the fee_gl_post trigger (0097) in the same transaction as
@@ -54,16 +95,52 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
   // Adjustment is a discount/scholarship — it reduces what was actually collected.
   // Shared with the collection form's live preview (lib/fees.ts).
   const total = totalPayable(Number(record.pay_amount), Number(record.fine_amount), Number(record.adjust_amount))
+  // #678: the billed fee, printed only when it is known — stored, or exactly
+  // derivable because something is still due. #695: the advance is whatever was
+  // received beyond fee + fine − adjustment, known only from a stored fee.
+  const figures = {
+    pay_amount: Number(record.pay_amount),
+    fine_amount: Number(record.fine_amount),
+    adjust_amount: Number(record.adjust_amount),
+    due_amount: Number(record.due_amount),
+    fee_amount: record.fee_amount == null ? null : Number(record.fee_amount),
+  }
+  const billed = recordFeeAmount(figures)
+  const advance = advanceAmount(figures)
 
   return (
     <main className="mx-auto w-full max-w-md flex-1 p-6">
       <div className="mb-4 flex items-center justify-between print:hidden">
         <Link href="/school/fees" aria-label={t('fees.title', lang)} className="inline-flex size-9 max-sm:size-11 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
-        <PrintButton label={t('fees.print', lang)} />
+        <div className="flex items-center gap-2">
+          {canVoid && (
+            <VoidFeeButton
+              recordId={record.id}
+              pay={Number(record.pay_amount)}
+              fine={Number(record.fine_amount)}
+              lang={lang}
+            />
+          )}
+          <PrintButton label={t('fees.print', lang)} />
+        </div>
       </div>
 
       <section className="rounded-lg border border-line bg-paper p-6 shadow-card print:border-0 print:shadow-none">
         <InstituteHeader institute={institute ?? undefined} docTitle={t('fees.receipt', lang)} />
+
+        {/* Not print:hidden — a voided receipt must say so on paper too. */}
+        {record.void_at && (
+          <div role="alert" className="mb-4 rounded-lg border-2 border-alert bg-alert-soft p-3 text-sm text-alert-deep">
+            <p className="text-base font-extrabold uppercase tracking-wide">{t('fees.voided', lang)}</p>
+            <p className="mt-1">
+              {t('fees.voidedOn', lang)}: {formatDate(record.void_at, lang, 'form')}
+              {voider?.full_name ? ` · ${t('fees.voidedBy', lang)}: ${voider.full_name}` : ''}
+            </p>
+            <p className="mt-1">
+              {t('fees.voidReason', lang)}: {record.void_reason}
+            </p>
+          </div>
+        )}
 
         <dl className="flex flex-col gap-1.5 text-sm">
           <div className="flex justify-between">
@@ -80,6 +157,12 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
               {feePeriodLabel(record.month, record.year, localeOf(lang))}
             </dd>
           </div>
+          {billed.exact && (
+            <div className="flex justify-between">
+              <dt className="text-muted">{t('fees.feeAmount', lang)}</dt>
+              <dd>{formatMoney(billed.fee, lang)}</dd>
+            </div>
+          )}
           <div className="flex justify-between">
             <dt className="text-muted">{t('fees.receivedAmount', lang)}</dt>
             <dd>{formatMoney(Number(record.pay_amount), lang)}</dd>
@@ -96,6 +179,12 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
             <dt className="text-muted">{t('fees.due', lang)}</dt>
             <dd>{formatMoney(Number(record.due_amount), lang)}</dd>
           </div>
+          {advance > 0 && (
+            <div className="flex justify-between">
+              <dt className="text-muted">{t('fees.advance', lang)}</dt>
+              <dd>{formatMoney(advance, lang)}</dd>
+            </div>
+          )}
           <div className="flex justify-between border-t border-line pt-2 font-bold">
             <dt>{t('fees.total', lang)}</dt>
             <dd>{formatMoney(total, lang)}</dd>

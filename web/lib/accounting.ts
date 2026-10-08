@@ -77,6 +77,40 @@ export interface LedgerEntry extends LedgerSourceRow {
   balance: number
 }
 
+/** One Fee Collection Record on the ledger page: the money received, dated by
+ *  the record's `updated_at` as before, and — for a voided record (#683) — a
+ *  second row taking the same money back out on the day it was voided. The
+ *  first row stays, so a ledger printed before the void still reads the same
+ *  up to that day. */
+export function feeLedgerRows(
+  record: { pay_amount: number; updated_at: string; void_at?: string | null },
+  description: string,
+  voidedLabel: string,
+): LedgerSourceRow[] {
+  const day = (iso: string) => new Date(iso).toISOString().slice(0, 10)
+  const rows: LedgerSourceRow[] = [
+    {
+      date: day(record.updated_at),
+      sortKey: record.updated_at,
+      source: 'fee_collection',
+      description,
+      debit: 0,
+      credit: record.pay_amount,
+    },
+  ]
+  if (record.void_at && record.pay_amount > 0) {
+    rows.push({
+      date: day(record.void_at),
+      sortKey: record.void_at,
+      source: 'fee_collection',
+      description: `${description} — ${voidedLabel}`,
+      debit: record.pay_amount,
+      credit: 0,
+    })
+  }
+  return rows
+}
+
 /** Merges every source's rows into one chronological ledger with a running
  *  balance, then filters the visible rows to [from, to] (inclusive). The
  *  running balance is computed over ALL rows first — not just the ones in

@@ -121,6 +121,34 @@ export function overpaidAmount(totalPayableAmount: number, receivedAmount: numbe
   return Math.max(0, toPoisha(receivedAmount) - toPoisha(totalPayableAmount)) / 100
 }
 
+type StoredFigures = {
+  pay_amount: number
+  fine_amount: number
+  adjust_amount: number
+  due_amount: number
+  /** Stored billed fee (migration 0230); null/undefined on older rows. */
+  fee_amount?: number | null
+}
+
+/** The billed fee of a saved record, and whether it is known or only
+ *  reconstructed (#678). Known: the stored `fee_amount`, or — for a row saved
+ *  before 0230 — the derivation while something is still due, which is exact.
+ *  Not known: an older row with nothing due, where an exact payment and an
+ *  advance are the same four numbers; `fee` is then the figure that makes them
+ *  add up, for the edit form only — never to be stored or printed as the fee. */
+export function recordFeeAmount(record: StoredFigures): { fee: number; exact: boolean } {
+  if (record.fee_amount != null) return { fee: record.fee_amount, exact: true }
+  return { fee: billedFeeAmount(record), exact: record.due_amount > 0 }
+}
+
+/** The advance sitting on a record: what was received beyond fee + fine −
+ *  adjustment (#695). 0 when the fee is not stored — an advance is then
+ *  indistinguishable from an exact payment and is not guessed at. */
+export function advanceAmount(record: StoredFigures): number {
+  if (record.fee_amount == null) return 0
+  return overpaidAmount(totalPayable(record.fee_amount, record.fine_amount, record.adjust_amount), record.pay_amount)
+}
+
 /** One collection's figures from what the operator entered. The collection
  *  form's live preview and saveFeeRecord both call this, so the due amount that
  *  is stored is the one the server worked out — not a number the browser sent. */
@@ -131,6 +159,19 @@ export function settleFee(entry: { fee: number; fine: number; adjust: number; re
 } {
   const total = totalPayable(entry.fee, entry.fine, entry.adjust)
   return { total, due: dueAmount(total, entry.received), overpaid: overpaidAmount(total, entry.received) }
+}
+
+// Voiding a Fee Collection Record (#683, migration 0231).
+
+/** Same number as the CHECK in migration 0231. */
+export const VOID_REASON_MAX = 500
+
+/** The trimmed reason, or null when it is empty or longer than the column
+ *  allows. A void always carries a reason, and a too-long one is refused rather
+ *  than clipped: what is stored is what the owner wrote. */
+export function cleanVoidReason(reason: string | null | undefined): string | null {
+  const trimmed = (reason ?? '').trim()
+  return trimmed.length >= 1 && trimmed.length <= VOID_REASON_MAX ? trimmed : null
 }
 
 // The general-ledger postings of one Fee Collection Record.

@@ -12,7 +12,7 @@ import { Card, PageHeader } from '@/components/ui/page'
 import { StatCard, StatGrid } from '@/components/ui/widgets'
 import { paginate, pageSizeFrom } from '@/components/pager'
 import { DataTable, Pill, type Column } from '@/components/data-table/data-table'
-import { capitalSummary } from '@/lib/director-capital'
+import { capitalSummary, capitalRunningBalances } from '@/lib/director-capital'
 import { pageTitle } from '@/lib/page-title'
 
 // Director Capital (map 013 FC1): balance + invested/withdrawn stat cards,
@@ -73,6 +73,10 @@ export default async function DirectorCapitalPage({
     sinceFrom = ((await later).data ?? []).map((x) => ({ txn_type: x.txn_type, amount: Number(x.amount) }))
   }
   const summary = capitalSummary(balance, all, sinceFrom)
+  // The Running Balance column follows from the opening card, over every listed
+  // row (before the type filter), so its last figure is the closing card.
+  const balances = capitalRunningBalances(summary.opening, all)
+  const runningById = new Map(all.map((x, i) => [x.id, balances[i]]))
   const typeLabel = (k: string) => t(k === 'invest' ? 'directorCapital.investType' : 'directorCapital.withdrawType', lang)
 
   const columns: Column<Txn>[] = [
@@ -89,7 +93,7 @@ export default async function DirectorCapitalPage({
       cell: (x) => <Pill tone={x.txn_type === 'invest' ? 'sky' : 'muted'}>{typeLabel(x.txn_type)}</Pill>,
     },
     { key: 'amount', header: t('directorCapital.amount', lang), align: 'right', cell: (x) => tk(x.amount) },
-    { key: 'balance', header: t('directorCapital.runningBalance', lang), align: 'right', cell: (x) => tk(x.balance_after) },
+    { key: 'balance', header: t('directorCapital.runningBalance', lang), align: 'right', cell: (x) => tk(runningById.get(x.id) ?? x.balance_after) },
     { key: 'note', header: t('directorCapital.note', lang), cell: (x) => x.note ?? <span className="text-muted">—</span> },
   ]
 

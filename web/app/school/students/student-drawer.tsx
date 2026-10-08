@@ -2,6 +2,7 @@ import { GraduationCap, Hash, Phone, User, Wallet, CalendarOff } from 'lucide-re
 import { getSchoolContext } from '@/lib/school/context'
 import { classCatalogueLabel } from '@/lib/class-catalogue'
 import { feeStanding, type FeeStanding } from '@/lib/fees'
+import { feeColumns } from '@/lib/fee-columns'
 import { t, numberFmt, type Lang } from '@/lib/i18n'
 import type { RosterStudent } from '@/lib/school/roster'
 import { withParams, type Params } from '@/lib/url-params'
@@ -40,11 +41,14 @@ const FEE_LABEL = { paid: 'students.feePaid', partial: 'students.feePartial', du
  *  Records and the last 3 Leave requests. */
 export async function loadStudentDrawerData(studentId: string): Promise<StudentDrawerData> {
   const { supabase } = await getSchoolContext()
+  let feeQuery = supabase
+    .from('fee_collection_records')
+    .select('month, year, pay_amount, due_amount')
+    .eq('student_id', studentId)
+  // A voided record (#683, 0231) is not part of the Student's fee history here.
+  if ((await feeColumns(supabase)).void) feeQuery = feeQuery.is('void_at', null)
   const [{ data: feeRows }, { data: leaveRows }] = await Promise.all([
-    supabase
-      .from('fee_collection_records')
-      .select('month, year, pay_amount, due_amount')
-      .eq('student_id', studentId)
+    feeQuery
       .order('year', { ascending: false })
       .order('month', { ascending: false })
       .limit(4),

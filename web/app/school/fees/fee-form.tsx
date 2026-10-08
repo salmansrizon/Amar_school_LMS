@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
 import { t, formatMoney, type Lang, localeOf, formatNumber } from '@/lib/i18n'
-import { billedFeeAmount, feePeriodLabel, settleFee } from '@/lib/fees'
+import { recordFeeAmount, feePeriodLabel, settleFee } from '@/lib/fees'
 import { saveFeeRecord, calculateAbsentFine } from './actions'
 import { SelectField } from '@/components/ui/select-field'
 
@@ -23,6 +23,8 @@ export interface ExistingFeeRecord {
   fine_amount: number
   adjust_amount: number
   due_amount: number
+  /** Stored billed fee (migration 0230, #678); absent or null on older rows. */
+  fee_amount?: number | null
   payment_method: string
   note: string | null
 }
@@ -52,8 +54,13 @@ export function FeeForm({
   // A saved record does not store its fee, so reopening one started from the
   // class's prescribed fee — 0 for a school with no Fee Structure — and showed
   // fee 0 / total 0 / due 0 for a record the list says still owes money. The
-  // record's own figures say what was billed.
-  const [fee, setFee] = useState(existingRecord ? billedFeeAmount(existingRecord) : prescribedFee)
+  // record's own figures say what was billed: the stored fee (#678) when it has
+  // one, else the derivation — which is only a reconstruction once nothing is
+  // due, and is then said to be one and not saved as the fee unless changed.
+  const savedFee = existingRecord ? recordFeeAmount(existingRecord) : null
+  const [fee, setFee] = useState(savedFee ? savedFee.fee : prescribedFee)
+  const [feeTouched, setFeeTouched] = useState(false)
+  const feeIsEstimate = savedFee !== null && !savedFee.exact && !feeTouched
   const [fine, setFine] = useState(existingRecord?.fine_amount ?? 0)
   const [adjust, setAdjust] = useState(existingRecord?.adjust_amount ?? 0)
   const [method, setMethod] = useState(existingRecord?.payment_method ?? 'cash')
@@ -96,6 +103,7 @@ export function FeeForm({
         data.set('year', String(year))
         if (existingRecord) data.set('edit_id', existingRecord.id)
         data.set('fee_amount', String(fee))
+        if (feeIsEstimate) data.set('fee_unknown', '1')
         data.set('pay_amount', String(received))
         data.set('fine_amount', String(fine))
         data.set('adjust_amount', String(adjust))
@@ -156,9 +164,13 @@ export function FeeForm({
           min={0}
           step="0.01"
           value={fee}
-          onChange={(e) => setFee(Number(e.target.value) || 0)}
+          onChange={(e) => {
+            setFee(Number(e.target.value) || 0)
+            setFeeTouched(true)
+          }}
           className={inputClass}
         />
+        {feeIsEstimate && <p className="mt-1 text-xs text-muted">{t('fees.feeEstimated', lang)}</p>}
       </div>
       <div>
         <label className={labelClass} htmlFor="fine_amount">

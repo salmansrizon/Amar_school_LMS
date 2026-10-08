@@ -4,7 +4,8 @@ import { currentLang } from '@/lib/i18n-server'
 import { t, formatMoney, type Lang, formatDate, localeOf } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { feePeriodLabel } from '@/lib/fees'
-import { buildGeneralLedger, type LedgerSource, type LedgerSourceRow } from '@/lib/accounting'
+import { buildGeneralLedger, feeLedgerRows, type LedgerSource, type LedgerSourceRow } from '@/lib/accounting'
+import { feeColumns, feeSelect } from '@/lib/fee-columns'
 import { PrintPage, InstituteHeader, PaginatedSheet, QrFooterRow } from '@/components/print/pieces'
 import { PrintButton } from '@/components/print/print-button'
 import { AccountingTabs } from '../accounting-tabs'
@@ -49,6 +50,17 @@ const SOURCE_BADGE: Record<LedgerSource, string> = {
   director_capital: 'bg-sky-soft text-sky-deep',
 }
 
+type LedgerFeeRecord = {
+  id: string
+  month: number
+  year: number
+  pay_amount: number
+  updated_at: string
+  /** Migration 0231 (#683); absent before it. */
+  void_at?: string | null
+  students: { full_name: string } | null
+}
+
 function monthBounds(): { from: string; to: string } {
   const now = new Date()
   const first = new Date(now.getFullYear(), now.getMonth(), 1)
@@ -71,6 +83,8 @@ export default async function GeneralLedgerPage({
   const institute = await loadInstitutePrintHeader(supabase, lang)
   if (!institute) notFound()
 
+  // 0231 (#683): a voided record also carries the day it was voided.
+  const feeCols = { ...(await feeColumns(supabase)), feeAmount: false }
   const [{ data: feeRecords }, { data: vouchers }, { data: assets }, { data: bankTxns }, { data: directorTxns }] =
     await Promise.all([
       // All five are all-time reads folded into one income/expense statement
@@ -79,9 +93,9 @@ export default async function GeneralLedgerPage({
       selectAllRows((from, to) =>
         supabase
           .from('fee_collection_records')
-          .select('id, month, year, pay_amount, updated_at, students(full_name)')
+          .select(feeSelect('id, month, year, pay_amount, updated_at, students(full_name)', feeCols))
           .range(from, to),
-      ).then(({ rows }) => ({ data: rows })),
+      ).then(({ rows }) => ({ data: rows as unknown as LedgerFeeRecord[] })),
       selectAllRows((from, to) =>
         supabase
           .from('vouchers')
@@ -108,15 +122,13 @@ export default async function GeneralLedgerPage({
   const rows: LedgerSourceRow[] = []
 
   for (const r of feeRecords ?? []) {
-    const student = r.students as unknown as { full_name: string } | null
-    rows.push({
-      date: new Date(r.updated_at).toISOString().slice(0, 10),
-      sortKey: r.updated_at,
-      source: 'fee_collection',
-      description: `${student?.full_name ?? '—'} — ${feePeriodLabel(r.month, r.year, localeOf(lang))}`,
-      debit: 0,
-      credit: Number(r.pay_amount),
-    })
+    rows.push(
+      ...feeLedgerRows(
+        { pay_amount: Number(r.pay_amount), updated_at: r.updated_at, void_at: r.void_at },
+        `${r.students?.full_name ?? '—'} — ${feePeriodLabel(r.month, r.year, localeOf(lang))}`,
+        t('fees.voided', lang),
+      ),
+    )
   }
 
   for (const v of vouchers ?? []) {

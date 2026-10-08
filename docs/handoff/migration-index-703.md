@@ -24,10 +24,10 @@ One list of every database change recommended during the owner UI overhaul, the 
 
 | # | Change | Why | Detail |
 |---|---|---|---|
-| 2.1 | `fee_collection_records.fee_amount` (billed fee), backfilled from pay + due − fine + adjustment | The edit form derives the fee; once due is 0 an exact payment and an overpayment look the same, and the receipt has no fee line | #678 |
-| 2.2 | Void / reversal for fee records: `void_at`, `void_reason`, and an offsetting ledger entry | A wrong fee record cannot be undone in the app | #683 |
+| 2.1 | **WRITTEN, NOT APPLIED: `0230_fee_collection_fee_amount.sql`** (nullable, no backfill — see `docs/handoff/migrations-fees-rollout.md`). `fee_collection_records.fee_amount` (billed fee), backfilled from pay + due − fine + adjustment | The edit form derives the fee; once due is 0 an exact payment and an overpayment look the same, and the receipt has no fee line | #678 |
+| 2.2 | **WRITTEN, NOT APPLIED: `0231_fee_record_void.sql`** (also replaces the one-per-month unique constraint with a partial unique index). Void / reversal for fee records: `void_at`, `void_reason`, and an offsetting ledger entry | A wrong fee record cannot be undone in the app | #683 |
 | 2.3 | Advance-payment credit carried to the next fee record, if "carry forward" is chosen | Overpayment is now acknowledged but stays on that month | #695 — needs a product decision first; depends on 2.1 |
-| 2.4 | Director capital: a delete trigger that reverses the running balance (or forbid deletes), then a one-time recompute for Test School A | The balance trigger handles inserts only; deleted rows left a ৳13,14,000 drift | #681 |
+| 2.4 | **WRITTEN, NOT APPLIED: `0232_director_capital_guard.sql`** (the trigger only; the one-time recompute is NOT written — owner's decision). Director capital: a delete trigger that reverses the running balance (or forbid deletes), then a one-time recompute for Test School A | The balance trigger handles inserts only; deleted rows left a ৳13,14,000 drift | #681 |
 | 2.5 | Per-payment receipts (payment history table) | `fee_collection_records` keeps one cumulative row per month, so a single payment cannot be receipted | Student portal plan, section 8 — no issue yet |
 
 ## 3. Exams and marks
@@ -89,7 +89,7 @@ One list of every database change recommended during the owner UI overhaul, the 
 - `staging` and production share one database: a migration applied to staging is live for production data.
 - `staging` took `0214`–`0216` on 2026-10-07 (attendance local day, reconcile queue, agents), so this branch's files were renumbered. Next free migration number after this branch is `0221` (`0217` attendance summary draft, `0218`, `0219`, `0220` are written and not applied; apply in that order, on a branch database first; rollout notes in `docs/handoff/migrations-attendance-rollout.md`). Re-check before numbering; another developer is working on `staging`.
 - Policies that narrow access (1.1, 1.4) need a check that the School Owner and office staff are unaffected. The app-level guards in `web/lib/school/exam-class-guard.ts` and `web/lib/auth/require-grant.ts` show the intended rule and have unit tests to mirror.
-- `web/tests/integration/accounting-ii.test.ts` deletes rows as the owner on the shared database. Fix that test with 2.4, or it will drift the balance again.
+- `web/tests/integration/accounting-ii.test.ts` no longer deletes director capital rows (it settles with an opposite transaction). It still deletes vouchers and bank/cash rows as the owner.
 
 ## Change log
 
@@ -108,6 +108,7 @@ One list of every database change recommended during the owner UI overhaul, the 
 - 2026-10-08 — `0217`, `0218`, `0219`, `0220` applied to the shared database. Integration tests for them have not run yet.
 - 2026-10-08 — written, not applied: `0221` (1.2 / #702), `0223` (#679, #700), `0224` (#699), `0250` (4.5), `0251` (4.7), `0252` (#696), `0253` (5.4), `0254` (5.6), `0255` (5.2), `0256` (5.5), `0257` (5.8). Rollout notes: `docs/handoff/migrations-exams-rollout.md`, `docs/handoff/migrations-notices-portal-rollout.md`. `0222` (#698 cleanup) was written and then removed: the database holds no all-zero marks row, so there is nothing to clean, and the file would have deleted real typed zeros if run later. 4.2 needs no migration: the read side uses `attendance_agents.last_heartbeat_at` from staging's `0216`.
 - 2026-10-08 — new needs found: staff cannot delete a question or a reply; homework and study material cannot be unpublished (views `student_task`, `student_material`); `student_messages.reply_body` has no length limit; `student_exam_result` should left-join the exam's subjects; `student_exam_rank` treats a half-filled subject as 0 once `0223` is applied; routine is not re-checked when `exams.class_id` changes; no sync signal for schools on the legacy ingest-token path.
+- 2026-10-08 — 2.1, 2.2 and 2.4 written as `0230`, `0231`, `0232`; none applied. 2.3 (#695): the acknowledgement is kept, no migration. New items found and not written: the fee ledger posting counts the fine twice when the received amount includes it; `bank_cash_transactions` has the same insert-only balance as director capital; vouchers / bank / capital ledger postings are insert-only. Details in `docs/handoff/migrations-fees-rollout.md`.
 
 ## Source
 
