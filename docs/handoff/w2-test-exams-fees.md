@@ -123,3 +123,42 @@ Seen: the rank reads "1 / 2" — the absent Student Two is counted in the rank
 although their result is incomplete (the known `student_exam_rank` gap).
 Not tested: that a student of another class cannot read the scheme (it cannot
 be seen from the screen).
+
+## #678 fee amount — VERIFIED
+
+Fee record for `W2-EXF Student One`, month 10/2026, cash, note `W2-EXF`
+(receipt `13ed80e5-…`), owner, English 1440px and Bangla 390px.
+
+- First save: fee 100, fine 10, received 60. The form showed Total Payable
+  ৳110 and Due ৳50. Receipt: "Fee Amount ৳100 · Received Amount ৳60 · Fine ৳10
+  · Adjustment ৳0 · Due ৳50" (Bangla label "ফি (নির্ধারিত) ৳১০০").
+- Re-opening the form for the same month shows "Edit record" and the fee field
+  pre-filled with 100, with no "estimated" hint.
+- Edit: received 130 (20 more than payable). The review step warns "Receiving
+  more than the total payable: ৳20" and the confirm button is disabled until
+  "Yes, I am taking the extra as an advance payment" is ticked. Receipt after:
+  "Fee Amount ৳100 · Received ৳130 · Fine ৳10 · Due ৳0 · Advance (Tk) ৳20"
+  ("অগ্রিম (৳) ৳২০").
+- This proves the fee is stored: worked out from the other figures it would
+  read 120 (130 + 0 − 10), and the receipt reads 100.
+
+### Defect found (not in #678, not fixed — it is money and a database trigger)
+
+The receipt's **Total** and the **cash posting** are the received amount plus
+the fine, although the received amount already covers the fine.
+
+- First save: received ৳60, receipt "Total ৳70 · Seventy Taka Only", ledger
+  impact "1000 Debit ৳70 / 4300 Credit ৳60 / 4400 Credit ৳10".
+- After the edit: received ৳130, receipt "Total ৳140 · One Hundred Forty Taka
+  Only", second entry "1000 Debit ৳70 / 4300 Credit ৳70" — cash debited ৳140
+  in all for ৳130 taken.
+- Cause on the screen side: `web/app/school/fees/receipt/[id]/page.tsx:97`
+  calls `totalPayable(pay_amount, fine_amount, adjust_amount)` with the
+  received amount in the place of the fee. The ledger lines come from the
+  `fee_gl_post` trigger (migration `0097`), which posts the same sum. The form
+  (`web/lib/fees.ts` `settleFee`) treats Received as covering fee + fine.
+- Effect: with any fine, cash on hand in the books is higher than the money
+  taken, by the fine. No issue was found for this.
+
+Small: in Bangla the "In words" line stays English ("কথায়: One Hundred Forty
+Taka Only").
