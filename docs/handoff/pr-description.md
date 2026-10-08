@@ -18,7 +18,7 @@ Base: `staging` (`0ae8197`). Head: `merge/staging-sync`. The branch contains all
 - Exams: Absent tick and blank components in marks entry; one database call per save; routine overlap checked across exams of a class; subject switch no longer opens a popup.
 - Fees: stored fee amount and advance line on the receipt; void with a reason and a reversing ledger entry; receipt total equals the amount received; Bangla amount in words.
 - Notices: homework due date; unpublish and republish for notices.
-- Staff: a login can be disabled and re-enabled; archiving an employee always disables the linked login.
+- Staff: a login can be disabled and re-enabled; an employee with a staff login is archived only together with disabling that login (School Owner only).
 
 **Student portal**
 - Short menu, home with what is pending and urgent, tables with search and filters, compact rows on phones.
@@ -58,11 +58,11 @@ Numbers `0222` and `0242` are intentionally absent. `staging`'s own `0214`–`02
 - eslint: one error, `web/app/claim/page.tsx:33`, identical on `staging`.
 - Browser tests in Test School A as owner, office staff, teacher and student (reports in `docs/handoff/w2-test-*.md`, `docs/handoff/evaluation-2.md`, `docs/handoff/704-fixes.md`).
 - Database: objects of all 25 migrations present; read-only role checks as student, teacher and owner.
+- Fee ledger under `0258`, on a test record: received 60 with fine 10 posts cash 60, fine income 10, fee income 50; an edit to 130 moves cash by 70; a void returns every account to zero.
 
 ## Not tested
 
 - `npm run test:integration` and the Playwright e2e suite.
-- A real fee record saved under the `0258` posting rule (unit-tested and checked by reading the functions only).
 - The director capital delete guard (`0232`) being triggered.
 - A staff session that was already open when its login was disabled; the token stays valid for up to one hour.
 - Super-admin pages in a browser; Safari and Firefox.

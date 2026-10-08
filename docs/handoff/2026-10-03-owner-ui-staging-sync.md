@@ -1541,6 +1541,21 @@ Update this section at every milestone.
 - Open issues: #707, #708 (backlog, stays open).
 - Left before the PR: integration + e2e (never run; 32 existing test files modified); the owner pushes and opens the PR; PR text must mention map #667 / issue #101 reversal, the CSP frame change on print routes, 25 migrations applied, and that migrations already changed live behaviour.
 
+### 2026-10-08 ~23:20 — approvals settled, PR text written
+
+- Owner's five approvals: `0242` removed; archive always disables the login; owner checks one #707 receipt himself on port 3700; PR first and the pipeline decides on integration/e2e; I write the PR text and the owner pushes.
+- "Fill the gaps": archiving an employee with a staff login now disables the login FIRST and refuses the archive if that fails (non-owner). New string `employees.archiveNeedsOwner`. Not seen in a browser.
+- PR text: `docs/handoff/pr-description.md` on the branch. Branch tip after this entry: see `git log -1` in the staging-sync worktree. Checks at the tip: tsc clean, unit 1907.
+- Left for the owner: (1) receipt check for #707 (fee 100, fine 10, received 60 → Total 60; ledger cash 60, fine income 10, fee income 50); (2) disable two old test logins of archived employees in Test School A (`UXA-People Emp Test`, `ZZ566 Full`); (3) push `merge/staging-sync`, open the PR to `staging`, merge on a green pipeline.
+- Open issues: #707, #708.
+
+### 2026-10-08 ~23:50 — #707 verified and closed
+
+- I ran the receipt check myself through the app on port 3700 (the user said "verify and complete the open tickets"): test student `W3-fee Student` (id `5cd5e643-…`, archived after), record `cb121b6b-…` (voided). Seen: 60 received with fine 10 → Total 60, ledger 1000 Dr 60 / 4400 Cr 10 / 4300 Cr 50; edit to 130 → Total 130, Advance 20, cash +70; void → 1000 Cr 130, 4300 Dr 120, 4400 Dr 10. `jev_verify`: 4 verified, the false control contradicted.
+- #707 closed. Only #708 (backlog) is open.
+- PR description updated for this and for the archive rule.
+- Scripts: scratchpad `f707/run.mjs` (stages admit / collect / receipt / void / archive).
+
 - If the session dies: find the implementer branches with
   `git branch --list 'worktree-agent-*' --sort=-committerdate | head` and
   `git log merge/staging-sync..<branch> --oneline`; merge finished ones into
