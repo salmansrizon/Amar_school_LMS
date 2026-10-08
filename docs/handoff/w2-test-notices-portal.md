@@ -91,3 +91,26 @@ Not tested: the positive case (a heartbeat exists). Nothing writes a heartbeat t
 - Direct load of `/student/questions?view=<id>` (fresh navigation, Bangla 1440px and English 390px, and many more times during items 2 to 6): HTTP 200, the popup opens, no console error, no error overlay. The dev server log holds 0 occurrences of "document is not defined".
 - Multi-line question (`W2-NOT Multiline`: three single-line-break lines, a blank line, a paragraph, a two-item list). Editor preview and stored render in the popup have the same structure: one `<p>` holding the three lines separated by `<br>`, a second `<p>`, then a `<ul>` with two `<li>`. Single line breaks did not become paragraphs.
 - The brief names two fixes; the third was not named, so it was not tested as such.
+
+## Records created (Test School A)
+
+| Record | State |
+|---|---|
+| Student `W2-NOT Student One` (roll 90, no. 9294) with a student login | Kept |
+| Notice `W2-NOT Notice Alpha` | Kept, published |
+| Conversation `W2-NOT Thread Title`: first question, follow-up, replies ONE and TWO | Kept (answered, cannot be withdrawn) |
+| Question `W2-NOT Thread Title` / "second unrelated question" | Kept, unanswered |
+| Question `W2-NOT Multiline` | Kept, unanswered |
+| Questions `W2-NOT Len 4001` (two) and `W2-NOT Len 4000`, each 4000 characters | Removed (withdrawn as the student) |
+| Follow-up "W2-NOT follow-up after answer" | Removed (withdrawn) |
+
+The two `Len 4001` questions were created by mistake: the test tool's fill stopped at the field's 4000 limit, so they were sent as valid 4000-character questions. No SMS was sent, no payment recorded, no exam touched, no record of anyone else edited or deleted.
+
+## Checks
+
+- Browser only. No code was changed, so `tsc` and the unit tests were not run. No defect needed a fix.
+- jev_verify (jev-1.13.0) on 12 claims: 10 verified, 2 unsupported, 3 flagged for review.
+  - Verified, auto: unpublish hides / republish restores (0.95), chip and no control on other kinds (1.0), one row per conversation and same title separate (0.92), owner drawer lists earlier message (0.98), two replies in order (1.0), new reply mark set and cleared (0.83), withdraw (1.0), machine page (1.0), direct load and multi-line render (0.98).
+  - Verified, review: 4001 refused / 4000 accepted (0.59). The evidence also says typed input stops at 4000, which reads as a partial conflict; the refusal was seen only with the browser limit removed.
+  - Unsupported, review: "the class teacher fixture saw the earlier messages" (the deliberately false control; relation: contradicted 0.98).
+  - Unsupported, review: "the test proved republish keeps the original creation time" (0.59). Matches the PARTLY note in item 1.
