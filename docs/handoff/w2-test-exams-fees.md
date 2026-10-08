@@ -98,3 +98,28 @@ the middle of a save (cannot be provoked from the browser).
 
 Seen, not a defect of this issue: inside the popup the `?from=…` part of the
 address is dropped on the first switch.
+
+## #702 student sees grades — VERIFIED
+
+Student One's marks completed (Eng 85 / 100, Math 50 + 20 = 70 / 100) and
+`W2-EXF exam` published by the owner (no other exam touched). The publish
+dialog showed "Students with all marks entered 1 / 18 · Subjects complete
+0 / 2" and the warning that the others stay "Incomplete"; the button reads
+"Publish anyway". The dialog offers no SMS.
+
+Signed in as `W2-EXF Student One` (English 1440px, Bangla 390px):
+
+- Results list: "W2-EXF exam · 2032 · 155 / 200 · Complete" ("সম্পূর্ণ").
+- Result page: GPA 4.5, Grade A, "Passed" ("উত্তীর্ণ"), Rank 1 / 2, and per
+  subject "85 / 100 · A+(5)" and "70 / 100 · A(4)". No "grades are not
+  available yet" card.
+- "Print mark sheet" ("মার্কশিট প্রিন্ট") opens the print preview; the frame
+  loads `/student/results/<exam>/print` (HTTP 200), its Print button is
+  enabled, and the sheet shows grade and GPA per subject, "Total Marks:
+  155 / 200", "Overall GPA: 4.50", "Pass".
+- No page-level horizontal overflow at 390px.
+
+Seen: the rank reads "1 / 2" — the absent Student Two is counted in the rank
+although their result is incomplete (the known `student_exam_rank` gap).
+Not tested: that a student of another class cannot read the scheme (it cannot
+be seen from the screen).
