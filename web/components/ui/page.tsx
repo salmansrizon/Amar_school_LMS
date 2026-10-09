@@ -54,6 +54,10 @@ export function Crumbs({ lang, items }: { lang: Lang; items: Crumb[] }) {
   )
 }
 
+/** Phone: actions share the width in a 2-column grid, 44px tall; an odd last one spans both. */
+const PHONE_ACTIONS =
+  'flex flex-wrap items-center gap-2 max-sm:grid max-sm:grid-cols-[repeat(2,minmax(0,1fr))] max-sm:[&>*]:min-h-11 max-sm:[&>*]:text-center max-sm:[&>*]:w-full max-sm:[&>*]:justify-center max-sm:[&>:last-child:nth-child(odd)]:col-span-2'
+
 export function PageHeader({
   title,
   backHref,
@@ -82,8 +86,8 @@ export function PageHeader({
   return (
     <div className="mb-section">
       {crumbs && <Crumbs lang={crumbs.lang} items={crumbs.items} />}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex min-w-0 items-center gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-3 max-sm:flex-col max-sm:flex-nowrap max-sm:items-stretch">
+        <div className="flex min-w-0 items-center gap-2 max-sm:flex-wrap">
           {backHref && (
             <Link
               data-page-back
@@ -117,7 +121,7 @@ export function PageHeader({
             </span>
           )}
         </div>
-        {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
+        {actions && <div className={PHONE_ACTIONS}>{actions}</div>}
       </div>
       {subtitle && <p className="mt-1 text-sm text-muted">{subtitle}</p>}
     </div>

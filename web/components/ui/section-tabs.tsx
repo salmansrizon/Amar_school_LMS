@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { t, formatNumber, type Lang, type MessageKey } from '@/lib/i18n'
 import { CONCEPT_ICON, type ConceptKey } from '@/lib/ui/concept-icons'
 import { ToneDot } from '@/components/ui/widgets'
+import { ScrollActive } from '@/components/ui/scroll-active'
 
 // One tab bar for a section whose tabs are real routes.
 //
@@ -44,8 +45,9 @@ export function SectionTabs({
   return (
     <nav
       aria-label={label}
-      className="mb-section flex flex-nowrap gap-1 overflow-x-auto border-b border-line text-sm font-semibold"
+      className="relative mb-section flex flex-nowrap gap-1 overflow-x-auto border-b border-line text-sm font-semibold"
     >
+      <ScrollActive />
       {tabs.map((tab) => {
         const current = tab.href === active
         return (
@@ -53,7 +55,7 @@ export function SectionTabs({
             key={tab.href}
             href={tab.href}
             aria-current={current ? 'page' : undefined}
-            className={`relative flex shrink-0 items-center gap-2 whitespace-nowrap rounded-t-md px-4 py-2 max-sm:min-h-11 ${
+            className={`relative flex shrink-0 items-center gap-2 max-sm:flex-1 max-sm:justify-center whitespace-nowrap rounded-t-md px-4 py-2 max-sm:min-h-11 ${
               current
                 ? 'border-b-2 border-transparent text-brand-600'
                 : 'text-muted hover:bg-paper hover:text-ink'

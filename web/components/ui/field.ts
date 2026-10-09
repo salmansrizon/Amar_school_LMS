@@ -61,7 +61,7 @@ export const dateInputClass = inputClass
  *  same height, radius and border as the fields beside it. */
 export function filterButtonClass({ fullWidth = false }: Pick<FieldOptions, 'fullWidth'> = {}) {
   return [
-    'inline-flex shrink-0 cursor-pointer items-center justify-center whitespace-nowrap rounded-md border border-line-strong bg-paper px-4 text-sm font-semibold text-ink',
+    'filter-submit inline-flex shrink-0 cursor-pointer items-center justify-center whitespace-nowrap rounded-md border border-line-strong bg-paper px-4 text-sm font-semibold text-ink',
     'outline-none transition hover:bg-paper-muted focus-visible:border-brand-500 focus-visible:ring-2 focus-visible:ring-brand-300',
     'disabled:cursor-not-allowed disabled:opacity-60',
     FIELD_HEIGHT,

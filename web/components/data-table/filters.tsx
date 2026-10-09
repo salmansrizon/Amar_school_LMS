@@ -39,7 +39,7 @@ export function DataTableFilters({
   }
 
   return (
-    <div className={`flex flex-wrap items-center gap-2 ${pending ? 'opacity-70' : ''}`}>
+    <div className={`flex flex-wrap items-center gap-2 max-sm:flex-col max-sm:flex-nowrap max-sm:items-stretch max-sm:[&>*]:w-full ${pending ? 'opacity-70' : ''}`}>
       {search && (
         // A plain <input>, not the base-ui Input: its default tracks the URL, and
         // opening a row's route popup swaps the URL under the still-mounted list.

@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import type { ReactNode } from 'react'
+import { ScrollActive } from '@/components/ui/scroll-active'
 
 // A compact pill-style nav, one step down from SectionTabs' underline tabs —
 // for a sub-nav or a view switch that needs to sit beside other controls in
@@ -34,8 +35,9 @@ export function SegmentedControl({
     <div
       role="group"
       aria-label={ariaLabel}
-      className="inline-flex max-w-full items-center gap-1 overflow-x-auto rounded-full border border-line bg-paper p-1"
+      className="relative inline-flex max-w-full max-sm:flex max-sm:w-full items-center gap-1 overflow-x-auto rounded-full border border-line bg-paper p-1"
     >
+      <ScrollActive />
       {items.map((item) => {
         const current = item.href === active
         return (
@@ -45,7 +47,7 @@ export function SegmentedControl({
             scroll={false}
             aria-current={current ? 'page' : undefined}
             aria-label={item.icon ? item.label : undefined}
-            className={`inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 max-sm:min-h-11 text-xs font-semibold transition-colors ${
+            className={`inline-flex shrink-0 items-center gap-1.5 max-sm:flex-1 max-sm:justify-center whitespace-nowrap rounded-full px-3 py-1.5 max-sm:min-h-11 text-xs font-semibold transition-colors ${
               current ? 'bg-brand-500 text-white shadow-sm' : 'text-muted hover:bg-paper-muted hover:text-ink'
             }`}
           >

@@ -97,8 +97,8 @@ export function Pager({
   )
 
   return (
-    <nav aria-label={t('pager.label', lang)} className="mt-3 flex flex-wrap items-center justify-between gap-3 px-2">
-      <div className="flex flex-wrap items-center gap-4">
+    <nav aria-label={t('pager.label', lang)} className="mt-3 flex flex-wrap items-center justify-between gap-3 px-2 max-sm:justify-center">
+      <div className="flex flex-wrap items-center gap-4 max-sm:justify-center">
         {summary}
         {sizes}
       </div>

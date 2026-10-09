@@ -53,7 +53,7 @@ export async function AttendanceTabs({
       />
       {(subItems || extra) && (
         <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-          <div className="min-w-0 max-w-full">
+          <div className="min-w-0 max-w-full max-sm:w-full">
             {subItems && (
               <SegmentedControl items={subItems} active={active} ariaLabel={t('attendance.subNavLabel', lang)} />
             )}

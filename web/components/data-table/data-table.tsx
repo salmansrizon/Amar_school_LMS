@@ -128,7 +128,7 @@ export function DataTable<T>({
     <Card className="mb-grid">
       <DataTableFilters search={search} filters={filters} lang={lang} />
       {(chips.length > 0 || filtered) && (
-        <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-line pt-3">
+        <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-line pt-3 max-sm:justify-center">
           {chips.length > 0 && <span className="text-xs text-muted">{t('table.quickFilters', lang)}:</span>}
           {chips.map((c) => {
             const active = params[c.param] === c.value

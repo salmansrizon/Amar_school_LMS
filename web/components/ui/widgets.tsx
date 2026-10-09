@@ -177,12 +177,12 @@ export function QuickActions({ title, actions }: { title: string; actions: Quick
   return (
     <section className="mb-section rounded-2xl border border-line bg-paper p-card">
       <h2 className="mb-3 font-bold">{title}</h2>
-      <ul className="flex flex-wrap gap-2">
+      <ul className="flex flex-wrap gap-2 max-sm:grid max-sm:grid-cols-[repeat(2,minmax(0,1fr))]">
         {actions.map((a) => (
-          <li key={a.href}>
+          <li key={a.href} className="max-sm:[&:last-child:nth-child(odd)]:col-span-2">
             <Link
               href={a.href}
-              className={`group ui-press inline-flex h-11 items-center gap-2 rounded-xl px-4 text-sm font-semibold transition-colors ${
+              className={`group ui-press inline-flex h-11 items-center gap-2 max-sm:w-full max-sm:justify-center max-sm:text-center rounded-xl px-4 text-sm font-semibold transition-colors ${
                 a.primary
                   ? 'bg-brand-500 text-white hover:bg-brand-600'
                   : 'border border-line bg-paper-muted text-ink hover:bg-line'
