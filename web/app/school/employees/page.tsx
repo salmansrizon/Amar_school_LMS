@@ -462,7 +462,7 @@ export default async function EmployeesPage({
           ) : (
             <ul className="mb-4 divide-y divide-line">
               {notInList.slice(0, 5).map((e) => (
-                <li key={e.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
+                <li key={e.id} className="flex flex-col gap-2 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
                   <div className="min-w-0">
                     <p className="truncate font-semibold">{e.full_name}</p>
                     <p className="text-xs text-muted">{e.category ? categoryLabel(e.category) : dash}</p>
@@ -499,7 +499,7 @@ export default async function EmployeesPage({
           ) : (
             <ul className="mb-4 divide-y divide-line">
               {pendingLeaveRows.map((l) => (
-                <li key={l.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
+                <li key={l.id} className="flex flex-col gap-2 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
                   <div className="min-w-0">
                     <p className="truncate font-semibold">{l.name}</p>
                     <p className="text-xs text-muted">

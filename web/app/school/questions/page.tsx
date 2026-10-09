@@ -293,7 +293,7 @@ export default async function SchoolQuestionsPage({
               {oldestUnanswered.slice(0, 5).map((m) => {
                 const next = nextStepFor(m)
                 return (
-                  <li key={m.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
+                  <li key={m.id} className="flex flex-col gap-2 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
                     <div className="min-w-0">
                       <p className="truncate font-semibold">{m.student_name}</p>
                       <p className="truncate text-xs text-muted">{m.subject}</p>
@@ -309,7 +309,7 @@ export default async function SchoolQuestionsPage({
         <WorkflowCard icon={<MessageCircleQuestion className="size-5" />} title={t('questions.colTopic', lang)}>
           <ul className="mb-4 divide-y divide-line">
             {groups.slice(0, 5).map((g) => (
-              <li key={g.key} className="flex flex-wrap items-center justify-between gap-2 py-3">
+              <li key={g.key} className="flex flex-col gap-2 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
                 <p className="min-w-0 truncate font-semibold">
                   {g.label} · {fmt.format(g.messages.length)}
                 </p>

@@ -13,8 +13,9 @@
 // `<input type="date">`, so every native attribute stays reachable without the
 // primitive having to forward it.
 //
-// One control height for every field (`FIELD_HEIGHT`): 44px on phones (the
-// app's tap-target convention, cf. `ui/button.tsx`), 40px from `sm:`. The
+// One control height for every field (`FIELD_HEIGHT`): 44px at every width
+// (owner, 2026-10-09 — the same as `Button` md, so a field and the button
+// beside it line up; globals.css holds raw controls to it too). The
 // ComboboxField / SelectField / Combobox triggers and the DataTable search use
 // it too, so a filter bar mixing any of them lines up as one set. The height
 // is fixed (not padding-derived) so Bangla glyphs, whose line box is taller
@@ -22,7 +23,7 @@
 // their single line inside it. `sm` and `md` are kept as aliases for the
 // existing call sites; `xs` is the dense in-table size.
 
-export const FIELD_HEIGHT = 'h-11 sm:h-10'
+export const FIELD_HEIGHT = 'h-11'
 
 type Size = 'xs' | 'sm' | 'md'
 

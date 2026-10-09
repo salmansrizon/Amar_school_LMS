@@ -256,7 +256,7 @@ export default async function NoticesPage({
           ) : (
             <ul className="mb-4 divide-y divide-line">
               {needsAttention.slice(0, 5).map((r) => (
-                <li key={r.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
+                <li key={r.id} className="flex flex-col gap-2 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
                   <div className="min-w-0">
                     <p className="truncate font-semibold">{r.title}</p>
                     <p className="text-xs text-muted">{importanceLabel(r.importance, lang)}</p>
@@ -271,7 +271,7 @@ export default async function NoticesPage({
         <WorkflowCard icon={<CalendarDays className="size-5" />} title={t('notices.workflowByTypeTitle', lang)}>
           <ul className="mb-4 divide-y divide-line">
             {otherKinds.map((k) => (
-              <li key={k.key} className="flex flex-wrap items-center justify-between gap-2 py-3">
+              <li key={k.key} className="flex flex-col gap-2 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
                 <p className="font-semibold">
                   {k.label[lang]} · {fmt.format(kindCount(k.key))}
                 </p>

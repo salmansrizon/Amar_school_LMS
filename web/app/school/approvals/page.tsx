@@ -141,7 +141,7 @@ export default async function ApprovalsPage({
           ) : (
             <ul className="mb-4 divide-y divide-line">
               {byOldest.slice(0, 5).map((i) => (
-                <li key={i.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
+                <li key={i.id} className="flex flex-col gap-2 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
                   <div className="min-w-0">
                     <p className="truncate font-semibold">{name(i)}</p>
                     <p className="text-xs text-muted">
@@ -163,7 +163,7 @@ export default async function ApprovalsPage({
           ) : (
             <ul className="mb-4 divide-y divide-line">
               {types.map((key) => (
-                <li key={key} className="flex flex-wrap items-center justify-between gap-2 py-3">
+                <li key={key} className="flex flex-col gap-2 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
                   <p className="font-semibold">
                     {typeLabel(key)} · {fmt.format(instances.filter((i) => i.definition_key === key).length)}
                   </p>

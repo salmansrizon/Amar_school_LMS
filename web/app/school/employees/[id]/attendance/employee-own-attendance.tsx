@@ -278,7 +278,7 @@ export async function EmployeeOwnAttendance({ params, searchParams, inModal }: E
         ) : (
           <ul className="divide-y divide-line text-sm">
             {recentLeaves.map((l) => (
-              <li key={l.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
+              <li key={l.id} className="flex flex-col gap-2 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
                 <div>
                   <p className="font-semibold">
                     {formatDate(l.from_day, lang)} – {formatDate(l.to_day, lang)}

@@ -325,6 +325,26 @@ body {
   }
 }
 
+/* One height for every field and the button that submits it (owner,
+   2026-10-09: "text box and dropdown height need to be aligned all over the
+   platform"). 44px = FIELD_HEIGHT (components/ui/field.ts) = Button md. Unlayered
+   on purpose: it outranks the h-8 / h-9 / h-10 / py-* utilities scattered over
+   ~380 call sites, so a new page cannot drift either. Only bordered boxes are
+   held (the border-line / border-input tokens): the borderless input inside a
+   combobox or date field takes its group's height instead. Out of scope: cells
+   of a table (dense entry grids) and textareas. */
+:is(input, select)[class*='border-']:not(
+    [type='checkbox'], [type='radio'], [type='file'], [type='range'], [type='color'], [type='hidden'],
+    [multiple], [class*='border-0'], :is(td, th) *
+  ) {
+  box-sizing: border-box;
+  height: 2.75rem;
+}
+form:has(:is(input:not([type='hidden'], [type='checkbox'], [type='radio']), select, textarea))
+  button[type='submit']:not(:is(td, th) *) {
+  min-height: 2.75rem;
+}
+
 /* Printables (ADR 0007): the browser IS the PDF renderer. */
 @page {
   size: A4;
@@ -392,23 +412,29 @@ body {
   isolation: isolate; /* keeps the watermark above the sheet's own paper */
 }
 /* The school logo as a watermark (PrintWatermark): big and centred, out of
-   flow, behind the content, never in the way of a click. Grey and 6%: compared
+   flow, over the content (see below), never in the way of a click. Grey and 8%: compared
    at 5 / 6 / 8% in rendered PDFs under a dense solid logo, body text, table
-   rules and marks stay fully readable at all three; 6% is the faintest that
-   still reads as a mark on paper. On screen: centred in the sheet, clear of
+   rules and marks stay fully readable at all three; 8% is the one that still
+   reads as a mark once tables and cards sit under it. On screen: centred in the sheet, clear of
    the two bands. */
 .print-watermark {
   position: absolute;
   top: 50%;
   left: 50%;
-  z-index: -1;
+  /* ABOVE the content and multiplied into it (owner, 2026-10-09: "watermark is
+     not visible properly"). Behind the content it vanished under every card,
+     table wrapper or row that has its own white background; multiplied on top,
+     white stays white-with-a-tint and black text stays black, whatever the
+     page puts underneath. */
+  z-index: 1;
+  mix-blend-mode: multiply;
   width: 150mm;
   max-width: 85%;
   height: 150mm;
   max-height: calc(100% - 60mm);
   transform: translate(-50%, -50%);
   object-fit: contain;
-  opacity: 0.06;
+  opacity: 0.08;
   filter: grayscale(1);
   pointer-events: none;
 }
@@ -417,18 +443,30 @@ body {
    (unlayered CSS outranks Tailwind's layers). A full grid of hairlines with a
    stronger outer frame and header underline; compact rows; a light header
    fill and nothing else filled, so the watermark shows through the table.
+   Colour (owner, 2026-10-09): light ash. Cell lines #c2c2c2, the outer frame,
+   header underline and totals rule a step darker (#9e9e9e) so the table keeps
+   its edge. Lighter than #c2c2c2 starts to drop out on draft-mode printers.
    Chromium floors a border to whole pixels: 0.2mm prints as 1px (0.26mm) and
    0.55mm as 2px (0.53mm). Pages mark what CSS cannot know with the print-*
    cell classes below. */
+/* Rounded corners (owner, 2026-10-09): a collapsed table cannot be rounded, so
+   borders are separate with no spacing — each cell draws only its right and
+   bottom line, the table draws the frame and carries the radius, and the four
+   corner cells are rounded to match so the header fill stays inside it. A
+   table that runs over a page keeps square edges at the break. */
 .print-doc table {
   width: 100%;
-  border-collapse: collapse;
-  border: 0.55mm solid #333;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 0.55mm solid #9e9e9e;
+  border-radius: 2mm;
   font-size: 10.5pt;
   line-height: 1.3;
 }
 .print-doc table :is(th, td) {
-  border: 0.2mm solid #555;
+  border: 0;
+  border-right: 0.2mm solid #c2c2c2;
+  border-bottom: 0.2mm solid #c2c2c2;
   padding: 1.75mm 2mm;
   background: transparent;
   font-size: inherit;
@@ -445,10 +483,28 @@ body {
   break-after: avoid; /* never a header alone at the foot of a page */
 }
 .print-doc table thead th {
-  border-bottom: 0.55mm solid #333;
+  border-bottom: 0.55mm solid #9e9e9e;
   background: #f2f2f2;
   color: var(--color-ink);
   font-weight: 700;
+}
+.print-doc table tr > :is(th, td):last-child {
+  border-right: 0;
+}
+.print-doc table > :is(tbody, tfoot):last-child > tr:last-child > :is(th, td) {
+  border-bottom: 0;
+}
+.print-doc table > :first-child > tr:first-child > :is(th, td):first-child {
+  border-top-left-radius: 1.4mm;
+}
+.print-doc table > :first-child > tr:first-child > :is(th, td):last-child {
+  border-top-right-radius: 1.4mm;
+}
+.print-doc table > :last-child > tr:last-child > :is(th, td):first-child {
+  border-bottom-left-radius: 1.4mm;
+}
+.print-doc table > :last-child > tr:last-child > :is(th, td):last-child {
+  border-bottom-right-radius: 1.4mm;
 }
 /* Dates, rolls and short codes: one line. */
 .print-doc table .print-nowrap {
@@ -466,7 +522,7 @@ body {
 }
 /* Totals and closing balances. */
 .print-doc table .print-total :is(th, td) {
-  border-top: 0.55mm solid #333;
+  border-top: 0.55mm solid #9e9e9e;
   font-weight: 700;
 }
 /* The 31-day register, as dense as stays readable: 9pt on a tight line, day
@@ -503,6 +559,22 @@ body {
   position: absolute;
   inset: auto 0 0 0;
   height: 22mm;
+}
+/* On screen the sheet is always a whole A4 page (owner, 2026-10-09): the bands
+   are fixed, the content takes the room between them and grows past it when it
+   is long. 269mm / 194mm are the A4 content boxes (portrait 14mm margins,
+   landscape 8mm); 52mm is the two bands. */
+@media screen {
+  [class*='print-doc-portrait-'] .print-doc-body {
+    min-height: calc(269mm - 52mm);
+  }
+  [class*='print-doc-landscape-'] .print-doc-body {
+    min-height: calc(194mm - 52mm);
+  }
+  .print-doc-fill {
+    display: flex;
+    flex-direction: column;
+  }
 }
 @media print {
   /* PrintFrame in print. Its thead and tfoot repeat on every page and reserve

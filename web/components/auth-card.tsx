@@ -118,7 +118,7 @@ export function AuthCard({
 }
 
 export const inputClass =
-  'h-10 w-full rounded-sm border border-line-strong bg-paper px-3 text-sm outline-none focus:border-brand-500'
+  'h-11 w-full rounded-md border border-line-strong bg-paper px-3 text-sm outline-none focus:border-brand-500'
 export const labelClass = 'mb-1 block text-xs font-semibold text-muted'
 export const primaryBtnClass =
-  'h-10 max-sm:h-11 w-full cursor-pointer rounded-full bg-brand-500 text-sm font-semibold text-white hover:bg-brand-600 disabled:opacity-50'
+  'h-11 w-full cursor-pointer rounded-full bg-brand-500 text-sm font-semibold text-white hover:bg-brand-600 disabled:opacity-50'
