@@ -2,11 +2,11 @@ import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
 import { t } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
-import { PrintPage, InstituteHeader, InfoGrid, BlankLine, BlankRosterTable } from '@/components/print/pieces'
+import { InfoGrid, BlankLine, BlankRosterTable } from '@/components/print/pieces'
 import { PrintButton } from '@/components/print/print-button'
 import { loadInstitutePrintHeader } from '@/lib/institute-print'
 import { pageTitle } from '@/lib/page-title'
-import { PrintVerifyFooter } from '@/components/print/verify-footer'
+import { PrintDocument } from '@/components/print/document'
 
 // Blank Homework Collection Sheet (issue #39, PRD §5.11) — paper-fallback template.
 
@@ -25,8 +25,7 @@ export default async function BlankHomeworkPage() {
         <PrintButton label={t('print.print', lang)} />
       </div>
 
-      <PrintPage>
-        <InstituteHeader institute={institute ?? undefined} docTitle={t('institute.templateHomework', lang)} />
+      <PrintDocument lang={lang} institute={institute} docTitle={t('institute.templateHomework', lang)} verify={{ kind: 'template_homework' }}>
         <InfoGrid
           rows={[
             { label: t('institute.class', lang), value: <BlankLine /> },
@@ -39,8 +38,7 @@ export default async function BlankHomeworkPage() {
           columns={[t('institute.roll', lang), t('institute.studentName', lang), t('institute.homeworkGiven', lang), t('institute.submitted', lang)]}
           rowCount={20}
         />
-        <PrintVerifyFooter lang={lang} kind="template_homework" />
-      </PrintPage>
+      </PrintDocument>
     </main>
   )
 }

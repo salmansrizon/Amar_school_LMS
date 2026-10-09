@@ -9,7 +9,7 @@ import {
   QrFooterRow,
   PhotoBox,
   Badge,
-  PaginatedSheet,
+  PrintFrame,
 } from '@/components/print/pieces'
 import { PRINT_THEMES } from '@/lib/print-themes'
 
@@ -139,16 +139,78 @@ describe('PrintPage theming', () => {
   })
 })
 
-describe('PaginatedSheet', () => {
-  it('repeats its header on every printed page via a table header group', () => {
-    const html = renderToStaticMarkup(
-      <PaginatedSheet header={<span>repeated header</span>}>
+// The frame every A4 document prints in (owner's decision 2026-10-09). What
+// repeats and where is CSS (globals.css, checked against real PDFs); these pin
+// the markup that CSS hangs on.
+describe('PrintFrame', () => {
+  const institute = {
+    name: 'আদর্শ মডেল স্কুল',
+    addressLine: 'ঝিকরগাছা, যশোর',
+    contactLine: '01711-000000 · info@adarsha.edu.bd',
+    codesLine: 'EIIN: 123456 · এমপিও কোড: MPO-77',
+    logoUrl: '/api/school-logo',
+  }
+  const frame = (over: Partial<Parameters<typeof PrintFrame>[0]> = {}) =>
+    renderToStaticMarkup(
+      <PrintFrame lang="bn" institute={institute} docTitle="মার্কশিট — বার্ষিক পরীক্ষা ২০২৫" qrSvg="<svg data-qr></svg>" {...over}>
         <p>long body</p>
-      </PaginatedSheet>,
+      </PrintFrame>,
     )
-    expect(html).toContain('<thead')
-    expect(html).toContain('repeated header')
-    expect(html).toContain('long body')
+
+  it('puts both bands in the repeating header group, the footer spacer in the footer group, the content between', () => {
+    const html = frame()
+    const thead = html.slice(html.indexOf('<thead'), html.indexOf('</thead>'))
+    const tfoot = html.slice(html.indexOf('<tfoot'), html.indexOf('</tfoot>'))
+    const tbody = html.slice(html.indexOf('<tbody'), html.indexOf('</tbody>'))
+    expect(thead).toContain('print-band-top')
+    expect(thead).toContain('print-band-bottom')
+    expect(tfoot).toContain('print-doc-foot')
+    expect(tfoot).not.toContain('print-band')
+    expect(tbody).toContain('long body')
+    expect(tbody).not.toContain('print-band')
+  })
+
+  it('header band: logo, name, every letterhead field and the document title', () => {
+    const html = frame()
+    const band = html.slice(html.indexOf('print-band-top'), html.indexOf('print-band-bottom'))
+    expect(band).toContain('src="/api/school-logo"')
+    expect(band).toContain('আদর্শ মডেল স্কুল')
+    expect(band).toContain('ঝিকরগাছা, যশোর · 01711-000000 · info@adarsha.edu.bd')
+    expect(band).toContain('EIIN: 123456 · এমপিও কোড: MPO-77')
+    expect(band).toContain('মার্কশিট — বার্ষিক পরীক্ষা ২০২৫')
+    // Long text is cut, never wrapped into a taller band.
+    expect(band.match(/truncate/g)!.length).toBeGreaterThanOrEqual(3)
+  })
+
+  it('footer band: the QR, the powered-by line, no signatures', () => {
+    const html = frame()
+    const band = html.slice(html.indexOf('print-band-bottom'), html.indexOf('</thead>'))
+    expect(band).toContain('<svg data-qr>')
+    expect(band).toContain('EdumeBD দ্বারা পরিচালিত')
+    expect(frame({ lang: 'en' })).toContain('Powered by EdumeBD')
+  })
+
+  it('falls back to the labelled box while there is no QR', () => {
+    const html = frame({ qrSvg: '' })
+    expect(html).not.toContain('<svg')
+    expect(html).toContain('QR কোড')
+  })
+
+  it('names its page by orientation and language (the page-number margin box)', () => {
+    expect(frame()).toContain('print-doc-portrait-bn')
+    const landscape = frame({ orientation: 'landscape', lang: 'en' })
+    expect(landscape).toContain('print-doc-landscape-en')
+    // The card sheets' own landscape page stays theirs.
+    expect(landscape).toContain('print-landscape')
+  })
+
+  it('fill is opt-in', () => {
+    expect(frame()).not.toContain('print-doc-fill')
+    expect(frame({ fill: true })).toContain('print-doc-fill')
+  })
+
+  it('prints with no institute at all (a caller with no School)', () => {
+    expect(frame({ institute: null })).toContain('long body')
   })
 })
 

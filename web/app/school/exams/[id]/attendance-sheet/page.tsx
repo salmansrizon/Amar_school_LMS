@@ -6,14 +6,14 @@ import { getSchoolContext } from '@/lib/school/context'
 import { loadInstitutePrintHeader } from '@/lib/institute-print'
 import { sittingLabel, studentsInRanges, type SheetStudent } from '@/lib/exam-attendance-sheet'
 import { enrolledStudentIds, enrolledIdFilter } from '@/lib/school/offering-roster'
-import { PrintPage, InstituteHeader, InfoGrid, PaginatedSheet, SignatureRow } from '@/components/print/pieces'
+import { InfoGrid, SignatureRow } from '@/components/print/pieces'
 import { PrintTrigger } from '@/components/print/print-trigger'
 import { withParams } from '@/lib/url-params'
 import { embeddedBuildingName } from '@/lib/venues'
 import { BackLink } from '@/components/back-link'
 import { resolveBackHref } from '@/lib/back-nav'
 import { pageTitle } from '@/lib/page-title'
-import { PrintVerifyFooter } from '@/components/print/verify-footer'
+import { PrintDocument } from '@/components/print/document'
 
 // Exam attendance sheet (issue #97, docs/improvement.md §4; ADR 0007).
 //
@@ -177,18 +177,17 @@ export default async function ExamAttendanceSheetPage({
           const ranges = (seatRows ?? []).filter((r) => r.room_id === roomId)
           const seated = studentsInRanges(students, ranges)
           return (
-            <PrintPage key={roomId} orientation="landscape">
-              {/* A full room spills past one sheet, so the header repeats
-                  (issue #92): a page 2 with no institution block is not a
-                  document an invigilator can hand back. */}
-              <PaginatedSheet
-                header={
-                  <InstituteHeader
-                    institute={institute}
-                    docTitle={`${t('examAttendanceSheet.docWord', lang)} — ${examLabel}`}
-                  />
-                }
-              >
+            // A full room spills past one sheet, so the header repeats (issue
+            // #92): a page 2 with no institution block is not a document an
+            // invigilator can hand back.
+            <PrintDocument
+              key={roomId}
+              lang={lang}
+              institute={institute}
+              docTitle={`${t('examAttendanceSheet.docWord', lang)} — ${examLabel}`}
+              verify={{ kind: 'exam_attendance_sheet', refId: id }}
+              orientation="landscape"
+            >
               <InfoGrid
                 rows={[
                   { label: t('examAttendanceSheet.subject', lang), value: subjectName.get(sitting.subject_id) ?? '—' },
@@ -238,9 +237,7 @@ export default async function ExamAttendanceSheetPage({
                 ]}
               />
               <p className="mt-3 text-center text-xs text-muted">{label}</p>
-              </PaginatedSheet>
-              <PrintVerifyFooter lang={lang} kind="exam_attendance_sheet" refId={id} />
-            </PrintPage>
+            </PrintDocument>
           )
         })
       )}

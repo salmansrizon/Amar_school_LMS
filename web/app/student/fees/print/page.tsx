@@ -4,8 +4,8 @@ import { getStudentContext } from '@/lib/student/context'
 import { loadInstitutePrintHeader } from '@/lib/institute-print'
 import { sortFees, totalFees, monthLabel, payableOf, type FeeRecord } from '@/lib/student/fees'
 import { classSectionLabel } from '@/lib/students'
-import { PrintPage, InstituteHeader, InfoGrid } from '@/components/print/pieces'
-import { PrintVerifyFooter } from '@/components/print/verify-footer'
+import { InfoGrid } from '@/components/print/pieces'
+import { PrintDocument } from '@/components/print/document'
 
 // The Student's fee statement, printed browser-native (ADR 0007).
 //
@@ -28,8 +28,7 @@ export default async function StudentFeeStatementPage() {
   const money = (n: number) => numberFmt(lang, { maximumFractionDigits: 2 }).format(n)
 
   return (
-    <PrintPage>
-      <InstituteHeader institute={institute ?? undefined} docTitle={t('student.feesTitle', lang)} />
+    <PrintDocument lang={lang} institute={institute} docTitle={t('student.feesTitle', lang)} verify={{ kind: 'fee_statement', self: true }}>
 
       <InfoGrid
         rows={[
@@ -74,7 +73,6 @@ export default async function StudentFeeStatementPage() {
       </table>
 
       <p className="mt-3 text-xs text-muted">{t('student.statementNote', lang)}</p>
-      <PrintVerifyFooter lang={lang} kind="fee_statement" self />
-    </PrintPage>
+    </PrintDocument>
   )
 }

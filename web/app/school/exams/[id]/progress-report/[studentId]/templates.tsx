@@ -1,11 +1,9 @@
 import {
-  PrintPage,
-  InstituteHeader,
+  PrintFrame,
   InfoGrid,
   SectionTitle,
   KeyValueTable,
   ChecklistGrid,
-  QrFooterRow,
   Badge,
 } from '@/components/print/pieces'
 import { t, type Lang } from '@/lib/i18n'
@@ -152,14 +150,12 @@ function ChecklistSection({ props }: { props: ProgressReportTemplateProps }) {
 function ClassicTemplate(props: ProgressReportTemplateProps) {
   const { lang } = props
   return (
-    <PrintPage fill>
-      <InstituteHeader institute={props.institute} docTitle={`${t('progressReport.docWord', lang)} — ${props.examLabel}`} />
+    <PrintFrame lang={lang} institute={props.institute} docTitle={`${t('progressReport.docWord', lang)} — ${props.examLabel}`} qrSvg={props.qrSvg} fill>
       <InfoGrid rows={baseInfoRows(props)} />
       <SubjectTable rows={props.subjectRows} lang={lang} />
       <BehaviourSection props={props} />
       <ChecklistSection props={props} />
-      <QrFooterRow qrLabel={t('print.qr', lang)} poweredBy={t('print.poweredBy', lang)} qrSvg={props.qrSvg} />
-    </PrintPage>
+    </PrintFrame>
   )
 }
 
@@ -172,16 +168,14 @@ function BorderedTemplate(props: ProgressReportTemplateProps) {
     rows.push({ label: t('promotion.position', lang), value: `${props.rankPosition} / ${props.rankOutOf}` })
   }
   return (
-    <PrintPage fill>
-      <InstituteHeader institute={props.institute} docTitle={`${t('progressReport.docWord', lang)} — ${props.examLabel}`} />
+    <PrintFrame lang={lang} institute={props.institute} docTitle={`${t('progressReport.docWord', lang)} — ${props.examLabel}`} qrSvg={props.qrSvg} fill>
       <InfoGrid rows={rows} />
       <div className="rounded-md border-2 border-line-strong p-3">
         <SubjectTable rows={props.subjectRows} lang={lang} />
       </div>
       <BehaviourSection props={props} />
       <ChecklistSection props={props} />
-      <QrFooterRow qrLabel={t('print.qr', lang)} poweredBy={t('print.poweredBy', lang)} qrSvg={props.qrSvg} />
-    </PrintPage>
+    </PrintFrame>
   )
 }
 
@@ -191,8 +185,7 @@ function BorderedTemplate(props: ProgressReportTemplateProps) {
 function SideBySideTemplate(props: ProgressReportTemplateProps) {
   const { lang } = props
   return (
-    <PrintPage fill>
-      <InstituteHeader institute={props.institute} docTitle={`${t('progressReport.docWord', lang)} — ${props.examLabel}`} />
+    <PrintFrame lang={lang} institute={props.institute} docTitle={`${t('progressReport.docWord', lang)} — ${props.examLabel}`} qrSvg={props.qrSvg} fill>
       <InfoGrid rows={baseInfoRows(props)} />
       <SubjectTable rows={props.subjectRows} lang={lang} />
       <div className="mt-5 grid grid-cols-2 gap-6">
@@ -203,8 +196,7 @@ function SideBySideTemplate(props: ProgressReportTemplateProps) {
           <ChecklistSection props={props} />
         </div>
       </div>
-      <QrFooterRow qrLabel={t('print.qr', lang)} poweredBy={t('print.poweredBy', lang)} qrSvg={props.qrSvg} />
-    </PrintPage>
+    </PrintFrame>
   )
 }
 

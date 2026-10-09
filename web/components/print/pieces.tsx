@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
-import type { InstitutePrintHeader } from '@/lib/institute-print'
+import { instituteBandLines, type InstitutePrintHeader } from '@/lib/institute-print'
+import { t, type Lang } from '@/lib/i18n'
 import { themeStyle, type PrintTheme } from '@/lib/print-themes'
 
 // Shared printable template pieces (ADR 0007) — the legacy C_TAMPLATES
@@ -15,8 +16,11 @@ export function PrintPage({
   theme,
   orientation = 'portrait',
   fill = false,
+  className = '',
 }: {
   children: ReactNode
+  /** Extra classes; PrintFrame names its `@page` rule through this. */
+  className?: string
   theme?: PrintTheme
   /** Wide documents (attendance register, seat plan, routine) print on a
    *  landscape A4 sheet via the `@page landscape` rule; the default portrait
@@ -40,14 +44,112 @@ export function PrintPage({
       style={style}
       className={`mx-auto w-full ${orientation === 'landscape' ? 'max-w-280 print-landscape' : 'max-w-190'} rounded-md border border-line-strong p-8 shadow-card not-last:break-after-page print:max-w-none print:rounded-none print:border-0 print:p-0 print:shadow-none${
         fill ? ' print:flex print:min-h-screen print:flex-col' : ''
-      }${theme ? '' : ' bg-paper'}`}
+      }${theme ? '' : ' bg-paper'}${className ? ` ${className}` : ''}`}
     >
       {children}
     </div>
   )
 }
 
-/** Institute name + meta line + document title (covers the exam-header case:
+/** The frame every A4 document prints in (owner's decision 2026-10-09): one
+ *  compact header band and one footer band, the same on every printed page,
+ *  with the content flowing between them. Card sheets (admit cards, ID cards)
+ *  do not use it.
+ *
+ *  How it repeats (see the print-doc rules in globals.css): the header band
+ *  sits in a `<thead>`, which every engine repeats per page; the `<tfoot>` is
+ *  an empty spacer that reserves the footer's room on every page; the footer
+ *  band itself rides in the thead cell and is hung one page-height lower, so
+ *  it prints at the bottom of each page. On screen both show once, at the top
+ *  and the foot of the card. */
+export function PrintFrame({
+  lang,
+  institute,
+  docTitle,
+  qrSvg,
+  orientation = 'portrait',
+  fill = false,
+  children,
+}: {
+  lang: Lang
+  institute?: InstitutePrintHeader | null
+  docTitle: string
+  /** From printVerifyQr (lib/print-verify-server.ts); '' prints the labelled box. */
+  qrSvg?: string | null
+  orientation?: 'portrait' | 'landscape'
+  /** One-sheet documents: push a trailing SignatureRow down to the footer. */
+  fill?: boolean
+  children: ReactNode
+}) {
+  return (
+    <PrintPage orientation={orientation} className={`print-doc-${orientation}-${lang}`}>
+      {/* table-fixed pins the single column to the sheet width: an over-wide
+          child (the 31-column attendance register) scrolls inside its own
+          wrapper instead of stretching the sheet (ui.md issue 1 / #147). */}
+      <table className="print-doc w-full table-fixed border-collapse">
+        <thead className="table-header-group">
+          <tr>
+            <th className="p-0 text-left align-top font-normal">
+              <div className="print-doc-head">
+                <div className="print-band-top flex items-center gap-[3mm] border-b-2 border-line-strong pb-[1mm]">
+                  {institute?.logoUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={institute.logoUrl} alt="" className="size-[16mm] shrink-0 object-contain" />
+                  ) : null}
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-base font-bold">{institute?.name ?? ''}</div>
+                    {(institute ? instituteBandLines(institute) : []).map((line) => (
+                      <div key={line} className="truncate text-[8pt] text-muted">
+                        {line}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="line-clamp-3 max-w-[50%] shrink-0 text-right text-sm font-semibold text-brand-600">
+                    {docTitle}
+                  </div>
+                </div>
+                <div className="print-band-bottom flex items-center gap-[3mm] border-t border-line">
+                  {qrSvg ? (
+                    // 20 mm on paper, quiet zone included (the SVG carries its
+                    // own 4 modules). It comes from web/lib/qr.ts, never from
+                    // user input — safe to inject directly.
+                    <div className="size-[20mm] shrink-0 [&>svg]:size-full" dangerouslySetInnerHTML={{ __html: qrSvg }} />
+                  ) : (
+                    <div className="flex size-[18mm] shrink-0 items-center justify-center rounded-sm border border-dashed border-line-strong text-center text-[8pt] text-muted">
+                      {t('print.qr', lang)}
+                    </div>
+                  )}
+                  <div className="min-w-0 flex-1 truncate text-center text-xs text-muted">{t('print.poweredBy', lang)}</div>
+                  {/* The page number prints here, from the @page margin box. */}
+                  <div className="w-[20mm] shrink-0" />
+                </div>
+              </div>
+            </th>
+          </tr>
+        </thead>
+        <tfoot>
+          <tr>
+            <td className="p-0">
+              <div className="print-doc-foot" />
+            </td>
+          </tr>
+        </tfoot>
+        <tbody>
+          <tr>
+            <td className="p-0 align-top">
+              <div className={fill ? 'print-doc-fill' : undefined}>{children}</div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </PrintPage>
+  )
+}
+
+/** The tall centred letterhead. Card sheets only now (admit cards): every A4
+ *  document carries PrintFrame's compact band instead.
+ *
+ *  Institute name + meta line + document title (covers the exam-header case:
  *  the docTitle names the exam, e.g. "Mark Sheet — Annual Examination 2025").
  *
  *  Issue #92 deepened this into the full institution block the printing
@@ -102,38 +204,6 @@ export function InstituteHeader({
         {docTitle}
       </div>
     </header>
-  )
-}
-
-/** A document whose body outruns one sheet: the header lives in a table
- *  header group, which every print engine repeats at the top of each printed
- *  page. Single-sheet printables (admit cards, receipts) keep using
- *  PrintPage + InstituteHeader directly — nothing to repeat there. */
-export function PaginatedSheet({
-  header,
-  children,
-}: {
-  header: ReactNode
-  children: ReactNode
-}) {
-  // table-fixed so the single content column is pinned to the sheet width: an
-  // over-wide child (e.g. the 31-column attendance register) then scrolls inside
-  // its own overflow-x-auto wrapper instead of stretching this cell — and the
-  // whole sheet — past the page (ui.md issue 1 / #147). Auto layout let the cell
-  // grow to its widest child, spilling the register out of the viewport.
-  return (
-    <table className="w-full table-fixed border-collapse">
-      <thead className="table-header-group">
-        <tr>
-          <th className="p-0 text-left font-normal">{header}</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td className="p-0 align-top">{children}</td>
-        </tr>
-      </tbody>
-    </table>
   )
 }
 

@@ -19,7 +19,8 @@ export async function renderAuthenticityQr(payload: string): Promise<string> {
  *  ID-card mark above it brings its own 4-module quiet zone and white ground,
  *  so it scans from tinted paper with nothing but its own box around it.
  *  112 CSS px prints 29.6 mm wide; a ~125-character URL is a version 7-8
- *  symbol, so one module is about 0.5 mm. */
+ *  symbol, so one module is about 0.5 mm. A4 documents scale the same SVG to
+ *  20 mm in their footer band (PrintFrame): 0.35 mm a module at version 8. */
 export async function renderPrintQr(url: string): Promise<string> {
   return QRCode.toString(url, { type: 'svg', margin: 4, width: 112, errorCorrectionLevel: 'M' })
 }
