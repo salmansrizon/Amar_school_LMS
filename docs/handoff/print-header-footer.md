@@ -194,3 +194,81 @@ Not wired: ID card and ID card sheet (by decision).
   the sheet; the receipt keeps its narrow column inside.
 - Ledger: the date range moved from a line under the letterhead into the
   document title, so it still repeats on every page.
+
+## Page budget (owner, 2026-10-09: "page should not increase pages count")
+
+Rule: for the same data no document prints on more pages than on base
+`26351115`. Same URL rendered with `page.pdf()` on a base checkout (port 3795)
+and on the current tree (port 3791), `.printtest/budget.mjs`. "Synthetic" rows
+repeat the last table row in the browser, identically on both sides.
+
+### Step 1 — measured before any tightening
+
+| Document | Base pages | After the frame | |
+|---|---|---|---|
+| mark sheet t1 / t2 / t3 | 2 | 1 | fewer |
+| mark sheet t1, t2 with 14 subjects (synthetic) | 2 | 1 | fewer |
+| progress report t1 / t2 / t3 | 2 | 1 | fewer |
+| progress report t3 with 14 subjects (synthetic) | 2 | 1 | fewer |
+| admission form | 2 | 1 | fewer |
+| fee receipt | 1 | 1 | same |
+| class routine | 2 | 1 | fewer |
+| exam routine | 1 | 1 | same |
+| attendance book (filled and blank mode) | 6 | 14 | **more** |
+| student log | 2 | 2 | same |
+| general ledger | 14 | 9 | fewer |
+| exam attendance sheet (empty: no seat plan in test data) | 1 | 1 | same |
+| seat plan (empty state) | 2 | 1 | fewer |
+| template admission | 2 | 1 | fewer |
+| template attendance | 2 | 2 | same |
+| template exam answer | 2 | 2 | same |
+| template homework | 2 | 1 | fewer |
+| template lesson plan | 1 | 1 | same |
+| print-all mark sheets (13 students) | 15 | 13 | fewer |
+| print-all progress reports (13 students) | 15 | 13 | fewer |
+| admit cards batch (13) | 13 | 13 | same |
+| admit card single | 1 | 1 | same |
+| student fee statement | 2 | 1 | fewer |
+| student routine | 2 | 1 | fewer |
+| student mark sheet | 1 | 1 | same |
+| ID card / ID card sheet (not framed) | 1 / 69 | 1 / 69 | same |
+
+Most of base's second pages were a blank trailing sheet (the old full-height
+sheet plus the wrapper's padding). Only the attendance book grew: base printed
+it portrait with the browser shrinking the whole page to about 0.68, so its
+12px text reached the paper at about 6pt.
+
+### Step 2 — attendance book
+
+277 students in the default (all classes) view.
+
+| | pages | text on paper | rows a page |
+|---|---|---|---|
+| Base (portrait, page shrunk to ~0.68 by the browser) | 6 | about 6pt | about 46 |
+| After the frame, before this pass (landscape, 8pt) | 14 | 8pt | about 20 |
+| Now (landscape, unscaled) | **8** | 9pt | 36 |
+
+Tightened: 9pt on `line-height: 1`, cell padding 0.2mm × 0.6mm (row 4.1mm),
+day columns 4.85mm, the name column capped at 62mm with an ellipsis, legend at
+8.5pt with a 1mm gap, landscape page margins 12mm → 8mm top/bottom and 10mm
+sides (all landscape frame documents). Bands and QR are full size; the page is
+not scaled. There is no totals column in this register, before or now.
+
+**Still over base: 8 pages against 6.** It cannot reach 6 in landscape above
+the 8.5pt floor: six landscape sheets have about 142mm × 6 = 852mm for 277
+rows, 3.1mm a row, which is 7pt text at most. Base only fit 6 because it
+printed at about 6pt. Measured alternative: the same dense table in
+**portrait prints on 5 pages** at 9pt (one fewer than base); I did not inspect
+that render for scaling or name truncation, and the owner's decision is
+landscape, so it is not applied. A single class of 40–70 students is 2 pages
+either way.
+
+### Step 3 — everything else
+
+Nothing else exceeds base, so no other layout was tightened. Band small lines
+and the page number went from 8pt to 8.5pt so no printed text is under the
+floor. Smallest text now: 8.5pt (band small lines, page number, register
+legend); the register is 9pt; other tables are 10.5pt.
+
+Final counts are the Step 1 table with the attendance book at 8. Last page of
+each batch carries a student (13 of 13), no blank sheet.

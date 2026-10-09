@@ -253,7 +253,7 @@ export default async function AttendanceBookPage({
           </div>
 
           {mode === 'filled' && (
-            <p className="mt-3 text-xs text-muted">{t('attendance.bookLegend', lang)}</p>
+            <p className="mt-1 text-xs text-muted print:mt-[1mm] print:text-[8.5pt]">{t('attendance.bookLegend', lang)}</p>
           )}
         </PrintDocument>
       )}

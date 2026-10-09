@@ -128,7 +128,7 @@ export function PrintFrame({
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-base font-bold">{institute?.name ?? ''}</div>
                     {(institute ? instituteBandLines(institute) : []).map((line) => (
-                      <div key={line} className="truncate text-[8pt] text-muted">
+                      <div key={line} className="truncate text-[8.5pt] text-muted">
                         {line}
                       </div>
                     ))}
@@ -147,7 +147,7 @@ export function PrintFrame({
                     // user input — safe to inject directly.
                     <div className="size-[20mm] shrink-0 [&>svg]:size-full" dangerouslySetInnerHTML={{ __html: qrSvg }} />
                   ) : (
-                    <div className="flex size-[18mm] shrink-0 items-center justify-center rounded-sm border border-dashed border-line-strong text-center text-[8pt] text-muted">
+                    <div className="flex size-[18mm] shrink-0 items-center justify-center rounded-sm border border-dashed border-line-strong text-center text-[8.5pt] text-muted">
                       {t('print.qr', lang)}
                     </div>
                   )}
