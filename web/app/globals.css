@@ -909,3 +909,15 @@ body:has(dialog[open]) [data-sonner-toaster]:not(dialog[open]:not(:has(dialog[op
 }
 .datefield-pop { animation: datefield-pop 0.12s ease-out both; }
 .datefield-sheet { animation: datefield-sheet 0.2s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+/* Phone: a filter bar (fields + a filterButtonClass submit) stacks, every
+   control full width with even gaps — no half-width orphan beside empty space. */
+@media (max-width: 639px) {
+  form:has(> .filter-submit) {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  form:has(> .filter-submit) > * {
+    width: 100%;
+  }
+}
