@@ -1,4 +1,6 @@
 import Form from 'next/form'
+import { EntityAvatar } from '@/components/entity-avatar'
+import { photoUrls } from '@/lib/photos'
 import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang, formatDate } from '@/lib/i18n'
@@ -39,6 +41,7 @@ export default async function EmployeesArchivePage({
   const visible = (employees ?? []).filter((e) => matchesEmployeeQuery(e, q))
   const pageSize = pageSizeFrom(params.size, 20)
   const pageData = paginate(visible, params.page, pageSize)
+  const photos = await photoUrls(supabase, 'employee', pageData.items.map((e) => e.id))
   const dash = <span className="text-muted">—</span>
 
   return (
@@ -84,7 +87,12 @@ export default async function EmployeesArchivePage({
               <tbody>
                 {pageData.items.map((e) => (
                   <tr key={e.id} className="border-b border-line">
-                    <td className={`${tdClass} font-medium`}>{e.full_name}</td>
+                    <td className={`${tdClass} font-medium`}>
+                      <span className="flex items-center gap-3">
+                        <EntityAvatar name={e.full_name} id={e.id} src={photos.get(e.id)} />
+                        {e.full_name}
+                      </span>
+                    </td>
                     <td className={tdClass}>{e.category ? employeeCategoryLabel(e.category, lang) : dash}</td>
                     <td className={tdClass}>{e.department ?? dash}</td>
                     <td className={tdClass}>

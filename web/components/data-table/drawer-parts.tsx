@@ -17,18 +17,21 @@ import { EntityAvatar } from '@/components/entity-avatar'
 export function DrawerHeader({
   name,
   avatarId,
+  avatarSrc,
   subtitle,
   status,
 }: {
   name: string
   /** Id EntityAvatar hashes for a stable colour; omit for no avatar tile. */
   avatarId?: string
+  /** The person's picture, when there is one; the tile is its fallback. */
+  avatarSrc?: string | null
   subtitle?: ReactNode
   status?: ReactNode
 }) {
   return (
     <div className="flex min-w-0 flex-1 items-center gap-3">
-      {avatarId && <EntityAvatar name={name} id={avatarId} size="lg" />}
+      {avatarId && <EntityAvatar name={name} id={avatarId} size="lg" src={avatarSrc} />}
       <div className="min-w-0 flex-1">
         <p className="truncate text-lg font-extrabold">{name}</p>
         {subtitle && <p className="truncate text-sm text-muted">{subtitle}</p>}

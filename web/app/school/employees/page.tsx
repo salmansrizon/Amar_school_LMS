@@ -17,6 +17,7 @@ import { StatCard, StatGrid, WarningBanner, WorkflowCard } from '@/components/ui
 import { EmptyState } from '@/components/ui/states'
 import { paginate, pageSizeFrom } from '@/components/pager'
 import { EntityAvatar } from '@/components/entity-avatar'
+import { photoUrls } from '@/lib/photos'
 import { DataTable, Pill, type Column } from '@/components/data-table/data-table'
 import { RecordDrawer } from '@/components/data-table/record-drawer'
 import { RowActionPill } from '@/components/data-table/row-action-pill'
@@ -165,6 +166,8 @@ export default async function EmployeesPage({
       (!presence || e.presence === presence),
   )
   const pageData = paginate(visible, page, pageSize)
+  // One batch for this page's rows and the open drawer; empty before migration 0262.
+  const photos = await photoUrls(supabase, 'employee', [...pageData.items.map((e) => e.id), ...(viewed ? [viewed.id] : [])])
 
   const fmt = numberFmt(lang)
   const n = (x: number) => fmt.format(x)
@@ -216,7 +219,7 @@ export default async function EmployeesPage({
       card: 'title',
       cell: (e) => (
         <div className="flex items-center gap-3">
-          <EntityAvatar name={e.full_name} id={e.id} />
+          <EntityAvatar name={e.full_name} id={e.id} src={photos.get(e.id)} />
           <div className="min-w-0">
             <Link
               href={withParams(params, { view: e.id })}
@@ -533,6 +536,7 @@ export default async function EmployeesPage({
             <DrawerHeader
               name={viewed.full_name}
               avatarId={viewed.id}
+              avatarSrc={photos.get(viewed.id)}
               subtitle={viewed.category ? categoryLabel(viewed.category) : undefined}
             />
           )
