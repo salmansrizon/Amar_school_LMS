@@ -9,7 +9,7 @@ import { getSchoolContext } from '@/lib/school/context'
 import { studentClassLabel } from '@/lib/students'
 import { schoolCrumbs } from '@/lib/school-crumbs'
 import { Crumbs } from '@/components/ui/page'
-import { ProfileHeader } from '@/components/ui/profile'
+import { ProfileAvatar, ProfileHeader } from '@/components/ui/profile'
 import { Pill } from '@/components/data-table/data-table'
 import { AddEntryForm, EditableEntry } from './behaviour-controls'
 import { ArchiveToggle } from './profile-controls'
@@ -26,10 +26,13 @@ import { PrintTrigger } from '@/components/print/print-trigger'
 
 export default async function StudentDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>
+  searchParams: Promise<{ tab?: string }>
 }) {
   const { id } = await params
+  const { tab } = await searchParams
   const lang: Lang = await currentLang()
   const { supabase, role } = await getSchoolContext()
 
@@ -101,6 +104,7 @@ export default async function StudentDetailPage({
         )} />
 
       <ProfileHeader
+        avatar={<ProfileAvatar src={student.photo_path ? `/api/student-photo?student=${id}` : null} />}
         name={student.full_name}
         status={
           <Pill tone={archived ? 'muted' : 'mint'} live={!archived}>
@@ -127,7 +131,7 @@ export default async function StudentDetailPage({
             />
             <Link
               href={`/school/students/${id}/transfer`}
-              className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-full border border-line-strong px-4 text-xs font-semibold hover:bg-paper-muted sm:min-h-9"
+              className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-full border border-line-strong px-4 text-xs font-semibold hover:bg-brand-50 sm:min-h-9"
             >
               <ArrowRightLeft className="size-4" aria-hidden />
               {t('students.transfer', lang)}
@@ -137,17 +141,13 @@ export default async function StudentDetailPage({
         }
       />
 
-      <StudentProfile id={id} lang={lang} />
-
-      {isOwner && (
-        <StudentLoginPanel
-          lang={lang}
-          studentId={id}
-          status={(loginRes.data as StudentLoginStatus | null) ?? null}
-          hasGuardianPhone={Boolean(student.guardian_phone)}
-        />
-      )}
-
+      <StudentProfile
+        id={id}
+        lang={lang}
+        tab={tab ?? 'general'}
+        extras={{
+          academic: (
+            <>
       <section className="mb-6 rounded-lg border border-line bg-paper p-5">
         <h2 className="mb-3 font-bold">{t('subjects.title', lang)}</h2>
         <StudentSubjects
@@ -158,6 +158,23 @@ export default async function StudentDetailPage({
         />
       </section>
 
+            </>
+          ),
+          guardian: (
+            <>
+      {isOwner && (
+        <StudentLoginPanel
+          lang={lang}
+          studentId={id}
+          status={(loginRes.data as StudentLoginStatus | null) ?? null}
+          hasGuardianPhone={Boolean(student.guardian_phone)}
+        />
+      )}
+
+            </>
+          ),
+          notes: (
+            <>
       <section className="mb-6 rounded-lg border border-line bg-paper p-5">
         <div className="mb-3 flex items-center justify-between">
           <h2 className="font-bold">{t('behaviour.title', lang)}</h2>
@@ -191,6 +208,10 @@ export default async function StudentDetailPage({
           })}
         </ul>
       </section>
+            </>
+          ),
+        }}
+      />
     </div>
   )
 }

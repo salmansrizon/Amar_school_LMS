@@ -3,7 +3,7 @@
 import { useRef, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { Camera, Pencil, RotateCcw, Trash2 } from 'lucide-react'
+import { Camera, Pencil, RotateCcw, Trash2, User } from 'lucide-react'
 import { t, type Lang } from '@/lib/i18n'
 import { ProfileFields, uploadStudentPhoto } from '../new/admission-form'
 import { archiveStudent, restoreStudent, updateStudent } from '../actions'
@@ -122,18 +122,27 @@ export function PhotoControl({
 
   return (
     <div className="text-center">
-      {hasPhoto ? (
-        // eslint-disable-next-line @next/next/no-img-element -- signed-URL redirect route; next/image can't optimize it
-        <img
-          src={`/api/student-photo?student=${studentId}`}
-          alt=""
-          className="mx-auto mb-3 aspect-square w-full max-w-44 rounded-md border border-line object-cover"
-        />
-      ) : (
-        <div className="mx-auto mb-3 flex aspect-square w-full max-w-44 items-center justify-center rounded-md border border-dashed border-line-strong text-xs text-muted">
-          {t('students.photo', lang)}
-        </div>
-      )}
+      <div className="relative mx-auto mb-4 w-fit">
+        {hasPhoto ? (
+          // eslint-disable-next-line @next/next/no-img-element -- signed-URL redirect route; next/image can't optimize it
+          <img
+            src={`/api/student-photo?student=${studentId}`}
+            alt=""
+            className="size-36 rounded-full border-4 border-brand-50 object-cover ring-1 ring-brand-100"
+          />
+        ) : (
+          <div className="flex size-36 items-center justify-center rounded-full border-4 border-brand-50 bg-brand-100 text-brand-500 ring-1 ring-brand-100">
+            <User className="size-16" aria-hidden />
+            <span className="sr-only">{t('students.photo', lang)}</span>
+          </div>
+        )}
+        <span
+          aria-hidden
+          className="absolute -right-2 -top-1 inline-flex size-8 items-center justify-center rounded-full border border-line bg-paper text-sm font-bold text-brand-600 shadow-sm"
+        >
+          #
+        </span>
+      </div>
       <input
         ref={inputRef}
         type="file"
@@ -145,7 +154,7 @@ export function PhotoControl({
         type="button"
         disabled={busy}
         onClick={() => inputRef.current?.click()}
-        className={btnSecondary}
+        className={`${btnSecondary} w-full border-transparent bg-brand-50 text-brand-700 hover:bg-brand-100`}
       >
         <Camera className="size-3.5" aria-hidden />
         {busy
