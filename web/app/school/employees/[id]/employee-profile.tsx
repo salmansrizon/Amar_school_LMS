@@ -23,14 +23,15 @@ import { EntityAvatar } from '@/components/entity-avatar'
 import { ProfileAside, ProfileField, ProfileGrid, ProfileSection } from '@/components/ui/profile'
 import { ShiftToggle } from '../employee-controls'
 import { ProfileEditor } from './profile-controls'
+import { PhotoControl } from '../../students/[id]/profile-controls'
 
 // Editable employee profile, shared by the Employee detail page and the
 // Employee list's record drawer (map 013, P3) — same split as StudentProfile.
 // Container queries, not viewport breakpoints, so it fits both.
 //
-// No photo column on `employees` (unlike Student) — the aside gets a
-// decorative initial tile instead of an upload control (honesty rule: don't
-// invent an upload feature that has no backing storage/column).
+// The photo column on `employees` arrives with migration 0262. Before it is
+// applied the aside keeps the decorative initial tile and shows no upload
+// control (honesty rule: no upload feature without backing storage/column).
 
 /** One employees row per request, however many components ask. */
 export const getEmployee = cache(async (id: string) => {
@@ -57,9 +58,15 @@ export async function EmployeeProfile({ id, lang }: { id: string; lang: Lang }) 
       <div className="grid gap-4 @lg:grid-cols-[13rem_1fr]">
         <ProfileAside
           photo={
-            <div className="mx-auto mb-3 flex aspect-square w-full max-w-44 items-center justify-center">
-              <EntityAvatar name={employee.full_name} id={employee.id} size="xl" />
-            </div>
+            // `select('*')` carries photo_path only once migration 0262 is applied;
+            // until then there is nowhere to store a photo, so no upload control.
+            'photo_path' in employee ? (
+              <PhotoControl lang={lang} kind="employee" studentId={id} hasPhoto={employee.photo_path != null} />
+            ) : (
+              <div className="mx-auto mb-3 flex aspect-square w-full max-w-44 items-center justify-center">
+                <EntityAvatar name={employee.full_name} id={employee.id} size="xl" />
+              </div>
+            )
           }
           facts={
             <>

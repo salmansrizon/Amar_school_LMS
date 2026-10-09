@@ -8,6 +8,7 @@ import { PageHeader } from '@/components/ui/page'
 import { EmptyState } from '@/components/ui/states'
 import { paginate, pageSizeFrom } from '@/components/pager'
 import { EntityAvatar } from '@/components/entity-avatar'
+import { photoUrls } from '@/lib/photos'
 import { DataTable, Pill, type Column } from '@/components/data-table/data-table'
 import { RecordDrawer } from '@/components/data-table/record-drawer'
 import { ViewLink } from '@/components/data-table/view-link'
@@ -49,6 +50,7 @@ export default async function StudentsArchivePage({
 
   const visible = students.filter((s) => matchesStudentQuery(s, q))
   const pageData = paginate(visible, page, pageSize)
+  const photos = await photoUrls(supabase, 'student', pageData.items.map((s) => s.id))
   const fmt = numberFmt(lang)
   const dateFmt = new Intl.DateTimeFormat(lang === 'bn' ? 'bn-BD' : 'en-GB', {
     dateStyle: 'medium',
@@ -64,7 +66,7 @@ export default async function StudentsArchivePage({
       card: 'title',
       cell: (s) => (
         <div className="flex items-center gap-3">
-          <EntityAvatar name={s.full_name} id={s.id} />
+          <EntityAvatar name={s.full_name} id={s.id} src={photos.get(s.id)} />
           <div className="min-w-0">
             <div className="truncate font-semibold">{s.full_name}</div>
             <div className="text-xs text-muted">

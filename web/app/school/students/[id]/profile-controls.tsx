@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { Camera, Pencil, RotateCcw, Trash2 } from 'lucide-react'
 import { t, type Lang } from '@/lib/i18n'
-import { ProfileFields, uploadStudentPhoto } from '../new/admission-form'
+import { ProfileFields, uploadPersonPhoto } from '../new/admission-form'
+import { PHOTO_KINDS, type PhotoKind } from '@/lib/photos'
 import { archiveStudent, restoreStudent, updateStudent } from '../actions'
 import { ConfirmDialog } from '@/components/confirm-dialog'
 import type { ClassCatalogueRow } from '@/lib/class-catalogue'
@@ -98,10 +99,14 @@ export function PhotoControl({
   lang,
   studentId,
   hasPhoto,
+  kind = 'student',
 }: {
   lang: Lang
+  // ponytail: the person's id — an Employee's when kind is 'employee'. Rename to
+  // personId once the profile restyle has merged (kept to keep that merge small).
   studentId: string
   hasPhoto: boolean
+  kind?: PhotoKind
 }) {
   const router = useRouter()
   const inputRef = useRef<HTMLInputElement>(null)
@@ -113,7 +118,7 @@ export function PhotoControl({
     if (!file) return
     setError(null)
     setBusy(true)
-    const uploadError = await uploadStudentPhoto(studentId, file, lang)
+    const uploadError = await uploadPersonPhoto(studentId, file, lang, kind)
     setBusy(false)
     if (inputRef.current) inputRef.current.value = ''
     if (uploadError) setError(uploadError)
@@ -125,7 +130,7 @@ export function PhotoControl({
       {hasPhoto ? (
         // eslint-disable-next-line @next/next/no-img-element -- signed-URL redirect route; next/image can't optimize it
         <img
-          src={`/api/student-photo?student=${studentId}`}
+          src={`${PHOTO_KINDS[kind].api}${studentId}`}
           alt=""
           className="mx-auto mb-3 aspect-square w-full max-w-44 rounded-md border border-line object-cover"
         />

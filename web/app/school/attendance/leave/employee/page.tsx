@@ -1,4 +1,6 @@
 import { currentLang } from '@/lib/i18n-server'
+import { EntityAvatar } from '@/components/entity-avatar'
+import { photoUrls } from '@/lib/photos'
 import { t, type Lang, formatDate } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { requireEmployeeAttendanceAdmin } from '@/lib/school/employee-attendance-admin'
@@ -92,6 +94,7 @@ export default async function EmployeeLeaveManagementPage({
   // Roster (rpage/rsize) and records (page/size) page independently.
   const rosterSize = pageSizeFrom(rsize, PAGE_SIZE)
   const rosterPage = paginate(rosterMatched, rpage, rosterSize)
+  const photos = await photoUrls(supabase, 'employee', rosterPage.items.map((e) => e.id))
 
   const dash = <span className="text-muted">—</span>
   const columns: Column<Row>[] = [
@@ -169,7 +172,12 @@ export default async function EmployeeLeaveManagementPage({
               <tbody>
                 {rosterPage.items.map((e) => (
                   <tr key={e.id} className="border-b border-line last:border-0">
-                    <td className="px-3 py-2 text-sm font-medium">{e.full_name}</td>
+                    <td className="px-3 py-2 text-sm font-medium">
+                      <span className="flex items-center gap-3">
+                        <EntityAvatar name={e.full_name} id={e.id} size="sm" src={photos.get(e.id)} />
+                        {e.full_name}
+                      </span>
+                    </td>
                     <td className="px-3 py-2 text-sm">
                       <RequestLeaveButton kind="employee" personId={e.id} personLabel={e.full_name} lang={lang} />
                     </td>

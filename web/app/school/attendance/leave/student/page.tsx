@@ -1,4 +1,6 @@
 import { currentLang } from '@/lib/i18n-server'
+import { EntityAvatar } from '@/components/entity-avatar'
+import { photoUrls } from '@/lib/photos'
 import { t, type Lang, formatDate, formatNumber } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { schoolRosterRead, filterSchoolRoster } from '@/lib/school/roster-source'
@@ -93,6 +95,7 @@ export default async function StudentLeaveManagementPage({
   // paged by the database.
   const rosterSize = pageSizeFrom(rsize, PAGE_SIZE)
   const rosterPage = paginate(rosterStudents, rpage, rosterSize)
+  const photos = await photoUrls(supabase, 'student', rosterPage.items.map((s) => s.id))
   const viewed = leavesPage.viewed ? withStudent(leavesPage.viewed) : undefined
 
   const dash = <span className="text-muted">—</span>
@@ -189,7 +192,12 @@ export default async function StudentLeaveManagementPage({
                 {rosterPage.items.map((s) => (
                   <tr key={s.id} className="border-b border-line last:border-0">
                     <td className="px-3 py-2 text-sm">{s.roll_number != null ? formatNumber(s.roll_number, lang) : '—'}</td>
-                    <td className="px-3 py-2 text-sm font-medium">{s.full_name}</td>
+                    <td className="px-3 py-2 text-sm font-medium">
+                      <span className="flex items-center gap-3">
+                        <EntityAvatar name={s.full_name} id={s.id} size="sm" src={photos.get(s.id)} />
+                        {s.full_name}
+                      </span>
+                    </td>
                     <td className="px-3 py-2 text-sm">
                       {s.class_name ?? '—'}
                       {s.section ? ` / ${s.section}` : ''}
