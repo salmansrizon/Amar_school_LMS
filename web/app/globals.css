@@ -337,6 +337,244 @@ body {
   size: A4 landscape;
   margin: 12mm;
 }
+/* A4 documents (PrintFrame): the page number is the one part of the footer
+   band the page itself cannot print, so it comes from a margin box (Chromium
+   131+; Firefox and Safari print nothing there). The negative margin lifts it
+   out of the page margin into the band's empty right-hand slot. Margin-box
+   text can only be written in CSS, hence one named page per language. */
+@page print-doc-portrait-bn {
+  @bottom-right {
+    content: 'পৃষ্ঠা ' counter(page, bengali) ' / ' counter(pages, bengali);
+    margin-top: -13mm;
+    vertical-align: top;
+    font-size: 8pt;
+    color: #6b6b6b;
+  }
+}
+@page print-doc-portrait-en {
+  @bottom-right {
+    content: 'Page ' counter(page) ' / ' counter(pages);
+    margin-top: -13mm;
+    vertical-align: top;
+    font-size: 8pt;
+    color: #6b6b6b;
+  }
+}
+@page print-doc-landscape-bn {
+  size: A4 landscape;
+  margin: 12mm;
+  @bottom-right {
+    content: 'পৃষ্ঠা ' counter(page, bengali) ' / ' counter(pages, bengali);
+    margin-top: -13mm;
+    vertical-align: top;
+    font-size: 8pt;
+    color: #6b6b6b;
+  }
+}
+@page print-doc-landscape-en {
+  size: A4 landscape;
+  margin: 12mm;
+  @bottom-right {
+    content: 'Page ' counter(page) ' / ' counter(pages);
+    margin-top: -13mm;
+    vertical-align: top;
+    font-size: 8pt;
+    color: #6b6b6b;
+  }
+}
+
+/* PrintFrame's fixed bands: a 24mm header and a 22mm footer, each with a 3mm
+   gap to the content. They never grow (overflow hidden), so a long school name
+   cannot move the content. On screen the footer sits at the foot of the card,
+   over the room the tfoot reserves. */
+.print-doc {
+  position: relative;
+  isolation: isolate; /* keeps the watermark above the sheet's own paper */
+}
+/* The school logo as a watermark (PrintWatermark): big and centred, out of
+   flow, behind the content, never in the way of a click. Grey and 6%: compared
+   at 5 / 6 / 8% in rendered PDFs under a dense solid logo, body text, table
+   rules and marks stay fully readable at all three; 6% is the faintest that
+   still reads as a mark on paper. On screen: centred in the sheet, clear of
+   the two bands. */
+.print-watermark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: -1;
+  width: 150mm;
+  max-width: 85%;
+  height: 150mm;
+  max-height: calc(100% - 60mm);
+  transform: translate(-50%, -50%);
+  object-fit: contain;
+  opacity: 0.06;
+  filter: grayscale(1);
+  pointer-events: none;
+}
+/* Every data table inside a PrintFrame reads like a formal ledger — one rule
+   set, on screen and on paper, whatever utilities the page put on its cells
+   (unlayered CSS outranks Tailwind's layers). A full grid of hairlines with a
+   stronger outer frame and header underline; compact rows; a light header
+   fill and nothing else filled, so the watermark shows through the table.
+   Chromium floors a border to whole pixels: 0.2mm prints as 1px (0.26mm) and
+   0.55mm as 2px (0.53mm). Pages mark what CSS cannot know with the print-*
+   cell classes below. */
+.print-doc table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 0.55mm solid #333;
+  font-size: 10.5pt;
+  line-height: 1.3;
+}
+.print-doc table :is(th, td) {
+  border: 0.2mm solid #555;
+  padding: 1.75mm 2mm;
+  background: transparent;
+  font-size: inherit;
+  letter-spacing: normal;
+  text-transform: none;
+  vertical-align: middle;
+}
+.print-doc table tr {
+  border: 0;
+  background: transparent;
+}
+.print-doc table thead {
+  break-inside: avoid;
+  break-after: avoid; /* never a header alone at the foot of a page */
+}
+.print-doc table thead th {
+  border-bottom: 0.55mm solid #333;
+  background: #f2f2f2;
+  color: var(--color-ink);
+  font-weight: 700;
+}
+/* Dates, rolls and short codes: one line. */
+.print-doc table .print-nowrap {
+  white-space: nowrap;
+}
+/* Money and numbers: right-aligned on tabular figures. */
+.print-doc table .print-num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+/* An empty amount: its dash stays centred. */
+.print-doc table .print-dash {
+  text-align: center;
+}
+/* Totals and closing balances. */
+.print-doc table .print-total :is(th, td) {
+  border-top: 0.55mm solid #333;
+  font-weight: 700;
+}
+/* The 31-day register: smaller type and tighter cells so it fits a landscape
+   sheet at full size. */
+.print-doc table.print-table-dense {
+  font-size: 8pt;
+}
+.print-doc table.print-table-dense :is(th, td) {
+  padding: 1mm 0.8mm;
+}
+.print-doc-head {
+  height: 27mm;
+}
+.print-doc-foot {
+  height: 25mm;
+}
+.print-band-top,
+.print-band-bottom {
+  box-sizing: border-box;
+  overflow: hidden;
+}
+.print-band-top {
+  height: 24mm;
+}
+.print-band-bottom {
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 22mm;
+}
+@media print {
+  /* PrintFrame in print. Its thead and tfoot repeat on every page and reserve
+     the two bands, so content never prints under either. The footer band lives
+     in the thead cell and hangs one page-height below it: 100vh is the page
+     content box in print, so it lands on the bottom edge of every page whatever
+     the paper or margins. It belongs to its own table, so each document of a
+     batch carries its own QR (position: fixed would stack them all on every
+     page). */
+  .print-doc-head {
+    position: relative;
+  }
+  /* Status and source pills print as plain text in a table cell; the screen
+     keeps them. */
+  .print-doc table .rounded-full {
+    padding: 0;
+    border-radius: 0;
+    background: transparent;
+    color: inherit;
+    font-size: inherit;
+    font-weight: inherit;
+  }
+  .print-band-bottom {
+    inset: calc(100vh - 22mm) 0 auto 0;
+  }
+  /* The watermark hangs from the thead cell too, so it prints once on every
+     page of its own document (position: fixed would stack one copy per
+     document of a batch on every page): centred in the room between the bands,
+     150mm on portrait, 120mm (the content height) on a landscape sheet. */
+  .print-watermark {
+    top: calc(27mm + (100vh - 52mm) / 2);
+    width: min(150mm, 100vh - 66mm);
+    max-width: none;
+    height: min(150mm, 100vh - 66mm);
+    max-height: none;
+  }
+  /* Everything around a PrintFrame gives way to the sheet: an inset from a
+     wrapper's padding would push page 1's footer off the page, a max-width
+     would stop the bands short of the page edge, and a background would cover
+     the page number (margin boxes paint under the page content). */
+  /* The toast region is an empty box after the sheet; in the student shell it
+     printed a blank trailing page (it did before the frame too). */
+  :root:has(.print-doc) section[aria-live] {
+    display: none;
+  }
+  :has(.print-doc) {
+    max-width: none !important;
+    margin: 0 !important;
+    border: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+  }
+  /* One-sheet documents: the content fills the room between the bands so a
+     trailing SignatureRow (mt-auto) rests just above the footer. 1mm of slack
+     keeps rounding from spilling onto a blank page. */
+  .print-doc-fill {
+    display: flex;
+    flex-direction: column;
+    min-height: calc(100vh - 53mm);
+  }
+  /* The named page goes on the root, not on the frame: a change of page name
+     forces a page break, so naming the frame alone printed a blank trailing
+     sheet for whatever box follows it in the document. */
+  .print-landscape.print-doc-landscape-bn,
+  .print-landscape.print-doc-landscape-en {
+    page: auto; /* not PrintPage's own `landscape`: the root names the page */
+  }
+  :root:has(.print-doc-portrait-bn) {
+    page: print-doc-portrait-bn;
+  }
+  :root:has(.print-doc-portrait-en) {
+    page: print-doc-portrait-en;
+  }
+  :root:has(.print-doc-landscape-bn) {
+    page: print-doc-landscape-bn;
+  }
+  :root:has(.print-doc-landscape-en) {
+    page: print-doc-landscape-en;
+  }
+}
 @media print {
   /* Printables are ink on paper, so they stay light whatever the screen theme is
      (ADR 0007 — the browser is the PDF renderer). Restoring the light palette here
@@ -400,7 +638,7 @@ body {
     -webkit-print-color-adjust: exact;
   }
 
-  /* Multi-page documents keep their institution header (PaginatedSheet puts
+  /* Multi-page documents keep their institution header (PrintFrame puts
      it in a thead) and never split a row, image or signature block across a
      sheet boundary. */
   thead {

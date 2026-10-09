@@ -5,12 +5,11 @@ import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
 import { ROUTINE_DAYS, ROUTINE_PERIODS, dayLabel, indexSlots, type RoutineSlot } from '@/lib/routine'
-import { PrintPage, InstituteHeader } from '@/components/print/pieces'
 import { PrintButton } from '@/components/print/print-button'
 import { loadInstitutePrintHeader } from '@/lib/institute-print'
 import { classCatalogueLabel } from '@/lib/class-catalogue'
 import { PrintPreflight } from '@/components/print/preflight'
-import { PrintVerifyFooter } from '@/components/print/verify-footer'
+import { PrintDocument } from '@/components/print/document'
 
 // Printable weekly routine (ADR 0007: browser-native print, composed from the
 // shared pieces). Landscape-ish grid fits portrait A4 at this density.
@@ -84,8 +83,7 @@ export default async function RoutinePrintPage({
         <PrintButton label={t('print.print', lang)} />
       </div>
 
-      <PrintPage orientation="landscape">
-        <InstituteHeader institute={institute ?? undefined} docTitle={`${t('routine.docWord', lang)} — ${classLabel}`} />
+      <PrintDocument lang={lang} institute={institute} docTitle={`${t('routine.docWord', lang)} — ${classLabel}`} verify={{ kind: 'class_routine', refId: classId }} orientation="landscape">
 
         <table className="w-full table-fixed border-collapse text-xs">
           <thead>
@@ -128,8 +126,7 @@ export default async function RoutinePrintPage({
           </tbody>
         </table>
 
-        <PrintVerifyFooter lang={lang} kind="class_routine" refId={classId} />
-      </PrintPage>
+      </PrintDocument>
     </main>
   )
 }

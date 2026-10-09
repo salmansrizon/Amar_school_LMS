@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
-import type { InstitutePrintHeader } from '@/lib/institute-print'
+import { instituteBandLines, type InstitutePrintHeader } from '@/lib/institute-print'
+import { t, type Lang } from '@/lib/i18n'
 import { themeStyle, type PrintTheme } from '@/lib/print-themes'
 
 // Shared printable template pieces (ADR 0007) — the legacy C_TAMPLATES
@@ -15,8 +16,11 @@ export function PrintPage({
   theme,
   orientation = 'portrait',
   fill = false,
+  className = '',
 }: {
   children: ReactNode
+  /** Extra classes; PrintFrame names its `@page` rule through this. */
+  className?: string
   theme?: PrintTheme
   /** Wide documents (attendance register, seat plan, routine) print on a
    *  landscape A4 sheet via the `@page landscape` rule; the default portrait
@@ -40,100 +44,137 @@ export function PrintPage({
       style={style}
       className={`mx-auto w-full ${orientation === 'landscape' ? 'max-w-280 print-landscape' : 'max-w-190'} rounded-md border border-line-strong p-8 shadow-card not-last:break-after-page print:max-w-none print:rounded-none print:border-0 print:p-0 print:shadow-none${
         fill ? ' print:flex print:min-h-screen print:flex-col' : ''
-      }${theme ? '' : ' bg-paper'}`}
+      }${theme ? '' : ' bg-paper'}${className ? ` ${className}` : ''}`}
     >
       {children}
     </div>
   )
 }
 
-/** Institute name + meta line + document title (covers the exam-header case:
- *  the docTitle names the exam, e.g. "Mark Sheet — Annual Examination 2025").
- *
- *  Issue #92 deepened this into the full institution block the printing
- *  requirements ask for: pass `institute` (built by `lib/institute-print.ts`)
- *  and the header renders logo, name, address, contacts and codes, centred.
- *  The legacy `name` + `meta` pair still works for printables not yet swept
- *  onto the loader (issue #99); `institute` wins where both are given. */
-export function InstituteHeader({
-  name,
-  meta,
-  institute,
-  docTitle,
-  accent,
-}: {
-  name?: string
-  meta?: string
-  institute?: InstitutePrintHeader
-  docTitle: string
-  /** Themed printables (issue #94) tint the rule and the title with their
-   *  preset accent; untinted headers keep the brand colour. */
-  accent?: string
-}) {
-  const heading = institute?.name ?? name ?? ''
+/** The school's own logo, big, faint and grey, in the centre of every printed
+ *  page of a PrintFrame document, to mark it as official (owner's decision
+ *  2026-10-09). Never the product brand, never text: a school with no logo
+ *  gets no watermark at all. An `<img>`, not a CSS background, so print
+ *  engines keep it. ID cards carry none. */
+export function PrintWatermark({ institute }: { institute?: InstitutePrintHeader | null }) {
+  if (!institute?.logoUrl) return null
   return (
-    <header
-      style={accent ? { borderBottomColor: accent } : undefined}
-      className="mb-4 border-b-2 border-line-strong pb-4 text-center"
-    >
-      {institute?.logoUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={institute.logoUrl}
-          alt=""
-          className="mx-auto mb-2 h-16 w-auto object-contain"
-        />
-      ) : null}
-      <div className="text-xl font-bold">{heading}</div>
-      {institute?.addressLine ? (
-        <div className="mt-0.5 text-xs text-muted">{institute.addressLine}</div>
-      ) : null}
-      {institute?.contactLine ? (
-        <div className="mt-0.5 text-xs text-muted">{institute.contactLine}</div>
-      ) : null}
-      {institute?.codesLine ? (
-        <div className="mt-0.5 text-xs text-muted">{institute.codesLine}</div>
-      ) : null}
-      {!institute && meta ? <div className="mt-0.5 text-xs text-muted">{meta}</div> : null}
-      <div
-        style={accent ? { color: accent } : undefined}
-        className="mt-3 text-lg font-semibold text-brand-600"
-      >
-        {docTitle}
-      </div>
-    </header>
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src={institute.logoUrl} alt="" aria-hidden="true" className="print-watermark" />
   )
 }
 
-/** A document whose body outruns one sheet: the header lives in a table
- *  header group, which every print engine repeats at the top of each printed
- *  page. Single-sheet printables (admit cards, receipts) keep using
- *  PrintPage + InstituteHeader directly — nothing to repeat there. */
-export function PaginatedSheet({
-  header,
+/** The frame every document that takes a page prints in (owner's decision
+ *  2026-10-09): one compact header band at the top edge and one footer band at
+ *  the bottom edge of every printed page, however short the content, with the
+ *  content flowing between them. Admit cards print one to a page, so they use
+ *  it too; ID cards (own stock, several to a sheet) do not.
+ *
+ *  How it repeats (see the print-doc rules in globals.css): the header band
+ *  sits in a `<thead>`, which every engine repeats per page; the `<tfoot>` is
+ *  an empty spacer that reserves the footer's room on every page; the footer
+ *  band itself rides in the thead cell and is hung one page-height lower, so
+ *  it prints at the bottom of each page. On screen both show once, at the top
+ *  and the foot of the card. The logo watermark rides in the thead cell the
+ *  same way, centred between the bands. */
+export function PrintFrame({
+  lang,
+  institute,
+  docTitle,
+  qrSvg,
+  orientation = 'portrait',
+  fill = false,
+  theme,
   children,
 }: {
-  header: ReactNode
+  lang: Lang
+  institute?: InstitutePrintHeader | null
+  docTitle: string
+  /** From printVerifyQr (lib/print-verify-server.ts); '' prints the labelled box. */
+  qrSvg?: string | null
+  orientation?: 'portrait' | 'landscape'
+  /** One-sheet documents: push a trailing SignatureRow down to the footer. */
+  fill?: boolean
+  /** Admit cards only (issue #94): ink, and the accent on the rule and title.
+   *  A tinted paper is painted on the frame's table, the one box that sits
+   *  under the watermark; it also sits over the page number (margin boxes
+   *  paint under page content), so a tinted sheet prints none. */
+  theme?: PrintTheme
   children: ReactNode
 }) {
-  // table-fixed so the single content column is pinned to the sheet width: an
-  // over-wide child (e.g. the 31-column attendance register) then scrolls inside
-  // its own overflow-x-auto wrapper instead of stretching this cell — and the
-  // whole sheet — past the page (ui.md issue 1 / #147). Auto layout let the cell
-  // grow to its widest child, spilling the register out of the viewport.
+  const tinted = theme && theme.paper.toLowerCase() !== '#ffffff'
   return (
-    <table className="w-full table-fixed border-collapse">
-      <thead className="table-header-group">
-        <tr>
-          <th className="p-0 text-left font-normal">{header}</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td className="p-0 align-top">{children}</td>
-        </tr>
-      </tbody>
-    </table>
+    <PrintPage orientation={orientation} theme={theme} className={`print-doc-${orientation}-${lang}`}>
+      {/* table-fixed pins the single column to the sheet width: an over-wide
+          child (the 31-column attendance register) scrolls inside its own
+          wrapper instead of stretching the sheet (ui.md issue 1 / #147). */}
+      <table
+        style={tinted ? { background: theme.paper } : undefined}
+        className="print-doc w-full table-fixed border-collapse"
+      >
+        <thead className="table-header-group">
+          <tr>
+            <th className="p-0 text-left align-top font-normal">
+              <div className="print-doc-head">
+                <PrintWatermark institute={institute} />
+                <div
+                  style={theme ? { borderBottomColor: theme.accent } : undefined}
+                  className="print-band-top flex items-center gap-[3mm] border-b-2 border-line-strong pb-[1mm]"
+                >
+                  {institute?.logoUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={institute.logoUrl} alt="" className="size-[16mm] shrink-0 object-contain" />
+                  ) : null}
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-base font-bold">{institute?.name ?? ''}</div>
+                    {(institute ? instituteBandLines(institute) : []).map((line) => (
+                      <div key={line} className="truncate text-[8pt] text-muted">
+                        {line}
+                      </div>
+                    ))}
+                  </div>
+                  <div
+                    style={theme ? { color: theme.accent } : undefined}
+                    className="line-clamp-3 max-w-[50%] shrink-0 text-right text-sm font-semibold text-brand-600"
+                  >
+                    {docTitle}
+                  </div>
+                </div>
+                <div className="print-band-bottom flex items-center gap-[3mm] border-t border-line">
+                  {qrSvg ? (
+                    // 20 mm on paper, quiet zone included (the SVG carries its
+                    // own 4 modules). It comes from web/lib/qr.ts, never from
+                    // user input — safe to inject directly.
+                    <div className="size-[20mm] shrink-0 [&>svg]:size-full" dangerouslySetInnerHTML={{ __html: qrSvg }} />
+                  ) : (
+                    <div className="flex size-[18mm] shrink-0 items-center justify-center rounded-sm border border-dashed border-line-strong text-center text-[8pt] text-muted">
+                      {t('print.qr', lang)}
+                    </div>
+                  )}
+                  <div className="min-w-0 flex-1 truncate text-center text-xs text-muted">{t('print.poweredBy', lang)}</div>
+                  {/* The page number prints here, from the @page margin box. */}
+                  <div className="w-[20mm] shrink-0" />
+                </div>
+              </div>
+            </th>
+          </tr>
+        </thead>
+        <tfoot>
+          <tr>
+            <td className="p-0">
+              <div className="print-doc-foot" />
+            </td>
+          </tr>
+        </tfoot>
+        <tbody>
+          <tr>
+            <td className="p-0 align-top">
+              <div className={fill ? 'print-doc-fill' : undefined}>{children}</div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </PrintPage>
   )
 }
 
@@ -156,15 +197,16 @@ export function GradePanelRow({ children }: { children: ReactNode }) {
   return <div className="print-keep mt-3 flex justify-end gap-6 text-sm font-semibold">{children}</div>
 }
 
-/** Signature lines along the sheet's bottom. `print-keep` stops the block from
- *  being split across a page boundary. In print, `mt-auto` inside the sheet's
- *  full-height flex column pushes the signatures to the foot of the A4 page and
- *  lets the gap above them grow to fill whatever vertical space is left — so a
- *  short mark sheet is never cramped and a full one still fits. On screen the
- *  fixed `mt-12` keeps a sensible gap (no flex column there). */
+/** Signature lines at the end of the content, never in the footer band. The
+ *  block owns its room: 19mm clear above each line for a handwritten signature
+ *  and a stamp, 8mm clear below the labels before whatever follows — padding,
+ *  in mm, so it holds on paper and travels with the block. `print-keep` keeps
+ *  the block whole: when it does not fit, all of it moves to the next page. In
+ *  print, `mt-auto` inside a `fill` frame's flex column pushes it down to just
+ *  above the footer band on a short sheet. */
 export function SignatureRow({ labels }: { labels: string[] }) {
   return (
-    <div className="print-keep mt-12 flex justify-between gap-6 text-xs print:mt-auto">
+    <div className="print-keep mt-4 flex justify-between gap-6 pt-[19mm] pb-[8mm] text-xs print:mt-auto">
       {labels.map((label) => (
         <span key={label} className="w-40 border-t border-line-strong pt-2 text-center">
           {label}
