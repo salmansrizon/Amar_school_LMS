@@ -1556,6 +1556,57 @@ Update this section at every milestone.
 - PR description updated for this and for the archive rule.
 - Scripts: scratchpad `f707/run.mjs` (stages admit / collect / receipt / void / archive).
 
+### 2026-10-09 ~00:20 — new feature started: QR verification on every print
+
+- Owner's request: every print carries a QR; a scan opens a page without login. Grilled, four decisions: (1) scan shows a VERIFICATION PAGE WITH KEY FACTS, not the full document; (2) LITERALLY EVERY print (personal documents, class lists, routines, blank templates; lists never show names); (3) facts are LIVE, the QR carries the print date and the page warns when the record changed after printing; (4) delivered ON `merge/staging-sync` (so the branch is not finished until this is merged, checked and its migration pasted).
+- Existing base it extends: ID card QR → `/verify/<students.public_token>` (migration 0065, `web/app/verify/[token]/page.tsx`, `web/lib/qr.ts`, `QrFooterRow` in `web/components/print/pieces.tsx`).
+- Running: Opus agent, worktree from `17739946`, port 3781. Writes `0260_print_verification.sql` (adds `schools.public_token`, one definer function for scans; never applied by it), public page under `web/app/verify/d/`, shared URL helper, QR wired into every print. Notes in `docs/handoff/print-qr.md` on its branch.
+- NEXT: review SQL and the public page myself (security: allow-list, no enumeration, anon grant), merge, checks + build, give the owner the migration to paste, verify read-only, browser-check scans, update the PR description (new public surface).
+
+### 2026-10-09 ~02:30 — UI round merged; 0261 applied; QR being reworked
+
+- `merge/staging-sync` tip `e10f2dcb`, not pushed. tsc clean, unit 1923, eslint only `app/claim/page.tsx:33`.
+- Merged: motion/pulse/icons (one pulse per region, `web/lib/ui/concept-icons.ts`, `pickPulse`; note: school layout now calls `hubSummary` on every owner page for a sidebar badge), shared `DateField` (57 inputs, `web/components/ui/date-field.tsx`, `web/lib/date-field.ts`; super-admin dates and month/time inputs still native), pagination on every unbounded owner list (`pageRange`, per-table URL keys; audit in `docs/handoff/pagination-audit.md`).
+- My own fixes: class routine print uses `PrintTrigger` (seen: popup, no new tab); Filled/Blank pills centred; `DrawerSection` is a button (the closed "Full profile" section could not open through `<details>`; seen fixed); labelled `PrintTrigger` is 44px on desktop too.
+- Month-to-date attendance on the mark page: `0261_student_attendance_summary_since.sql` applied by the owner; checked read-only (invoker, anon cannot call, 300 rows, MTD 509/1434 vs YTD 927/4725, no MTD figure above YTD) and in the browser (label "এই মাসে"/"MTD", no YTD label). Glossary: "Monthly Attendance Rate" added to CONTEXT.md.
+- QR on prints: built on branch `worktree-agent-aab7718f32955c155` (`0260_print_verification.sql`, `/verify/d/<kind>/<token>[/<ref>]?p=YYYYMMDD`). NOT merged. Owner's decision after review: result scans show TOTAL MARKS ONLY (the first version returned per-subject marks to anon so the server could compute GPA). Agent is reworking and merging base `7eb7cf5e`.
+- NEXT: review the reworked 0260 SQL (anon grant, reference binding, nothing per subject), merge, checks + build, owner pastes 0260, verify read-only + scan pages in a browser, add 0260/0261 and the new public page to the PR description, update #708.
+
+### 2026-10-09 ~04:30 — MERGED to staging (PR #709)
+
+- QR rework merged into the branch (`bf9f4090`): result scans return totals only. Tip `398f4e20`: tsc clean, unit 1946, `next build --webpack` exit 0.
+- Owner said "merge to the staging". Pushed `merge/staging-sync`, opened PR #709 (body = `docs/handoff/pr-description.md`). The repo has no GitHub Actions; the only checks are Vercel's, and the preview deployment passed. First merge attempt was refused by the permission system; after the owner repeated "push merge" it went through.
+- **PR #709 merged 2026-10-08T17:11:54Z, merge commit `d2b5022d`; `origin/staging` = `d2b5022d` and contains `398f4e20`.**
+- `0260_print_verification.sql` applied by the owner before the merge; checked read-only: `schools.public_token` on every school, no duplicates; `print_document_facts` (definer, search_path, anon may call), `print_tokens_self` (authenticated only); bad token / bad kind / another school's reference / another student's token all return null; a voided receipt returns `valid=false, reason=voided` and no amount; a template returns school name and logo only.
+- All 27 migration files of the branch are now applied.
+- Still to confirm: Vercel deployment of `staging` for `d2b5022d` and a live check of `/login` and one `/verify/d/...` page.
+- Never run: integration and e2e suites (no pipeline exists for them).
+
+### 2026-10-09 ~05:30 — staging live; follow-up work on the branch
+
+- Staging deployment for merge commit `d2b5022d`: Vercel status success, URL `https://amar-school-3rznp7e25-salmansrizons-projects.vercel.app`. Live checks (signed out): `/login` 200; `/school` → `/login`; old `/verify/<bad>` 200; `/verify/d/...` bad token 404; a real class-routine scan for Test School A 200 with "✓ আসল", school, class, year, `noindex`. Pages behind login not checked on the live host.
+- New commit on `merge/staging-sync`, NOT on staging: `26351115` profile topics as a two-column grid (`ProfileGrid`, `span="full"`, each section its own `@container`; student + employee profiles; seen at 1440px).
+- Running: Opus agent (worktree from `26351115`, port 3791) on fixed print header/footer. Owner's decisions: compact ~24mm header band, same on every page; ~22mm footer on every page with a smaller QR, powered-by and "Page X / Y"; all A4 documents, not admit-card or ID-card sheets. Notes will be in `docs/handoff/print-header-footer.md` on its branch.
+- NEXT: review + merge the print work, checks + build, then a second PR to `staging` for `26351115` and the print frame (the owner merges; `gh pr merge` needed the owner's explicit instruction last time).
+
+### 2026-10-09 ~12:45 — second round on the branch (after PR #709)
+
+- `staging` = `d2b5022d` (PR #709 merged, deployment live). `merge/staging-sync` local tip `0713b979`, clean, NOT pushed since `398f4e20`; everything below needs a second PR, which the owner merges.
+- Merged since the first PR: profile topics grid (`26351115`); profile pages to the owner's mockup with `?tab=` tabs (`57ef635b`: header card, round avatar aside, tabs General/Academic/Guardian/Contact/Notes, `profile-art.tsx`); photos in lists + employee photo feature (`4dd95c0d`: `EntityAvatar src`, `web/lib/photos.ts` batch-signs per page, `0262_employee_photo.sql` WRITTEN — check below); phone list cards with full-width actions (`eab2aa2a`, shared DataTable, `data-row-more` on ⋮ triggers); print frame (`0713b979`: `PrintDocument` with a fixed 24mm header band and 22mm footer band on every page, footer pinned to the page bottom via `100vh` in the thead cell, QR 20mm, page number through `@page` margin boxes (Chromium only), school-logo watermark 150mm/120mm at 0.06 and no brand fallback, thin-border `print-table`, 19mm signature room, admit cards on the frame, ID cards untouched). I rendered the ledger to PDF and looked at it: bands, grid table, footer at the bottom, "পৃষ্ঠা ১ / ১".
+- Checks at `0713b979`: tsc clean, unit 1968, eslint only `app/claim/page.tsx:33`. No production build run since `398f4e20`.
+- Owner decisions this round: QR scan shows key facts, result totals only; every print gets the QR; print header compact band on every page; footer with QR + powered-by + page number on every page, always at the page bottom; A4 documents and admit cards, not ID cards; watermark = the school's own logo, big, centred, blank when none; thin-border tables; attendance book landscape and dense, no document on more pages than before; phone cards keep all fields with full-width buttons; phone controls centred and evened out but page header (breadcrumb + title) LEFT-aligned; photos: students now, employee photos as a new feature.
+- Running (both resumed after the session limit at 12:40): print agent `a40157b034312f18e` on the page-budget pass (measure every print on base `26351115` vs tip; attendance book 6 → 14 pages must come back to at most 6); mobile agent `a617ace90a865e518` (had 12 uncommitted files; told to commit, left-align the header, merge `0713b979`).
+- NEXT: merge both, checks + production build, PDF spot-check, update `docs/handoff/pr-description.md` for a second PR (profile, photos, print frame, mobile, `0262`), push and open the PR when the owner says; the owner merges or repeats the instruction.
+
+### 2026-10-09 ~14:10 — mobile pass, 0262 applied, print page budget
+
+- `merge/staging-sync` local tip `23ac041c` (not pushed since `398f4e20`). tsc clean, unit 1968.
+- Mobile centring merged (`9f9f79a0`): tabs/segmented control full width or scrolling, filters full width, header actions equal widths; page header LEFT-aligned (my measure: breadcrumb, title and cards share the left edge at 390px and 1440px). Leftovers handed back to the same agent (student question submit, institute save button, count-beside-button rows) — running.
+- `0262_employee_photo.sql` applied by the owner; checked read-only (nullable column, private bucket 2 MB jpeg/png/webp, five policies to `authenticated`, all scoped by school folder, none for anon). Upload path tested by me through the app on a test employee I created (`W3-photo Employee`, archived after): file input present, photo shows on the profile (200x200) and in the employee list as a signed `employee-photos` URL.
+- Print page budget merged (`23ac041c`): every print is on the same or fewer pages than base `26351115` except the attendance book (whole school, 277 students: 6 shrunk portrait pages before → 8 unscaled landscape pages at 9pt). Owner's decision: keep landscape, 8 pages. Table of before/after in `docs/handoff/print-header-footer.md`. Smallest printed text 8.5pt.
+- All migration files on the branch are applied (`0217`–`0262`, without `0222` and `0242`).
+- NEXT: merge the mobile leftovers; production build; update `docs/handoff/pr-description.md` for the second PR (profile + mockup, photos + `0262`, phone cards, print frame/watermark/tables/page budget, mobile alignment); push and open the PR when the owner says.
+
 - If the session dies: find the implementer branches with
   `git branch --list 'worktree-agent-*' --sort=-committerdate | head` and
   `git log merge/staging-sync..<branch> --oneline`; merge finished ones into
