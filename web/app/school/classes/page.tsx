@@ -621,7 +621,7 @@ export default async function ClassesPage({
                 const hasSubjects = (subjectCountByClass.get(c.id) ?? 0) > 0
                 const next = classNextStep(c)
                 return (
-                  <li key={c.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
+                  <li key={c.id} className="flex flex-col gap-2 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
                     <div className="min-w-0">
                       <p className="truncate font-semibold">{[c.name, c.section].filter(Boolean).join(' - ')}</p>
                       <div className="mt-1 flex flex-wrap gap-1.5">
@@ -659,7 +659,7 @@ export default async function ClassesPage({
           {noRoutine.length ? (
             <ul className="mb-4 divide-y divide-line">
               {noRoutine.slice(0, 5).map((c) => (
-                <li key={c.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
+                <li key={c.id} className="flex flex-col gap-2 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
                   <p className="truncate font-semibold">{[c.name, c.section].filter(Boolean).join(' - ')}</p>
                   <RowActionPill
                     state="next"

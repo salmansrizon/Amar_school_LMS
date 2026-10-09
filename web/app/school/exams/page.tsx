@@ -538,7 +538,7 @@ export default async function ExamsPage({
                 const seatDone = Boolean(e.seat_plan_published_at)
                 const next = nextStep(e)
                 return (
-                  <li key={e.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
+                  <li key={e.id} className="flex flex-col gap-2 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
                     <div className="min-w-0">
                       <p className="truncate font-semibold">{e.name}</p>
                       <div className="mt-1 flex flex-wrap gap-1.5">

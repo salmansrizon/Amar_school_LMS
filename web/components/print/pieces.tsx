@@ -169,7 +169,7 @@ export function PrintFrame({
         <tbody>
           <tr>
             <td className="p-0 align-top">
-              <div className={fill ? 'print-doc-fill' : undefined}>{children}</div>
+              <div className={fill ? 'print-doc-body print-doc-fill' : 'print-doc-body'}>{children}</div>
             </td>
           </tr>
         </tbody>

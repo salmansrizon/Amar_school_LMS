@@ -258,7 +258,6 @@ function AddMemberForm({ combinationId, exams, lang }: { combinationId: string; 
           name="exam_id"
           required
           defaultValue=""
-          className="h-8 text-xs sm:h-8"
           options={[
             { value: '', label: t('combinations.exam', lang), disabled: true },
             ...exams.map((e) => ({ value: e.id, label: `${e.name} (${e.exam_year})` })),
@@ -275,10 +274,10 @@ function AddMemberForm({ combinationId, exams, lang }: { combinationId: string; 
           type="number"
           min={0}
           max={100}
-          className={`${inputClass} h-8 w-24`}
+          className={`${inputClass} w-24`}
         />
       </div>
-      <button type="submit" disabled={pending} className="max-sm:min-h-11 cursor-pointer rounded-full bg-brand-500 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50">
+      <button type="submit" disabled={pending} className="min-h-11 cursor-pointer rounded-full bg-brand-500 px-4 text-sm font-semibold text-white disabled:opacity-50">
         {t('combinations.addMember', lang)}
       </button>
       {error && <p className="w-full text-xs text-alert-deep">{error}</p>}

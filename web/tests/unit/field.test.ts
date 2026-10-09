@@ -5,8 +5,8 @@ import { selectClass, dateInputClass, inputClass, filterButtonClass, FIELD_HEIGH
 // had drifted apart across the app (issue #119). These lock the contract the
 // call sites rely on: one shared look, three heights, opt-in full width.
 describe('selectClass (issue #119)', () => {
-  it('defaults to the shared field height (44px phone / 40px sm+) used by filter bars', () => {
-    expect(FIELD_HEIGHT).toBe('h-11 sm:h-10')
+  it('defaults to the shared field height (44px at every width) used by filter bars', () => {
+    expect(FIELD_HEIGHT).toBe('h-11')
     expect(selectClass()).toContain(FIELD_HEIGHT)
     expect(selectClass()).toContain('text-sm')
   })

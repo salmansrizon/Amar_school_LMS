@@ -389,7 +389,7 @@ export default async function StudentsPage({
           ) : (
             <ul className="mb-4 divide-y divide-line">
               {incompleteProfiles.slice(0, 5).map((s) => (
-                <li key={s.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
+                <li key={s.id} className="flex flex-col gap-2 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
                   <div className="min-w-0">
                     <p className="truncate font-semibold">{s.full_name}</p>
                     <p className="text-xs text-muted">{classLabelFor(s, showYear) ?? dash}</p>
@@ -420,7 +420,7 @@ export default async function StudentsPage({
               {dueList.slice(0, 5).map((s) => {
                 const due = fees.get(s.id)?.due ?? 0
                 return (
-                  <li key={s.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
+                  <li key={s.id} className="flex flex-col gap-2 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
                     <div className="min-w-0">
                       <p className="truncate font-semibold">{s.full_name}</p>
                       <p className="text-xs text-muted">৳{fmt.format(due)}</p>

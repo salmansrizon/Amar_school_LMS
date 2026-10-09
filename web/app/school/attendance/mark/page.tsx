@@ -351,7 +351,7 @@ export default async function MarkAttendancePage({
           {unmarkedIds.length ? (
             <ul className="mb-4 divide-y divide-line">
               {unmarkedIds.slice(0, 5).map((id) => (
-                <li key={id} className="flex flex-wrap items-center justify-between gap-2 py-3">
+                <li key={id} className="flex flex-col gap-2 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
                   <p className="truncate font-semibold">{comboLabel.get(id) ?? id}</p>
                   <RowActionPill
                     state="next"
@@ -384,7 +384,7 @@ export default async function MarkAttendancePage({
           {pendingLeaveTotal ? (
             <ul className="mb-4 divide-y divide-line">
               {studentLeavePending > 0 && (
-                <li className="flex flex-wrap items-center justify-between gap-2 py-3">
+                <li className="flex flex-col gap-2 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
                   <p className="font-semibold">
                     {t('attendance.studentLeavesPendingLabel', lang)}: {n(studentLeavePending)}
                   </p>
@@ -396,7 +396,7 @@ export default async function MarkAttendancePage({
                 </li>
               )}
               {employeeAdmin && employeeLeavePending > 0 && (
-                <li className="flex flex-wrap items-center justify-between gap-2 py-3">
+                <li className="flex flex-col gap-2 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
                   <p className="font-semibold">
                     {t('attendance.employeeLeavesPendingLabel', lang)}: {n(employeeLeavePending)}
                   </p>

@@ -17,7 +17,7 @@ import type { RowActionState } from '@/lib/exam-setup'
 // to two lines the moment its column/card gets tight, which no pill anywhere
 // else does (map 013 mobile sweep).
 const BASE =
-  'inline-flex items-center gap-1 whitespace-nowrap rounded-full px-3 py-1 max-sm:min-h-11 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 focus-visible:ring-offset-2'
+  'inline-flex items-center justify-center gap-1 whitespace-nowrap rounded-full px-3 py-1 max-sm:min-h-11 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 focus-visible:ring-offset-2'
 
 export const rowActionPillClass: Record<RowActionState, string> = {
   next: `${BASE} cursor-pointer bg-brand-500 text-white hover:bg-brand-600 motion-safe:active:scale-95`,

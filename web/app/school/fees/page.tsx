@@ -614,7 +614,7 @@ export default async function FeesPage({
               {dueRows.slice(0, 5).map((r) => {
                 const next = nextStepFor(r)
                 return (
-                  <li key={r.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
+                  <li key={r.id} className="flex flex-col gap-2 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
                     <div className="min-w-0">
                       <p className="truncate font-semibold">{r.name}</p>
                       <p className="text-xs text-muted">{tk(r.due)}</p>
@@ -641,7 +641,7 @@ export default async function FeesPage({
               {partialRows.slice(0, 5).map((r) => {
                 const next = nextStepFor(r)
                 return (
-                  <li key={r.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
+                  <li key={r.id} className="flex flex-col gap-2 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
                     <div className="min-w-0">
                       <p className="truncate font-semibold">{r.name}</p>
                       <p className="text-xs text-muted">{tk(r.due)}</p>
