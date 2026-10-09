@@ -174,7 +174,7 @@ function SeatPlanRowView({
             <button
               type="submit"
               disabled={pending}
-              className="cursor-pointer rounded-full bg-brand-500 px-2 py-0.5 text-xs font-semibold text-white disabled:opacity-50"
+              className="max-sm:min-h-11 cursor-pointer rounded-full bg-brand-500 px-2 py-0.5 text-xs font-semibold text-white disabled:opacity-50"
             >
               ✓
             </button>
@@ -393,7 +393,7 @@ export function GeneratePanel({
               }
             })
           }}
-          className={`${primaryBtnClass} w-auto px-5`}
+          className={`${primaryBtnClass} w-auto max-sm:w-full px-5`}
         >
           {t('seatPlan.generate', lang)}
         </button>

@@ -297,7 +297,7 @@ function AddGradeBandForm({
         <button
           type="submit"
           disabled={pending}
-          className="h-10 w-full cursor-pointer rounded-full bg-brand-500 px-3 text-sm font-semibold text-white hover:bg-brand-600 disabled:opacity-50"
+          className="h-10 max-sm:h-11 w-full cursor-pointer rounded-full bg-brand-500 px-3 text-sm font-semibold text-white hover:bg-brand-600 disabled:opacity-50"
         >
           {t('grading.addBand', lang)}
         </button>

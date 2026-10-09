@@ -471,7 +471,7 @@ export function ProfileForm({
             {error && <p className="w-full text-sm text-alert-deep sm:order-first sm:w-auto">{error}</p>}
             {saved && !error && <p className="text-sm text-mint-deep">{t('institute.saved', lang)}</p>}
             {isOwner && (
-              <button type="submit" disabled={pending} className={`${primaryBtnClass} w-auto px-6`}>
+              <button type="submit" disabled={pending} className={`${primaryBtnClass} w-auto max-sm:w-full px-6`}>
                 {t('institute.save', lang)}
               </button>
             )}
@@ -573,7 +573,7 @@ function LogoControl({ lang, isOwner, hasLogo }: { lang: Lang; isOwner: boolean;
             type="button"
             disabled={busy}
             onClick={() => inputRef.current?.click()}
-            className="cursor-pointer rounded-full bg-brand-500 px-4 py-1.5 text-xs font-semibold text-white hover:bg-brand-600 disabled:opacity-50"
+            className="max-sm:min-h-11 cursor-pointer rounded-full bg-brand-500 px-4 py-1.5 text-xs font-semibold text-white hover:bg-brand-600 disabled:opacity-50"
           >
             {busy ? t('institute.logoUploading', lang) : t('institute.logoUpload', lang)}
           </button>

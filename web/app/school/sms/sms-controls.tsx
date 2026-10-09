@@ -37,7 +37,7 @@ export function AddOffDayForm({ lang }: { lang: Lang }) {
       <button
         type="submit"
         disabled={pending}
-        className="rounded bg-brand-600 px-3 py-1.5 text-sm font-semibold text-white disabled:opacity-50"
+        className="max-sm:min-h-11 rounded bg-brand-600 px-3 py-1.5 text-sm font-semibold text-white disabled:opacity-50"
       >
         {t('sms.addOffDay', lang)}
       </button>
@@ -108,7 +108,7 @@ export function AddRuleForm({ lang, ruleType }: { lang: Lang; ruleType: 'exact' 
           <button
             type="submit"
             disabled={pending}
-            className="rounded bg-brand-600 px-3 py-1.5 text-sm font-semibold text-white disabled:opacity-50"
+            className="max-sm:min-h-11 rounded bg-brand-600 px-3 py-1.5 text-sm font-semibold text-white disabled:opacity-50"
           >
             {t('sms.addExact', lang)}
           </button>
@@ -140,7 +140,7 @@ export function AddRuleForm({ lang, ruleType }: { lang: Lang; ruleType: 'exact' 
           <button
             type="submit"
             disabled={pending}
-            className="rounded bg-brand-600 px-3 py-1.5 text-sm font-semibold text-white disabled:opacity-50"
+            className="max-sm:min-h-11 rounded bg-brand-600 px-3 py-1.5 text-sm font-semibold text-white disabled:opacity-50"
           >
             {t('sms.addRange', lang)}
           </button>
@@ -220,7 +220,7 @@ export function AddLeaveForm({ lang, students }: { lang: Lang; students: { id: s
       <button
         type="submit"
         disabled={pending}
-        className="self-end rounded bg-brand-600 px-3 py-1.5 text-sm font-semibold text-white disabled:opacity-50"
+        className="max-sm:min-h-11 self-end rounded bg-brand-600 px-3 py-1.5 text-sm font-semibold text-white disabled:opacity-50"
       >
         {t('sms.addLeave', lang)}
       </button>

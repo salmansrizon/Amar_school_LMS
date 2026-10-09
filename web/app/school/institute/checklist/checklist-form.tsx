@@ -50,7 +50,7 @@ export function ChecklistForm({
       </div>
       {error && <p className="mt-3 text-sm text-alert-deep">{error}</p>}
       {saved && !error && <p className="mt-3 text-sm text-mint-deep">{t('institute.saved', lang)}</p>}
-      <button type="submit" disabled={pending} className={`${primaryBtnClass} mt-4 w-auto px-6`}>
+      <button type="submit" disabled={pending} className={`${primaryBtnClass} mt-4 w-auto max-sm:w-full px-6`}>
         {t('institute.save', lang)}
       </button>
     </form>
