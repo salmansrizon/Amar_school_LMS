@@ -347,7 +347,7 @@ body {
     content: 'পৃষ্ঠা ' counter(page, bengali) ' / ' counter(pages, bengali);
     margin-top: -13mm;
     vertical-align: top;
-    font-size: 8pt;
+    font-size: 8.5pt;
     color: #6b6b6b;
   }
 }
@@ -356,29 +356,29 @@ body {
     content: 'Page ' counter(page) ' / ' counter(pages);
     margin-top: -13mm;
     vertical-align: top;
-    font-size: 8pt;
+    font-size: 8.5pt;
     color: #6b6b6b;
   }
 }
 @page print-doc-landscape-bn {
   size: A4 landscape;
-  margin: 12mm;
+  margin: 8mm 10mm;
   @bottom-right {
     content: 'পৃষ্ঠা ' counter(page, bengali) ' / ' counter(pages, bengali);
     margin-top: -13mm;
     vertical-align: top;
-    font-size: 8pt;
+    font-size: 8.5pt;
     color: #6b6b6b;
   }
 }
 @page print-doc-landscape-en {
   size: A4 landscape;
-  margin: 12mm;
+  margin: 8mm 10mm;
   @bottom-right {
     content: 'Page ' counter(page) ' / ' counter(pages);
     margin-top: -13mm;
     vertical-align: top;
-    font-size: 8pt;
+    font-size: 8.5pt;
     color: #6b6b6b;
   }
 }
@@ -469,13 +469,21 @@ body {
   border-top: 0.55mm solid #333;
   font-weight: 700;
 }
-/* The 31-day register: smaller type and tighter cells so it fits a landscape
-   sheet at full size. */
+/* The 31-day register, as dense as stays readable: 9pt on a tight line, day
+   columns no wider than their two digits, a name column that ends in an
+   ellipsis instead of widening the sheet. The page is never scaled. */
 .print-doc table.print-table-dense {
-  font-size: 8pt;
+  font-size: 9pt;
+  line-height: 1;
 }
 .print-doc table.print-table-dense :is(th, td) {
-  padding: 1mm 0.8mm;
+  padding: 0.2mm 0.6mm;
+}
+.print-doc table.print-table-dense :is(th, td):first-child {
+  min-width: 0;
+  max-width: 62mm;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .print-doc-head {
   height: 27mm;
