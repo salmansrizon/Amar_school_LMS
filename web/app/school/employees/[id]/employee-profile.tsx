@@ -19,8 +19,7 @@ import { t, type Lang, formatDate } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { isKnownAcademicShift, ACADEMIC_SHIFT_LABEL_KEY } from '@/lib/institute'
 import { employeeCategoryLabel } from '@/lib/employees'
-import { EntityAvatar } from '@/components/entity-avatar'
-import { ProfileAside, ProfileField, ProfileGrid, ProfileSection } from '@/components/ui/profile'
+import { ProfileAside, ProfileAvatar, ProfileField, ProfileGrid, ProfileSection, ProfileTabsCard } from '@/components/ui/profile'
 import { ShiftToggle } from '../employee-controls'
 import { ProfileEditor } from './profile-controls'
 
@@ -39,7 +38,16 @@ export const getEmployee = cache(async (id: string) => {
   return data
 })
 
-export async function EmployeeProfile({ id, lang }: { id: string; lang: Lang }) {
+const EMPLOYEE_TABS = [
+  { key: 'general', labelKey: 'profile.tab.general' },
+  { key: 'academic', labelKey: 'profile.tab.academic' },
+  { key: 'bank', labelKey: 'employees.bankInfo' },
+  { key: 'qualification', labelKey: 'employees.categoryQualification' },
+] as const
+
+/** `tab` set (the detail page): tab row + one tab. Unset (the list's drawer):
+ *  every section stacked, as before. */
+export async function EmployeeProfile({ id, lang, tab }: { id: string; lang: Lang; tab?: string }) {
   const { supabase, configuredShifts: rawConfiguredShifts } = await getSchoolContext()
   const [employee, { data: shiftAssignments }] = await Promise.all([
     getEmployee(id),
@@ -52,13 +60,59 @@ export async function EmployeeProfile({ id, lang }: { id: string; lang: Lang }) 
   const dob = employee.date_of_birth ? formatDate(employee.date_of_birth, lang) : null
   const joiningDate = employee.joining_date ? formatDate(employee.joining_date, lang) : null
 
+  const active = EMPLOYEE_TABS.find((x) => x.key === tab)?.key ?? 'general'
+  const ident = (
+          <ProfileSection icon={User} title={t('employees.identity', lang)} cols={3} span="full">
+            <ProfileField icon={User} label={t('employees.name', lang)} value={employee.full_name} />
+            <ProfileField icon={Phone} label={t('employees.mobile', lang)} value={employee.mobile} />
+            <ProfileField icon={Calendar} label={t('employees.dob', lang)} value={dob} />
+            <ProfileField icon={CalendarDays} label={t('employees.joiningDate', lang)} value={joiningDate} />
+            <ProfileField icon={ScanLine} label={t('employees.uniqueId', lang)} value={employee.unique_id} />
+          </ProfileSection>
+  )
+  const shifts = (
+    <>
+          {configuredShifts.length > 0 && (
+            <ProfileSection icon={Clock} title={t('employees.academicShifts', lang)} cols="flow">
+              {configuredShifts.map((shift) => (
+                <ShiftToggle
+                  key={shift}
+                  employeeId={id}
+                  shift={shift}
+                  label={t(ACADEMIC_SHIFT_LABEL_KEY[shift], lang)}
+                  assigned={assignedShifts.has(shift)}
+                />
+              ))}
+            </ProfileSection>
+          )}
+    </>
+  )
+  const bank = (
+          <ProfileSection icon={Banknote} title={t('employees.bankInfo', lang)} cols={3}>
+            <ProfileField icon={Banknote} label={t('employees.bankName', lang)} value={employee.bank_name} />
+            <ProfileField icon={Landmark} label={t('employees.bankBranch', lang)} value={employee.bank_branch} />
+            <ProfileField icon={CreditCard} label={t('employees.bankAccount', lang)} value={employee.bank_account} />
+          </ProfileSection>
+  )
+  const qual = (
+          <ProfileSection icon={Briefcase} title={t('employees.categoryQualification', lang)} cols={3}>
+            <ProfileField icon={Briefcase} label={t('employees.category', lang)} value={employee.category ? employeeCategoryLabel(employee.category, lang) : null} />
+            <ProfileField icon={GraduationCap} label={t('employees.qualification', lang)} value={employee.qualification} />
+            <ProfileField icon={Building} label={t('employees.department', lang)} value={employee.department} />
+          </ProfileSection>
+  )
+  const subj = (
+          <ProfileSection icon={BookOpen} title={t('employees.subjectTitle', lang)} cols={3}>
+            <ProfileField icon={BookOpen} label={t('employees.subjectTaught', lang)} value={employee.subject_taught} />
+          </ProfileSection>
+  )
   return (
     <div className="@container">
-      <div className="grid gap-4 @lg:grid-cols-[13rem_1fr]">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-4 @2xl:grid-cols-[18rem_minmax(0,1fr)]">
         <ProfileAside
           photo={
-            <div className="mx-auto mb-3 flex aspect-square w-full max-w-44 items-center justify-center">
-              <EntityAvatar name={employee.full_name} id={employee.id} size="xl" />
+            <div className="mx-auto mb-3 w-fit">
+              <ProfileAvatar size="xl" />
             </div>
           }
           facts={
@@ -80,46 +134,18 @@ export async function EmployeeProfile({ id, lang }: { id: string; lang: Lang }) 
         />
 
         <ProfileEditor lang={lang} employee={employee}>
-          <ProfileGrid>
-          <ProfileSection icon={User} title={t('employees.identity', lang)} cols={3} span="full">
-            <ProfileField icon={User} label={t('employees.name', lang)} value={employee.full_name} />
-            <ProfileField icon={Phone} label={t('employees.mobile', lang)} value={employee.mobile} />
-            <ProfileField icon={Calendar} label={t('employees.dob', lang)} value={dob} />
-            <ProfileField icon={CalendarDays} label={t('employees.joiningDate', lang)} value={joiningDate} />
-            <ProfileField icon={ScanLine} label={t('employees.uniqueId', lang)} value={employee.unique_id} />
-          </ProfileSection>
-
-          {configuredShifts.length > 0 && (
-            <ProfileSection icon={Clock} title={t('employees.academicShifts', lang)} cols="flow">
-              {configuredShifts.map((shift) => (
-                <ShiftToggle
-                  key={shift}
-                  employeeId={id}
-                  shift={shift}
-                  label={t(ACADEMIC_SHIFT_LABEL_KEY[shift], lang)}
-                  assigned={assignedShifts.has(shift)}
-                />
-              ))}
-            </ProfileSection>
+          {tab === undefined ? (
+            <ProfileGrid>
+              {ident}{shifts}{bank}{qual}{subj}
+            </ProfileGrid>
+          ) : (
+            <ProfileTabsCard tabs={EMPLOYEE_TABS} active={active} lang={lang} label={t('profile.tabsLabel', lang)}>
+              {active === 'general' && <ProfileGrid>{ident}</ProfileGrid>}
+              {active === 'academic' && <ProfileGrid>{shifts}{subj}</ProfileGrid>}
+              {active === 'bank' && <ProfileGrid>{bank}</ProfileGrid>}
+              {active === 'qualification' && <ProfileGrid>{qual}</ProfileGrid>}
+            </ProfileTabsCard>
           )}
-
-          <ProfileSection icon={Banknote} title={t('employees.bankInfo', lang)} cols={3}>
-            <ProfileField icon={Banknote} label={t('employees.bankName', lang)} value={employee.bank_name} />
-            <ProfileField icon={Landmark} label={t('employees.bankBranch', lang)} value={employee.bank_branch} />
-            <ProfileField icon={CreditCard} label={t('employees.bankAccount', lang)} value={employee.bank_account} />
-          </ProfileSection>
-
-          <ProfileSection icon={Briefcase} title={t('employees.categoryQualification', lang)} cols={3}>
-            <ProfileField icon={Briefcase} label={t('employees.category', lang)} value={employee.category ? employeeCategoryLabel(employee.category, lang) : null} />
-            <ProfileField icon={GraduationCap} label={t('employees.qualification', lang)} value={employee.qualification} />
-            <ProfileField icon={Building} label={t('employees.department', lang)} value={employee.department} />
-          </ProfileSection>
-
-          {/* Office Time moved to Attendance > Employees > Grace Time (issue #671). */}
-          <ProfileSection icon={BookOpen} title={t('employees.subjectTitle', lang)} cols={3}>
-            <ProfileField icon={BookOpen} label={t('employees.subjectTaught', lang)} value={employee.subject_taught} />
-          </ProfileSection>
-        </ProfileGrid>
         </ProfileEditor>
       </div>
     </div>

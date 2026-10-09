@@ -2,11 +2,12 @@ import { currentLang } from '@/lib/i18n-server'
 import { t, formatDate, formatNumber, type MessageKey } from '@/lib/i18n'
 import { Droplet, GraduationCap, Hash, IdCard, Landmark, Link2, MapPin, Phone, User, Users } from 'lucide-react'
 import { Card, PageHeader } from '@/components/ui/page'
-import { ProfileAside, ProfileField, ProfileSection } from '@/components/ui/profile'
+import { ProfileAside, ProfileAvatar, ProfileField, ProfileSection } from '@/components/ui/profile'
 import { storedFieldLabel } from '@/lib/students/stored-labels'
 import { getStudentContext, isReadOnly } from '@/lib/student/context'
 import { sortRequests, isPhotoRequest, type CorrectionRequest } from '@/lib/student/corrections'
 import { classSectionLabel } from '@/lib/students'
+import { FamilyArt, MapArt } from '@/components/ui/profile-art'
 import { CorrectionForm } from './correction-form'
 import { pageTitle } from '@/lib/page-title'
 
@@ -72,25 +73,16 @@ export default async function StudentProfilePage() {
       />
 
       <div className="@container mb-section">
-        <div className="grid gap-4 @lg:grid-cols-[13rem_1fr]">
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-4 @2xl:grid-cols-[18rem_minmax(0,1fr)]">
           <ProfileAside
             photo={
               // Their own face, which the profile never showed — while offering a
               // correction request for it. /api/student/photo is the Student-guarded
               // route the admit card already uses; it 404s when no photo is on file,
               // so a missing one degrades to the placeholder.
-              record.photo_path ? (
-                // eslint-disable-next-line @next/next/no-img-element -- private object behind a signed-URL redirect, not an optimizable asset
-                <img
-                  src="/api/student/photo"
-                  alt={t('student.myPhoto', lang)}
-                  className="mx-auto size-32 rounded-lg border border-line object-cover"
-                />
-              ) : (
-                <span className="mx-auto flex size-32 items-center justify-center rounded-lg border border-dashed border-line-strong text-xs text-muted">
-                  {t('student.myPhoto', lang)}
-                </span>
-              )
+              <div className="mx-auto w-fit">
+                <ProfileAvatar size="xl" src={record.photo_path ? '/api/student/photo' : null} alt={t('student.myPhoto', lang)} />
+              </div>
             }
             facts={
               <>
@@ -103,13 +95,13 @@ export default async function StudentProfilePage() {
           />
 
           <div>
-            <ProfileSection icon={User} title={t('students.identity', lang)} cols={2}>
+            <ProfileSection icon={User} title={t('students.identity', lang)} cols={2} art={<MapArt />}>
               <ProfileField icon={Phone} label={t('students.studentMobile', lang)} value={field('student_mobile')} />
               <ProfileField icon={Droplet} label={t('students.bloodGroup', lang)} value={field('blood_group')} />
               <ProfileField icon={Landmark} label={t('students.religion', lang)} value={field('religion')} />
               <ProfileField icon={MapPin} label={t('students.address', lang)} value={field('address')} />
             </ProfileSection>
-            <ProfileSection icon={Users} title={t('students.guardianInfo', lang)} cols={2}>
+            <ProfileSection icon={Users} title={t('students.guardianInfo', lang)} cols={2} art={<FamilyArt />}>
               <ProfileField icon={Users} label={t('students.guardianName', lang)} value={field('guardian_name')} />
               <ProfileField icon={Link2} label={t('students.relation', lang)} value={field('guardian_relation')} />
               <ProfileField icon={Phone} label={t('students.guardianMobile', lang)} value={field('guardian_mobile')} />

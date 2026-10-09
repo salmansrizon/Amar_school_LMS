@@ -2751,6 +2751,13 @@ const dict = {
   },
   'students.previousClass': { bn: 'পূর্ববর্তী শ্রেণি', en: 'Previous Class' },
   'students.siblingInfo': { bn: 'ভাইবোনের তথ্য', en: 'Sibling Info' },
+  'students.studentInfo': { bn: 'শিক্ষার্থীর তথ্য', en: 'Student Info' },
+  'profile.noInfo': { bn: 'কোনো তথ্য পাওয়া যায়নি', en: 'No information found' },
+  'profile.tabsLabel': { bn: 'প্রোফাইলের বিভাগ', en: 'Profile sections' },
+  'profile.tab.general': { bn: 'সাধারণ তথ্য', en: 'General' },
+  'profile.tab.academic': { bn: 'একাডেমিক', en: 'Academic' },
+  'profile.tab.contact': { bn: 'যোগাযোগ', en: 'Contact' },
+  'profile.tab.notes': { bn: 'নোটস', en: 'Notes' },
   'students.siblingDetails': {
     bn: 'ভাই/বোনের নাম, রোল, শ্রেণি',
     en: 'Sibling name, roll, class',
