@@ -26,7 +26,7 @@ import { getSchoolContext } from '@/lib/school/context'
 import { studentClassLabel } from '@/lib/students'
 import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
 import { applyGlobalYearFilterToOfferings } from '@/lib/school/year-filter'
-import { ProfileAside, ProfileField, ProfileSection } from '@/components/ui/profile'
+import { ProfileAside, ProfileField, ProfileGrid, ProfileSection } from '@/components/ui/profile'
 import { PhotoControl, ProfileEditor } from './profile-controls'
 
 // Photo + editable profile, shared by the Student detail page and the Student
@@ -99,7 +99,8 @@ export async function StudentProfile({ id, lang }: { id: string; lang: Lang }) {
         />
 
         <ProfileEditor lang={lang} student={student} classes={classes ?? []} showYear={showYear}>
-          <ProfileSection icon={User} title={t('students.identity', lang)} cols={4}>
+          <ProfileGrid>
+          <ProfileSection icon={User} title={t('students.identity', lang)} cols={4} span="full">
             <ProfileField icon={User} label={t('students.name', lang)} value={student.full_name} />
             <ProfileField icon={Calendar} label={t('students.dob', lang)} value={dob} />
             <ProfileField icon={VenusAndMars} label={t('students.gender', lang)} value={genderLabel(student.gender, lang)} />
@@ -140,6 +141,7 @@ export async function StudentProfile({ id, lang }: { id: string; lang: Lang }) {
           <ProfileSection icon={UserPlus} title={t('students.siblingInfo', lang)} cols={2}>
             <ProfileField icon={UserPlus} label={t('students.siblingDetails', lang)} value={student.sibling_info} />
           </ProfileSection>
+          </ProfileGrid>
         </ProfileEditor>
       </div>
     </div>

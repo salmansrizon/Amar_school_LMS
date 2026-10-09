@@ -68,6 +68,12 @@ export function ProfileAside({
   )
 }
 
+/** Topic cards side by side: two columns from `lg`, one below. Cards keep
+ *  their own height (`items-start`); a `span="full"` card takes the row. */
+export function ProfileGrid({ children }: { children: React.ReactNode }) {
+  return <div className="grid items-start gap-4 lg:grid-cols-2 [&>section]:mb-0">{children}</div>
+}
+
 /** Section card: a round violet icon badge + bold title over a field grid.
  *  `cols` is the column count at the widest breakpoint (@4xl, ~the card's
  *  width on a 1440px page); hairline dividers between columns only render at
@@ -78,6 +84,7 @@ export function ProfileSection({
   icon: Icon,
   title,
   cols = 4,
+  span,
   children,
 }: {
   icon: LucideIcon
@@ -85,10 +92,14 @@ export function ProfileSection({
   /** `'flow'` skips the field grid for content that isn't dt/dd pairs, e.g.
    *  the Benefit Flags chips. */
   cols?: 2 | 3 | 4 | 'flow'
+  /** Inside a ProfileGrid: take the whole row (the long Identity card). */
+  span?: 'full'
   children: React.ReactNode
 }) {
   return (
-    <section className="mb-4 rounded-2xl border border-line bg-paper p-card">
+    // @container: the field grid follows THIS card's width, so a half-width
+    // card in a ProfileGrid shows two columns, not four squeezed ones.
+    <section className={`@container mb-4 rounded-2xl border border-line bg-paper p-card ${span === 'full' ? 'lg:col-span-2' : ''}`}>
       <div className="mb-4 flex items-center gap-2.5">
         <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-brand-500 text-white">
           <Icon className="size-4" aria-hidden />
@@ -105,9 +116,9 @@ export function ProfileSection({
 }
 
 const GRID_COLS: Record<2 | 3 | 4, string> = {
-  2: 'grid gap-4 @md:grid-cols-2 [&>*]:@md:border-line [&>*:nth-child(2n)]:@md:border-l [&>*:nth-child(2n)]:@md:pl-4',
-  3: 'grid gap-4 @md:grid-cols-2 @4xl:grid-cols-3 [&>*]:@4xl:border-line [&>*]:@4xl:border-l [&>*:nth-child(3n+1)]:@4xl:border-l-0 [&>*:nth-child(3n+1)]:@4xl:pl-0',
-  4: 'grid gap-4 @md:grid-cols-2 @4xl:grid-cols-4 [&>*]:@4xl:border-line [&>*]:@4xl:border-l [&>*:nth-child(4n+1)]:@4xl:border-l-0 [&>*:nth-child(4n+1)]:@4xl:pl-0',
+  2: 'grid gap-4 @sm:grid-cols-2 [&>*]:@sm:border-line [&>*:nth-child(2n)]:@sm:border-l [&>*:nth-child(2n)]:@sm:pl-4',
+  3: 'grid gap-4 @sm:grid-cols-2 @4xl:grid-cols-3 [&>*]:@4xl:border-line [&>*]:@4xl:border-l [&>*:nth-child(3n+1)]:@4xl:border-l-0 [&>*:nth-child(3n+1)]:@4xl:pl-0',
+  4: 'grid gap-4 @sm:grid-cols-2 @4xl:grid-cols-4 [&>*]:@4xl:border-line [&>*]:@4xl:border-l [&>*:nth-child(4n+1)]:@4xl:border-l-0 [&>*:nth-child(4n+1)]:@4xl:pl-0',
 }
 
 /** One field: a soft icon tile, a muted label and the value — "—" when empty.

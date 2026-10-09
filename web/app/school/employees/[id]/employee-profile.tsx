@@ -20,7 +20,7 @@ import { getSchoolContext } from '@/lib/school/context'
 import { isKnownAcademicShift, ACADEMIC_SHIFT_LABEL_KEY } from '@/lib/institute'
 import { employeeCategoryLabel } from '@/lib/employees'
 import { EntityAvatar } from '@/components/entity-avatar'
-import { ProfileAside, ProfileField, ProfileSection } from '@/components/ui/profile'
+import { ProfileAside, ProfileField, ProfileGrid, ProfileSection } from '@/components/ui/profile'
 import { ShiftToggle } from '../employee-controls'
 import { ProfileEditor } from './profile-controls'
 
@@ -80,7 +80,8 @@ export async function EmployeeProfile({ id, lang }: { id: string; lang: Lang }) 
         />
 
         <ProfileEditor lang={lang} employee={employee}>
-          <ProfileSection icon={User} title={t('employees.identity', lang)} cols={3}>
+          <ProfileGrid>
+          <ProfileSection icon={User} title={t('employees.identity', lang)} cols={3} span="full">
             <ProfileField icon={User} label={t('employees.name', lang)} value={employee.full_name} />
             <ProfileField icon={Phone} label={t('employees.mobile', lang)} value={employee.mobile} />
             <ProfileField icon={Calendar} label={t('employees.dob', lang)} value={dob} />
@@ -118,6 +119,7 @@ export async function EmployeeProfile({ id, lang }: { id: string; lang: Lang }) 
           <ProfileSection icon={BookOpen} title={t('employees.subjectTitle', lang)} cols={3}>
             <ProfileField icon={BookOpen} label={t('employees.subjectTaught', lang)} value={employee.subject_taught} />
           </ProfileSection>
+        </ProfileGrid>
         </ProfileEditor>
       </div>
     </div>
