@@ -1,6 +1,6 @@
 # Profile pages, print frame, photos in lists, phone layout
 
-Base: `staging` (`d2b5022`, after #709). Head: `merge/staging-sync`. Fast-forward on `staging`.
+Base: `staging` (`d2b5022`, after #709). Head: `merge/staging-sync`. Contains all of `staging`.
 
 ## Read this first
 
