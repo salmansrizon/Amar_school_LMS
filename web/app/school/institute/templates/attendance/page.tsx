@@ -2,11 +2,11 @@ import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
 import { t } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
-import { PrintPage, InstituteHeader, InfoGrid, BlankLine, BlankRosterTable } from '@/components/print/pieces'
+import { InfoGrid, BlankLine, BlankRosterTable } from '@/components/print/pieces'
 import { PrintButton } from '@/components/print/print-button'
 import { loadInstitutePrintHeader } from '@/lib/institute-print'
 import { pageTitle } from '@/lib/page-title'
-import { PrintVerifyFooter } from '@/components/print/verify-footer'
+import { PrintDocument } from '@/components/print/document'
 
 // Blank Attendance Sheet (issue #39, PRD §5.11) — paper-fallback template.
 
@@ -25,8 +25,7 @@ export default async function BlankAttendancePage() {
         <PrintButton label={t('print.print', lang)} />
       </div>
 
-      <PrintPage>
-        <InstituteHeader institute={institute ?? undefined} docTitle={t('institute.templateAttendance', lang)} />
+      <PrintDocument lang={lang} institute={institute} docTitle={t('institute.templateAttendance', lang)} verify={{ kind: 'template_attendance' }}>
         <InfoGrid
           rows={[
             { label: t('institute.class', lang), value: <BlankLine /> },
@@ -35,8 +34,7 @@ export default async function BlankAttendancePage() {
           ]}
         />
         <BlankRosterTable columns={[t('institute.roll', lang), t('institute.studentName', lang), t('institute.present', lang)]} rowCount={30} />
-        <PrintVerifyFooter lang={lang} kind="template_attendance" />
-      </PrintPage>
+      </PrintDocument>
     </main>
   )
 }

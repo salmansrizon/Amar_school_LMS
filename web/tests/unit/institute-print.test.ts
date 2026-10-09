@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   buildInstituteHeader,
+  instituteBandLines,
   instituteHeaderIsBare,
   logoImageExtension,
   type SchoolHeaderRow,
@@ -68,6 +69,32 @@ describe('buildInstituteHeader', () => {
     const header = buildInstituteHeader(school({ address_line: '   ', mobile: ' ', email: '  ' }))
     expect(header.addressLine).toBeNull()
     expect(header.contactLine).toBeNull()
+  })
+})
+
+// The A4 header band has room for two small lines under the name. Every field
+// of the old letterhead must land on one of them (owner's decision 2026-10-09).
+describe('instituteBandLines', () => {
+  it('puts address with contacts on the first line and every code on the second', () => {
+    const header = buildInstituteHeader(school({ mpo_code: 'MPO-77', center_code: 'C-9' }))
+    expect(instituteBandLines(header)).toEqual([
+      'ঝিকরগাছা, যশোর · 01711-000000 · info@adarsha.edu.bd',
+      'EIIN: 123456 · প্রতিষ্ঠান কোড: ASH-0142 · এমপিও কোড: MPO-77 · কেন্দ্র কোড: C-9',
+    ])
+  })
+
+  it('leaves no dangling separator when the address or the contacts are missing', () => {
+    expect(instituteBandLines(buildInstituteHeader(school({ address_line: null })))[0]).toBe(
+      '01711-000000 · info@adarsha.edu.bd',
+    )
+    expect(instituteBandLines(buildInstituteHeader(school({ mobile: null, email: null })))[0]).toBe('ঝিকরগাছা, যশোর')
+  })
+
+  it('drops an empty line instead of printing a blank one', () => {
+    const codesOnly = school({ address_line: null, mobile: null, email: null })
+    expect(instituteBandLines(buildInstituteHeader(codesOnly))).toEqual(['EIIN: 123456 · প্রতিষ্ঠান কোড: ASH-0142'])
+    const nameOnly = school({ address_line: null, mobile: null, email: null, eiin_no: null, institute_code: null })
+    expect(instituteBandLines(buildInstituteHeader(nameOnly))).toEqual([])
   })
 })
 

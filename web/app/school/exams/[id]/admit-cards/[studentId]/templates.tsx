@@ -1,15 +1,18 @@
-import { PrintPage, InstituteHeader, InfoGrid, PhotoBox, SignatureRow, QrFooterRow } from '@/components/print/pieces'
+import { PrintFrame, InfoGrid, PhotoBox, SignatureRow } from '@/components/print/pieces'
 import { t, type Lang } from '@/lib/i18n'
 import type { InstitutePrintHeader } from '@/lib/institute-print'
 import type { PrintTheme } from '@/lib/print-themes'
 
 // Exams V (issue #48, PRD §5.5): the 2 admit-card template variants. No
 // grades/rank here (an admit card carries identity + seat only) — both
-// templates get the exact same computed props, differing only in layout.
-// Template 1 reproduces admit-card-preview.html exactly (the "strict
-// reference": no QR mark, a plain powered-by footer); Template 2 is an
-// original variant that adds the QR authenticity mark other printables carry
-// (issue #33), inside a bordered card.
+// templates get the exact same computed props, differing only in layout:
+// Template 2 sets the info/photo block in a bordered card.
+//
+// Every admit card route prints one card to a page (the single card, the
+// student portal's own, and each card of a print-all batch), so the card is a
+// page document: PrintFrame's header and footer bands at the page edges, the
+// school-logo watermark behind, the card's fields in the content area (owner's
+// decision 2026-10-09). The QR and the powered-by line live in the footer band.
 
 export interface AdmitCardTemplateProps {
   lang: Lang
@@ -39,43 +42,21 @@ function infoRows(props: AdmitCardTemplateProps) {
   ]
 }
 
-/** Template 1 — Classic: admit-card-preview.html's exact structure, no QR. */
-function ClassicTemplate(props: AdmitCardTemplateProps) {
-  const { lang } = props
+export function AdmitCardTemplate(props: AdmitCardTemplateProps) {
+  const { lang, theme } = props
+  const bordered = props.template === 2
   return (
-    <PrintPage theme={props.theme}>
-      <InstituteHeader
-        institute={props.institute}
-        accent={props.theme.accent}
-        docTitle={`${t('admitCard.docWord', lang)} — ${props.examLabel}`}
-      />
-      <div className="mb-5 flex gap-5">
-        <div className="flex-1">
-          <InfoGrid rows={infoRows(props)} />
-        </div>
-        <PhotoBox src={props.photoSrc} label={t('admitCard.photo', lang)} />
-      </div>
-      <SignatureRow labels={[t('markSheet.headTeacher', lang), t('admitCard.classTeacher', lang)]} />
-      <QrFooterRow qrLabel={t('print.qr', lang)} poweredBy={t('print.poweredBy', lang)} qrSvg={props.qrSvg} />
-    </PrintPage>
-  )
-}
-
-/** Template 2 — Bordered: the info/photo block sits in a bordered card, and
- * carries a QR authenticity mark (issue #33's QrFooterRow), matching how
- * mark-sheet's Template 2 differentiates from Template 1. */
-function BorderedTemplate(props: AdmitCardTemplateProps) {
-  const { lang } = props
-  return (
-    <PrintPage theme={props.theme}>
-      <InstituteHeader
-        institute={props.institute}
-        accent={props.theme.accent}
-        docTitle={`${t('admitCard.docWord', lang)} — ${props.examLabel}`}
-      />
+    <PrintFrame
+      lang={lang}
+      institute={props.institute}
+      docTitle={`${t('admitCard.docWord', lang)} — ${props.examLabel}`}
+      qrSvg={props.qrSvg}
+      theme={theme}
+      fill
+    >
       <div
-        style={{ borderColor: props.theme.accent }}
-        className="mb-5 flex gap-5 rounded-md border-2 border-line-strong p-3"
+        style={bordered ? { borderColor: theme.accent } : undefined}
+        className={`mb-5 flex gap-5${bordered ? ' rounded-md border-2 border-line-strong p-3' : ''}`}
       >
         <div className="flex-1">
           <InfoGrid rows={infoRows(props)} />
@@ -83,12 +64,6 @@ function BorderedTemplate(props: AdmitCardTemplateProps) {
         <PhotoBox src={props.photoSrc} label={t('admitCard.photo', lang)} />
       </div>
       <SignatureRow labels={[t('markSheet.headTeacher', lang), t('admitCard.classTeacher', lang)]} />
-      <QrFooterRow qrLabel={t('print.qr', lang)} poweredBy={t('print.poweredBy', lang)} qrSvg={props.qrSvg} />
-    </PrintPage>
+    </PrintFrame>
   )
-}
-
-export function AdmitCardTemplate(props: AdmitCardTemplateProps) {
-  if (props.template === 2) return <BorderedTemplate {...props} />
-  return <ClassicTemplate {...props} />
 }

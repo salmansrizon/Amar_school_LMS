@@ -1,10 +1,8 @@
 import {
-  PrintPage,
-  InstituteHeader,
+  PrintFrame,
   InfoGrid,
   GradePanelRow,
   SignatureRow,
-  QrFooterRow,
   Badge,
 } from '@/components/print/pieces'
 import { t, type Lang } from '@/lib/i18n'
@@ -92,12 +90,12 @@ function SubjectTable({ props, showGradeColumns }: { props: MarkSheetTemplatePro
       <thead>
         <tr className="border-b border-line-strong text-left text-xs uppercase tracking-wide text-muted">
           <th className="py-2 pr-2 font-semibold">{t('markSheet.subject', lang)}</th>
-          <th className="py-2 pr-2 font-semibold">{t('markSheet.fullMarks', lang)}</th>
-          <th className="py-2 pr-2 font-semibold">{t('markSheet.obtained', lang)}</th>
+          <th className="print-num py-2 pr-2 font-semibold">{t('markSheet.fullMarks', lang)}</th>
+          <th className="print-num py-2 pr-2 font-semibold">{t('markSheet.obtained', lang)}</th>
           {showGradeColumns && (
             <>
               <th className="py-2 pr-2 font-semibold">{t('markSheet.grade', lang)}</th>
-              <th className="py-2 font-semibold">{t('markSheet.gpa', lang)}</th>
+              <th className="print-num py-2 font-semibold">{t('markSheet.gpa', lang)}</th>
             </>
           )}
         </tr>
@@ -106,14 +104,14 @@ function SubjectTable({ props, showGradeColumns }: { props: MarkSheetTemplatePro
         {subjectRows.map((s) => (
           <tr key={s.subjectId} className="border-b border-line">
             <td className="py-2 pr-2">{s.name}</td>
-            <td className="py-2 pr-2">{s.full}</td>
-            <td className="py-2 pr-2">{s.entered === false ? '—' : s.obtained}</td>
+            <td className="print-num py-2 pr-2">{s.full}</td>
+            <td className={`py-2 pr-2 ${s.entered === false ? 'print-dash' : 'print-num'}`}>{s.entered === false ? '—' : s.obtained}</td>
             {showGradeColumns && (
               <>
                 <td className="py-2 pr-2">
                   <GradeBadge label={s.entered === false ? null : s.label} passed={s.passed} />
                 </td>
-                <td className="py-2">{s.entered !== false && s.gpa !== null ? s.gpa.toFixed(2) : '—'}</td>
+                <td className={`py-2 ${s.entered !== false && s.gpa !== null ? 'print-num' : 'print-dash'}`}>{s.entered !== false && s.gpa !== null ? s.gpa.toFixed(2) : '—'}</td>
               </>
             )}
           </tr>
@@ -129,11 +127,7 @@ function ClassicTemplate(props: MarkSheetTemplateProps) {
   const { lang } = props
   const showGradeColumns = props.schemeType !== 'numeric'
   return (
-    <PrintPage fill>
-      <InstituteHeader
-        institute={props.institute}
-        docTitle={`${t('markSheet.docWord', lang)} — ${props.examLabel}`}
-      />
+    <PrintFrame lang={lang} institute={props.institute} docTitle={`${t('markSheet.docWord', lang)} — ${props.examLabel}`} qrSvg={props.qrSvg} fill>
       <InfoGrid rows={baseInfoRows(props)} />
       <SubjectTable props={props} showGradeColumns={showGradeColumns} />
       <GradePanelRow>
@@ -150,8 +144,7 @@ function ClassicTemplate(props: MarkSheetTemplateProps) {
       <SignatureRow
         labels={[t('markSheet.classTeacher', lang), t('markSheet.examController', lang), t('markSheet.headTeacher', lang)]}
       />
-      <QrFooterRow qrLabel={t('print.qr', lang)} poweredBy={t('print.poweredBy', lang)} qrSvg={props.qrSvg} />
-    </PrintPage>
+    </PrintFrame>
   )
 }
 
@@ -166,11 +159,7 @@ function BorderedTemplate(props: MarkSheetTemplateProps) {
     rows.push({ label: t('promotion.position', lang), value: `${props.rankPosition} / ${props.rankOutOf}` })
   }
   return (
-    <PrintPage fill>
-      <InstituteHeader
-        institute={props.institute}
-        docTitle={`${t('markSheet.docWord', lang)} — ${props.examLabel}`}
-      />
+    <PrintFrame lang={lang} institute={props.institute} docTitle={`${t('markSheet.docWord', lang)} — ${props.examLabel}`} qrSvg={props.qrSvg} fill>
       <InfoGrid rows={rows} />
       <div className="rounded-md border-2 border-line-strong p-3">
         <SubjectTable props={props} showGradeColumns={showGradeColumns} />
@@ -189,8 +178,7 @@ function BorderedTemplate(props: MarkSheetTemplateProps) {
       <SignatureRow
         labels={[t('markSheet.classTeacher', lang), t('markSheet.examController', lang), t('markSheet.headTeacher', lang)]}
       />
-      <QrFooterRow qrLabel={t('print.qr', lang)} poweredBy={t('print.poweredBy', lang)} qrSvg={props.qrSvg} />
-    </PrintPage>
+    </PrintFrame>
   )
 }
 
@@ -201,11 +189,7 @@ function ResultCardTemplate(props: MarkSheetTemplateProps) {
   const { lang } = props
   const showGradeColumns = props.schemeType !== 'numeric'
   return (
-    <PrintPage fill>
-      <InstituteHeader
-        institute={props.institute}
-        docTitle={`${t('markSheet.docWord', lang)} — ${props.examLabel}`}
-      />
+    <PrintFrame lang={lang} institute={props.institute} docTitle={`${t('markSheet.docWord', lang)} — ${props.examLabel}`} qrSvg={props.qrSvg} fill>
       <InfoGrid rows={baseInfoRows(props)} />
       <div className="mb-5 flex items-center justify-between rounded-md bg-paper-muted px-4 py-3">
         <div className="flex gap-6 text-sm font-semibold">
@@ -227,8 +211,7 @@ function ResultCardTemplate(props: MarkSheetTemplateProps) {
       </div>
       <SubjectTable props={props} showGradeColumns={showGradeColumns} />
       <SignatureRow labels={[t('markSheet.classTeacher', lang), t('markSheet.headTeacher', lang)]} />
-      <QrFooterRow qrLabel={t('print.qr', lang)} poweredBy={t('print.poweredBy', lang)} qrSvg={props.qrSvg} />
-    </PrintPage>
+    </PrintFrame>
   )
 }
 

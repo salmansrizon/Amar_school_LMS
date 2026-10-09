@@ -4,14 +4,13 @@ import { t, formatDate, formatNumber, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { dateToDayOfWeek, sortRoutineEntries } from '@/lib/exam-setup'
 import { dayLabel } from '@/lib/routine'
-import { PrintPage, InstituteHeader, PaginatedSheet } from '@/components/print/pieces'
 import { loadInstitutePrintHeader } from '@/lib/institute-print'
 import { PrintTrigger } from '@/components/print/print-trigger'
 import { embeddedBuildingName, roomVenueLabel } from '@/lib/venues'
 import { BackLink } from '@/components/back-link'
 import { resolveBackHref } from '@/lib/back-nav'
 import { PrintPreflight } from '@/components/print/preflight'
-import { PrintVerifyFooter } from '@/components/print/verify-footer'
+import { PrintDocument } from '@/components/print/document'
 
 // Printable exam routine (ADR 0007: browser-native print), mirrors the class
 // routine print page's shape.
@@ -86,15 +85,12 @@ export default async function ExamRoutinePrintPage({
         <PrintTrigger href={`/school/exams/${id}/routine/print`} label={t('print.print', lang)} />
       </div>
 
-      <PrintPage>
-        <PaginatedSheet
-          header={
-            <InstituteHeader
-              institute={institute}
-              docTitle={`${t('examRoutine.docWord', lang)} — ${examLabel}`}
-            />
-          }
-        >
+      <PrintDocument
+        lang={lang}
+        institute={institute}
+        docTitle={`${t('examRoutine.docWord', lang)} — ${examLabel}`}
+        verify={{ kind: 'exam_routine', refId: id }}
+      >
           <table className="w-full table-fixed border-collapse text-sm">
             <colgroup>
               <col className="w-28" />
@@ -117,11 +113,11 @@ export default async function ExamRoutinePrintPage({
                 // Banded rows: a reader tracking one line across five columns
                 // on a wall needs the row, not the grid, to carry the eye.
                 <tr key={i} className={i % 2 ? 'bg-paper-muted' : undefined}>
-                  <td className={`${tdClass} text-center font-semibold`}>{formatDate(e.exam_date, lang)}</td>
+                  <td className={`${tdClass} print-nowrap text-center font-semibold`}>{formatDate(e.exam_date, lang)}</td>
                   <td className={`${tdClass} text-center`}>
                     {dayLabel(dateToDayOfWeek(e.exam_date), lang)}
                   </td>
-                  <td className={`${tdClass} text-center tabular-nums`}>
+                  <td className={`${tdClass} print-nowrap text-center tabular-nums`}>
                     {e.start_time.slice(0, 5)} - {e.end_time.slice(0, 5)}
                   </td>
                   <td className={`${tdClass} font-semibold`}>
@@ -132,10 +128,7 @@ export default async function ExamRoutinePrintPage({
               ))}
             </tbody>
           </table>
-
-          <PrintVerifyFooter lang={lang} kind="exam_routine" refId={id} />
-        </PaginatedSheet>
-      </PrintPage>
+      </PrintDocument>
     </main>
   )
 }

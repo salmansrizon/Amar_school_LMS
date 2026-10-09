@@ -2,14 +2,14 @@ import { describe, it, expect } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
 import {
   PrintPage,
-  InstituteHeader,
   InfoGrid,
   GradePanelRow,
   SignatureRow,
   QrFooterRow,
   PhotoBox,
   Badge,
-  PaginatedSheet,
+  PrintFrame,
+  PrintWatermark,
 } from '@/components/print/pieces'
 import { PRINT_THEMES } from '@/lib/print-themes'
 
@@ -36,93 +36,6 @@ describe('PrintPage', () => {
   })
 })
 
-describe('InstituteHeader', () => {
-  it('renders Bangla name, meta and document title', () => {
-    const html = renderToStaticMarkup(
-      <InstituteHeader
-        name="আদর্শ উচ্চ বিদ্যালয়"
-        meta="EIIN: 123456"
-        docTitle="মার্কশিট — বার্ষিক পরীক্ষা ২০২৫"
-      />,
-    )
-    expect(html).toContain('আদর্শ উচ্চ বিদ্যালয়')
-    expect(html).toContain('EIIN: 123456')
-    expect(html).toContain('মার্কশিট — বার্ষিক পরীক্ষা ২০২৫')
-  })
-
-  it('omits the meta line when not given', () => {
-    const withMeta = renderToStaticMarkup(
-      <InstituteHeader name="School" meta="EIIN: 999" docTitle="Doc" />,
-    )
-    const withoutMeta = renderToStaticMarkup(<InstituteHeader name="School" docTitle="Doc" />)
-    expect(withMeta).toContain('EIIN: 999')
-    expect(withoutMeta).not.toContain('EIIN')
-    // One fewer child div when meta is absent.
-    expect(withoutMeta.match(/<div/g)!.length).toBe(withMeta.match(/<div/g)!.length - 1)
-  })
-
-  // Issue #92: the header carries the full institution block. Callers that
-  // still pass only name/meta (swept in #99) must keep rendering as before.
-  it('renders the full institution block when given one', () => {
-    const html = renderToStaticMarkup(
-      <InstituteHeader
-        institute={{
-          name: 'আদর্শ মডেল স্কুল',
-          addressLine: 'ঝিকরগাছা, যশোর',
-          contactLine: '01711-000000 · info@adarsha.edu.bd',
-          codesLine: 'EIIN: 123456',
-          logoUrl: '/api/school-logo',
-        }}
-        docTitle="প্রবেশপত্র"
-      />,
-    )
-    expect(html).toContain('আদর্শ মডেল স্কুল')
-    expect(html).toContain('ঝিকরগাছা, যশোর')
-    expect(html).toContain('01711-000000 · info@adarsha.edu.bd')
-    expect(html).toContain('EIIN: 123456')
-    expect(html).toContain('/api/school-logo')
-    expect(html).toContain('প্রবেশপত্র')
-  })
-
-  it('omits absent institution lines and the logo slot', () => {
-    const html = renderToStaticMarkup(
-      <InstituteHeader
-        institute={{
-          name: 'School',
-          addressLine: null,
-          contactLine: null,
-          codesLine: null,
-          logoUrl: null,
-        }}
-        docTitle="Doc"
-      />,
-    )
-    expect(html).toContain('School')
-    expect(html).not.toContain('<img')
-  })
-
-  it('prefers the institute payload over a legacy name/meta pair', () => {
-    const html = renderToStaticMarkup(
-      <InstituteHeader
-        name="Stale Name"
-        meta="EIIN: 999"
-        institute={{
-          name: 'Real Name',
-          addressLine: null,
-          contactLine: null,
-          codesLine: 'EIIN: 123456',
-          logoUrl: null,
-        }}
-        docTitle="Doc"
-      />,
-    )
-    expect(html).toContain('Real Name')
-    expect(html).not.toContain('Stale Name')
-    expect(html).toContain('EIIN: 123456')
-    expect(html).not.toContain('EIIN: 999')
-  })
-})
-
 describe('PrintPage theming', () => {
   it('paints paper and ink from a curated preset (issue #94)', () => {
     const slate = PRINT_THEMES.find((t) => t.key === 'slate')!
@@ -139,16 +52,122 @@ describe('PrintPage theming', () => {
   })
 })
 
-describe('PaginatedSheet', () => {
-  it('repeats its header on every printed page via a table header group', () => {
-    const html = renderToStaticMarkup(
-      <PaginatedSheet header={<span>repeated header</span>}>
+// The frame every A4 document prints in (owner's decision 2026-10-09). What
+// repeats and where is CSS (globals.css, checked against real PDFs); these pin
+// the markup that CSS hangs on.
+describe('PrintFrame', () => {
+  const institute = {
+    name: 'আদর্শ মডেল স্কুল',
+    addressLine: 'ঝিকরগাছা, যশোর',
+    contactLine: '01711-000000 · info@adarsha.edu.bd',
+    codesLine: 'EIIN: 123456 · এমপিও কোড: MPO-77',
+    logoUrl: '/api/school-logo',
+  }
+  const frame = (over: Partial<Parameters<typeof PrintFrame>[0]> = {}) =>
+    renderToStaticMarkup(
+      <PrintFrame lang="bn" institute={institute} docTitle="মার্কশিট — বার্ষিক পরীক্ষা ২০২৫" qrSvg="<svg data-qr></svg>" {...over}>
         <p>long body</p>
-      </PaginatedSheet>,
+      </PrintFrame>,
     )
-    expect(html).toContain('<thead')
-    expect(html).toContain('repeated header')
-    expect(html).toContain('long body')
+
+  it('puts both bands in the repeating header group, the footer spacer in the footer group, the content between', () => {
+    const html = frame()
+    const thead = html.slice(html.indexOf('<thead'), html.indexOf('</thead>'))
+    const tfoot = html.slice(html.indexOf('<tfoot'), html.indexOf('</tfoot>'))
+    const tbody = html.slice(html.indexOf('<tbody'), html.indexOf('</tbody>'))
+    expect(thead).toContain('print-band-top')
+    expect(thead).toContain('print-band-bottom')
+    expect(tfoot).toContain('print-doc-foot')
+    expect(tfoot).not.toContain('print-band')
+    expect(tbody).toContain('long body')
+    expect(tbody).not.toContain('print-band')
+  })
+
+  it('header band: logo, name, every letterhead field and the document title', () => {
+    const html = frame()
+    const band = html.slice(html.indexOf('print-band-top'), html.indexOf('print-band-bottom'))
+    expect(band).toContain('src="/api/school-logo"')
+    expect(band).toContain('আদর্শ মডেল স্কুল')
+    expect(band).toContain('ঝিকরগাছা, যশোর · 01711-000000 · info@adarsha.edu.bd')
+    expect(band).toContain('EIIN: 123456 · এমপিও কোড: MPO-77')
+    expect(band).toContain('মার্কশিট — বার্ষিক পরীক্ষা ২০২৫')
+    // Long text is cut, never wrapped into a taller band.
+    expect(band.match(/truncate/g)!.length).toBeGreaterThanOrEqual(3)
+  })
+
+  it('footer band: the QR, the powered-by line, no signatures', () => {
+    const html = frame()
+    const band = html.slice(html.indexOf('print-band-bottom'), html.indexOf('</thead>'))
+    expect(band).toContain('<svg data-qr>')
+    expect(band).toContain('EdumeBD দ্বারা পরিচালিত')
+    expect(frame({ lang: 'en' })).toContain('Powered by EdumeBD')
+  })
+
+  it('falls back to the labelled box while there is no QR', () => {
+    const html = frame({ qrSvg: '' })
+    expect(html).not.toContain('<svg')
+    expect(html).toContain('QR কোড')
+  })
+
+  it('names its page by orientation and language (the page-number margin box)', () => {
+    expect(frame()).toContain('print-doc-portrait-bn')
+    const landscape = frame({ orientation: 'landscape', lang: 'en' })
+    expect(landscape).toContain('print-doc-landscape-en')
+    // The card sheets' own landscape page stays theirs.
+    expect(landscape).toContain('print-landscape')
+  })
+
+  it('fill is opt-in', () => {
+    expect(frame()).not.toContain('print-doc-fill')
+    expect(frame({ fill: true })).toContain('print-doc-fill')
+  })
+
+  it('prints with no institute at all (a caller with no School)', () => {
+    expect(frame({ institute: null })).toContain('long body')
+  })
+
+  it('carries the logo watermark in the repeating header group, so it prints on every page', () => {
+    const html = frame()
+    const thead = html.slice(html.indexOf('<thead'), html.indexOf('</thead>'))
+    expect(thead).toContain('class="print-watermark"')
+    expect(html.match(/print-watermark/g)).toHaveLength(1)
+  })
+
+  // Owner, 2026-10-09: no logo means blank — no brand logo, no placeholder, no
+  // text standing in for it, in the header band or as the watermark.
+  it('a school with no logo prints no image at all: the name stands alone, no watermark', () => {
+    for (const html of [frame({ institute: { ...institute, logoUrl: null }, qrSvg: '' }), frame({ institute: null, qrSvg: '' })]) {
+      expect(html).not.toContain('<img')
+      expect(html).not.toContain('print-watermark')
+      expect(html).not.toContain('edumebd-logo')
+    }
+    expect(frame({ institute: { ...institute, logoUrl: null } })).toContain('আদর্শ মডেল স্কুল')
+  })
+
+  it('a themed frame (admit card) tints the rule and the title, and paints a tinted paper on the table', () => {
+    const slate = PRINT_THEMES.find((t) => t.key === 'slate')!
+    const html = frame({ theme: slate })
+    expect(html).toContain(`border-bottom-color:${slate.accent}`)
+    expect(html).toContain(`<table style="background:${slate.paper}"`)
+    // Plain white needs no paint, so the page number stays visible.
+    const classic = PRINT_THEMES.find((t) => t.key === 'classic')!
+    expect(frame({ theme: classic })).not.toContain('<table style=')
+  })
+})
+
+describe('PrintWatermark', () => {
+  const institute = { name: 'S', addressLine: null, contactLine: null, codesLine: null, logoUrl: '/api/school-logo' }
+
+  it('is a decorative <img> of the school logo itself', () => {
+    const html = renderToStaticMarkup(<PrintWatermark institute={institute} />)
+    expect(html).toContain('<img')
+    expect(html).toContain('src="/api/school-logo"')
+    expect(html).toContain('aria-hidden="true"')
+    expect(html).toContain('alt=""')
+  })
+
+  it('renders nothing without a logo — never a text fallback', () => {
+    expect(renderToStaticMarkup(<PrintWatermark institute={{ ...institute, logoUrl: null }} />)).toBe('')
   })
 })
 
@@ -181,6 +200,10 @@ describe('GradePanelRow / SignatureRow', () => {
     expect(html).toContain('GPA 5.00')
     expect(html).toContain('শ্রেণি শিক্ষক')
     expect(html).toContain('প্রধান শিক্ষক')
+    // Room for a real signature and stamp above the line, clear space below, kept whole.
+    expect(html).toContain('pt-[19mm]')
+    expect(html).toContain('pb-[8mm]')
+    expect(html).toContain('print-keep')
   })
 })
 

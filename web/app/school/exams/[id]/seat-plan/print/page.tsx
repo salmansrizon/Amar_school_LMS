@@ -11,13 +11,12 @@ import {
   type PrintRoom,
   type SeatAllocation,
 } from '@/lib/seat-plan-print'
-import { PrintPage, InstituteHeader, PaginatedSheet } from '@/components/print/pieces'
 import { PrintTrigger } from '@/components/print/print-trigger'
 import { withParams } from '@/lib/url-params'
 import { embeddedBuildingName, roomVenueLabel } from '@/lib/venues'
 import { BackLink } from '@/components/back-link'
 import { resolveBackHref, withOrigin } from '@/lib/back-nav'
-import { PrintVerifyFooter } from '@/components/print/verify-footer'
+import { PrintDocument } from '@/components/print/document'
 
 // Notice-board seat plan (issue #96, docs/improvement.md §2B; ADR 0007 —
 // browser-native print). Organised by room, because that is what a student
@@ -163,15 +162,13 @@ export default async function SeatPlanPrintPage({
         </div>
       </div>
 
-      <PrintPage orientation="landscape">
-        <PaginatedSheet
-          header={
-            <InstituteHeader
-              institute={institute}
-              docTitle={`${t('seatPlan.docWord', lang)} — ${examLabel}${sittingDate ? ` — ${sittingDate}` : ''}`}
-            />
-          }
-        >
+      <PrintDocument
+        lang={lang}
+        institute={institute}
+        docTitle={`${t('seatPlan.docWord', lang)} — ${examLabel}${sittingDate ? ` — ${sittingDate}` : ''}`}
+        verify={{ kind: 'seat_plan', refId: id }}
+        orientation="landscape"
+      >
           {!blocks.length ? (
             <p className="text-sm text-muted">{t('seatPlan.none', lang)}</p>
           ) : (
@@ -224,9 +221,7 @@ export default async function SeatPlanPrintPage({
               })}
             </div>
           )}
-        </PaginatedSheet>
-        <PrintVerifyFooter lang={lang} kind="seat_plan" refId={id} />
-      </PrintPage>
+      </PrintDocument>
     </main>
   )
 }

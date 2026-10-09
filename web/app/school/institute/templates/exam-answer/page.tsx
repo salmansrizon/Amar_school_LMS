@@ -2,11 +2,11 @@ import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
 import { t } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
-import { PrintPage, InstituteHeader, InfoGrid, BlankLine } from '@/components/print/pieces'
+import { InfoGrid, BlankLine } from '@/components/print/pieces'
 import { PrintButton } from '@/components/print/print-button'
 import { loadInstitutePrintHeader } from '@/lib/institute-print'
 import { pageTitle } from '@/lib/page-title'
-import { PrintVerifyFooter } from '@/components/print/verify-footer'
+import { PrintDocument } from '@/components/print/document'
 
 // Blank Exam Answer Sheet (issue #39, PRD §5.11) — paper-fallback template.
 
@@ -35,8 +35,7 @@ export default async function BlankExamAnswerPage() {
         <PrintButton label={t('print.print', lang)} />
       </div>
 
-      <PrintPage>
-        <InstituteHeader institute={institute ?? undefined} docTitle={t('institute.templateExamAnswer', lang)} />
+      <PrintDocument lang={lang} institute={institute} docTitle={t('institute.templateExamAnswer', lang)} verify={{ kind: 'template_exam_answer' }}>
         <InfoGrid
           rows={[
             { label: t('institute.examTitle', lang), value: <BlankLine width="w-56" /> },
@@ -49,8 +48,7 @@ export default async function BlankExamAnswerPage() {
         />
         <div className="text-xs font-semibold text-muted">{t('institute.answerSheet', lang)}</div>
         <RuledLines count={18} />
-        <PrintVerifyFooter lang={lang} kind="template_exam_answer" />
-      </PrintPage>
+      </PrintDocument>
     </main>
   )
 }
