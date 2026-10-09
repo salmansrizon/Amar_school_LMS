@@ -716,12 +716,12 @@ export function AdmissionForm({
           {error && <p className="mb-3 text-sm text-alert-deep">{error}</p>}
 
           {/* Sticky action bar: stays in reach while scrolling a long form. */}
-          <div className="sticky bottom-0 z-10 mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-line bg-paper/95 p-3 shadow-card backdrop-blur">
-            <span className="flex items-center gap-2 text-xs font-semibold text-mint-deep">
+          <div className="sticky bottom-0 z-10 mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-line bg-paper/95 p-3 shadow-card backdrop-blur max-sm:flex-col max-sm:flex-nowrap max-sm:items-stretch">
+            <span className="flex items-center gap-2 max-sm:justify-center text-xs font-semibold text-mint-deep">
               <span aria-hidden className="size-2 rounded-full bg-mint-deep" />
               {t('students.draftAutosaved', lang)}
             </span>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 max-sm:[&>*]:flex-1 max-sm:[&>*]:min-h-11 max-sm:[&>*]:text-center max-sm:[&>a]:flex max-sm:[&>a]:items-center max-sm:[&>a]:justify-center">
               <Link
                 href="/school/students"
                 onClick={() => clearAdmissionDraft(schoolId, userId)}
