@@ -77,7 +77,7 @@ function ItemRow({
           <button
             type="submit"
             disabled={pending}
-            className="cursor-pointer rounded-full bg-brand-500 px-3 py-1 text-xs font-semibold text-white hover:bg-brand-600 disabled:opacity-50"
+            className="max-sm:min-h-11 cursor-pointer rounded-full bg-brand-500 px-3 py-1 text-xs font-semibold text-white hover:bg-brand-600 disabled:opacity-50"
           >
             {t('institute.save', lang)}
           </button>
@@ -186,7 +186,7 @@ export function ChecklistItemsManager({ lang, items }: { lang: Lang; items: Acti
         <button
           type="submit"
           disabled={pending}
-          className="cursor-pointer rounded-full bg-brand-500 px-4 py-1.5 text-xs font-semibold text-white hover:bg-brand-600 disabled:opacity-50"
+          className="max-sm:min-h-11 cursor-pointer rounded-full bg-brand-500 px-4 py-1.5 text-xs font-semibold text-white hover:bg-brand-600 disabled:opacity-50"
         >
           {t('institute.checklistAddItem', lang)}
         </button>

@@ -110,7 +110,7 @@ export function PhotoGrid({
           type="button"
           disabled={busy || full}
           onClick={() => inputRef.current?.click()}
-          className="cursor-pointer rounded-full bg-brand-500 px-4 py-1.5 text-xs font-semibold text-white hover:bg-brand-600 disabled:opacity-50"
+          className="max-sm:min-h-11 cursor-pointer rounded-full bg-brand-500 px-4 py-1.5 text-xs font-semibold text-white hover:bg-brand-600 disabled:opacity-50"
         >
           {busy ? t('gallery.uploading', lang) : `+ ${t('gallery.uploadPhotos', lang)}`}
         </button>

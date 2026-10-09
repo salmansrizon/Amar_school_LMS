@@ -89,7 +89,7 @@ export function AddEntryForm({ lang }: { lang: Lang }) {
       >
         <EntryFields lang={lang} />
         {error && <p className="text-sm text-alert-deep">{error}</p>}
-        <button type="submit" disabled={pending} className={`${primaryBtnClass} w-auto px-6`}>
+        <button type="submit" disabled={pending} className={`${primaryBtnClass} w-auto max-sm:w-full px-6`}>
           {t('institute.save', lang)}
         </button>
       </form>
@@ -122,7 +122,7 @@ function EntryRow({ lang, entry }: { lang: Lang; entry: LogisticsEntry }) {
             <EntryFields lang={lang} entry={entry} />
             {error && <p className="text-sm text-alert-deep">{error}</p>}
             <div className="flex gap-2">
-              <button type="submit" disabled={pending} className={`${primaryBtnClass} w-auto px-6`}>
+              <button type="submit" disabled={pending} className={`${primaryBtnClass} w-auto max-sm:w-full px-6`}>
                 {t('institute.save', lang)}
               </button>
               <button

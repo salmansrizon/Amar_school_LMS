@@ -224,7 +224,7 @@ export default async function ResponsePerformancePage({
             <span className="mb-1 block">{t('response.to', lang)}</span>
             <DateField lang={lang} name="to" defaultValue={to} className="h-9 rounded-sm border border-line-strong bg-paper px-2 text-sm" />
           </label>
-          <button type="submit" className="h-9 cursor-pointer rounded-full border border-line-strong px-4 text-xs font-semibold hover:bg-paper-muted">
+          <button type="submit" className="h-9 max-sm:h-11 max-sm:w-full cursor-pointer rounded-full border border-line-strong px-4 text-xs font-semibold hover:bg-paper-muted">
             {t('response.apply', lang)}
           </button>
         </Form>

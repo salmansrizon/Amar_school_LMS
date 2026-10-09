@@ -134,7 +134,7 @@ export function AskForm({
       <button
         type="submit"
         disabled={pending}
-        className="cursor-pointer justify-self-start rounded-full bg-brand-500 px-5 py-1.5 text-sm font-semibold text-white hover:bg-brand-600 disabled:opacity-50 max-sm:min-h-11"
+        className="cursor-pointer justify-self-start max-sm:justify-self-stretch rounded-full bg-brand-500 px-5 py-1.5 text-sm font-semibold text-white hover:bg-brand-600 disabled:opacity-50 max-sm:min-h-11"
       >
         {t('student.send', lang)}
       </button>

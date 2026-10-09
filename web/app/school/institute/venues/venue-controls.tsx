@@ -77,7 +77,7 @@ export function BuildingForm({
           className={inputClass}
         />
       </div>
-      <button type="submit" disabled={pending} className={`${primaryBtnClass} w-auto px-5`}>
+      <button type="submit" disabled={pending} className={`${primaryBtnClass} w-auto max-sm:w-full px-5`}>
         {t(building ? 'venues.save' : 'venues.addBuilding', lang)}
       </button>
       {error && <p className="text-sm text-alert-deep sm:col-span-2">{error}</p>}

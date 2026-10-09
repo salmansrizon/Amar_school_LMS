@@ -278,7 +278,7 @@ function AddMemberForm({ combinationId, exams, lang }: { combinationId: string; 
           className={`${inputClass} h-8 w-24`}
         />
       </div>
-      <button type="submit" disabled={pending} className="cursor-pointer rounded-full bg-brand-500 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50">
+      <button type="submit" disabled={pending} className="max-sm:min-h-11 cursor-pointer rounded-full bg-brand-500 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50">
         {t('combinations.addMember', lang)}
       </button>
       {error && <p className="w-full text-xs text-alert-deep">{error}</p>}
