@@ -5,7 +5,7 @@ import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { schoolCrumbs } from '@/lib/school-crumbs'
 import { Crumbs } from '@/components/ui/page'
-import { ProfileHeader } from '@/components/ui/profile'
+import { ProfileAvatar, ProfileHeader } from '@/components/ui/profile'
 import { Pill } from '@/components/data-table/data-table'
 import { LoginLinkPicker } from '../employee-controls'
 import { ArchiveToggle } from './profile-controls'
@@ -25,10 +25,10 @@ export default async function EmployeeDetailPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>
-  searchParams: Promise<{ error?: string }>
+  searchParams: Promise<{ error?: string; tab?: string }>
 }) {
   const { id } = await params
-  const { error: createError } = await searchParams
+  const { error: createError, tab } = await searchParams
   const lang: Lang = await currentLang()
   const { supabase, role } = await getSchoolContext()
 
@@ -68,6 +68,7 @@ export default async function EmployeeDetailPage({
       )}
 
       <ProfileHeader
+        avatar={<ProfileAvatar />}
         name={employee.full_name}
         status={
           <Pill tone={archived ? 'muted' : 'mint'} live={!archived}>
@@ -111,7 +112,7 @@ export default async function EmployeeDetailPage({
         </section>
       )}
 
-      <EmployeeProfile id={id} lang={lang} />
+      <EmployeeProfile id={id} lang={lang} tab={tab ?? 'general'} />
     </div>
   )
 }

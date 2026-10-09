@@ -10,7 +10,6 @@ import {
   studentTrackingStart,
   type OffDay,
 } from '@/lib/attendance-manual'
-import { PrintPage, InstituteHeader, PaginatedSheet } from '@/components/print/pieces'
 import { PrintTrigger } from '@/components/print/print-trigger'
 import { AttendanceTabs } from '../attendance-tabs'
 import { loadInstitutePrintHeader } from '@/lib/institute-print'
@@ -20,11 +19,11 @@ import { schoolCrumbs } from '@/lib/school-crumbs'
 import { PageHeader } from '@/components/ui/page'
 import { filterButtonClass, inputClass } from '@/components/ui/field'
 import { pageTitle } from '@/lib/page-title'
-import { PrintVerifyFooter } from '@/components/print/verify-footer'
+import { PrintDocument } from '@/components/print/document'
 
 // Layout per ui/school-owner/attendance-book.html: class/section + month
 // filter, Filled/Blank toggle, print button, monthly P/A register grid
-// (ADR 0007 print seam — same PrintPage/InstituteHeader pieces every other
+// (ADR 0007 print seam — same PrintDocument frame every other
 // printable composes). "Blank" mode is the paper-fallback: same roster/day
 // grid, no data, for hand-filling — same spirit as BlankRosterTable (#39)
 // but shaped as a day grid instead of a roll/name/present roster.
@@ -192,18 +191,17 @@ export default async function AttendanceBookPage({
           {t('attendance.bookNoRoster', lang)}
         </p>
       ) : (
-        <PrintPage>
-          <PaginatedSheet
-            header={
-              <InstituteHeader
-                institute={institute ?? undefined}
-                docTitle={`${t('attendance.bookRegisterWord', lang)}${className ? ` — ${className}` : ''}${section ? `, ${section}` : ''} — ${monthLabel(year, month, lang)}`}
-              />
-            }
-          >
+        <PrintDocument
+          orientation="landscape"
+          lang={lang}
+          institute={institute}
+          docTitle={`${t('attendance.bookRegisterWord', lang)}${className ? ` — ${className}` : ''}${section ? `, ${section}` : ''} — ${monthLabel(year, month, lang)}`}
+          // One class on the sheet: the scan names it. Several: school and document only.
+          verify={{ kind: 'attendance_book', refId: new Set(visible.map((s) => s.class_offering_id)).size === 1 ? visible[0].class_offering_id : null }}
+        >
 
           <div className="overflow-x-auto rounded-2xl border border-line print:overflow-visible print:rounded-none print:border-0">
-            <table className="w-full border-collapse text-xs whitespace-nowrap">
+            <table className="print-table-dense w-full border-collapse text-xs whitespace-nowrap">
               <thead className="bg-paper-muted">
                 <tr>
                   <th className="min-w-30 border border-line-strong px-2 py-1 text-left font-semibold text-muted">
@@ -255,12 +253,9 @@ export default async function AttendanceBookPage({
           </div>
 
           {mode === 'filled' && (
-            <p className="mt-3 text-xs text-muted">{t('attendance.bookLegend', lang)}</p>
+            <p className="mt-1 text-xs text-muted print:mt-[1mm] print:text-[8.5pt]">{t('attendance.bookLegend', lang)}</p>
           )}
-          </PaginatedSheet>
-          {/* One class on the sheet: the scan names it. Several: school and document only. */}
-          <PrintVerifyFooter lang={lang} kind="attendance_book" refId={new Set(visible.map((s) => s.class_offering_id)).size === 1 ? visible[0].class_offering_id : null} />
-        </PrintPage>
+        </PrintDocument>
       )}
     </div>
   )

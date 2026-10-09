@@ -13,6 +13,7 @@ import { PageHeader } from '@/components/ui/page'
 import { EmptyState } from '@/components/ui/states'
 import { paginate, pageSizeFrom } from '@/components/pager'
 import { EntityAvatar } from '@/components/entity-avatar'
+import { photoUrls } from '@/lib/photos'
 import { DataTable, Pill, type Column } from '@/components/data-table/data-table'
 import { RecordDrawer } from '@/components/data-table/record-drawer'
 import { RowMenu } from '@/components/data-table/row-menu'
@@ -74,7 +75,7 @@ export default async function StudentsPage({
   const { q = '', classSection = '', fee, admitted, incomplete, month, year, page, size, view } = params
   const pageSize = pageSizeFrom(size, PAGE_SIZE)
   const lang: Lang = await currentLang()
-  const { role, grants } = await getSchoolContext()
+  const { supabase, role, grants } = await getSchoolContext()
   // The Remind row action opens SMS Center, which rides the `sms` grant.
   const canSms = canOpenScreen(role, grants, 'sms')
   // new_ui/02-people: the directory's checkbox + bulk-action bar (map 013),
@@ -91,6 +92,8 @@ export default async function StudentsPage({
   ])
   const viewedRoster = view ? (roster.students.find((s) => s.id === view) ?? null) : null
   const pageData = paginate(rows, page, pageSize)
+  // Pictures for this page's rows (and the open drawer) in one batch — lib/photos.ts.
+  const photos = await photoUrls(supabase, 'student', [...pageData.items.map((s) => s.id), ...(viewed ? [viewed.id] : [])])
   const fmt = numberFmt(lang)
   const n = (x: number) => fmt.format(x)
   const dash = <span className="text-muted">—</span>
@@ -116,7 +119,7 @@ export default async function StudentsPage({
       card: 'title',
       cell: (s) => (
         <div className="flex items-center gap-3">
-          <EntityAvatar name={s.full_name} id={s.id} />
+          <EntityAvatar name={s.full_name} id={s.id} src={photos.get(s.id)} />
           <div className="min-w-0">
             <Link
               href={withParams(params, { view: s.id })}
@@ -450,6 +453,7 @@ export default async function StudentsPage({
             <DrawerHeader
               name={viewed.full_name}
               avatarId={viewed.id}
+              avatarSrc={photos.get(viewed.id)}
               subtitle={viewed.roll_number != null ? `${t('students.roll', lang)} ${formatNumber(viewed.roll_number, lang)}` : undefined}
             />
           )

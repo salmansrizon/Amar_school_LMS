@@ -101,7 +101,7 @@ export default async function ResultInquiryPage({
         />
       </div>
       <div className="flex items-end">
-        <button type="submit" className="h-9 w-full cursor-pointer rounded-full bg-brand-500 px-4 text-sm font-semibold text-white hover:bg-brand-600">
+        <button type="submit" className="h-9 max-sm:h-11 w-full cursor-pointer rounded-full bg-brand-500 px-4 text-sm font-semibold text-white hover:bg-brand-600">
           {t('resultInquiry.search', lang)}
         </button>
       </div>

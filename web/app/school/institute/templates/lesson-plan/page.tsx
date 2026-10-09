@@ -2,11 +2,11 @@ import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
 import { t } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
-import { PrintPage, InstituteHeader, InfoGrid, BlankLine } from '@/components/print/pieces'
+import { InfoGrid, BlankLine } from '@/components/print/pieces'
 import { PrintButton } from '@/components/print/print-button'
 import { loadInstitutePrintHeader } from '@/lib/institute-print'
 import { pageTitle } from '@/lib/page-title'
-import { PrintVerifyFooter } from '@/components/print/verify-footer'
+import { PrintDocument } from '@/components/print/document'
 
 // Blank Lesson Plan Sheet (issue #39, PRD §5.11) — paper-fallback template.
 
@@ -35,8 +35,7 @@ export default async function BlankLessonPlanPage() {
         <PrintButton label={t('print.print', lang)} />
       </div>
 
-      <PrintPage>
-        <InstituteHeader institute={institute ?? undefined} docTitle={t('institute.templateLessonPlan', lang)} />
+      <PrintDocument lang={lang} institute={institute} docTitle={t('institute.templateLessonPlan', lang)} verify={{ kind: 'template_lesson_plan' }}>
         <InfoGrid
           rows={[
             { label: t('institute.class', lang), value: <BlankLine /> },
@@ -51,8 +50,7 @@ export default async function BlankLessonPlanPage() {
         <RuledLines count={3} />
         <div className="mt-4 text-xs font-semibold text-muted">{t('institute.homeworkGiven', lang)}</div>
         <RuledLines count={2} />
-        <PrintVerifyFooter lang={lang} kind="template_lesson_plan" />
-      </PrintPage>
+      </PrintDocument>
     </main>
   )
 }

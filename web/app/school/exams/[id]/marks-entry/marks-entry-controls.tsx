@@ -347,7 +347,7 @@ export function MarksEntryTable({
             {t('markEntry.blankHint', lang)} {absentSupported && `${t('markEntry.absentHint', lang)} `}
             {t('markEntry.hint', lang)}
           </p>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 max-sm:w-full max-sm:flex-col max-sm:gap-2">
             {dirty && <span className="text-xs font-semibold text-sun-deep">{t('markEntry.unsaved', lang)}</span>}
             {/* Nothing typed, nothing to save — and no toast claiming a save. */}
             <button type="button" disabled={pending || !dirty} onClick={save} className={primaryBtnClass}>

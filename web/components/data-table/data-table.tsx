@@ -128,7 +128,7 @@ export function DataTable<T>({
     <Card className="mb-grid">
       <DataTableFilters search={search} filters={filters} lang={lang} />
       {(chips.length > 0 || filtered) && (
-        <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-line pt-3">
+        <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-line pt-3 max-sm:justify-center">
           {chips.length > 0 && <span className="text-xs text-muted">{t('table.quickFilters', lang)}:</span>}
           {chips.map((c) => {
             const active = params[c.param] === c.value
@@ -206,7 +206,7 @@ export function DataTable<T>({
                   </div>
                 </div>
                 {metaCols.length > 0 && (
-                  <dl className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
+                  <dl className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1.5 rounded-xl bg-paper-muted/60 px-3 py-2 text-xs">
                     {metaCols.map((c) => (
                       <div key={c.key} className="min-w-0">
                         <dt className="text-muted">{c.header}</dt>
@@ -215,7 +215,16 @@ export function DataTable<T>({
                     ))}
                   </dl>
                 )}
-                {hasActions && <div className="mt-3">{actionsFor(row)}</div>}
+                {/* Phone actions (owner's decision 2026-10-09): thumb-sized and
+                    full width. Every action link or button shares the row
+                    equally; the ⋮ menus (data-row-more) stay 44px squares with a
+                    border so they read as buttons, at the right edge. */}
+                {hasActions && (
+                  <div className="mt-3 flex items-stretch gap-2 [&>div]:flex [&>div]:flex-1 [&>div]:items-stretch [&>div]:justify-stretch [&>div]:gap-2 [&_a]:min-h-11 [&_a]:flex-1 [&_a]:justify-center [&_button:not([data-row-more])]:min-h-11 [&_button:not([data-row-more])]:flex-1 [&_button:not([data-row-more])]:justify-center [&_[data-row-more]]:size-11 [&_[data-row-more]]:shrink-0 [&_[data-row-more]]:rounded-xl [&_[data-row-more]]:border [&_[data-row-more]]:border-line-strong">
+                    {rowActions?.(row)}
+                    {rowMenu && <RowMenu items={rowMenu(row)} label={`${t('table.more', lang)}: ${rowLabel(row)}`} />}
+                  </div>
+                )}
               </div>
             </li>
           ))}

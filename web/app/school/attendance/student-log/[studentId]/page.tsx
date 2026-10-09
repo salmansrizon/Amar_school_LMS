@@ -7,12 +7,12 @@ import { getSchoolContext } from '@/lib/school/context'
 import { dateRangeDays, studentLogDayStatus, studentTrackingStart, type OffDay, type StudentLogDayStatus } from '@/lib/attendance-manual'
 import { firstRelation } from '@/lib/supabase/relation'
 import { dateInputClass, filterButtonClass } from '@/components/ui/field'
-import { PrintPage, InstituteHeader, PaginatedSheet, Badge } from '@/components/print/pieces'
+import { Badge } from '@/components/print/pieces'
 import { PrintTrigger } from '@/components/print/print-trigger'
 import { PageHeader } from '@/components/ui/page'
 import { schoolCrumbs } from '@/lib/school-crumbs'
 import { loadInstitutePrintHeader } from '@/lib/institute-print'
-import { PrintVerifyFooter } from '@/components/print/verify-footer'
+import { PrintDocument } from '@/components/print/document'
 import { DateField } from '@/components/ui/date-field'
 
 // Individual Student Log (map #380, docs/011_student_module.md): one
@@ -20,8 +20,8 @@ import { DateField } from '@/components/ui/date-field'
 // print for the currently filtered view. Off-day/Weekly-Off-Day shading and
 // the day-by-day range reuse dateRangeDays (shared with monthGrid's Weekly
 // Off-Day rule, issue #665); day status reuses studentLogDayStatus, the
-// four-state sibling of registerDayStatus. Print reuses the same PrintPage/InstituteHeader/
-// PaginatedSheet/PrintButton seam every other printable in the app composes
+// four-state sibling of registerDayStatus. Print reuses the same PrintDocument/
+// PrintFrame/PrintButton seam every other printable in the app composes
 // (ADR 0007) — no new print system.
 
 type ViewMode = 'today' | 'month' | 'custom'
@@ -255,9 +255,8 @@ export default async function StudentLogDetailPage({
           {t('attendance.none', lang)}
         </p>
       ) : (
-        <PrintPage>
-          <PaginatedSheet header={<InstituteHeader institute={institute ?? undefined} docTitle={docTitle} />}>
-            <div className="mb-4 grid grid-cols-2 gap-3 rounded-2xl border border-line bg-paper p-card sm:grid-cols-4 print:rounded-none print:border-0 print:p-0 print:shadow-none">
+        <PrintDocument lang={lang} institute={institute} docTitle={docTitle} verify={{ kind: 'student_log', studentId }}>
+            <div className="mb-4 grid grid-cols-2 gap-3 rounded-2xl border border-line bg-paper p-card sm:grid-cols-4 print:bg-transparent print:rounded-none print:border-0 print:p-0 print:shadow-none">
               <div>
                 <div className="text-xs font-semibold uppercase tracking-wide text-muted">{t('attendance.nameCol', lang)}</div>
                 <div className="text-sm font-semibold">{student.full_name}</div>
@@ -276,7 +275,7 @@ export default async function StudentLogDetailPage({
               </div>
             </div>
 
-            <div className="overflow-x-auto rounded-2xl border border-line bg-paper print:overflow-visible print:rounded-none print:border-0 print:shadow-none">
+            <div className="overflow-x-auto rounded-2xl border border-line bg-paper print:bg-transparent print:overflow-visible print:rounded-none print:border-0 print:shadow-none">
               <table className="w-full border-collapse">
                 <thead className="bg-paper-muted">
                   <tr>
@@ -291,7 +290,7 @@ export default async function StudentLogDetailPage({
                 <tbody className="divide-y divide-line">
                   {rows.map((row) => (
                     <tr key={row.iso}>
-                      <td className="px-4 py-3 text-sm">{dayLabel(row.iso, lang)}</td>
+                      <td className="print-nowrap px-4 py-3 text-sm">{dayLabel(row.iso, lang)}</td>
                       <td className="px-4 py-3 text-sm">
                         <Badge tone={STATUS_TONE[row.status]}>{t(`status.${row.status}` as 'status.present', lang)}</Badge>
                       </td>
@@ -300,9 +299,7 @@ export default async function StudentLogDetailPage({
                 </tbody>
               </table>
             </div>
-          </PaginatedSheet>
-          <PrintVerifyFooter lang={lang} kind="student_log" studentId={studentId} />
-        </PrintPage>
+        </PrintDocument>
       )}
     </div>
   )

@@ -22,7 +22,9 @@ import {
   type ClassCatalogueRow,
 } from '@/lib/class-catalogue'
 import { firstRelation } from '@/lib/supabase/relation'
-import { admitStudent, studentPhotoUploadTicket, recordStudentPhoto } from '../actions'
+import { admitStudent } from '../actions'
+import { photoUploadTicket, recordPhoto } from '../../photo-actions'
+import { PHOTO_KINDS, type PhotoKind } from '@/lib/photos'
 import { recentAdmissions, type RecentAdmissionRow } from '../recent-admissions-actions'
 import { saveAdmissionDraft, loadAdmissionDraft, clearAdmissionDraft } from './admission-draft'
 import { dateInputClass } from '@/components/ui/field'
@@ -435,18 +437,24 @@ export function ProfileFields({
   )
 }
 
-/** Uploads the picked photo for a student: server-derived path, client-direct
- *  bytes to the private bucket, then records photo_path on the row. */
-export async function uploadStudentPhoto(studentId: string, file: File, lang: Lang): Promise<string | null> {
+/** Uploads the picked photo for a person (Student, or Employee since 0262):
+ *  server-derived path, client-direct bytes to the private bucket, then records
+ *  photo_path on the row. Same type and size limits for both kinds. */
+export async function uploadPersonPhoto(
+  personId: string,
+  file: File,
+  lang: Lang,
+  kind: PhotoKind = 'student',
+): Promise<string | null> {
   if (!photoExtension(file.type)) return t('students.photoType', lang)
   // Compress before the size check so large phone photos fit the 2 MB bucket cap.
   const photo = await compressImage(file, IMAGE_PRESETS.studentPhoto)
   if (photo.size > MAX_PHOTO_BYTES) return t('students.photoTooBig', lang)
-  const { upload, error: pathErr } = await studentPhotoUploadTicket(studentId, photo.type)
+  const { upload, error: pathErr } = await photoUploadTicket(kind, personId, photo.type)
   if (pathErr || !upload) return pathErr ?? 'Upload failed'
-  const { error: upErr } = await uploadWithSignedToken('student-photos', upload, photo, photo.type)
+  const { error: upErr } = await uploadWithSignedToken(PHOTO_KINDS[kind].bucket, upload, photo, photo.type)
   if (upErr) return upErr
-  const res = await recordStudentPhoto(studentId, photo.type)
+  const res = await recordPhoto(kind, personId, photo.type)
   return res.error ?? null
 }
 
@@ -614,7 +622,7 @@ export function AdmissionForm({
           if (result.error) console.warn('admission warning:', result.error)
           const photo = photoRef.current?.files?.[0]
           if (photo) {
-            const photoError = await uploadStudentPhoto(result.id, photo, lang)
+            const photoError = await uploadPersonPhoto(result.id, photo, lang)
             // The admission itself succeeded; a photo problem shouldn't strand
             // the user on the form — it can be re-uploaded from the profile.
             if (photoError) console.warn('photo upload failed:', photoError)
@@ -708,12 +716,12 @@ export function AdmissionForm({
           {error && <p className="mb-3 text-sm text-alert-deep">{error}</p>}
 
           {/* Sticky action bar: stays in reach while scrolling a long form. */}
-          <div className="sticky bottom-0 z-10 mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-line bg-paper/95 p-3 shadow-card backdrop-blur">
-            <span className="flex items-center gap-2 text-xs font-semibold text-mint-deep">
+          <div className="sticky bottom-0 z-10 mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-line bg-paper/95 p-3 shadow-card backdrop-blur max-sm:flex-col max-sm:flex-nowrap max-sm:items-stretch">
+            <span className="flex items-center gap-2 max-sm:justify-center text-xs font-semibold text-mint-deep">
               <span aria-hidden className="size-2 rounded-full bg-mint-deep" />
               {t('students.draftAutosaved', lang)}
             </span>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 max-sm:[&>*]:flex-1 max-sm:[&>*]:min-h-11 max-sm:[&>*]:text-center max-sm:[&>a]:flex max-sm:[&>a]:items-center max-sm:[&>a]:justify-center">
               <Link
                 href="/school/students"
                 onClick={() => clearAdmissionDraft(schoolId, userId)}

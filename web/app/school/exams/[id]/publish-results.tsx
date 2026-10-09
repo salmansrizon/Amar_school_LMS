@@ -54,7 +54,7 @@ export function PublishResults({
 
   return (
     <div className="mb-4 rounded-lg border border-line bg-paper p-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-2 max-sm:flex-col max-sm:flex-nowrap max-sm:items-stretch">
         <span className="text-sm">
           {published ? (
             <span className="font-semibold text-mint-deep">
@@ -67,7 +67,7 @@ export function PublishResults({
         {published ? (
           <ConfirmDialog
             triggerLabel={t('exams.unpublishResults', lang)}
-            triggerClassName="cursor-pointer rounded-full border border-line-strong px-4 py-1.5 text-xs font-semibold hover:bg-paper-muted max-sm:inline-flex max-sm:min-h-11 max-sm:items-center"
+            triggerClassName="cursor-pointer rounded-full border border-line-strong px-4 py-1.5 text-xs font-semibold hover:bg-paper-muted max-sm:inline-flex max-sm:min-h-11 max-sm:w-full max-sm:items-center max-sm:justify-center"
             title={t('exams.unpublishConfirmTitle', lang)}
             body={t('exams.unpublishConfirmBody', lang)}
             confirmLabel={t('exams.unpublishResults', lang)}
@@ -77,7 +77,7 @@ export function PublishResults({
         ) : (
           <ConfirmDialog
             triggerLabel={t('exams.publishResults', lang)}
-            triggerClassName="cursor-pointer rounded-full bg-brand-500 px-4 py-1.5 text-xs font-semibold text-white hover:bg-brand-600 max-sm:inline-flex max-sm:min-h-11 max-sm:items-center"
+            triggerClassName="cursor-pointer rounded-full bg-brand-500 px-4 py-1.5 text-xs font-semibold text-white hover:bg-brand-600 max-sm:inline-flex max-sm:min-h-11 max-sm:w-full max-sm:items-center max-sm:justify-center"
             title={t('exams.publishConfirmTitle', lang)}
             body={t('exams.publishHint', lang)}
             confirmLabel={t(marksComplete || blocked ? 'exams.publishResults' : 'exams.publishAnyway', lang)}

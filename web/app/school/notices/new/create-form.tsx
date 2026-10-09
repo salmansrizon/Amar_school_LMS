@@ -332,7 +332,7 @@ export function CreateNoticeForm({
         </div>
         {error && <p className="text-sm text-alert-deep sm:col-span-2">{error}</p>}
         <div className="flex gap-2 sm:col-span-2">
-          <button type="submit" disabled={pending} className={`${primaryBtnClass} w-auto px-6`}>
+          <button type="submit" disabled={pending} className={`${primaryBtnClass} w-auto max-sm:w-full px-6`}>
             {initial
               ? t(pending ? 'notices.saving' : 'notices.saveChanges', lang)
               : pending

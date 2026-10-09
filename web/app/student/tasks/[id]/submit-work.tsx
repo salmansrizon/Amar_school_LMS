@@ -88,7 +88,7 @@ export function SubmitWork({
         type="button"
         disabled={busy || disabled}
         onClick={() => inputRef.current?.click()}
-        className="cursor-pointer rounded-full bg-brand-500 px-4 py-1.5 text-xs font-semibold text-white hover:bg-brand-600 disabled:opacity-50 max-sm:min-h-11"
+        className="max-sm:min-h-11 cursor-pointer rounded-full bg-brand-500 px-4 py-1.5 text-xs font-semibold text-white hover:bg-brand-600 disabled:opacity-50 max-sm:min-h-11"
       >
         {busy ? t('student.uploading', lang) : t('student.submitWork', lang)}
       </button>

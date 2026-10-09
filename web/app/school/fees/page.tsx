@@ -28,6 +28,8 @@ import { classCatalogueLabel } from '@/lib/class-catalogue'
 import { DrawerFooter, DrawerHeader } from '@/components/data-table/drawer-parts'
 import { FeeDrawerBody, loadFeeDrawerData, feeDrawerCancelHref } from './fee-drawer'
 import { feeColumns, feeSelect } from '@/lib/fee-columns'
+import { EntityAvatar } from '@/components/entity-avatar'
+import { photoUrls } from '@/lib/photos'
 import { pageTitle } from '@/lib/page-title'
 
 // Fees & finance (map 013 FC1, new_ui/04-finance-communication/fees-finance),
@@ -257,6 +259,8 @@ export default async function FeesPage({
   )
   const pageData = paginate(visible, page, pageSize)
   const viewed = view ? (all.find((r) => r.id === view) ?? null) : null
+  // Pictures for the collection roster's page and the open drawer, one batch.
+  const photos = await photoUrls(supabase, 'student', [...rosterPage.items.map((s) => s.id), ...(viewed ? [viewed.student_id] : [])])
   const feeDrawerData = viewed ? await loadFeeDrawerData(viewed.student_id, viewed.id) : null
 
   const fmt = numberFmt(lang)
@@ -346,10 +350,13 @@ export default async function FeesPage({
       header: t('students.name', lang),
       card: 'title',
       cell: (s) => (
-        <div className="min-w-0">
+        <div className="flex items-center gap-3">
+          <EntityAvatar name={s.full_name} id={s.id} src={photos.get(s.id)} />
+          <div className="min-w-0">
           <div className="truncate font-semibold">{s.full_name}</div>
           <div className="text-xs text-muted">
             {t('students.roll', lang)} {s.roll_number != null ? formatNumber(s.roll_number, lang) : '—'} · {[s.class_name, s.section].filter(Boolean).join(' / ')}
+          </div>
           </div>
         </div>
       ),
@@ -651,7 +658,7 @@ export default async function FeesPage({
       <RecordDrawer
         open={Boolean(viewed)}
         title={viewed?.name ?? ''}
-        header={viewed && <DrawerHeader name={viewed.name} avatarId={viewed.student_id} subtitle={period} />}
+        header={viewed && <DrawerHeader name={viewed.name} avatarId={viewed.student_id} avatarSrc={photos.get(viewed.student_id)} subtitle={period} />}
         footer={
           viewed && (
             <DrawerFooter

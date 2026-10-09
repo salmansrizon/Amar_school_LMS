@@ -152,12 +152,12 @@ export function MarkAttendanceForm({
 
       {/* Sticky so the bulk actions stay in reach while scrolling a long roster
           on a phone; the shell's header is 56px, hence top-14. */}
-      <div className="sticky top-14 z-10 mb-3 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-line bg-paper/95 p-2 backdrop-blur">
-        <div className="text-sm text-muted">
+      <div className="sticky top-14 z-10 mb-3 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-line bg-paper/95 p-2 backdrop-blur max-sm:flex-col max-sm:flex-nowrap max-sm:items-stretch">
+        <div className="text-sm text-muted max-sm:text-center">
           {formatNumber(presentCount, lang)}/{formatNumber(marking.length, lang)} {t('attendance.presentShort', lang)}
           {leaveCount > 0 && ` · ${formatNumber(leaveCount, lang)} ${t('status.on_leave', lang)}`}
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 max-sm:[&>*]:flex-1">
           <button
             type="button"
             onClick={() => markAll(true)}
@@ -299,7 +299,7 @@ export function MarkAttendanceForm({
 
       {/* Sticky bottom bar: on a phone the save button used to sit below the last
           row, which is under the keyboard the moment a cause field has focus. */}
-      <div className="sticky bottom-0 z-10 mt-4 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-line bg-paper/95 p-2 backdrop-blur">
+      <div className="sticky bottom-0 z-10 mt-4 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-line bg-paper/95 p-2 backdrop-blur max-sm:flex-col max-sm:flex-nowrap max-sm:items-stretch">
         <div className="text-sm">
           {error && <span className="text-alert-deep">{error}</span>}
           {!error && dirty && <span className="font-semibold text-sun-deep">{t('attendance.unsaved', lang)}</span>}
@@ -316,7 +316,7 @@ export function MarkAttendanceForm({
           type="button"
           disabled={pending || (!dirty && !!saved)}
           onClick={save}
-          className="h-11 cursor-pointer rounded-full bg-brand-500 px-6 text-sm font-semibold text-white transition motion-safe:active:scale-95 hover:bg-brand-600 disabled:opacity-50"
+          className="h-11 cursor-pointer rounded-full bg-brand-500 px-6 max-sm:w-full text-sm font-semibold text-white transition motion-safe:active:scale-95 hover:bg-brand-600 disabled:opacity-50"
         >
           {t('attendance.saveAttendance', lang)}
         </button>

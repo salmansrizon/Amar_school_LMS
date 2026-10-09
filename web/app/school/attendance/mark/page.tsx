@@ -301,11 +301,11 @@ export default async function MarkAttendancePage({
           />
         </div>
 
-        <div>
+        <div className="col-span-2 sm:col-span-1">
           <label htmlFor="mark_date" className="mb-1 block text-xs font-semibold text-muted">{t('attendance.date', lang)}</label>
           <DateField lang={lang} id="mark_date" name="date" defaultValue={date} className={dateInputClass({ fullWidth: true })} />
         </div>
-        <div className="flex items-end">
+        <div className="col-span-2 flex items-end sm:col-span-1">
           <button
             type="submit"
             className={filterButtonClass({ fullWidth: true })}

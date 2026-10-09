@@ -3,15 +3,13 @@
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
-import { currentActor } from '@/lib/school/actor'
 import { sendStudentSms } from '@/lib/sms/student-sms'
 import { recordBehaviourTriage } from '@/lib/behaviour-triage-service'
-import { photoExtension, behaviourSmsBody, parseRollNumber, rollScopeChanged, friendlyStudentError } from '@/lib/students'
+import { behaviourSmsBody, parseRollNumber, rollScopeChanged, friendlyStudentError } from '@/lib/students'
 import { checkMobile } from '@/lib/bd-mobile'
 import { rollAlreadyTaken } from '@/lib/school/roll-check'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
-import { createSignedUpload, type SignedUpload } from '@/lib/storage/signed-upload'
 
 // RLS scopes everything to the caller's School; the 3-day lock trigger is the
 // authority for edit rejection, the assign_student_roll trigger for auto-roll.
@@ -370,53 +368,7 @@ export async function transferStudent(formData: FormData): Promise<{ error?: str
   return {}
 }
 
-/** Server-derived Storage path for a student photo (mirrors the syllabus
- *  pattern: client uploads the bytes, path is never trusted from the client). */
-/** The deterministic object path for a student's photo.
- *
- *  Shared by the upload ticket and by recordStudentPhoto, which needs the same
- *  string afterwards. Split out when the ticket started minting a signed token:
- *  re-calling the exported function to recompute a path would have issued a fresh
- *  upload credential purely as a side effect of wanting a filename. */
-async function studentPhotoObjectPath(
-  studentId: string,
-  mimeType: string,
-): Promise<{ path?: string; error?: string }> {
-  const ext = photoExtension(mimeType)
-  if (!ext) return { error: 'JPEG, PNG or WebP only' }
-  const actor = await currentActor()
-  if ('error' in actor) return { error: actor.error }
-  const { data: student } = await actor.supabase
-    .from('students')
-    .select('id')
-    .eq('id', studentId)
-    .maybeSingle()
-  if (!student) return { error: 'Student not found' }
-  return { path: `${actor.schoolId}/${studentId}.${ext}` }
-}
-
-export async function studentPhotoUploadTicket(
-  studentId: string,
-  mimeType: string,
-): Promise<{ upload?: SignedUpload; error?: string }> {
-  const { path, error } = await studentPhotoObjectPath(studentId, mimeType)
-  if (error || !path) return { error: error ?? 'Student not found' }
-  return createSignedUpload('student-photos', path)
-}
-
-/** Records the uploaded photo's path on the student row (after upload). */
-export async function recordStudentPhoto(
-  studentId: string,
-  mimeType: string,
-): Promise<{ error?: string }> {
-  const { path, error: pathError } = await studentPhotoObjectPath(studentId, mimeType)
-  if (pathError || !path) return { error: pathError ?? 'Student not found' }
-  const supabase = await createClient()
-  const { error } = await supabase.from('students').update({ photo_path: path }).eq('id', studentId)
-  if (error) return { error: error.message }
-  revalidatePath(`${LIST}/${studentId}`)
-  return {}
-}
+// Photo upload lives in app/school/photo-actions.ts (shared with Employee).
 
 export async function addBehaviourEntry(formData: FormData): Promise<{ error?: string }> {
   const studentId = String(formData.get('student_id') ?? '').trim()

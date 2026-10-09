@@ -17,9 +17,8 @@ import { getSchoolContext } from '@/lib/school/context'
 import { PrintButton } from './print-button'
 import { VoidFeeButton } from './void-fee-button'
 import { loadInstitutePrintHeader } from '@/lib/institute-print'
-import { InstituteHeader } from '@/components/print/pieces'
 import { pageTitle } from '@/lib/page-title'
-import { PrintVerifyFooter } from '@/components/print/verify-footer'
+import { PrintDocument } from '@/components/print/document'
 
 export const generateMetadata = pageTitle('fees.receipt')
 
@@ -112,7 +111,7 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
   const advance = advanceAmount(figures)
 
   return (
-    <main className="mx-auto w-full max-w-md flex-1 p-6">
+    <main className="mx-auto w-full max-w-3xl flex-1 p-6">
       <div className="mb-4 flex items-center justify-between print:hidden">
         <Link href="/school/fees" aria-label={t('fees.title', lang)} className="inline-flex size-9 max-sm:size-11 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
         <div className="flex items-center gap-2">
@@ -128,8 +127,9 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
         </div>
       </div>
 
-      <section className="rounded-lg border border-line bg-paper p-6 shadow-card print:border-0 print:shadow-none">
-        <InstituteHeader institute={institute ?? undefined} docTitle={t('fees.receipt', lang)} />
+      <PrintDocument lang={lang} institute={institute} docTitle={t('fees.receipt', lang)} verify={{ kind: 'fee_receipt', token: student?.public_token ?? null, refId: record.id }}>
+        {/* The receipt keeps its narrow column inside the A4 frame. */}
+        <div className="mx-auto w-full max-w-md">
 
         {/* Not print:hidden — a voided receipt must say so on paper too. */}
         {record.void_at && (
@@ -238,8 +238,8 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
           {t('fees.method', lang)}: {t(`fees.${record.payment_method}` as 'fees.cash', lang)} ·{' '}
           {formatDate(record.updated_at, lang, 'form')}
         </footer>
-        <PrintVerifyFooter lang={lang} kind="fee_receipt" token={student?.public_token ?? null} refId={record.id} />
-      </section>
+        </div>
+      </PrintDocument>
     </main>
   )
 }

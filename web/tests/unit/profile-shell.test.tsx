@@ -79,7 +79,7 @@ describe('ProfileAside optional slots', () => {
 
   it('renders the shaded highlight box only when passed', () => {
     const html = renderToStaticMarkup(<ProfileAside highlight={<span>S0022</span>} />)
-    expect(html).toContain('bg-paper-muted')
+    expect(html).toContain('bg-brand-50')
     expect(html).toContain('S0022')
   })
 })

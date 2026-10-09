@@ -23,6 +23,7 @@ export function RowMore({
     <Popover.Root open={open} onOpenChange={setOpen}>
       <Popover.Trigger
         aria-label={label}
+        data-row-more
         className='inline-flex size-9 max-sm:size-11 items-center justify-center rounded-full text-muted hover:bg-paper-muted hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300'
       >
         <MoreVertical className='size-4' aria-hidden />

@@ -23,7 +23,7 @@ const SCHOOL_APP_DIR = path.resolve(__dirname, '../../app/school')
 // The exam sheet templates wrap PrintPage in their own templates.tsx; their
 // pages print through PrintTrigger (map 013), which ordinary screens use too,
 // so the template names are the marker, not PrintTrigger.
-const PRINT_MARKERS = ['PrintPage', 'PrintButton', 'MarkSheetTemplate', 'ProgressReportTemplate', 'AdmitCardTemplate']
+const PRINT_MARKERS = ['PrintPage', 'PrintDocument', 'PrintButton', 'MarkSheetTemplate', 'ProgressReportTemplate', 'AdmitCardTemplate']
 
 function isPrintExempt(source: string): boolean {
   return PRINT_MARKERS.some((marker) => source.includes(marker))

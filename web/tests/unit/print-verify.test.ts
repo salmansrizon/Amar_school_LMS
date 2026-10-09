@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import QRCode from 'qrcode'
 import {
   ALLOWED_FACTS,
   KIND_LABEL,
@@ -15,6 +16,20 @@ import {
 const TOKEN = '0123456789abcdef0123456789abcdef'
 const REF = '11111111-2222-4333-8444-555555555555'
 const ORIGIN = 'https://demo.example.test'
+
+// The A4 footer band prints the QR 20 mm wide, quiet zone included. The longest
+// link the app builds must stay a version-8 symbol (49 modules + 8 of quiet
+// zone = 57, so 0.35 mm a module) for any origin up to 53 characters; a longer
+// kind name or origin that tips it into version 9 should fail here first.
+describe('print QR density', () => {
+  it('the longest verify link is at most a version-8 symbol', () => {
+    const longestKind = [...PRINT_KINDS].sort((a, b) => b.length - a.length)[0]
+    const origin = `https://${'s'.repeat(41)}.com` // 53 characters
+    const url = buildVerifyUrl({ origin, kind: longestKind, token: TOKEN, ref: REF, printDate: '20261009' })!
+    expect(origin).toHaveLength(53)
+    expect(QRCode.create(url, { errorCorrectionLevel: 'M' }).version).toBeLessThanOrEqual(8)
+  })
+})
 
 describe('buildVerifyUrl', () => {
   it('carries kind, token, reference and print date', () => {

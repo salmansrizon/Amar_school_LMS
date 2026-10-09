@@ -82,7 +82,7 @@ export function BulkAssignForm({
                 }
               })
             }
-            className="cursor-pointer rounded-full bg-brand-500 px-4 py-1.5 text-xs font-semibold text-white hover:bg-brand-600 disabled:opacity-50"
+            className="max-sm:min-h-11 cursor-pointer rounded-full bg-brand-500 px-4 py-1.5 text-xs font-semibold text-white hover:bg-brand-600 disabled:opacity-50"
           >
             {pending ? t('subjects.assigning', lang) : t('subjects.assignAll', lang)}
           </button>
