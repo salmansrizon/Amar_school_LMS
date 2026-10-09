@@ -87,7 +87,7 @@ export function PageHeader({
     <div className="mb-section">
       {crumbs && <Crumbs lang={crumbs.lang} items={crumbs.items} />}
       <div className="flex flex-wrap items-center justify-between gap-3 max-sm:flex-col max-sm:flex-nowrap max-sm:items-stretch">
-        <div className="flex min-w-0 items-center gap-2 max-sm:flex-wrap">
+        <div className="flex min-w-0 items-center gap-2">
           {backHref && (
             <Link
               data-page-back
