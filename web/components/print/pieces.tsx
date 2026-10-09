@@ -51,17 +51,32 @@ export function PrintPage({
   )
 }
 
-/** The frame every A4 document prints in (owner's decision 2026-10-09): one
- *  compact header band and one footer band, the same on every printed page,
- *  with the content flowing between them. Card sheets (admit cards, ID cards)
- *  do not use it.
+/** The school's own logo, big, faint and grey, in the centre of every printed
+ *  page of a PrintFrame document, to mark it as official (owner's decision
+ *  2026-10-09). Never the product brand, never text: a school with no logo
+ *  gets no watermark at all. An `<img>`, not a CSS background, so print
+ *  engines keep it. ID cards carry none. */
+export function PrintWatermark({ institute }: { institute?: InstitutePrintHeader | null }) {
+  if (!institute?.logoUrl) return null
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src={institute.logoUrl} alt="" aria-hidden="true" className="print-watermark" />
+  )
+}
+
+/** The frame every document that takes a page prints in (owner's decision
+ *  2026-10-09): one compact header band at the top edge and one footer band at
+ *  the bottom edge of every printed page, however short the content, with the
+ *  content flowing between them. Admit cards print one to a page, so they use
+ *  it too; ID cards (own stock, several to a sheet) do not.
  *
  *  How it repeats (see the print-doc rules in globals.css): the header band
  *  sits in a `<thead>`, which every engine repeats per page; the `<tfoot>` is
  *  an empty spacer that reserves the footer's room on every page; the footer
  *  band itself rides in the thead cell and is hung one page-height lower, so
  *  it prints at the bottom of each page. On screen both show once, at the top
- *  and the foot of the card. */
+ *  and the foot of the card. The logo watermark rides in the thead cell the
+ *  same way, centred between the bands. */
 export function PrintFrame({
   lang,
   institute,
@@ -69,6 +84,7 @@ export function PrintFrame({
   qrSvg,
   orientation = 'portrait',
   fill = false,
+  theme,
   children,
 }: {
   lang: Lang
@@ -79,19 +95,32 @@ export function PrintFrame({
   orientation?: 'portrait' | 'landscape'
   /** One-sheet documents: push a trailing SignatureRow down to the footer. */
   fill?: boolean
+  /** Admit cards only (issue #94): ink, and the accent on the rule and title.
+   *  A tinted paper is painted on the frame's table, the one box that sits
+   *  under the watermark; it also sits over the page number (margin boxes
+   *  paint under page content), so a tinted sheet prints none. */
+  theme?: PrintTheme
   children: ReactNode
 }) {
+  const tinted = theme && theme.paper.toLowerCase() !== '#ffffff'
   return (
-    <PrintPage orientation={orientation} className={`print-doc-${orientation}-${lang}`}>
+    <PrintPage orientation={orientation} theme={theme} className={`print-doc-${orientation}-${lang}`}>
       {/* table-fixed pins the single column to the sheet width: an over-wide
           child (the 31-column attendance register) scrolls inside its own
           wrapper instead of stretching the sheet (ui.md issue 1 / #147). */}
-      <table className="print-doc w-full table-fixed border-collapse">
+      <table
+        style={tinted ? { background: theme.paper } : undefined}
+        className="print-doc w-full table-fixed border-collapse"
+      >
         <thead className="table-header-group">
           <tr>
             <th className="p-0 text-left align-top font-normal">
               <div className="print-doc-head">
-                <div className="print-band-top flex items-center gap-[3mm] border-b-2 border-line-strong pb-[1mm]">
+                <PrintWatermark institute={institute} />
+                <div
+                  style={theme ? { borderBottomColor: theme.accent } : undefined}
+                  className="print-band-top flex items-center gap-[3mm] border-b-2 border-line-strong pb-[1mm]"
+                >
                   {institute?.logoUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={institute.logoUrl} alt="" className="size-[16mm] shrink-0 object-contain" />
@@ -104,7 +133,10 @@ export function PrintFrame({
                       </div>
                     ))}
                   </div>
-                  <div className="line-clamp-3 max-w-[50%] shrink-0 text-right text-sm font-semibold text-brand-600">
+                  <div
+                    style={theme ? { color: theme.accent } : undefined}
+                    className="line-clamp-3 max-w-[50%] shrink-0 text-right text-sm font-semibold text-brand-600"
+                  >
                     {docTitle}
                   </div>
                 </div>
@@ -146,67 +178,6 @@ export function PrintFrame({
   )
 }
 
-/** The tall centred letterhead. Card sheets only now (admit cards): every A4
- *  document carries PrintFrame's compact band instead.
- *
- *  Institute name + meta line + document title (covers the exam-header case:
- *  the docTitle names the exam, e.g. "Mark Sheet — Annual Examination 2025").
- *
- *  Issue #92 deepened this into the full institution block the printing
- *  requirements ask for: pass `institute` (built by `lib/institute-print.ts`)
- *  and the header renders logo, name, address, contacts and codes, centred.
- *  The legacy `name` + `meta` pair still works for printables not yet swept
- *  onto the loader (issue #99); `institute` wins where both are given. */
-export function InstituteHeader({
-  name,
-  meta,
-  institute,
-  docTitle,
-  accent,
-}: {
-  name?: string
-  meta?: string
-  institute?: InstitutePrintHeader
-  docTitle: string
-  /** Themed printables (issue #94) tint the rule and the title with their
-   *  preset accent; untinted headers keep the brand colour. */
-  accent?: string
-}) {
-  const heading = institute?.name ?? name ?? ''
-  return (
-    <header
-      style={accent ? { borderBottomColor: accent } : undefined}
-      className="mb-4 border-b-2 border-line-strong pb-4 text-center"
-    >
-      {institute?.logoUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={institute.logoUrl}
-          alt=""
-          className="mx-auto mb-2 h-16 w-auto object-contain"
-        />
-      ) : null}
-      <div className="text-xl font-bold">{heading}</div>
-      {institute?.addressLine ? (
-        <div className="mt-0.5 text-xs text-muted">{institute.addressLine}</div>
-      ) : null}
-      {institute?.contactLine ? (
-        <div className="mt-0.5 text-xs text-muted">{institute.contactLine}</div>
-      ) : null}
-      {institute?.codesLine ? (
-        <div className="mt-0.5 text-xs text-muted">{institute.codesLine}</div>
-      ) : null}
-      {!institute && meta ? <div className="mt-0.5 text-xs text-muted">{meta}</div> : null}
-      <div
-        style={accent ? { color: accent } : undefined}
-        className="mt-3 text-lg font-semibold text-brand-600"
-      >
-        {docTitle}
-      </div>
-    </header>
-  )
-}
-
 /** Two-column label/value block (student-info, record-info…). */
 export function InfoGrid({ rows }: { rows: { label: string; value: ReactNode }[] }) {
   return (
@@ -226,15 +197,16 @@ export function GradePanelRow({ children }: { children: ReactNode }) {
   return <div className="print-keep mt-3 flex justify-end gap-6 text-sm font-semibold">{children}</div>
 }
 
-/** Signature lines along the sheet's bottom. `print-keep` stops the block from
- *  being split across a page boundary. In print, `mt-auto` inside the sheet's
- *  full-height flex column pushes the signatures to the foot of the A4 page and
- *  lets the gap above them grow to fill whatever vertical space is left — so a
- *  short mark sheet is never cramped and a full one still fits. On screen the
- *  fixed `mt-12` keeps a sensible gap (no flex column there). */
+/** Signature lines at the end of the content, never in the footer band. The
+ *  block owns its room: 19mm clear above each line for a handwritten signature
+ *  and a stamp, 8mm clear below the labels before whatever follows — padding,
+ *  in mm, so it holds on paper and travels with the block. `print-keep` keeps
+ *  the block whole: when it does not fit, all of it moves to the next page. In
+ *  print, `mt-auto` inside a `fill` frame's flex column pushes it down to just
+ *  above the footer band on a short sheet. */
 export function SignatureRow({ labels }: { labels: string[] }) {
   return (
-    <div className="print-keep mt-12 flex justify-between gap-6 text-xs print:mt-auto">
+    <div className="print-keep mt-4 flex justify-between gap-6 pt-[19mm] pb-[8mm] text-xs print:mt-auto">
       {labels.map((label) => (
         <span key={label} className="w-40 border-t border-line-strong pt-2 text-center">
           {label}

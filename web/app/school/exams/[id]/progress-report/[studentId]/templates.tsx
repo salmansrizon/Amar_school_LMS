@@ -95,7 +95,7 @@ function SubjectTable({ rows, lang }: { rows: ProgressReportSubjectRow[]; lang: 
         {rows.map((s) => (
           <tr key={s.subjectId} className="border-b border-line">
             <td className="py-2 pr-2">{s.name}</td>
-            <td className="py-2 pr-2">
+            <td className="print-num py-2 pr-2">
               {s.entered === false ? '—' : s.obtained} / {s.full}
             </td>
             {/* No mark entered is not a 0 and not an F — the mark sheet's reading. */}

@@ -215,8 +215,8 @@ export default async function ExamAttendanceSheetPage({
                 <tbody>
                   {seated.map((student, i) => (
                     <tr key={student.id}>
-                      <td className={tdClass}>{i + 1}</td>
-                      <td className={tdClass}>{student.roll_number}</td>
+                      <td className={`${tdClass} print-num`}>{i + 1}</td>
+                      <td className={`${tdClass} print-num`}>{student.roll_number}</td>
                       <td className={tdClass}>{student.full_name}</td>
                       <td className={tdClass}>
                         {student.class_name}

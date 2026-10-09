@@ -113,11 +113,11 @@ export default async function ExamRoutinePrintPage({
                 // Banded rows: a reader tracking one line across five columns
                 // on a wall needs the row, not the grid, to carry the eye.
                 <tr key={i} className={i % 2 ? 'bg-paper-muted' : undefined}>
-                  <td className={`${tdClass} text-center font-semibold`}>{formatDate(e.exam_date, lang)}</td>
+                  <td className={`${tdClass} print-nowrap text-center font-semibold`}>{formatDate(e.exam_date, lang)}</td>
                   <td className={`${tdClass} text-center`}>
                     {dayLabel(dateToDayOfWeek(e.exam_date), lang)}
                   </td>
-                  <td className={`${tdClass} text-center tabular-nums`}>
+                  <td className={`${tdClass} print-nowrap text-center tabular-nums`}>
                     {e.start_time.slice(0, 5)} - {e.end_time.slice(0, 5)}
                   </td>
                   <td className={`${tdClass} font-semibold`}>

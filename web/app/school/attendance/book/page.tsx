@@ -23,7 +23,7 @@ import { PrintDocument } from '@/components/print/document'
 
 // Layout per ui/school-owner/attendance-book.html: class/section + month
 // filter, Filled/Blank toggle, print button, monthly P/A register grid
-// (ADR 0007 print seam — same PrintPage/InstituteHeader pieces every other
+// (ADR 0007 print seam — same PrintDocument frame every other
 // printable composes). "Blank" mode is the paper-fallback: same roster/day
 // grid, no data, for hand-filling — same spirit as BlankRosterTable (#39)
 // but shaped as a day grid instead of a roll/name/present roster.
@@ -192,6 +192,7 @@ export default async function AttendanceBookPage({
         </p>
       ) : (
         <PrintDocument
+          orientation="landscape"
           lang={lang}
           institute={institute}
           docTitle={`${t('attendance.bookRegisterWord', lang)}${className ? ` — ${className}` : ''}${section ? `, ${section}` : ''} — ${monthLabel(year, month, lang)}`}
@@ -200,7 +201,7 @@ export default async function AttendanceBookPage({
         >
 
           <div className="overflow-x-auto rounded-2xl border border-line print:overflow-visible print:rounded-none print:border-0">
-            <table className="w-full border-collapse text-xs whitespace-nowrap">
+            <table className="print-table-dense w-full border-collapse text-xs whitespace-nowrap">
               <thead className="bg-paper-muted">
                 <tr>
                   <th className="min-w-30 border border-line-strong px-2 py-1 text-left font-semibold text-muted">

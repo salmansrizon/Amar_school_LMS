@@ -90,12 +90,12 @@ function SubjectTable({ props, showGradeColumns }: { props: MarkSheetTemplatePro
       <thead>
         <tr className="border-b border-line-strong text-left text-xs uppercase tracking-wide text-muted">
           <th className="py-2 pr-2 font-semibold">{t('markSheet.subject', lang)}</th>
-          <th className="py-2 pr-2 font-semibold">{t('markSheet.fullMarks', lang)}</th>
-          <th className="py-2 pr-2 font-semibold">{t('markSheet.obtained', lang)}</th>
+          <th className="print-num py-2 pr-2 font-semibold">{t('markSheet.fullMarks', lang)}</th>
+          <th className="print-num py-2 pr-2 font-semibold">{t('markSheet.obtained', lang)}</th>
           {showGradeColumns && (
             <>
               <th className="py-2 pr-2 font-semibold">{t('markSheet.grade', lang)}</th>
-              <th className="py-2 font-semibold">{t('markSheet.gpa', lang)}</th>
+              <th className="print-num py-2 font-semibold">{t('markSheet.gpa', lang)}</th>
             </>
           )}
         </tr>
@@ -104,14 +104,14 @@ function SubjectTable({ props, showGradeColumns }: { props: MarkSheetTemplatePro
         {subjectRows.map((s) => (
           <tr key={s.subjectId} className="border-b border-line">
             <td className="py-2 pr-2">{s.name}</td>
-            <td className="py-2 pr-2">{s.full}</td>
-            <td className="py-2 pr-2">{s.entered === false ? '—' : s.obtained}</td>
+            <td className="print-num py-2 pr-2">{s.full}</td>
+            <td className={`py-2 pr-2 ${s.entered === false ? 'print-dash' : 'print-num'}`}>{s.entered === false ? '—' : s.obtained}</td>
             {showGradeColumns && (
               <>
                 <td className="py-2 pr-2">
                   <GradeBadge label={s.entered === false ? null : s.label} passed={s.passed} />
                 </td>
-                <td className="py-2">{s.entered !== false && s.gpa !== null ? s.gpa.toFixed(2) : '—'}</td>
+                <td className={`py-2 ${s.entered !== false && s.gpa !== null ? 'print-num' : 'print-dash'}`}>{s.entered !== false && s.gpa !== null ? s.gpa.toFixed(2) : '—'}</td>
               </>
             )}
           </tr>

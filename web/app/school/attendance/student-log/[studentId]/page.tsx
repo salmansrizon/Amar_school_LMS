@@ -256,7 +256,7 @@ export default async function StudentLogDetailPage({
         </p>
       ) : (
         <PrintDocument lang={lang} institute={institute} docTitle={docTitle} verify={{ kind: 'student_log', studentId }}>
-            <div className="mb-4 grid grid-cols-2 gap-3 rounded-2xl border border-line bg-paper p-card sm:grid-cols-4 print:rounded-none print:border-0 print:p-0 print:shadow-none">
+            <div className="mb-4 grid grid-cols-2 gap-3 rounded-2xl border border-line bg-paper p-card sm:grid-cols-4 print:bg-transparent print:rounded-none print:border-0 print:p-0 print:shadow-none">
               <div>
                 <div className="text-xs font-semibold uppercase tracking-wide text-muted">{t('attendance.nameCol', lang)}</div>
                 <div className="text-sm font-semibold">{student.full_name}</div>
@@ -275,7 +275,7 @@ export default async function StudentLogDetailPage({
               </div>
             </div>
 
-            <div className="overflow-x-auto rounded-2xl border border-line bg-paper print:overflow-visible print:rounded-none print:border-0 print:shadow-none">
+            <div className="overflow-x-auto rounded-2xl border border-line bg-paper print:bg-transparent print:overflow-visible print:rounded-none print:border-0 print:shadow-none">
               <table className="w-full border-collapse">
                 <thead className="bg-paper-muted">
                   <tr>
@@ -290,7 +290,7 @@ export default async function StudentLogDetailPage({
                 <tbody className="divide-y divide-line">
                   {rows.map((row) => (
                     <tr key={row.iso}>
-                      <td className="px-4 py-3 text-sm">{dayLabel(row.iso, lang)}</td>
+                      <td className="print-nowrap px-4 py-3 text-sm">{dayLabel(row.iso, lang)}</td>
                       <td className="px-4 py-3 text-sm">
                         <Badge tone={STATUS_TONE[row.status]}>{t(`status.${row.status}` as 'status.present', lang)}</Badge>
                       </td>

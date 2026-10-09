@@ -27,7 +27,7 @@ import { DateField } from '@/components/ui/date-field'
 // School's FULL history so narrowing the date range doesn't corrupt it.
 //
 // Printable body composes the shared template layer (ADR 0007 —
-// PrintPage/InstituteHeader/QrFooterRow), same as every other printable
+// PrintDocument), same as every other printable
 // added after that layer landed (routine print, mark sheets, progress
 // reports); only the chrome (tabs, date filter, print button) is app-only
 // and hidden via print:hidden.
@@ -230,24 +230,24 @@ export default async function GeneralLedgerPage({
                 <th className={thClass}>{t('ledger.date', lang)}</th>
                 <th className={thClass}>{t('ledger.source', lang)}</th>
                 <th className={thClass}>{t('ledger.description', lang)}</th>
-                <th className={thClass}>{t('ledger.debit', lang)}</th>
-                <th className={thClass}>{t('ledger.credit', lang)}</th>
-                <th className={thClass}>{t('ledger.balance', lang)}</th>
+                <th className={`${thClass} print-num`}>{t('ledger.debit', lang)}</th>
+                <th className={`${thClass} print-num`}>{t('ledger.credit', lang)}</th>
+                <th className={`${thClass} print-num`}>{t('ledger.balance', lang)}</th>
               </tr>
             </thead>
             <tbody>
               {entries.map((e, idx) => (
                 <tr key={idx} className="border-b border-line">
-                  <td className={tdClass}>{formatDate(e.date, lang)}</td>
-                  <td className={tdClass}>
+                  <td className={`${tdClass} print-nowrap`}>{formatDate(e.date, lang)}</td>
+                  <td className={`${tdClass} print-nowrap`}>
                     <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${SOURCE_BADGE[e.source]}`}>
                       {t(SOURCE_LABEL[e.source] as 'ledger.sourceVoucher', lang)}
                     </span>
                   </td>
                   <td className={tdClass}>{e.description}</td>
-                  <td className={tdClass}>{e.debit ? formatMoney(e.debit, lang) : '—'}</td>
-                  <td className={tdClass}>{e.credit ? formatMoney(e.credit, lang) : '—'}</td>
-                  <td className={`${tdClass} font-medium`}>{formatMoney(e.balance, lang)}</td>
+                  <td className={`${tdClass} ${e.debit ? 'print-num' : 'print-dash'}`}>{e.debit ? formatMoney(e.debit, lang) : '—'}</td>
+                  <td className={`${tdClass} ${e.credit ? 'print-num' : 'print-dash'}`}>{e.credit ? formatMoney(e.credit, lang) : '—'}</td>
+                  <td className={`${tdClass} print-num font-medium`}>{formatMoney(e.balance, lang)}</td>
                 </tr>
               ))}
             </tbody>

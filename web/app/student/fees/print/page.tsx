@@ -46,28 +46,28 @@ export default async function StudentFeeStatementPage() {
         <thead>
           <tr>
             <th className="border border-line px-2 py-1 text-left">{t('student.month', lang)}</th>
-            <th className="border border-line px-2 py-1 text-left">{t('student.feePayable', lang)}</th>
-            <th className="border border-line px-2 py-1 text-left">{t('student.feePaid', lang)}</th>
-            <th className="border border-line px-2 py-1 text-left">{t('student.feeFine', lang)}</th>
-            <th className="border border-line px-2 py-1 text-left">{t('student.feeDue', lang)}</th>
+            <th className="print-num border border-line px-2 py-1 text-left">{t('student.feePayable', lang)}</th>
+            <th className="print-num border border-line px-2 py-1 text-left">{t('student.feePaid', lang)}</th>
+            <th className="print-num border border-line px-2 py-1 text-left">{t('student.feeFine', lang)}</th>
+            <th className="print-num border border-line px-2 py-1 text-left">{t('student.feeDue', lang)}</th>
           </tr>
         </thead>
         <tbody>
           {records.map((r) => (
             <tr key={r.id}>
-              <td className="border border-line px-2 py-1">{monthLabel(r.month, r.year, lang)}</td>
-              <td className="border border-line px-2 py-1">{money(payableOf(r))}</td>
-              <td className="border border-line px-2 py-1">{money(Number(r.pay_amount))}</td>
-              <td className="border border-line px-2 py-1">{money(Number(r.fine_amount))}</td>
-              <td className="border border-line px-2 py-1">{money(Number(r.due_amount))}</td>
+              <td className="print-nowrap border border-line px-2 py-1">{monthLabel(r.month, r.year, lang)}</td>
+              <td className="print-num border border-line px-2 py-1">{money(payableOf(r))}</td>
+              <td className="print-num border border-line px-2 py-1">{money(Number(r.pay_amount))}</td>
+              <td className="print-num border border-line px-2 py-1">{money(Number(r.fine_amount))}</td>
+              <td className="print-num border border-line px-2 py-1">{money(Number(r.due_amount))}</td>
             </tr>
           ))}
-          <tr className="font-bold">
+          <tr className="print-total font-bold">
             <td className="border border-line px-2 py-1">Σ</td>
-            <td className="border border-line px-2 py-1">{money(totals.payable)}</td>
-            <td className="border border-line px-2 py-1">{money(totals.paid)}</td>
-            <td className="border border-line px-2 py-1">{money(totals.fine)}</td>
-            <td className="border border-line px-2 py-1">{money(totals.due)}</td>
+            <td className="print-num border border-line px-2 py-1">{money(totals.payable)}</td>
+            <td className="print-num border border-line px-2 py-1">{money(totals.paid)}</td>
+            <td className="print-num border border-line px-2 py-1">{money(totals.fine)}</td>
+            <td className="print-num border border-line px-2 py-1">{money(totals.due)}</td>
           </tr>
         </tbody>
       </table>

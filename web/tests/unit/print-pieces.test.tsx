@@ -2,7 +2,6 @@ import { describe, it, expect } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
 import {
   PrintPage,
-  InstituteHeader,
   InfoGrid,
   GradePanelRow,
   SignatureRow,
@@ -10,6 +9,7 @@ import {
   PhotoBox,
   Badge,
   PrintFrame,
+  PrintWatermark,
 } from '@/components/print/pieces'
 import { PRINT_THEMES } from '@/lib/print-themes'
 
@@ -33,93 +33,6 @@ describe('PrintPage', () => {
       </>,
     )
     expect(html.match(/not-last:break-after-page/g)).toHaveLength(2)
-  })
-})
-
-describe('InstituteHeader', () => {
-  it('renders Bangla name, meta and document title', () => {
-    const html = renderToStaticMarkup(
-      <InstituteHeader
-        name="আদর্শ উচ্চ বিদ্যালয়"
-        meta="EIIN: 123456"
-        docTitle="মার্কশিট — বার্ষিক পরীক্ষা ২০২৫"
-      />,
-    )
-    expect(html).toContain('আদর্শ উচ্চ বিদ্যালয়')
-    expect(html).toContain('EIIN: 123456')
-    expect(html).toContain('মার্কশিট — বার্ষিক পরীক্ষা ২০২৫')
-  })
-
-  it('omits the meta line when not given', () => {
-    const withMeta = renderToStaticMarkup(
-      <InstituteHeader name="School" meta="EIIN: 999" docTitle="Doc" />,
-    )
-    const withoutMeta = renderToStaticMarkup(<InstituteHeader name="School" docTitle="Doc" />)
-    expect(withMeta).toContain('EIIN: 999')
-    expect(withoutMeta).not.toContain('EIIN')
-    // One fewer child div when meta is absent.
-    expect(withoutMeta.match(/<div/g)!.length).toBe(withMeta.match(/<div/g)!.length - 1)
-  })
-
-  // Issue #92: the header carries the full institution block. Callers that
-  // still pass only name/meta (swept in #99) must keep rendering as before.
-  it('renders the full institution block when given one', () => {
-    const html = renderToStaticMarkup(
-      <InstituteHeader
-        institute={{
-          name: 'আদর্শ মডেল স্কুল',
-          addressLine: 'ঝিকরগাছা, যশোর',
-          contactLine: '01711-000000 · info@adarsha.edu.bd',
-          codesLine: 'EIIN: 123456',
-          logoUrl: '/api/school-logo',
-        }}
-        docTitle="প্রবেশপত্র"
-      />,
-    )
-    expect(html).toContain('আদর্শ মডেল স্কুল')
-    expect(html).toContain('ঝিকরগাছা, যশোর')
-    expect(html).toContain('01711-000000 · info@adarsha.edu.bd')
-    expect(html).toContain('EIIN: 123456')
-    expect(html).toContain('/api/school-logo')
-    expect(html).toContain('প্রবেশপত্র')
-  })
-
-  it('omits absent institution lines and the logo slot', () => {
-    const html = renderToStaticMarkup(
-      <InstituteHeader
-        institute={{
-          name: 'School',
-          addressLine: null,
-          contactLine: null,
-          codesLine: null,
-          logoUrl: null,
-        }}
-        docTitle="Doc"
-      />,
-    )
-    expect(html).toContain('School')
-    expect(html).not.toContain('<img')
-  })
-
-  it('prefers the institute payload over a legacy name/meta pair', () => {
-    const html = renderToStaticMarkup(
-      <InstituteHeader
-        name="Stale Name"
-        meta="EIIN: 999"
-        institute={{
-          name: 'Real Name',
-          addressLine: null,
-          contactLine: null,
-          codesLine: 'EIIN: 123456',
-          logoUrl: null,
-        }}
-        docTitle="Doc"
-      />,
-    )
-    expect(html).toContain('Real Name')
-    expect(html).not.toContain('Stale Name')
-    expect(html).toContain('EIIN: 123456')
-    expect(html).not.toContain('EIIN: 999')
   })
 })
 
@@ -212,6 +125,50 @@ describe('PrintFrame', () => {
   it('prints with no institute at all (a caller with no School)', () => {
     expect(frame({ institute: null })).toContain('long body')
   })
+
+  it('carries the logo watermark in the repeating header group, so it prints on every page', () => {
+    const html = frame()
+    const thead = html.slice(html.indexOf('<thead'), html.indexOf('</thead>'))
+    expect(thead).toContain('class="print-watermark"')
+    expect(html.match(/print-watermark/g)).toHaveLength(1)
+  })
+
+  // Owner, 2026-10-09: no logo means blank — no brand logo, no placeholder, no
+  // text standing in for it, in the header band or as the watermark.
+  it('a school with no logo prints no image at all: the name stands alone, no watermark', () => {
+    for (const html of [frame({ institute: { ...institute, logoUrl: null }, qrSvg: '' }), frame({ institute: null, qrSvg: '' })]) {
+      expect(html).not.toContain('<img')
+      expect(html).not.toContain('print-watermark')
+      expect(html).not.toContain('edumebd-logo')
+    }
+    expect(frame({ institute: { ...institute, logoUrl: null } })).toContain('আদর্শ মডেল স্কুল')
+  })
+
+  it('a themed frame (admit card) tints the rule and the title, and paints a tinted paper on the table', () => {
+    const slate = PRINT_THEMES.find((t) => t.key === 'slate')!
+    const html = frame({ theme: slate })
+    expect(html).toContain(`border-bottom-color:${slate.accent}`)
+    expect(html).toContain(`<table style="background:${slate.paper}"`)
+    // Plain white needs no paint, so the page number stays visible.
+    const classic = PRINT_THEMES.find((t) => t.key === 'classic')!
+    expect(frame({ theme: classic })).not.toContain('<table style=')
+  })
+})
+
+describe('PrintWatermark', () => {
+  const institute = { name: 'S', addressLine: null, contactLine: null, codesLine: null, logoUrl: '/api/school-logo' }
+
+  it('is a decorative <img> of the school logo itself', () => {
+    const html = renderToStaticMarkup(<PrintWatermark institute={institute} />)
+    expect(html).toContain('<img')
+    expect(html).toContain('src="/api/school-logo"')
+    expect(html).toContain('aria-hidden="true"')
+    expect(html).toContain('alt=""')
+  })
+
+  it('renders nothing without a logo — never a text fallback', () => {
+    expect(renderToStaticMarkup(<PrintWatermark institute={{ ...institute, logoUrl: null }} />)).toBe('')
+  })
 })
 
 describe('InfoGrid', () => {
@@ -243,6 +200,10 @@ describe('GradePanelRow / SignatureRow', () => {
     expect(html).toContain('GPA 5.00')
     expect(html).toContain('শ্রেণি শিক্ষক')
     expect(html).toContain('প্রধান শিক্ষক')
+    // Room for a real signature and stamp above the line, clear space below, kept whole.
+    expect(html).toContain('pt-[19mm]')
+    expect(html).toContain('pb-[8mm]')
+    expect(html).toContain('print-keep')
   })
 })
 
