@@ -22,6 +22,11 @@ export function machineTypeLabel(value: string): string {
   return MACHINE_TYPES.find((m) => m.value === value)?.label ?? value
 }
 
+/** The TCP port a vendor's devices listen on unless the School changed it:
+ *  ZKTeco's standard 4370, and 5005 as configured on the TIMY TM52GPRS the
+ *  Phase 1A POC proved (ADR 0033). The Attendance Agent connects to it. */
+export const DEFAULT_MACHINE_PORT: Record<MachineType, number> = { zkteco: 4370, timmy: 5005 }
+
 /** Which Shift a machine serves: none, every configured Shift, or one. */
 export type MachineShiftScope = 'none' | 'all' | 'shift'
 
@@ -34,6 +39,15 @@ export interface AttendanceMachine {
   shift_scope: MachineShiftScope
   shift: string | null
   note: string | null
+  /** LAN address the Attendance Agent connects to; null until entered. */
+  host: string | null
+  port: number
+  time_zone: string
+  enabled: boolean
+  /** Set while archived (ADR 0033: a used machine is archived, not deleted). */
+  archived_at: string | null
+  /** The machine this one replaced, for replacement hardware. */
+  replaces_machine_id: string | null
 }
 
 export interface MachineInput {
@@ -44,6 +58,8 @@ export interface MachineInput {
   shift_scope: MachineShiftScope
   shift: AcademicShift | null
   note: string | null
+  host: string | null
+  port: number
 }
 
 export type MachineInputError =
@@ -52,6 +68,12 @@ export type MachineInputError =
   | 'errSerial'
   | 'errLocation'
   | 'errShift'
+  | 'errHost'
+  | 'errPort'
+
+// A LAN hostname or IPv4/IPv6 address as typed — letters, digits, '.', '-',
+// ':' (IPv6), at most 253 characters. Reachability is the Agent's to test.
+const HOST = /^[A-Za-z0-9.:-]{1,253}$/
 
 /** The value a Machine Setup form submits for its Shift control: '' (none),
  *  'all', or a Shift name. One control rather than two, so "no shift" and
@@ -74,6 +96,10 @@ export function parseMachineInput(
     location: string
     shift: string
     note: string
+    /** Optional so older callers keep working: absent host is "not entered",
+     *  absent or empty port is the vendor's default. */
+    host?: string
+    port?: string
   },
   configuredShifts: readonly string[],
 ): MachineInput | { error: MachineInputError } {
@@ -98,6 +124,15 @@ export function parseMachineInput(
     shift = choice
   }
 
+  const host = (raw.host ?? '').trim()
+  if (host && !HOST.test(host)) return { error: 'errHost' }
+  const portText = (raw.port ?? '').trim()
+  let port = DEFAULT_MACHINE_PORT[machineType]
+  if (portText) {
+    if (!/^\d{1,5}$/.test(portText) || Number(portText) < 1 || Number(portText) > 65535) return { error: 'errPort' }
+    port = Number(portText)
+  }
+
   return {
     machine_type: machineType,
     model,
@@ -106,7 +141,15 @@ export function parseMachineInput(
     shift_scope,
     shift,
     note: raw.note.trim() || null,
+    host: host || null,
+    port,
   }
+}
+
+/** Machines still in service (not archived) — the ones enrollment screens
+ *  and the Agent work with. */
+export function activeMachines<T extends Pick<AttendanceMachine, 'archived_at'>>(machines: readonly T[]): T[] {
+  return machines.filter((m) => m.archived_at === null)
 }
 
 /** Longest card number accepted. Real cards are 8-20 characters; this only

@@ -4,15 +4,24 @@ import { useRef, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { t, type Lang, type MessageKey } from '@/lib/i18n'
 import { ACADEMIC_SHIFT_LABEL_KEY, type AcademicShift } from '@/lib/institute'
-import { MACHINE_TYPES, machineShiftChoice, machineTypeLabel, type AttendanceMachine } from '@/lib/machine-attendance'
+import {
+  DEFAULT_MACHINE_PORT,
+  MACHINE_TYPES,
+  activeMachines,
+  machineShiftChoice,
+  machineTypeLabel,
+  type AttendanceMachine,
+} from '@/lib/machine-attendance'
 import { inputClass, labelClass } from '@/components/auth-card'
 import { selectClass } from '@/components/ui/field'
 import { ConfirmDialog } from '@/components/confirm-dialog'
-import { deleteMachineAction, saveMachineAction } from './actions'
+import { deleteMachineAction, saveMachineAction, setMachineArchivedAction } from './actions'
 import { machineShiftLabel } from './machine-ui'
 
 // Machine Setup (issue #675): one form that adds a machine, or edits the one
-// picked from the table below it, plus the table itself.
+// picked from the table below it, plus the table itself. A machine that has
+// been used is archived rather than deleted (ADR 0033); archived machines are
+// listed separately and can be restored.
 
 const ERROR_KEYS: Record<string, MessageKey> = {
   errMachineType: 'machine.errMachineType',
@@ -20,6 +29,11 @@ const ERROR_KEYS: Record<string, MessageKey> = {
   errSerial: 'machine.errSerial',
   errLocation: 'machine.errLocation',
   errShift: 'machine.errShift',
+  errHost: 'machine.errHost',
+  errPort: 'machine.errPort',
+  errMachineInUse: 'machine.errMachineInUse',
+  errMachineArchived: 'machine.errMachineArchived',
+  errMachineReplaced: 'machine.errMachineReplaced',
   errSerialTaken: 'machine.errSerialTaken',
   errNotFound: 'machine.errNotFound',
   errSave: 'machine.errSave',
@@ -47,6 +61,21 @@ export function MachineSetup({
   const [editing, setEditing] = useState<AttendanceMachine | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
+  const [restoreError, setRestoreError] = useState<{ id: string; message: string } | null>(null)
+  const active = activeMachines(machines)
+  const archived = machines.filter((m) => m.archived_at !== null)
+
+  function restore(machine: AttendanceMachine) {
+    startTransition(async () => {
+      const result = await setMachineArchivedAction(machine.id, false)
+      if (result.error) {
+        setRestoreError({ id: machine.id, message: errorMessage(result.error, lang) })
+        return
+      }
+      setRestoreError(null)
+      router.refresh()
+    })
+  }
 
   function startEdit(machine: AttendanceMachine) {
     setEditing(machine)
@@ -160,6 +189,34 @@ export function MachineSetup({
               </>
             )}
           </div>
+          <div>
+            <label htmlFor="host" className={labelClass}>
+              {t('machine.host', lang)}
+            </label>
+            <input
+              id="host"
+              name="host"
+              autoComplete="off"
+              placeholder="192.168.0.201"
+              defaultValue={editing?.host ?? ''}
+              className={`${inputClass} font-mono`}
+            />
+          </div>
+          <div>
+            <label htmlFor="port" className={labelClass}>
+              {t('machine.port', lang)}
+            </label>
+            <input
+              id="port"
+              name="port"
+              inputMode="numeric"
+              autoComplete="off"
+              placeholder={String(DEFAULT_MACHINE_PORT.zkteco)}
+              defaultValue={editing?.port ?? ''}
+              className={`${inputClass} font-mono`}
+            />
+            <p className="mt-1 text-xs text-muted">{t('machine.portHint', lang)}</p>
+          </div>
         </div>
         <div>
           <label htmlFor="note" className={labelClass}>
@@ -193,7 +250,7 @@ export function MachineSetup({
 
       <section>
         <h2 className="mb-2 text-base font-bold">{t('machine.listTitle', lang)}</h2>
-        {machines.length === 0 ? (
+        {active.length === 0 ? (
           <div className="rounded-lg border border-dashed border-line bg-paper p-6 text-center">
             <p className="font-semibold">{t('machine.none', lang)}</p>
             <p className="mt-1 text-sm text-muted">{t('machine.noneBody', lang)}</p>
@@ -212,11 +269,18 @@ export function MachineSetup({
                 </tr>
               </thead>
               <tbody>
-                {machines.map((m) => (
+                {active.map((m) => (
                   <tr key={m.id} className={`border-t border-line ${editing?.id === m.id ? 'bg-brand-50' : ''}`}>
                     <td className="px-3 py-2">{machineTypeLabel(m.machine_type)}</td>
                     <td className="px-3 py-2 font-semibold">{m.model}</td>
-                    <td className="px-3 py-2 font-mono text-xs">{m.serial_number}</td>
+                    <td className="px-3 py-2 font-mono text-xs">
+                      {m.serial_number}
+                      {m.host && (
+                        <p className="mt-0.5 text-muted">
+                          {m.host}:{m.port}
+                        </p>
+                      )}
+                    </td>
                     <td className="px-3 py-2">
                       {m.location}
                       {m.note && <p className="mt-0.5 max-w-xs truncate text-xs text-muted">{m.note}</p>}
@@ -231,6 +295,20 @@ export function MachineSetup({
                         >
                           {t('machine.edit', lang)}
                         </button>
+                        <ConfirmDialog
+                          triggerLabel={t('machine.archive', lang)}
+                          triggerClassName="cursor-pointer rounded-full px-3 py-1 text-xs font-semibold text-muted hover:bg-paper-muted"
+                          title={t('machine.archiveTitle', lang)}
+                          body={t('machine.archiveBody', lang)}
+                          confirmLabel={t('machine.archive', lang)}
+                          cancelLabel={t('machine.cancel', lang)}
+                          onConfirm={async () => {
+                            const result = await setMachineArchivedAction(m.id, true)
+                            if (result.error) return { error: errorMessage(result.error, lang) }
+                            if (editing?.id === m.id) stopEdit()
+                            router.refresh()
+                          }}
+                        />
                         <ConfirmDialog
                           triggerLabel={t('machine.delete', lang)}
                           triggerClassName="cursor-pointer rounded-full px-3 py-1 text-xs font-semibold text-alert-deep hover:bg-alert-soft"
@@ -254,6 +332,44 @@ export function MachineSetup({
           </div>
         )}
       </section>
+
+      {archived.length > 0 && (
+        <section>
+          <h2 className="mb-1 text-base font-bold">{t('machine.archivedTitle', lang)}</h2>
+          <p className="mb-2 text-sm text-muted">{t('machine.archivedIntro', lang)}</p>
+          <div className="overflow-x-auto rounded-lg border border-line bg-paper">
+            <table className="w-full text-sm">
+              <tbody>
+                {archived.map((m) => (
+                  <tr key={m.id} className="border-t border-line text-muted first:border-t-0">
+                    <td className="px-3 py-2">{machineTypeLabel(m.machine_type)}</td>
+                    <td className="px-3 py-2 font-semibold">{m.model}</td>
+                    <td className="px-3 py-2 font-mono text-xs">{m.serial_number}</td>
+                    <td className="px-3 py-2">{m.location}</td>
+                    <td className="px-3 py-2">
+                      {restoreError?.id === m.id && (
+                        <p role="alert" className="mb-1 text-right text-xs font-semibold text-alert-deep">
+                          {restoreError.message}
+                        </p>
+                      )}
+                      <div className="flex justify-end">
+                        <button
+                          type="button"
+                          disabled={pending}
+                          onClick={() => restore(m)}
+                          className="cursor-pointer rounded-full px-3 py-1 text-xs font-semibold text-brand-600 hover:bg-brand-50 disabled:opacity-50"
+                        >
+                          {t('machine.restore', lang)}
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
     </div>
   )
 }

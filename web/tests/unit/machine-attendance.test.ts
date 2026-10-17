@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import {
+  activeMachines,
   filterEmployeesByShift,
   machineShiftChoice,
   nextRfidFocusIndex,
@@ -30,7 +31,29 @@ describe('parseMachineInput', () => {
       shift_scope: 'none',
       shift: null,
       note: null,
+      host: null,
+      port: 4370,
     })
+  })
+
+  it('keeps a trimmed LAN address and an explicit port', () => {
+    const r = parseMachineInput({ ...base, host: ' 192.168.0.201 ', port: ' 5005 ' }, [])
+    expect('error' in r ? r : { host: r.host, port: r.port }).toEqual({ host: '192.168.0.201', port: 5005 })
+  })
+
+  it("defaults an empty port to the vendor's port (ZKTeco 4370, Timmy 5005)", () => {
+    const zk = parseMachineInput({ ...base, host: '10.0.0.5', port: '' }, [])
+    const timmy = parseMachineInput({ ...base, machine_type: 'timmy', port: '  ' }, [])
+    expect('error' in zk ? zk : zk.port).toBe(4370)
+    expect('error' in timmy ? timmy : timmy.port).toBe(5005)
+  })
+
+  it('refuses a malformed address or an out-of-range port', () => {
+    expect(parseMachineInput({ ...base, host: '192.168.0.1 /24' }, [])).toEqual({ error: 'errHost' })
+    expect(parseMachineInput({ ...base, host: 'http://dev' }, [])).toEqual({ error: 'errHost' })
+    expect(parseMachineInput({ ...base, port: '0' }, [])).toEqual({ error: 'errPort' })
+    expect(parseMachineInput({ ...base, port: '65536' }, [])).toEqual({ error: 'errPort' })
+    expect(parseMachineInput({ ...base, port: '43a0' }, [])).toEqual({ error: 'errPort' })
   })
 
   it('keeps a note, trimmed', () => {
@@ -138,5 +161,16 @@ describe('filterEmployeesByShift', () => {
 
   it('finds employees with no shift assigned', () => {
     expect(filterEmployeesByShift(employees, shifts, NO_SHIFT_FILTER).map((e) => e.id)).toEqual(['c'])
+  })
+})
+
+describe('activeMachines', () => {
+  it('keeps machines in service and leaves archived ones out', () => {
+    const machines = [
+      { id: 'a', archived_at: null },
+      { id: 'b', archived_at: '2026-10-17T00:00:00Z' },
+      { id: 'c', archived_at: null },
+    ]
+    expect(activeMachines(machines).map((m) => m.id)).toEqual(['a', 'c'])
   })
 })

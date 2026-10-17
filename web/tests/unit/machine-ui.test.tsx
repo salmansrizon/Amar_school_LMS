@@ -28,6 +28,12 @@ const k40: AttendanceMachine = {
   shift_scope: 'shift',
   shift: 'Morning',
   note: null,
+  host: null,
+  port: 4370,
+  time_zone: 'Asia/Dhaka',
+  enabled: true,
+  archived_at: null,
+  replaces_machine_id: null,
 }
 const timmy: AttendanceMachine = {
   ...k40,

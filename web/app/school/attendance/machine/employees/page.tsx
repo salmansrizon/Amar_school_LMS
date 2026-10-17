@@ -5,7 +5,7 @@ import { getSchoolContext } from '@/lib/school/context'
 import { ACADEMIC_SHIFT_LABEL_KEY, isKnownAcademicShift } from '@/lib/institute'
 import { EMPLOYEE_CATEGORIES, EMPLOYEE_CATEGORY_LABEL_KEY } from '@/lib/employees'
 import { employeeShifts, enrollmentInfo, listMachines } from '@/lib/machine-enrollment-store'
-import { filterEmployeesByShift, NO_SHIFT_FILTER as NO_SHIFT } from '@/lib/machine-attendance'
+import { activeMachines, filterEmployeesByShift, NO_SHIFT_FILTER as NO_SHIFT } from '@/lib/machine-attendance'
 import { selectClass } from '@/components/ui/field'
 import { AttendanceTabs } from '../../attendance-tabs'
 import { MachinePageHeader } from '../page-header'
@@ -66,7 +66,7 @@ export default async function EmployeeEnrollmentPage({
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <p className="max-w-2xl text-sm text-muted">{t('rfid.intro', lang)}</p>
-        <EnrollButton kind="employee" machines={machines} lang={lang} />
+        <EnrollButton kind="employee" machines={activeMachines(machines)} lang={lang} />
       </div>
 
       {configuredShifts.length > 0 && (

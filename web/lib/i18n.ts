@@ -2304,8 +2304,38 @@ const dict = {
   'machine.delete': { bn: 'মুছুন', en: 'Delete' },
   'machine.deleteTitle': { bn: 'এই মেশিনটি মুছবেন?', en: 'Delete this machine?' },
   'machine.deleteBody': {
-    bn: 'মেশিনটি তালিকা থেকে সরে যাবে। শিক্ষার্থী ও কর্মচারীদের মেশিন আইডি ও RFID কার্ড অপরিবর্তিত থাকবে।',
-    en: 'The machine is removed from this list. Student and employee Machine IDs and RFID cards are not affected.',
+    bn: 'মেশিনটি তালিকা থেকে সরে যাবে। শিক্ষার্থী ও কর্মচারীদের মেশিন আইডি ও RFID কার্ড অপরিবর্তিত থাকবে। শুধু কখনো ব্যবহার হয়নি এমন মেশিন মোছা যায় — ব্যবহৃত মেশিন আর্কাইভ করুন।',
+    en: 'The machine is removed from this list. Student and employee Machine IDs and RFID cards are not affected. Only a machine that has never been used can be deleted — archive a used one instead.',
+  },
+  // Machine lifecycle (ADR 0033): a used machine is archived, never deleted.
+  'machine.archive': { bn: 'আর্কাইভ', en: 'Archive' },
+  'machine.archiveTitle': { bn: 'এই মেশিনটি আর্কাইভ করবেন?', en: 'Archive this machine?' },
+  'machine.archiveBody': {
+    bn: 'মেশিনটি আর ব্যবহার হবে না, তবে এর সব হাজিরার ইতিহাস রাখা থাকবে। পরে এটি পুনরুদ্ধার করা যাবে।',
+    en: 'The machine goes out of service, but all of its attendance history is kept. You can restore it later.',
+  },
+  'machine.archivedTitle': { bn: 'আর্কাইভ করা মেশিন', en: 'Archived machines' },
+  'machine.archivedIntro': {
+    bn: 'এই মেশিনগুলো আর ব্যবহার হচ্ছে না। ইতিহাসের জন্য রাখা আছে।',
+    en: 'These machines are out of service. They are kept for their history.',
+  },
+  'machine.restore': { bn: 'পুনরুদ্ধার', en: 'Restore' },
+  'machine.host': { bn: 'নেটওয়ার্ক ঠিকানা (IP)', en: 'Network address (IP)' },
+  'machine.port': { bn: 'পোর্ট', en: 'Port' },
+  'machine.portHint': { bn: 'খালি রাখলে: ZKTeco 4370, Timmy 5005', en: 'Leave empty for the default: ZKTeco 4370, Timmy 5005' },
+  'machine.errHost': { bn: 'সঠিক নেটওয়ার্ক ঠিকানা লিখুন, যেমন 192.168.0.201', en: 'Enter a valid network address, e.g. 192.168.0.201' },
+  'machine.errPort': { bn: 'পোর্ট ১ থেকে ৬৫৫৩৫ এর মধ্যে হতে হবে', en: 'Port must be between 1 and 65535' },
+  'machine.errMachineInUse': {
+    bn: 'এই মেশিনটি ব্যবহৃত হয়েছে, তাই মোছা যাবে না — আর্কাইভ করুন',
+    en: 'This machine has been used, so it cannot be deleted — archive it instead',
+  },
+  'machine.errMachineArchived': {
+    bn: 'আর্কাইভ করা মেশিন সম্পাদনা করা যায় না — আগে পুনরুদ্ধার করুন',
+    en: 'An archived machine cannot be edited — restore it first',
+  },
+  'machine.errMachineReplaced': {
+    bn: 'এই মেশিনের জায়গায় নতুন মেশিন বসানো হয়েছে, তাই এটি পুনরুদ্ধার করা যাবে না',
+    en: 'This machine has been replaced by another, so it cannot be restored',
   },
   'machine.listTitle': { bn: 'নিবন্ধিত মেশিন', en: 'Configured machines' },
   'machine.none': { bn: 'এখনও কোনো মেশিন যোগ করা হয়নি', en: 'No machines added yet' },

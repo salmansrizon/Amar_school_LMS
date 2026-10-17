@@ -148,17 +148,29 @@ export async function employeeShifts(supabase: SupabaseClient, employeeIds: read
   return out
 }
 
-const MACHINE_COLUMNS = 'id, machine_type, model, serial_number, location, shift_scope, shift, note'
+const MACHINE_COLUMNS =
+  'id, machine_type, model, serial_number, location, shift_scope, shift, note, host, port, time_zone, enabled, archived_at, replaces_machine_id'
 
+/** Every machine of the caller's School, archived ones included (Machine Setup
+ *  lists them separately; enrollment screens use activeMachines()). */
 export async function listMachines(supabase: SupabaseClient): Promise<AttendanceMachine[]> {
   const { data } = await supabase.from('attendance_machines').select(MACHINE_COLUMNS).order('created_at')
   return (data ?? []) as AttendanceMachine[]
 }
 
-export type MachineWriteError = 'errSerialTaken' | 'errNotFound' | 'errSave'
+export type MachineWriteError =
+  | 'errSerialTaken'
+  | 'errNotFound'
+  | 'errSave'
+  | 'errMachineInUse'
+  | 'errMachineArchived'
+  | 'errMachineReplaced'
 
 function machineWriteError(error: { code?: string; message: string }): MachineWriteError {
-  return error.code === '23505' && error.message.includes('attendance_machines_serial_unique') ? 'errSerialTaken' : 'errSave'
+  if (error.code === '23505' && error.message.includes('attendance_machines_serial_unique')) return 'errSerialTaken'
+  // 0217's guard: an archived machine is frozen until restored.
+  if (error.message.includes('archived attendance machine cannot be edited')) return 'errMachineArchived'
+  return 'errSave'
 }
 
 export async function createMachine(supabase: SupabaseClient, input: MachineInput): Promise<{ error?: MachineWriteError }> {
@@ -180,8 +192,30 @@ export async function updateMachine(
   return data?.length ? {} : { error: 'errNotFound' }
 }
 
+/** Deletes a machine that has never been used. A used machine is referenced
+ *  by the rows that record its use (0217: foreign keys, e.g. its replacement),
+ *  so the database refuses the delete and the School archives it instead
+ *  (ADR 0033). */
 export async function deleteMachine(supabase: SupabaseClient, id: string): Promise<{ error?: MachineWriteError }> {
   const { data, error } = await supabase.from('attendance_machines').delete().eq('id', id).select('id')
-  if (error) return { error: 'errSave' }
+  if (error) return { error: error.code === '23503' ? 'errMachineInUse' : 'errSave' }
   return data?.length ? {} : { error: 'errNotFound' }
+}
+
+function lifecycleError(error: { code?: string; message: string }): MachineWriteError {
+  if (error.code === 'P0002') return 'errNotFound'
+  if (error.message.includes('was replaced')) return 'errMachineReplaced'
+  return 'errSave'
+}
+
+/** Takes a machine out of service, keeping everything that refers to it. */
+export async function archiveMachine(supabase: SupabaseClient, id: string): Promise<{ error?: MachineWriteError }> {
+  const { error } = await supabase.rpc('archive_attendance_machine', { machine_id: id })
+  return error ? { error: lifecycleError(error) } : {}
+}
+
+/** Puts an archived machine back in service — unless it has been replaced. */
+export async function restoreMachine(supabase: SupabaseClient, id: string): Promise<{ error?: MachineWriteError }> {
+  const { error } = await supabase.rpc('restore_attendance_machine', { machine_id: id })
+  return error ? { error: lifecycleError(error) } : {}
 }

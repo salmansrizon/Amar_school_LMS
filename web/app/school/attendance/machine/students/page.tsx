@@ -5,6 +5,7 @@ import { getSchoolContext } from '@/lib/school/context'
 import { schoolRoster } from '@/lib/school/roster-source'
 import { classSectionLabel } from '@/lib/students'
 import { enrollmentInfo, listMachines } from '@/lib/machine-enrollment-store'
+import { activeMachines } from '@/lib/machine-attendance'
 import { ClassSectionSelect } from '@/components/ui/class-section-select'
 import { inputClass } from '@/components/auth-card'
 import { AttendanceTabs } from '../../attendance-tabs'
@@ -58,7 +59,7 @@ export default async function StudentRfidPage({
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <p className="max-w-2xl text-sm text-muted">{t('rfid.intro', lang)}</p>
-        <EnrollButton kind="student" machines={machines} lang={lang} />
+        <EnrollButton kind="student" machines={activeMachines(machines)} lang={lang} />
       </div>
 
       <Form

@@ -5,8 +5,10 @@ import { createClient } from '@/lib/supabase/server'
 import { getSchoolContext } from '@/lib/school/context'
 import { parseMachineInput } from '@/lib/machine-attendance'
 import {
+  archiveMachine,
   createMachine,
   deleteMachine,
+  restoreMachine,
   saveRfidEntries,
   updateMachine,
   type RfidEntry,
@@ -41,6 +43,8 @@ export async function saveMachineAction(id: string | null, formData: FormData): 
       location: field(formData, 'location'),
       shift: field(formData, 'shift'),
       note: field(formData, 'note'),
+      host: field(formData, 'host'),
+      port: field(formData, 'port'),
     },
     configuredShifts,
   )
@@ -55,6 +59,16 @@ export async function deleteMachineAction(id: string): Promise<{ error?: string 
   if (!UUID.test(id)) return { error: 'errNotFound' }
   const supabase = await createClient()
   const result = await deleteMachine(supabase, id)
+  if (!result.error) revalidatePath(SETUP_PAGE)
+  return result
+}
+
+/** Archive (true) or restore (false) a machine. The database checks the
+ *  caller's School and Attendance grant (0217). */
+export async function setMachineArchivedAction(id: string, archived: boolean): Promise<{ error?: string }> {
+  if (!UUID.test(id)) return { error: 'errNotFound' }
+  const supabase = await createClient()
+  const result = archived ? await archiveMachine(supabase, id) : await restoreMachine(supabase, id)
   if (!result.error) revalidatePath(SETUP_PAGE)
   return result
 }
