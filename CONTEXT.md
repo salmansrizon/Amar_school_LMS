@@ -195,7 +195,7 @@ The wall-clock time an Attendance Machine stored for a punch, with no time zone 
 _Avoid_: Timestamp, UTC time (it is neither)
 
 **Attendance Date**:
-The School-local calendar day an Attendance Event belongs to (`attendance_events.attendance_date`). It is reconciled into the finalized attendance record for that day. For a legacy card tap it is the tap's UTC time read in the School's time zone (`schools.time_zone`, default `Asia/Dhaka`). For an Agent event it is the Device Local Time's own date. A tap at 05:30 Dhaka time belongs to that Dhaka day, even though it is the previous day in UTC.
+The School-local calendar day an Attendance Event belongs to (`attendance_events.attendance_date`). It is reconciled into the finalized attendance record for that day. For a legacy card tap it is the tap's UTC time read in the School's time zone (`schools.time_zone`, default `Asia/Dhaka`). For an Agent event the server works it out in two steps: first the Device Local Time and the machine's time zone (`attendance_machines.time_zone`) give the authoritative UTC `tapped_at`; then that `tapped_at` read in the School's time zone (`schools.time_zone`) gives the Attendance Date. It is never simply the Device Local Time's calendar date. Either way the Attendance Date is School-local: a tap at 05:30 Dhaka time belongs to that Dhaka day, even though it is the previous day in UTC.
 _Avoid_: UTC day, tap date
 
 **Reconciliation Queue**:
