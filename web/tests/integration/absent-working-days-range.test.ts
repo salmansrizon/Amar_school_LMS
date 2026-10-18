@@ -11,12 +11,32 @@ describe('absent_working_days_in_range RPC (issue #33)', () => {
   let ownerA: SupabaseClient
   let ownerB: SupabaseClient
   let studentId: string
+  let schoolA: string
+  // Test School A's own weekly off-days, saved before and restored after: the
+  // School is shared, and its setting is editable from the Off-Days screen.
+  let originalWeeklyOffDays: number[] | null = null
   const START = '2026-07-01'
   const END = '2026-07-05'
+  // The range is Wed 07-01 .. Sun 07-05. The assertions need every day in it
+  // except the 07-02 Off Day to be a working day, so this test runs with no
+  // weekly off-day at all (an empty selection is a valid setting).
+  const WEEKLY_OFF_DAYS_FOR_TEST: number[] = []
 
   beforeAll(async () => {
     ownerA = await signedIn('owner-a@test.local')
     ownerB = await signedIn('owner-b@test.local')
+
+    const { data: { user } } = await ownerA.auth.getUser()
+    schoolA = (await ownerA.from('profiles').select('school_id').eq('id', user!.id).single()).data!.school_id
+    const { data: school, error: readError } = await ownerA.from('schools').select('weekly_off_days').eq('id', schoolA).single()
+    if (readError) throw new Error(readError.message)
+    originalWeeklyOffDays = school.weekly_off_days as number[]
+    const { data: set, error: setError } = await ownerA
+      .from('schools')
+      .update({ weekly_off_days: WEEKLY_OFF_DAYS_FOR_TEST })
+      .eq('id', schoolA)
+      .select('id')
+    if (setError || !set?.length) throw new Error(setError?.message ?? 'could not set the weekly off-day fixture')
 
     await ownerA.from('students').delete().eq('full_name', 'AWDR Test Student')
     studentId = (
@@ -37,9 +57,17 @@ describe('absent_working_days_in_range RPC (issue #33)', () => {
   })
 
   afterAll(async () => {
-    await ownerA.from('student_leaves').delete().eq('student_id', studentId)
-    await ownerA.from('off_days').delete().eq('day', '2026-07-02')
-    await ownerA.from('students').delete().eq('full_name', 'AWDR Test Student')
+    try {
+      await ownerA.from('student_leaves').delete().eq('student_id', studentId)
+      await ownerA.from('off_days').delete().eq('day', '2026-07-02')
+      await ownerA.from('students').delete().eq('full_name', 'AWDR Test Student')
+    } finally {
+      // Runs whether the tests passed or failed; only if beforeAll saved a value.
+      if (originalWeeklyOffDays !== null) {
+        const { error } = await ownerA.from('schools').update({ weekly_off_days: originalWeeklyOffDays }).eq('id', schoolA)
+        if (error) throw new Error(`could not restore weekly_off_days: ${error.message}`)
+      }
+    }
   })
 
   it('counts absent working days over the range, excluding the off-day', async () => {
