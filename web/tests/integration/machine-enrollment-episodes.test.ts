@@ -269,13 +269,17 @@ describe('attendance_machine_enrollments episodes (Machine Attendance Phase 3)',
       expect((await admin.from('attendance_machines').delete().eq('id', m1)).error).not.toBeNull()
     })
 
-    it('archiving and restoring a machine leaves its episodes untouched', async () => {
+    it('archiving closes the episode at archived_at without deleting or rewriting it; restore never reopens it', async () => {
+      // 0264: archive closes open episodes (history kept); restore adds a new
+      // pending episode instead of reopening the old one.
       const ep = (await insertEpisode({ machine_user_id: nextUser(), machine_id: m2, linked_at: T(10) })).data!.id
       const before = await episode(admin, ep)
       expect((await admin.rpc('archive_attendance_machine', { machine_id: m2 })).error).toBeNull()
-      expect(await episode(admin, ep)).toEqual(before)
+      const archivedAt = (await admin.from('attendance_machines').select('archived_at').eq('id', m2).single()).data!.archived_at
+      const closed = await episode(admin, ep)
+      expect(closed).toEqual({ ...before, unlinked_at: archivedAt, updated_at: closed!.updated_at })
       expect((await admin.rpc('restore_attendance_machine', { machine_id: m2 })).error).toBeNull()
-      expect(await episode(admin, ep)).toEqual(before)
+      expect(await episode(admin, ep)).toEqual(closed)
     })
   })
 })

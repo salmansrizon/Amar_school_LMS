@@ -210,17 +210,24 @@ describe('machine_commands (Machine Attendance Phase 3)', () => {
 
     it('does not hand out commands for an archived, disabled or reassigned machine', async () => {
       await drainAgent(agent1)
+      // Archive cancels the machine's unfinished commands (0264); restoring
+      // the machine does not revive them.
       const onArchived = await command({ machine_id: machine2 })
       await admin.rpc('archive_attendance_machine', { machine_id: machine2 })
       expect(((await claim(agent1.credential)).data as Claimed[]).map((c) => c.id)).not.toContain(onArchived.id)
+      expect((await row(onArchived.id))!.status).toBe('cancelled')
       await admin.rpc('restore_attendance_machine', { machine_id: machine2 })
+      expect(((await claim(agent1.credential)).data as Claimed[]).map((c) => c.id)).not.toContain(onArchived.id)
 
+      // Disabled or reassigned: the command waits, and is handed out again once
+      // the machine is enabled and assigned to this Agent.
+      const waiting = await command({ machine_id: machine2 })
       await admin.from('attendance_machines').update({ enabled: false }).eq('id', machine2)
-      expect(((await claim(agent1.credential)).data as Claimed[]).map((c) => c.id)).not.toContain(onArchived.id)
+      expect(((await claim(agent1.credential)).data as Claimed[]).map((c) => c.id)).not.toContain(waiting.id)
       await admin.from('attendance_machines').update({ enabled: true, agent_id: agent2.id }).eq('id', machine2)
-      expect(((await claim(agent1.credential)).data as Claimed[]).map((c) => c.id)).not.toContain(onArchived.id)
+      expect(((await claim(agent1.credential)).data as Claimed[]).map((c) => c.id)).not.toContain(waiting.id)
       await admin.from('attendance_machines').update({ agent_id: agent1.id }).eq('id', machine2)
-      expect(((await claim(agent1.credential)).data as Claimed[]).map((c) => c.id)).toContain(onArchived.id)
+      expect(((await claim(agent1.credential)).data as Claimed[]).map((c) => c.id)).toContain(waiting.id)
     })
 
     it('an expired lease is handed out again with a new token; the old token is then stale', async () => {
