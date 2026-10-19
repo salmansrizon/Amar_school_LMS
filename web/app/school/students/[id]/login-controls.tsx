@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { t, type Lang } from '@/lib/i18n'
+import { t, type Lang, formatDateTime } from '@/lib/i18n'
 import { ConfirmDialog } from '@/components/confirm-dialog'
 import { createStudentLogin, resetStudentPassword, type IssuedLogin } from '../login-actions'
 
@@ -41,7 +41,6 @@ export function StudentLoginPanel({
   // Blank means "generate one" — the normal path. #442 also asks for "set a
   // password", so an owner who wants to choose one can.
   const [chosen, setChosen] = useState('')
-  const locale = lang === 'bn' ? 'bn-BD' : 'en-GB'
 
   const run = (action: () => Promise<{ login?: IssuedLogin; error?: string }>) =>
     startTransition(async () => {
@@ -69,7 +68,7 @@ export function StudentLoginPanel({
             <dt className="text-xs font-semibold text-muted">{t('students.loginLastUsed', lang)}</dt>
             <dd className="text-sm">
               {status.last_sign_in_at
-                ? new Date(status.last_sign_in_at).toLocaleString(locale)
+                ? formatDateTime(status.last_sign_in_at, lang)
                 : t('students.loginNeverUsed', lang)}
             </dd>
           </div>

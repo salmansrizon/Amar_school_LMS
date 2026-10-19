@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { createCoupon, setCouponActive, deleteCoupon } from './actions'
+import { SelectField } from '@/components/ui/select-field'
 
 const input = 'h-10 rounded-lg border border-line-strong px-3 text-sm focus:border-brand-500 focus:outline-none'
 
@@ -25,10 +26,15 @@ export function AddCouponForm() {
       }}
     >
       <input name="code" required placeholder="CODE" className={`${input} uppercase`} />
-      <select name="discount_type" required defaultValue="percent" className={input}>
-        <option value="percent">Percent %</option>
-        <option value="flat">Flat ৳</option>
-      </select>
+      <SelectField
+        name="discount_type"
+        required
+        defaultValue="percent"
+        options={[
+          { value: 'percent', label: 'Percent %' },
+          { value: 'flat', label: 'Flat ৳' },
+        ]}
+      />
       <input name="value" required placeholder="Value" className={input} />
       <input type="date" name="expires_at" className={input} title="Expires (optional)" />
       <button

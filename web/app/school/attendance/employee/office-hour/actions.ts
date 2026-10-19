@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { getSchoolContext } from '@/lib/school/context'
+import { employeeAttendanceAdminDenied } from '@/lib/school/employee-attendance-admin'
 import { isKnownEmployeeCategory } from '@/lib/employees'
 import { expandOfficeHourSelections, officeHourShiftOptions, validateOfficeHourTimeRange } from '@/lib/office-hours'
 import { pgConstraintMessage } from '@/lib/crud/pg-error'
@@ -103,6 +104,9 @@ export async function saveOfficeHours(formData: FormData): Promise<{ error?: str
   }))
 
   const supabase = await createClient()
+  // #677: Owner and office staff only (RLS repeats this once 0240 is applied).
+  const denied = await employeeAttendanceAdminDenied(supabase)
+  if (denied) return denied
   const { error } = await supabase
     .from('category_office_hours')
     .upsert(rows, { onConflict: 'school_id,shift,employee_category,day_of_week' })
@@ -122,6 +126,9 @@ export async function updateOfficeHourCell(id: string, start: string, end: strin
   if (timeErr) return { error: timeErr }
 
   const supabase = await createClient()
+  // #677: Owner and office staff only (RLS repeats this once 0240 is applied).
+  const denied = await employeeAttendanceAdminDenied(supabase)
+  if (denied) return denied
   const { data, error } = await supabase
     .from('category_office_hours')
     .update({ start_time: start, end_time: end, updated_at: new Date().toISOString() })
@@ -141,6 +148,9 @@ export async function updateOfficeHourCell(id: string, start: string, end: strin
 
 export async function deleteOfficeHourCell(id: string): Promise<{ error?: string }> {
   const supabase = await createClient()
+  // #677: Owner and office staff only (RLS repeats this once 0240 is applied).
+  const denied = await employeeAttendanceAdminDenied(supabase)
+  if (denied) return denied
   const { data, error } = await supabase.from('category_office_hours').delete().eq('id', id).select('id')
   if (error) return { error: error.message }
   if (!data?.length) return { error: 'errNotFound' }

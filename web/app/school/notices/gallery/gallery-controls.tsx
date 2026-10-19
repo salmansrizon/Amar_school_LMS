@@ -2,6 +2,8 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
+import { ConfirmDialog } from '@/components/confirm-dialog'
 import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
 import { t, type Lang } from '@/lib/i18n'
 import { createAlbum, deleteAlbum } from './actions'
@@ -59,27 +61,22 @@ export function CreateAlbumForm({ lang }: { lang: Lang }) {
 
 export function DeleteAlbumButton({ albumId, lang }: { albumId: string; lang: Lang }) {
   const router = useRouter()
-  const [error, setError] = useState<string | null>(null)
-  const [pending, startTransition] = useTransition()
 
+  // The app's own dialog, then back to the album list with a toast — staying
+  // on the deleted album's URL rendered a 404.
   return (
-    <div>
-      {error && <p className="mb-2 text-xs text-alert-deep">{error}</p>}
-      <button
-        type="button"
-        disabled={pending}
-        onClick={() => {
-          if (!window.confirm(t('gallery.confirmDeleteAlbum', lang))) return
-          startTransition(async () => {
-            const res = await deleteAlbum(albumId)
-            if (res.error) setError(res.error)
-            else router.push('/school/notices/gallery')
-          })
-        }}
-        className="cursor-pointer rounded-full bg-alert-soft px-4 py-1.5 text-xs font-semibold text-alert-deep disabled:opacity-50"
-      >
-        {t('gallery.deleteAlbum', lang)}
-      </button>
-    </div>
+    <ConfirmDialog
+      triggerLabel={t('gallery.deleteAlbum', lang)}
+      triggerClassName="cursor-pointer rounded-full bg-alert-soft px-4 py-1.5 text-xs font-semibold text-alert-deep disabled:opacity-50"
+      title={t('gallery.confirmDeleteAlbum', lang)}
+      confirmLabel={t('gallery.deleteAlbum', lang)}
+      cancelLabel={t('routine.cancel', lang)}
+      onConfirm={async () => {
+        const res = await deleteAlbum(albumId)
+        if (res.error) return res
+        toast.success(t('gallery.albumDeleted', lang))
+        router.push('/school/notices/gallery')
+      }}
+    />
   )
 }

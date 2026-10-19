@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
+import { requireEmployeeAttendanceAdmin } from '@/lib/school/employee-attendance-admin'
 import { EMPLOYEE_CATEGORIES } from '@/lib/employees'
 import {
   OFFICE_HOUR_DAYS,
@@ -12,9 +13,12 @@ import {
 } from '@/lib/office-hours'
 import { dayLabel } from '@/lib/routine'
 import { ACADEMIC_SHIFT_LABEL_KEY } from '@/lib/institute'
+import { schoolCrumbs } from '@/lib/school-crumbs'
+import { PageHeader } from '@/components/ui/page'
 import { AttendanceTabs } from '../../attendance-tabs'
 import { OfficeHourForm } from './office-hour-form'
 import { OfficeHourCell } from './office-hour-cell'
+import { pageTitle } from '@/lib/page-title'
 
 // Office Hour (issue #643, ADR 0026; moved from Institute Setup to Attendance
 // > Employees by issue #669/ADR 0029 — see that ADR for why the route move
@@ -37,6 +41,8 @@ function dayColumnClass(day: number): string {
   return day % 2 === 0 ? 'bg-sky-soft text-sky-deep' : 'bg-mint-soft text-mint-deep'
 }
 
+export const generateMetadata = pageTitle('officeHour.title')
+
 export default async function OfficeHourPage({
   searchParams,
 }: {
@@ -44,6 +50,8 @@ export default async function OfficeHourPage({
 }) {
   const lang: Lang = await currentLang()
   const { supabase, configuredShifts } = await getSchoolContext()
+  // #677: Owner and office staff only; a teacher is refused.
+  await requireEmployeeAttendanceAdmin('/school/attendance/employee/office-hour')
   const { shift: requestedShift } = await searchParams
 
   const shiftOptions = officeHourShiftOptions(configuredShifts)
@@ -58,18 +66,11 @@ export default async function OfficeHourPage({
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-extrabold">{t('officeHour.title', lang)}</h1>
-        <Link
-          href="/school"
-          aria-label={t('common.back', lang)}
-          className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true">
-            <path d="m15 18-6-6 6-6" />
-          </svg>
-        </Link>
-      </div>
+      <PageHeader
+        icon="attendance"
+        title={t('officeHour.title', lang)}
+        crumbs={schoolCrumbs('/school/attendance', lang, { label: t('attendance.title', lang), href: '/school/attendance' }, { label: t('officeHour.title', lang) })}
+      />
 
       <AttendanceTabs active="/school/attendance/employee/office-hour" lang={lang} />
 

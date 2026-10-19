@@ -3,6 +3,9 @@
 // dense range logic gets its own unit-test pass, independent of the page/RPC
 // wiring (mirrors the grading.ts / routine.ts split from #31 / #45).
 
+import type { MessageKey } from './i18n'
+import { toLatinDigits } from './bd-mobile'
+
 export interface SubjectMarksConfig {
   theory_marks: number
   mcq_marks: number
@@ -34,6 +37,38 @@ export interface RoutineEntryOrder {
 export function sortRoutineEntries<T extends RoutineEntryOrder>(entries: T[]): T[] {
   return [...entries].sort(
     (a, b) => a.exam_date.localeCompare(b.exam_date) || a.start_time.localeCompare(b.start_time),
+  )
+}
+
+/** One exam sitting, as the routine stores it. Times are 'HH:MM' or
+ * 'HH:MM:SS' (a Postgres `time` reads back with seconds). */
+export interface RoutineSlot {
+  /** Set when sittings of several exams of one class are compared (#699): the
+   * candidate's own sitting is then the one with the same exam AND subject —
+   * exams of one class share their subject ids. */
+  exam_id?: string
+  subject_id: string
+  exam_date: string
+  start_time: string
+  end_time: string
+}
+
+/** The first existing sitting that clashes with `candidate`: same day, times
+ * overlapping. One exam belongs to one class, so two sittings of the same exam
+ * overlapping means the same students are expected in two places at once.
+ * Back-to-back sittings (one ends as the next starts) do not clash, and the
+ * candidate's own subject is skipped — saving a subject again replaces its
+ * sitting rather than adding a second one. */
+export function overlappingRoutineEntry<T extends RoutineSlot>(entries: T[], candidate: RoutineSlot): T | null {
+  const hm = (v: string) => v.slice(0, 5)
+  return (
+    entries.find(
+      (e) =>
+        !(e.subject_id === candidate.subject_id && e.exam_id === candidate.exam_id) &&
+        e.exam_date === candidate.exam_date &&
+        hm(candidate.start_time) < hm(e.end_time) &&
+        hm(candidate.end_time) > hm(e.start_time),
+    ) ?? null
   )
 }
 
@@ -152,6 +187,23 @@ export function examHasClass(exam: Pick<ExamConfiguration, 'class_id'>): boolean
   return Boolean(exam.class_id)
 }
 
+/** Map 013 sweep: colour state for one of an exam row's six actions, derived
+ * purely from data the row already carries — never a stored workflow flag.
+ * Basic Info is the row's one real bottleneck, so it is the only action with
+ * a genuine "done" signal (`requires: 'none'`): `done` once both class and
+ * grading scheme are set, `next` (the thing to do now) while they are not.
+ * The other five actions have no stored per-action completion, so they are
+ * simply `locked` while their own gate (`class` or `basicInfo`) is unmet and
+ * `default` once available — inventing a `done` for them would be a fabricated
+ * signal, not a derived one. */
+export type RowActionState = 'next' | 'done' | 'locked' | 'default'
+
+export function examActionState(exam: ExamConfiguration, requires: 'none' | 'class' | 'basicInfo'): RowActionState {
+  if (requires === 'none') return examBasicInfoComplete(exam) ? 'done' : 'next'
+  const gated = requires === 'class' ? !examHasClass(exam) : !examBasicInfoComplete(exam)
+  return gated ? 'locked' : 'default'
+}
+
 // Exams V (issue #48): roll-range + promoted-only filtering, shared by
 // Result Book and batch print-all. "Promoted" has no stored column anywhere
 // in the schema — it's operationalized the same way Promotion's own
@@ -180,6 +232,167 @@ export function filterResultRoster<T extends ResultRosterFilterRow>(
     if (promotedOnly && !r.passed) return false
     return true
   })
+}
+
+// Map 013 A3 (exam landing → lifecycle board): one stage per exam, derived
+// purely from data the row already carries (status, Basic Info, a start
+// date) plus two cheap per-exam facts the page computes once. Never a stored
+// workflow column — same philosophy as examActionState, and this reuses
+// examBasicInfoComplete rather than re-deriving the setup gate.
+//
+// There is no exams.end_date column (only start_date), so "still running" vs
+// "overdue for marks" needs a window end. `lastExamDate` supplies it from the
+// exam's own routine (exam_routine_entries.exam_date) when one has been
+// entered; a single-day exam with no routine yet falls back to its own
+// start_date as its whole window, which is the only date this can know.
+export type ExamStage = 'setup' | 'upcoming' | 'running' | 'marksPending' | 'ready' | 'closed'
+
+export interface ExamStageInput extends ExamConfiguration {
+  status: string
+  start_date: string | null
+}
+
+export interface ExamStageFacts {
+  /** True once exam_marks rows entered === enrolled roster × applicable
+   *  subjects for this exam — false too when that target is unknown/zero
+   *  (no roster or no subjects yet), since "complete" cannot be claimed
+   *  without a real target. */
+  marksComplete: boolean
+  /** Latest `exam_routine_entries.exam_date` for the exam ('YYYY-MM-DD'), or
+   *  null when no routine entry exists yet. */
+  lastExamDate: string | null
+}
+
+/** Order of precedence, each a real fact and never inferred beyond it:
+ *  Closed is terminal and overrides everything else. Setup (Basic Info
+ *  incomplete) is the one true bottleneck and wins over dates — an exam
+ *  can't be "running" without a class/grading scheme, whatever its dates
+ *  say. Marks-complete means ready to publish/close regardless of the
+ *  calendar (a school can finish entry early). Otherwise it's upcoming
+ *  (no start date yet, or one in the future), overdue (`marksPending`, the
+ *  window has closed and marks aren't in), or running (today falls inside
+ *  the window). */
+export function examStage(exam: ExamStageInput, today: string, facts: ExamStageFacts): ExamStage {
+  if (exam.status === 'closed') return 'closed'
+  if (!examBasicInfoComplete(exam)) return 'setup'
+  if (facts.marksComplete) return 'ready'
+  if (!exam.start_date || exam.start_date > today) return 'upcoming'
+  const windowEnd = facts.lastExamDate ?? exam.start_date
+  return today > windowEnd ? 'marksPending' : 'running'
+}
+
+/** The one status chip an exam shows, on the list and on its setup page alike:
+ * a result that is out beats every workflow stage, otherwise the stage says
+ * where the exam stands. */
+export type ExamChip = ExamStage | 'published'
+
+export function examChip(stage: ExamStage, resultsPublishedAt: string | null): ExamChip {
+  return resultsPublishedAt ? 'published' : stage
+}
+
+export const EXAM_CHIP: Record<ExamChip, { label: MessageKey; tone: 'mint' | 'brand' | 'sun' | 'alert' | 'sky' | 'muted' }> = {
+  published: { label: 'exams.pubPublished', tone: 'mint' },
+  ready: { label: 'exams.pubReady', tone: 'brand' },
+  running: { label: 'exams.pubMarking', tone: 'sun' },
+  marksPending: { label: 'exams.stageMarksPending', tone: 'alert' },
+  upcoming: { label: 'exams.stageUpcoming', tone: 'sky' },
+  setup: { label: 'exams.pubDraft', tone: 'muted' },
+  closed: { label: 'exams.stageClosed', tone: 'muted' },
+}
+
+// Marks entry (audit AC3): "not entered" is the absence of an exam_marks row,
+// never a stored 0 — the three component columns are NOT NULL, so a row is
+// either entered in full or does not exist. These two helpers are the whole
+// rule; the entry grid and the save action both read them.
+
+export type MarkCellError = 'invalid' | 'negative' | 'overMax'
+
+/** What is wrong with one typed mark, or null when it is blank or valid. A
+ * blank cell is not an error — it means "not entered". */
+export function markCellError(raw: string, max: number): MarkCellError | null {
+  const v = raw.trim()
+  if (!v) return null
+  // Bangla digits are fine: ৭৫ is 75.
+  const n = Number(toLatinDigits(v))
+  if (!Number.isFinite(n)) return 'invalid'
+  if (n < 0) return 'negative'
+  if (n > max) return 'overMax'
+  return null
+}
+
+export interface MarkCells {
+  theory: string
+  mcq: string
+  practical: string
+}
+
+/** `empty`: nothing typed in any component the subject actually has — the
+ * student's mark is not entered and no row is stored. `complete`: every such
+ * component has a value. `partial`: some but not all — it cannot be saved,
+ * because the blank component would have to be stored as a 0 nobody typed. */
+export function markRowState(cells: MarkCells, subject: SubjectMarksConfig): 'empty' | 'partial' | 'complete' {
+  const applicable = [
+    subject.theory_marks > 0 ? cells.theory : null,
+    subject.mcq_marks > 0 ? cells.mcq : null,
+    subject.practical_marks > 0 ? cells.practical : null,
+  ].filter((c): c is string => c !== null)
+  const filled = applicable.filter((c) => c.trim() !== '').length
+  if (filled === 0) return 'empty'
+  return filled === applicable.length ? 'complete' : 'partial'
+}
+
+// Publishing results (audit AC2/AC6): what must be true before an exam's
+// results go out to students, and what is merely worth a warning.
+
+export interface PublishFacts {
+  classSet: boolean
+  /** null when no grading scheme is picked. */
+  schemeType: string | null
+  bandCount: number
+  students: number
+  subjects: number
+  /** Students with a mark entered in every subject. */
+  studentsComplete: number
+  /** Subjects with a mark entered for every student. */
+  subjectsComplete: number
+}
+
+export type PublishBlock = 'noClass' | 'noScheme' | 'noBands'
+
+/** A scheme that grades by band needs at least one band; a numeric scheme
+ * reports raw marks only and never reads its bands (grading.ts). */
+export function schemeHasUsableBands(schemeType: string | null, bandCount: number): boolean {
+  return schemeType === 'numeric' || bandCount > 0
+}
+
+/** Why results cannot be published at all, or null. Incomplete marks are
+ * deliberately not a block — a school may publish with a student absent — the
+ * confirm dialog warns about them instead (see publishMarksComplete). */
+export function publishBlock(facts: PublishFacts): PublishBlock | null {
+  if (!facts.classSet) return 'noClass'
+  if (!facts.schemeType) return 'noScheme'
+  if (!schemeHasUsableBands(facts.schemeType, facts.bandCount)) return 'noBands'
+  return null
+}
+
+/** True only against a real target: an exam with no roster or no subjects has
+ * nothing entered, so it is never "complete". */
+export function publishMarksComplete(facts: PublishFacts): boolean {
+  return facts.students > 0 && facts.subjects > 0 && facts.studentsComplete === facts.students
+}
+
+/** Tallies the entered marks of one exam against its roster and subjects.
+ * `markKeys` holds `${studentId}:${subjectId}` for every exam_marks row; rows
+ * for a student or subject no longer on the exam are simply never looked up,
+ * so they cannot inflate the count. */
+export function tallyMarks(studentIds: string[], subjectIds: string[], markKeys: Set<string>) {
+  const has = (st: string, sub: string) => markKeys.has(`${st}:${sub}`)
+  return {
+    entered: studentIds.reduce((n, st) => n + subjectIds.filter((sub) => has(st, sub)).length, 0),
+    total: studentIds.length * subjectIds.length,
+    studentsComplete: subjectIds.length ? studentIds.filter((st) => subjectIds.every((sub) => has(st, sub))).length : 0,
+    subjectsComplete: studentIds.length ? subjectIds.filter((sub) => studentIds.every((st) => has(st, sub))).length : 0,
+  }
 }
 
 // Exams V (issue #48): resolves an admit card's "Exam Center" field — the

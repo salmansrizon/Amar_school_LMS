@@ -3,6 +3,8 @@
 import { useState, useTransition } from 'react'
 import { useCrudAction } from '@/lib/crud/use-crud-action'
 import { upsertTemplate, deleteTemplate, addChannelRoute, removeChannelRoute } from './actions'
+import { SelectField } from '@/components/ui/select-field'
+import { ComboboxField } from '@/components/ui/combobox-field'
 
 const input = 'w-full rounded-lg border border-line-strong px-3 py-2 text-sm focus:border-brand-500 focus:outline-none'
 
@@ -85,21 +87,24 @@ export function ChannelRouteForm({ templateKeys }: { templateKeys: string[] }) {
       }}
     >
       <input name="event_type" required placeholder="EventType" className={input} />
-      <select name="channel" defaultValue="in_app" className={input}>
-        <option value="in_app">in_app</option>
-        <option value="sms">sms</option>
-        <option value="email">email</option>
-      </select>
-      <select name="template_key" required defaultValue="" className={input}>
-        <option value="" disabled>
-          template…
-        </option>
-        {templateKeys.map((k) => (
-          <option key={k} value={k}>
-            {k}
-          </option>
-        ))}
-      </select>
+      <SelectField
+        name="channel"
+        defaultValue="in_app"
+        options={[
+          { value: 'in_app', label: 'in_app' },
+          { value: 'sms', label: 'sms' },
+          { value: 'email', label: 'email' },
+        ]}
+      />
+      <ComboboxField
+        name="template_key"
+        required
+        defaultValue=""
+        options={[
+          { value: '', label: 'template…', disabled: true },
+          ...templateKeys.map((k) => ({ value: k, label: k })),
+        ]}
+      />
       <button type="submit" disabled={pending} className="rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600 disabled:opacity-50">
         Add route
       </button>

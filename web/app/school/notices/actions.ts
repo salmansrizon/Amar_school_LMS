@@ -2,12 +2,19 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
-import { currentActor } from '@/lib/school/actor'
+import { currentActor, type Actor } from '@/lib/school/actor'
 import { currentLang } from '@/lib/i18n-server'
 import { t } from '@/lib/i18n'
-import { galleryImageExtension, validateTargetSelection, TARGET_SELECTION_ERROR_KEY } from '@/lib/publishing'
+import {
+  DUE_DATE_ERROR_KEY,
+  galleryImageExtension,
+  publicationDueAt,
+  validateTargetSelection,
+  TARGET_SELECTION_ERROR_KEY,
+} from '@/lib/publishing'
 import type { Importance, PublicationKind, TargetScope } from '@/lib/publishing'
 import { createSignedUpload, type SignedUpload } from '@/lib/storage/signed-upload'
+import { isMissingColumnError } from '@/lib/leave-columns'
 
 // The image bytes are uploaded client-side straight to the private
 // 'publications' bucket (avoids the Next server-action body limit, mirrors
@@ -28,7 +35,7 @@ export async function publicationImageUploadTicket(
   return createSignedUpload('publications', `${me.schoolId}/${crypto.randomUUID()}.${ext}`)
 }
 
-export async function createPublication(input: {
+export interface PublicationInput {
   kind: PublicationKind
   title: string
   content: string
@@ -43,33 +50,41 @@ export async function createPublication(input: {
   targetSection: string
   imagePath: string | null
   linkUrl: string
-}): Promise<{ error?: string; id?: string }> {
-  const me = await currentActor()
-  if ('error' in me) return { error: me.error }
+  /** Homework only (#705): the school day it is due, `YYYY-MM-DD`; null or ''
+   *  clears it. Left out = the stored date is not touched. */
+  dueDate?: string | null
+}
+
+/** The validated column values a publication is written with — one definition
+ *  for create and edit, so an edited notice passes exactly the checks a new one
+ *  does. `pinnedYear` is an existing broadcast row's own Academic Year: an edit
+ *  keeps it rather than silently re-aiming an old notice at this year's classes. */
+async function publicationColumns(me: Actor, input: PublicationInput, pinnedYear: number | null = null) {
   const title = input.title.trim()
   if (!title) return { error: 'Title is required' }
 
-  const supabase = me.supabase
   // A broadcast target's Academic Year is pinned to the School's active year
   // at compose time (#599) -- it never spans years and is never "Any".
-  const { data: school } = await supabase
+  const { data: school } = await me.supabase
     .from('schools')
     .select('active_academic_year')
     .eq('id', me.schoolId)
     .maybeSingle()
-  const activeAcademicYear = (school?.active_academic_year ?? null) as number | null
+  const academicYear = pinnedYear ?? ((school?.active_academic_year ?? null) as number | null)
 
   const scope = input.targetScope
   const targetError = validateTargetSelection({
     scope,
     classOfferingId: input.classOfferingId,
     className: input.targetClassName,
-    academicYear: activeAcademicYear,
+    academicYear,
     shift: input.targetShift,
     groupDepartment: input.targetGroupDepartment,
     section: input.targetSection,
   })
   if (targetError) return { error: t(TARGET_SELECTION_ERROR_KEY[targetError], await currentLang()) }
+  const due = publicationDueAt(input.kind, input.dueDate)
+  if ('error' in due) return { error: t(DUE_DATE_ERROR_KEY[due.error], await currentLang()) }
   // imagePath (if any) was already validated by publicationImageUploadPath and
   // the bucket's own type/size limits at upload time — nothing more to check.
 
@@ -78,9 +93,8 @@ export async function createPublication(input: {
   // target_type is gone). The per-scope CHECK invariants (migration 0195)
   // require every non-owning column NULL for 'all'/'offering', so the
   // conditional column values below are load-bearing, not cosmetic.
-  const { data, error } = await supabase
-    .from('publications')
-    .insert({
+  return {
+    columns: {
       kind: input.kind,
       title: title.slice(0, 200),
       content: input.content.trim() ? input.content.trim() : null,
@@ -88,19 +102,91 @@ export async function createPublication(input: {
       target_scope: scope,
       class_offering_id: scope === 'offering' ? input.classOfferingId : null,
       target_class_name: broadcast ? input.targetClassName : null,
-      target_academic_year: broadcast ? activeAcademicYear : null,
+      target_academic_year: broadcast ? academicYear : null,
       target_shift: broadcast ? input.targetShift || null : null,
       target_group_department: broadcast ? input.targetGroupDepartment || null : null,
       target_section: broadcast ? input.targetSection || null : null,
-      image_path: input.imagePath,
       link_url: input.linkUrl.trim() ? input.linkUrl.trim() : null,
-      created_by: me.userId,
-    })
+      ...(due.dueAt === undefined ? {} : { due_at: due.dueAt }),
+    },
+  }
+}
+
+export async function createPublication(input: PublicationInput): Promise<{ error?: string; id?: string }> {
+  const me = await currentActor()
+  if ('error' in me) return { error: me.error }
+  const built = await publicationColumns(me, input)
+  if ('error' in built) return { error: built.error }
+
+  const { data, error } = await me.supabase
+    .from('publications')
+    .insert({ ...built.columns, image_path: input.imagePath, created_by: me.userId })
     .select('id')
     .single()
   if (error) return { error: error.message }
   revalidatePath(LIST_PAGE)
   return { id: data!.id }
+}
+
+/** Edit a published row in place — a typo no longer costs a delete and a
+ *  re-publish. Same actor rule and validation as createPublication; RLS decides
+ *  which rows the caller may touch, exactly as it does for delete.
+ *
+ *  `imagePath: null` keeps the current image (the form has no "remove image");
+ *  a new path replaces it and the old object is removed. `created_by` and
+ *  `created_at` are the row's history and are left alone. */
+export async function updatePublication(id: string, input: PublicationInput): Promise<{ error?: string }> {
+  const me = await currentActor()
+  if ('error' in me) return { error: me.error }
+
+  const { data: existing } = await me.supabase
+    .from('publications')
+    .select('image_path, target_scope, target_academic_year')
+    .eq('id', id)
+    .maybeSingle()
+  if (!existing) return { error: 'Not found' }
+
+  const pinnedYear =
+    existing.target_scope === 'broadcast' && input.targetScope === 'broadcast'
+      ? ((existing.target_academic_year ?? null) as number | null)
+      : null
+  const built = await publicationColumns(me, input, pinnedYear)
+  if ('error' in built) return { error: built.error }
+
+  const { data, error } = await me.supabase
+    .from('publications')
+    .update({ ...built.columns, ...(input.imagePath ? { image_path: input.imagePath } : {}) })
+    .eq('id', id)
+    .select('id')
+  if (error) return { error: error.message }
+  if (!data?.length) return { error: 'Not found' }
+  if (input.imagePath && existing.image_path && existing.image_path !== input.imagePath) {
+    await me.supabase.storage.from('publications').remove([existing.image_path])
+  }
+  revalidatePath(LIST_PAGE)
+  revalidatePath(`${LIST_PAGE}/${id}`)
+  return {}
+}
+
+/** Unpublish or republish a notice (#696, migration 0252). Unpublishing hides
+ *  it from Students without deleting it; republishing clears the mark and
+ *  keeps the notice's original date. Notices only. While 0252 is not applied
+ *  the column is missing and this says so instead of pretending to succeed. */
+export async function setNoticePublished(id: string, published: boolean): Promise<{ error?: string }> {
+  const me = await currentActor()
+  if ('error' in me) return { error: me.error }
+  const { data, error } = await me.supabase
+    .from('publications')
+    .update({ unpublished_at: published ? null : new Date().toISOString() })
+    .eq('id', id)
+    .eq('kind', 'notice')
+    .select('id')
+  if (isMissingColumnError(error)) return { error: t('notices.unpublishUnavailable', await currentLang()) }
+  if (error) return { error: error.message }
+  if (!data?.length) return { error: 'Not found' }
+  revalidatePath(LIST_PAGE)
+  revalidatePath(`${LIST_PAGE}/${id}`)
+  return {}
 }
 
 export async function deletePublication(id: string): Promise<{ error?: string }> {

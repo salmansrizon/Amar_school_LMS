@@ -28,6 +28,12 @@ const SINGLE_ROW = /\.(single|maybeSingle)\(/
  *  its name — see the Wave 5 (#590) resolution comment on GitHub for the
  *  full per-site reasoning this summarizes. */
 const EXEMPT: [file: string, reason: string][] = [
+  // --- students: bulk ID cards read by id for rows the directory already
+  // resolved through schoolRoster (shift + year filtered upstream).
+  ['app/school/students/print/id-cards/page.tsx', 'reads by id the rows loadDirectoryRows already shift-filtered'],
+  // --- students: the print-verification token of students the print page has
+  // already resolved (one student, or a print-all roster) — by id, not a list.
+  ['lib/print-verify-server.ts', 'reads public_token by id for students the calling print page already resolved'],
   // --- class_offerings: the Year-filter's own internal implementation
   // detail (issue #621's Students-roster follow-up) — resolves matching
   // Offerings by Academic Year only, deliberately orthogonal to Shift, not
@@ -88,6 +94,10 @@ const EXEMPT: [file: string, reason: string][] = [
     'app/school/exams/[id]/promotion/page.tsx',
     ".in(id, enrolledIds) — already the enrolled roster of ONE chosen Offering",
   ],
+  [
+    'lib/exam-readiness.ts',
+    ".in(id, enrolledIds) — the enrolled roster of the exam's ONE Offering, the same roster marks-entry lists",
+  ],
 
   // --- students: no class dimension exists on these reads at all today —
   // adding Shift narrowing here means inventing a new join, not composing
@@ -104,6 +114,10 @@ const EXEMPT: [file: string, reason: string][] = [
   ],
   ['app/school/page.tsx', 'dashboard total-student count is schoolwide, no class dimension'],
   ['app/school/sms/rules/page.tsx', 'student picker here has no class/section dimension at all'],
+  [
+    'lib/school/roll-check.ts',
+    'roll uniqueness pre-check (#690): reads the members of ONE Class Offering by enrollment id; narrowing by the Shift Selection would hide a classmate who holds the roll',
+  ],
   ['lib/search/actions.ts', 'global search has no class dimension today'],
 
   // --- students: deliberately not shift-narrowed.

@@ -2,6 +2,7 @@
 
 import { useCrudAction } from '@/lib/crud/use-crud-action'
 import { recordPayment } from './actions'
+import { SelectField } from '@/components/ui/select-field'
 
 const input = 'h-10 rounded-lg border border-line-strong px-3 text-sm focus:border-brand-500 focus:outline-none'
 
@@ -23,12 +24,16 @@ export function RecordPaymentForm({ invoiceId }: { invoiceId: string }) {
     <form className="grid gap-2 sm:grid-cols-4 print:hidden" onSubmit={onSubmit}>
       <input type="hidden" name="invoice_id" value={invoiceId} />
       <input name="amount" required placeholder="Amount ৳" className={input} />
-      <select name="method" defaultValue="bank" className={input}>
-        <option value="bank">Bank</option>
-        <option value="bkash">bKash</option>
-        <option value="nagad">Nagad</option>
-        <option value="cash">Cash</option>
-      </select>
+      <SelectField
+        name="method"
+        defaultValue="bank"
+        options={[
+          { value: 'bank', label: 'Bank' },
+          { value: 'bkash', label: 'bKash' },
+          { value: 'nagad', label: 'Nagad' },
+          { value: 'cash', label: 'Cash' },
+        ]}
+      />
       <input name="reference" placeholder="Reference (optional)" className={input} />
       <button type="submit" disabled={pending} className="h-10 rounded-lg bg-brand-500 px-4 text-sm font-semibold text-white hover:bg-brand-600 disabled:opacity-50">
         Record payment

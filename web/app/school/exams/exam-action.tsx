@@ -11,12 +11,12 @@ import Link from 'next/link'
  * two densities already in use: the list row's, and the setup header's. */
 export function examActionClass(size: 'row' | 'header' = 'row'): string {
   const padding = size === 'header' ? 'px-3 py-1.5' : 'px-3 py-1'
-  return `rounded-full border border-line-strong ${padding} text-xs font-semibold hover:bg-paper-muted`
+  return `rounded-full border border-line-strong ${padding} text-xs font-semibold hover:bg-paper-muted max-sm:inline-flex max-sm:min-h-11 max-sm:items-center`
 }
 
 function gatedClass(size: 'row' | 'header'): string {
   const padding = size === 'header' ? 'px-3 py-1.5' : 'px-3 py-1'
-  return `cursor-not-allowed rounded-full border border-line ${padding} text-xs font-semibold text-muted opacity-60`
+  return `cursor-not-allowed rounded-full border border-line ${padding} text-xs font-semibold text-muted opacity-60 max-sm:inline-flex max-sm:min-h-11 max-sm:items-center`
 }
 
 /**

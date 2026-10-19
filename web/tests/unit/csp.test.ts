@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { cspFor, cspHeaderName, isPrefetch } from '@/lib/auth/csp'
+import { cspFor, isPrintPath, cspHeaderName, isPrefetch } from '@/lib/auth/csp'
 
 // Set at import time, not in beforeAll: a describe body runs before its hooks, so
 // anything computed there would read the unset env.
@@ -53,6 +53,15 @@ describe('cspFor', () => {
     expect(directive(csp, 'base-uri')).toBe("base-uri 'none'")
     expect(directive(csp, 'object-src')).toBe("object-src 'none'")
     expect(directive(csp, 'frame-ancestors')).toBe("frame-ancestors 'none'")
+    expect(directive(csp, 'frame-src')).toBe("frame-src 'self'")
+  })
+
+  it('lets only print routes be framed, and only by the app', () => {
+    expect(directive(cspFor('N', true), 'frame-ancestors')).toBe("frame-ancestors 'self'")
+    expect(isPrintPath('/school/students/abc/print/id-card')).toBe(true)
+    expect(isPrintPath('/school/students/print/id-cards')).toBe(true)
+    expect(isPrintPath('/school/students/printer')).toBe(false)
+    expect(isPrintPath('/school/students')).toBe(false)
   })
 
   it('names a reporting endpoint, or report-to is inert', () => {

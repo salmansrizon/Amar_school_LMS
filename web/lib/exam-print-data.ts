@@ -46,6 +46,9 @@ export interface ExamPrintSubjectRow {
   subjectId: string
   subjectName: string
   result: SubjectResult
+  /** False when no exam_marks row exists for this student and subject — the
+   *  mark was never entered, which is not the same thing as a scored 0. */
+  entered: boolean
 }
 
 export interface ExamPrintContext {
@@ -55,6 +58,8 @@ export interface ExamPrintContext {
   scheme: GradingScheme | null
   subjectResults: ExamPrintSubjectRow[]
   overall: OverallResult | null
+  /** Subjects with no mark entered — see ExamRosterResultRow.marksMissing. */
+  marksMissing: number
   rankPosition: number | null
   rankOutOf: number
 }
@@ -68,6 +73,11 @@ export interface ExamRosterResultRow {
   totalFull: number
   totalObtained: number
   overall: OverallResult | null
+  /** How many of the class's subjects have no mark entered for this student.
+   *  Above zero the result is INCOMPLETE: `overall` is still computed (a
+   *  missing mark counts 0, as before) but must not be shown as a fail, and
+   *  the student holds no merit position. */
+  marksMissing: number
   rankPosition: number | null
   rankOutOf: number
 }
@@ -128,9 +138,13 @@ export function assembleRosterRows<S extends { id: string; name: string } & Subj
     subjectResultsByStudent.set(s.id, results)
   }
 
+  const missingFor = (studentId: string) => subjects.filter((sub) => !marksMap.has(`${studentId}:${sub.id}`)).length
+  // An incomplete result is kept out of the merit list the same way a failed
+  // one is: it has no position until every mark is in.
   const rankable: RankableResult[] = roster.map((s) => {
     const o = overallByStudent.get(s.id)
-    return { studentId: s.id, passed: o?.passed ?? false, gpa: o?.gpa ?? null, percent: o?.percent ?? 0 }
+    const complete = missingFor(s.id) === 0
+    return { studentId: s.id, passed: complete && (o?.passed ?? false), gpa: o?.gpa ?? null, percent: o?.percent ?? 0 }
   })
   const rankedById = new Map(rankResults(rankable, basis).map((r) => [r.studentId, r]))
   const rankOutOf = roster.length
@@ -146,10 +160,12 @@ export function assembleRosterRows<S extends { id: string; name: string } & Subj
         subjectId: r.subjectId,
         subjectName: subjects.find((sub) => sub.id === r.subjectId)?.name ?? r.subjectId,
         result: r,
+        entered: marksMap.has(`${s.id}:${r.subjectId}`),
       })),
       totalFull: subjectResults.reduce((sum, r) => sum + r.fullMarks, 0),
       totalObtained: subjectResults.reduce((sum, r) => sum + r.obtainedMarks, 0),
       overall: overallByStudent.get(s.id) ?? null,
+      marksMissing: missingFor(s.id),
       rankPosition: rankedById.get(s.id)?.position ?? null,
       rankOutOf,
     }
@@ -222,10 +238,8 @@ export async function loadExamRosterResults(
         .is('archived_at', null)
         .order('roll_number', { ascending: true, nullsFirst: false })
 
-      // Paged, not unbounded (#546). A missing mark does not render as missing —
-      // assembleRosterRows below reads an absent entry as 0 — so a silently
-      // truncated fetch prints a wrong grade on a report card rather than an
-      // obvious blank. One exam is students x subjects, which passes 1000 at
+      // Paged, not unbounded (#546). A silently truncated fetch would turn
+      // entered marks into "not entered" for the students past the cut. One exam is students x subjects, which passes 1000 at
       // roughly 125 students.
       const [{ data: roster }, marks] = await Promise.all([
         rosterQuery,
@@ -234,6 +248,9 @@ export async function loadExamRosterResults(
             .from('exam_marks')
             .select('student_id, subject_id, obtained_marks')
             .eq('exam_id', examId)
+            // A half-filled row (null total, migration 0223) is not entered
+            // yet: the student reads as incomplete, not as 0.
+            .not('obtained_marks', 'is', null)
             .range(from, to),
         ),
       ])
@@ -281,6 +298,7 @@ export async function loadExamPrintContext(
     scheme: roster.scheme,
     subjectResults: row?.subjectResults ?? [],
     overall: row?.overall ?? null,
+    marksMissing: row?.marksMissing ?? 0,
     rankPosition: row?.rankPosition ?? null,
     rankOutOf: row?.rankOutOf ?? 0,
   }

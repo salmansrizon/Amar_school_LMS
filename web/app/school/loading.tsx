@@ -3,7 +3,7 @@
 // the real layout (KPI row + activity/quick-actions split) to avoid layout officeTime.
 export default function SchoolLoading() {
   return (
-    <div className="animate-pulse" aria-hidden="true">
+    <div className="ui-shimmer" aria-hidden="true">
       <div className="mb-6">
         <div className="h-3 w-24 rounded bg-line" />
         <div className="mt-2 h-8 w-64 rounded bg-line-strong" />

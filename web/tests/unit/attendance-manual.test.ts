@@ -5,6 +5,8 @@ import {
   registerDayStatus,
   studentLogDayStatus,
   attendancePercent,
+  studentTrackingStart,
+  isOffDayIso,
 } from '@/lib/attendance-manual'
 
 // filterRoster's cases moved with it to tests/unit/school-roster.test.ts.
@@ -203,5 +205,59 @@ describe('attendancePercent: present days over working days, not raw row count (
 
   it('a student with zero working days considered has no percentage (not misleading 0%)', () => {
     expect(attendancePercent(0, 0)).toBeNull()
+  })
+})
+
+// Audit F1: a day before the student's admission was never a school day for
+// them, so it must not read as absent in the Book or the Student Log.
+describe('startDay (pre-admission days)', () => {
+  const base = { today: '2026-10-03', isOff: false, onApprovedLeave: false, hasRecord: false }
+
+  it('registerDayStatus: a day before startDay is blank, not absent', () => {
+    expect(registerDayStatus({ ...base, iso: '2026-10-01', startDay: '2026-10-03' })).toBe('blank')
+  })
+
+  it('registerDayStatus: startDay itself and later unmarked days are still absent', () => {
+    expect(registerDayStatus({ ...base, iso: '2026-10-03', startDay: '2026-10-03' })).toBe('absent')
+    expect(registerDayStatus({ ...base, iso: '2026-10-02', startDay: '2026-10-01' })).toBe('absent')
+  })
+
+  it('a record before startDay is honoured', () => {
+    expect(registerDayStatus({ ...base, iso: '2026-10-01', startDay: '2026-10-03', hasRecord: true })).toBe('present')
+  })
+
+  it('studentLogDayStatus: pre-admission days are dropped (null), even with leave or off-day', () => {
+    expect(studentLogDayStatus({ ...base, iso: '2026-10-01', startDay: '2026-10-03' })).toBeNull()
+    expect(studentLogDayStatus({ ...base, iso: '2026-10-01', startDay: '2026-10-03', onApprovedLeave: true })).toBeNull()
+  })
+
+  it('studentLogDayStatus: leave and holiday keep their own states after startDay', () => {
+    expect(studentLogDayStatus({ ...base, iso: '2026-10-02', startDay: '2026-10-01', onApprovedLeave: true })).toBe('on_leave')
+    expect(studentLogDayStatus({ ...base, iso: '2026-10-02', startDay: '2026-10-01', isOff: true })).toBe('holiday')
+  })
+
+  it('no startDay (unknown) imposes no limit', () => {
+    expect(registerDayStatus({ ...base, iso: '2026-10-01' })).toBe('absent')
+    expect(registerDayStatus({ ...base, iso: '2026-10-01', startDay: null })).toBe('absent')
+  })
+})
+
+describe('studentTrackingStart', () => {
+  it('is the admission day in the School calendar (Dhaka, UTC+6)', () => {
+    expect(studentTrackingStart('2026-10-02T20:00:00Z')).toBe('2026-10-03')
+    expect(studentTrackingStart('2026-10-03T05:00:00Z')).toBe('2026-10-03')
+  })
+  it('is null when the admission time is unknown', () => {
+    expect(studentTrackingStart(null)).toBeNull()
+    expect(studentTrackingStart(undefined)).toBeNull()
+  })
+})
+
+describe('isOffDayIso', () => {
+  it('is true on a weekly off weekday, an off_days row, and false otherwise', () => {
+    // 2026-10-03 is a Saturday (6); 2026-10-04 Sunday.
+    expect(isOffDayIso('2026-10-03', [], [6])).toBe(true)
+    expect(isOffDayIso('2026-10-04', [{ day: '2026-10-04', label: 'x', is_significant: false }], [6])).toBe(true)
+    expect(isOffDayIso('2026-10-04', [], [6])).toBe(false)
   })
 })

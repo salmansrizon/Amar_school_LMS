@@ -4,8 +4,9 @@ import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { classSectionLabel } from '@/lib/students'
 import { loadExamPrintContext } from '@/lib/exam-print-data'
-import { renderAuthenticityQr } from '@/lib/qr'
-import { PrintButton } from '@/components/print/print-button'
+import { printVerifyQr } from '@/lib/print-verify-server'
+import { PrintTrigger } from '@/components/print/print-trigger'
+import { withParams } from '@/lib/url-params'
 import { TemplatePicker } from '@/components/print/template-picker'
 import { MarkSheetTemplate } from './templates'
 import { loadInstitutePrintHeader } from '@/lib/institute-print'
@@ -53,7 +54,7 @@ export default async function MarkSheetPage({
           label={t('markSheet.pickTemplate', lang)}
           options={[t('markSheet.template1', lang), t('markSheet.template2', lang), t('markSheet.template3', lang)]}
         />
-        <PrintButton label={t('print.print', lang)} />
+        <PrintTrigger href={`/school/exams/${examId}/mark-sheet/${studentId}/print${withParams({ template: templateParam }, {})}`} label={t('print.print', lang)} />
       </div>
     </div>
   )
@@ -74,9 +75,7 @@ export default async function MarkSheetPage({
   }
 
   const examLabel = `${ctx.exam.name} ${ctx.exam.exam_year}`
-  const qrSvg = await renderAuthenticityQr(
-    `MARKSHEET|school:${school.name}|exam:${examId}|student:${studentId}|roll:${ctx.student.roll_number ?? ''}`,
-  )
+  const qrSvg = await printVerifyQr({ kind: 'mark_sheet', studentId, refId: examId })
 
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 p-6">
@@ -98,7 +97,9 @@ export default async function MarkSheetPage({
           label: r.result.label,
           gpa: r.result.gradePoint,
           passed: r.result.passed,
+          entered: r.entered,
         }))}
+        incomplete={ctx.marksMissing > 0}
         totalFull={ctx.subjectResults.reduce((s, r) => s + r.result.fullMarks, 0)}
         totalObtained={ctx.subjectResults.reduce((s, r) => s + r.result.obtainedMarks, 0)}
         overallGpa={ctx.overall.gpa}

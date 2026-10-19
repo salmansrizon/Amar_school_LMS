@@ -32,6 +32,17 @@ const nextConfig: NextConfig = {
           { key: 'Reporting-Endpoints', value: 'csp-endpoint="/api/csp-report"' },
         ],
       },
+      {
+        // Print routes (ADR 0007) open in a same-page preview popup (map 013),
+        // which frames them. Same-origin only: nothing outside the app can frame
+        // them, and a print sheet has no controls worth clickjacking. Listed
+        // AFTER the catch-all because the last matching header wins.
+        source: '/:prefix*/print/:rest*',
+        headers: [
+          { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
+          { key: 'Content-Security-Policy', value: "frame-ancestors 'self'" },
+        ],
+      },
     ]
   },
 };

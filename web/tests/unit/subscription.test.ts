@@ -6,6 +6,9 @@ import {
   daysUntilExpiry,
   startOfUtcToday,
   shouldShowReminder,
+  daysLeft,
+  isDaysLeftDanger,
+  countdownKind,
 } from '@/lib/subscription'
 
 // Mirrors the SQL rules in redeem_code / decrease_expiry (issues #5, #6).
@@ -77,6 +80,59 @@ describe('date helpers (#169)', () => {
     expect(daysUntilExpiry(plus3)).toBe(3)
     const minus2 = new Date(startOfUtcToday().getTime() - 2 * 86_400_000).toISOString().slice(0, 10)
     expect(daysUntilExpiry(minus2)).toBe(-2)
+  })
+})
+
+describe('daysLeft: whole calendar days in the School day (Asia/Dhaka)', () => {
+  const EXPIRES = '2026-10-30'
+
+  it('8 days left', () => {
+    expect(daysLeft(EXPIRES, new Date('2026-10-22T06:00:00Z'))).toBe(8)
+  })
+  it('7 days left', () => {
+    expect(daysLeft(EXPIRES, new Date('2026-10-23T06:00:00Z'))).toBe(7)
+  })
+  it('1 day left', () => {
+    expect(daysLeft(EXPIRES, new Date('2026-10-29T06:00:00Z'))).toBe(1)
+  })
+  it('0: expires today', () => {
+    expect(daysLeft(EXPIRES, new Date('2026-10-30T06:00:00Z'))).toBe(0)
+  })
+  it('-1: expired yesterday', () => {
+    expect(daysLeft(EXPIRES, new Date('2026-10-31T06:00:00Z'))).toBe(-1)
+  })
+  it('Dhaka midnight edge: 23:30 UTC the previous day is already tomorrow in Dhaka (UTC+6)', () => {
+    // 2026-10-29T23:30Z is 2026-10-30 05:30 in Asia/Dhaka — expiry day has
+    // already started locally, even though the UTC calendar date has not
+    // rolled over yet. A UTC-only calculation would wrongly say 1 day left.
+    expect(daysLeft(EXPIRES, new Date('2026-10-29T23:30:00Z'))).toBe(0)
+  })
+})
+
+describe('isDaysLeftDanger: the dashboard card\'s last-7-days red zone', () => {
+  it('more than 7 days left: not danger (green)', () => {
+    expect(isDaysLeftDanger(8)).toBe(false)
+  })
+  it('exactly 7 days left: danger (red)', () => {
+    expect(isDaysLeftDanger(7)).toBe(true)
+  })
+  it('1 day left, today, and expired: all danger', () => {
+    expect(isDaysLeftDanger(1)).toBe(true)
+    expect(isDaysLeftDanger(0)).toBe(true)
+    expect(isDaysLeftDanger(-1)).toBe(true)
+  })
+})
+
+describe('countdownKind: which dashboard-countdown phrase branch applies', () => {
+  it('positive days: left', () => {
+    expect(countdownKind(8)).toBe('left')
+    expect(countdownKind(1)).toBe('left')
+  })
+  it('zero: today, not "left" or "expired"', () => {
+    expect(countdownKind(0)).toBe('today')
+  })
+  it('negative: expired', () => {
+    expect(countdownKind(-1)).toBe('expired')
   })
 })
 

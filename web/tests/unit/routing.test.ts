@@ -56,17 +56,23 @@ describe('isProtectedPath', () => {
   })
 })
 
-// Nav grouping (issue #101, docs/improvement.md Known Issues §1): Attendance
-// sits under Class & Curriculum because attendance depends on class
-// information. Position only — routes and grant keys are untouched.
+// Nav grouping: Attendance is its own sidebar item beside Class & Curriculum
+// and Exams, with no children (owner decision 2026-10-06; it was a child of
+// Class & Curriculum under issue #101, with its areas as sidebar children under
+// map #667). Position only — routes and grant keys are untouched.
 describe('SCHOOL_MODULES grouping', () => {
-  it('nests Attendance under Class & Curriculum', () => {
-    const classes = SCHOOL_MODULES.find((m) => m.screen === 'classes')
-    expect(classes?.children?.map((c) => c.screen)).toEqual(['attendance'])
+  it('lists Attendance as its own item, after Class & Curriculum and before Exams', () => {
+    const screens = SCHOOL_MODULES.map((m) => m.screen)
+    const at = screens.indexOf('attendance')
+    expect(at).toBeGreaterThan(-1)
+    expect(screens[at - 1]).toBe('classes')
+    expect(screens[at + 1]).toBe('exams')
   })
 
-  it('no longer lists Attendance at the top level', () => {
-    expect(SCHOOL_MODULES.some((m) => m.screen === 'attendance')).toBe(false)
+  it('gives neither Class & Curriculum nor Attendance sidebar children', () => {
+    for (const screen of ['classes', 'attendance']) {
+      expect(SCHOOL_MODULES.find((m) => m.screen === screen)?.children ?? []).toEqual([])
+    }
   })
 
   it('keeps the attendance route exactly where it was — no redirects needed', () => {

@@ -50,6 +50,8 @@ export interface AttendanceGroup {
   href?: string
 }
 
+// In the order the area row shows them. Students first: /school/attendance
+// lands on Mark Attendance, the page a teacher opens every morning.
 export const ATTENDANCE_GROUPS: AttendanceGroup[] = [
   { id: 'students', labelKey: 'attendance.groupStudents', tabs: ATTENDANCE_STUDENT_TABS },
   { id: 'employees', labelKey: 'attendance.groupEmployees', tabs: ATTENDANCE_EMPLOYEE_TABS },
@@ -62,15 +64,4 @@ export const ATTENDANCE_GROUPS: AttendanceGroup[] = [
 export function attendanceGroupHref(id: AttendanceGroup['id']): string {
   const group = ATTENDANCE_GROUPS.find((g) => g.id === id)!
   return group.tabs ? group.tabs[0].href : group.href!
-}
-
-/** Every route this group's sidebar link should read as "active" for — not
- *  just its default (first-tab) href. Students/Employees each cover several
- *  unrelated paths (mark/book/student-log/leave/student, say) with no shared
- *  URL prefix, so a plain prefix match on the default href alone would only
- *  highlight the sidebar entry while on that one tab and go dark on the
- *  other three, disagreeing with AttendanceTabs' own activeGroup logic. */
-export function attendanceGroupTabHrefs(id: AttendanceGroup['id']): string[] {
-  const group = ATTENDANCE_GROUPS.find((g) => g.id === id)!
-  return group.tabs ? group.tabs.map((tab) => tab.href) : [group.href!]
 }

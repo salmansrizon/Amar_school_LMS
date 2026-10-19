@@ -18,8 +18,8 @@ export function NoticeTabs({ active, lang }: { active: 'list' | 'create' | 'gall
           href={tab.href}
           className={
             active === tab.key
-              ? 'shrink-0 whitespace-nowrap rounded-t-md border-b-2 border-brand-500 px-4 py-2 text-brand-600'
-              : 'shrink-0 whitespace-nowrap rounded-t-md px-4 py-2 text-muted hover:bg-paper hover:text-ink'
+              ? 'shrink-0 whitespace-nowrap rounded-t-md border-b-2 border-brand-500 px-4 py-2 max-sm:py-3 text-brand-600'
+              : 'shrink-0 whitespace-nowrap rounded-t-md px-4 py-2 max-sm:py-3 text-muted hover:bg-paper hover:text-ink'
           }
         >
           {tab.label}

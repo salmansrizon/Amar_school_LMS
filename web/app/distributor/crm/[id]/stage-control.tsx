@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import { setLeadStage } from '../actions'
 import { LEAD_STAGE_KEYS } from '@/lib/distributor/leads'
+import { ComboboxField } from '@/components/ui/combobox-field'
 
 export function StageControl({ id, current }: { id: string; current: string }) {
   const [stage, setStage] = useState(current)
@@ -27,18 +28,12 @@ export function StageControl({ id, current }: { id: string; current: string }) {
   return (
     <div>
       <label className="mb-1 block text-xs font-semibold text-muted">Stage</label>
-      <select
+      <ComboboxField
         value={stage}
         disabled={pending}
-        onChange={(e) => update(e.target.value)}
-        className="h-10 rounded-lg border border-line-strong px-3 text-sm focus:border-brand-500 focus:outline-none disabled:opacity-50"
-      >
-        {LEAD_STAGE_KEYS.map((s) => (
-          <option key={s} value={s}>
-            {s}
-          </option>
-        ))}
-      </select>
+        onValueChange={update}
+        options={LEAD_STAGE_KEYS.map((s) => ({ value: s, label: s }))}
+      />
       {error && <p className="mt-1 text-sm text-alert-deep">{error}</p>}
     </div>
   )

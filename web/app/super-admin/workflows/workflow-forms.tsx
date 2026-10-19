@@ -1,6 +1,7 @@
 'use client'
 
 import { useCrudAction } from '@/lib/crud/use-crud-action'
+import { ComboboxField } from '@/components/ui/combobox-field'
 import {
   createDefinition,
   setDefinitionActive,
@@ -69,16 +70,16 @@ export function AddStageForm({ definitionKey }: { definitionKey: string }) {
       <input type="hidden" name="definition_key" value={definitionKey} />
       <input name="name_en" placeholder="Stage name (EN)" className={input} />
       <input name="name_bn" placeholder="ধাপের নাম (BN)" className={input} />
-      <select name="approver_role" defaultValue="" required className={input}>
-        <option value="" disabled>
-          approver role…
-        </option>
-        {ROLES.map((r) => (
-          <option key={r} value={r}>
-            {r}
-          </option>
-        ))}
-      </select>
+      <ComboboxField
+        name="approver_role"
+        defaultValue=""
+        required
+        aria-label="approver role"
+        options={[
+          { value: '', label: 'approver role…', disabled: true },
+          ...ROLES.map((r) => ({ value: r, label: r })),
+        ]}
+      />
       <button type="submit" disabled={pending} className="h-10 rounded-lg border border-line-strong px-4 text-sm font-semibold hover:bg-paper-muted disabled:opacity-50">
         Add stage
       </button>

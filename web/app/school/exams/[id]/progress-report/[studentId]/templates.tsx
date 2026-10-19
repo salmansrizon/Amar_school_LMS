@@ -1,12 +1,9 @@
 import {
-  PrintPage,
-  InstituteHeader,
+  PrintFrame,
   InfoGrid,
   SectionTitle,
   KeyValueTable,
   ChecklistGrid,
-  QrFooterRow,
-  QrMark,
   Badge,
 } from '@/components/print/pieces'
 import { t, type Lang } from '@/lib/i18n'
@@ -27,6 +24,8 @@ export interface ProgressReportSubjectRow {
   obtained: number
   label: string | null
   passed: boolean
+  /** False when no mark was entered for this subject (default: entered). */
+  entered?: boolean
 }
 
 export interface BehaviourRow {
@@ -96,10 +95,19 @@ function SubjectTable({ rows, lang }: { rows: ProgressReportSubjectRow[]; lang: 
         {rows.map((s) => (
           <tr key={s.subjectId} className="border-b border-line">
             <td className="py-2 pr-2">{s.name}</td>
-            <td className="py-2 pr-2">
-              {s.obtained} / {s.full}
+            <td className="print-num py-2 pr-2">
+              {s.entered === false ? '—' : s.obtained} / {s.full}
             </td>
-            <td className="py-2">{s.label ? <Badge tone={s.passed ? 'success' : 'alert'}>{s.label}</Badge> : '—'}</td>
+            {/* No mark entered is not a 0 and not an F — the mark sheet's reading. */}
+            <td className="py-2">
+              {s.entered === false ? (
+                <Badge tone="neutral">{t('exams.marksNotEntered', lang)}</Badge>
+              ) : s.label ? (
+                <Badge tone={s.passed ? 'success' : 'alert'}>{s.label}</Badge>
+              ) : (
+                '—'
+              )}
+            </td>
           </tr>
         ))}
       </tbody>
@@ -142,14 +150,12 @@ function ChecklistSection({ props }: { props: ProgressReportTemplateProps }) {
 function ClassicTemplate(props: ProgressReportTemplateProps) {
   const { lang } = props
   return (
-    <PrintPage fill>
-      <InstituteHeader institute={props.institute} docTitle={`${t('progressReport.docWord', lang)} — ${props.examLabel}`} />
+    <PrintFrame lang={lang} institute={props.institute} docTitle={`${t('progressReport.docWord', lang)} — ${props.examLabel}`} qrSvg={props.qrSvg} fill>
       <InfoGrid rows={baseInfoRows(props)} />
       <SubjectTable rows={props.subjectRows} lang={lang} />
       <BehaviourSection props={props} />
       <ChecklistSection props={props} />
-      <QrFooterRow qrLabel={t('print.qr', lang)} poweredBy={t('print.poweredBy', lang)} qr={<QrMark svg={props.qrSvg} />} />
-    </PrintPage>
+    </PrintFrame>
   )
 }
 
@@ -162,16 +168,14 @@ function BorderedTemplate(props: ProgressReportTemplateProps) {
     rows.push({ label: t('promotion.position', lang), value: `${props.rankPosition} / ${props.rankOutOf}` })
   }
   return (
-    <PrintPage fill>
-      <InstituteHeader institute={props.institute} docTitle={`${t('progressReport.docWord', lang)} — ${props.examLabel}`} />
+    <PrintFrame lang={lang} institute={props.institute} docTitle={`${t('progressReport.docWord', lang)} — ${props.examLabel}`} qrSvg={props.qrSvg} fill>
       <InfoGrid rows={rows} />
       <div className="rounded-md border-2 border-line-strong p-3">
         <SubjectTable rows={props.subjectRows} lang={lang} />
       </div>
       <BehaviourSection props={props} />
       <ChecklistSection props={props} />
-      <QrFooterRow qrLabel={t('print.qr', lang)} poweredBy={t('print.poweredBy', lang)} qr={<QrMark svg={props.qrSvg} />} />
-    </PrintPage>
+    </PrintFrame>
   )
 }
 
@@ -181,8 +185,7 @@ function BorderedTemplate(props: ProgressReportTemplateProps) {
 function SideBySideTemplate(props: ProgressReportTemplateProps) {
   const { lang } = props
   return (
-    <PrintPage fill>
-      <InstituteHeader institute={props.institute} docTitle={`${t('progressReport.docWord', lang)} — ${props.examLabel}`} />
+    <PrintFrame lang={lang} institute={props.institute} docTitle={`${t('progressReport.docWord', lang)} — ${props.examLabel}`} qrSvg={props.qrSvg} fill>
       <InfoGrid rows={baseInfoRows(props)} />
       <SubjectTable rows={props.subjectRows} lang={lang} />
       <div className="mt-5 grid grid-cols-2 gap-6">
@@ -193,8 +196,7 @@ function SideBySideTemplate(props: ProgressReportTemplateProps) {
           <ChecklistSection props={props} />
         </div>
       </div>
-      <QrFooterRow qrLabel={t('print.qr', lang)} poweredBy={t('print.poweredBy', lang)} qr={<QrMark svg={props.qrSvg} />} />
-    </PrintPage>
+    </PrintFrame>
   )
 }
 

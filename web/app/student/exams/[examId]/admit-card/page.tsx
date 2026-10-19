@@ -5,6 +5,7 @@ import { loadInstitutePrintHeader, loadPrintThemeKey } from '@/lib/institute-pri
 import { resolveTheme } from '@/lib/print-themes'
 import { classSectionLabel } from '@/lib/students'
 import { AdmitCardTemplate } from '@/app/school/exams/[id]/admit-cards/[studentId]/templates'
+import { printVerifyQr } from '@/lib/print-verify-server'
 
 // The Student's own admit card (#450), printed browser-native (ADR 0007).
 //
@@ -52,10 +53,7 @@ export default async function StudentAdmitCardPage({
       // The centre is the room the seat plan put them in; blank until published.
       examCenter={seatRes.data?.room_name ?? routine[0].room_name ?? '—'}
       photoSrc={student.photo_path ? '/api/student/photo' : null}
-      // The QR on the school's copy verifies the card against the public
-      // student-card route; a student printing their own is not issuing a
-      // credential to themselves, so it carries none.
-      qrSvg=""
+      qrSvg={await printVerifyQr({ kind: 'admit_card', self: true, refId: examId })}
       template={templateParam === '2' ? 2 : 1}
       theme={resolveTheme(themeParam, themeKey)}
     />

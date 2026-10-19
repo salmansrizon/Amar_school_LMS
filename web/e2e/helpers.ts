@@ -1,4 +1,4 @@
-import { expect, type Page } from '@playwright/test'
+import { expect, type Locator, type Page } from '@playwright/test'
 
 // Shared login for the per-role E2E smoke. Seeded users (seed-test.sql +
 // e2e-seed.sql) all share this password.
@@ -82,4 +82,35 @@ export async function expectInlineError(page: Page, substring: string): Promise<
   await expect(
     page.locator('.text-alert-deep, [role="alert"]').filter({ hasText: substring }).first(),
   ).toBeVisible()
+}
+
+/** Picks an option from a shared-UI dropdown (`ui/combobox-field.tsx` /
+ *  `ui/select-field.tsx`, both role="combobox") — the `page.selectOption()`
+ *  replacement now that these render base-ui Combobox/Select instead of a
+ *  native `<select>`. `labelOrLocator` is either the accessible name
+ *  (associated `<label>` / `aria-label`, resolved via `getByRole('combobox')`)
+ *  or an already-scoped Locator for the control itself, for the cases a
+ *  plain name is ambiguous (e.g. two same-named filters on one page).
+ *  Types `optionText` to filter when the control is a real text input
+ *  (ComboboxField); a SelectField's trigger is a button, so typing is
+ *  skipped there — the option list is short enough to just click. */
+export async function pickOption(
+  page: Page,
+  labelOrLocator: string | Locator,
+  optionText: string,
+): Promise<void> {
+  const control = typeof labelOrLocator === 'string' ? page.getByRole('combobox', { name: labelOrLocator }) : labelOrLocator
+  await control.click()
+  const tagName = await control.evaluate((el) => el.tagName)
+  if (tagName === 'INPUT') {
+    await control.fill(optionText)
+  } else {
+    // SelectField's trigger (@base-ui/react/select): the popup deliberately
+    // ignores a mouseup-based item pick for ~400ms after opening (its own
+    // anti-misclick guard against the same press that opened the popup also
+    // landing on an item) — an automated click lands well inside that window,
+    // so wait it out first or the pick silently no-ops.
+    await page.waitForTimeout(700)
+  }
+  await page.getByRole('option', { name: optionText, exact: false }).first().click()
 }

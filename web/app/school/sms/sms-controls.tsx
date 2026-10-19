@@ -3,7 +3,9 @@
 import { useState, useTransition } from 'react'
 import { t, type Lang } from '@/lib/i18n'
 import { addOffDay, deleteOffDay, addRule, deleteRule, addLeave, deleteLeave } from './actions'
-import { dateInputClass, selectClass } from '@/components/ui/field'
+import { dateInputClass } from '@/components/ui/field'
+import { ComboboxField } from '@/components/ui/combobox-field'
+import { DateField } from '@/components/ui/date-field'
 
 export function AddOffDayForm({ lang }: { lang: Lang }) {
   const [error, setError] = useState<string | null>(null)
@@ -24,17 +26,18 @@ export function AddOffDayForm({ lang }: { lang: Lang }) {
         })
       }}
     >
-      <input type="date" name="day" required className={dateInputClass()} />
+      <DateField lang={lang} name="day" aria-label={t('sms.offDayDate', lang)} required className={dateInputClass()} />
       <input
         type="text"
         name="label"
+        aria-label={t('sms.offDayLabel', lang)}
         placeholder={t('sms.offDayLabel', lang)}
         className="h-9 rounded-lg border border-line-strong bg-paper px-3 text-sm outline-none transition focus:border-brand-500 focus-visible:ring-2 focus-visible:ring-brand-300"
       />
       <button
         type="submit"
         disabled={pending}
-        className="rounded bg-brand-600 px-3 py-1.5 text-sm font-semibold text-white disabled:opacity-50"
+        className="max-sm:min-h-11 rounded bg-brand-600 px-3 py-1.5 text-sm font-semibold text-white disabled:opacity-50"
       >
         {t('sms.addOffDay', lang)}
       </button>
@@ -96,6 +99,7 @@ export function AddRuleForm({ lang, ruleType }: { lang: Lang; ruleType: 'exact' 
             <input
               type="number"
               name="exact_days"
+              aria-label={t('sms.exactRule', lang)}
               min={1}
               required
               className="w-20 h-9 rounded-lg border border-line-strong bg-paper px-3 text-sm outline-none transition focus:border-brand-500 focus-visible:ring-2 focus-visible:ring-brand-300"
@@ -104,7 +108,7 @@ export function AddRuleForm({ lang, ruleType }: { lang: Lang; ruleType: 'exact' 
           <button
             type="submit"
             disabled={pending}
-            className="rounded bg-brand-600 px-3 py-1.5 text-sm font-semibold text-white disabled:opacity-50"
+            className="max-sm:min-h-11 rounded bg-brand-600 px-3 py-1.5 text-sm font-semibold text-white disabled:opacity-50"
           >
             {t('sms.addExact', lang)}
           </button>
@@ -116,6 +120,7 @@ export function AddRuleForm({ lang, ruleType }: { lang: Lang; ruleType: 'exact' 
             <input
               type="number"
               name="range_from"
+              aria-label={`${t('sms.rangeRule', lang)} — ${t('sms.leaveFrom', lang)}`}
               min={1}
               required
               className="w-16 h-9 rounded-lg border border-line-strong bg-paper px-3 text-sm outline-none transition focus:border-brand-500 focus-visible:ring-2 focus-visible:ring-brand-300"
@@ -126,6 +131,7 @@ export function AddRuleForm({ lang, ruleType }: { lang: Lang; ruleType: 'exact' 
             <input
               type="number"
               name="range_to"
+              aria-label={`${t('sms.rangeRule', lang)} — ${t('sms.leaveTo', lang)}`}
               min={1}
               required
               className="w-16 h-9 rounded-lg border border-line-strong bg-paper px-3 text-sm outline-none transition focus:border-brand-500 focus-visible:ring-2 focus-visible:ring-brand-300"
@@ -134,7 +140,7 @@ export function AddRuleForm({ lang, ruleType }: { lang: Lang; ruleType: 'exact' 
           <button
             type="submit"
             disabled={pending}
-            className="rounded bg-brand-600 px-3 py-1.5 text-sm font-semibold text-white disabled:opacity-50"
+            className="max-sm:min-h-11 rounded bg-brand-600 px-3 py-1.5 text-sm font-semibold text-white disabled:opacity-50"
           >
             {t('sms.addRange', lang)}
           </button>
@@ -191,26 +197,30 @@ export function AddLeaveForm({ lang, students }: { lang: Lang; students: { id: s
       }}
     >
       <div>
-        <label className="block text-xs text-gray-500">{t('sms.leaveFrom', lang)}</label>
-        <input type="date" name="from_day" required className={dateInputClass()} />
+        <label htmlFor="sms_from_day" className="block text-xs text-gray-500">{t('sms.leaveFrom', lang)}</label>
+        <DateField lang={lang} id="sms_from_day" name="from_day" required className={dateInputClass()} />
       </div>
       <div>
-        <label className="block text-xs text-gray-500">{t('sms.leaveTo', lang)}</label>
-        <input type="date" name="to_day" required className={dateInputClass()} />
+        <label htmlFor="sms_to_day" className="block text-xs text-gray-500">{t('sms.leaveTo', lang)}</label>
+        <DateField lang={lang} id="sms_to_day" name="to_day" required className={dateInputClass()} />
       </div>
       <div>
-        <label className="block text-xs text-gray-500">{t('sms.leaveStudent', lang)}</label>
-        <select name="student_id" required className={selectClass()}>
-          <option value="">—</option>
-          {students.map((s) => (
-            <option key={s.id} value={s.id}>{s.full_name}</option>
-          ))}
-        </select>
+        <label htmlFor="leave_student" className="block text-xs text-gray-500">{t('sms.leaveStudent', lang)}</label>
+        <ComboboxField
+          id="leave_student"
+          name="student_id"
+          required
+          defaultValue=""
+          options={[
+            { value: '', label: '—' },
+            ...students.map((s) => ({ value: s.id, label: s.full_name })),
+          ]}
+        />
       </div>
       <button
         type="submit"
         disabled={pending}
-        className="self-end rounded bg-brand-600 px-3 py-1.5 text-sm font-semibold text-white disabled:opacity-50"
+        className="max-sm:min-h-11 self-end rounded bg-brand-600 px-3 py-1.5 text-sm font-semibold text-white disabled:opacity-50"
       >
         {t('sms.addLeave', lang)}
       </button>

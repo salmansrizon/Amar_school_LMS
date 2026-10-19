@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { t, type Lang } from '@/lib/i18n'
-import { selectClass } from '@/components/ui/field'
+import { ComboboxField } from '@/components/ui/combobox-field'
 import { withOrigin } from '@/lib/back-nav'
 
 // Result Book's exam picker (result-book.html's single "exam - class" select
@@ -28,20 +28,15 @@ export function ExamPicker({
 }: { examId: string; exams: ExamOption[]; origin?: string; lang: Lang }) {
   const router = useRouter()
   return (
-    <select
+    <ComboboxField
       value={examId}
       aria-label={t('resultBook.pickExam', lang)}
-      onChange={(e) => {
-        const href = `/school/exams/${e.target.value}/result-book`
+      onValueChange={(v) => {
+        const href = `/school/exams/${v}/result-book`
         router.push(origin ? withOrigin(href, origin) : href)
       }}
-      className={`${selectClass({ size: 'md', fullWidth: true })} min-w-56`}
-    >
-      {exams.map((e) => (
-        <option key={e.id} value={e.id}>
-          {e.label}
-        </option>
-      ))}
-    </select>
+      className="min-w-56"
+      options={exams.map((e) => ({ value: e.id, label: e.label }))}
+    />
   )
 }

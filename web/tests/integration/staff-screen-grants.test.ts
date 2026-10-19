@@ -53,15 +53,15 @@ describe('Permission Grant is enforced by RLS (#GHSA-f3w3-vrhc-983v)', () => {
     // would prove nothing.
     const { data: student } = await owner.from('students').select('id').limit(1).maybeSingle()
     if (student) {
-      const { data } = await owner
-        .from('fee_collection_records')
-        .upsert(
-          { student_id: student.id, month: 1, year: 2099, pay_amount: 4242 },
-          { onConflict: 'student_id,month,year' },
-        )
-        .select('id')
-        .maybeSingle()
-      feeRecordId = data?.id ?? null
+      // Not an upsert on (student_id, month, year): migration 0231 (#683)
+      // replaces that constraint with a partial unique index, which PostgREST's
+      // onConflict cannot name. Find-then-insert works before and after.
+      const key = { student_id: student.id, month: 1, year: 2099 }
+      const { data: existing } = await owner.from('fee_collection_records').select('id').match(key).limit(1)
+      const { data: created } = existing?.length
+        ? { data: null }
+        : await owner.from('fee_collection_records').insert({ ...key, pay_amount: 4242 }).select('id').maybeSingle()
+      feeRecordId = existing?.[0]?.id ?? created?.id ?? null
     }
   })
 

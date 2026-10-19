@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import type { LocationRow } from '@/lib/locations'
-import { selectClass } from '@/components/ui/field'
+import { ComboboxField } from '@/components/ui/combobox-field'
 import { LocationPicker } from '@/components/location-picker'
 import { t, type Lang } from '@/lib/i18n'
 import { assignClusterDistributor, removeClusterAssignment, renameCluster, setSchoolCluster } from './actions'
@@ -85,14 +85,11 @@ export function AssignSchoolForm({
   if (unassigned.length === 0) return <p className="text-xs text-muted">{t('sa.clusters.noUnassigned', lang)}</p>
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <select value={schoolId} onChange={(e) => setSchoolId(e.target.value)} className={selectClass()}>
-        <option value="">—</option>
-        {unassigned.map((s) => (
-          <option key={s.id} value={s.id}>
-            {s.name}
-          </option>
-        ))}
-      </select>
+      <ComboboxField
+        value={schoolId}
+        onValueChange={setSchoolId}
+        options={[{ value: '', label: '—' }, ...unassigned.map((s) => ({ value: s.id, label: s.name }))]}
+      />
       <button
         type="button"
         disabled={pending || !schoolId}
@@ -187,14 +184,14 @@ export function AssignDistributorForm({
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <select value={assigneeId} onChange={(e) => setAssigneeId(e.target.value)} className={selectClass()}>
-        <option value="">—</option>
-        {distributors.map((d) => (
-          <option key={d.id} value={d.id}>
-            {d.full_name ?? d.id.slice(0, 8)}
-          </option>
-        ))}
-      </select>
+      <ComboboxField
+        value={assigneeId}
+        onValueChange={setAssigneeId}
+        options={[
+          { value: '', label: '—' },
+          ...distributors.map((d) => ({ value: d.id, label: d.full_name ?? d.id.slice(0, 8) })),
+        ]}
+      />
       <button
         type="button"
         disabled={pending || !assigneeId}

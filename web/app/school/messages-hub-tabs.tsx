@@ -31,13 +31,14 @@ export function HubTabs({
       label={t('hub.title', lang)}
       active={active}
       lang={lang}
-      tabs={HUB_TABS.map((tab) => ({
-        href: tab.href,
-        labelKey: LABELS[tab.key],
-        count: tab.countable
+      tabs={HUB_TABS.map((tab) => {
+        const count = tab.countable
           ? badgeCount(tab.key === 'questions' ? summary.questions : summary.corrections)
-          : null,
-      }))}
+          : null
+        // Unanswered questions are the one thing here a student is waiting on:
+        // that tab's badge pulses. Corrections wait quietly.
+        return { href: tab.href, labelKey: LABELS[tab.key], icon: tab.key === 'response' ? ('activity' as const) : tab.key, count, pulse: tab.key === 'questions' && !!count }
+      })}
     />
   )
 }

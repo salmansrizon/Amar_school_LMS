@@ -2,8 +2,11 @@
 
 import { useRef, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
+import { Camera, Pencil, RotateCcw, Trash2, User } from 'lucide-react'
 import { t, type Lang } from '@/lib/i18n'
-import { ProfileFields, uploadStudentPhoto } from '../new/admission-form'
+import { ProfileFields, uploadPersonPhoto } from '../new/admission-form'
+import { PHOTO_KINDS, type PhotoKind } from '@/lib/photos'
 import { archiveStudent, restoreStudent, updateStudent } from '../actions'
 import { ConfirmDialog } from '@/components/confirm-dialog'
 import type { ClassCatalogueRow } from '@/lib/class-catalogue'
@@ -12,10 +15,10 @@ import type { ClassCatalogueRow } from '@/lib/class-catalogue'
 // the Upload Photo / Replace Photo and Archive / Restore controls the UAT pass
 // measured at 26-30px.
 const btnSecondary =
-  'inline-flex min-h-11 cursor-pointer items-center justify-center rounded-full border border-line-strong px-4 text-xs font-semibold hover:bg-paper-muted disabled:opacity-50 sm:min-h-9'
+  'inline-flex min-h-11 cursor-pointer items-center justify-center gap-1.5 rounded-full border border-line-strong px-4 text-xs font-semibold hover:bg-paper-muted disabled:opacity-50 sm:min-h-9'
 // Destructive tone for archive/delete triggers (#365).
 const btnDanger =
-  'inline-flex min-h-11 cursor-pointer items-center justify-center rounded-full border border-alert px-4 text-xs font-semibold text-alert-deep hover:bg-alert-soft disabled:opacity-50 sm:min-h-9'
+  'inline-flex min-h-11 cursor-pointer items-center justify-center gap-1.5 rounded-full border border-alert px-4 text-xs font-semibold text-alert-deep hover:bg-alert-soft disabled:opacity-50 sm:min-h-9'
 
 /** Read-mode profile with an Edit toggle; edit reuses the admission sections. */
 export function ProfileEditor({
@@ -44,6 +47,7 @@ export function ProfileEditor({
       <div>
         <div className="mb-3 flex justify-end">
           <button type="button" onClick={() => setEditing(true)} className={btnSecondary}>
+            <Pencil className="size-3.5" aria-hidden />
             {t('students.editProfile', lang)}
           </button>
         </div>
@@ -54,6 +58,7 @@ export function ProfileEditor({
 
   return (
     <form
+      noValidate // the server validates and answers in the UI language into the error line
       onSubmit={(e) => {
         e.preventDefault()
         const data = new FormData(e.currentTarget)
@@ -66,6 +71,7 @@ export function ProfileEditor({
             return
           }
           setEditing(false)
+          toast.success(t('students.toastSaved', lang))
           router.refresh()
         })
       }}
@@ -93,10 +99,14 @@ export function PhotoControl({
   lang,
   studentId,
   hasPhoto,
+  kind = 'student',
 }: {
   lang: Lang
+  // ponytail: the person's id — an Employee's when kind is 'employee'. Rename to
+  // personId once the profile restyle has merged (kept to keep that merge small).
   studentId: string
   hasPhoto: boolean
+  kind?: PhotoKind
 }) {
   const router = useRouter()
   const inputRef = useRef<HTMLInputElement>(null)
@@ -108,7 +118,7 @@ export function PhotoControl({
     if (!file) return
     setError(null)
     setBusy(true)
-    const uploadError = await uploadStudentPhoto(studentId, file, lang)
+    const uploadError = await uploadPersonPhoto(studentId, file, lang, kind)
     setBusy(false)
     if (inputRef.current) inputRef.current.value = ''
     if (uploadError) setError(uploadError)
@@ -117,18 +127,27 @@ export function PhotoControl({
 
   return (
     <div className="text-center">
-      {hasPhoto ? (
-        // eslint-disable-next-line @next/next/no-img-element -- signed-URL redirect route; next/image can't optimize it
-        <img
-          src={`/api/student-photo?student=${studentId}`}
-          alt=""
-          className="mx-auto mb-2 h-28 w-28 rounded-md border border-line object-cover"
-        />
-      ) : (
-        <div className="mx-auto mb-2 flex h-28 w-28 items-center justify-center rounded-md border border-dashed border-line-strong text-xs text-muted">
-          {t('students.photo', lang)}
-        </div>
-      )}
+      <div className="relative mx-auto mb-4 w-fit">
+        {hasPhoto ? (
+          // eslint-disable-next-line @next/next/no-img-element -- signed-URL redirect route; next/image can't optimize it
+          <img
+            src={`${PHOTO_KINDS[kind].api}${studentId}`}
+            alt=""
+            className="size-36 rounded-full border-4 border-brand-50 object-cover ring-1 ring-brand-100"
+          />
+        ) : (
+          <div className="flex size-36 items-center justify-center rounded-full border-4 border-brand-50 bg-brand-100 text-brand-500 ring-1 ring-brand-100">
+            <User className="size-16" aria-hidden />
+            <span className="sr-only">{t('students.photo', lang)}</span>
+          </div>
+        )}
+        <span
+          aria-hidden
+          className="absolute -right-2 -top-1 inline-flex size-8 items-center justify-center rounded-full border border-line bg-paper text-sm font-bold text-brand-600 shadow-sm"
+        >
+          #
+        </span>
+      </div>
       <input
         ref={inputRef}
         type="file"
@@ -140,8 +159,9 @@ export function PhotoControl({
         type="button"
         disabled={busy}
         onClick={() => inputRef.current?.click()}
-        className={btnSecondary}
+        className={`${btnSecondary} w-full border-transparent bg-brand-50 text-brand-700 hover:bg-brand-100`}
       >
+        <Camera className="size-3.5" aria-hidden />
         {busy
           ? t('syllabus.uploading', lang)
           : hasPhoto
@@ -185,6 +205,7 @@ export function ArchiveToggle({
           }
           className={btnSecondary}
         >
+          <RotateCcw className="size-3.5" aria-hidden />
           {t('students.restore', lang)}
         </button>
         {error && <span className="ml-2 text-xs text-alert-deep">{error}</span>}
@@ -194,7 +215,12 @@ export function ArchiveToggle({
 
   return (
     <ConfirmDialog
-      triggerLabel={t('students.archive', lang)}
+      triggerLabel={
+        <>
+          <Trash2 className="size-3.5" aria-hidden />
+          {t('students.archive', lang)}
+        </>
+      }
       triggerClassName={btnDanger}
       title={t('students.archive', lang)}
       body={t('students.archiveConfirm', lang)}
@@ -202,7 +228,10 @@ export function ArchiveToggle({
       cancelLabel={t('routine.cancel', lang)}
       onConfirm={async () => {
         const res = await archiveStudent(studentId)
-        if (!res.error) router.refresh()
+        if (!res.error) {
+          toast.success(t('students.toastArchived', lang))
+          router.push('/school/students/archive')
+        }
         return res
       }}
     />

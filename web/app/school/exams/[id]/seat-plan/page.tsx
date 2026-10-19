@@ -1,8 +1,12 @@
 import Link from 'next/link'
+import { schoolCrumbs } from '@/lib/school-crumbs'
+import { PageHeader } from '@/components/ui/page'
+import { PrintTrigger } from '@/components/print/print-trigger'
 import { notFound } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
+import { mayActOnExamClass } from '@/lib/school/exam-class-guard'
 import { overlappingRowIds, overCapacityRoomIds } from '@/lib/exam-setup'
 import { enrolledStudentIds, enrolledIdFilter } from '@/lib/school/offering-roster'
 import {
@@ -16,8 +20,8 @@ import {
   type SeatPlanRow,
 } from './seat-plan-controls'
 import { embeddedBuildingName } from '@/lib/venues'
-import { BackLink } from '@/components/back-link'
 import { resolveBackHref, selfOrigin, withOrigin } from '@/lib/back-nav'
+import { pageTitle } from '@/lib/page-title'
 
 // Layout per ui/school-owner/seat-plan.html: toolbar (exam label; Generate +
 // Publish) with an overlap-warning banner over the Room/Capacity/Assigned
@@ -25,6 +29,8 @@ import { resolveBackHref, selfOrigin, withOrigin } from '@/lib/back-nav'
 // constraint (enforce_exam_seat_plan_school); duplicate-range/overlap is
 // re-checked server-side by publish_seat_plan even though the client already
 // disables the button (migration 0039).
+
+export const generateMetadata = pageTitle('seatPlan.title')
 
 export default async function SeatPlanPage({
   params,
@@ -49,6 +55,10 @@ export default async function SeatPlanPage({
     .maybeSingle()
   if (!exam) notFound()
   const closed = exam.status === 'closed'
+  // #676: another class's exam is read-only to a class-attached teacher — the
+  // same answer the server actions give, asked once here.
+  const notMine = !(await mayActOnExamClass(supabase, exam.id))
+  const readOnly = closed || notMine
 
   // Mixed seating (issue #95): capacity is a room-wide budget, so the page
   // needs every exam's allocation in these rooms, not just this exam's.
@@ -107,20 +117,17 @@ export default async function SeatPlanPage({
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-extrabold">{t('seatPlan.title', lang)}</h1>
-        <BackLink href={backHref} label={t('common.back', lang)} />
-      </div>
+      <PageHeader
+        title={`${t('seatPlan.title', lang)}`}
+        crumbs={schoolCrumbs('/school/exams', lang, { label: t('exams.title', lang), href: '/school/exams' }, { label: `${t('seatPlan.title', lang)}` })}
+        backHref={backHref}
+        backLabel={t('common.back', lang)}
+      />
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <span className="text-sm text-muted">{examLabel}</span>
         <div className="flex items-center gap-4">
-          <Link
-            href={withOrigin(`/school/exams/${exam.id}/seat-plan/print`, deeper)}
-            className="text-sm text-brand-600 hover:underline"
-          >
-            {t('seatPlan.print', lang)}
-          </Link>
+          <PrintTrigger href={`/school/exams/${exam.id}/seat-plan/print`} label={t('seatPlan.print', lang)} />
           <Link
             href={withOrigin(`/school/exams/${exam.id}/attendance-sheet`, deeper)}
             className="text-sm text-brand-600 hover:underline"
@@ -128,7 +135,7 @@ export default async function SeatPlanPage({
             {t('examAttendanceSheet.title', lang)}
           </Link>
         </div>
-        {!closed && (
+        {!readOnly && (
           <div className="flex items-center gap-2">
             <PublishButton
               examId={exam.id}
@@ -140,7 +147,8 @@ export default async function SeatPlanPage({
         )}
       </div>
 
-      {!closed && exam.class_id && (
+      {notMine && <p className="mb-3 text-xs text-alert-deep">{t('exams.notYourClass', lang)}</p>}
+      {!readOnly && exam.class_id && (
         <div className="mb-4 flex">
           <GeneratePanel
             examId={exam.id}
@@ -153,7 +161,7 @@ export default async function SeatPlanPage({
       )}
 
       {!exam.class_id ? (
-        <p className="rounded-lg border border-line bg-paper p-5 text-sm text-muted">
+        <p className="rounded-2xl border border-line bg-paper p-card text-sm text-muted">
           {t('seatPlan.noClassSet', lang)}
         </p>
       ) : (
@@ -164,7 +172,7 @@ export default async function SeatPlanPage({
             </div>
           )}
 
-          <section className="rounded-lg border border-line bg-paper p-4">
+          <section className="rounded-2xl border border-line bg-paper p-card">
             {!seatRows.length ? (
               <p className="text-sm text-muted">{t('seatPlan.none', lang)}</p>
             ) : (
@@ -175,11 +183,11 @@ export default async function SeatPlanPage({
                 rooms={roomOpts}
                 rolls={rolls}
                 overCapacityRooms={overCapacity}
-                disabled={closed}
+                disabled={readOnly}
                 lang={lang}
               />
             )}
-            {!closed && <AddSeatPlanRowForm examId={exam.id} rooms={roomOpts} lang={lang} />}
+            {!readOnly && <AddSeatPlanRowForm examId={exam.id} rooms={roomOpts} lang={lang} />}
           </section>
         </>
       )}

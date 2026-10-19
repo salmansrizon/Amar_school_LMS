@@ -2,7 +2,8 @@ import { currentLang } from '@/lib/i18n-server'
 import { t } from '@/lib/i18n'
 import { getStudentContext } from '@/lib/student/context'
 import { NotificationInbox, type InboxRow } from '@/components/notification-inbox'
-import { pageTitle } from '@/lib/student/metadata'
+import { pageTitle } from '@/lib/page-title'
+import { Card, PageHeader } from '@/components/ui/page'
 
 // The Student's own notification inbox.
 //
@@ -24,9 +25,15 @@ export default async function StudentNotificationsPage() {
     .limit(100)
 
   return (
-    <main className="w-full max-w-3xl p-6">
-      <h1 className="mb-4 text-2xl font-extrabold">{t('shell.notifications', lang)}</h1>
-      <NotificationInbox initial={(data as InboxRow[]) ?? []} lang={lang} />
+    <main className="w-full px-gutter pt-section pb-16">
+      <PageHeader
+        icon="notices"
+        title={t('shell.notifications', lang)}
+        crumbs={{ lang, items: [{ label: t('student.nav.home', lang), href: '/student' }, { label: t('shell.notifications', lang) }] }}
+      />
+      <Card>
+        <NotificationInbox initial={(data as InboxRow[]) ?? []} lang={lang} />
+      </Card>
     </main>
   )
 }

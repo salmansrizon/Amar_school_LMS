@@ -1,6 +1,7 @@
 // Employees I helpers (issue #28): list filtering, kept pure for unit testing.
 
-import type { MessageKey } from '@/lib/i18n'
+import { t, type Lang, type MessageKey } from '@/lib/i18n'
+import { toLatinDigits } from '@/lib/bd-mobile'
 
 export interface EmployeeListRow {
   id: string
@@ -18,6 +19,19 @@ export function matchesEmployeeQuery(e: { full_name: string }, query: string): b
   return e.full_name.toLowerCase().includes(q)
 }
 
+/** Directory search box: name, mobile or machine id, case-insensitive, Bangla
+ *  or Latin digits. `unique_id` comes back from Postgres as a number (0211), so
+ *  every field is coerced to a string here once — the search must never assume
+ *  a column's runtime type. */
+export function matchesEmployeeDirectoryQuery(
+  e: { full_name: string; mobile?: string | number | null; unique_id?: string | number | null },
+  query: string,
+): boolean {
+  const needle = toLatinDigits(query.trim().toLowerCase())
+  if (!needle) return true
+  return [e.full_name, e.mobile, e.unique_id].some((f) => toLatinDigits(String(f ?? '').toLowerCase()).includes(needle))
+}
+
 export function filterEmployees<T extends EmployeeListRow>(
   employees: T[],
   query: string,
@@ -29,6 +43,8 @@ export function filterEmployees<T extends EmployeeListRow>(
 }
 
 
+const EMAIL_SHAPE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
 /** Validates the optional Login section on the Add Employee form (issue
  *  #566, folding in what used to be the separate "Add a teacher" flow,
  *  #533). Email and password are both-or-neither: one without the other is
@@ -37,11 +53,10 @@ export function filterEmployees<T extends EmployeeListRow>(
  *  silently creating the employee with half a login request dropped.
  *  Returns `{}` (nothing to stop the submit for) when both are blank, both
  *  are present and valid, or the caller isn't asking for a login. */
-export function validateOptionalLogin(email: string, password: string): { error?: string } {
-  if (Boolean(email) !== Boolean(password)) {
-    return { error: 'Provide both an email and a password to create a login, or leave both blank' }
-  }
-  if (email && password.length < 8) return { error: 'Password must be at least 8 characters' }
+export function validateOptionalLogin(email: string, password: string, lang: Lang = 'en'): { error?: string } {
+  if (Boolean(email) !== Boolean(password)) return { error: t('employees.errLoginBoth', lang) }
+  if (email && !EMAIL_SHAPE.test(email)) return { error: t('employees.errEmailInvalid', lang) }
+  if (email && password.length < 8) return { error: t('employees.errPasswordShort', lang) }
   return {}
 }
 
@@ -108,6 +123,18 @@ export const EMPLOYEE_CATEGORY_LABEL_KEY: Record<(typeof EMPLOYEE_CATEGORIES)[nu
  *  membership test and its `as readonly string[]` cast exist in one place. */
 export function isKnownEmployeeCategory(category: string): boolean {
   return (EMPLOYEE_CATEGORIES as readonly string[]).includes(category)
+}
+
+/** The translated category label everywhere a category is shown to a user —
+ *  the directory list, its record drawer's subtitle, and the drawer's own
+ *  profile body (map 013 fix: the profile used to render the raw DB value,
+ *  "Teacher" never translated, while the list beside it already was). A
+ *  legacy pre-#567 value outside the fixed list (this DB has lowercase
+ *  "admin"/"staff"/"teacher" rows) falls back to itself, unchanged. */
+export function employeeCategoryLabel(category: string, lang: Lang): string {
+  return isKnownEmployeeCategory(category)
+    ? t(EMPLOYEE_CATEGORY_LABEL_KEY[category as keyof typeof EMPLOYEE_CATEGORY_LABEL_KEY], lang)
+    : category
 }
 
 /** Validates the `category` field against the fixed list (issue #567).

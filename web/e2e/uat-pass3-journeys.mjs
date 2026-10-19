@@ -178,6 +178,9 @@ if (run('fee')) {
     record(j, 'the collection form appears (the P1 blocker)', formVisible ? 'pass' : 'fail', page.url().replace(BASE, ''))
 
     if (formVisible) {
+      // Fee and received match: receiving more than the fee needs an
+      // advance-payment acknowledgement in the review step.
+      await page.locator('#fee_amount').fill('1')
       const received = page.locator('#received_amount')
       await received.fill('1')
       const submit = page.locator('#collect-form button[type=submit]').first()

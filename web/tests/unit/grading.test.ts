@@ -334,3 +334,13 @@ describe('evaluateOverallResult — GPA deduction never goes negative', () => {
     expect(out.passed).toBe(true) // still auto-passed; only the GPA is floored
   })
 })
+
+describe('evaluateOverallResult — grade_point scheme with no grade bands', () => {
+  it('reports GPA null (not 0.00) for a passing and a failing result', () => {
+    const noBands = scheme({ passRuleStrategy: 'individual', bands: [] })
+    const pass = evaluateOverallResult([evaluateSubject({ subjectId: 'a', fullMarks: 100, obtainedMarks: 85 }, noBands)], noBands)
+    expect(pass).toEqual({ passed: true, percent: 85, gpa: null, label: null })
+    const fail = evaluateOverallResult([evaluateSubject({ subjectId: 'a', fullMarks: 100, obtainedMarks: 10 }, noBands)], noBands)
+    expect(fail).toEqual({ passed: false, percent: 10, gpa: null, label: 'F' })
+  })
+})

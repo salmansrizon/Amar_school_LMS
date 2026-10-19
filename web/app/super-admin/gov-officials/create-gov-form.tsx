@@ -23,7 +23,7 @@ export function CreateGovForm({ lang }: { lang: Lang }) {
   }
 
   return (
-    <form onSubmit={onSubmit} className="grid gap-3 sm:grid-cols-2">
+    <form method="post" onSubmit={onSubmit} className="grid gap-3 sm:grid-cols-2">
       <div>
         <label className={labelClass} htmlFor="g_full_name">{t('staff.fullName', lang)}</label>
         <input id="g_full_name" name="full_name" required className={inputClass} />

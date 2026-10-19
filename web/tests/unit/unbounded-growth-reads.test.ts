@@ -35,6 +35,7 @@ const BOUNDED_BY_SCOPE: [file: string, reason: string][] = [
   ['lib/school/roster-source.ts', 'one class roster (.in) on one date — the register model'],
   ['app/school/attendance/student-log/[studentId]/page.tsx', 'one student, one date range'],
   ['app/student/attendance/page.tsx', 'the signed-in student, one term'],
+  ['app/student/page.tsx', 'the signed-in student, month to date'],
   ['app/distributor/invoices/[id]/page.tsx', 'the payments of one invoice'],
   ['app/school/fees/page.tsx', 'one class roster in one month'],
 ]

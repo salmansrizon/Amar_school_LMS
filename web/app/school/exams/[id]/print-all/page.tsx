@@ -8,8 +8,9 @@ import { filterResultRoster, roomForRoll, type SeatPlanRoomRow } from '@/lib/exa
 import { loadExamRosterResults } from '@/lib/exam-print-data'
 import { enrolledStudentIds, enrolledIdFilter } from '@/lib/school/offering-roster'
 import { loadProgressReportExtras } from '@/lib/progress-report-data'
-import { renderAuthenticityQr } from '@/lib/qr'
-import { PrintButton } from '@/components/print/print-button'
+import { printVerifyQr, studentPrintTokens } from '@/lib/print-verify-server'
+import { PrintTrigger } from '@/components/print/print-trigger'
+import { withParams } from '@/lib/url-params'
 import { AdmitCardTemplate } from '../admit-cards/[studentId]/templates'
 import { MarkSheetTemplate } from '../mark-sheet/[studentId]/templates'
 import { ProgressReportTemplate } from '../progress-report/[studentId]/templates'
@@ -150,7 +151,10 @@ export default async function PrintAllPage({
       </h1>
       <div className="flex items-center gap-3">
         <BackLink href={backHref} label={t('common.back', lang)} />
-        <PrintButton label={t('print.print', lang)} />
+        <PrintTrigger
+          href={`/school/exams/${examId}/print/all${withParams({ doc: docParam, template: templateParam, rollFrom: rollFromParam, rollTo: rollToParam, promotedOnly: promotedOnlyParam, theme: themeParam }, {})}`}
+          label={t('print.print', lang)}
+        />
       </div>
     </div>
   )
@@ -205,6 +209,7 @@ export default async function PrintAllPage({
       )
     }
 
+    const tokens = await studentPrintTokens(filtered.map((s) => s.id))
     const cards = await Promise.all(
       filtered.map(async (s) => ({
         studentId: s.id,
@@ -213,9 +218,7 @@ export default async function PrintAllPage({
         guardianName: s.guardian_name ?? '—',
         examCenter: roomForRoll(seatPlanRoomRows, s.roll_number) ?? '—',
         photoSrc: s.photo_path ? `/api/student-photo?student=${s.id}` : null,
-        qrSvg: await renderAuthenticityQr(
-          `ADMITCARD|school:${school.name}|exam:${examId}|student:${s.id}|roll:${s.roll_number ?? ''}`,
-        ),
+        qrSvg: await printVerifyQr({ kind: 'admit_card', token: tokens.get(s.id) ?? null, refId: examId }),
       })),
     )
 
@@ -258,7 +261,8 @@ export default async function PrintAllPage({
   }
 
   const filteredRows = filterResultRoster(
-    roster.rows.map((r) => ({ ...r, rollNumber: r.rollNumber, passed: r.overall?.passed ?? false })),
+    // "Promoted only" means a known pass: an incomplete result is not one.
+    roster.rows.map((r) => ({ ...r, rollNumber: r.rollNumber, passed: r.marksMissing === 0 && (r.overall?.passed ?? false) })),
     { rollFrom, rollTo, promotedOnly },
   )
 
@@ -272,14 +276,14 @@ export default async function PrintAllPage({
     )
   }
 
+  const tokens = await studentPrintTokens(filteredRows.map((row) => row.studentId))
+
   if (doc === 'mark-sheet') {
     const schemeType = roster.scheme.schemeType
     const sheets = await Promise.all(
       filteredRows.map(async (row) => ({
         row,
-        qrSvg: await renderAuthenticityQr(
-          `MARKSHEET|school:${school.name}|exam:${examId}|student:${row.studentId}|roll:${row.rollNumber ?? ''}`,
-        ),
+        qrSvg: await printVerifyQr({ kind: 'mark_sheet', token: tokens.get(row.studentId) ?? null, refId: examId }),
       })),
     )
     return (
@@ -305,12 +309,14 @@ export default async function PrintAllPage({
               label: r.result.label,
               gpa: r.result.gradePoint,
               passed: r.result.passed,
+              entered: r.entered,
             }))}
             totalFull={row.totalFull}
             totalObtained={row.totalObtained}
             overallGpa={row.overall?.gpa ?? null}
             overallLabel={row.overall?.label ?? null}
             overallPassed={row.overall?.passed ?? false}
+            incomplete={row.marksMissing > 0}
             rankPosition={row.rankPosition}
             rankOutOf={row.rankOutOf}
             qrSvg={qrSvg}
@@ -326,9 +332,7 @@ export default async function PrintAllPage({
     filteredRows.map(async (row) => {
       const [extras, qrSvg] = await Promise.all([
         loadProgressReportExtras(supabase, examId, row.studentId, exam.exam_year),
-        renderAuthenticityQr(
-          `PROGRESSREPORT|school:${school.name}|exam:${examId}|student:${row.studentId}|roll:${row.rollNumber ?? ''}`,
-        ),
+        printVerifyQr({ kind: 'progress_report', token: tokens.get(row.studentId) ?? null, refId: examId }),
       ])
       return { row, extras, qrSvg }
     }),
@@ -355,6 +359,7 @@ export default async function PrintAllPage({
             obtained: r.result.obtainedMarks,
             label: r.result.label,
             passed: r.result.passed,
+            entered: r.entered,
           }))}
           behaviourRows={extras.behaviourRows}
           checklistItems={extras.checklistItems}

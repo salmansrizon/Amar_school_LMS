@@ -1,5 +1,7 @@
 import Link from 'next/link'
+import { Inbox } from 'lucide-react'
 import { t, type Lang } from '@/lib/i18n'
+import { CONCEPT_ICON, type ConceptKey } from '@/lib/ui/concept-icons'
 
 // The five designed states (#538). A blank region is never an answer: the reader
 // must be able to tell absence from loading from refusal from failure, and be
@@ -40,14 +42,21 @@ export function EmptyState({
   body,
   action,
   lang,
+  icon,
 }: {
   title: string
   body?: string
   action: { href: string; label: string }
   lang: Lang
+  /** The concept this list is about; a generic tray when omitted. */
+  icon?: ConceptKey
 }) {
+  const Glyph = icon ? CONCEPT_ICON[icon] : Inbox
   return (
-    <div className={cardClass}>
+    <div className={`ui-pop ${cardClass}`}>
+      <div className="mx-auto mb-3 flex size-12 items-center justify-center rounded-full bg-brand-50 text-brand-600" aria-hidden>
+        <Glyph className="size-6" />
+      </div>
       <h2 className="text-base font-bold">{title}</h2>
       {body && <p className="mx-auto mt-2 max-w-sm text-sm text-muted">{body}</p>}
       <p className="mt-5">

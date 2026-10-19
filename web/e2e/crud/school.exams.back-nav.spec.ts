@@ -16,8 +16,14 @@ const COCURRICULAR = 'সহ-শিক্ষা' // exams.cocurricular
 const GENERATE_SEAT_PLAN = 'সিট প্ল্যান তৈরি' // exams.generateSeatPlan
 const MAKE_ROUTINE = 'রুটিন তৈরি' // exams.makeRoutine
 const DOCUMENTS = 'পরীক্ষার কাগজপত্র' // examDocs.title
-const OPEN = 'খুলুন' // examDocs.open
 const BACK = 'ফিরে যান' // common.back
+const CLOSE = 'বন্ধ করুন' // common.close
+// map 013: Routine/Seat Plan are printables (isPrintPath), so their "Open"
+// in the Documents popup is a PrintTrigger icon button (aria-label
+// "print.print" + the doc's own label), not a Link to a `/…/print` page —
+// see exam-documents-modal.tsx.
+const PRINT_ROUTINE = 'প্রিন্ট করুন পরীক্ষার রুটিন' // print.print + examDocs.routine
+const PRINT_SEAT_PLAN = 'প্রিন্ট করুন আসন বিন্যাস' // print.print + examDocs.seatPlan
 const EXAM_SETUP_TITLE = 'পরীক্ষা সেটআপ' // examSetup.title
 const ATTENDANCE_SHEET = 'পরীক্ষার হাজিরা শিট' // examAttendanceSheet.title
 
@@ -34,7 +40,21 @@ const EXAM = 'ZZ Map366 Verify Exam'
 // keep its fixture alive. Both exams are seeded now (supabase/seed-test.sql).
 const OTHER_EXAM = 'ZZ Map366 Gate Exam'
 
-const row = (page: Page, name: string) => page.locator('div[id^="exam-"]').filter({ hasText: name }).first()
+const MORE = 'আরও অ্যাকশন' // exams.moreActions
+
+// Map 013 A3: the list is a DataTable (a <tr> on desktop, an <li> card on a
+// phone, one of them displayed). The visible row shows one next step and a ⋮;
+// it carries [data-exam-row] (the Back anchor). The six actions (docs/010 §1)
+// open behind ⋮ in a popover dialog named "আরও অ্যাকশন: <exam>".
+const rowEl = (page: Page, name: string) =>
+  page.locator('tr, li').filter({ hasText: name }).filter({ visible: true }).first().locator('[data-exam-row]').first()
+
+/** Open the row's ⋮ and return its six-action set. */
+async function row(page: Page, name: string) {
+  const label = `${MORE}: ${name}`
+  await rowEl(page, name).getByRole('button', { name: label }).click()
+  return page.getByRole('dialog', { name: label }).locator('[data-exam-row]')
+}
 
 /** The list, already filtered to one exam by name.
  *
@@ -53,7 +73,7 @@ const openList = (page: Page, name: string = EXAM) =>
  *  wait, the next click hits the still-mounted list page — whose own chevron
  *  goes to /school — and the test silently measures the wrong journey. */
 async function openFromRow(page: Page, name: string, action: string, url: RegExp) {
-  await row(page, name).getByRole('link', { name: action }).click()
+  await (await row(page, name)).getByRole('link', { name: action }).click()
   await expect(page).toHaveURL(url)
 }
 
@@ -64,9 +84,14 @@ async function openFromRow(page: Page, name: string, action: string, url: RegExp
  *  like a product failure. */
 async function clickBack(page: Page) {
   await page.waitForLoadState('domcontentloaded')
+  // Opened from a row, the destination is a route popup (map 013): its way
+  // back is ✕, and the page's own chevron is hidden in there (test H).
+  // Wait for whichever exit renders: the popup may still be mounting.
+  const close = page.getByRole('dialog').getByRole('button', { name: CLOSE })
   const back = page.getByRole('link', { name: BACK })
-  await back.waitFor({ state: 'visible' })
-  await back.click()
+  const exit = close.or(back).first()
+  await exit.waitFor({ state: 'visible' })
+  await exit.click()
   await expect(page).toHaveURL(/\/school\/exams(\?|$)/, { timeout: 20_000 })
 }
 
@@ -75,7 +100,7 @@ async function expectBackOnRow(page: Page, name: string) {
   await expect(page).toHaveURL(/\/school\/exams(\?|$)/)
   // Never an intermediate setup screen (acceptance test H).
   await expect(page).not.toHaveURL(/\/school\/exams\/[0-9a-f-]{36}/)
-  await expect(row(page, name)).toBeVisible()
+  await expect(rowEl(page, name)).toBeVisible()
 }
 
 test.describe('@crud @school exams back-navigation (map #373)', () => {
@@ -83,7 +108,7 @@ test.describe('@crud @school exams back-navigation (map #373)', () => {
     const page = await asRole(browser, 'owner')
     await openList(page)
 
-    const target = row(page, EXAM)
+    const target = await row(page, EXAM)
     await expect(target).toBeVisible()
 
     for (const label of [BASIC_INFO, MARKS_ENTRY, COCURRICULAR, GENERATE_SEAT_PLAN, MAKE_ROUTINE, DOCUMENTS]) {
@@ -120,33 +145,43 @@ test.describe('@crud @school exams back-navigation (map #373)', () => {
     await page.context().close()
   })
 
-  test('C+D: Documents → Exam Routine closes the popup, and Back lands on the row', async ({ browser }) => {
+  test('C+D: Documents → Exam Routine opens the print preview, closes the popup, and the list/row never left', async ({ browser }) => {
     const page = await asRole(browser, 'owner')
     await openList(page)
-    await row(page, EXAM).getByRole('button', { name: DOCUMENTS }).click()
+    await (await row(page, EXAM)).getByRole('button', { name: DOCUMENTS }).click()
 
     const dialog = page.getByRole('dialog', { name: DOCUMENTS })
     await expect(dialog).toBeVisible()
 
-    await dialog.locator('li').filter({ hasText: 'রুটিন' }).first().getByRole('link', { name: OPEN }).click()
-    await expect(page).toHaveURL(/\/routine\/print\?from=/)
-    // C: the popup is gone, not merely hidden behind the new page.
+    await dialog.locator('li').filter({ hasText: 'রুটিন' }).first().getByRole('button', { name: PRINT_ROUTINE }).click()
+    // D, revised for the print-popup path (map 013): a printable never
+    // navigates the page away at all, so there is nothing to unwind — the
+    // exam list (and its row) was never left in the first place.
+    const preview = page.getByRole('dialog', { name: PRINT_ROUTINE })
+    await expect(preview).toBeVisible()
+    await expect(page).toHaveURL(/\/school\/exams(\?|$)/)
+    // C: the Documents popup is gone, not merely hidden behind the preview.
     await expect(dialog).toHaveCount(0)
 
-    await clickBack(page)
+    await page.keyboard.press('Escape')
+    await expect(preview).toHaveCount(0)
     await expectBackOnRow(page, EXAM)
     await page.context().close()
   })
 
-  test('E: Documents → Seat Plan → Back lands on the row', async ({ browser }) => {
+  test('E: Documents → Seat Plan opens the print preview; the list/row never left', async ({ browser }) => {
     const page = await asRole(browser, 'owner')
     await openList(page)
-    await row(page, EXAM).getByRole('button', { name: DOCUMENTS }).click()
+    await (await row(page, EXAM)).getByRole('button', { name: DOCUMENTS }).click()
     const dialog = page.getByRole('dialog', { name: DOCUMENTS })
-    // examDocs.seatPlan — the modal calls it 'আসন বিন্যাস', not the row's 'সিট প্ল্যান তৈরি'.
-    await dialog.locator('li').filter({ hasText: 'আসন বিন্যাস' }).first().getByRole('link', { name: OPEN }).click()
-    await expect(page).toHaveURL(/\/seat-plan\/print\?from=/)
-    await clickBack(page)
+    await dialog.locator('li').filter({ hasText: 'আসন বিন্যাস' }).first().getByRole('button', { name: PRINT_SEAT_PLAN }).click()
+    const preview = page.getByRole('dialog', { name: PRINT_SEAT_PLAN })
+    await expect(preview).toBeVisible()
+    await expect(page).toHaveURL(/\/school\/exams(\?|$)/)
+    await expect(dialog).toHaveCount(0)
+
+    await page.keyboard.press('Escape')
+    await expect(preview).toHaveCount(0)
     await expectBackOnRow(page, EXAM)
     await page.context().close()
   })
@@ -168,15 +203,15 @@ test.describe('@crud @school exams back-navigation (map #373)', () => {
     await page.goto('/school/exams')
 
     await page.getByPlaceholder('পরীক্ষার নাম খুঁজুন').fill('ZZ Map366')
-    const target = row(page, EXAM)
-    await expect(target).toBeVisible()
+    await page.getByPlaceholder('পরীক্ষার নাম খুঁজুন').press('Enter')
+    await expect(rowEl(page, EXAM)).toBeVisible()
 
     await openFromRow(page, EXAM, MAKE_ROUTINE, /\/routine\?from=/)
     await clickBack(page)
 
     await expect(page).toHaveURL(/q=ZZ\+Map366|q=ZZ%20Map366/)
     await expect(page.getByPlaceholder('পরীক্ষার নাম খুঁজুন')).toHaveValue('ZZ Map366')
-    await expect(row(page, EXAM)).toBeVisible()
+    await expect(rowEl(page, EXAM)).toBeVisible()
     await page.context().close()
   })
 
@@ -188,12 +223,24 @@ test.describe('@crud @school exams back-navigation (map #373)', () => {
     // top of the list, where "is the row visible" is trivially true and proves
     // nothing. Take the last row that still has a live Routine action, so the
     // list genuinely has to be scrolled for it to be reachable.
-    const withRoutine = page
-      .locator('div[id^="exam-"]')
-      .filter({ has: page.getByRole('link', { name: MAKE_ROUTINE }) })
-    const target = withRoutine.last()
-    const anchorId = (await target.getAttribute('id'))!
-    const anchor = page.locator(`[id="${anchorId}"]`)
+    const anchors = page.locator('tr [data-exam-row]').filter({ visible: true })
+    let anchorId = ''
+    for (let i = (await anchors.count()) - 1; i >= 0 && !anchorId; i--) {
+      const a = anchors.nth(i)
+      const id = (await a.getAttribute('data-exam-row'))!
+      await a.getByRole('button', { name: new RegExp(MORE) }).click()
+      const live = await page
+        .getByRole('dialog', { name: new RegExp(MORE) })
+        .getByRole('link', { name: MAKE_ROUTINE })
+        .count()
+      await page.keyboard.press('Escape')
+      if (live) anchorId = id
+    }
+    expect(anchorId).not.toBe('')
+    // Opening each ⋮ scrolled the list; start from rest again.
+    await page.reload()
+    const anchor = page.locator(`tr [data-exam-row="${anchorId}"]`).filter({ visible: true })
+    const target = anchor
 
     // Position, not window.scrollY: the shell scrolls an inner container
     // (app-shell.tsx:364 `overflow-y-auto`), so window.scrollY is always 0 and
@@ -204,7 +251,8 @@ test.describe('@crud @school exams back-navigation (map #373)', () => {
     await expect(anchor).not.toBeInViewport()
 
     await target.scrollIntoViewIfNeeded()
-    await target.getByRole('link', { name: MAKE_ROUTINE }).click()
+    await target.getByRole('button', { name: new RegExp(MORE) }).click()
+    await page.getByRole('dialog', { name: new RegExp(MORE) }).getByRole('link', { name: MAKE_ROUTINE }).click()
     await expect(page).toHaveURL(/\/routine\?from=/)
     await clickBack(page)
 
@@ -217,7 +265,7 @@ test.describe('@crud @school exams back-navigation (map #373)', () => {
     // No `from`: the fallback must be the structural parent, exactly as before
     // map #373 (report §6 — "preserve those legitimate flows").
     await openList(page)
-    const href = await row(page, EXAM).getByRole('link', { name: GENERATE_SEAT_PLAN }).getAttribute('href')
+    const href = await (await row(page, EXAM)).getByRole('link', { name: GENERATE_SEAT_PLAN }).getAttribute('href')
     const examId = href!.match(/exams\/([0-9a-f-]{36})/)![1]
 
     await page.goto(`/school/exams/${examId}/seat-plan`)
@@ -233,7 +281,7 @@ test.describe('@crud @school exams back-navigation (map #373)', () => {
     const page = await asRole(browser, 'owner')
     await openList(page, OTHER_EXAM)
 
-    const second = row(page, OTHER_EXAM)
+    const second = await row(page, OTHER_EXAM)
     await expect(second).toBeVisible()
     // Class-only gate: these two are live...
     await expect(second.getByRole('link', { name: GENERATE_SEAT_PLAN })).toBeVisible()
@@ -274,7 +322,7 @@ test.describe('@crud @school exams back-navigation (map #373)', () => {
     await page.setViewportSize({ width: 390, height: 844 })
     await openList(page)
 
-    const target = row(page, EXAM)
+    const target = await row(page, EXAM)
     await target.scrollIntoViewIfNeeded()
     for (const label of [BASIC_INFO, MARKS_ENTRY, COCURRICULAR, GENERATE_SEAT_PLAN, MAKE_ROUTINE, DOCUMENTS]) {
       await expect(target.getByText(label, { exact: true })).toBeVisible()

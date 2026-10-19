@@ -8,7 +8,7 @@ import { deleteSyllabus, recordSyllabus, syllabusUploadTicket } from './actions'
 
 const MAX_BYTES = 10 * 1024 * 1024
 
-const tdClass = 'px-3 py-2 text-sm'
+const tdClass = 'px-4 py-3 text-sm'
 const btnSecondary =
   'cursor-pointer rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted disabled:opacity-50'
 
@@ -85,7 +85,7 @@ export function SyllabusRow({
   }
 
   return (
-    <tr className="border-b border-line">
+    <tr>
       <td className={`${tdClass} font-medium`}>{classLabel}</td>
       <td className={tdClass}>
         {fileName ?? <span className="text-muted">{t('syllabus.none', lang)}</span>}

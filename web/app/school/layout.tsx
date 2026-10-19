@@ -7,6 +7,7 @@ import { SubscriptionGate } from '@/components/subscription-gate'
 import { SubscriptionBanner, SUB_REMINDER_COOKIE } from '@/components/subscription-banner'
 import { getSchoolContext } from '@/lib/school/context'
 import { loadSchoolSmsCredit } from '@/lib/sms/credit'
+import { hubSummary } from '@/lib/student/hub-source'
 import { loadEnabledFeatures } from '@/lib/engines/feature/engine'
 import { daysUntilExpiry, shouldShowReminder } from '@/lib/subscription'
 
@@ -19,13 +20,19 @@ import { daysUntilExpiry, shouldShowReminder } from '@/lib/subscription'
 // 7 days of lapsing shows a dismissible reminder banner under the nav. Status is
 // computed on read via school_subscription_status — no deactivated_at write
 // (that hard block is a separate, manual super-admin switch, #161).
-export default async function SchoolLayout({ children }: { children: React.ReactNode }) {
+// `modal` is the @modal slot (map 013): a row action's task page, intercepted on
+// soft navigation and shown as a popup over the list — see components/route-modal.tsx.
+export default async function SchoolLayout({ children, modal }: { children: React.ReactNode; modal: React.ReactNode }) {
   const lang = await currentLang()
   const collapsed = await sidebarCollapsed()
   const theme = await themePreference()
   const ctx = await getSchoolContext()
   const status = ctx.subscriptionStatus
   const smsCredit = await loadSchoolSmsCredit(ctx.supabase, ctx.schoolId)
+  // Sidebar badge on Messages & Requests: the caller's own waiting backlog
+  // (head counts, RLS-scoped; a teacher sees hers, not the school's).
+  const hub = await hubSummary(ctx.supabase)
+  const hubBacklog = (hub.questions ?? 0) + (hub.corrections ?? 0)
   // Feature-engine nav gating (#271): hide modules disabled for this school.
   const enabledFeatures = ctx.schoolId
     ? Array.from(await loadEnabledFeatures(ctx.supabase, ctx.schoolId))
@@ -40,6 +47,7 @@ export default async function SchoolLayout({ children }: { children: React.React
     theme,
     initialCollapsed: collapsed,
     smsCredit,
+    hubBacklog,
     enabledFeatures,
     configuredShifts: ctx.configuredShifts,
     shiftSelection: ctx.shiftSelection,
@@ -72,6 +80,7 @@ export default async function SchoolLayout({ children }: { children: React.React
   return (
     <SchoolShell {...shellProps} banner={banner}>
       {children}
+      {modal}
     </SchoolShell>
   )
 }

@@ -4,7 +4,8 @@ import { useState, useTransition } from 'react'
 import { type LocationRow } from '@/lib/locations'
 import { t, type Lang } from '@/lib/i18n'
 import { addAssignment, removeAssignment } from '../actions'
-import { selectClass } from '@/components/ui/field'
+import { SelectField } from '@/components/ui/select-field'
+import { ComboboxField } from '@/components/ui/combobox-field'
 import { LocationPicker } from '@/components/location-picker'
 
 const smallBtn =
@@ -43,37 +44,34 @@ export function AddAssignmentForm({
       }}
     >
       <input type="hidden" name="assignee_id" value={assigneeId} />
-      <select
+      <SelectField
         value={mode}
-        onChange={(e) => setMode(e.target.value as 'location' | 'school')}
-        className={selectClass()}
-      >
-        <option value="location">{t('partners.addLocation', lang)}</option>
-        <option value="school">{t('partners.addSchool', lang)}</option>
-      </select>
+        onValueChange={(v) => setMode(v as 'location' | 'school')}
+        options={[
+          { value: 'location', label: t('partners.addLocation', lang) },
+          { value: 'school', label: t('partners.addSchool', lang) },
+        ]}
+      />
 
       {mode === 'location' ? (
         // Hierarchical division → district → upazila → union picker (same as
         // clusters) instead of a flat select of every location.
         <LocationPicker locations={locations} name="location_id" lang={lang} required />
       ) : (
-        <select name="school_id" required className={selectClass()}>
-          {schools.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.name}
-            </option>
-          ))}
-        </select>
+        <ComboboxField name="school_id" required options={schools.map((s) => ({ value: s.id, label: s.name }))} />
       )}
 
       {isDistributor && mode === 'location' && (
-        <select name="tier" className={selectClass()}>
-          <option value="">{t('partners.tier', lang)} —</option>
-          <option value="division">Division</option>
-          <option value="zilla">Zilla</option>
-          <option value="upazila">Upazila</option>
-          <option value="union">Union</option>
-        </select>
+        <SelectField
+          name="tier"
+          options={[
+            { value: '', label: `${t('partners.tier', lang)} —` },
+            { value: 'division', label: 'Division' },
+            { value: 'zilla', label: 'Zilla' },
+            { value: 'upazila', label: 'Upazila' },
+            { value: 'union', label: 'Union' },
+          ]}
+        />
       )}
 
       <button type="submit" disabled={pending} className={smallBtn}>

@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { firstRelation } from '@/lib/supabase/relation'
 import { homeFor, isSchoolScopedRole, type Role } from '@/lib/auth/routing'
 import { postLoginDestination } from '@/lib/auth/post-login'
+import { signInErrorCode } from '@/lib/auth/sign-in-error'
 
 /** End the session, server-side.
  *
@@ -20,7 +21,7 @@ export async function signOutAction(): Promise<void> {
   await supabase.auth.signOut()
 }
 
-export type SignInResult = { destination: string } | { error: 'failed' | 'blocked' }
+export type SignInResult = { destination: string } | { error: 'failed' | 'blocked' | 'banned' }
 
 /** Sign in, apply the suspension rule, and say where to go next.
  *
@@ -41,7 +42,7 @@ export type SignInResult = { destination: string } | { error: 'failed' | 'blocke
 export async function signInAction(email: string, password: string): Promise<SignInResult> {
   const supabase = await createClient()
   const { data, error } = await supabase.auth.signInWithPassword({ email, password })
-  if (error || !data.user) return { error: 'failed' }
+  if (error || !data.user) return { error: signInErrorCode(error?.code) }
 
   const { data: profile } = await supabase
     .from('profiles')

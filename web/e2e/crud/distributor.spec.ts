@@ -1,5 +1,5 @@
 import { test, expect, asRole } from '../fixtures/roles'
-import { expectNoError } from '../helpers'
+import { expectNoError, pickOption } from '../helpers'
 
 // Distributor portal suites (map #329, ticket #332, playwright-crud-plan §3):
 // CRM (add lead + stage advance, own-only), onboarding (accept agreement),
@@ -19,12 +19,14 @@ test.describe('@crud @distributor crm', () => {
     // Open detail and advance the stage (new → contacted); persists on reload.
     await card.click()
     await expect(page).toHaveURL(/\/distributor\/crm\/[0-9a-f-]+$/)
-    await page.locator('select').first().selectOption('contacted')
+    await pickOption(page, page.getByRole('combobox').first(), 'contacted')
     // The stage write is a server action; reload until the DB reflects it
-    // (avoids racing the reload against the in-flight update).
+    // (avoids racing the reload against the in-flight update). The Stage
+    // picker's value and label are the same string, so its visible input's
+    // value still round-trips through toHaveValue post-conversion.
     await expect(async () => {
       await page.reload()
-      await expect(page.locator('select').first()).toHaveValue('contacted')
+      await expect(page.getByRole('combobox').first()).toHaveValue('contacted')
     }).toPass({ timeout: 15_000 })
     await expectNoError(page)
   })

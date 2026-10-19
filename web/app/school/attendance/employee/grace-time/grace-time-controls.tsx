@@ -18,6 +18,7 @@ import {
   deleteAdHocGraceExemption,
   type StandingRuleConflict,
 } from './actions'
+import { DateField } from '@/components/ui/date-field'
 
 // Grace Time controls (issue #673): the Add Grace Rule modal mirrors Office
 // Hour's Add panel (single Shift radio, Categories with Select All,
@@ -298,7 +299,7 @@ export function AddAdHocExemptionForm({
       <div className="flex flex-wrap gap-3">
         <div>
           <label className={labelClass} htmlFor="exemption_date">{t('graceTime.exemptionDate', lang)}</label>
-          <input id="exemption_date" name="exemption_date" type="date" required className={dateInputClass({ size: 'md' })} />
+          <DateField lang={lang} id="exemption_date" name="exemption_date" required className={dateInputClass({ size: 'md' })} />
         </div>
         <div>
           <label className={labelClass} htmlFor="duration_minutes">{t('graceTime.exemptionDuration', lang)}</label>

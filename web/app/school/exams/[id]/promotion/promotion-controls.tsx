@@ -2,9 +2,10 @@
 
 import { usePathname, useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
-import { t, type Lang } from '@/lib/i18n'
+import { t, formatNumber, type Lang } from '@/lib/i18n'
 import { makeOldStudents, promoteStudents, setClassFinal } from './actions'
-import { selectClass } from '@/components/ui/field'
+import { ComboboxField } from '@/components/ui/combobox-field'
+import { SelectField } from '@/components/ui/select-field'
 import { classCatalogueLabel, type ClassCatalogueRow } from '@/lib/class-catalogue'
 
 export interface CombinationOption {
@@ -36,22 +37,30 @@ export function ResultControlsBar({
   return (
     <div className="mb-4 flex flex-wrap items-center gap-2">
       <div>
-        <label className="mb-1 block text-xs font-semibold text-muted">{t('promotion.resultSource', lang)}</label>
-        <select value={source} onChange={(e) => navigate(e.target.value, basis)} className={`${selectClass({ size: 'md', fullWidth: true })} min-w-56`}>
-          <option value="exam">{t('promotion.thisExamOnly', lang)}</option>
-          {combinations.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
-        </select>
+        <label htmlFor="promotion_source" className="mb-1 block text-xs font-semibold text-muted">{t('promotion.resultSource', lang)}</label>
+        <ComboboxField
+          id="promotion_source"
+          value={source}
+          onValueChange={(v) => navigate(v, basis)}
+          className="min-w-56"
+          options={[
+            { value: 'exam', label: t('promotion.thisExamOnly', lang) },
+            ...combinations.map((c) => ({ value: c.id, label: c.name })),
+          ]}
+        />
       </div>
       <div>
-        <label className="mb-1 block text-xs font-semibold text-muted">{t('promotion.rankBasis', lang)}</label>
-        <select value={basis} onChange={(e) => navigate(source, e.target.value)} className={`${selectClass({ size: 'md', fullWidth: true })} min-w-40`}>
-          <option value="grade">{t('promotion.rankByGrade', lang)}</option>
-          <option value="mark">{t('promotion.rankByMark', lang)}</option>
-        </select>
+        <label htmlFor="promotion_basis" className="mb-1 block text-xs font-semibold text-muted">{t('promotion.rankBasis', lang)}</label>
+        <SelectField
+          id="promotion_basis"
+          value={basis}
+          onValueChange={(v) => navigate(source, v)}
+          className="min-w-40"
+          options={[
+            { value: 'grade', label: t('promotion.rankByGrade', lang) },
+            { value: 'mark', label: t('promotion.rankByMark', lang) },
+          ]}
+        />
       </div>
     </div>
   )
@@ -62,6 +71,8 @@ export interface PromotionStudentRow {
   roll_number: number | null
   full_name: string
   passed: boolean
+  /** Marks still missing: not promotable yet, but not a "repeat" either. */
+  incomplete: boolean
   label: string | null
   position: number | null
 }
@@ -73,6 +84,7 @@ export function PromotionTable({
   currentClassName,
   lang,
   showYear = false,
+  readOnly = false,
 }: {
   examId: string
   rows: PromotionStudentRow[]
@@ -82,6 +94,8 @@ export function PromotionTable({
   /** Academic Year segment (issue #621, map #609's recipe) — true only when
    *  the School has more than one started Academic Year. */
   showYear?: boolean
+  /** #676: the caller may not act on this exam's class. */
+  readOnly?: boolean
 }) {
   const router = useRouter()
   const [toClassId, setToClassId] = useState('')
@@ -98,28 +112,29 @@ export function PromotionTable({
   return (
     <>
       <div className="mb-3 max-w-sm">
-        <label className="mb-1 block text-xs font-semibold text-muted">{t('promotion.promoteTo', lang)}</label>
-        <select value={toClassId} onChange={(e) => setToClassId(e.target.value)} className={selectClass({ size: 'md', fullWidth: true })}>
-          <option value="">—</option>
-          {classes.map((c) => (
-            <option key={c.id} value={c.id}>
-              {classCatalogueLabel(c, showYear)}
-            </option>
-          ))}
-        </select>
+        <label htmlFor="promotion_to_class" className="mb-1 block text-xs font-semibold text-muted">{t('promotion.promoteTo', lang)}</label>
+        <ComboboxField
+          id="promotion_to_class"
+          value={toClassId}
+          onValueChange={setToClassId}
+          options={[
+            { value: '', label: '—' },
+            ...classes.map((c) => ({ value: c.id, label: classCatalogueLabel(c, showYear) })),
+          ]}
+        />
       </div>
 
       <div className="overflow-x-auto">
         <table className="w-full min-w-160 text-sm">
-          <thead>
-            <tr className="border-b border-line text-left text-xs font-semibold text-muted">
-              <th className="py-2 pr-2" />
-              <th className="py-2 pr-2">{t('promotion.currentRoll', lang)}</th>
-              <th className="py-2 pr-2">{t('students.name', lang)}</th>
-              <th className="py-2 pr-2">{t('promotion.result', lang)}</th>
-              <th className="py-2 pr-2 text-right">{t('promotion.position', lang)}</th>
-              <th className="py-2 pr-2">{t('promotion.newClass', lang)}</th>
-              <th className="py-2">{t('promotion.newRoll', lang)}</th>
+          <thead className="bg-paper-muted">
+            <tr className="text-left text-sm text-muted">
+              <th className="px-4 py-3" />
+              <th className="px-4 py-3">{t('promotion.currentRoll', lang)}</th>
+              <th className="px-4 py-3">{t('students.name', lang)}</th>
+              <th className="px-4 py-3">{t('promotion.result', lang)}</th>
+              <th className="px-4 py-3 text-right">{t('promotion.position', lang)}</th>
+              <th className="px-4 py-3">{t('promotion.newClass', lang)}</th>
+              <th className="px-4 py-3">{t('promotion.newRoll', lang)}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-line">
@@ -127,7 +142,7 @@ export function PromotionTable({
               const isChecked = checked.has(row.id) && row.passed
               return (
                 <tr key={row.id}>
-                  <td className="py-2 pr-2">
+                  <td className="px-4 py-3">
                     <input
                       type="checkbox"
                       disabled={!row.passed}
@@ -142,20 +157,30 @@ export function PromotionTable({
                       }}
                     />
                   </td>
-                  <td className="py-2 pr-2">{row.roll_number ?? '—'}</td>
-                  <td className="py-2 pr-2 font-medium">{row.full_name}</td>
-                  <td className="py-2 pr-2">
+                  <td className="px-4 py-3">{row.roll_number != null ? formatNumber(row.roll_number, lang) : '—'}</td>
+                  <td className="px-4 py-3 font-medium">{row.full_name}</td>
+                  <td className="px-4 py-3">
                     <span
                       className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
-                        row.passed ? 'bg-mint-soft text-mint-deep' : 'bg-alert-soft text-alert-deep'
+                        row.incomplete
+                          ? 'bg-sun-soft text-sun-deep'
+                          : row.passed
+                            ? 'bg-mint-soft text-mint-deep'
+                            : 'bg-alert-soft text-alert-deep'
                       }`}
                     >
-                      {row.passed ? t('promotion.pass', lang) : t('promotion.fail', lang)}
+                      {row.incomplete
+                        ? t('exams.incomplete', lang)
+                        : row.passed
+                          ? t('promotion.pass', lang)
+                          : t('promotion.fail', lang)}
                     </span>
                   </td>
-                  <td className="py-2 pr-2 text-right">{row.position ?? '—'}</td>
-                  <td className="py-2 pr-2">
-                    {row.passed ? (
+                  <td className="px-4 py-3 text-right">{row.position != null ? formatNumber(row.position, lang) : '—'}</td>
+                  <td className="px-4 py-3">
+                    {row.incomplete ? (
+                      <span className="text-muted">{t('exams.marksNotEntered', lang)}</span>
+                    ) : row.passed ? (
                       targetClass ? (
                         classCatalogueLabel(targetClass, showYear)
                       ) : (
@@ -165,7 +190,7 @@ export function PromotionTable({
                       `${currentClassName ?? ''} ${t('promotion.repeat', lang)}`
                     )}
                   </td>
-                  <td className="py-2">
+                  <td className="px-4 py-3">
                     {row.passed ? (
                       <input
                         type="text"
@@ -195,7 +220,7 @@ export function PromotionTable({
       <div className="mt-4 flex justify-end">
         <button
           type="button"
-          disabled={pending || !toClassId}
+          disabled={pending || !toClassId || readOnly}
           onClick={() => {
             const items = rows
               .filter((r) => r.passed && checked.has(r.id))
@@ -277,23 +302,23 @@ export function GraduatingSection({
   if (!passed.length) return null
 
   return (
-    <section className="mt-6 rounded-lg border border-line bg-paper p-5 shadow-card">
+    <section className="mt-6 rounded-2xl border border-line bg-paper p-card shadow-card">
       <h3 className="mb-1 font-bold">{t('promotion.graduatingTitle', lang)}</h3>
       <p className="mb-3 text-xs text-muted">{t('promotion.graduatingHint', lang)}</p>
       <div className="overflow-x-auto">
         <table className="w-full min-w-120 text-sm">
-          <thead>
-            <tr className="border-b border-line text-left text-xs font-semibold text-muted">
-              <th className="py-2 pr-2" />
-              <th className="py-2 pr-2">{t('students.roll', lang)}</th>
-              <th className="py-2 pr-2">{t('students.name', lang)}</th>
-              <th className="py-2">{t('promotion.result', lang)}</th>
+          <thead className="bg-paper-muted">
+            <tr className="text-left text-sm text-muted">
+              <th className="px-4 py-3" />
+              <th className="px-4 py-3">{t('students.roll', lang)}</th>
+              <th className="px-4 py-3">{t('students.name', lang)}</th>
+              <th className="px-4 py-3">{t('promotion.result', lang)}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-line">
             {passed.map((row) => (
               <tr key={row.id}>
-                <td className="py-2 pr-2">
+                <td className="px-4 py-3">
                   <input
                     type="checkbox"
                     checked={checked.has(row.id)}
@@ -307,9 +332,9 @@ export function GraduatingSection({
                     }}
                   />
                 </td>
-                <td className="py-2 pr-2">{row.roll_number ?? '—'}</td>
-                <td className="py-2 pr-2 font-medium">{row.full_name}</td>
-                <td className="py-2">
+                <td className="px-4 py-3">{row.roll_number != null ? formatNumber(row.roll_number, lang) : '—'}</td>
+                <td className="px-4 py-3 font-medium">{row.full_name}</td>
+                <td className="px-4 py-3">
                   <span className="rounded-full bg-mint-soft px-2 py-0.5 text-xs font-semibold text-mint-deep">
                     {t('promotion.pass', lang)}
                   </span>

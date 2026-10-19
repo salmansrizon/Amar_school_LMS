@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { t, type Lang } from '@/lib/i18n'
 import { setStudentSubject, removeStudentSubject } from '../subject-assignment/actions'
-import { selectClass } from '@/components/ui/field'
+import { ComboboxField } from '@/components/ui/combobox-field'
 
 export interface AssignedSubject {
   subject_id: string
@@ -26,6 +26,10 @@ export function StudentSubjects({
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
+  // ComboboxField keeps its picked item as internal state; form.reset() below
+  // clears the hidden input but not that display state, so a key remount is
+  // what actually clears the picker after a successful add.
+  const [addSubjectKey, setAddSubjectKey] = useState(0)
   const assignedIds = new Set(assigned.map((a) => a.subject_id))
   const unassigned = available.filter((s) => !assignedIds.has(s.id))
 
@@ -98,19 +102,22 @@ export function StudentSubjects({
               if (result.error) setError(result.error)
               else {
                 form.reset()
+                setAddSubjectKey((k) => k + 1)
                 router.refresh()
               }
             })
           }}
         >
-          <select name="subject_id" required className={selectClass()}>
-            <option value="">{t('subjects.addSubject', lang)}</option>
-            {unassigned.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}
-              </option>
-            ))}
-          </select>
+          <ComboboxField
+            key={addSubjectKey}
+            name="subject_id"
+            required
+            defaultValue=""
+            options={[
+              { value: '', label: t('subjects.addSubject', lang) },
+              ...unassigned.map((s) => ({ value: s.id, label: s.name })),
+            ]}
+          />
           <label className="flex items-center gap-1 text-xs text-muted">
             <input type="checkbox" name="is_optional" />
             {t('subjects.optional', lang)}

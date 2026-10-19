@@ -4,6 +4,7 @@ import * as React from "react"
 import { Menu as MenuPrimitive } from "@base-ui/react/menu"
 
 import { cn } from "@/lib/utils"
+import { useDialogContainer } from "@/components/native-dialog"
 import { ChevronRightIcon, CheckIcon } from "lucide-react"
 
 function DropdownMenu({ ...props }: MenuPrimitive.Root.Props) {
@@ -30,9 +31,11 @@ function DropdownMenuContent({
     MenuPrimitive.Positioner.Props,
     "align" | "alignOffset" | "side" | "sideOffset"
   >) {
+  const dialog = useDialogContainer()
   return (
-    <MenuPrimitive.Portal>
+    <MenuPrimitive.Portal container={dialog ?? undefined}>
       <MenuPrimitive.Positioner
+        positionMethod={dialog ? 'fixed' : 'absolute'}
         className="isolate z-50 outline-none"
         align={align}
         alignOffset={alignOffset}

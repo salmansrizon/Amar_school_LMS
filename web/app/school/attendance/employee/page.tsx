@@ -1,13 +1,29 @@
 import Form from 'next/form'
-import Link from 'next/link'
+import { CalendarDays, List } from 'lucide-react'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
+import { requireEmployeeAttendanceAdmin } from '@/lib/school/employee-attendance-admin'
 import { effectiveGraceWithSource, isGraceDetail, GRACE_DETAIL_LABEL_KEY, type GraceSource, type StandingGraceCandidate } from '@/lib/grace'
 import { resolveEmployeeDisplayStatus, type EmployeeDisplayStatus } from '@/lib/attendance'
+import { schoolToday } from '@/lib/school-time'
+import { isOffDayIso } from '@/lib/attendance-manual'
+import { selectAllRows } from '@/lib/supabase/select-all'
+import { parseMonthParam, shiftYearMonth, formatMonthYear, buildSchoolAttendanceMonth, isWeekendColumn, isNoRecordDay } from '@/lib/employee-attendance-calendar'
+import { loadEmployeeAttendanceStarts } from '@/lib/school/employee-attendance-starts-source'
 import { exemptionCategoriesByExemptionId } from '@/lib/school/ad-hoc-grace'
+import { loadLastAgentHeartbeat, agentNotSyncedFor } from '@/lib/school/attendance-agent-sync'
 import { AttendanceTabs } from '../attendance-tabs'
-import { dateInputClass } from '@/components/ui/field'
+import { AgentSyncWarning } from '../agent-sync-warning'
+import { CalendarToolbar, MonthGridFrame } from '../calendar-shell'
+import { EmployeeAttendanceDayCell } from './attendance-calendar'
+import { SegmentedControl } from '@/components/ui/segmented-control'
+import { dateInputClass, filterButtonClass, inputClass } from '@/components/ui/field'
+import { schoolCrumbs } from '@/lib/school-crumbs'
+import { PageHeader } from '@/components/ui/page'
+import { Pill } from '@/components/data-table/data-table'
+import { pageTitle } from '@/lib/page-title'
+import { DateField } from '@/components/ui/date-field'
 
 // Layout per ui/school-owner/attendance-employee.html: search + date filter,
 // one row per employee with In/Out/Status/Applied-Grace, the 6-state status
@@ -19,14 +35,16 @@ function todayIso(): string {
   return new Date().toISOString().slice(0, 10)
 }
 
-const STATUS_BADGE: Record<EmployeeDisplayStatus, string> = {
-  on_time: 'bg-mint-soft text-mint-deep',
-  exit_early: 'bg-sun-soft text-sun-deep',
-  late_entry: 'bg-sun-soft text-sun-deep',
-  late_exit_early: 'bg-alert-soft text-alert-deep',
-  present: 'bg-mint-soft text-mint-deep',
-  absent: 'bg-alert-soft text-alert-deep',
-  on_leave: 'bg-sky-soft text-sky-deep',
+const STATUS_TONE: Record<EmployeeDisplayStatus, 'mint' | 'sun' | 'alert' | 'sky' | 'muted'> = {
+  on_time: 'mint',
+  exit_early: 'sun',
+  late_entry: 'sun',
+  late_exit_early: 'alert',
+  present: 'mint',
+  absent: 'alert',
+  no_record: 'muted',
+  on_leave: 'sky',
+  holiday: 'sky',
 }
 
 // The winning rule's Grace Detail is the reason shown (issue #673), e.g.
@@ -41,22 +59,32 @@ function hhmm(iso: string | null): string {
   return new Date(iso).toISOString().slice(11, 16)
 }
 
+export const generateMetadata = pageTitle('attendance.employeeTitle')
+
 export default async function EmployeeAttendancePage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; date?: string }>
+  searchParams: Promise<{ q?: string; date?: string; month?: string; view?: string }>
 }) {
-  const { q = '', date = todayIso() } = await searchParams
+  const { q = '', date = todayIso(), month: monthParam, view } = await searchParams
   const lang: Lang = await currentLang()
-  const { supabase } = await getSchoolContext()
+  const { supabase, weeklyOffDays } = await getSchoolContext()
+  // #677: Owner and office staff only; a teacher is refused.
+  await requireEmployeeAttendanceAdmin('/school/attendance/employee')
+  const isTableView = view === 'table'
 
-  const [{ data: employees }, { data: standingRules }, { data: adHocExemptions }] = await Promise.all([
+  const [{ data: employees }, { data: standingRules }, { data: adHocExemptions }, { data: dateOffRows }, trackingStartById] = await Promise.all([
     supabase.from('employee_card').select('id, full_name, category').is('archived_at', null).order('full_name'),
     // Every Standing Grace Rule, any Shift — Shift is display-only (ADR 0032).
     supabase.from('standing_grace_rules').select('grace_detail, grace_minutes, standing_grace_rule_categories(category)'),
     // Ad-Hoc Grace Exemptions active on this specific date (issue #671).
     supabase.from('ad_hoc_grace_exemptions').select('id, duration_minutes').eq('exemption_date', date),
+    supabase.from('off_days').select('day, label, is_significant').eq('day', date),
+    // Start day per employee: 0220's function (Owner and attendance-grant
+    // staff), else the Owner-only table read. Shared with the calendar below.
+    loadEmployeeAttendanceStarts(supabase),
   ])
+  const dateIsOff = isOffDayIso(date, dateOffRows ?? [], weeklyOffDays)
   const categoriesByExemptionId = await exemptionCategoriesByExemptionId(
     supabase,
     (adHocExemptions ?? []).map((ex) => ex.id),
@@ -67,7 +95,7 @@ export default async function EmployeeAttendancePage({
   )
   const employeeIds = roster.map((e) => e.id)
 
-  const [{ data: records }, { data: leaves }] = await Promise.all([
+  const [{ data: records }, { data: leaves }, { count: schoolRecordCount }] = await Promise.all([
     employeeIds.length
       ? supabase
           .from('attendance_records')
@@ -85,7 +113,14 @@ export default async function EmployeeAttendancePage({
           .gte('to_day', date)
           .in('employee_id', employeeIds)
       : Promise.resolve({ data: [] as { employee_id: string; from_day: string; to_day: string }[] }),
+    // School-wide (not the ?q= roster): "no record" means nobody was recorded.
+    supabase
+      .from('attendance_records')
+      .select('id', { count: 'exact', head: true })
+      .eq('person_type', 'employee')
+      .eq('att_date', date),
   ])
+  const noRecordDay = isNoRecordDay({ iso: date, today: schoolToday(), isOff: dateIsOff, recordCount: schoolRecordCount ?? 1 })
 
   const standingByCategory = new Map<string, StandingGraceCandidate[]>()
   for (const rule of standingRules ?? []) {
@@ -108,7 +143,13 @@ export default async function EmployeeAttendancePage({
   const recordByEmployee = new Map((records ?? []).map((r) => [r.person_id, r]))
   const onLeaveEmployees = new Set((leaves ?? []).map((l) => l.employee_id))
 
-  const rows = roster.map((e) => {
+  // Someone who had not joined by this date is not absent on it (the calendar
+  // already leaves those days blank); a real record still shows.
+  const employedOnDate = roster.filter((e) => {
+    const start = trackingStartById.get(e.id)
+    return recordByEmployee.has(e.id) || !start || date >= start
+  })
+  const rows = employedOnDate.map((e) => {
     const { minutes: grace, source } = effectiveGraceWithSource({
       standing: e.category ? (standingByCategory.get(e.category) ?? []) : [],
       adHoc: e.category ? (adHocByCategory.get(e.category) ?? null) : null,
@@ -118,6 +159,9 @@ export default async function EmployeeAttendancePage({
     const status = resolveEmployeeDisplayStatus({
       hasRecord: !!record,
       onApprovedLeave: onLeaveEmployees.has(e.id),
+      isOff: dateIsOff,
+      leaveBeatsOff: true,
+      noRecordDay,
       entry: record ? new Date(record.entry_at) : null,
       exit: record?.exit_at ? new Date(record.exit_at) : null,
       // Office Time (the sole source of an expected start/end window) was
@@ -141,69 +185,194 @@ export default async function EmployeeAttendancePage({
     }
   })
 
+  // Employee Attendance Calendar (map 013 follow-up): one active month, every
+  // employee (not the Table view's ?q= name filter — a whole-school day rate
+  // has no meaning scoped to one name), independent of the Table's own ?date.
+  // Only fetched for the view actually shown, same as the Table's own roster
+  // query staying scoped to `date`.
+  const today = schoolToday()
+  const { year: calYear, month0: calMonth0 } = parseMonthParam(monthParam, today)
+  const calPrefix = `${calYear}-${String(calMonth0 + 1).padStart(2, '0')}`
+  const calStart = `${calPrefix}-01`
+  const calEnd = `${calPrefix}-${String(new Date(Date.UTC(calYear, calMonth0 + 1, 0)).getUTCDate()).padStart(2, '0')}`
+
+  const calendarCells = isTableView
+    ? []
+    : await (async () => {
+        const [{ data: calOffDaysRaw }, { rows: calRecords }, { data: calApprovedLeaves }] = await Promise.all([
+          supabase.from('off_days').select('day, label, is_significant').gte('day', calStart).lte('day', calEnd),
+          selectAllRows((from, to) =>
+            supabase
+              .from('attendance_records')
+              .select('person_id, att_date, entry_at')
+              .eq('person_type', 'employee')
+              .gte('att_date', calStart)
+              .lte('att_date', calEnd)
+              .range(from, to),
+          ),
+          supabase
+            .from('employee_leaves')
+            .select('employee_id, from_day, to_day')
+            .eq('status', 'approved')
+            .lte('from_day', calEnd)
+            .gte('to_day', calStart),
+        ])
+        const startById = trackingStartById
+        return buildSchoolAttendanceMonth({
+          year: calYear,
+          month0: calMonth0,
+          today,
+          offDays: calOffDaysRaw ?? [],
+          weeklyOffDays,
+          employees: (employees ?? []).map((e) => ({ ...e, startDay: startById.get(e.id) ?? null })),
+          records: calRecords,
+          approvedLeaves: calApprovedLeaves ?? [],
+          markNoRecordDays: true,
+        })
+      })()
+
+  const calQuery = (extra: Record<string, string | undefined>) => {
+    const qp = new URLSearchParams()
+    if (monthParam) qp.set('month', monthParam)
+    for (const [k, v] of Object.entries(extra)) {
+      if (v) qp.set(k, v)
+      else qp.delete(k)
+    }
+    const qs = qp.toString()
+    return qs ? `?${qs}` : '?'
+  }
+  // #694: a "no record" day after the Attendance Agent's last heartbeat may be
+  // a sync failure, not an empty school. Null heartbeat = unknown = no warning.
+  const lastHeartbeat = await loadLastAgentHeartbeat(supabase)
+  const agentNotSynced = isTableView
+    ? noRecordDay && agentNotSyncedFor(date, lastHeartbeat)
+    : calendarCells.some((c) => c.noRecord && !!c.iso && agentNotSyncedFor(c.iso, lastHeartbeat))
+  const calendarHref = calQuery({ view: undefined })
+  const tableHref = calQuery({ view: 'table' })
+  const monthLabel = formatMonthYear(calYear, calMonth0, lang)
+
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-extrabold">{t('attendance.employeeTitle', lang)}</h1>
-        <Link href="/school" aria-label={t('common.back', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
-      </div>
+      <PageHeader
+        icon="attendance"
+        title={t('attendance.employeeTitle', lang)}
+        crumbs={schoolCrumbs('/school/attendance', lang, { label: t('attendance.title', lang), href: '/school/attendance' }, { label: t('attendance.employeeTitle', lang) })}
+      />
 
-      <AttendanceTabs active="/school/attendance/employee" lang={lang} />
+      <AttendanceTabs
+        active="/school/attendance/employee"
+        lang={lang}
+        extra={
+          <div className="flex flex-wrap items-center gap-2">
+            {!isTableView && (
+              <CalendarToolbar
+                monthLabel={monthLabel}
+                prevHref={calQuery({ month: shiftYearMonth(calPrefix, -1) })}
+                nextHref={calQuery({ month: shiftYearMonth(calPrefix, 1) })}
+                todayHref={calQuery({ month: undefined })}
+                lang={lang}
+              />
+            )}
+            <SegmentedControl
+              ariaLabel={t('attendance.viewSwitchLabel', lang)}
+              active={isTableView ? tableHref : calendarHref}
+              items={[
+                { href: calendarHref, label: t('attendance.viewCalendar', lang), icon: <CalendarDays className="size-4" />, iconOnlyOnMobile: true },
+                { href: tableHref, label: t('attendance.viewTable', lang), icon: <List className="size-4" />, iconOnlyOnMobile: true },
+              ]}
+            />
+          </div>
+        }
+      />
 
+      {agentNotSynced && lastHeartbeat && <AgentSyncWarning lastHeartbeat={lastHeartbeat} lang={lang} />}
+
+      {!isTableView && (
+        <section className="mb-4 rounded-2xl border border-line bg-paper p-card">
+          <MonthGridFrame monthLabel={monthLabel} lang={lang} weeklyOffDays={weeklyOffDays}>
+            {calendarCells.map((cell, i) => (
+              <EmployeeAttendanceDayCell
+                key={cell.iso ?? `pad-${i}`}
+                cell={cell}
+                lang={lang}
+                isToday={cell.iso === today}
+                isWeekend={isWeekendColumn(i, weeklyOffDays)}
+              />
+            ))}
+          </MonthGridFrame>
+          <div className="mt-4 flex flex-wrap items-center gap-4 text-xs">
+            <span className="flex items-center gap-1.5">
+              <span className="h-3 w-3 rounded-full bg-mint-soft" /> {t('attendance.regular', lang)}
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="h-3 w-3 rounded-full bg-sun-soft" /> {t('attendance.irregular', lang)}
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="h-3 w-3 rounded-full bg-alert-soft" /> {t('attendance.atRisk', lang)}
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="h-3 w-3 rounded-full bg-paper-muted" /> {t('status.holiday', lang)} / {t('attendance.calendarUpcoming', lang)}
+            </span>
+          </div>
+        </section>
+      )}
+
+      {isTableView && (
+      <>
       <Form className="mb-4 flex flex-wrap items-center gap-2" action="/school/attendance/employee">
+        {/* Without it, Filter drops ?view and lands back on the Calendar view. */}
+        <input type="hidden" name="view" value="table" />
         <input
           name="q"
           defaultValue={q}
           placeholder={t('attendance.employeeSearch', lang)}
-          className="w-56 rounded-md border border-line bg-paper px-3 py-1.5 text-sm"
+          className={`${inputClass()} w-56`}
         />
-        <input type="date" name="date" defaultValue={date} className={dateInputClass()} />
+        <DateField lang={lang} name="date" defaultValue={date} className={dateInputClass()} />
         <button
           type="submit"
-          className="cursor-pointer rounded-full border border-line px-3 py-1 text-xs font-semibold hover:bg-paper-muted"
+          className={filterButtonClass()}
         >
           {t('classes.filter', lang)}
         </button>
       </Form>
 
-      <section className="mb-4 rounded-lg border border-line bg-paper p-5">
+      <section className="mb-4 overflow-hidden rounded-2xl border border-line bg-paper">
         {!rows.length ? (
-          <p className="text-sm text-muted">{t('attendance.noEmployees', lang)}</p>
+          <p className="p-card text-sm text-muted">{t('attendance.noEmployees', lang)}</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full border-collapse">
-              <thead>
-                <tr className="border-b border-line-strong">
-                  <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">
+              <thead className="bg-paper-muted">
+                <tr>
+                  <th className="whitespace-nowrap px-4 py-3 text-left text-sm font-semibold text-muted">
                     {t('attendance.nameCol', lang)}
                   </th>
-                  <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">
+                  <th className="whitespace-nowrap px-4 py-3 text-left text-sm font-semibold text-muted">
                     {t('attendance.inCol', lang)}
                   </th>
-                  <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">
+                  <th className="whitespace-nowrap px-4 py-3 text-left text-sm font-semibold text-muted">
                     {t('attendance.outCol', lang)}
                   </th>
-                  <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">
+                  <th className="whitespace-nowrap px-4 py-3 text-left text-sm font-semibold text-muted">
                     {t('codes.status', lang)}
                   </th>
-                  <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">
+                  <th className="whitespace-nowrap px-4 py-3 text-left text-sm font-semibold text-muted">
                     {t('attendance.appliedGraceCol', lang)}
                   </th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-line">
                 {rows.map((r) => (
-                  <tr key={r.id} className="border-b border-line">
-                    <td className="px-3 py-2 text-sm font-medium">{r.full_name}</td>
-                    <td className="px-3 py-2 text-sm">{hhmm(r.entry)}</td>
-                    <td className="px-3 py-2 text-sm">{hhmm(r.exit)}</td>
-                    <td className="px-3 py-2 text-sm">
-                      <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${STATUS_BADGE[r.status]}`}>
-                        {t(`status.${r.status}` as 'status.on_time', lang)}
-                      </span>
+                  <tr key={r.id}>
+                    <td className="px-4 py-3 text-sm font-medium">{r.full_name}</td>
+                    <td className="px-4 py-3 text-sm">{hhmm(r.entry)}</td>
+                    <td className="px-4 py-3 text-sm">{hhmm(r.exit)}</td>
+                    <td className="px-4 py-3 text-sm">
+                      <Pill tone={STATUS_TONE[r.status]}>{r.status === 'no_record' && date === today ? t('employees.notInYet', lang) : t(`status.${r.status}` as 'status.on_time', lang)}</Pill>
                     </td>
-                    <td className="px-3 py-2 text-xs text-muted">
-                      {r.status === 'absent' || r.status === 'on_leave' ? (
+                    <td className="px-4 py-3 text-xs text-muted">
+                      {r.status === 'absent' || r.status === 'on_leave' || r.status === 'holiday' || r.status === 'no_record' ? (
                         '—'
                       ) : (
                         <>
@@ -220,10 +389,12 @@ export default async function EmployeeAttendancePage({
         )}
       </section>
 
-      <section className="rounded-lg border border-line bg-paper p-5">
+      <section className="rounded-2xl border border-line bg-paper p-card">
         <p className="text-sm text-muted">{t('attendance.employeeGraceNote', lang)}</p>
         <p className="mt-2 text-sm text-muted">{t('attendance.employeeRfidNote', lang)}</p>
       </section>
+      </>
+      )}
     </div>
   )
 }

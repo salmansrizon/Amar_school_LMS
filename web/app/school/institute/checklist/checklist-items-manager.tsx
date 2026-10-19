@@ -64,18 +64,20 @@ function ItemRow({
             name="label_en"
             defaultValue={item.label_en}
             placeholder={t('institute.checklistLabelEn', lang)}
+            aria-label={t('institute.checklistLabelEn', lang)}
             className={`${inputClass} min-w-40 flex-1`}
           />
           <input
             name="label_bn"
             defaultValue={item.label_bn}
             placeholder={t('institute.checklistLabelBn', lang)}
+            aria-label={t('institute.checklistLabelBn', lang)}
             className={`${inputClass} min-w-40 flex-1`}
           />
           <button
             type="submit"
             disabled={pending}
-            className="cursor-pointer rounded-full bg-brand-500 px-3 py-1 text-xs font-semibold text-white hover:bg-brand-600 disabled:opacity-50"
+            className="max-sm:min-h-11 cursor-pointer rounded-full bg-brand-500 px-3 py-1 text-xs font-semibold text-white hover:bg-brand-600 disabled:opacity-50"
           >
             {t('institute.save', lang)}
           </button>
@@ -172,17 +174,19 @@ export function ChecklistItemsManager({ lang, items }: { lang: Lang; items: Acti
         <input
           name="label_en"
           placeholder={t('institute.checklistLabelEn', lang)}
+          aria-label={t('institute.checklistLabelEn', lang)}
           className={`${inputClass} min-w-40 flex-1`}
         />
         <input
           name="label_bn"
           placeholder={t('institute.checklistLabelBn', lang)}
+          aria-label={t('institute.checklistLabelBn', lang)}
           className={`${inputClass} min-w-40 flex-1`}
         />
         <button
           type="submit"
           disabled={pending}
-          className="cursor-pointer rounded-full bg-brand-500 px-4 py-1.5 text-xs font-semibold text-white hover:bg-brand-600 disabled:opacity-50"
+          className="max-sm:min-h-11 cursor-pointer rounded-full bg-brand-500 px-4 py-1.5 text-xs font-semibold text-white hover:bg-brand-600 disabled:opacity-50"
         >
           {t('institute.checklistAddItem', lang)}
         </button>

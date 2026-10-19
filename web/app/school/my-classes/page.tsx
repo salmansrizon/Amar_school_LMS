@@ -1,11 +1,13 @@
 import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
-import { t, type Lang } from '@/lib/i18n'
+import { t, formatDate, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { applyGlobalShiftFilterToOfferings } from '@/lib/school/shift-filter'
 import { classCatalogueLabel } from '@/lib/class-catalogue'
 import { countFor, homeworkTargetsOffering, studentCounts } from '@/lib/classes'
 import { Card, PageHeader } from '@/components/ui/page'
+import { schoolCrumbs } from '@/lib/school-crumbs'
+import { pageTitle } from '@/lib/page-title'
 
 // The Class Teacher's own view (#443): the classes they are responsible for.
 //
@@ -14,6 +16,8 @@ import { Card, PageHeader } from '@/components/ui/page'
 // then remember to grant them a screen, and the page is self-scoping: it shows
 // the caller's own classes and nothing else. screenKeyForPath returns null for
 // this route, so the proxy leaves it alone.
+
+export const generateMetadata = pageTitle('myClasses.title')
 
 export default async function MyClassesPage() {
   const lang: Lang = await currentLang()
@@ -27,7 +31,7 @@ export default async function MyClassesPage() {
   if (!myEmployeeId) {
     return (
       <>
-        <PageHeader title={t('myClasses.title', lang)} />
+        <PageHeader icon="my-classes" title={t('myClasses.title', lang)} crumbs={schoolCrumbs('/school/my-classes', lang, { label: t('myClasses.title', lang) })} />
         <Card>
           <p className="text-sm text-muted">{t('myClasses.notLinked', lang)}</p>
         </Card>
@@ -69,7 +73,7 @@ export default async function MyClassesPage() {
 
   return (
     <>
-      <PageHeader title={t('myClasses.title', lang)} />
+      <PageHeader icon="my-classes" title={t('myClasses.title', lang)} crumbs={schoolCrumbs('/school/my-classes', lang, { label: t('myClasses.title', lang) })} />
       <Card>
         {!classes?.length ? (
           <p className="text-sm text-muted">{t('myClasses.none', lang)}</p>
@@ -107,6 +111,7 @@ export default async function MyClassesPage() {
                             className="rounded-full bg-paper-muted px-3 py-1 text-xs hover:bg-brand-50"
                           >
                             {t('myClasses.homework', lang)}: {task.title}
+                            {task.due_at && ` · ${t('student.taskDue', lang)}: ${formatDate(task.due_at, lang)}`}
                           </Link>
                         </li>
                       ))}

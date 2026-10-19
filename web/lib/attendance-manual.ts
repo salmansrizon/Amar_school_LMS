@@ -2,6 +2,8 @@
 // the off-day calendar (issue #29). Kept side-effect free for unit testing;
 // pages/actions do the Supabase I/O around these.
 
+import { schoolToday } from './school-time'
+
 export interface RosterStudent {
   id: string
   full_name: string
@@ -50,6 +52,13 @@ function dayOffInfo(
   const weekday = new Date(Date.UTC(y, m - 1, d)).getUTCDay()
   const off = offByDay.get(iso)
   return { isOff: weeklyOffDays.includes(weekday) || !!off, isSignificant: !!off?.is_significant, label: off?.label ?? null }
+}
+
+/** Whether one date is a School off-day: a configured Weekly Off-Day weekday or
+ *  an explicit off_days row. The single-date face of dayOffInfo, for pages that
+ *  hold one date rather than a month grid (mark page banner, employees list). */
+export function isOffDayIso(iso: string, offDays: readonly OffDay[], weeklyOffDays: readonly number[]): boolean {
+  return dayOffInfo(iso, new Map(offDays.map((o) => [o.day, o])), weeklyOffDays).isOff
 }
 
 function addDaysIso(iso: string, delta: number): string {
@@ -114,15 +123,27 @@ export function dateRangeDays(
 // future days and excused days stay blank rather than falsely reading absent.
 export type RegisterDayStatus = 'present' | 'absent' | 'blank'
 
+/** The first day a Student's absence can be inferred: the day they were
+ *  admitted, in the School's own calendar. CONTEXT.md's Attendance Rate window
+ *  starts at the current Enrollment, so a day before it was never a school day
+ *  for this Student and must not read as absent (audit F1). Null (unknown)
+ *  imposes no limit. */
+export function studentTrackingStart(createdAt: string | null | undefined): string | null {
+  return createdAt ? schoolToday(new Date(createdAt)) : null
+}
+
 export function registerDayStatus(args: {
   iso: string
   today: string
   isOff: boolean
   onApprovedLeave: boolean
   hasRecord: boolean
+  /** Days before this (YYYY-MM-DD) are not absences — see studentTrackingStart. */
+  startDay?: string | null
 }): RegisterDayStatus {
   if (args.hasRecord) return 'present'
   if (args.iso > args.today) return 'blank'
+  if (args.startDay && args.iso < args.startDay) return 'blank'
   if (args.isOff || args.onApprovedLeave) return 'blank'
   return 'absent'
 }
@@ -146,6 +167,8 @@ export function studentLogDayStatus(
   const coarse = registerDayStatus(args)
   if (coarse !== 'blank') return coarse
   if (args.iso > args.today) return null
+  // Before the Student's own window nothing is said about the day at all.
+  if (args.startDay && args.iso < args.startDay) return null
   // Off-day wins over approved leave when both are true: school is closed
   // either way, so the institutional fact outranks the personal one.
   return args.isOff ? 'holiday' : 'on_leave'

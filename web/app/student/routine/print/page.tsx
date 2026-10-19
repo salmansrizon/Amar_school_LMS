@@ -6,7 +6,9 @@ import { loadStudentRoutine } from '@/lib/student/routine-source'
 import { usedPeriods, weekPlan } from '@/lib/student/routine'
 import { loadInstitutePrintHeader } from '@/lib/institute-print'
 import { classSectionLabel } from '@/lib/students'
-import { PrintPage, InstituteHeader, InfoGrid } from '@/components/print/pieces'
+import { InfoGrid } from '@/components/print/pieces'
+import { PrintDocument } from '@/components/print/document'
+import { printSelfIdentity } from '@/lib/print-verify-server'
 
 // The weekly routine on paper (ADR 0007, browser-native).
 //
@@ -25,8 +27,7 @@ export default async function StudentRoutinePrintPage() {
   const periods = usedPeriods(rows)
 
   return (
-    <PrintPage>
-      <InstituteHeader institute={institute ?? undefined} docTitle={t('student.routineTitle', lang)} />
+    <PrintDocument lang={lang} institute={institute} docTitle={t('student.routineTitle', lang)} verify={{ kind: 'class_routine', refId: (await printSelfIdentity()).classOfferingId }}>
 
       <InfoGrid
         rows={[
@@ -74,6 +75,6 @@ export default async function StudentRoutinePrintPage() {
           ))}
         </tbody>
       </table>
-    </PrintPage>
+    </PrintDocument>
   )
 }

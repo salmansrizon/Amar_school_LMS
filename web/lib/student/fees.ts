@@ -19,6 +19,9 @@ export interface FeeRecord {
   due_amount: number
   payment_method: string | null
   updated_at: string
+  /** Migration 0258 (#707): the part of pay_amount beyond the month's bill.
+   *  Absent before 0258 — the pages read the view with `select('*')`. */
+  advance_amount?: number | null
 }
 
 /** Newest month first — the one a family is currently arguing about. */
@@ -35,12 +38,18 @@ export function sortFees(records: FeeRecord[]): FeeRecord[] {
  *  adding fine_amount again would bill the family for it twice and print a
  *  figure the school never issued.
  *
+ *  The exception is an overpaid month (#707): due is 0 and pay holds the
+ *  advance, which is money received beyond the bill, not part of it. A month
+ *  billed 110 and paid 130 asked for 110, so `advance_amount` (migration 0258)
+ *  is taken back out. Before 0258 the view has no such column and an overpaid
+ *  month still reads as pay + due.
+ *
  *  Derived here rather than read from fee_structures, which ADR 0015 keeps
  *  closed: the list price is what would betray a waiver by subtraction, and
  *  this figure is already net of it. Without it the statement showed "৳600
  *  paid" with nothing to compare it against. */
 export function payableOf(r: FeeRecord): number {
-  return Number(r.pay_amount ?? 0) + Number(r.due_amount ?? 0)
+  return Math.max(0, Number(r.pay_amount ?? 0) + Number(r.due_amount ?? 0) - Number(r.advance_amount ?? 0))
 }
 
 export interface FeeTotals {

@@ -1,0 +1,78 @@
+-- 0245_revoke_is_absent_working_day.sql
+-- Migration index #703, item 4.6.
+-- WRITTEN, NOT APPLIED. Apply AFTER 0218 (which redefines the same function
+-- with `create or replace`, keeping its grants). Applying this first is also
+-- safe - a later `create or replace` keeps the revoked state - but the order
+-- above is the one that was reasoned about.
+--
+-- WHAT
+--   Removes EXECUTE on public.is_absent_working_day(uuid, uuid, date) from
+--   public, anon and authenticated. The function itself is not changed.
+--
+-- WHY
+--   It is SECURITY DEFINER, takes a student id, a school id and a date, checks
+--   no caller, and has had Postgres' default EXECUTE-to-PUBLIC since 0021. So
+--   anyone holding the public anon key and a student id can ask whether that
+--   Student had an attendance record or approved leave on a date.
+--
+-- EFFECT ON EXISTING DATA
+--   None.
+--
+-- EFFECT PER ROLE
+--   Nobody uses it directly: no app code calls it (grep over web/app, web/lib,
+--   web/components). Every role keeps every screen it has. Calling it straight
+--   through the API now answers "permission denied" for School Owner, office
+--   staff, class teacher, subject teacher, Student and anon alike.
+--
+-- WHO CALLS IT, AND WHY THEY STILL WORK
+--   All six SQL callers are SECURITY DEFINER, so the call inside them runs as
+--   the function owner, who keeps EXECUTE whatever is revoked from other roles:
+--     absence_sms_candidates(text, date)                 0046
+--     absent_working_days_in_month(uuid, int, int)        0039
+--     absent_working_days_in_range(uuid, date, date)      0146
+--     student_absent_working_days(date, date)             0146
+--     student_class_attendance_days(date, date)           0218
+--     (0217's student_attendance_summary / school_attendance_summary are
+--      SECURITY INVOKER but do not call it.)
+--   Tests that called it directly are changed in the same commit to ask
+--   absent_working_days_in_range for the one day instead, which gives the same
+--   answer before and after this file:
+--     web/tests/integration/absence-sms.test.ts           (was anon)
+--     web/tests/integration/absent-day-weekly-off.test.ts (was the Owner)
+--
+-- PRE-CHECK (read-only; run before applying, keep the output)
+--   -- 1. The signature exists exactly once (expect 1 row).
+--   select oid::regprocedure, prosecdef from pg_proc
+--    where pronamespace = 'public'::regnamespace and proname = 'is_absent_working_day';
+--
+--   -- 2. The live grants (expect PUBLIC / anon / authenticated to hold EXECUTE today).
+--   select grantee, privilege_type from information_schema.routine_privileges
+--    where routine_schema = 'public' and routine_name = 'is_absent_working_day';
+--
+--   -- 3. Every function whose body calls it is SECURITY DEFINER.
+--   --    Expect prosecdef = true on every row except is_absent_working_day
+--   --    itself. A row with prosecdef = false is a caller that would BREAK:
+--   --    stop and do not apply.
+--   select p.oid::regprocedure, p.prosecdef
+--     from pg_proc p
+--    where p.pronamespace = 'public'::regnamespace
+--      and p.prosrc ilike '%is_absent_working_day%'
+--    order by 1;
+--
+--   -- 4. No policy or view calls it (expect 0 rows, 0 rows). A policy is
+--   --    evaluated as the requesting role and would break.
+--   select schemaname, tablename, policyname from pg_policies
+--    where coalesce(qual, '') || coalesce(with_check, '') ilike '%is_absent_working_day%';
+--   select schemaname, viewname from pg_views
+--    where schemaname = 'public' and definition ilike '%is_absent_working_day%';
+--
+-- ROLLBACK (exact; restores the default grants)
+--   grant execute on function public.is_absent_working_day(uuid, uuid, date) to public;
+--   grant execute on function public.is_absent_working_day(uuid, uuid, date) to anon, authenticated;
+--   notify pgrst, 'reload schema';
+
+revoke execute on function public.is_absent_working_day(uuid, uuid, date) from public;
+revoke execute on function public.is_absent_working_day(uuid, uuid, date) from anon;
+revoke execute on function public.is_absent_working_day(uuid, uuid, date) from authenticated;
+
+notify pgrst, 'reload schema';

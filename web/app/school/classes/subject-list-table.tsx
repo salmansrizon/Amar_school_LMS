@@ -1,18 +1,14 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { t, type Lang } from '@/lib/i18n'
-import { classCatalogueLabel, classCatalogueOptions, type ClassCatalogueRow } from '@/lib/class-catalogue'
-import { firstRelation } from '@/lib/supabase/relation'
-import { selectClass } from '@/components/ui/field'
+import { classCatalogueOptions, type ClassCatalogueRow } from '@/lib/class-catalogue'
+import { ComboboxField } from '@/components/ui/combobox-field'
 import { primaryBtnClass } from '@/components/auth-card'
 import { Modal } from '@/components/modal'
 import { copySubjectsToClass } from './actions'
-import { DeleteButton } from './class-controls'
-
-const thClass = 'px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted'
-const tdClass = 'px-3 py-2 text-sm'
 
 export interface SubjectListRow {
   id: string
@@ -94,18 +90,15 @@ function CopySubjectsAction({
           />
         ) : (
           <div className="grid gap-3">
-            <select
+            <ComboboxField
               value={targetClassId}
-              onChange={(e) => setTargetClassId(e.target.value)}
-              className={selectClass({ size: 'md', fullWidth: true })}
-            >
-              <option value="">{t('institute.selectOne', lang)}</option>
-              {targetOptions.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.label}
-                </option>
-              ))}
-            </select>
+              onValueChange={setTargetClassId}
+              className="w-full"
+              options={[
+                { value: '', label: t('institute.selectOne', lang) },
+                ...targetOptions.map((o) => ({ value: o.value, label: o.label })),
+              ]}
+            />
             {error && <p className="text-sm text-alert-deep">{error}</p>}
             <button
               type="button"
@@ -129,118 +122,45 @@ function CopySubjectsAction({
   )
 }
 
-/** Subject List's table (issue #642) — a client component so a shared
- *  checkbox-selection Set can live above every row and the bulk "Copy to
- *  Class" action that reads it. `subjects` is whatever the page's own
- *  Global Selection + Class filter (issue #641) already narrowed it to;
- *  selection is derived by intersecting with the live `subjects` prop on
- *  every read (never trusted as-is) so a stale id surviving a filter change
- *  underneath this same component instance can never leak into a copy. */
-export function SubjectListTable({
+/** The staged "Copy to Class" run (issue #642, map 013 A1): the DataTable
+ *  bulk bar picked the Subjects (`?copy=`), this bar opens the target-class
+ *  Modal. `selectedIds` is already intersected with the visible Subjects by
+ *  the page, so a stale id in the URL never reaches the copy. */
+export function CopySubjectsBar({
   lang,
-  subjects,
-  showYear,
+  selectedIds,
+  sourceClassIds,
   allClasses,
-  noSubjectsMessage,
+  showYear,
+  cancelHref,
 }: {
   lang: Lang
-  subjects: SubjectListRow[]
-  showYear: boolean
+  selectedIds: string[]
+  sourceClassIds: string[]
   allClasses: ClassCatalogueRow[]
-  noSubjectsMessage: string
+  showYear: boolean
+  cancelHref: string
 }) {
   const router = useRouter()
-  const [selected, setSelected] = useState<ReadonlySet<string>>(new Set())
-
-  const selectedSubjects = subjects.filter((s) => selected.has(s.id))
-  const selectedIds = selectedSubjects.map((s) => s.id)
-  const allSelected = subjects.length > 0 && subjects.every((s) => selected.has(s.id))
-  const sourceClassIds = new Set(selectedSubjects.map((s) => s.class_id).filter((id): id is string => id != null))
-  const targetOptions = classCatalogueOptions(allClasses, showYear).filter((o) => !sourceClassIds.has(o.value))
-
-  const toggleAll = () => setSelected(allSelected ? new Set() : new Set(subjects.map((s) => s.id)))
-  const toggleOne = (id: string) =>
-    setSelected((prev) => {
-      const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
-      return next
-    })
-
-  if (!subjects.length) return <p className="text-sm text-muted">{noSubjectsMessage}</p>
-
+  const sources = new Set(sourceClassIds)
+  const targetOptions = classCatalogueOptions(allClasses, showYear).filter((o) => !sources.has(o.value))
   return (
-    <div className="grid gap-3">
-      {selectedIds.length > 0 && (
-        <div className="flex items-center gap-2">
-          <CopySubjectsAction
-            lang={lang}
-            selectedIds={selectedIds}
-            targetOptions={targetOptions}
-            onCopied={() => {
-              setSelected(new Set())
-              router.refresh()
-            }}
-          />
-        </div>
-      )}
-      <div className="overflow-x-auto">
-        <table className="w-full border-collapse">
-          <thead>
-            <tr className="border-b border-line-strong">
-              <th className={thClass}>
-                <input
-                  type="checkbox"
-                  aria-label={t('classes.selectAll', lang)}
-                  checked={allSelected}
-                  onChange={toggleAll}
-                />
-              </th>
-              <th className={thClass}>{t('classes.subject', lang)}</th>
-              <th className={thClass}>{t('classes.class', lang)}</th>
-              <th className={thClass}>{t('classes.theory', lang)}</th>
-              <th className={thClass}>{t('classes.mcq', lang)}</th>
-              <th className={thClass}>{t('classes.practical', lang)}</th>
-              <th className={thClass}>{t('classes.multiPaper', lang)}</th>
-              <th className={thClass}>{t('classes.actions', lang)}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {subjects.map((s) => {
-              const cls = firstRelation(s.class_offerings)
-              return (
-                <tr key={s.id} className="border-b border-line">
-                  <td className={tdClass}>
-                    <input type="checkbox" checked={selected.has(s.id)} onChange={() => toggleOne(s.id)} />
-                  </td>
-                  <td className={`${tdClass} font-medium`}>
-                    {s.name}
-                    {s.code ? <span className="text-muted"> ({s.code})</span> : null}
-                  </td>
-                  <td className={tdClass}>
-                    {cls ? classCatalogueLabel(cls, showYear) : <span className="text-muted">—</span>}
-                  </td>
-                  <td className={tdClass}>{s.theory_marks > 0 ? s.theory_marks : <span className="text-muted">—</span>}</td>
-                  <td className={tdClass}>{s.mcq_marks > 0 ? s.mcq_marks : <span className="text-muted">—</span>}</td>
-                  <td className={tdClass}>{s.practical_marks > 0 ? s.practical_marks : <span className="text-muted">—</span>}</td>
-                  <td className={tdClass}>
-                    <span
-                      className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
-                        s.paper_count > 1 ? 'bg-sky-soft text-sky-deep' : 'bg-paper-muted text-muted'
-                      }`}
-                    >
-                      {s.paper_count > 1 ? `${s.paper_count} ${t('classes.papersWord', lang)}` : t('classes.singlePaper', lang)}
-                    </span>
-                  </td>
-                  <td className={tdClass}>
-                    <DeleteButton entity="subjects" id={s.id} lang={lang} />
-                  </td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
-      </div>
+    <div
+      role="status"
+      className="mb-grid flex flex-wrap items-center gap-2 rounded-lg border border-brand-100 bg-brand-50 px-card py-2"
+    >
+      <span className="text-sm font-semibold">
+        {selectedIds.length} {t('table.selected', lang)}
+      </span>
+      <CopySubjectsAction
+        lang={lang}
+        selectedIds={selectedIds}
+        targetOptions={targetOptions}
+        onCopied={() => router.replace(cancelHref, { scroll: false })}
+      />
+      <Link href={cancelHref} scroll={false} className="ml-auto text-xs font-semibold text-muted hover:text-ink">
+        {t('table.clearSelection', lang)}
+      </Link>
     </div>
   )
 }

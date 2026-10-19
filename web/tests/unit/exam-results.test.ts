@@ -188,10 +188,33 @@ describe('rankResults', () => {
     expect(ranked.find((r) => r.studentId === 'a')?.position).toBe(2)
   })
 
-  it('ties on the ranking basis share a position, and the next rank skips the tied count (1224)', () => {
+  it('total marks break a GPA tie on the grade basis', () => {
     const results = [
       result({ studentId: 'a', gpa: 5, percent: 92 }),
       result({ studentId: 'b', gpa: 5, percent: 90 }),
+      result({ studentId: 'c', gpa: 3, percent: 99 }),
+    ]
+    const ranked = rankResults(results, 'grade')
+    expect(ranked.find((r) => r.studentId === 'a')?.position).toBe(1)
+    expect(ranked.find((r) => r.studentId === 'b')?.position).toBe(2)
+    // GPA still decides first: the highest marks on a lower GPA rank last.
+    expect(ranked.find((r) => r.studentId === 'c')?.position).toBe(3)
+  })
+
+  it('a band-less scheme (no GPA) ranks by marks instead of tying everyone at 1', () => {
+    const results = [
+      result({ studentId: 'a', gpa: null, percent: 85 }),
+      result({ studentId: 'b', gpa: null, percent: 66.5 }),
+    ]
+    const ranked = rankResults(results, 'grade')
+    expect(ranked.find((r) => r.studentId === 'a')?.position).toBe(1)
+    expect(ranked.find((r) => r.studentId === 'b')?.position).toBe(2)
+  })
+
+  it('equal GPA and equal marks share a position, and the next rank skips the tied count (1224)', () => {
+    const results = [
+      result({ studentId: 'a', gpa: 5, percent: 92 }),
+      result({ studentId: 'b', gpa: 5, percent: 92 }),
       result({ studentId: 'c', gpa: 3, percent: 60 }),
     ]
     const ranked = rankResults(results, 'grade')

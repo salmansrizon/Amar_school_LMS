@@ -8,7 +8,18 @@ import { cleanupAll, ownerClient, createClass, createStudent } from './factories
 // payment (create) → verify the fee_collection_record → edit the amount (update).
 // No delete (financial record). Asserted against the DB via the owner client.
 
-const SAVE = 'আদায় করুন ও রসিদ ছাপুন' // fees.collectAndPrint
+const REVIEW = 'রসিদ দেখে নিন' // fees.reviewReceipt
+const SAVE = 'নিশ্চিত করুন ও রসিদ ছাপুন' // fees.confirmCollect
+
+// #531 made saving two presses (review, then confirm), and receiving more than
+// the fee now needs an advance-payment acknowledgement — so the fee is filled
+// in too, the way an operator at a school with no Fee Structure would.
+async function collect(page: import('@playwright/test').Page, amount: string) {
+  await page.locator('#fee_amount').fill(amount)
+  await page.locator('#received_amount').fill(amount)
+  await page.getByRole('button', { name: REVIEW }).click()
+  await page.getByRole('button', { name: SAVE }).click()
+}
 
 async function feePayAmount(owner: Awaited<ReturnType<typeof ownerClient>>, studentId: string): Promise<number> {
   const { data } = await owner
@@ -34,14 +45,12 @@ test.describe('@crud @school fees-deep', () => {
 
     // Create: record a 500 payment.
     await page.goto(url)
-    await page.locator('#received_amount').fill('500')
-    await page.getByRole('button', { name: SAVE }).click()
+    await collect(page, '500')
     await expect.poll(() => feePayAmount(owner, student.id)).toBe(500)
 
     // Update: edit the amount to 700.
     await page.goto(url)
-    await page.locator('#received_amount').fill('700')
-    await page.getByRole('button', { name: SAVE }).click()
+    await collect(page, '700')
     await expect.poll(() => feePayAmount(owner, student.id)).toBe(700)
     await expectNoError(page)
 

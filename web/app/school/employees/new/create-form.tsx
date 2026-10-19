@@ -4,11 +4,16 @@ import { useRef, useState, useTransition } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { t, type Lang } from '@/lib/i18n'
+import { Field } from '@/components/ui/labeled-field'
 import { createEmployee } from '../actions'
 import { dateInputClass } from '@/components/ui/field'
 import { reachSentences } from '@/lib/school/teacher-reach'
 import { EMPLOYEE_CATEGORIES, EMPLOYEE_CATEGORY_LABEL_KEY, isKnownEmployeeCategory } from '@/lib/employees'
 import { ACADEMIC_SHIFT_LABEL_KEY, type AcademicShift } from '@/lib/institute'
+import { ComboboxField } from '@/components/ui/combobox-field'
+import { mobileInputProps } from '@/lib/bd-mobile'
+import { PERSON_NAME_MAX } from '@/lib/name'
+import { DateField } from '@/components/ui/date-field'
 
 export const fieldClass =
   'w-full rounded-md border border-line bg-paper px-3 py-2 text-sm focus:border-brand-500 focus:outline-none'
@@ -20,15 +25,6 @@ export function Card({ title, children }: { title: string; children: React.React
       <h3 className="mb-3 font-bold">{title}</h3>
       {children}
     </section>
-  )
-}
-
-export function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div>
-      <label className={fieldLabelClass}>{label}</label>
-      {children}
-    </div>
   )
 }
 
@@ -75,16 +71,22 @@ export function ProfileFields({
       <Card title={t('employees.identity', lang)}>
         <div className="grid gap-3 sm:grid-cols-2">
           <Field label={t('employees.name', lang)}>
-            <input name="full_name" required defaultValue={d('full_name')} className={fieldClass} />
+            <input name="full_name" required maxLength={PERSON_NAME_MAX} defaultValue={d('full_name')} className={fieldClass} />
           </Field>
           <Field label={t('employees.mobile', lang)}>
-            <input name="mobile" defaultValue={d('mobile')} className={fieldClass} placeholder="01xxxxxxxxx" />
+            <input
+              name="mobile"
+              defaultValue={d('mobile')}
+              className={fieldClass}
+              placeholder="01xxxxxxxxx"
+              {...mobileInputProps(d('mobile'), t('people.errMobileInvalid', lang))}
+            />
           </Field>
           <Field label={t('employees.dob', lang)}>
-            <input type="date" name="date_of_birth" defaultValue={d('date_of_birth')} className={dateInputClass({ size: 'md', fullWidth: true })} />
+            <DateField lang={lang} name="date_of_birth" defaultValue={d('date_of_birth')} className={dateInputClass({ size: 'md', fullWidth: true })} />
           </Field>
           <Field label={t('employees.joiningDate', lang)}>
-            <input type="date" name="joining_date" defaultValue={d('joining_date')} className={dateInputClass({ size: 'md', fullWidth: true })} />
+            <DateField lang={lang} name="joining_date" defaultValue={d('joining_date')} className={dateInputClass({ size: 'md', fullWidth: true })} />
           </Field>
         </div>
       </Card>
@@ -107,25 +109,24 @@ export function ProfileFields({
 
       <Card title={t('employees.categoryQualification', lang)}>
         <div className="grid gap-3 sm:grid-cols-2">
-          <Field label={t('employees.category', lang)}>
-            <select name="category" defaultValue={d('category')} className={fieldClass}>
-              <option value="">{t('employees.categoryUnset', lang)}</option>
-              {EMPLOYEE_CATEGORIES.map((c) => (
-                <option key={c} value={c}>
-                  {t(EMPLOYEE_CATEGORY_LABEL_KEY[c], lang)}
-                </option>
-              ))}
-              {/* A category that predates the fixed list (issue #567) — the
-                  seed data itself has "Head Teacher" — stays selectable and
-                  selected, so opening the edit form doesn't blank or change
-                  it just because it isn't one of the four. Never appears on
-                  the create form: `defaults` is empty there. */}
-              {d('category') && !isKnownEmployeeCategory(d('category')) && (
-                <option value={d('category')}>
-                  {d('category')} — {t('employees.categoryLegacy', lang)}
-                </option>
-              )}
-            </select>
+          <Field label={t('employees.category', lang)} htmlFor="employee_category">
+            {/* A category that predates the fixed list (issue #567) — the
+                seed data itself has "Head Teacher" — stays selectable and
+                selected, so opening the edit form doesn't blank or change
+                it just because it isn't one of the four. Never appears on
+                the create form: `defaults` is empty there. */}
+            <ComboboxField
+              id="employee_category"
+              name="category"
+              defaultValue={d('category')}
+              options={[
+                { value: '', label: t('employees.categoryUnset', lang) },
+                ...EMPLOYEE_CATEGORIES.map((c) => ({ value: c, label: t(EMPLOYEE_CATEGORY_LABEL_KEY[c], lang) })),
+                ...(d('category') && !isKnownEmployeeCategory(d('category'))
+                  ? [{ value: d('category'), label: `${d('category')} — ${t('employees.categoryLegacy', lang)}` }]
+                  : []),
+              ]}
+            />
           </Field>
           <Field label={t('employees.qualification', lang)}>
             <input name="qualification" defaultValue={d('qualification')} className={fieldClass} />
@@ -185,20 +186,19 @@ function LoginAndClassFields({
 
       <Card title={t('teacher.stepClass', lang)}>
         <p className="mb-3 text-xs text-muted">{t('teacher.stepClassHelp', lang)}</p>
-        <select
+        <ComboboxField
           name="class_id"
+          aria-label={t('teacher.stepClass', lang)}
           value={classId}
-          onChange={(e) => onClassChange(e.target.value)}
-          className={fieldClass}
-        >
-          <option value="">{t('teacher.noClassYet', lang)}</option>
-          {classes.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.label}
-              {c.taken ? ` — ${t('teacher.classAlreadyHasTeacher', lang)}` : ''}
-            </option>
-          ))}
-        </select>
+          onValueChange={onClassChange}
+          options={[
+            { value: '', label: t('teacher.noClassYet', lang) },
+            ...classes.map((c) => ({
+              value: c.id,
+              label: `${c.label}${c.taken ? ` — ${t('teacher.classAlreadyHasTeacher', lang)}` : ''}`,
+            })),
+          ]}
+        />
       </Card>
     </>
   )
@@ -228,6 +228,11 @@ export function CreateEmployeeForm({
   return (
     <form
       ref={formRef}
+      // Never a GET: a submit before hydration must not put the password in the URL.
+      method="post"
+      // The server validates (name, mobile, email, password) and answers in the
+      // UI language into the error line below; native bubbles are always English.
+      noValidate
       onSubmit={(e) => {
         e.preventDefault()
         const data = new FormData(e.currentTarget)

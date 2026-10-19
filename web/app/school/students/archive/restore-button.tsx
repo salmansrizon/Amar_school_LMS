@@ -23,7 +23,7 @@ export function RestoreButton({ lang, studentId }: { lang: Lang; studentId: stri
             else router.refresh()
           })
         }
-        className="cursor-pointer rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted disabled:opacity-50"
+        className="inline-flex h-9 cursor-pointer items-center rounded-full border border-line-strong px-4 text-xs font-semibold hover:bg-paper-muted disabled:opacity-50"
       >
         {t('students.restore', lang)}
       </button>

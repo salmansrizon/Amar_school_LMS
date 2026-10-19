@@ -1,45 +1,42 @@
 'use client'
 
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import type { ThemePreference } from '@/lib/ui-prefs'
 import { AppShell, type AppNavItem } from '@/components/app-shell'
 import { Icon } from '@/components/school-icons'
-import { SearchPalette, type PaletteEntry } from '@/components/search-palette'
+import type { PaletteEntry } from '@/components/search-palette'
 import { NotificationBell } from '@/components/notification-bell'
 import { ShiftSelector } from '@/components/shift-selector'
 import { SCHOOL_SEARCH } from '@/lib/school-search'
-import { t, type Lang } from '@/lib/i18n'
+import { numberFmt, t, type Lang } from '@/lib/i18n'
 import { FOCUS_RING, ICON_BUTTON } from '@/lib/ui-tokens'
 import { canOpenScreen, FEATURE_KEYS } from '@/lib/auth/screens'
-import type { ScreenKey } from '@/lib/auth/screens'
 import type { Role } from '@/lib/auth/routing'
-import { SCHOOL_MODULES } from '@/lib/school-nav'
+import { SCHOOL_NAV_GROUPS, flattenSchoolModules, navGroupFor, type SchoolNavItem } from '@/lib/school-nav'
+import { HUB_HOME } from '@/lib/student/hub'
 import type { SchoolSmsCredit } from '@/lib/sms/credit'
 
 // SMS-balance badge styling by level (map #171 T9).
 const SMS_BADGE_STYLE = {
-  ok: 'border-line-strong text-muted hover:bg-brand-50 hover:text-brand-600',
-  low: 'border-amber-300 bg-amber-50 text-amber-600 hover:bg-amber-100',
-  empty: 'border-alert/40 bg-alert-soft text-alert-deep hover:bg-alert-soft',
+  ok: 'border-brand-100 bg-brand-50 text-brand-700 hover:border-brand-300',
+  low: 'border-sun/50 bg-sun-soft text-sun-deep hover:border-sun',
+  empty: 'border-alert/40 bg-alert-soft text-alert-deep hover:border-alert',
 } as const
 
 // School route-group chrome. Now a thin adapter over the shared AppShell (#285):
 // it builds the grant/feature-gated school nav and passes the school-specific
 // slots (SMS badge, notification bell, global search, Add-Student CTA). Classes
 // -> Attendance nesting is grouping only (same row style at both levels, ui.md
-// issue 1), so that one level is flattened into visible order — unchanged,
-// behaviour-preserving vs the previous bespoke shell. Attendance's OWN children
-// (Off-Day Calendar/Students/Employees, map #667) are a second, different kind
-// of nesting: they're attached as real `AppNavItem.children` instead, so
-// AppShell's NavLinks renders them indented and always-visible under Attendance
-// specifically, never flattened into more top-level-styled rows.
-function buildSchoolNav(
-  role: Role,
-  grants: readonly string[],
-  lang: Lang,
-  enabledFeatures?: readonly string[],
-): AppNavItem[] {
-  const allow = (screen: ScreenKey) => {
+// issue 1), so that one level is flattened into visible order. Attendance's OWN
+// children (Off-Day Calendar/Students/Employees/Machine, map #667) are a second,
+// different kind of nesting: they're attached as real `AppNavItem.children`, so
+// AppShell's NavLinks renders them indented and always-visible under Attendance,
+// never flattened into more top-level-styled rows.
+type Allow = (screen: SchoolNavItem['screen']) => boolean
+
+function schoolAllow(role: Role, grants: readonly string[], enabledFeatures?: readonly string[]): Allow {
+  return (screen) => {
     if (!canOpenScreen(role, grants, screen)) return false
     if (
       enabledFeatures &&
@@ -50,36 +47,71 @@ function buildSchoolNav(
     }
     return true
   }
-  const toItem = (it: {
-    screen: ScreenKey
-    href: string
-    titleKey: Parameters<typeof t>[0]
-    icon?: string
-    matchPrefixes?: string[]
-  }): AppNavItem => ({
-    href: it.href,
-    label: t(it.titleKey, lang),
-    // An entry riding the always-available sentinel names its own glyph, or it
-    // would wear the dashboard's (lib/school-nav.ts).
-    icon: <Icon name={(it.icon ?? it.screen) as Parameters<typeof Icon>[0]['name']} className="size-5" />,
-    matchExact: it.href === '/school',
-    matchPrefixes: it.matchPrefixes,
-  })
+}
 
-  const src = [
-    { screen: 'dashboard' as const, href: '/school', titleKey: 'dash.dashboard' as const },
-    ...SCHOOL_MODULES,
-  ]
+function buildSchoolNav(allow: Allow, lang: Lang, hubBacklog = 0): AppNavItem[] {
   const out: AppNavItem[] = []
-  for (const it of src) {
-    if (allow(it.screen)) out.push(toItem(it))
-    for (const child of 'children' in it ? (it.children ?? []) : []) {
-      if (!allow(child.screen)) continue
-      const grandchildren = (child.children ?? []).filter((gc) => allow(gc.screen)).map(toItem)
-      out.push(grandchildren.length ? { ...toItem(child), children: grandchildren } : toItem(child))
+  for (const group of SCHOOL_NAV_GROUPS) {
+    const section = t(group.labelKey, lang)
+    const toItem = (it: SchoolNavItem): AppNavItem => ({
+      href: it.href,
+      label: t(it.titleKey, lang),
+      // An entry riding the always-available sentinel names its own glyph, or it
+      // would wear the dashboard's (lib/school-nav.ts).
+      icon: <Icon name={(it.icon ?? it.screen) as Parameters<typeof Icon>[0]['name']} className="size-5" />,
+      matchExact: it.href === '/school',
+      matchPrefixes: it.matchPrefixes,
+      badge: it.href === HUB_HOME && hubBacklog > 0 ? hubBacklog : undefined,
+      section,
+    })
+    for (const it of group.items) {
+      if (allow(it.screen)) out.push(toItem(it))
+      for (const child of it.children ?? []) {
+        if (!allow(child.screen)) continue
+        const grandchildren = (child.children ?? []).filter((gc) => allow(gc.screen)).map(toItem)
+        out.push(grandchildren.length ? { ...toItem(child), children: grandchildren } : toItem(child))
+      }
     }
   }
   return out
+}
+
+// Phone bottom tab bar (map 013 F5): one tab per nav group, pointing at the
+// group's first screen this user can open; a group with none is hidden.
+function SchoolBottomNav({ allow, lang }: { allow: Allow; lang: Lang }) {
+  const pathname = usePathname()
+  const activeKey = navGroupFor(pathname)?.group.key
+  const tabs = SCHOOL_NAV_GROUPS.flatMap((group) => {
+    const first = flattenSchoolModules(group.items).find((it) => allow(it.screen))
+    return first ? [{ group, href: first.href }] : []
+  })
+  if (tabs.length === 0) return null
+  return (
+    <nav
+      aria-label={t('shell.bottomNav', lang)}
+      className="border-t border-line/70 bg-paper pb-[env(safe-area-inset-bottom)] md:hidden"
+    >
+      <ul className="flex">
+        {tabs.map(({ group, href }) => {
+          const active = group.key === activeKey
+          return (
+            <li key={group.key} className="min-w-0 flex-1">
+              <Link
+                href={href}
+                aria-current={active ? 'page' : undefined}
+                className={`flex min-h-14 flex-col items-center justify-center gap-0.5 px-1 text-[11px] font-semibold transition-transform motion-safe:active:scale-95 ${FOCUS_RING} ${
+                  active ? 'text-brand-600' : 'text-muted hover:text-brand-600'
+                }`}
+              >
+                <Icon name={group.icon as Parameters<typeof Icon>[0]['name']} className="size-5" />
+                <span className="max-w-full truncate">{t(group.shortLabelKey, lang)}</span>
+              </Link>
+            </li>
+          )
+        })}
+      </ul>
+    </nav>
+  )
 }
 
 export function SchoolShell({
@@ -92,6 +124,7 @@ export function SchoolShell({
   initialCollapsed = false,
   banner,
   smsCredit = null,
+  hubBacklog = 0,
   enabledFeatures,
   configuredShifts = [],
   shiftSelection = [],
@@ -109,6 +142,8 @@ export function SchoolShell({
   initialCollapsed?: boolean
   banner?: React.ReactNode
   smsCredit?: SchoolSmsCredit | null
+  /** Unanswered questions + pending corrections in the caller's reach. */
+  hubBacklog?: number
   enabledFeatures?: readonly string[]
   /** Global Shift Selection (issue #577, Wave 5/#590) — configuredShifts empty
    *  means a No-Shift institute, so the selector doesn't render at all. */
@@ -122,7 +157,8 @@ export function SchoolShell({
   academicYearSelection?: readonly number[]
   children: React.ReactNode
 }) {
-  const nav = buildSchoolNav(role, grants, lang, enabledFeatures)
+  const allow = schoolAllow(role, grants, enabledFeatures)
+  const nav = buildSchoolNav(allow, lang, hubBacklog)
   const canAddStudent = canOpenScreen(role, grants, 'students')
 
   // School keeps its rich feature index (keywords per screen), grant-filtered.
@@ -141,8 +177,8 @@ export function SchoolShell({
       title={t('shell.addStudent', lang)}
       className={`flex min-h-11 items-center justify-center gap-2 whitespace-nowrap rounded-2xl bg-brand-600 px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-brand-700 ${FOCUS_RING}`}
     >
-      <Icon name="plus" className="size-4" />
-      {t('shell.addStudent', lang)}
+      <Icon name="plus" className="size-5" />
+      <span>{t('shell.addStudent', lang)}</span>
     </Link>
   ) : undefined
 
@@ -150,26 +186,27 @@ export function SchoolShell({
     <Link
       href="/school/sms"
       title={t('sms.balance', lang)}
+      aria-label={`${t('sms.balance', lang)}: ${smsCredit.balance}`}
       className={`inline-flex min-h-9 items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-bold transition ${FOCUS_RING} ${SMS_BADGE_STYLE[smsCredit.level]}`}
     >
       <Icon name="sms" className="size-4 shrink-0" />
-      <span>{smsCredit.balance}</span>
+      <span>
+        <span className="hidden lg:inline">{t('sms.chipLabel', lang)}: </span>
+        {numberFmt(lang).format(smsCredit.balance)}
+        <span className="hidden lg:inline"> {t('sms.chipCredit', lang)}</span>
+      </span>
     </Link>
   ) : undefined
 
-  const topbarExtras = (
-    <>
-      {smsBadge}
-      <ShiftSelector
-        lang={lang}
-        buttonClass={ICON_BUTTON}
-        configuredShifts={configuredShifts}
-        initialSelection={shiftSelection}
-        startedAcademicYears={startedAcademicYears}
-        activeAcademicYear={activeAcademicYear}
-        academicYearSelection={academicYearSelection}
-      />
-    </>
+  const shiftSelector = (
+    <ShiftSelector
+      lang={lang}
+      configuredShifts={configuredShifts}
+      initialSelection={shiftSelection}
+      startedAcademicYears={startedAcademicYears}
+      activeAcademicYear={activeAcademicYear}
+      academicYearSelection={academicYearSelection}
+    />
   )
 
   return (
@@ -185,7 +222,9 @@ export function SchoolShell({
         entries: searchEntries,
       }}
       bell={<NotificationBell lang={lang} buttonClass={ICON_BUTTON} />}
-      topbarExtras={topbarExtras}
+      topbarLead={shiftSelector}
+      topbarExtras={smsBadge}
+      bottomNav={role === 'school_owner' ? <SchoolBottomNav allow={allow} lang={lang} /> : undefined}
       banner={banner}
       footerCta={footerCta}
     >

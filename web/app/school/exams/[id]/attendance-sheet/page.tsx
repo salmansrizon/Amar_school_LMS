@@ -6,11 +6,14 @@ import { getSchoolContext } from '@/lib/school/context'
 import { loadInstitutePrintHeader } from '@/lib/institute-print'
 import { sittingLabel, studentsInRanges, type SheetStudent } from '@/lib/exam-attendance-sheet'
 import { enrolledStudentIds, enrolledIdFilter } from '@/lib/school/offering-roster'
-import { PrintPage, InstituteHeader, InfoGrid, PaginatedSheet, SignatureRow } from '@/components/print/pieces'
-import { PrintButton } from '@/components/print/print-button'
+import { InfoGrid, SignatureRow } from '@/components/print/pieces'
+import { PrintTrigger } from '@/components/print/print-trigger'
+import { withParams } from '@/lib/url-params'
 import { embeddedBuildingName } from '@/lib/venues'
 import { BackLink } from '@/components/back-link'
 import { resolveBackHref } from '@/lib/back-nav'
+import { pageTitle } from '@/lib/page-title'
+import { PrintDocument } from '@/components/print/document'
 
 // Exam attendance sheet (issue #97, docs/improvement.md §4; ADR 0007).
 //
@@ -22,6 +25,8 @@ import { resolveBackHref } from '@/lib/back-nav'
 // actually wants — invigilators are briefed together); adding `&room=<roomId>`
 // prints the single sheet. A separate batch page would duplicate this whole
 // loader for one query-string difference.
+
+export const generateMetadata = pageTitle('examAttendanceSheet.title')
 
 export default async function ExamAttendanceSheetPage({
   params,
@@ -159,7 +164,7 @@ export default async function ExamAttendanceSheetPage({
         >
           {t('examAttendanceSheet.otherSittings', lang)}
         </Link>
-        <PrintButton label={t('print.print', lang)} />
+        <PrintTrigger href={`/school/exams/${id}/attendance-sheet/print${withParams({ entry: entryId, room: roomFilter }, {})}`} label={t('print.print', lang)} />
       </div>
 
       {!roomIds.length ? (
@@ -172,18 +177,17 @@ export default async function ExamAttendanceSheetPage({
           const ranges = (seatRows ?? []).filter((r) => r.room_id === roomId)
           const seated = studentsInRanges(students, ranges)
           return (
-            <PrintPage key={roomId} orientation="landscape">
-              {/* A full room spills past one sheet, so the header repeats
-                  (issue #92): a page 2 with no institution block is not a
-                  document an invigilator can hand back. */}
-              <PaginatedSheet
-                header={
-                  <InstituteHeader
-                    institute={institute}
-                    docTitle={`${t('examAttendanceSheet.docWord', lang)} — ${examLabel}`}
-                  />
-                }
-              >
+            // A full room spills past one sheet, so the header repeats (issue
+            // #92): a page 2 with no institution block is not a document an
+            // invigilator can hand back.
+            <PrintDocument
+              key={roomId}
+              lang={lang}
+              institute={institute}
+              docTitle={`${t('examAttendanceSheet.docWord', lang)} — ${examLabel}`}
+              verify={{ kind: 'exam_attendance_sheet', refId: id }}
+              orientation="landscape"
+            >
               <InfoGrid
                 rows={[
                   { label: t('examAttendanceSheet.subject', lang), value: subjectName.get(sitting.subject_id) ?? '—' },
@@ -211,8 +215,8 @@ export default async function ExamAttendanceSheetPage({
                 <tbody>
                   {seated.map((student, i) => (
                     <tr key={student.id}>
-                      <td className={tdClass}>{i + 1}</td>
-                      <td className={tdClass}>{student.roll_number}</td>
+                      <td className={`${tdClass} print-num`}>{i + 1}</td>
+                      <td className={`${tdClass} print-num`}>{student.roll_number}</td>
                       <td className={tdClass}>{student.full_name}</td>
                       <td className={tdClass}>
                         {student.class_name}
@@ -233,8 +237,7 @@ export default async function ExamAttendanceSheetPage({
                 ]}
               />
               <p className="mt-3 text-center text-xs text-muted">{label}</p>
-              </PaginatedSheet>
-            </PrintPage>
+            </PrintDocument>
           )
         })
       )}

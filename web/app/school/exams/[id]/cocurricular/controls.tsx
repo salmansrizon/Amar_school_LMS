@@ -72,24 +72,24 @@ export function CocurricularEntryTable({
     <div>
       <div className="overflow-x-auto">
         <table className="w-full border-collapse text-sm">
-          <thead>
-            <tr className="border-b border-line-strong text-left text-xs uppercase tracking-wide text-muted">
-              <th className="py-2 pr-2 font-semibold">{t('students.roll', lang)}</th>
-              <th className="py-2 pr-2 font-semibold">{t('students.name', lang)}</th>
+          <thead className="bg-paper-muted">
+            <tr className="text-left text-sm text-muted">
+              <th className="px-4 py-3 font-semibold">{t('students.roll', lang)}</th>
+              <th className="px-4 py-3 font-semibold">{t('students.name', lang)}</th>
               {items.map((item) => (
-                <th key={item.id} className="py-2 pr-2 text-center font-semibold">
+                <th key={item.id} className="px-4 py-3 text-center font-semibold">
                   {item.label}
                 </th>
               ))}
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-line">
             {rows.map((row) => (
-              <tr key={row.id} className="border-b border-line">
-                <td className="py-2 pr-2">{row.roll_number ?? '—'}</td>
-                <td className="py-2 pr-2">{row.full_name}</td>
+              <tr key={row.id}>
+                <td className="px-4 py-3">{row.roll_number ?? '—'}</td>
+                <td className="px-4 py-3">{row.full_name}</td>
                 {items.map((item) => (
-                  <td key={item.id} className="py-2 pr-2 text-center">
+                  <td key={item.id} className="px-4 py-3 text-center">
                     <input
                       type="checkbox"
                       disabled={disabled}

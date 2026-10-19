@@ -134,14 +134,17 @@ begin
   -- ═══════════════════════════════════════════════════════════════
   -- 6. FEE RECORDS — 2 months for School A students
   -- ═══════════════════════════════════════════════════════════════
+  -- No conflict target: migration 0231 (#683) replaces the constraint on
+  -- (student_id, month, year) with a partial unique index, which a named
+  -- target would no longer match. Bare `on conflict do nothing` works with both.
   for sid in select id from public.students where school_id = school_a and full_name like 'Staging %' loop
     insert into public.fee_collection_records (school_id, student_id, month, year, pay_amount, due_amount, payment_method)
     values (school_a, sid, 6, 2026, 500, 0, 'cash')
-    on conflict (student_id, month, year) do nothing;
+    on conflict do nothing;
 
     insert into public.fee_collection_records (school_id, student_id, month, year, pay_amount, fine_amount, due_amount, payment_method)
     values (school_a, sid, 7, 2026, 0, 50, 550, 'cash')
-    on conflict (student_id, month, year) do nothing;
+    on conflict do nothing;
   end loop;
 
   -- ═══════════════════════════════════════════════════════════════

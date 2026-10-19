@@ -29,7 +29,7 @@ export default function UpdatePasswordPage() {
 
   return (
     <AuthCard lang={lang} title={t('reset.newPassword', lang)}>
-      <form onSubmit={onSubmit} className="flex flex-col gap-3">
+      <form method="post" onSubmit={onSubmit} className="flex flex-col gap-3">
         <div>
           <label className={labelClass} htmlFor="password">{t('reset.newPassword', lang)}</label>
           <input id="password" name="password" type="password" minLength={8} required className={inputClass} />

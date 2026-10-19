@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { examClassDenied } from '@/lib/school/exam-class-guard'
 import { archiveStudent } from '@/app/school/students/actions'
 
 // Promotion (rewired onto the Enrollment model, map #568/#582's Wave 3, issue
@@ -56,6 +57,8 @@ export async function promoteStudents(
   if (!items.length) return {}
 
   const supabase = await createClient()
+  const denied = await examClassDenied(supabase, examId)
+  if (denied) return denied
   const { data: offering } = await supabase
     .from('class_offerings')
     .select('name, section')
@@ -111,6 +114,8 @@ export async function promoteStudents(
 export async function makeOldStudents(examId: string, studentIds: string[]): Promise<BulkResult> {
   if (!studentIds.length) return {}
   const supabase = await createClient()
+  const denied = await examClassDenied(supabase, examId)
+  if (denied) return denied
   let failedCount = 0
   let lastError: string | null = null
   for (const id of studentIds) {
@@ -144,6 +149,8 @@ export async function makeOldStudents(examId: string, studentIds: string[]): Pro
 // than leaving every exam's passed students archivable regardless of class.
 export async function setClassFinal(examId: string, classId: string, isFinal: boolean): Promise<{ error?: string }> {
   const supabase = await createClient()
+  const denied = await examClassDenied(supabase, examId, classId)
+  if (denied) return denied
   const { error } = await supabase.from('class_offerings').update({ is_final_class: isFinal }).eq('id', classId)
   if (error) return { error: error.message }
   revalidatePath(pagePath(examId))

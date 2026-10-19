@@ -1,10 +1,12 @@
 'use client'
 
 import { useState } from 'react'
+import { CalendarDays } from 'lucide-react'
 import { t, type Lang } from '@/lib/i18n'
 import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
 import { ConfirmDialog } from '@/components/confirm-dialog'
 import { startAcademicYear } from './actions'
+import { SectionCard } from './section-card'
 
 // Start Academic Year (issue #570, #594) — a distinct card with its own
 // explicit action + confirmation, deliberately separate from the Profile
@@ -25,8 +27,8 @@ export function AcademicYearCard({
   const [year, setYear] = useState(currentYear !== null ? currentYear + 1 : 2000)
 
   return (
-    <section className="mt-6 rounded-lg border border-line bg-paper p-4">
-      <h2 className="mb-2 text-lg font-bold">{t('institute.academicYearTitle', lang)}</h2>
+    <div className="mt-section">
+    <SectionCard icon={<CalendarDays className="size-5" />} title={t('institute.academicYearTitle', lang)}>
       <p className="mb-3 text-sm text-muted">
         {t('institute.academicYearCurrentLabel', lang)}:{' '}
         <span className="font-semibold text-ink">{currentYear ?? '—'}</span>
@@ -64,6 +66,7 @@ export function AcademicYearCard({
           />
         </div>
       )}
-    </section>
+    </SectionCard>
+    </div>
   )
 }

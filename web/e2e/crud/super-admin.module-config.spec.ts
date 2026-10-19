@@ -1,5 +1,5 @@
 import { test, expect, asRole } from '../fixtures/roles'
-import { expectNoError } from '../helpers'
+import { expectNoError, pickOption } from '../helpers'
 
 // Super-admin Modules & Features config (map #329, ticket #347,
 // playwright-crud-plan §3). Create module + features, set default_state, wire a
@@ -35,18 +35,20 @@ test.describe('@crud @super-admin module-config', () => {
     await addFeature(fa)
     await addFeature(fb)
 
-    // Set feature A default_state → persists across reload.
+    // Set feature A default_state → persists across reload. The state picker
+    // (a SelectField) is still first in the row, the dependency picker (a
+    // ComboboxField) still last — same DOM order as the old <select>s.
     const rowA = section.locator('li', { hasText: fa })
-    await rowA.locator('select').first().selectOption('trial')
+    await pickOption(page, rowA.getByRole('combobox').first(), 'trial')
     await page.reload()
     await expect(
-      page.locator('section', { hasText: mod }).locator('li', { hasText: fa }).locator('select').first(),
-    ).toHaveValue('trial')
+      page.locator('section', { hasText: mod }).locator('li', { hasText: fa }).getByRole('combobox').first(),
+    ).toHaveText('trial')
 
     // Dependency: A depends on B → chip appears, then remove it (wait until the
     // chip is gone so A's row no longer contains B's key).
     const rowA2 = page.locator('section', { hasText: mod }).locator('li', { hasText: fa })
-    await rowA2.locator('select').last().selectOption(fb)
+    await pickOption(page, rowA2.getByRole('combobox').last(), fb)
     const depChip = rowA2.locator('span', { hasText: fb })
     await expect(depChip.first()).toBeVisible()
     await depChip.getByRole('button', { name: '✕' }).first().click()

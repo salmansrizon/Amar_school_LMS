@@ -1,16 +1,16 @@
 import { notFound } from 'next/navigation'
 import { currentLang } from '@/lib/i18n-server'
-import { t, type Lang } from '@/lib/i18n'
+import { t, formatDate, formatNumber, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { dateToDayOfWeek, sortRoutineEntries } from '@/lib/exam-setup'
 import { dayLabel } from '@/lib/routine'
-import { PrintPage, InstituteHeader, PaginatedSheet, QrFooterRow } from '@/components/print/pieces'
 import { loadInstitutePrintHeader } from '@/lib/institute-print'
-import { PrintButton } from '@/components/print/print-button'
+import { PrintTrigger } from '@/components/print/print-trigger'
 import { embeddedBuildingName, roomVenueLabel } from '@/lib/venues'
 import { BackLink } from '@/components/back-link'
 import { resolveBackHref } from '@/lib/back-nav'
 import { PrintPreflight } from '@/components/print/preflight'
+import { PrintDocument } from '@/components/print/document'
 
 // Printable exam routine (ADR 0007: browser-native print), mirrors the class
 // routine print page's shape.
@@ -56,7 +56,7 @@ export default async function ExamRoutinePrintPage({
     (rooms ?? []).map((r) => [r.id, roomVenueLabel(embeddedBuildingName(r), r.name)]),
   )
   const sorted = sortRoutineEntries(entries ?? [])
-  const examLabel = `${exam.name} (${exam.exam_year})`
+  const examLabel = `${exam.name} (${formatNumber(exam.exam_year, lang, { useGrouping: false })})`
 
   // #532: with no entries this rendered the institute header, the column titles
   // and nothing else — a document that looks finished right up until it is handed
@@ -82,18 +82,15 @@ export default async function ExamRoutinePrintPage({
     <main className="mx-auto w-full max-w-4xl flex-1 p-6">
       <div className="mb-4 flex items-center justify-between print:hidden">
         <BackLink href={backHref} label={t('common.back', lang)} />
-        <PrintButton label={t('print.print', lang)} />
+        <PrintTrigger href={`/school/exams/${id}/routine/print`} label={t('print.print', lang)} />
       </div>
 
-      <PrintPage>
-        <PaginatedSheet
-          header={
-            <InstituteHeader
-              institute={institute}
-              docTitle={`${t('examRoutine.docWord', lang)} — ${examLabel}`}
-            />
-          }
-        >
+      <PrintDocument
+        lang={lang}
+        institute={institute}
+        docTitle={`${t('examRoutine.docWord', lang)} — ${examLabel}`}
+        verify={{ kind: 'exam_routine', refId: id }}
+      >
           <table className="w-full table-fixed border-collapse text-sm">
             <colgroup>
               <col className="w-28" />
@@ -116,11 +113,11 @@ export default async function ExamRoutinePrintPage({
                 // Banded rows: a reader tracking one line across five columns
                 // on a wall needs the row, not the grid, to carry the eye.
                 <tr key={i} className={i % 2 ? 'bg-paper-muted' : undefined}>
-                  <td className={`${tdClass} text-center font-semibold`}>{e.exam_date}</td>
+                  <td className={`${tdClass} print-nowrap text-center font-semibold`}>{formatDate(e.exam_date, lang)}</td>
                   <td className={`${tdClass} text-center`}>
                     {dayLabel(dateToDayOfWeek(e.exam_date), lang)}
                   </td>
-                  <td className={`${tdClass} text-center tabular-nums`}>
+                  <td className={`${tdClass} print-nowrap text-center tabular-nums`}>
                     {e.start_time.slice(0, 5)} - {e.end_time.slice(0, 5)}
                   </td>
                   <td className={`${tdClass} font-semibold`}>
@@ -131,10 +128,7 @@ export default async function ExamRoutinePrintPage({
               ))}
             </tbody>
           </table>
-
-          <QrFooterRow qrLabel={t('print.qr', lang)} poweredBy={t('print.poweredBy', lang)} />
-        </PaginatedSheet>
-      </PrintPage>
+      </PrintDocument>
     </main>
   )
 }

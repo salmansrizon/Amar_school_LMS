@@ -1,5 +1,7 @@
 import { test, expect, asRole } from '../fixtures/roles'
-import { expectRowByText, expectNoRowByText, expectInlineError, expectNoError } from '../helpers'
+import { expectRowByText, expectNoRowByText, expectInlineError, expectNoError, pickOption } from '../helpers'
+
+const DISCOUNT_TYPE_LABEL: Record<'percent' | 'flat', string> = { percent: 'Percent %', flat: 'Flat ৳' }
 
 // Super-admin Coupons CRUD (map #329, ticket #331 — coupons surface, per
 // playwright-crud-plan §3). Each test is self-contained: it creates its own
@@ -21,7 +23,8 @@ async function addCoupon(
   value: string,
 ) {
   await page.locator('input[name="code"]').fill(code)
-  await page.locator('select[name="discount_type"]').selectOption(type)
+  // The only dropdown on this form (no id/aria-label — a bare grid form).
+  await pickOption(page, page.getByRole('combobox').first(), DISCOUNT_TYPE_LABEL[type])
   await page.locator('input[name="value"]').fill(value)
   await page.getByRole('button', { name: 'Add coupon' }).click()
 }

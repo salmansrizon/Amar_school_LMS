@@ -85,7 +85,7 @@ export function NotificationBell({ lang, buttonClass }: { lang: Lang; buttonClas
           className="fixed inset-x-3 top-[var(--sheet-top,4rem)] z-50 flex max-h-[calc(100dvh-var(--sheet-top,4rem)-0.75rem)] flex-col overflow-hidden rounded-2xl border border-line bg-paper shadow-xl sm:absolute sm:inset-x-auto sm:right-0 sm:top-auto sm:mt-2 sm:max-h-none sm:w-80 sm:max-w-[calc(100vw-1.5rem)]"
         >
           <div className="flex shrink-0 items-center justify-between border-b border-line px-4 py-3">
-            <span className="text-sm font-bold uppercase tracking-wide text-muted">{t('dash.recentActivity', lang)}</span>
+            <span className="text-base font-extrabold text-ink">{t('dash.recentActivity', lang)}</span>
           </div>
 
           <ul className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-1 sm:max-h-[60vh] sm:flex-none">
@@ -107,17 +107,31 @@ export function NotificationBell({ lang, buttonClass }: { lang: Lang; buttonClas
                   </>
                 )
                 return (
-                  <li key={a.id ?? i}>
+                  <li key={a.id ?? i} className="relative pl-7">
+                    {i < (items?.length ?? 0) - 1 && (
+                      <span
+                        aria-hidden="true"
+                        className="absolute bottom-[-0.5rem] left-[15px] top-5 border-l border-dotted border-brand-300/70"
+                      />
+                    )}
+                    <span aria-hidden="true" className="absolute left-[11px] top-[18px] size-2.5">
+                      {i === 0 && (
+                        <span className="absolute inset-0 animate-ping rounded-full bg-brand-400/70 motion-reduce:animate-none" />
+                      )}
+                      <span className="relative block size-2.5 rounded-full border-2 border-paper bg-brand-600 shadow-sm" />
+                    </span>
                     {a.href ? (
                       <Link
                         href={a.href}
                         onClick={() => setOpen(false)}
-                        className="block rounded-xl px-3 py-2 transition hover:bg-brand-50/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-300"
+                        className={`block rounded-xl px-3 py-3 transition hover:bg-brand-50/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-300 ${
+                          i === 0 ? 'bg-brand-50/50' : ''
+                        }`}
                       >
                         {inner}
                       </Link>
                     ) : (
-                      <div className="px-3 py-2">{inner}</div>
+                      <div className={`rounded-xl px-3 py-3 ${i === 0 ? 'bg-brand-50/50' : ''}`}>{inner}</div>
                     )}
                   </li>
                 )

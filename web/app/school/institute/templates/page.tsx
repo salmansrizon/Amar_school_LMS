@@ -2,7 +2,10 @@ import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang, type MessageKey } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
+import { schoolCrumbs } from '@/lib/school-crumbs'
+import { PageHeader } from '@/components/ui/page'
 import { InstituteTabs } from '../tabs'
+import { pageTitle } from '@/lib/page-title'
 
 // Blank printable templates (issue #39, PRD §5.11) per
 // ui/school-owner/blank-templates.html: paper-based fallback for
@@ -23,16 +26,18 @@ const TEMPLATES: { href: string; nameKey: MessageKey }[] = [
 const thClass = 'px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted'
 const tdClass = 'px-3 py-2 text-sm'
 
+export const generateMetadata = pageTitle('institute.tabTemplates')
+
 export default async function TemplatesPage() {
   const lang: Lang = await currentLang()
   await getSchoolContext() // auth + role gate (redirects if not a School member)
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-extrabold">{t('institute.title', lang)}</h1>
-        <Link href="/school" aria-label={t('common.back', lang)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></Link>
-      </div>
+      <PageHeader
+        title={t('institute.tabTemplates', lang)}
+        crumbs={schoolCrumbs('/school/institute', lang, { label: t('institute.title', lang), href: '/school/institute' }, { label: t('institute.tabTemplates', lang) })}
+      />
 
       <InstituteTabs active="/school/institute/templates" lang={lang} />
 

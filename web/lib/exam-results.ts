@@ -139,12 +139,11 @@ function rankKey(r: RankableResult, basis: RankBasis): number {
 /**
  * Auto-position/merit ranking (PRD §5.5), by grade or mark basis. Only passed
  * students are ranked (a failed student gets position null — the mockup
- * shows a Fail badge, not a merit number, in that slot). Standard "1224"
- * competition ranking: students tied on the chosen basis share a position,
- * and the next distinct value's position skips ahead by the tied count —
- * ties are broken for *display order* by raw percent (so a GPA tie still
- * lists the higher-mark student first) without granting them different
- * positions.
+ * shows a Fail badge, not a merit number, in that slot). On the grade basis
+ * GPA decides first and total marks (percent) break a GPA tie, so two students
+ * on the same GPA no longer share a merit position unless their marks are
+ * equal too. Standard "1224" competition ranking for what is still tied: they
+ * share a position and the next distinct result skips ahead by the tied count.
  */
 export function rankResults(results: RankableResult[], basis: RankBasis): RankedResult[] {
   const passed = results.filter((r) => r.passed)
@@ -154,13 +153,12 @@ export function rankResults(results: RankableResult[], basis: RankBasis): Ranked
   const ranked: RankedResult[] = []
   let position = 0
   let seen = 0
-  let lastKey: number | null = null
+  let last: RankableResult | null = null
   for (const r of sorted) {
     seen += 1
-    const key = rankKey(r, basis)
-    if (lastKey === null || key !== lastKey) {
+    if (!last || rankKey(r, basis) !== rankKey(last, basis) || r.percent !== last.percent) {
       position = seen
-      lastKey = key
+      last = r
     }
     ranked.push({ ...r, position })
   }

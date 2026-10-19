@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { t, type Lang } from '@/lib/i18n'
 import { setSlot, publishRoutine } from './actions'
-import { selectClass } from '@/components/ui/field'
+import { ComboboxField } from '@/components/ui/combobox-field'
 import { classCatalogueLabel, type ClassCatalogueRow } from '@/lib/class-catalogue'
 
 export interface Option {
@@ -92,45 +92,36 @@ export function SlotCell({
         })
       }}
     >
-      <select
+      <ComboboxField
         name="subject_id"
         defaultValue={slot?.subject_id ?? ''}
-        className={selectClass({ size: 'xs', fullWidth: true })}
+        className="w-full"
         aria-label={t('routine.subject', lang)}
-      >
-        <option value="">{t('routine.subject', lang)}</option>
-        {subjects.map((o) => (
-          <option key={o.id} value={o.id}>
-            {o.label}
-          </option>
-        ))}
-      </select>
-      <select
+        options={[
+          { value: '', label: t('routine.subject', lang) },
+          ...subjects.map((o) => ({ value: o.id, label: o.label })),
+        ]}
+      />
+      <ComboboxField
         name="teacher_id"
         defaultValue={slot?.teacher_id ?? ''}
-        className={selectClass({ size: 'xs', fullWidth: true })}
+        className="w-full"
         aria-label={t('routine.teacher', lang)}
-      >
-        <option value="">{t('routine.teacher', lang)}</option>
-        {teachers.map((o) => (
-          <option key={o.id} value={o.id}>
-            {o.label}
-          </option>
-        ))}
-      </select>
-      <select
+        options={[
+          { value: '', label: t('routine.teacher', lang) },
+          ...teachers.map((o) => ({ value: o.id, label: o.label })),
+        ]}
+      />
+      <ComboboxField
         name="room_id"
         defaultValue={slot?.room_id ?? ''}
-        className={selectClass({ size: 'xs', fullWidth: true })}
+        className="w-full"
         aria-label={t('routine.room', lang)}
-      >
-        <option value="">{t('routine.room', lang)}</option>
-        {rooms.map((o) => (
-          <option key={o.id} value={o.id}>
-            {o.label}
-          </option>
-        ))}
-      </select>
+        options={[
+          { value: '', label: t('routine.room', lang) },
+          ...rooms.map((o) => ({ value: o.id, label: o.label })),
+        ]}
+      />
       {/* Conflicts (teacher/room double-booked) come back from the DB's unique
           indexes and surface here in red, per the mockup's conflict styling. */}
       {error && <span className="text-[11px] text-alert-deep">{error}</span>}
@@ -216,20 +207,15 @@ export function ClassPicker({
 }) {
   const router = useRouter()
   return (
-    <select
+    <ComboboxField
       value={selected}
-      onChange={(e) => router.push(`${basePath}?class=${e.target.value}`)}
-      className={`${selectClass()} min-w-40`}
+      onValueChange={(v) => router.push(`${basePath}?class=${v}`)}
+      className="min-w-40"
       aria-label={t(pickLabelKey, lang)}
-    >
-      <option value="" disabled>
-        {t(pickLabelKey, lang)}
-      </option>
-      {classes.map((c) => (
-        <option key={c.id} value={c.id}>
-          {classCatalogueLabel(c, showYear)}
-        </option>
-      ))}
-    </select>
+      options={[
+        { value: '', label: t(pickLabelKey, lang), disabled: true },
+        ...classes.map((c) => ({ value: c.id, label: classCatalogueLabel(c, showYear) })),
+      ]}
+    />
   )
 }

@@ -171,3 +171,18 @@ export function toggleAcademicYearSelection(
 export function academicYearSectionVisible(startedYears: readonly number[]): boolean {
   return startedYears.length > 1
 }
+
+// DataTable single-key shortcuts (map 013, F6). WCAG 2.1.4 needs a way to turn
+// printable-key shortcuts off; default on.
+
+export const SHORTCUTS_COOKIE = 'asm-shortcuts'
+
+/** Cookie value -> enabled flag. Only an explicit `0` turns them off. */
+export function parseShortcutsEnabled(value: string | undefined): boolean {
+  return value !== '0'
+}
+
+/** The full `document.cookie` assignment string that persists the shortcuts choice. */
+export function shortcutsCookieAssignment(enabled: boolean): string {
+  return `${SHORTCUTS_COOKIE}=${enabled ? '1' : '0'};path=/;max-age=${PREF_MAX_AGE};samesite=lax`
+}

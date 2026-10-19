@@ -6,7 +6,8 @@ import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
 import { t, type Lang, type MessageKey } from '@/lib/i18n'
 import type { BuildingRow } from '@/lib/venues'
 import { deleteBuilding, deleteRoom, saveBuilding, saveRoom } from './actions'
-import { selectClass } from '@/components/ui/field'
+import { ComboboxField } from '@/components/ui/combobox-field'
+import { SelectField } from '@/components/ui/select-field'
 
 // Venues tab controls (issue #93). Buildings and rooms share one add/edit form
 // shape: an existing row passes its id, a new one doesn't.
@@ -76,7 +77,7 @@ export function BuildingForm({
           className={inputClass}
         />
       </div>
-      <button type="submit" disabled={pending} className={`${primaryBtnClass} w-auto px-5`}>
+      <button type="submit" disabled={pending} className={`${primaryBtnClass} w-auto max-sm:w-full px-5`}>
         {t(building ? 'venues.save' : 'venues.addBuilding', lang)}
       </button>
       {error && <p className="text-sm text-alert-deep sm:col-span-2">{error}</p>}
@@ -131,32 +132,26 @@ export function RoomForm({
         <label className={labelClass} htmlFor={`room_building_${key}`}>
           {t('venues.building', lang)}
         </label>
-        <select
+        <ComboboxField
           id={`room_building_${key}`}
           name="building_id"
           defaultValue={room?.building_id ?? buildingId ?? ''}
-          className={selectClass({ size: 'md', fullWidth: true })}
-        >
-          {buildings.map((b) => (
-            <option key={b.id} value={b.id}>
-              {b.name}
-            </option>
-          ))}
-        </select>
+          options={buildings.map((b) => ({ value: b.id, label: b.name }))}
+        />
       </div>
       <div>
         <label className={labelClass} htmlFor={`room_active_${key}`}>
           {t('venues.status', lang)}
         </label>
-        <select
+        <SelectField
           id={`room_active_${key}`}
           name="is_active"
           defaultValue={String(room?.is_active ?? true)}
-          className={selectClass({ size: 'md', fullWidth: true })}
-        >
-          <option value="true">{t('venues.active', lang)}</option>
-          <option value="false">{t('venues.inactive', lang)}</option>
-        </select>
+          options={[
+            { value: 'true', label: t('venues.active', lang) },
+            { value: 'false', label: t('venues.inactive', lang) },
+          ]}
+        />
       </div>
       {error && <p className="text-sm text-alert-deep sm:col-span-4">{error}</p>}
       <button type="submit" disabled={pending} className={`${primaryBtnClass} sm:col-span-4`}>

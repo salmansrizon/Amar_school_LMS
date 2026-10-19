@@ -3,6 +3,7 @@ import {
   latestMark,
   markedByOf,
   registerRows,
+  resolveRosterStudent,
   rosterEmptyReason,
   rosterFor,
   searchRoster,
@@ -104,6 +105,15 @@ describe('searchRoster', () => {
   it('an empty term is not a filter', () => {
     expect(searchRoster(roster, '   ')).toHaveLength(2)
   })
+
+  it('also finds a Student by Student Number or guardian mobile', () => {
+    const withIds = [
+      student({ id: 'c', full_name: 'Chaity', student_no: 'S0042', guardian_mobile: '01712850000' }),
+      ...roster,
+    ]
+    expect(searchRoster(withIds, 's0042').map((s) => s.id)).toEqual(['c'])
+    expect(searchRoster(withIds, '0171285').map((s) => s.id)).toEqual(['c'])
+  })
 })
 
 describe('latestMark and markedByOf', () => {
@@ -144,6 +154,48 @@ describe('latestMark and markedByOf', () => {
   })
 })
 
+describe('resolveRosterStudent', () => {
+  // map 013 fix: the list showed "—" for a Student whose current-Enrollment
+  // embed came back empty, even when the legacy class_name/section/roll_number
+  // bridge (#587) still had a real value — the same value the record drawer
+  // and the ID card already fall back to. This is the decision behind that fix.
+  const row = {
+    id: 'a',
+    full_name: 'Ayesha',
+    guardian_name: null,
+    class_name: 'Six',
+    section: 'A',
+    roll_number: 4,
+  }
+  const enrollment = { roll_number: 9, class_offering_id: 'off-seven-b' }
+  const offering = { name: 'Seven', section: 'B', group_department: 'Science', shift: 'Morning', academic_year: 2026 }
+
+  it('prefers the current Enrollment when there is one', () => {
+    expect(resolveRosterStudent(row, enrollment, offering)).toMatchObject({
+      roll_number: 9,
+      class_offering_id: 'off-seven-b',
+      class_name: 'Seven',
+      section: 'B',
+    })
+  })
+
+  it('falls back to the legacy bridge columns when the Enrollment embed is empty', () => {
+    expect(resolveRosterStudent(row, null, null)).toMatchObject({
+      roll_number: 4,
+      class_name: 'Six',
+      section: 'A',
+    })
+  })
+
+  it('never backs class_offering_id with the legacy bridge — a Student with no Enrollment stays unplaced for filtering', () => {
+    // Same row as the fallback case above: class_name/section/roll_number show
+    // something, but class_offering_id — what rosterFor actually filters on —
+    // must still be null, or the Student would wrongly start matching a
+    // specific class filter it was never actually enrolled in.
+    expect(resolveRosterStudent(row, null, null).class_offering_id).toBeNull()
+  })
+})
+
 describe('registerRows', () => {
   const roster = [
     student({ id: 'a', full_name: 'Ayesha', roll_number: 1 }),
@@ -160,6 +212,20 @@ describe('registerRows', () => {
       ['b', false, 'sick'],
       ['c', true, ''],
     ])
+  })
+
+  it('approved leave on an unmarked day is flagged for an explicit choice (F20)', () => {
+    const rows = registerRows(roster, new Set(), new Map(), new Set(['a']))
+    expect(rows.map((r) => [r.id, r.onLeave])).toEqual([
+      ['a', true],
+      ['b', false],
+      ['c', false],
+    ])
+  })
+
+  it('a leave student who was already marked is not re-flagged', () => {
+    const rows = registerRows(roster, new Set(['a']), new Map([['b', 'sick']]), new Set(['a', 'b']))
+    expect(rows.map((r) => r.onLeave)).toEqual([false, false, false])
   })
 
   it('an untaken register reads as everyone present — which is why the screen must say it is untaken', () => {

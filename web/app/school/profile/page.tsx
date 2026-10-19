@@ -1,11 +1,15 @@
-import Link from 'next/link'
 import { currentLang } from '@/lib/i18n-server'
 import { t, type Lang } from '@/lib/i18n'
 import { getSchoolContext } from '@/lib/school/context'
 import { LogoutButton } from '@/components/logout-button'
 import { Icon } from '@/components/school-icons'
+import { PageHeader } from '@/components/ui/page'
+import { schoolCrumbs } from '@/lib/school-crumbs'
+import { pageTitle } from '@/lib/page-title'
 
 // The logged-in user's account page, reached from the topbar avatar.
+export const generateMetadata = pageTitle('profile.title')
+
 export default async function ProfilePage() {
   const lang: Lang = await currentLang()
   const { fullName, email, role, schoolName } = await getSchoolContext()
@@ -19,16 +23,12 @@ export default async function ProfilePage() {
 
   return (
     <div className="mx-auto w-full max-w-2xl">
-      <div className="mb-6 flex items-center justify-between gap-3">
-        <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">{t('profile.title', lang)}</h1>
-        <Link
-          href="/school"
-          aria-label={t('common.back', lang)}
-          className="inline-flex size-9 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"
-        >
-          <Icon name="chevronLeft" className="size-5" />
-        </Link>
-      </div>
+      <PageHeader
+        title={t('profile.title', lang)}
+        backHref="/school"
+        backLabel={t('common.back', lang)}
+        crumbs={schoolCrumbs('/school/profile', lang, { label: t('profile.title', lang) })}
+      />
 
       <div className="rounded-2xl border border-line/70 bg-paper/92 p-6 shadow-card backdrop-blur">
         <div className="mb-6 flex items-center gap-4">

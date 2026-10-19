@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 import { t, type Lang } from '@/lib/i18n'
 import { restoreEmployee } from '../actions'
 
@@ -19,8 +20,10 @@ export function RestoreButton({ lang, employeeId }: { lang: Lang; employeeId: st
           startTransition(async () => {
             setError(null)
             const res = await restoreEmployee(employeeId)
-            if (res.error) setError(res.error)
-            else router.refresh()
+            if (res.error) return setError(res.error)
+            // #688: restoring does not turn a disabled Staff login back on.
+            if (res.notice) toast.warning(res.notice)
+            router.refresh()
           })
         }
         className="cursor-pointer rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted disabled:opacity-50"

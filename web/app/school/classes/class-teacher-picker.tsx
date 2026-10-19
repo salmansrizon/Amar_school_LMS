@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { t, type Lang } from '@/lib/i18n'
-import { selectClass } from '@/components/ui/field'
+import { ComboboxField } from '@/components/ui/combobox-field'
 import { setClassTeacher } from './actions'
 import type { TeacherOption } from './class-controls'
 
@@ -28,27 +28,23 @@ export function ClassTeacherPicker({
 
   return (
     <div>
-      <select
+      <ComboboxField
         aria-label={t('classes.classTeacher', lang)}
         defaultValue={current ?? ''}
         disabled={pending}
-        onChange={(e) => {
-          const value = e.target.value || null
+        onValueChange={(v) => {
+          const value = v || null
           startTransition(async () => {
             setError(null)
             const result = await setClassTeacher(classId, value)
             if (result.error) setError(result.error)
           })
         }}
-        className={selectClass()}
-      >
-        <option value="">{t('classes.classTeacherNone', lang)}</option>
-        {teachers.map((teacher) => (
-          <option key={teacher.id} value={teacher.id}>
-            {teacher.full_name}
-          </option>
-        ))}
-      </select>
+        options={[
+          { value: '', label: t('classes.classTeacherNone', lang) },
+          ...teachers.map((teacher) => ({ value: teacher.id, label: teacher.full_name })),
+        ]}
+      />
       {!current && !error && (
         <span className="ml-2 rounded-full bg-sun-soft px-2 py-0.5 text-xs font-semibold text-sun-deep">
           {t('classes.classTeacherMissing', lang)}

@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { getSchoolContext } from '@/lib/school/context'
+import { employeeAttendanceAdminDenied } from '@/lib/school/employee-attendance-admin'
 import { isKnownEmployeeCategory, EMPLOYEE_CATEGORIES } from '@/lib/employees'
 import { officeHourShiftOptions } from '@/lib/office-hours'
 import { isGraceDetail, GRACE_DETAILS } from '@/lib/grace'
@@ -99,6 +100,9 @@ export async function saveStandingGraceRule(formData: FormData): Promise<{ error
   if ('error' in parsed) return parsed
 
   const supabase = await createClient()
+  // #677: Owner and office staff only (RLS repeats this once 0240 is applied).
+  const denied = await employeeAttendanceAdminDenied(supabase)
+  if (denied) return denied
   const { error } = await supabase.rpc('save_standing_grace_rule', {
     p_shift: parsed.shift,
     p_grace_detail: parsed.detail,
@@ -112,6 +116,9 @@ export async function saveStandingGraceRule(formData: FormData): Promise<{ error
 
 export async function deleteStandingGraceRule(id: string): Promise<{ error?: string }> {
   const supabase = await createClient()
+  // #677: Owner and office staff only (RLS repeats this once 0240 is applied).
+  const denied = await employeeAttendanceAdminDenied(supabase)
+  if (denied) return denied
   const { error } = await supabase.from('standing_grace_rules').delete().eq('id', id)
   if (error) return { error: error.message }
   revalidatePath(PAGE)
@@ -138,6 +145,9 @@ export async function addAdHocGraceExemption(formData: FormData): Promise<{ erro
   if ('error' in categories) return categories
 
   const supabase = await createClient()
+  // #677: Owner and office staff only (RLS repeats this once 0240 is applied).
+  const denied = await employeeAttendanceAdminDenied(supabase)
+  if (denied) return denied
   const { data, error } = await supabase
     .from('ad_hoc_grace_exemptions')
     .insert({ exemption_date: exemptionDate, details, duration_minutes: duration.minutes, shift: shift.shift })
@@ -156,6 +166,9 @@ export async function addAdHocGraceExemption(formData: FormData): Promise<{ erro
 
 export async function deleteAdHocGraceExemption(id: string): Promise<{ error?: string }> {
   const supabase = await createClient()
+  // #677: Owner and office staff only (RLS repeats this once 0240 is applied).
+  const denied = await employeeAttendanceAdminDenied(supabase)
+  if (denied) return denied
   const { error } = await supabase.from('ad_hoc_grace_exemptions').delete().eq('id', id)
   if (error) return { error: error.message }
   revalidatePath(PAGE)

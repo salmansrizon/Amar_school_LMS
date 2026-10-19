@@ -1,12 +1,16 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useId, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { inputClass, labelClass } from '@/components/auth-card'
 import { t, type Lang } from '@/lib/i18n'
-import { requestLeave, approveLeave, rejectLeave } from '../manual-actions'
+import { toast } from 'sonner'
+import { requestLeave, approveLeave, rejectLeave, revertLeave } from '../manual-actions'
+import { ConfirmDialog } from '@/components/confirm-dialog'
 import { dateInputClass } from '@/components/ui/field'
 import { Modal } from '@/components/modal'
+import { DECISION_NOTE_MAX, REJECT_REASON_REQUIRED } from '@/lib/leave-columns'
+import { DateField } from '@/components/ui/date-field'
 
 // Replaces the old dropdown-of-every-person-in-the-institute form (map #668)
 // — a row action on an already-filtered roster instead, so the person is
@@ -33,7 +37,7 @@ export function RequestLeaveButton({
     <Modal
       lang={lang}
       triggerLabel={t('attendance.leaveRequestTitle', lang)}
-      triggerClassName="cursor-pointer rounded-full border border-line px-3 py-1 text-xs font-semibold hover:bg-paper-muted"
+      triggerClassName="cursor-pointer rounded-full border border-line px-3 py-1 text-xs font-semibold hover:bg-paper-muted max-sm:min-h-11 max-sm:px-4"
       title={t('attendance.leaveRequestTitle', lang)}
       onOpenChange={(open) => {
         if (!open) setError(null)
@@ -64,10 +68,9 @@ export function RequestLeaveButton({
             <label className={labelClass} htmlFor={`from_day-${kind}-${personId}`}>
               {t('attendance.leaveFromCol', lang)}
             </label>
-            <input
+            <DateField lang={lang}
               id={`from_day-${kind}-${personId}`}
               name="from_day"
-              type="date"
               required
               className={dateInputClass({ size: 'md', fullWidth: true })}
             />
@@ -76,10 +79,9 @@ export function RequestLeaveButton({
             <label className={labelClass} htmlFor={`to_day-${kind}-${personId}`}>
               {t('attendance.leaveToCol', lang)}
             </label>
-            <input
+            <DateField lang={lang}
               id={`to_day-${kind}-${personId}`}
               name="to_day"
-              type="date"
               required
               className={dateInputClass({ size: 'md', fullWidth: true })}
             />
@@ -108,13 +110,27 @@ export function LeaveActions({ kind, id, lang }: { kind: 'student' | 'employee';
   const router = useRouter()
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
+  const [note, setNote] = useState('')
+  const noteId = useId()
 
-  const act = (fn: typeof approveLeave) =>
+  const approve = () =>
     startTransition(async () => {
       setError(null)
-      const result = await fn(kind, id)
-      if (result.error) setError(result.error)
-      else router.refresh()
+      const result = await approveLeave(kind, id)
+      if (result.error) return setError(result.error)
+      router.refresh()
+      // One-click approve is easy to misfire, so offer a way back for a while.
+      toast.success(t('attendance.leaveApprovedToast', lang), {
+        duration: 8000,
+        action: {
+          label: t('attendance.leaveUndo', lang),
+          onClick: async () => {
+            const undone = await revertLeave(kind, id)
+            if (undone.error) toast.error(undone.error)
+            else router.refresh()
+          },
+        },
+      })
     })
 
   return (
@@ -122,19 +138,42 @@ export function LeaveActions({ kind, id, lang }: { kind: 'student' | 'employee';
       <button
         type="button"
         disabled={pending}
-        onClick={() => act(approveLeave)}
-        className="cursor-pointer rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted disabled:opacity-50"
+        onClick={approve}
+        className="cursor-pointer rounded-full border border-line-strong px-3 py-1 text-xs font-semibold hover:bg-paper-muted disabled:opacity-50 max-sm:min-h-11 max-sm:px-4"
       >
         {t('attendance.leaveApprove', lang)}
       </button>
-      <button
-        type="button"
-        disabled={pending}
-        onClick={() => act(rejectLeave)}
-        className="cursor-pointer rounded-full border border-line-strong px-3 py-1 text-xs font-semibold text-alert-deep hover:bg-alert-soft disabled:opacity-50"
+      <ConfirmDialog
+        triggerLabel={t('attendance.leaveReject', lang)}
+        triggerClassName="cursor-pointer rounded-full border border-line-strong px-3 py-1 text-xs font-semibold text-alert-deep hover:bg-alert-soft max-sm:min-h-11 max-sm:px-4"
+        title={t('attendance.leaveRejectConfirm', lang)}
+        confirmLabel={t('attendance.leaveReject', lang)}
+        cancelLabel={t('graceTime.cancel', lang)}
+        confirmDisabled={REJECT_REASON_REQUIRED && !note.trim()}
+        onConfirm={async () => {
+          const result = await rejectLeave(kind, id, note)
+          if (!result.error) {
+            setNote('')
+            router.refresh()
+          }
+          return result
+        }}
       >
-        {t('attendance.leaveReject', lang)}
-      </button>
+        <label className="mb-1 block text-sm font-semibold" htmlFor={noteId}>
+          {t('attendance.leaveRejectReason', lang)}
+          {!REJECT_REASON_REQUIRED && <span className="font-normal text-muted"> ({t('attendance.leaveOptional', lang)})</span>}
+        </label>
+        <textarea
+          id={noteId}
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          maxLength={DECISION_NOTE_MAX}
+          rows={3}
+          required={REJECT_REASON_REQUIRED}
+          className={`${inputClass} mb-1 min-h-11 w-full`}
+        />
+        <p className="mb-4 text-xs text-muted">{t('attendance.leaveRejectReasonHint', lang)}</p>
+      </ConfirmDialog>
       {error && <span className="text-xs text-alert-deep">{error}</span>}
     </span>
   )

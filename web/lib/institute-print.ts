@@ -73,6 +73,15 @@ export function buildInstituteHeader(school: SchoolHeaderRow, lang: Lang = 'bn')
   }
 }
 
+/** The small lines under the school name in the A4 header band (PrintFrame):
+ *  address with contacts, then every code. All four letterhead fields stay on
+ *  the page; the band truncates a line that is too long, it never drops one. */
+export function instituteBandLines(header: InstitutePrintHeader): string[] {
+  return [joinParts([header.addressLine, header.contactLine]), header.codesLine].filter(
+    (line): line is string => line !== null,
+  )
+}
+
 /** True when the school configured nothing but its name — the header collapses
  *  to the pre-#92 single-line look, which is the honest thing to print. */
 export function instituteHeaderIsBare(header: InstitutePrintHeader): boolean {

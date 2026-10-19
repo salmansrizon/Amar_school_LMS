@@ -5,9 +5,18 @@ import { useState, useTransition } from 'react'
 import { inputClass, labelClass, primaryBtnClass } from '@/components/auth-card'
 import { dateToDayOfWeek, sortRoutineEntries } from '@/lib/exam-setup'
 import { dayLabel } from '@/lib/routine'
-import { t, type Lang } from '@/lib/i18n'
-import { addRoutineEntry, removeRoutineEntry } from './actions'
-import { dateInputClass, selectClass } from '@/components/ui/field'
+import { toast } from 'sonner'
+import { t, formatDate, type Lang, type MessageKey } from '@/lib/i18n'
+import { addRoutineEntry, removeRoutineEntry, type RoutineEntryRefusal } from './actions'
+import { DateField } from '@/components/ui/date-field'
+
+const REFUSAL: Record<RoutineEntryRefusal, MessageKey> = {
+  required: 'examRoutine.errRequired',
+  timeOrder: 'examRoutine.errTimeOrder',
+  overlap: 'examRoutine.errOverlap',
+}
+import { dateInputClass } from '@/components/ui/field'
+import { ComboboxField } from '@/components/ui/combobox-field'
 
 export interface Option {
   id: string
@@ -49,28 +58,28 @@ export function RoutineTable({
   return (
     <div className="overflow-x-auto">
       <table className="w-full min-w-160 text-sm">
-        <thead>
-          <tr className="border-b border-line text-left text-xs font-semibold text-muted">
-            <th className="py-2 pr-2">{t('examRoutine.date', lang)}</th>
-            <th className="py-2 pr-2">{t('examRoutine.day', lang)}</th>
-            <th className="py-2 pr-2">{t('examRoutine.time', lang)}</th>
-            <th className="py-2 pr-2">{t('examRoutine.subject', lang)}</th>
-            <th className="py-2 pr-2">{t('examRoutine.room', lang)}</th>
-            {!disabled && <th className="py-2 text-right">{t('examRoutine.delete', lang)}</th>}
+        <thead className="bg-paper-muted">
+          <tr className="text-left text-sm text-muted">
+            <th className="px-4 py-3">{t('examRoutine.date', lang)}</th>
+            <th className="px-4 py-3">{t('examRoutine.day', lang)}</th>
+            <th className="px-4 py-3">{t('examRoutine.time', lang)}</th>
+            <th className="px-4 py-3">{t('examRoutine.subject', lang)}</th>
+            <th className="px-4 py-3">{t('examRoutine.room', lang)}</th>
+            {!disabled && <th className="px-4 py-3 text-right">{t('examRoutine.delete', lang)}</th>}
           </tr>
         </thead>
         <tbody className="divide-y divide-line">
           {sorted.map((e) => (
             <tr key={e.id}>
-              <td className="py-2 pr-2">{e.exam_date}</td>
-              <td className="py-2 pr-2">{dayLabel(dateToDayOfWeek(e.exam_date), lang)}</td>
-              <td className="py-2 pr-2">
+              <td className="px-4 py-3">{formatDate(e.exam_date, lang)}</td>
+              <td className="px-4 py-3">{dayLabel(dateToDayOfWeek(e.exam_date), lang)}</td>
+              <td className="px-4 py-3">
                 {e.start_time.slice(0, 5)} - {e.end_time.slice(0, 5)}
               </td>
-              <td className="py-2 pr-2">{subjectName.get(e.subject_id) ?? '—'}</td>
-              <td className="py-2 pr-2">{e.room_id ? (roomName.get(e.room_id) ?? '—') : '—'}</td>
+              <td className="px-4 py-3">{subjectName.get(e.subject_id) ?? '—'}</td>
+              <td className="px-4 py-3">{e.room_id ? (roomName.get(e.room_id) ?? '—') : '—'}</td>
               {!disabled && (
-                <td className="py-2 text-right">
+                <td className="px-4 py-3 text-right">
                   <button
                     type="button"
                     disabled={pending}
@@ -122,8 +131,10 @@ export function AddRoutineEntryForm({
         startTransition(async () => {
           setError(null)
           const result = await addRoutineEntry(examId, data)
-          if (result.error) setError(result.error)
+          if (result.refused) setError(t(REFUSAL[result.refused], lang))
+          else if (result.error) setError(result.error)
           else {
+            toast.success(t('examRoutine.added', lang))
             form.reset()
             router.refresh()
           }
@@ -132,7 +143,7 @@ export function AddRoutineEntryForm({
     >
       <div>
         <label className={labelClass} htmlFor="exam_date">{t('examRoutine.date', lang)}</label>
-        <input id="exam_date" name="exam_date" type="date" required className={dateInputClass({ size: 'md', fullWidth: true })} />
+        <DateField lang={lang} id="exam_date" name="exam_date" required className={dateInputClass({ size: 'md', fullWidth: true })} />
       </div>
       <div>
         <label className={labelClass} htmlFor="start_time">{t('examRoutine.startTime', lang)}</label>
@@ -144,27 +155,28 @@ export function AddRoutineEntryForm({
       </div>
       <div>
         <label className={labelClass} htmlFor="subject_id">{t('examRoutine.subject', lang)}</label>
-        <select id="subject_id" name="subject_id" required defaultValue="" className={selectClass({ size: 'md', fullWidth: true })}>
-          <option value="" disabled>
-            {t('examRoutine.pickSubject', lang)}
-          </option>
-          {subjects.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.label}
-            </option>
-          ))}
-        </select>
+        <ComboboxField
+          id="subject_id"
+          name="subject_id"
+          required
+          defaultValue=""
+          options={[
+            { value: '', label: t('examRoutine.pickSubject', lang), disabled: true },
+            ...subjects.map((s) => ({ value: s.id, label: s.label })),
+          ]}
+        />
       </div>
       <div>
         <label className={labelClass} htmlFor="room_id">{t('examRoutine.room', lang)}</label>
-        <select id="room_id" name="room_id" defaultValue="" className={selectClass({ size: 'md', fullWidth: true })}>
-          <option value="">{t('examRoutine.pickRoom', lang)}</option>
-          {rooms.map((r) => (
-            <option key={r.id} value={r.id}>
-              {r.label}
-            </option>
-          ))}
-        </select>
+        <ComboboxField
+          id="room_id"
+          name="room_id"
+          defaultValue=""
+          options={[
+            { value: '', label: t('examRoutine.pickRoom', lang) },
+            ...rooms.map((r) => ({ value: r.id, label: r.label })),
+          ]}
+        />
       </div>
       {error && <p className="text-sm text-alert-deep sm:col-span-5">{error}</p>}
       <button type="submit" disabled={pending} className={`${primaryBtnClass} sm:col-span-5`}>

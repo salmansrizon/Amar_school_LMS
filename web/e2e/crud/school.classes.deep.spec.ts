@@ -11,10 +11,14 @@ test.describe('@crud @school classes-deep', () => {
     const name = `E2E Class ${Date.now()}`
     await page.goto('/school/classes')
 
-    // The add-class form lives in a collapsible <details>; open it, then submit
-    // via the form's own button (avoids the summary sharing the same label).
-    const openAdd = () =>
-      page.locator('details', { has: page.locator('#class_name') }).evaluate((d) => ((d as HTMLDetailsElement).open = true))
+    // The add-class form lives in a modal (map 013 A1): open it from the list
+    // header unless a failed submit already left it open, then submit via the
+    // form's own button.
+    const openAdd = async () => {
+      if (!(await page.locator('#class_name').isVisible())) {
+        await page.getByRole('button', { name: '+ শ্রেণি যোগ করুন' }).click() // classes.addClass
+      }
+    }
     const submit = () => page.locator('form', { has: page.locator('#class_name') }).getByRole('button').click()
 
     // Create.

@@ -1,7 +1,6 @@
 import type { MessageKey } from '@/lib/i18n'
 import type { ScreenKey } from '@/lib/auth/screens'
-import { HUB_HOME } from '@/lib/student/hub'
-import { attendanceGroupHref, attendanceGroupTabHrefs } from '@/lib/attendance-nav'
+import { HUB_HOME, HUB_TABS } from '@/lib/student/hub'
 
 // Shared nav data for the School Owner/Staff sidebar (school-shell.tsx) and the
 // dashboard's Quick Actions, per ui/school-owner/dashboard.html's sidebar.
@@ -19,89 +18,119 @@ export interface SchoolNavItem {
   /** Nested entries shown under this one in the sidebar (issue #101). A child
    *  keeps its own screen grant and its own route — nesting is presentation. */
   children?: SchoolNavItem[]
-  /** Extra routes this entry's sidebar link should also read as "active" for
-   *  (map #667), beyond `href` itself — for an entry whose href is just one
-   *  of several unrelated pages it fronts (e.g. a group's default tab, when
-   *  the group's other tabs share no URL prefix with it). */
+  /** Extra routes this entry also reads as "active" for, beyond `href` itself
+   *  (sidebar highlight, breadcrumbs, phone tab) — for an entry fronting
+   *  several pages that share no URL prefix with it (map #667: a nav group's
+   *  default tab; map 013: Messages & Requests' hub tabs). */
   matchPrefixes?: string[]
 }
 
-export const SCHOOL_MODULES: SchoolNavItem[] = [
-  { screen: 'students', href: '/school/students', titleKey: 'students.title' },
-  { screen: 'employees', href: '/school/employees', titleKey: 'employees.title' },
+export type SchoolNavGroupKey = 'overview' | 'people' | 'academics' | 'financeComms' | 'administration'
+
+/** A sidebar section (map 013 F5, per new_ui 00-reference). `labelKey` heads the
+ *  sidebar group; `shortLabelKey` names the phone bottom tab. */
+export interface SchoolNavGroup {
+  key: SchoolNavGroupKey
+  labelKey: MessageKey
+  shortLabelKey: MessageKey
+  icon: string
+  items: SchoolNavItem[]
+}
+
+export const SCHOOL_NAV_GROUPS: SchoolNavGroup[] = [
   {
-    screen: 'classes',
-    href: '/school/classes',
-    titleKey: 'classes.title',
-    // Attendance depends on class information (docs/improvement.md Known
-    // Issues §1), so it reads as a child of Class & Curriculum. Nav position
-    // only (map #91 grilling decision 11): the route stays /school/attendance,
-    // and the `attendance` grant key is untouched.
-    children: [
+    key: 'overview',
+    labelKey: 'nav.groupOverview',
+    shortLabelKey: 'nav.groupOverview',
+    icon: 'dashboard',
+    items: [{ screen: 'dashboard', href: '/school', titleKey: 'dash.dashboard' }],
+  },
+  {
+    key: 'people',
+    labelKey: 'nav.groupPeople',
+    shortLabelKey: 'nav.groupPeople',
+    icon: 'students',
+    items: [
+      { screen: 'students', href: '/school/students', titleKey: 'students.title' },
+      { screen: 'employees', href: '/school/employees', titleKey: 'employees.title' },
+    ],
+  },
+  {
+    key: 'academics',
+    labelKey: 'nav.groupAcademics',
+    shortLabelKey: 'nav.tabAcademics',
+    icon: 'classes',
+    items: [
+      { screen: 'classes', href: '/school/classes', titleKey: 'classes.title' },
+      // Attendance is one sidebar item, like Exams (owner decision 2026-10-06,
+      // replacing map #667's always-visible sidebar children and map #91's
+      // "child of Classes" placement). Its four areas — Off-Day Calendar,
+      // Students, Employees, Machine — are one row of links at the top of every
+      // Attendance page (AttendanceTabs), and each area's own pages are the
+      // small switch under it. A sidebar holds two levels, not four. The route
+      // stays /school/attendance and the `attendance` grant key is untouched;
+      // every Attendance route is under that prefix, so the item stays active.
+      { screen: 'attendance', href: '/school/attendance', titleKey: 'attendance.title' },
+      { screen: 'exams', href: '/school/exams', titleKey: 'exams.title' },
+    ],
+  },
+  {
+    key: 'financeComms',
+    labelKey: 'nav.groupFinanceComms',
+    shortLabelKey: 'nav.tabFinanceComms',
+    icon: 'fees',
+    items: [
+      { screen: 'fees', href: '/school/fees', titleKey: 'fees.title' },
+      { screen: 'sms', href: '/school/sms', titleKey: 'sms.title' },
+      { screen: 'notices', href: '/school/notices', titleKey: 'notices.title' },
+      // GUARDIAN FEEDBACK IS HIDDEN (#510), not removed. Its routes, tables, the
+      // `feedback` grant key, the `feedback` feature key and all its i18n are
+      // untouched — this is a nav decision and a temporary one ("not workable for
+      // now"), so it must read as a one-line reversal. The other half of the same
+      // reversal is the commented entry in lib/school-search.ts: leaving the search
+      // shortcut behind would be worse than leaving the nav item, because whoever
+      // found the feature that way would have no way to know it is meant to be gone.
+      //
+      //   { screen: 'feedback', href: '/school/feedback', titleKey: 'feedback.title' },
+      //
+      // বার্তা ও অনুরোধ / Messages & Requests (#509). One entry where there were
+      // three — questions, corrections and the response report — because a Class
+      // Teacher reads none of those three labels as "the students are waiting on
+      // you". It takes over the Feedback slot; guardian feedback is hidden (#510).
+      //
+      // `screen: 'dashboard'` is the always-available sentinel, NOT a grant. The
+      // section deliberately rides no screen key and no feature key: `feedback` is
+      // both, and riding it would take student questions down with guardian feedback
+      // whenever a school switched that feature off (ADR 0018). What a caller
+      // actually sees inside is decided by class attachment, in RLS (0152) — so an
+      // office staff member reaching this nav item finds an empty section that says
+      // why, which is the designed outcome rather than a leak.
       {
-        screen: 'attendance',
-        href: '/school/attendance',
-        titleKey: 'attendance.title',
-        // Off-Day Calendar / Students / Employees move from Attendance's own
-        // top-of-page tab row into always-visible sidebar children (map
-        // #667) — no click-to-expand, same "own grant, own route" rule as
-        // this file's own `children` doc comment. Hrefs come from
-        // lib/attendance-nav.ts, the same source AttendanceTabs itself
-        // renders from, so the two can't drift apart.
-        children: [
-          { screen: 'attendance', href: attendanceGroupHref('off-days'), titleKey: 'attendance.tabOffDays' },
-          {
-            screen: 'attendance',
-            href: attendanceGroupHref('students'),
-            titleKey: 'attendance.groupStudents',
-            matchPrefixes: attendanceGroupTabHrefs('students'),
-          },
-          {
-            screen: 'attendance',
-            href: attendanceGroupHref('employees'),
-            titleKey: 'attendance.groupEmployees',
-            matchPrefixes: attendanceGroupTabHrefs('employees'),
-          },
-          {
-            screen: 'attendance',
-            href: attendanceGroupHref('machine'),
-            titleKey: 'attendance.groupMachine',
-            matchPrefixes: attendanceGroupTabHrefs('machine'),
-          },
-        ],
+        screen: 'dashboard',
+        href: HUB_HOME,
+        titleKey: 'hub.title',
+        icon: 'feedback',
+        matchPrefixes: HUB_TABS.map((tab) => tab.href),
       },
     ],
   },
-  { screen: 'exams', href: '/school/exams', titleKey: 'exams.title' },
-  { screen: 'fees', href: '/school/fees', titleKey: 'fees.title' },
-  { screen: 'sms', href: '/school/sms', titleKey: 'sms.title' },
-  { screen: 'notices', href: '/school/notices', titleKey: 'notices.title' },
-  // GUARDIAN FEEDBACK IS HIDDEN (#510), not removed. Its routes, tables, the
-  // `feedback` grant key, the `feedback` feature key and all its i18n are
-  // untouched — this is a nav decision and a temporary one ("not workable for
-  // now"), so it must read as a one-line reversal. The other half of the same
-  // reversal is the commented entry in lib/school-search.ts: leaving the search
-  // shortcut behind would be worse than leaving the nav item, because whoever
-  // found the feature that way would have no way to know it is meant to be gone.
-  //
-  //   { screen: 'feedback', href: '/school/feedback', titleKey: 'feedback.title' },
-  //
-  // বার্তা ও অনুরোধ / Messages & Requests (#509). One entry where there were
-  // three — questions, corrections and the response report — because a Class
-  // Teacher reads none of those three labels as "the students are waiting on
-  // you". It takes over the Feedback slot; guardian feedback is hidden (#510).
-  //
-  // `screen: 'dashboard'` is the always-available sentinel, NOT a grant. The
-  // section deliberately rides no screen key and no feature key: `feedback` is
-  // both, and riding it would take student questions down with guardian feedback
-  // whenever a school switched that feature off (ADR 0018). What a caller
-  // actually sees inside is decided by class attachment, in RLS (0152) — so an
-  // office staff member reaching this nav item finds an empty section that says
-  // why, which is the designed outcome rather than a leak.
-  { screen: 'dashboard', href: HUB_HOME, titleKey: 'hub.title', icon: 'feedback' },
-  { screen: 'institute', href: '/school/institute', titleKey: 'institute.title' },
-  { screen: 'staff', href: '/school/staff', titleKey: 'staff.title' },
+  {
+    key: 'administration',
+    labelKey: 'nav.groupAdministration',
+    shortLabelKey: 'nav.groupAdministration',
+    icon: 'institute',
+    items: [
+      { screen: 'institute', href: '/school/institute', titleKey: 'institute.title' },
+      { screen: 'staff', href: '/school/staff', titleKey: 'staff.title' },
+    ],
+  },
 ]
+
+/** The module entries (every group but Overview's dashboard) — the sidebar's
+ *  original flat shape, kept for callers that predate the groups. */
+export const SCHOOL_MODULES: SchoolNavItem[] = SCHOOL_NAV_GROUPS.flatMap((g) => g.items).filter(
+  (it) => it.href !== '/school',
+)
 
 /** Every nav entry at every depth, parents and children alike — for anything
  *  that needs the flat module list rather than the sidebar's shape. Recurses
@@ -110,6 +139,35 @@ export const SCHOOL_MODULES: SchoolNavItem[] = [
  *  single-level flatMap would silently drop that third level. */
 export function flattenSchoolModules(items: SchoolNavItem[] = SCHOOL_MODULES): SchoolNavItem[] {
   return items.flatMap((item) => [item, ...flattenSchoolModules(item.children ?? [])])
+}
+
+function matchLength(pathname: string, item: SchoolNavItem): number {
+  // Dashboard root matches only itself, or it would swallow every /school route.
+  const prefixes = [item.href, ...(item.matchPrefixes ?? [])]
+  let best = -1
+  for (const p of prefixes) {
+    const hit = p === '/school' ? pathname === p : pathname === p || pathname.startsWith(p + '/')
+    if (hit && p.length > best) best = p.length
+  }
+  return best
+}
+
+/** The nav group and entry a route belongs to (longest prefix wins), or null for
+ *  routes outside the sidebar (profile, approvals…). For breadcrumbs and the
+ *  phone tab bar's active tab. */
+export function navGroupFor(pathname: string): { group: SchoolNavGroup; item: SchoolNavItem } | null {
+  let found: { group: SchoolNavGroup; item: SchoolNavItem } | null = null
+  let best = -1
+  for (const group of SCHOOL_NAV_GROUPS) {
+    for (const item of flattenSchoolModules(group.items)) {
+      const len = matchLength(pathname, item)
+      if (len > best) {
+        best = len
+        found = { group, item }
+      }
+    }
+  }
+  return found
 }
 
 export interface SchoolQuickAction {

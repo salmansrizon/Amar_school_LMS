@@ -9,11 +9,15 @@ import {
   filterExams,
   examBasicInfoComplete,
   examHasClass,
+  examActionState,
   filterResultRoster,
   roomForRoll,
   sortRoutineEntries,
   roomUsedSeats,
   overCapacityRoomIds,
+  examStage,
+  markCellError,
+  markRowState,
 } from '@/lib/exam-setup'
 
 describe('subjectFullMarks', () => {
@@ -141,6 +145,32 @@ describe('examHasClass', () => {
   })
 })
 
+// Map 013 sweep: the exam row's action colour, derived purely from the two
+// Basic Info fields — never a stored workflow flag.
+describe('examActionState', () => {
+  const complete = { class_id: 'c6a', grading_scheme_id: 'gs1' }
+  const classOnly = { class_id: 'c6a', grading_scheme_id: null }
+  const neither = { class_id: null, grading_scheme_id: null }
+
+  it("Basic Info (requires 'none') is 'next' until both fields are set, then 'done'", () => {
+    expect(examActionState(neither, 'none')).toBe('next')
+    expect(examActionState(classOnly, 'none')).toBe('next')
+    expect(examActionState(complete, 'none')).toBe('done')
+  })
+
+  it("a class-gated action is 'locked' without a class, 'default' with one — grading scheme irrelevant", () => {
+    expect(examActionState(neither, 'class')).toBe('locked')
+    expect(examActionState(classOnly, 'class')).toBe('default')
+    expect(examActionState(complete, 'class')).toBe('default')
+  })
+
+  it("a basicInfo-gated action is 'locked' until both fields are set, then 'default' (never 'done')", () => {
+    expect(examActionState(neither, 'basicInfo')).toBe('locked')
+    expect(examActionState(classOnly, 'basicInfo')).toBe('locked')
+    expect(examActionState(complete, 'basicInfo')).toBe('default')
+  })
+})
+
 describe('filterExams', () => {
   const exams = [
     { name: 'Annual Examination 2025', status: 'open', class_id: 'c8a' },
@@ -254,5 +284,83 @@ describe('roomUsedSeats / overCapacityRoomIds', () => {
   it('a room within budget for each exam alone but over when summed is still flagged', () => {
     const over = overCapacityRoomIds(rows, [{ id: 'r1', capacity: 5 }])
     expect(over.has('r1')).toBe(true)
+  })
+})
+
+// Map 013 A3: the exam landing page's lifecycle board classifies every exam
+// into one of six stages, purely from data (never a stored workflow flag).
+describe('examStage', () => {
+  const TODAY = '2026-03-10'
+  const complete = { class_id: 'c1', grading_scheme_id: 'g1' }
+  const incomplete = { class_id: 'c1', grading_scheme_id: null }
+  const noFacts = { marksComplete: false, lastExamDate: null }
+
+  it('closed wins over everything, even an incomplete exam or one with marks done', () => {
+    expect(examStage({ ...complete, status: 'closed', start_date: TODAY }, TODAY, noFacts)).toBe('closed')
+    expect(examStage({ ...incomplete, status: 'closed', start_date: null }, TODAY, noFacts)).toBe('closed')
+    expect(
+      examStage({ ...complete, status: 'closed', start_date: '2026-01-01' }, TODAY, { ...noFacts, marksComplete: true }),
+    ).toBe('closed')
+  })
+
+  it('an open exam with incomplete Basic Info is setup, whatever its dates or marks say', () => {
+    expect(examStage({ ...incomplete, status: 'open', start_date: '2026-01-01' }, TODAY, { ...noFacts, marksComplete: true })).toBe(
+      'setup',
+    )
+    expect(examStage({ ...incomplete, status: 'open', start_date: null }, TODAY, noFacts)).toBe('setup')
+  })
+
+  it('marks-complete is ready, ahead of the date-window check', () => {
+    expect(
+      examStage({ ...complete, status: 'open', start_date: '2026-06-01' }, TODAY, { ...noFacts, marksComplete: true }),
+    ).toBe('ready')
+    expect(
+      examStage({ ...complete, status: 'open', start_date: '2026-01-01' }, TODAY, {
+        marksComplete: true,
+        lastExamDate: '2026-01-05',
+      }),
+    ).toBe('ready')
+  })
+
+  it('no start date, or one in the future, is upcoming', () => {
+    expect(examStage({ ...complete, status: 'open', start_date: null }, TODAY, noFacts)).toBe('upcoming')
+    expect(examStage({ ...complete, status: 'open', start_date: '2026-04-01' }, TODAY, noFacts)).toBe('upcoming')
+  })
+
+  it('started, no routine yet: running on its start date, marks-pending the day after', () => {
+    expect(examStage({ ...complete, status: 'open', start_date: TODAY }, TODAY, noFacts)).toBe('running')
+    expect(examStage({ ...complete, status: 'open', start_date: '2026-03-09' }, TODAY, noFacts)).toBe('marksPending')
+  })
+
+  it('a routine extends the window: running until its last sitting, marks-pending after', () => {
+    expect(
+      examStage({ ...complete, status: 'open', start_date: '2026-03-01' }, TODAY, { marksComplete: false, lastExamDate: TODAY }),
+    ).toBe('running')
+    expect(
+      examStage({ ...complete, status: 'open', start_date: '2026-03-01' }, TODAY, {
+        marksComplete: false,
+        lastExamDate: '2026-03-20',
+      }),
+    ).toBe('running')
+    expect(
+      examStage({ ...complete, status: 'open', start_date: '2026-03-01' }, TODAY, {
+        marksComplete: false,
+        lastExamDate: '2026-03-05',
+      }),
+    ).toBe('marksPending')
+  })
+})
+
+describe('markCellError with Bangla digits', () => {
+  it('reads ৭৫ as 75 and applies the same rules', () => {
+    expect(markCellError('৭৫', 100)).toBeNull()
+    expect(markCellError('৭৫.৫', 100)).toBeNull()
+    expect(markCellError('১০১', 100)).toBe('overMax')
+    expect(markCellError('-৫', 100)).toBe('negative')
+    expect(markCellError('৭ক', 100)).toBe('invalid')
+    expect(markCellError('', 100)).toBeNull()
+  })
+  it('a half-filled row is still partial', () => {
+    expect(markRowState({ theory: '৭০', mcq: '', practical: '' }, { theory_marks: 70, mcq_marks: 30, practical_marks: 0 })).toBe('partial')
   })
 })

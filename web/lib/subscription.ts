@@ -2,6 +2,8 @@
 // decrease_expiry in migration 0008) — used for UI previews only; the
 // database is the authority.
 
+import { schoolToday } from './school-time'
+
 function addMonths(date: Date, months: number): Date {
   const result = new Date(date)
   const day = result.getUTCDate()
@@ -43,8 +45,36 @@ export function daysUntilExpiry(expiry: string): number {
   return daysUntil(startOfUtcToday(), new Date(expiry + 'T00:00:00Z'))
 }
 
+/** Whole calendar days left until `expiresAt` (YYYY-MM-DD), counted in the
+ *  School's own calendar day — Asia/Dhaka, via school-time.ts — not the
+ *  server's UTC clock: 0 = expires today, negative once lapsed. `now` is the
+ *  caller's clock (the dashboard's request-time `Date`), kept as a parameter
+ *  so this stays pure and unit-testable. */
+export function daysLeft(expiresAt: string, now: Date): number {
+  return daysUntil(new Date(schoolToday(now) + 'T00:00:00Z'), new Date(expiresAt + 'T00:00:00Z'))
+}
+
 /** How many days before expiry the school-side reminder banner appears (#169). */
 export const REMINDER_WINDOW_DAYS = 7
+
+/** True from 7 days left (inclusive) through already-expired — the dashboard
+ *  subscription card's danger window, sharing the reminder banner's threshold. */
+export function isDaysLeftDanger(days: number): boolean {
+  return days <= REMINDER_WINDOW_DAYS
+}
+
+export type CountdownKind = 'left' | 'today' | 'expired'
+
+/** Which branch of the dashboard countdown phrase applies for a `daysLeft`
+ *  result: still counting down, expires today, or already lapsed. Split out
+ *  from the phrase text itself (i18n + Bangla-digit formatting, done by the
+ *  caller) so the boundary — 0 is "today", not "expired" or "1 left" — is
+ *  independently unit-tested. */
+export function countdownKind(days: number): CountdownKind {
+  if (days > 0) return 'left'
+  if (days === 0) return 'today'
+  return 'expired'
+}
 
 /** Whether the 7-day reminder banner should show: an active/trial school whose
  *  expiry is within the window (today inclusive) and not already dismissed for

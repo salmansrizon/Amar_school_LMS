@@ -20,29 +20,47 @@ const classes: ClassCatalogueRow[] = [
 ]
 
 describe('ProfileFields edit mode (classes prop) — Class field', () => {
+  // The dropdown-to-ComboboxField map (all native <select>s replaced by the
+  // shared type-to-filter ui/combobox-field.tsx / ui/select-field.tsx)
+  // changed what's observable from a plain `renderToStaticMarkup` call: a
+  // native <select> always rendered every <option> into the markup, so the
+  // old assertions here could see the *whole* option list without opening
+  // anything. ComboboxField's list is portalled and only mounts while its
+  // popup is open — nothing this repo's other unit tests do, and no
+  // `@testing-library`/jsdom-interaction dependency exists here to open it.
+  // What's still genuinely provable via static markup is the *currently
+  // resolved* value (rendered as the visible input's `value=`), so these
+  // tests select the row under test via `defaults` instead of scanning an
+  // always-rendered option list. Full option-list coverage (both Offering
+  // rows, unopened) is the admission-form E2E's job, not this unit test's.
   it('renders one dropdown with the full Class Catalogue label, no separate Section select', () => {
-    const html = renderToStaticMarkup(
-      <ProfileFields lang="en" classes={classes} defaults={{}} />,
+    const nine = renderToStaticMarkup(
+      <ProfileFields lang="en" classes={classes} defaults={{ class_name: 'Nine', section: 'A' }} />,
     )
-    expect(html).toContain('Nine (Science) - Morning - A')
-    expect(html).toContain('Six - B')
-    // Only one <select> renders for Class — the old two-select cascade's
-    // second dropdown is gone. `section` still appears, but only as the
-    // hidden input's name, never a second <select>.
-    expect(html.match(/<select/g)).toHaveLength(3) // gender, class, guardian_relation
-    expect(html).not.toMatch(/<select[^>]*name="section"/)
+    expect(nine).toContain('Nine (Science) - Morning - A')
+    const six = renderToStaticMarkup(
+      <ProfileFields lang="en" classes={classes} defaults={{ class_name: 'Six', section: 'B' }} />,
+    )
+    expect(six).toContain('Six - B')
+    // One combined Class Catalogue combobox, not a class+section cascade:
+    // `section` only ever appears as the hidden input's name, never as a
+    // second interactive combobox/select control.
+    expect(nine).toContain('id="admission_class_edit"')
+    expect(nine).not.toMatch(/role="(combobox|option)"[^>]*name="section"/)
+    expect(nine).not.toMatch(/name="section"[^>]*role="(combobox|option)"/)
   })
 
   it('shows the year segment only when showYear is true', () => {
+    const defaults = { class_name: 'Nine', section: 'A' }
     const withoutYear = renderToStaticMarkup(
-      <ProfileFields lang="en" classes={classes} defaults={{}} showYear={false} />,
+      <ProfileFields lang="en" classes={classes} defaults={defaults} showYear={false} />,
     )
     const withYear = renderToStaticMarkup(
-      <ProfileFields lang="en" classes={classes} defaults={{}} showYear={true} />,
+      <ProfileFields lang="en" classes={classes} defaults={defaults} showYear={true} />,
     )
+    expect(withoutYear).toContain('Nine (Science) - Morning - A')
     expect(withoutYear).not.toContain('— 2026')
     expect(withYear).toContain('Nine (Science) - Morning - A — 2026')
-    expect(withYear).toContain('Nine (Science) - Morning - A — 2027')
   })
 
   it("pre-selects the option matching the student's current class_name/section, and hidden inputs carry that same pair", () => {
@@ -54,8 +72,9 @@ describe('ProfileFields edit mode (classes prop) — Class field', () => {
         showYear={false}
       />,
     )
-    // React SSR marks the matching <option> of a controlled <select> as selected.
-    expect(html).toMatch(/<option[^>]*value="off-six-b"[^>]*selected[^>]*>Six - B<\/option>/)
+    // The combobox's visible input shows the resolved composed label as its
+    // value (the id-based option value stays internal to the primitive).
+    expect(html).toMatch(/id="admission_class_edit"[^>]*value="Six - B"/)
     expect(html).toContain('<input type="hidden" name="class_name" value="Six"')
     expect(html).toContain('<input type="hidden" name="section" value="B"')
   })

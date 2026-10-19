@@ -203,8 +203,16 @@ export function evaluateOverallResult(results: SubjectResult[], scheme: GradingS
   // which percent band the aggregate happens to land in (a single failed
   // compulsory subject can zero the GPA while the aggregate percent still
   // reads as a passing band under individual/optional_conditional).
+  //
+  // A scheme with no grade bands cannot produce a grade point at all, so its
+  // GPA is null ("not computable"), never 0.00 — a passing student printed
+  // with GPA 0.00 is a contradiction on an official mark sheet.
+  const noBands = scheme.bands.length === 0
   if (!passed) {
-    return { passed: false, percent: overallPercent, gpa: 0, label: 'F' }
+    return { passed: false, percent: overallPercent, gpa: noBands ? null : 0, label: 'F' }
+  }
+  if (noBands) {
+    return { passed: true, percent: overallPercent, gpa: null, label: null }
   }
 
   const basePoints = compulsory.reduce((s, r) => s + (r.gradePoint ?? 0), 0)

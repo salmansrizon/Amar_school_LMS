@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { useCrudAction } from '@/lib/crud/use-crud-action'
 import {
   createModule,
@@ -10,6 +11,8 @@ import {
   addDependency,
   removeDependency,
 } from './actions'
+import { SelectField } from '@/components/ui/select-field'
+import { ComboboxField } from '@/components/ui/combobox-field'
 
 const input = 'h-10 rounded-lg border border-line-strong px-3 text-sm focus:border-brand-500 focus:outline-none'
 const STATES = ['active', 'disabled', 'trial', 'premium']
@@ -59,13 +62,11 @@ export function AddFeatureForm({ moduleKey }: { moduleKey: string }) {
       <input name="key" required placeholder="feature_key" className={`${input} font-mono`} />
       <input name="label_en" placeholder="Label (EN)" className={input} />
       <input name="label_bn" placeholder="লেবেল (BN)" className={input} />
-      <select name="default_state" defaultValue="active" className={input}>
-        {STATES.map((s) => (
-          <option key={s} value={s}>
-            {s}
-          </option>
-        ))}
-      </select>
+      <SelectField
+        name="default_state"
+        defaultValue="active"
+        options={STATES.map((s) => ({ value: s, label: s }))}
+      />
       <button type="submit" disabled={pending} className="h-10 rounded-lg border border-line-strong px-4 text-sm font-semibold hover:bg-paper-muted disabled:opacity-50">
         Add feature
       </button>
@@ -89,27 +90,23 @@ export function FeatureRowActions({
   const del = useCrudAction(deleteFeature)
   const addDep = useCrudAction(addDependency)
   const rmDep = useCrudAction(removeDependency)
+  const [depValue, setDepValue] = useState('')
 
   return (
     <div className="flex flex-col items-end gap-1">
       <span className="flex items-center gap-2">
-        <select
+        <SelectField
           defaultValue={state}
           disabled={stateAction.pending}
-          onChange={(e) => {
+          onValueChange={(v) => {
             const d = new FormData()
             d.set('key', featureKey)
-            d.set('default_state', e.target.value)
+            d.set('default_state', v)
             stateAction.run(d)
           }}
-          className="h-8 rounded-lg border border-line-strong px-2 text-xs focus:border-brand-500 focus:outline-none"
-        >
-          {STATES.map((s) => (
-            <option key={s} value={s}>
-              {s}
-            </option>
-          ))}
-        </select>
+          className="h-8 text-xs"
+          options={STATES.map((s) => ({ value: s, label: s }))}
+        />
         <button
           type="button"
           disabled={del.pending}
@@ -141,27 +138,24 @@ export function FeatureRowActions({
             </button>
           </span>
         ))}
-        <select
-          defaultValue=""
-          onChange={(e) => {
-            if (!e.target.value) return
+        <ComboboxField
+          value={depValue}
+          onValueChange={(v) => {
+            if (!v) return
             const fd = new FormData()
             fd.set('feature_key', featureKey)
-            fd.set('depends_on_key', e.target.value)
+            fd.set('depends_on_key', v)
             addDep.run(fd)
-            e.target.value = ''
+            setDepValue('')
           }}
-          className="h-7 rounded-lg border border-line-strong px-2 text-[11px] focus:border-brand-500 focus:outline-none"
-        >
-          <option value="">+ depends on…</option>
-          {depOptions
-            .filter((o) => o.key !== featureKey && !currentDeps.includes(o.key))
-            .map((o) => (
-              <option key={o.key} value={o.key}>
-                {o.label}
-              </option>
-            ))}
-        </select>
+          className="h-7 text-[11px]"
+          options={[
+            { value: '', label: '+ depends on…' },
+            ...depOptions
+              .filter((o) => o.key !== featureKey && !currentDeps.includes(o.key))
+              .map((o) => ({ value: o.key, label: o.label })),
+          ]}
+        />
       </span>
       {(stateAction.error || del.error || addDep.error || rmDep.error) && (
         <span className="text-xs text-alert-deep">

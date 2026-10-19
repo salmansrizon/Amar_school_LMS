@@ -5,8 +5,9 @@ import { getSchoolContext } from '@/lib/school/context'
 import { classSectionLabel } from '@/lib/students'
 import { loadExamPrintContext } from '@/lib/exam-print-data'
 import { loadProgressReportExtras } from '@/lib/progress-report-data'
-import { renderAuthenticityQr } from '@/lib/qr'
-import { PrintButton } from '@/components/print/print-button'
+import { printVerifyQr } from '@/lib/print-verify-server'
+import { PrintTrigger } from '@/components/print/print-trigger'
+import { withParams } from '@/lib/url-params'
 import { TemplatePicker } from '@/components/print/template-picker'
 import { ProgressReportTemplate } from './templates'
 import { loadInstitutePrintHeader } from '@/lib/institute-print'
@@ -57,7 +58,7 @@ export default async function ProgressReportPage({
           label={t('markSheet.pickTemplate', lang)}
           options={[t('markSheet.template1', lang), t('markSheet.template2', lang), t('markSheet.template3', lang)]}
         />
-        <PrintButton label={t('print.print', lang)} />
+        <PrintTrigger href={`/school/exams/${examId}/progress-report/${studentId}/print${withParams({ template: templateParam }, {})}`} label={t('print.print', lang)} />
       </div>
     </div>
   )
@@ -81,9 +82,7 @@ export default async function ProgressReportPage({
 
   const extras = await loadProgressReportExtras(supabase, examId, studentId, ctx.exam.exam_year)
 
-  const qrSvg = await renderAuthenticityQr(
-    `PROGRESSREPORT|school:${school.name}|exam:${examId}|student:${studentId}|roll:${ctx.student.roll_number ?? ''}`,
-  )
+  const qrSvg = await printVerifyQr({ kind: 'progress_report', studentId, refId: examId })
 
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 p-6">
@@ -103,6 +102,7 @@ export default async function ProgressReportPage({
           obtained: r.result.obtainedMarks,
           label: r.result.label,
           passed: r.result.passed,
+          entered: r.entered,
         }))}
         behaviourRows={extras.behaviourRows}
         checklistItems={extras.checklistItems}

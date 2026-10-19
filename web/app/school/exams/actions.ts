@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { examClassDenied } from '@/lib/school/exam-class-guard'
 
 // RLS + the exam_close_immutable trigger are the authority. Exams II (issue
 // #47) extends this file with exam setup (class/date/grading-scheme) and
@@ -30,6 +31,8 @@ export async function renameExam(id: string, name: string): Promise<{ error?: st
   const trimmed = name.trim()
   if (!trimmed) return { error: 'Name is required' }
   const supabase = await createClient()
+  const denied = await examClassDenied(supabase, id)
+  if (denied) return denied
   const { data, error } = await supabase
     .from('exams')
     .update({ name: trimmed })
@@ -54,6 +57,8 @@ export async function renameExam(id: string, name: string): Promise<{ error?: st
  */
 export async function deleteExam(id: string): Promise<{ error?: string }> {
   const supabase = await createClient()
+  const denied = await examClassDenied(supabase, id)
+  if (denied) return denied
   const { data, error } = await supabase.from('exams').delete().eq('id', id).select('id')
   if (error) {
     // The trigger raises in English; the operator reads Bangla, and "a Closed
@@ -68,6 +73,8 @@ export async function deleteExam(id: string): Promise<{ error?: string }> {
 
 export async function closeExam(id: string): Promise<{ error?: string }> {
   const supabase = await createClient()
+  const denied = await examClassDenied(supabase, id)
+  if (denied) return denied
   const { error } = await supabase.rpc('close_exam', { exam: id })
   if (error) return { error: error.message }
   revalidatePath(PAGE)
