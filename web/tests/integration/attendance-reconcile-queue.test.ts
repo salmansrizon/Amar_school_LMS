@@ -340,7 +340,8 @@ describe('School-local attendance day + reconcile queue (Machine Attendance Phas
     expect(await queueRow(ownerA, schoolA, '2026-09-30')).toBeNull()
   })
 
-  it('the two-argument reconcile_attendance deployed code still calls keeps working', async () => {
+  // Deployed main's cron still calls it; 0267 limits it to legacy ingest_token taps.
+  it('the two-argument reconcile_attendance deployed main still calls keeps working for legacy taps', async () => {
     await ingest(schoolA, tokenA, [{ card_number: CARD_A, tapped_at: `${D2}T09:00:00Z` }])
     const r = await anonClient().rpc('reconcile_attendance', { job_secret: RECONCILE_SECRET, target_date: D2 })
     expect(r.error).toBeNull()

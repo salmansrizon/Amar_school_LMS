@@ -209,6 +209,35 @@ describe('reconcile resolves Agent events through enrollment episodes (Machine A
     await admin.from('machine_enroll_infos').delete().eq('rfid_card_number', card)
   })
 
+  // 0267: deployed main's daily cron still calls the two-argument function. It
+  // is legacy-only: card taps from the ingest token, never an Agent event.
+  it('the legacy two-argument reconcile never resolves an Agent event, by card or otherwise; legacy taps still resolve', async () => {
+    const day = '2026-08-17' // a UTC day no other suite writes (the legacy job is not School-scoped)
+    const card = `RES-LEG-${randomUUID().slice(0, 8)}`
+    expect((await admin
+      .from('machine_enroll_infos')
+      .insert({ school_id: school, type: 'student', student_id: s1, unique_id: s1UniqueId, rfid_card_number: card })).error).toBeNull()
+    const id = nextUser()
+    await episode({ machine_user_id: id, student_id: s2, linked_at: at('2026-08-01', '00:00'), sync_state: 'synced' })
+    const agentWithCard = await agentEvent(nextUser(), at(day, '02:00'), { card_number: card })
+    const agentInEpisode = await agentEvent(id, at(day, '03:00'))
+    const { data: s } = await admin.from('schools').select('ingest_token').eq('id', school).single()
+    expect((await anonClient().rpc('ingest_attendance_events', { school, token: s!.ingest_token, events: [{ card_number: card, tapped_at: at(day, '04:00') }] })).error).toBeNull()
+
+    const legacyRun = await anonClient().rpc('reconcile_attendance', { job_secret: RECONCILE_SECRET, target_date: day })
+    expect(legacyRun.error).toBeNull()
+    expect([await processed(agentWithCard), await processed(agentInEpisode)]).toEqual([false, false])
+    expect(await record(s1, day)).toMatchObject({ entry_at: at(day, '04:00'), exit_at: null }) // the legacy tap only
+    expect(await record(s2, day)).toBeNull()
+
+    // The School's own reconcile (the queue path) resolves the episode punch; the card-only Agent punch stays unresolved.
+    await reconcile(day)
+    expect(await record(s2, day)).toMatchObject({ entry_at: at(day, '03:00') })
+    expect(await processed(agentWithCard)).toBe(false)
+    expect(await record(s1, day)).toMatchObject({ entry_at: at(day, '04:00'), exit_at: null })
+    await admin.from('machine_enroll_infos').delete().eq('rfid_card_number', card)
+  })
+
   it('an employee episode resolves to the employee', async () => {
     const day = '2026-09-29'
     const id = nextUser()
