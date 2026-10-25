@@ -149,7 +149,7 @@ export async function employeeShifts(supabase: SupabaseClient, employeeIds: read
 }
 
 const MACHINE_COLUMNS =
-  'id, machine_type, model, serial_number, location, shift_scope, shift, note, host, port, time_zone, enabled, archived_at, replaces_machine_id'
+  'id, machine_type, model, serial_number, location, shift_scope, shift, note, host, port, time_zone, enabled, archived_at, replaces_machine_id, agent_id, driver_key, credential_configured, serial_verified_at'
 
 /** Every machine of the caller's School, archived ones included (Machine Setup
  *  lists them separately; enrollment screens use activeMachines()). */
@@ -170,6 +170,8 @@ function machineWriteError(error: { code?: string; message: string }): MachineWr
   if (error.code === '23505' && error.message.includes('attendance_machines_serial_unique')) return 'errSerialTaken'
   // 0217's guard: an archived machine is frozen until restored.
   if (error.message.includes('archived attendance machine cannot be edited')) return 'errMachineArchived'
+  // 0217: the Agent must be one of the School's own (composite FK).
+  if (error.code === '23503' && error.message.includes('attendance_machines_agent_same_school')) return 'errNotFound'
   return 'errSave'
 }
 

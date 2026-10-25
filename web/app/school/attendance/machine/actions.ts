@@ -15,6 +15,14 @@ import {
   type RfidEntry,
   type RfidSaveResult,
 } from '@/lib/machine-enrollment-store'
+import {
+  commandStatus,
+  createActivationCode,
+  requestTestConnection,
+  revokeAgent,
+  type MachineCommandStatus,
+  type TestConnectionError,
+} from '@/lib/attendance-agent-store'
 
 // Machine Attendance (issue #675). RLS is the authority on who may write:
 // attendance_machines and machine_enroll_infos are School-scoped and behind
@@ -46,6 +54,9 @@ export async function saveMachineAction(id: string | null, formData: FormData): 
       note: field(formData, 'note'),
       host: field(formData, 'host'),
       port: field(formData, 'port'),
+      agent_id: field(formData, 'agent_id'),
+      driver_key: field(formData, 'driver_key'),
+      enabled: field(formData, 'enabled'),
     },
     configuredShifts,
   )
@@ -108,4 +119,42 @@ export async function saveRfidEntriesAction(entries: RfidEntry[]): Promise<RfidS
     return [...results, ...valid.map((e) => ({ personId: e.personId, ok: false as const, error: 'failed' as const }))]
   }
   return [...results, ...(await saveRfidEntries(supabase, valid))]
+}
+
+// ---------------------------------------------------------------------------
+// Attendance Agent (Machine Attendance Phase 6; ADR 0033). The definer RPCs
+// (migration 0265) check School + Attendance grant; these add the #677 rule
+// (Owner and office staff only) and validate shape.
+
+/** A one-time activation code for a new Agent, returned once and never stored in plain text. */
+export async function createActivationCodeAction(): Promise<{ code: string; expiresAt: string } | { error: string }> {
+  const supabase = await createClient()
+  const denied = await employeeAttendanceAdminDenied(supabase)
+  if (denied) return { error: denied.error ?? 'errSave' }
+  return createActivationCode(supabase)
+}
+
+export async function revokeAgentAction(agentId: string): Promise<{ error?: string }> {
+  if (!UUID.test(agentId)) return { error: 'errNotFound' }
+  const supabase = await createClient()
+  const denied = await employeeAttendanceAdminDenied(supabase)
+  if (denied) return denied
+  const result = await revokeAgent(supabase, agentId)
+  if (!result.error) revalidatePath(SETUP_PAGE)
+  return result
+}
+
+/** Queues TEST_CONNECTION through the machine command queue; the Agent on the LAN runs it. */
+export async function testConnectionAction(machineId: string): Promise<{ commandId: string } | { error: TestConnectionError | string }> {
+  if (!UUID.test(machineId)) return { error: 'errNotFound' }
+  const supabase = await createClient()
+  const denied = await employeeAttendanceAdminDenied(supabase)
+  if (denied) return { error: denied.error ?? 'errSave' }
+  return requestTestConnection(supabase, machineId)
+}
+
+/** Polled by the Test Connection button until the command finishes. Read under RLS. */
+export async function commandStatusAction(commandId: string): Promise<MachineCommandStatus | null> {
+  if (!UUID.test(commandId)) return null
+  return commandStatus(await createClient(), commandId)
 }

@@ -4,11 +4,13 @@ import { getSchoolContext } from '@/lib/school/context'
 import { requireEmployeeAttendanceAdmin } from '@/lib/school/employee-attendance-admin'
 import { isKnownAcademicShift } from '@/lib/institute'
 import { listMachines } from '@/lib/machine-enrollment-store'
+import { latestTestConnections, listAgents } from '@/lib/attendance-agent-store'
 import { loadLastAgentHeartbeat } from '@/lib/school/attendance-agent-sync'
 import { AttendanceTabs } from '../attendance-tabs'
 import { MachinePageHeader } from './page-header'
 import { MachineSetup } from './machine-setup'
 import { DownloadServiceButton } from './machine-ui'
+import { AgentPanel } from './agent-panel'
 
 // Machine Setup (issue #675): the attendance machines installed at this
 // School. Configuration only — the future Windows sync service will read it.
@@ -18,7 +20,12 @@ export default async function MachineSetupPage() {
   const { supabase, configuredShifts } = await getSchoolContext()
   // #677: Owner and office staff only; a teacher is refused.
   await requireEmployeeAttendanceAdmin('/school/attendance/machine')
-  const [machines, lastHeartbeat] = await Promise.all([listMachines(supabase), loadLastAgentHeartbeat(supabase)])
+  const [machines, lastHeartbeat, agents] = await Promise.all([
+    listMachines(supabase),
+    loadLastAgentHeartbeat(supabase),
+    listAgents(supabase),
+  ])
+  const latestTests = Object.fromEntries(await latestTestConnections(supabase, machines.map((m) => m.id)))
 
   return (
     <div>
@@ -34,7 +41,16 @@ export default async function MachineSetupPage() {
           {t('machine.agentLastSync', lang)}: <span className="text-ink">{formatDateTime(lastHeartbeat, lang)}</span>
         </p>
       )}
-      <MachineSetup machines={machines} configuredShifts={configuredShifts.filter(isKnownAcademicShift)} lang={lang} />
+      <div className="mb-6">
+        <AgentPanel agents={agents} lang={lang} />
+      </div>
+      <MachineSetup
+        machines={machines}
+        configuredShifts={configuredShifts.filter(isKnownAcademicShift)}
+        agents={agents}
+        latestTests={latestTests}
+        lang={lang}
+      />
     </div>
   )
 }

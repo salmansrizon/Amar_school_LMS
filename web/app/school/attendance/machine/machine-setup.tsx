@@ -6,6 +6,7 @@ import { t, type Lang, type MessageKey } from '@/lib/i18n'
 import { ACADEMIC_SHIFT_LABEL_KEY, type AcademicShift } from '@/lib/institute'
 import {
   DEFAULT_MACHINE_PORT,
+  DRIVER_KEYS,
   MACHINE_TYPES,
   activeMachines,
   machineShiftChoice,
@@ -15,8 +16,10 @@ import {
 import { inputClass, labelClass } from '@/components/auth-card'
 import { selectClass } from '@/components/ui/field'
 import { ConfirmDialog } from '@/components/confirm-dialog'
+import type { AttendanceAgent, MachineCommandStatus } from '@/lib/attendance-agent-store'
 import { deleteMachineAction, saveMachineAction, setMachineArchivedAction } from './actions'
 import { machineShiftLabel } from './machine-ui'
+import { TestConnection } from './test-connection'
 
 // Machine Setup (issue #675): one form that adds a machine, or edits the one
 // picked from the table below it, plus the table itself. A machine that has
@@ -31,6 +34,8 @@ const ERROR_KEYS: Record<string, MessageKey> = {
   errShift: 'machine.errShift',
   errHost: 'machine.errHost',
   errPort: 'machine.errPort',
+  errAgent: 'machine.errNotFound',
+  errDriver: 'machine.errSave',
   errMachineInUse: 'machine.errMachineInUse',
   errMachineArchived: 'machine.errMachineArchived',
   errMachineReplaced: 'machine.errMachineReplaced',
@@ -50,12 +55,23 @@ const secondaryClass = 'cursor-pointer rounded-full border border-line px-4 py-2
 export function MachineSetup({
   machines,
   configuredShifts,
+  agents = [],
+  latestTests = {},
   lang,
 }: {
   machines: AttendanceMachine[]
   configuredShifts: readonly AcademicShift[]
+  /** The School's Attendance Agents (Phase 6); only active ones can be assigned. */
+  agents?: AttendanceAgent[]
+  /** Latest TEST_CONNECTION per machine id. */
+  latestTests?: Record<string, MachineCommandStatus>
   lang: Lang
 }) {
+  const activeAgents = agents.filter((a) => a.status === 'active')
+  const agentName = (id: string | null | undefined) => {
+    const a = agents.find((x) => x.id === id)
+    return a ? (a.hostname ?? a.name) : null
+  }
   const router = useRouter()
   const formRef = useRef<HTMLFormElement>(null)
   const [editing, setEditing] = useState<AttendanceMachine | null>(null)
@@ -217,7 +233,50 @@ export function MachineSetup({
             />
             <p className="mt-1 text-xs text-muted">{t('machine.portHint', lang)}</p>
           </div>
+          <div>
+            <label htmlFor="agent_id" className={labelClass}>
+              {t('machine.agent', lang)}
+            </label>
+            <select
+              id="agent_id"
+              name="agent_id"
+              defaultValue={editing?.agent_id ?? (activeAgents.length === 1 ? activeAgents[0]!.id : '')}
+              className={selectClass({ size: 'md', fullWidth: true })}
+            >
+              <option value="">{t('machine.agentNoneOption', lang)}</option>
+              {activeAgents.map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.hostname ?? a.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="driver_key" className={labelClass}>
+              {t('machine.driver', lang)}
+            </label>
+            <select
+              id="driver_key"
+              name="driver_key"
+              defaultValue={editing?.driver_key ?? ''}
+              className={selectClass({ size: 'md', fullWidth: true })}
+            >
+              <option value="">{t('machine.driverDefault', lang)}</option>
+              {DRIVER_KEYS.map((d) => (
+                <option key={d.value} value={d.value}>
+                  {d.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="flex items-end gap-2 pb-2">
+            <input id="enabled" name="enabled" type="checkbox" defaultChecked={editing?.enabled ?? true} className="h-4 w-4" />
+            <label htmlFor="enabled" className="text-sm">
+              {t('machine.enabled', lang)}
+            </label>
+          </div>
         </div>
+        <p className="text-xs text-muted">{t('machine.keyHint', lang)}</p>
         <div>
           <label htmlFor="note" className={labelClass}>
             {t('machine.note', lang)}
@@ -265,6 +324,7 @@ export function MachineSetup({
                   <th className="px-3 py-2">{t('machine.serialShort', lang)}</th>
                   <th className="px-3 py-2">{t('machine.location', lang)}</th>
                   <th className="px-3 py-2">{t('machine.shift', lang)}</th>
+                  <th className="px-3 py-2">{t('machine.agent', lang)}</th>
                   <th className="px-3 py-2 text-right">{t('machine.actions', lang)}</th>
                 </tr>
               </thead>
@@ -286,6 +346,15 @@ export function MachineSetup({
                       {m.note && <p className="mt-0.5 max-w-xs truncate text-xs text-muted">{m.note}</p>}
                     </td>
                     <td className="px-3 py-2">{machineShiftLabel(m, lang) ?? '—'}</td>
+                    <td className="px-3 py-2 text-xs">
+                      <p className="font-semibold">{agentName(m.agent_id) ?? '—'}</p>
+                      {!m.enabled && <p className="text-muted">{t('machine.disabled', lang)}</p>}
+                      <p className="text-muted">
+                        {t(m.credential_configured ? 'machine.keyConfigured' : 'machine.keyNotSet', lang)}
+                        {m.serial_verified_at && ` · ${t('machine.serialVerified', lang)}`}
+                      </p>
+                      {m.agent_id && m.enabled && <TestConnection machineId={m.id} latest={latestTests[m.id] ?? null} lang={lang} />}
+                    </td>
                     <td className="px-3 py-2">
                       <div className="flex justify-end gap-1">
                         <button

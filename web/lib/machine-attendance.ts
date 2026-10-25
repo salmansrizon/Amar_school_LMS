@@ -27,6 +27,23 @@ export function machineTypeLabel(value: string): string {
  *  Phase 1A POC proved (ADR 0033). The Attendance Agent connects to it. */
 export const DEFAULT_MACHINE_PORT: Record<MachineType, number> = { zkteco: 4370, timmy: 5005 }
 
+/** The Attendance Agent driver a machine is pinned to (Baseline §11). 'auto'
+ *  lets the Agent choose; the TIMY TM52GPRS driver is the only production
+ *  driver so far (Phase 5). Driver keys are not translated. */
+export const DRIVER_KEYS = [
+  { value: 'auto', label: 'Auto' },
+  { value: 'timmy-sdk-fpclock', label: 'TIMY SDK (TM52GPRS)' },
+] as const
+
+export function isDriverKey(value: string): boolean {
+  return DRIVER_KEYS.some((d) => d.value === value)
+}
+
+/** A new machine's driver: the TIMY driver for Timmy machines, 'auto' otherwise. */
+export function defaultDriverKey(type: MachineType): string {
+  return type === 'timmy' ? 'timmy-sdk-fpclock' : 'auto'
+}
+
 /** Which Shift a machine serves: none, every configured Shift, or one. */
 export type MachineShiftScope = 'none' | 'all' | 'shift'
 
@@ -44,6 +61,13 @@ export interface AttendanceMachine {
   port: number
   time_zone: string
   enabled: boolean
+  /** The Attendance Agent that serves this machine (ADR 0033), or null. */
+  agent_id?: string | null
+  driver_key?: string
+  /** Reported by the Agent: a communication key is set on the Agent PC (the key never reaches the cloud). */
+  credential_configured?: boolean
+  /** Set once the device itself reported the registered serial. */
+  serial_verified_at?: string | null
   /** Set while archived (ADR 0033: a used machine is archived, not deleted). */
   archived_at: string | null
   /** The machine this one replaced, for replacement hardware. */
@@ -60,6 +84,10 @@ export interface MachineInput {
   note: string | null
   host: string | null
   port: number
+  /** Present only when the form submitted them, so older callers never reset them. */
+  agent_id?: string | null
+  driver_key?: string
+  enabled?: boolean
 }
 
 export type MachineInputError =
@@ -70,6 +98,8 @@ export type MachineInputError =
   | 'errShift'
   | 'errHost'
   | 'errPort'
+  | 'errAgent'
+  | 'errDriver'
 
 // A LAN hostname or IPv4/IPv6 address as typed — letters, digits, '.', '-',
 // ':' (IPv6), at most 253 characters. Reachability is the Agent's to test.
@@ -100,6 +130,12 @@ export function parseMachineInput(
      *  absent or empty port is the vendor's default. */
     host?: string
     port?: string
+    /** Optional (Phase 6): '' = no Agent, else the Agent's id. */
+    agent_id?: string
+    /** Optional (Phase 6): one of DRIVER_KEYS. */
+    driver_key?: string
+    /** Optional (Phase 6): 'on' / 'true' when the machine is enabled. */
+    enabled?: string
   },
   configuredShifts: readonly string[],
 ): MachineInput | { error: MachineInputError } {
@@ -133,7 +169,7 @@ export function parseMachineInput(
     port = Number(portText)
   }
 
-  return {
+  const out: MachineInput = {
     machine_type: machineType,
     model,
     serial_number: serial,
@@ -144,7 +180,21 @@ export function parseMachineInput(
     host: host || null,
     port,
   }
+  if (raw.agent_id !== undefined) {
+    const agent = raw.agent_id.trim()
+    if (agent && !UUID.test(agent)) return { error: 'errAgent' }
+    out.agent_id = agent || null
+  }
+  if (raw.driver_key !== undefined) {
+    const driver = raw.driver_key.trim() || defaultDriverKey(machineType)
+    if (!isDriverKey(driver)) return { error: 'errDriver' }
+    out.driver_key = driver
+  }
+  if (raw.enabled !== undefined) out.enabled = raw.enabled === 'on' || raw.enabled === 'true'
+  return out
 }
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 /** Machines still in service (not archived) — the ones enrollment screens
  *  and the Agent work with. */
