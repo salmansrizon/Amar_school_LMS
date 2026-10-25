@@ -77,7 +77,6 @@ export function rpcError(error: PostgrestError) {
   if (/invalid activation code/.test(m)) return jsonError(401, 'invalid activation code')
   if (/agent installation conflict/.test(m)) return jsonError(409, 'agent installation conflict')
   if (/credential prefix taken/.test(m)) return jsonError(409, 'credential prefix taken')
-  if (/credential rotation in progress/.test(m)) return jsonError(409, 'credential rotation in progress')
   if (/attendance machine not found|machine command not found/.test(m)) return jsonError(404, 'not found')
   if (/^invalid |max_commands must be|status must be/.test(m)) return jsonError(400, 'invalid request')
   return jsonError(500, 'internal error')

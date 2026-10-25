@@ -9,7 +9,7 @@ import { POST as claim } from '@/app/api/agent/v1/commands/claim/route'
 import { POST as result } from '@/app/api/agent/v1/commands/[id]/result/route'
 import { POST as probeResult } from '@/app/api/agent/v1/devices/[id]/probe-result/route'
 import { POST as credentialStatus } from '@/app/api/agent/v1/devices/[id]/credential-status/route'
-import { signedIn } from '../helpers/auth'
+import { signedIn, anonClient, PASSWORD } from '../helpers/auth'
 import { schoolFixtures } from '../helpers/school-fixture'
 
 // Machine Attendance Phase 6 (migration 0265, ADR 0033, Baseline §18.1, §22):
@@ -60,17 +60,23 @@ describe('Agent API /api/agent/v1 (Machine Attendance Phase 6)', () => {
   const schools = schoolFixtures(() => admin)
 
   /** An activation code for a School, inserted by Super Admin with a known plaintext. */
-  const code = async (school: string, opts: { expired?: boolean } = {}) => {
+  const code = async (school: string, opts: { expired?: boolean; ttlSeconds?: number } = {}) => {
     const plain = newCode()
     const { error } = await admin.from('attendance_agent_activation_codes').insert({
       school_id: school,
       code_hash: sha256(plain),
-      expires_at: new Date(Date.now() + (opts.expired ? 1 : 24 * 3600) * 1000).toISOString(),
+      expires_at: new Date(Date.now() + (opts.expired ? 1 : (opts.ttlSeconds ?? 24 * 3600)) * 1000).toISOString(),
       ...(opts.expired ? { created_at: new Date(Date.now() - 3600 * 1000).toISOString() } : {}),
     })
     if (error) throw new Error(error.message)
     if (opts.expired) await new Promise((r) => setTimeout(r, 1200))
     return `${plain.slice(0, 4)}-${plain.slice(4, 8)}-${plain.slice(8)}`
+  }
+
+  /** Deletes the unconsumed code an RPC call created (identified by its exact expiry; code_hash is not client-readable). */
+  const deleteCode = async (expiresAt: string) => {
+    const { data } = await admin.from('attendance_agent_activation_codes').select('id').eq('expires_at', expiresAt).is('consumed_at', null)
+    for (const r of data ?? []) await admin.from('attendance_agent_activation_codes').delete().eq('id', r.id)
   }
 
   /** Activates a fresh identity in a School; returns it with its agent id. */
@@ -136,6 +142,28 @@ describe('Agent API /api/agent/v1 (Machine Attendance Phase 6)', () => {
       expect(codeRow).toHaveLength(1)
     })
 
+    it('the exact retry succeeds even after the original code has expired', async () => {
+      const who = newIdentity()
+      const c = await code(scratch, { ttlSeconds: 3 })
+      const first = await (await activate(req('activate', { body: activateBody(who, c) }))).json()
+      expect(first.agentId).toBeTruthy()
+      await new Promise((r) => setTimeout(r, 3500)) // the code is now consumed AND expired
+      const retry = await activate(req('activate', { body: activateBody(who, c) }))
+      expect(retry.status).toBe(200)
+      expect((await retry.json()).agentId).toBe(first.agentId)
+    })
+
+    it('the same install, verifier and prefix with ANOTHER code is refused, and that code stays unused', async () => {
+      const who = await activated(scratch)
+      const another = await code(scratch)
+      const res = await activate(req('activate', { body: activateBody(who, another) }))
+      expect(res.status).toBe(409)
+      expect(await res.text()).not.toContain(who.agentId)
+      // An unknown code is refused the same way: an existing Agent is never returned for it.
+      expect((await activate(req('activate', { body: activateBody(who, 'AAAA-BBBB-CCCC') }))).status).toBe(409)
+      expect((await activate(req('activate', { body: activateBody(newIdentity(), another) }))).status).toBe(200)
+    })
+
     it('refuses the same installId with a different verifier or prefix (409), and creates nothing', async () => {
       const who = await activated(scratch)
       const c = await code(scratch)
@@ -183,12 +211,12 @@ describe('Agent API /api/agent/v1 (Machine Attendance Phase 6)', () => {
       expect(error).toBeNull()
       const row = (data as { code: string; expires_at: string }[])[0]!
       expect(row.code).toMatch(/^[0-9A-HJKMNP-TV-Z]{4}-[0-9A-HJKMNP-TV-Z]{4}-[0-9A-HJKMNP-TV-Z]{4}$/)
-      const hash = sha256(row.code.replaceAll('-', ''))
       const { data: stored } = await admin.from('attendance_agent_activation_codes').select('id, expires_at').eq('expires_at', row.expires_at)
       expect(stored?.length).toBeGreaterThan(0)
       expect(JSON.stringify(stored)).not.toContain(row.code)
-      // Clean up: an unconsumed code may be deleted by Super Admin.
-      await admin.from('attendance_agent_activation_codes').delete().eq('code_hash', hash)
+      // code_hash is not selectable by client roles; clean up by id.
+      await deleteCode(row.expires_at)
+      expect((await admin.from('attendance_agent_activation_codes').select('id').eq('expires_at', row.expires_at)).data).toEqual([])
     })
   })
 
@@ -205,18 +233,34 @@ describe('Agent API /api/agent/v1 (Machine Attendance Phase 6)', () => {
       }
     })
 
-    it('a revoked Agent can no longer authenticate; its machines are unassigned and its work cancelled', async () => {
+    it('a revoked Agent can no longer authenticate; ALL its machines are unassigned and its open work cancelled', async () => {
       const who = await activated(scratch)
       const m = await machine(scratch, `API-REV-${randomUUID()}`, who.agentId)
-      const cmd = await admin.rpc('request_attendance_machine_test', { machine_id: m })
-      expect(cmd.error).toBeNull()
+      const m2 = await machine(scratch, `API-REV2-${randomUUID()}`, who.agentId)
+      const archived = await machine(scratch, `API-REV-ARC-${randomUUID()}`, who.agentId)
+      expect((await admin.rpc('archive_attendance_machine', { machine_id: archived })).error).toBeNull()
+      // One command claimed (in flight), one still pending.
+      const inFlight = (await admin.rpc('request_attendance_machine_test', { machine_id: m })).data as string
+      const claimed = await (await claim(req('commands/claim', { credential: who.credential, body: { max: 10 } }))).json()
+      expect(claimed.commands.map((x: { id: string }) => x.id)).toContain(inFlight)
+      const pending = (await admin.rpc('request_attendance_machine_test', { machine_id: m2 })).data as string
+
       expect((await admin.rpc('revoke_attendance_agent', { agent_id: who.agentId })).error).toBeNull()
       expect((await config(req('config', { method: 'GET', credential: who.credential }))).status).toBe(401)
       expect((await heartbeat(req('heartbeat', { credential: who.credential, body: { health: {} } }))).status).toBe(401)
-      const { data: mRow } = await admin.from('attendance_machines').select('agent_id').eq('id', m).single()
-      expect(mRow!.agent_id).toBeNull()
-      const { data: c } = await admin.from('machine_commands').select('status').eq('id', cmd.data).single()
-      expect(c!.status).toBe('cancelled')
+      const { data: rows } = await admin.from('attendance_machines').select('id, agent_id').in('id', [m, m2, archived])
+      expect(rows).toHaveLength(3)
+      expect(rows!.every((r) => r.agent_id === null)).toBe(true)
+      const { data: cmds } = await admin.from('machine_commands').select('id, status, claim_token').in('id', [inFlight, pending])
+      expect(cmds!.map((c) => [c.status, c.claim_token])).toEqual([['cancelled', null], ['cancelled', null]])
+      // Restoring the archived machine does not bring back the revoked Agent.
+      expect((await admin.rpc('restore_attendance_machine', { machine_id: archived })).error).toBeNull()
+      expect((await admin.from('attendance_machines').select('agent_id').eq('id', archived).single()).data!.agent_id).toBeNull()
+      // An archived machine still cannot be ASSIGNED to an Agent (only unassigned).
+      const live = await activated(scratch)
+      const arc2 = await machine(scratch, `API-REV-ARC2-${randomUUID()}`, null)
+      await admin.rpc('archive_attendance_machine', { machine_id: arc2 })
+      expect((await admin.from('attendance_machines').update({ agent_id: live.agentId }).eq('id', arc2)).error?.message).toMatch(/archived/)
       // Re-activating the same installation is refused too.
       expect((await activate(req('activate', { body: activateBody(who, await code(scratch)) }))).status).toBe(401)
     })
@@ -229,16 +273,30 @@ describe('Agent API /api/agent/v1 (Machine Attendance Phase 6)', () => {
       expect(Date.parse((await res.json()).previousValidUntil)).toBeGreaterThan(Date.now())
       const newCredential = `agt_${who.prefix}_${next}`
       expect((await config(req('config', { method: 'GET', credential: newCredential }))).status).toBe(200)
-      expect((await config(req('config', { method: 'GET', credential: who.credential }))).status).toBe(200) // overlap
-      // Repeating the same rotation (lost response) is a no-op; a different one during the overlap is refused.
-      expect((await rotate(req('credential/rotate', { credential: who.credential, body: { newVerifier: sha256(next) } }))).status).toBe(200)
-      expect((await rotate(req('credential/rotate', { credential: newCredential, body: { newVerifier: sha256(newSecret()) } }))).status).toBe(409)
+      // During the overlap A still works for ordinary authenticated calls...
+      expect((await config(req('config', { method: 'GET', credential: who.credential }))).status).toBe(200)
+      expect((await heartbeat(req('heartbeat', { credential: who.credential, body: { health: {} } }))).status).toBe(200)
+      // ...but A can never rotate again: neither to a new verifier nor by repeating B.
+      expect((await rotate(req('credential/rotate', { credential: who.credential, body: { newVerifier: sha256(newSecret()) } }))).status).toBe(401)
+      expect((await rotate(req('credential/rotate', { credential: who.credential, body: { newVerifier: sha256(next) } }))).status).toBe(401)
+      expect((await config(req('config', { method: 'GET', credential: newCredential }))).status).toBe(200) // nothing changed
+      // B confirming its own verifier is a no-op (how a lost rotation answer is resolved).
+      expect((await rotate(req('credential/rotate', { credential: newCredential, body: { newVerifier: sha256(next) } }))).status).toBe(200)
       // A body naming a prefix is refused: the prefix never changes.
       expect((await rotate(req('credential/rotate', { credential: newCredential, body: { newVerifier: sha256(newSecret()), credentialPrefix: newPrefix() } }))).status).toBe(400)
-      // After the overlap the old secret is refused.
-      await admin.from('attendance_agents').update({ previous_valid_until: new Date(Date.now() - 1000).toISOString() }).eq('id', who.agentId)
+      // B rotates normally (B -> C); B becomes the previous credential and A is gone.
+      const third = newSecret()
+      expect((await rotate(req('credential/rotate', { credential: newCredential, body: { newVerifier: sha256(third) } }))).status).toBe(200)
+      const thirdCredential = `agt_${who.prefix}_${third}`
+      expect((await config(req('config', { method: 'GET', credential: thirdCredential }))).status).toBe(200)
+      expect((await config(req('config', { method: 'GET', credential: newCredential }))).status).toBe(200) // overlap for B
       expect((await config(req('config', { method: 'GET', credential: who.credential }))).status).toBe(401)
-      expect((await config(req('config', { method: 'GET', credential: newCredential }))).status).toBe(200)
+      const { data: row } = await admin.from('attendance_agents_safe').select('credential_prefix').eq('id', who.agentId).single()
+      expect(row!.credential_prefix).toBe(who.prefix)
+      // After the overlap the previous secret is refused.
+      await admin.from('attendance_agents').update({ previous_valid_until: new Date(Date.now() - 1000).toISOString() }).eq('id', who.agentId)
+      expect((await config(req('config', { method: 'GET', credential: newCredential }))).status).toBe(401)
+      expect((await config(req('config', { method: 'GET', credential: thirdCredential }))).status).toBe(200)
     })
   })
 
@@ -266,7 +324,7 @@ describe('Agent API /api/agent/v1 (Machine Attendance Phase 6)', () => {
       expect(body.archivedDeviceIds).toEqual([archived])
       expect(text).not.toContain(disabled)
       expect(text).not.toContain(notMine)
-      expect(text).not.toMatch(/key|password|secret|credential/i)
+      expect(text.replaceAll('"driverKey"', '')).not.toMatch(/key|password|secret|credential/i)
       expect(body.configVersion).toMatch(/^[0-9a-f]{32}$/)
     })
   })
@@ -372,6 +430,108 @@ describe('Agent API /api/agent/v1 (Machine Attendance Phase 6)', () => {
       expect((await admin.rpc('request_attendance_machine_test', { machine_id: none })).error?.message).toMatch(/no active agent/)
       // A School user of another School cannot reach the machine at all.
       expect((await ownerA.rpc('request_attendance_machine_test', { machine_id: none })).error?.code).toBe('P0002')
+    })
+  })
+
+  // The three School-side definer functions check the 0240 rule themselves
+  // (#677): Attendance grant AND (School Owner OR Staff User with no employees
+  // row), in the caller's own School; Super Admin where an id names the School.
+  // Negative cases run against School A's permanent fixtures and create nothing.
+  describe('School-side authorization inside the definer functions', () => {
+    let ownerB: SupabaseClient
+    let office: SupabaseClient
+    let teacher: SupabaseClient
+    let student: SupabaseClient
+    let officeId: string
+    let fixtureAgentA: string
+    let fixtureMachineA: string
+    const grantsAdded: string[] = []
+    const uid = async (c: SupabaseClient) => (await c.auth.getUser()).data.user!.id
+    /** Ensure the grant for the run; only a grant this suite ADDED is taken back in afterAll. */
+    const ensureAttendanceGrant = async (staffUserId: string) => {
+      const { error } = await ownerA.from('staff_permissions').insert({ staff_user_id: staffUserId, screen_key: 'attendance' })
+      if (!error) grantsAdded.push(staffUserId)
+    }
+    /** Temporarily toggle within one test; always restored to "granted" (the run's state). */
+    const setAttendanceGrant = async (staffUserId: string, on: boolean) => {
+      if (on) await ownerA.from('staff_permissions').insert({ staff_user_id: staffUserId, screen_key: 'attendance' })
+      else await ownerA.from('staff_permissions').delete().eq('staff_user_id', staffUserId).eq('screen_key', 'attendance')
+    }
+
+    beforeAll(async () => {
+      ownerB = await signedIn('owner-b@test.local')
+      office = await signedIn('office-staff@test.local', PASSWORD)
+      teacher = await signedIn('teacher-e2e@test.local', PASSWORD)
+      student = await signedIn('s9001@test-a.students.invalid', PASSWORD)
+      officeId = await uid(office)
+      await ensureAttendanceGrant(officeId)
+      await ensureAttendanceGrant(await uid(teacher))
+      fixtureAgentA = (await admin.from('attendance_agents_safe').select('id').eq('install_id', '0216a9e7-0000-4000-8000-00000000000a').single()).data!.id
+      fixtureMachineA = (await admin.from('attendance_machines').select('id').eq('serial_number', 'EPI-FIXTURE-A').single()).data!.id
+    })
+
+    afterAll(async () => {
+      for (const id of grantsAdded) await ownerA.from('staff_permissions').delete().eq('staff_user_id', id).eq('screen_key', 'attendance')
+    })
+
+    const createCode = async (c: SupabaseClient) => {
+      const r = await c.rpc('create_attendance_agent_activation_code')
+      const row = (r.data as { code: string; expires_at: string }[] | null)?.[0]
+      if (row) await deleteCode(row.expires_at)
+      return r.error
+    }
+
+    it('create activation code: Owner and office staff with the grant; refused to a teacher, no grant, Student, Super Admin, anon', async () => {
+      expect(await createCode(ownerA)).toBeNull()
+      expect(await createCode(office)).toBeNull()
+      expect((await createCode(teacher))?.code).toBe('42501') // has the Attendance grant, but has an employees row
+      expect((await createCode(student))?.code).toBe('42501')
+      expect((await createCode(admin))?.code).toBe('42501') // no School of its own
+      expect(await createCode(anonClient())).not.toBeNull() // no EXECUTE for anon
+      await setAttendanceGrant(officeId, false)
+      try {
+        expect((await createCode(office))?.code).toBe('42501')
+      } finally {
+        await setAttendanceGrant(officeId, true)
+      }
+    })
+
+    it('revoke Agent: refused to a teacher, no grant, another School, a Student and anon; nothing changes', async () => {
+      for (const c of [teacher, ownerB, student]) {
+        expect((await c.rpc('revoke_attendance_agent', { agent_id: fixtureAgentA })).error?.code).toBe('P0002')
+      }
+      await setAttendanceGrant(officeId, false)
+      try {
+        expect((await office.rpc('revoke_attendance_agent', { agent_id: fixtureAgentA })).error?.code).toBe('P0002')
+      } finally {
+        await setAttendanceGrant(officeId, true)
+      }
+      expect((await anonClient().rpc('revoke_attendance_agent', { agent_id: fixtureAgentA })).error).not.toBeNull()
+      expect((await admin.from('attendance_agents_safe').select('status').eq('id', fixtureAgentA).single()).data!.status).toBe('active')
+    })
+
+    it('request Test Connection: refused to a teacher, no grant, another School, a Student and anon; nothing is queued', async () => {
+      const before = (await admin.from('machine_commands').select('id', { count: 'exact', head: true }).eq('machine_id', fixtureMachineA)).count
+      for (const c of [teacher, ownerB, student]) {
+        expect((await c.rpc('request_attendance_machine_test', { machine_id: fixtureMachineA })).error?.code).toBe('P0002')
+      }
+      await setAttendanceGrant(officeId, false)
+      try {
+        expect((await office.rpc('request_attendance_machine_test', { machine_id: fixtureMachineA })).error?.code).toBe('P0002')
+      } finally {
+        await setAttendanceGrant(officeId, true)
+      }
+      expect((await anonClient().rpc('request_attendance_machine_test', { machine_id: fixtureMachineA })).error).not.toBeNull()
+      const after = (await admin.from('machine_commands').select('id', { count: 'exact', head: true }).eq('machine_id', fixtureMachineA)).count
+      expect(after).toBe(before)
+    })
+
+    it('a School cannot affect another School by naming its ids', async () => {
+      const theirs = await activated(scratch)
+      const theirMachine = await machine(scratch, `API-XS-${randomUUID()}`, theirs.agentId)
+      expect((await ownerA.rpc('revoke_attendance_agent', { agent_id: theirs.agentId })).error?.code).toBe('P0002')
+      expect((await office.rpc('request_attendance_machine_test', { machine_id: theirMachine })).error?.code).toBe('P0002')
+      expect((await config(req('config', { method: 'GET', credential: theirs.credential }))).status).toBe(200) // still active
     })
   })
 })

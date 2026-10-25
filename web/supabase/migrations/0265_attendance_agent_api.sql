@@ -12,10 +12,19 @@
 --   get_attendance_agent_config          enabled, non-archived machines of this Agent
 --   report_attendance_device_probe       normalized DeviceInfo + capabilities + key yes/no
 --   report_attendance_device_credential_status   key yes/no
--- Admin-facing (School session behind the Attendance grant, or Super Admin):
+-- Admin-facing (an employee-attendance administrator of the School, or Super
+-- Admin where a target id names the School):
 --   create_attendance_agent_activation_code      code shown once
 --   request_attendance_machine_test              TEST_CONNECTION command
 --   revoke_attendance_agent
+-- "Employee-attendance administrator" is the rule #677 already decided and
+-- 0240 applies to attendance_machines writes: the Attendance grant AND (the
+-- School Owner OR a Staff User with no employees row). No new policy here.
+--
+-- Also replaces attendance_machines_guard (0217) with one change: an archived
+-- machine may be UNASSIGNED from its Agent (agent_id -> null), so revocation
+-- leaves no machine, archived or not, pointing at a revoked Agent. Assigning
+-- or reassigning an archived machine stays refused.
 --
 -- Security rules (§18.1):
 --   * The Agent's secret never reaches the database: activation carries
@@ -30,6 +39,80 @@
 --     credential_configured flag.
 --   * Activation codes are stored as sha256 of the normalized code; the
 --     plaintext is returned once by create_attendance_agent_activation_code.
+
+-- ---------------------------------------------------------------------------
+-- 0. Who administers the School's attendance machines (the 0240 write rule,
+-- as a predicate for the definer functions below). The School itself is
+-- checked by each caller. False for Super Admin, Students and anon.
+create function public._attendance_machine_admin() returns boolean
+language sql stable security definer set search_path = public as $$
+  select public.app_module_granted('attendance')
+     and (public.app_current_role() = 'school_owner' or public.app_current_employee_id() is null)
+$$;
+
+revoke execute on function public._attendance_machine_admin() from public, anon, authenticated;
+
+-- 0217's guard, unchanged except for the archived-machine freeze: clearing
+-- agent_id (unassigning) is allowed, any other agent_id change is not.
+create or replace function public.attendance_machines_guard() returns trigger
+language plpgsql set search_path = public as $$
+declare
+  is_client boolean := current_user in ('authenticated', 'anon')
+    and public.app_current_role() is distinct from 'super_admin'::public.app_role;
+begin
+  if tg_op = 'INSERT' then
+    if is_client and (
+         new.firmware_version is not null or new.platform is not null or new.device_name is not null
+         or new.mac is not null or new.pin_width is not null or new.capabilities <> '{}'::jsonb
+         or new.credential_configured or new.credential_reported_at is not null
+         or new.probed_serial is not null or new.serial_verified_at is not null
+         or new.archived_at is not null or new.archived_by is not null or new.replaces_machine_id is not null) then
+      raise exception 'only the Attendance Agent or the machine lifecycle functions set these attendance_machines columns';
+    end if;
+    return new;
+  end if;
+
+  if new.school_id is distinct from old.school_id or new.created_at is distinct from old.created_at then
+    raise exception 'attendance_machines.school_id and created_at are immutable';
+  end if;
+  if old.replaces_machine_id is not null and new.replaces_machine_id is distinct from old.replaces_machine_id then
+    raise exception 'attendance_machines.replaces_machine_id is immutable once set';
+  end if;
+  if old.probed_serial is not null and (new.probed_serial is distinct from old.probed_serial
+     or new.serial_verified_at is distinct from old.serial_verified_at) then
+    raise exception 'the verified serial of an attendance machine cannot be changed';
+  end if;
+  if old.serial_verified_at is not null and new.serial_number is distinct from old.serial_number then
+    raise exception 'the serial number of a verified attendance machine cannot be changed';
+  end if;
+
+  if is_client and (
+       new.firmware_version is distinct from old.firmware_version or new.platform is distinct from old.platform
+       or new.device_name is distinct from old.device_name or new.mac is distinct from old.mac
+       or new.pin_width is distinct from old.pin_width or new.capabilities is distinct from old.capabilities
+       or new.credential_configured is distinct from old.credential_configured
+       or new.credential_reported_at is distinct from old.credential_reported_at
+       or new.probed_serial is distinct from old.probed_serial or new.serial_verified_at is distinct from old.serial_verified_at
+       or new.archived_at is distinct from old.archived_at or new.archived_by is distinct from old.archived_by
+       or new.replaces_machine_id is distinct from old.replaces_machine_id) then
+    raise exception 'only the Attendance Agent or the machine lifecycle functions change these attendance_machines columns';
+  end if;
+
+  -- Archived: frozen except for being restored (archived_at cleared), being
+  -- unassigned from its Agent, or the Agent-reported facts that a late report
+  -- may still carry.
+  if old.archived_at is not null and new.archived_at is not null and (
+       new.machine_type is distinct from old.machine_type or new.model is distinct from old.model
+       or new.serial_number is distinct from old.serial_number or new.location is distinct from old.location
+       or new.shift_scope is distinct from old.shift_scope or new.shift is distinct from old.shift
+       or new.note is distinct from old.note or new.host is distinct from old.host or new.port is distinct from old.port
+       or new.driver_key is distinct from old.driver_key or new.time_zone is distinct from old.time_zone
+       or new.enabled is distinct from old.enabled
+       or (new.agent_id is distinct from old.agent_id and new.agent_id is not null)) then
+    raise exception 'an archived attendance machine cannot be edited; restore it first';
+  end if;
+  return new;
+end $$;
 
 -- ---------------------------------------------------------------------------
 -- 1. Activation codes.
@@ -60,7 +143,9 @@ declare
   i integer;
   expiry timestamptz := now() + interval '24 hours';
 begin
-  if school is null or not public.app_module_granted('attendance') then
+  -- A School session only: the code belongs to the caller's own School. Super
+  -- Admin has no School of its own and is refused here.
+  if school is null or not public._attendance_machine_admin() then
     raise exception 'not allowed to create an activation code' using errcode = '42501';
   end if;
   -- Bytes 0-5 and 10-15 of a v4 UUID are fully random; 256 % 32 = 0, so the
@@ -145,24 +230,27 @@ revoke execute on function public.activate_attendance_agent(text, uuid, text, te
 grant execute on function public.activate_attendance_agent(text, uuid, text, text, text, text, text) to anon, authenticated;
 
 -- ---------------------------------------------------------------------------
--- 3. Rotation (§18.1): a new verifier under the unchanged prefix. The current
--- hash becomes the previous one for a one-hour overlap. Repeating the same
--- new verifier is a no-op (lost-response retry, accepted with either secret);
--- a different new verifier during an overlap is refused.
+-- 3. Rotation (§18.1): a new verifier under the unchanged prefix. Only the
+-- CURRENT credential may rotate: a credential that matches only the previous
+-- hash (still accepted for ordinary calls during the overlap) is refused here.
+-- The current hash becomes the previous one for a one-hour overlap, replacing
+-- any earlier previous hash. Presenting the new credential with its own
+-- verifier is a no-op (how an Agent confirms a rotation whose answer it lost).
 create function public.rotate_attendance_agent_credential(credential text, new_verifier text)
 returns timestamptz
 language plpgsql security definer set search_path = public as $$
 declare
   a attendance_agents := public._attendance_agent_for_credential(credential);
+  presented text := encode(sha256(convert_to(substring(credential from '^agt_[A-Za-z0-9]{8,32}_(\S{16,255})$'), 'UTF8')), 'hex');
 begin
+  if presented is distinct from a.credential_hash then
+    raise exception 'invalid agent credential' using errcode = '28000';
+  end if;
   if coalesce(new_verifier, '') !~ '^[0-9a-f]{64}$' then
     raise exception 'invalid rotation request' using errcode = '22023';
   end if;
   if new_verifier = a.credential_hash then
     return a.previous_valid_until;
-  end if;
-  if a.previous_valid_until is not null and a.previous_valid_until > now() then
-    raise exception 'credential rotation in progress' using errcode = '23505';
   end if;
   update attendance_agents ag
      set previous_credential_hash = ag.credential_hash, previous_valid_until = now() + interval '1 hour',
@@ -348,6 +436,11 @@ declare
   existing uuid;
   created uuid;
 begin
+  -- _attendance_machine_for_caller: Super Admin, or the caller's School behind
+  -- the Attendance grant. Narrowed here to the 0240 administrator rule.
+  if public.app_current_role() is distinct from 'super_admin'::public.app_role and not public._attendance_machine_admin() then
+    raise exception 'attendance machine not found' using errcode = 'P0002';
+  end if;
   if m.archived_at is not null or not m.enabled then
     raise exception 'attendance machine is not in service' using errcode = '22023';
   end if;
@@ -371,8 +464,11 @@ grant execute on function public.request_attendance_machine_test(uuid) to authen
 
 -- ---------------------------------------------------------------------------
 -- 8. Revocation (§18.1, §22.2): the credential stops working at once
--- (_attendance_agent_for_credential refuses revoked Agents), its machines in
--- service are unassigned, its unfinished commands are cancelled. One-way.
+-- (_attendance_agent_for_credential refuses revoked Agents), every machine
+-- assigned to it - archived ones included, so a later restore cannot bring
+-- back a machine bound to a revoked Agent - is unassigned, and every
+-- unfinished command (pending, claimed, running: all non-final states of
+-- 0221) is cancelled. One-way.
 create function public.revoke_attendance_agent(agent_id uuid) returns void
 language plpgsql security definer set search_path = public as $$
 declare
@@ -381,7 +477,7 @@ begin
   select * into a from attendance_agents ag where ag.id = revoke_attendance_agent.agent_id for update;
   if a.id is null
      or not (public.app_current_role() = 'super_admin'
-             or (a.school_id = public.app_current_school_id() and public.app_module_granted('attendance'))) then
+             or (a.school_id = public.app_current_school_id() and public._attendance_machine_admin())) then
     raise exception 'attendance agent not found' using errcode = 'P0002';
   end if;
   if a.status = 'revoked' then
@@ -392,8 +488,7 @@ begin
      set status = 'cancelled', completed_at = now(), error_detail = 'attendance agent revoked',
          claim_token = null, lease_expires_at = null
    where c.agent_id = a.id and c.status in ('pending', 'claimed', 'running');
-  -- Archived machines are frozen (0217) and keep their history; they are already out of every config.
-  update attendance_machines am set agent_id = null where am.agent_id = a.id and am.archived_at is null;
+  update attendance_machines am set agent_id = null where am.agent_id = a.id;
 end $$;
 
 revoke execute on function public.revoke_attendance_agent(uuid) from public, anon;
