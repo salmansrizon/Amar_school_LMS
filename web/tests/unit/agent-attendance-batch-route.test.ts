@@ -54,11 +54,19 @@ describe('POST /api/agent/v1/attendance/batch', () => {
     expect(rpc).not.toHaveBeenCalled()
   })
 
+  it('a payload over 4 MiB with at most 1000 events is 413, never 500, and never reaches the database', async () => {
+    const heavy = { ...event, raw: { blob: 'x'.repeat(15_000) } } // each event within the 16 KiB raw rule
+    const events = Array.from({ length: 300 }, () => heavy) // ~4.5 MB in total, 300 events
+    const res = await call({ batchId: BATCH, events })
+    expect(res.status).toBe(413)
+    expect(rpc).not.toHaveBeenCalled()
+  })
+
   it('maps database errors to fixed answers', async () => {
     rpc.mockResolvedValueOnce({ data: null, error: { message: 'invalid agent credential' } })
     expect((await call({ batchId: BATCH, events: [event] })).status).toBe(401)
     rpc.mockResolvedValueOnce({ data: null, error: { message: 'invalid attendance batch' } })
-    expect((await call({ batchId: BATCH, events: [event] })).status).toBe(400)
+    expect((await call({ batchId: BATCH, events: [event] })).status).toBe(413) // only the 4 MiB bound is left at that point
     rpc.mockResolvedValueOnce({ data: null, error: { message: 'something internal' } })
     const res = await call({ batchId: BATCH, events: [event] })
     expect(res.status).toBe(500)

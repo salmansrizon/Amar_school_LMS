@@ -171,12 +171,14 @@ describe('Agent attendance ingest /api/agent/v1/attendance/batch (Phase 8)', () 
       for (const e of bad) expect(await stored(e)).toBeNull()
       expect(await pair('2026-09-22', other)).toBeNull()
       // The other School's Agent cannot use this School's machine either.
-      expect(outcome((await send([ev(m1, nextUser(), '2026-09-22T09:00:00')], otherAgentCredential)).body, ev(m1, String(userSeq), '2026-09-22T09:00:00'))).toBe('MACHINE_NOT_ASSIGNED')
+      const theirs = ev(m1, nextUser(), '2026-09-22T09:00:00')
+      expect(outcome((await send([theirs], otherAgentCredential)).body, theirs)).toBe('MACHINE_NOT_ASSIGNED')
     })
 
     it('disabled machines keep accepting; archived machines accept only punches before archived_at', async () => {
       const mOff = await machine(school, agentId, { enabled: false })
-      expect(outcome((await send([ev(mOff, nextUser(), '2026-09-23T08:00:00')])).body, ev(mOff, String(userSeq), '2026-09-23T08:00:00'))).toBe('accepted')
+      const offPunch = ev(mOff, nextUser(), '2026-09-23T08:00:00')
+      expect(outcome((await send([offPunch])).body, offPunch)).toBe('accepted')
       const mArc = await machine(school, agentId)
       expect((await admin.rpc('archive_attendance_machine', { machine_id: mArc })).error).toBeNull()
       const archivedAt = new Date((await admin.from('attendance_machines').select('archived_at').eq('id', mArc).single()).data!.archived_at)
@@ -230,6 +232,31 @@ describe('Agent attendance ingest /api/agent/v1/attendance/batch (Phase 8)', () 
       expect([nullPunch, fingerprint, noVerify, bigRaw, zoned].map((e) => outcome(r.body, e))).toEqual(['accepted', 'accepted', 'INVALID_EVENT', 'INVALID_EVENT', 'INVALID_EVENT'])
       expect((await stored(nullPunch))!.punch_state).toBeNull()
       expect((await stored(fingerprint))!.card_number).toBeNull()
+    })
+
+    it('the record-id key form is chosen only by the machine\'s stored capability, never by the event', async () => {
+      const rid = (machine: string, recordId: string) => sha256(`rid|${machine}|${recordId}`)
+      // Verified capability false (or never reported): a deviceRecordId cannot opt the event into record-id keys.
+      const plain = await machine(school, agentId, { capabilities: { attendanceHasStableRecordId: false } })
+      const optIn = { ...ev(plain, nextUser(), '2026-09-29T08:00:00'), deviceRecordId: 'rec-1' }
+      const forged = { ...optIn, eventKey: rid(plain, 'rec-1') }
+      let r = await send([forged, optIn])
+      expect([outcome(r.body, forged), outcome(r.body, optIn)]).toEqual(['EVENT_KEY_MISMATCH', 'accepted']) // the fallback key holds
+      // Capability true: the record-id form is required.
+      const stable = await machine(school, agentId, { capabilities: { attendanceHasStableRecordId: true } })
+      const byRecord = { ...ev(stable, nextUser(), '2026-09-29T09:00:00'), deviceRecordId: 'rec-2' }
+      const ridKeyed = { ...byRecord, eventKey: rid(stable, 'rec-2') }
+      r = await send([byRecord, ridKeyed])
+      expect([outcome(r.body, byRecord), outcome(r.body, ridKeyed)]).toEqual(['EVENT_KEY_MISMATCH', 'accepted'])
+    })
+
+    it('a batch whose events exceed 4 MiB as stored JSON is 413, even under 1000 events and under 4 MiB on the wire', async () => {
+      const raw = Object.fromEntries(Array.from({ length: 1100 }, (_, i) => [`k${String(i).padStart(4, '0')}`, '']))
+      const events = Array.from({ length: 300 }, (_, i) => ev(m1, nextUser(), `2026-09-30T08:${String(Math.floor(i / 60)).padStart(2, '0')}:${String(i % 60).padStart(2, '0')}`, { raw }))
+      expect(new TextEncoder().encode(JSON.stringify({ batchId: randomUUID(), events })).length).toBeLessThan(4 * 1024 * 1024)
+      const r = await send(events)
+      expect(r.status).toBe(413)
+      expect(await pair('2026-09-30')).toBeNull() // nothing stored, nothing enqueued
     })
 
     it('batch-level rules: credential, shape and size', async () => {

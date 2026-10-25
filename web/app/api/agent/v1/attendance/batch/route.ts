@@ -24,6 +24,9 @@ export async function POST(request: Request) {
   }
   if (events.length > MAX_EVENTS) return jsonError(413, 'too many events')
   const { data, error } = await agentDb().rpc('ingest_agent_attendance_events', { credential, batch_id: batchId, events })
+  // The envelope is valid here (uuid batch id, 1-1000 events), so the RPC's only remaining batch-level refusal is its
+  // 4 MiB bound on the events as stored JSON (which can exceed the request bytes: jsonb adds separators' spaces).
+  if (error && /invalid attendance batch/.test(error.message)) return jsonError(413, 'request too large')
   if (error) return rpcError(error)
   if (!data || typeof data !== 'object' || !Array.isArray(data.accepted) || !Array.isArray(data.duplicates) || !Array.isArray(data.rejected)) {
     return jsonError(500, 'internal error')
