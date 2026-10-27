@@ -32,6 +32,22 @@ export interface RfidRow {
   uniqueId: number | null
   /** The card currently stored, from machine_enroll_infos. */
   card: string | null
+  /** Phase 9: per-machine provisioning state, already worded by the server. */
+  devices?: DeviceBadge[]
+}
+
+export interface DeviceBadge {
+  machine: string
+  text: string
+  tone: 'ok' | 'wait' | 'bad' | 'muted'
+  title?: string
+}
+
+const BADGE_TONE: Record<DeviceBadge['tone'], string> = {
+  ok: 'bg-mint-soft text-mint-deep',
+  wait: 'bg-sky-soft text-sky-deep',
+  bad: 'bg-alert-soft text-alert-deep',
+  muted: 'bg-paper-muted text-muted',
 }
 
 const subscribe = (listener: () => void) => rfidQueue().subscribe(listener)
@@ -52,12 +68,15 @@ export function RfidEntryTable({
   rows,
   headers,
   lang,
+  devicesHeader,
 }: {
   kind: EnrollmentKind
   rows: RfidRow[]
   /** Labels for `cells`, in the same order. */
   headers: string[]
   lang: Lang
+  /** When set, a column of per-machine provisioning badges (Phase 9). */
+  devicesHeader?: string
 }) {
   const snap = useSyncExternalStore(subscribe, snapshot, serverSnapshot)
   const inputs = useRef<(HTMLInputElement | null)[]>([])
@@ -169,6 +188,7 @@ export function RfidEntryTable({
               <th className="px-3 py-2">{t('students.uniqueId', lang)}</th>
               <th className="px-3 py-2">{t('rfid.card', lang)}</th>
               <th className="px-3 py-2">{t('rfid.status', lang)}</th>
+              {devicesHeader && <th className="px-3 py-2">{devicesHeader}</th>}
             </tr>
           </thead>
           <tbody>
@@ -214,6 +234,17 @@ export function RfidEntryTable({
                       onRetry={() => rfidQueue().retry(row.id)}
                     />
                   </td>
+                  {devicesHeader && (
+                    <td className="px-3 py-1.5 text-xs" data-device-status>
+                      <div className="flex flex-wrap gap-1">
+                        {(row.devices ?? []).map((d) => (
+                          <span key={d.machine} title={d.title} className={`rounded-full px-2 py-0.5 font-semibold ${BADGE_TONE[d.tone]}`}>
+                            {d.machine}: {d.text}
+                          </span>
+                        ))}
+                      </div>
+                    </td>
+                  )}
                 </tr>
               )
             })}

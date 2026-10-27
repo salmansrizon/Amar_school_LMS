@@ -4,11 +4,13 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { getSchoolContext } from '@/lib/school/context'
 import { employeeAttendanceAdminDenied } from '@/lib/school/employee-attendance-admin'
-import { parseMachineInput } from '@/lib/machine-attendance'
+import { activeMachines, parseMachineInput } from '@/lib/machine-attendance'
+import { enqueueProvisioning, type ProvisionKind, type ProvisionResult } from '@/lib/attendance-provisioning'
 import {
   archiveMachine,
   createMachine,
   deleteMachine,
+  listMachines,
   restoreMachine,
   saveRfidEntries,
   updateMachine,
@@ -118,7 +120,57 @@ export async function saveRfidEntriesAction(entries: RfidEntry[]): Promise<RfidS
   if (await employeeAttendanceAdminDenied(supabase)) {
     return [...results, ...valid.map((e) => ({ personId: e.personId, ok: false as const, error: 'failed' as const }))]
   }
-  return [...results, ...(await saveRfidEntries(supabase, valid))]
+  const saved = await saveRfidEntries(supabase, valid)
+  await reprovisionChangedCards(supabase, saved, valid)
+  return [...results, ...saved]
+}
+
+/**
+ * Phase 9 (Baseline §22.2 "Replace RFID"): a saved card for someone already on a
+ * machine bumps that SAME open episode and queues the new desired state. It
+ * only touches machines the person is already on (existing_only), and never
+ * fails the card save: what could not be queued shows in the device status.
+ * A cleared card queues nothing (removal is OD-6, still open).
+ */
+async function reprovisionChangedCards(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  saved: RfidSaveResult[],
+  entries: RfidEntry[],
+): Promise<void> {
+  const kindOf = new Map(entries.map((e) => [e.personId, e.kind]))
+  const machines = activeMachines(await listMachines(supabase)).map((m) => m.id)
+  if (!machines.length) return
+  for (const kind of ['student', 'employee'] as const) {
+    const people = saved.filter((r) => r.ok && r.card !== null && kindOf.get(r.personId) === kind).map((r) => r.personId)
+    if (people.length) await enqueueProvisioning(supabase, kind, people, machines, true)
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Phase 9: provisioning people onto machines (Baseline §14). The definer RPC
+// (migration 0269) plans and writes; it checks the #677 rule itself, and the
+// action repeats it so a refused caller never reaches the database.
+
+const MAX_PEOPLE = 2000
+const MAX_MACHINES = 20
+
+/** Enroll Students (and, in Phase 10, Employees): queue PROVISION_PERSON where the plan allows, with a reason elsewhere. */
+export async function enrollPeopleAction(
+  kind: ProvisionKind,
+  machineIds: string[],
+  personIds: string[],
+): Promise<ProvisionResult | { error: string }> {
+  if (kind !== 'student' && kind !== 'employee') return { error: 'errSave' }
+  if (!Array.isArray(machineIds) || !Array.isArray(personIds)) return { error: 'errSave' }
+  const machines = [...new Set(machineIds)].filter((id) => typeof id === 'string' && UUID.test(id))
+  const people = [...new Set(personIds)].filter((id) => typeof id === 'string' && UUID.test(id))
+  if (!machines.length || !people.length || machines.length > MAX_MACHINES || people.length > MAX_PEOPLE) return { error: 'errSave' }
+  const supabase = await createClient()
+  const denied = await employeeAttendanceAdminDenied(supabase)
+  if (denied) return { error: denied.error ?? 'errSave' }
+  const result = await enqueueProvisioning(supabase, kind, people, machines)
+  if (!('error' in result)) revalidatePath(kind === 'student' ? '/school/attendance/machine/students' : '/school/attendance/machine/employees')
+  return result
 }
 
 // ---------------------------------------------------------------------------

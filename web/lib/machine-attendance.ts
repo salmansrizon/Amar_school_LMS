@@ -68,6 +68,8 @@ export interface AttendanceMachine {
   credential_configured?: boolean
   /** Set once the device itself reported the registered serial. */
   serial_verified_at?: string | null
+  /** The device's verified capabilities (Phase 6 probe; `{}` until probed). Never a secret. */
+  capabilities?: Record<string, unknown> | null
   /** Set while archived (ADR 0033: a used machine is archived, not deleted). */
   archived_at: string | null
   /** The machine this one replaced, for replacement hardware. */

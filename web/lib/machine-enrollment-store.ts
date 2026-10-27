@@ -149,7 +149,7 @@ export async function employeeShifts(supabase: SupabaseClient, employeeIds: read
 }
 
 const MACHINE_COLUMNS =
-  'id, machine_type, model, serial_number, location, shift_scope, shift, note, host, port, time_zone, enabled, archived_at, replaces_machine_id, agent_id, driver_key, credential_configured, serial_verified_at'
+  'id, machine_type, model, serial_number, location, shift_scope, shift, note, host, port, time_zone, enabled, archived_at, replaces_machine_id, agent_id, driver_key, credential_configured, serial_verified_at, capabilities'
 
 /** Every machine of the caller's School, archived ones included (Machine Setup
  *  lists them separately; enrollment screens use activeMachines()). */
