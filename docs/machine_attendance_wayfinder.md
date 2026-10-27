@@ -406,8 +406,8 @@ MIGRATION  PROPOSED 02xx_attendance_machine_enrollments.sql
              episode table, partial unique open-episode index, btree_gist exclusion (or trigger), immutability trigger
 PROPOSED   web/lib/machine-provisioning.ts         pure planning: who to (re)provision/remove per device (episode rules)
 PROPOSED   web/lib/machine-provisioning-store.ts   bump open episode / insert new episode / enqueue commands
-MODIFY     web/lib/machine-enrollment-store.ts      saveOne(): clearing a student card no longer just deletes —
-                                                    queues removal on devices (OD-6 decides final behaviour)
+KEPT       web/lib/machine-enrollment-store.ts      saveOne(): clearing a student card still deletes the row; per OD-6
+                                                    (resolved 2026-10-28) that is NOT device removal — episodes stay open
 MODIFY     web/app/school/attendance/machine/actions.ts   + enrollPeopleAction, retryEnrollmentAction, removeEnrollmentAction
 MODIFY     web/app/school/attendance/machine/machine-ui.tsx   EnrollButton: picker → real enqueue, no "Upcoming"
 MODIFY     web/app/school/attendance/machine/rfid-entry-table.tsx  per-device status chips
@@ -647,7 +647,7 @@ Existing files touched   MODIFY machine/students/page.tsx, machine-ui.tsx (Enrol
                          machine/actions.ts, web/lib/machine-enrollment-store.ts (clear-card path)
 New files                PROPOSED web/lib/machine-provisioning.ts, web/lib/machine-provisioning-store.ts
 Tests                    PROPOSED machine-provisioning.test.ts (unit); extend machine-enrollment-episodes.test.ts
-Depends on               Phases 3, 6, OD-6
+Depends on               Phases 3, 6, OD-6 (resolved 2026-10-28: card clear is not removal)
 Exit                     1000 students provisioned to the first production-supported bench device and verified by tap
 ```
 
@@ -711,7 +711,7 @@ Exit                     signed install/upgrade/rollback on Windows 10/11
 | Hotspot | Why it is risky | Phases |
 |---|---|---|
 | `web/app/school/attendance/machine/actions.ts` | Every admin operation lands here (device CRUD, lifecycle, activation codes, enrollment, retry, removal, reconciliation decisions). Easy to grow into business logic, which `web/AGENTS.md` forbids in actions | 3, 6, 9, 10, 11, 12 |
-| `web/lib/machine-enrollment-store.ts` | Holds both device and RFID persistence; `saveOne()` delete semantics change (OD-6); `deleteMachine` changes to archive; `MACHINE_COLUMNS` must never select secrets. Candidate to split (device store vs. enrollment store) when touched | 3, 6, 9, 10, 11 |
+| `web/lib/machine-enrollment-store.ts` | Holds both device and RFID persistence; `saveOne()` delete semantics kept — OD-6 resolved 2026-10-28: a card clear is not device removal; `deleteMachine` changes to archive; `MACHINE_COLUMNS` must never select secrets. Candidate to split (device store vs. enrollment store) when touched | 3, 6, 9, 10, 11 |
 | `reconcile_attendance` (current body in MIGRATION 0211) | High-value function shared with grace logic (0208/0210) and absence SMS; becomes per-pair, gains episode/alias resolution and a new day boundary that also changes the legacy card path | 3, 8, 11 |
 | `attendance_events` (0017) + `ingest_attendance_events` (0020) | Live table with existing rows; nullable card, backfill of `attendance_date`, new unique index; the legacy route must keep working throughout (shared staging/main DB) | 3, 8 |
 | `web/app/api/attendance/reconcile/route.ts` + `web/vercel.json` | Changes from one global date to queue drain; cron auth duplicated vs. `web/lib/cron/job.ts` | 3, 8 |
@@ -788,7 +788,7 @@ Rule from the repository (0211/0212 comments): staging and main share one databa
 |---|---|---|---|
 | `web/tests/integration/rfid-attendance.test.ts` | Legacy ingest + reconcile: collapse, idempotent re-run, unresolved replay, late widen, cross-tenant, bad secret, malformed time | Per-pair reconcile, queue drain, `attendance_date` | **Extend**: call enqueue + drain; keep every assertion |
 | `web/tests/integration/attendance-ingest-route.test.ts` | Route auth, malformed ids, single/batch, duplicates stored, unknown card, student/employee resolution | `attendance_date` + enqueue in legacy RPC | **Extend**: assert pairs enqueued; duplicates still stored on legacy path |
-| `web/tests/integration/machine-enroll-infos.test.ts` | Machine ID sequence/immutability, enrollment constraints, legacy RFID retirement | Clear-card → device removal (OD-6), episode FK | **Extend** |
+| `web/tests/integration/machine-enroll-infos.test.ts` | Machine ID sequence/immutability, enrollment constraints, legacy RFID retirement | Clear-card keeps the device episode (OD-6 resolved), episode FK | **Extend** |
 | `web/tests/integration/machine-attendance.test.ts` | Machine CRUD + RLS, `employee_card.unique_id`, student/employee RFID, roster | Delete → archive, new device fields | **Extend**; lifecycle in a new file |
 | `web/tests/unit/machine-attendance.test.ts` | `parseMachineInput`, `machineShiftChoice`, `parseRfid`, `nextRfidFocusIndex`, `filterEmployeesByShift` | New machine fields | **Extend** |
 | `web/tests/unit/machine-ui.test.tsx` | Identity, picker, **Upcoming placeholders "never call a server action"**, RFID table, setup form | Phase 6/9 make these live | **Rewrite** the placeholder cases |

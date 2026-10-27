@@ -56,7 +56,10 @@ describe('student provisioning (Phase 9)', () => {
   }
   const student = async (name: string, card?: string | null, archived = false) => {
     const { data: s } = await admin.from('students').insert({ school_id: school, full_name: name }).select('id, unique_id').single()
-    if (card !== undefined) await admin.from('machine_enroll_infos').insert({ school_id: school, type: 'student', student_id: s!.id, unique_id: s!.unique_id, rfid_card_number: card })
+    if (card !== undefined) {
+      const { error } = await admin.from('machine_enroll_infos').insert({ school_id: school, type: 'student', student_id: s!.id, unique_id: s!.unique_id, rfid_card_number: card })
+      if (error) throw new Error(error.message) // e.g. a card already used in this School
+    }
     if (archived) await admin.from('students').update({ archived_at: new Date().toISOString() }).eq('id', s!.id)
     return s as { id: string; unique_id: number }
   }
@@ -131,22 +134,22 @@ describe('student provisioning (Phase 9)', () => {
   })
 
   it('a card replacement bumps the SAME episode; its history window stays; the device form compares numerically', async () => {
-    const s = await student('Card Change Student', '0004972001')
+    const s = await student('Card Change Student', '0004972002')
     await enqueue(admin, [s.id], [m1])
     let [ep] = await episode(s.id, m1)
-    await agentRuns(ep.last_command_id, 'succeeded', { result: { machineUserId: String(s.unique_id), storedCard: '4972001', name: 'Card Change Studen', verified: true } })
+    await agentRuns(ep.last_command_id, 'succeeded', { result: { machineUserId: String(s.unique_id), storedCard: '4972002', name: 'Card Change Studen', verified: true } })
     ;[ep] = await episode(s.id, m1)
     const linkedAt = ep.linked_at
-    expect(of(await enqueue(admin, [s.id], [m1]), s.id, m1)).toBe('unchanged') // 0004972001 == 4972001 on this device
+    expect(of(await enqueue(admin, [s.id], [m1]), s.id, m1)).toBe('unchanged') // 0004972002 == 4972002 on this device
 
-    await admin.from('machine_enroll_infos').update({ rfid_card_number: '0013646760' }).eq('student_id', s.id)
+    await admin.from('machine_enroll_infos').update({ rfid_card_number: '0013646762' }).eq('student_id', s.id)
     expect(of(await enqueue(admin, [s.id], [m1], true), s.id, m1)).toBe('updated')
     const episodes = await episode(s.id, m1)
     expect(episodes).toHaveLength(1)
     expect(episodes[0]).toMatchObject({ id: ep.id, desired_version: 2, sync_state: 'pending', linked_at: linkedAt })
-    await agentRuns(episodes[0].last_command_id, 'succeeded', { result: { machineUserId: String(s.unique_id), storedCard: '13646760', name: 'Card Change Studen', verified: true } })
+    await agentRuns(episodes[0].last_command_id, 'succeeded', { result: { machineUserId: String(s.unique_id), storedCard: '13646762', name: 'Card Change Studen', verified: true } })
     const [synced] = await episode(s.id, m1)
-    expect(synced).toMatchObject({ id: ep.id, sync_state: 'synced', last_synced_card: '13646760', linked_at: linkedAt })
+    expect(synced).toMatchObject({ id: ep.id, sync_state: 'synced', last_synced_card: '13646762', linked_at: linkedAt })
   })
 
   it('card cleared in the LMS: the episode stays open and linked; removal is reported as manual, never queued', async () => {
@@ -160,6 +163,78 @@ describe('student provisioning (Phase 9)', () => {
     expect(after).toMatchObject({ unlinked_at: null, desired_state: 'present', sync_state: 'synced', enroll_info_id: null })
     expect(after.linked_at).not.toBeNull()
     expect((await admin.from('machine_commands').select('id').eq('machine_id', m1).eq('type', 'REMOVE_PERSON')).data).toEqual([])
+  })
+
+  // OD-6 (resolved 2026-10-28): clearing an LMS card is not removal from machines.
+  it('OD-6: linked student -> card cleared -> same episode stays open, nothing removed; a new card re-provisions THAT episode', async () => {
+    const s = await student('Recard Student', '0004972003')
+    await enqueue(admin, [s.id], [m1])
+    let [ep] = await episode(s.id, m1)
+    await agentRuns(ep.last_command_id, 'succeeded', { result: { machineUserId: String(s.unique_id), storedCard: '4972003', name: 'Recard Student', verified: true } })
+    ;[ep] = await episode(s.id, m1)
+    const linkedAt = ep.linked_at
+    expect(linkedAt).not.toBeNull()
+
+    // Card cleared in the LMS (today: the enrollment row is deleted).
+    await admin.from('machine_enroll_infos').delete().eq('student_id', s.id)
+    expect(of(await enqueue(admin, [s.id], [m1], true), s.id, m1)).toBe('errManualRemovalRequired')
+    let all = await episode(s.id, m1)
+    expect(all).toHaveLength(1)
+    expect(all[0]).toMatchObject({ id: ep.id, unlinked_at: null, linked_at: linkedAt, sync_state: 'synced', desired_version: 1, enroll_info_id: null })
+    expect((await admin.from('machine_commands').select('id').eq('machine_id', m1).eq('type', 'REMOVE_PERSON')).data).toEqual([])
+
+    // A new card: a NEW enrollment row (the old one is gone; the episode's enroll_info_id stays null) — the planner
+    // still finds the open episode by (machine, machine user ID) and bumps it.
+    await admin.from('machine_enroll_infos').insert({ school_id: school, type: 'student', student_id: s.id, unique_id: s.unique_id, rfid_card_number: '0013646763' })
+    const r = await enqueue(admin, [s.id], [m1], true) // what saving a card does
+    expect(of(r, s.id, m1)).toBe('updated')
+    expect(r.queued[0]).toMatchObject({ enrollmentId: ep.id, desiredVersion: 2 })
+    all = await episode(s.id, m1)
+    expect(all).toHaveLength(1)
+    expect(all[0]).toMatchObject({ id: ep.id, desired_version: 2, sync_state: 'pending', linked_at: linkedAt, enroll_info_id: null })
+    const { data: cmd } = await admin.from('machine_commands').select('payload').eq('id', all[0].last_command_id).single()
+    expect(cmd!.payload).toMatchObject({ enrollmentRowId: ep.id, desiredVersion: 2, card: '0013646763' })
+    await agentRuns(all[0].last_command_id, 'succeeded', { result: { machineUserId: String(s.unique_id), storedCard: '13646763', name: 'Recard Student', verified: true } })
+    all = await episode(s.id, m1)
+    expect(all).toHaveLength(1)
+    expect(all[0]).toMatchObject({ id: ep.id, sync_state: 'synced', last_synced_card: '13646763', desired_version: 2, linked_at: linkedAt, unlinked_at: null })
+  })
+
+  it('a superseded unclaimed command is cancelled; a stale result from an older claimed version cannot overwrite the newer state', async () => {
+    const s = await student('Stale Student', '1000001')
+    await enqueue(admin, [s.id], [m1])
+    const [v1] = await episode(s.id, m1)
+
+    // v1 still pending (unclaimed) when the card changes: it is cancelled, v2 queued.
+    await admin.from('machine_enroll_infos').update({ rfid_card_number: '1000002' }).eq('student_id', s.id)
+    expect(of(await enqueue(admin, [s.id], [m1]), s.id, m1)).toBe('retried')
+    const { data: cancelled } = await admin.from('machine_commands').select('status, error_detail').eq('id', v1.last_command_id).single()
+    expect(cancelled).toMatchObject({ status: 'cancelled', error_detail: 'superseded by a newer desired version' })
+    const [v2] = await episode(s.id, m1)
+    expect(v2).toMatchObject({ desired_version: 2, sync_state: 'pending' })
+
+    // v2 is claimed (in flight) when the card changes again: it cannot be cancelled, v3 is queued.
+    const claimed = await (await claim(req('commands/claim', { max: 50 }))).json()
+    const c2 = claimed.commands.find((x: { id: string }) => x.id === v2.last_command_id)
+    await admin.from('machine_enroll_infos').update({ rfid_card_number: '1000003' }).eq('student_id', s.id)
+    expect(of(await enqueue(admin, [s.id], [m1]), s.id, m1)).toBe('retried')
+    const [v3] = await episode(s.id, m1)
+    expect(v3.desired_version).toBe(3)
+    // The late v2 result, even verified, is ignored: no link, no stored card, v3 still pending.
+    const late = await result(req(`commands/${c2.id}/result`, { claimToken: c2.claimToken, status: 'succeeded',
+      result: { machineUserId: String(s.unique_id), storedCard: '1000002', name: 'Stale Student', verified: true } }), { params: Promise.resolve({ id: c2.id }) })
+    expect((await late.json()).ack).toBe('completed')
+    const [after] = await episode(s.id, m1)
+    expect(after).toMatchObject({ id: v1.id, desired_version: 3, sync_state: 'pending', linked_at: null, last_synced_card: null, last_command_id: v3.last_command_id })
+  })
+
+  it('a failed read-back leaves the episode failed with the Agent\'s explanation', async () => {
+    const s = await student('Readback Student', '4040404')
+    await enqueue(admin, [s.id], [m1])
+    const [ep] = await episode(s.id, m1)
+    await agentRuns(ep.last_command_id, 'failed', { errorClass: 'vendorError', errorDetail: 'Read-back after the write does not match the desired user: the card differs.' })
+    const [after] = await episode(s.id, m1)
+    expect(after).toMatchObject({ sync_state: 'failed', linked_at: null, last_error: 'vendorError: Read-back after the write does not match the desired user: the card differs.' })
   })
 
   it('eligibility and capability reasons are returned, never silently skipped', async () => {

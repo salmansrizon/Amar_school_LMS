@@ -3221,12 +3221,12 @@ const dict = {
   'provision.errMachineIdConflict': { bn: 'এই আইডি মেশিনে অন্য কারও', en: 'Another person holds this ID on the machine' },
   'provision.errRemovalPending': { bn: 'মেশিন থেকে সরানো অপেক্ষমাণ', en: 'Removal from the machine pending' },
   'provision.errManualRemovalRequired': {
-    bn: 'কার্ড মোছা হয়েছে, কিন্তু মেশিনে এখনো আছে — মেশিন থেকে নিজে সরাতে হবে',
-    en: 'Card cleared, but still on the machine — remove it on the machine itself',
+    bn: 'এখানে কার্ড মোছা হয়েছে, কিন্তু মেশিনে পুরোনো কার্ড এখনো আছে — মেশিনেই নিজে ঠিক করতে হবে',
+    en: 'Card cleared here, but the machine still has the old card — change it on the machine itself',
   },
   'provision.errRemovalUndecided': {
-    bn: 'কার্ড মোছা হয়েছে, কিন্তু মেশিনে এখনো আছে — সরানোর নিয়ম এখনো ঠিক হয়নি',
-    en: 'Card cleared, but still on the machine — removal is not decided yet',
+    bn: 'এখানে কার্ড মোছা হয়েছে, কিন্তু মেশিনে পুরোনো কার্ড এখনো আছে — মেশিনেই ঠিক করুন',
+    en: 'Card cleared here, but the machine still has the old card — change it on the machine',
   },
   'machine.agentLastSync': { bn: 'অ্যাটেনডেন্স এজেন্টের সর্বশেষ সিঙ্ক', en: 'Attendance Agent last synced' },
   'attendance.agentNotSynced': {

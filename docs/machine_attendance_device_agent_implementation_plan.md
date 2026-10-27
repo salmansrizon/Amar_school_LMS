@@ -254,7 +254,12 @@ Source: `web/supabase/migrations/0211_machine_enroll_infos.sql` §5, RLS §5, ba
 
 - **Keep `machine_enroll_infos` unchanged in meaning**: it is the person-level *desired identity* ("this person is enrolled for machine attendance as Machine ID N with card C"). Do **not** replace it.
 - **Add a per-device child table** (PROPOSED, REQUIRES MIGRATION), working name `attendance_machine_enrollments`, holding one row per **enrollment episode** of a person on a device: `(machine_id, machine_user_id)`, desired/actual state, the device's internal UID and the **link window** (`linked_at` / `unlinked_at`) during which that device user ID means that person on that device. Closed episodes are kept forever and never reopened; re-enrolling creates a new episode ([§21.2](#212-new-tables)). This table — not `machine_enroll_infos` alone — is what Agent-originated attendance resolves through ([§15.2](#152-is-attendance_events-suitable-as-the-raw-machine-store)). See [§21](#21-database-migration-plan).
-- **Behavior change required (REQUIRES OWNER DECISION OD-6):** today clearing a student's card **deletes** the `machine_enroll_infos` row (`saveOne` in `machine-enrollment-store.ts`). Once devices hold the user, deleting the cloud row must also queue removal from every device it was provisioned to. The per-device rows must therefore **not** silently cascade away; they should move to `desired_state = 'absent'` and stay until the Agent confirms removal. Also decide whether a student may be fingerprint-only (today a student enrollment exists only to carry a card).
+- **OD-6 — RESOLVED (owner, 2026-10-28): clearing an RFID card is NOT removal from attendance machines.** Today clearing a student's card **deletes** the `machine_enroll_infos` row (`saveOne` in `machine-enrollment-store.ts`); the per-device episodes do not cascade away (`enroll_info_id` falls to null). Rules:
+  - Clearing the LMS card never queues `REMOVE_PERSON`, never closes the person's linked episode and never pretends the device card was cleared. While the user still exists on the device the episode stays open and valid (the person can still punch there).
+  - On a device that cannot clear a card while keeping the user (`CanClearCardKeepingUser = false`, e.g. TIMY TM52GPRS) the screen shows that manual device administration is required. On a future device with `CanClearCardKeepingUser = true`, a card clear may be sent as a desired-state update that keeps the same user and the same episode.
+  - Removing a person from a device is a separate, explicit, destructive action with confirmation. It may queue `REMOVE_PERSON` only where `CanDeleteUsers = true`, and the episode closes (`unlinked_at`, `sync_state = 'removed'`) only after the Agent verifies the removal.
+  - A student may be fingerprint-only (no card) only on a device whose verified capabilities support a valid card-less user (`CanCreateUsersWithoutCard = true`).
+  - Implemented in Phase 9 (migration 0269) for the TM52GPRS case: a cleared card on a linked episode is reported `errManualRemovalRequired`, nothing is queued, and a later new card re-provisions the same open episode (`desired_version` + 1, `linked_at` unchanged). The capable-device paths above (card clear kept on the device, explicit removal, fingerprint-only students) need a later forward migration when such a device is supported; 0269 currently still refuses card-less students everywhere.
 - **Archived people:** `students.archived_at` / `employees.archived_at` exist; there is no rule yet for removing an archived person from devices. Proposed default: archive ⇒ desired state `absent` on all devices, with an explicit confirmation step in UI (REQUIRES OWNER DECISION OD-7).
 
 ---
@@ -856,7 +861,7 @@ Episode rules for every enrollment flow (students and employees):
 - Enrolling the same person on the same device again later creates a **new** episode (`linked_at` set on its first verified sync). The closed episode is never reopened, so a punch from the gap between the two windows does not resolve.
 - A pending episode that is cancelled before it was ever linked is closed with `sync_state = 'cancelled'`, `unlinked_at` = cancellation time and `linked_at` left null. It never matches any punch.
 
-Students are never created here; eligibility = an existing, non-archived student with a `machine_enroll_infos` row (plus card, unless OD-6 allows fingerprint-only students).
+Students are never created here; eligibility = an existing, non-archived student with a `machine_enroll_infos` row plus a card — or, per OD-6 (resolved 2026-10-28), no card only on a device whose verified capabilities support a card-less user.
 
 ### 14.3 Employee enrollment flow
 
@@ -1576,7 +1581,7 @@ Order adjusted to the repository's dependencies: the cloud fixes (G1 per-device 
 | OD-3 | Confirm ZKTeco Standalone SDK license permits redistribution inside our installer | Primary ZKTeco driver candidate; required before the ZKTeco driver ships |
 | OD-4 | Legal position on pyzk (GPL-2.0): test-only vs. reference vs. shipped bridge | ZKTeco fallback driver strategy; required before the ZKTeco driver ships |
 | OD-5 | Who may generate activation codes / revoke Agents: School Owner only, or any Attendance-grant Staff User | Security |
-| OD-6 | On clearing a student's card: remove from devices automatically (after confirm) or keep? May students be fingerprint-only? | Delete semantics of `machine_enroll_infos` |
+| OD-6 | ~~On clearing a student's card: remove from devices automatically (after confirm) or keep? May students be fingerprint-only?~~ **RESOLVED 2026-10-28:** a card clear is not removal (no `REMOVE_PERSON`, episode stays open); removal is a separate confirmed action, only where `CanDeleteUsers`; fingerprint-only students only where the device supports card-less users. See the "OD-6 — RESOLVED" note in the `machine_enroll_infos` section. | Delete semantics of `machine_enroll_infos` |
 | OD-7 | Archived students/employees: auto-remove from devices? | Device capacity, security |
 | OD-8 | Accept `unique_id` as machine user ID (Option A) and per-device alias only if a device's PIN width forces it | Identity |
 | OD-9 | Catalog in Agent release only (recommended) vs. Super Admin–editable DB table | Operations |
